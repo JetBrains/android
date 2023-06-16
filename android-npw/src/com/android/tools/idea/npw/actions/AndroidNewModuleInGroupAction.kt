@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.npw.actions
 
-import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.intellij.ide.projectView.impl.ModuleGroup.ARRAY_DATA_KEY
 import com.intellij.openapi.actionSystem.ActionPlaces.MAIN_MENU
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -40,6 +40,6 @@ class AndroidNewModuleInGroupAction : AndroidNewModuleAction("Module", "Adds a n
   override fun getModulePath(e: AnActionEvent): String {
     val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext) ?: return ":"
 
-    return module.getGradleProjectPath()?.path ?: ":"
+    return module.getGradleIdentityPath() ?: ":"
   }
 }

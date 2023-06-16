@@ -27,6 +27,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.android.tools.idea.Projects;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.android.tools.idea.testing.AndroidProjectBuilder;
@@ -165,7 +166,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
   public void testCompileJava() {
     setupTestProjectFromAndroidModel(myProject,
-                                     getTempDir().createDir().toFile(),
+                                     Projects.getBaseDirPath(myProject),
                                      JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
@@ -195,7 +196,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
   public void testAssemble() throws Exception {
     setupTestProjectFromAndroidModel(myProject,
-                                     getTempDir().createDir().toFile(),
+                                     Projects.getBaseDirPath(myProject),
                                      JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));
@@ -219,7 +220,7 @@ public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
 
   public void testAssembleWithCommandLineArgs() throws Exception {
     setupTestProjectFromAndroidModel(myProject,
-                                     getTempDir().createDir().toFile(),
+                                     Projects.getBaseDirPath(myProject),
                                      JavaModuleModelBuilder.Companion.getRootModuleBuilder(),
                                      new AndroidModuleModelBuilder(":app", "debug", new AndroidProjectBuilder()),
                                      new AndroidModuleModelBuilder(":lib", "debug", new AndroidProjectBuilder()));

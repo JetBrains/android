@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.tools.idea.gradle.util.BuildMode
-import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
@@ -26,7 +26,7 @@ object GradleTaskFinderNotifier {
   fun notifyNoTaskFound(modules: Array<Module>, mode: BuildMode, type: TestCompileType) {
     if (modules.isEmpty()) return
     val modulePaths = modules
-      .mapNotNull { it.getGradleProjectPath()?.path }
+      .mapNotNull { it.getGradleIdentityPath() }
       .distinct()
 
     val project = modules[0].project

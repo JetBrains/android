@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.projectsystem.getAndroidFacets
-import com.android.tools.idea.projectsystem.gradle.internalGetGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -66,6 +66,6 @@ internal fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
 @JvmName("getModuleIdForSyncRequest")
 @VisibleForTesting
 fun Module.getModuleIdForSyncRequest(): String {
-  val gradleProjectPath = internalGetGradleProjectPath() ?: error("Module $name is not a Gradle module.")
+  val gradleProjectPath = getGradleProjectPath() ?: error("Module $name is not a Gradle module.")
   return Modules.createUniqueModuleId(gradleProjectPath.buildRoot, gradleProjectPath.path)
 }

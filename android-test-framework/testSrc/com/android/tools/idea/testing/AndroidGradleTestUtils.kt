@@ -126,6 +126,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleIdentityPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.gradle.toSourceSetPath
@@ -1998,12 +1999,12 @@ private fun mergeModuleContentRoots(weightMap: Map<String, Int>, moduleNode: Dat
 /**
  * Finds a module by the given [gradlePath].
  *
- * Note: In the case of composite build [gradlePath] can be in a form of `includedProject:module:module` for modules from included projects.
+ * Note: For composite build [gradlePath] can be in a form of `:includedProject:module:module` for modules from included projects.
  */
 @JvmOverloads
 fun Project.gradleModule(gradlePath: String, sourceSet: IdeModuleSourceSet? = null): Module? =
   ModuleManager.getInstance(this).modules
-    .firstOrNull { it.getGradleProjectPath()?.path == gradlePath }
+    .firstOrNull { it.getGradleIdentityPath() == gradlePath }
     ?.getHolderModule()
     ?.let {
       if (sourceSet == null) it

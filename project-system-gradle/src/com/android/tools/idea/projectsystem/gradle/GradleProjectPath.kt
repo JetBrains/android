@@ -17,7 +17,9 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.utils.FileUtils
+import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalModuleType
 import com.intellij.openapi.module.Module
@@ -30,8 +32,10 @@ import com.intellij.util.text.nullize
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
-import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getGradleIdentityPathOrNull
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.plugins.gradle.util.gradleIdentityPath
+import org.jetbrains.plugins.gradle.util.gradlePath
+import org.jetbrains.plugins.gradle.util.isIncludedBuild
 import java.io.File
 
 sealed class GradleProjectPath {
@@ -68,8 +72,28 @@ fun GradleProjectPath.toSourceSetPath(sourceSet: IdeModuleSourceSet): GradleSour
   return GradleSourceSetProjectPath(buildRoot, path, sourceSet)
 }
 
-internal fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
-  val buildRootFolder = File(ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return null)
+/** Returns Gradle identity path (composite build-aware path) of the Gradle build this module belongs to e.g. ":" or ":includedBuild". */
+private fun Module.getGradleBuildIdentityPath(): String {
+  fun computeValue(): String {
+    val mainModuleDataNode = CachedModuleDataFinder.getInstance(project).findMainModuleData(this) ?: return ":"
+    if (!mainModuleDataNode.data.isIncludedBuild) return ":"
+    val gradlePath = mainModuleDataNode.data.gradlePath
+    val gradleIdentityPath = mainModuleDataNode.data.gradleIdentityPath
+    return gradleIdentityPath.removeSuffix(gradlePath)
+  }
+
+  return CachedValuesManager.getManager(this.project).getCachedValue(this) {
+    CachedValueProvider.Result.create(
+      computeValue(), ProjectSyncModificationTracker.getInstance(this.project)
+    )
+  }
+}
+
+private fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
+  val gradleBuildName = this.getGradleBuildIdentityPath()
+  val externalRootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return null
+  val buildRootModule = this.project.findGradleBuildRoot(externalRootProjectPath, gradleBuildName) ?: return null
+  val buildRootFolder = ExternalSystemApiUtil.getExternalProjectPath(buildRootModule)?.let { File(it)} ?: return null
   // The external system projectId is:
   // :<projectName-uniqualized-by-Gradle> for the root module of a main or only build in a composite build
   // :gradle:path for a non-root module of a main or only build in a composite build
@@ -80,8 +104,28 @@ internal fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
 
   val isSourceSet = getExternalModuleType(this) == GradleConstants.GRADLE_SOURCE_SET_MODULE_TYPE_KEY
   val externalSystemId = ExternalSystemApiUtil.getExternalProjectId(this) ?: return null
-  val gradlePath = getGradleIdentityPathOrNull(this) ?: return null
+  val gradlePath = CachedModuleDataFinder.getGradleModuleData(this)?.gradlePath ?: return null
   return createGradleProjectPath(gradlePath, externalSystemId, isSourceSet, buildRootFolder)
+}
+
+private fun Project.findGradleBuildRoot(externalRootProjectPath: String, gradleBuildRootIdentityPath: String): Module? {
+  // Ensure that externalRootProjectPath is part of the key as we can have multiple linked Gradle projects in a single IDE Project
+  return CachedValuesManager.getManager(this).getCachedValue(this) {
+    val moduleMap = ModuleManager.getInstance(this)
+      .modules
+      .mapNotNull {
+        val data = CachedModuleDataFinder.getGradleModuleData(it) ?: return@mapNotNull null
+        val externalRootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(it) ?: return@mapNotNull null
+
+        return@mapNotNull if (data.gradlePath == ":") (externalRootProjectPath + data.gradleIdentityPath) to it
+        else null
+      }.toMap()
+
+    CachedValueProvider.Result.create(
+      moduleMap,
+      ProjectRootModificationTracker.getInstance(this)
+    )
+  }[externalRootProjectPath + gradleBuildRootIdentityPath]
 }
 
 @VisibleForTesting

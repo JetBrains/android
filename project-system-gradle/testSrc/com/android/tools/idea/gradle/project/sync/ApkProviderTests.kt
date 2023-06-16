@@ -76,12 +76,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         )
       }.toMap(),
     ),
-/* b/283852233
     def(
       stackMarker = { it() },
       TestScenario(
         testProject = AndroidCoreTestProject.COMPOSITE_BUILD,
-        target = NamedAppTargetRunConfiguration(externalSystemModuleId = "TestCompositeLib1:app:main"),
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":TestCompositeLib1:app:main"),
       ),
       expectApks =
       """
@@ -105,7 +104,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         )
       }.toMap(),
     ),
-b/283852233 */
     def(
       stackMarker = { it() },
       TestScenario(
