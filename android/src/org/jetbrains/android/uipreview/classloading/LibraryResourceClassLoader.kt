@@ -23,8 +23,6 @@ import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.util.VirtualFileSystemOpener.recognizes
-import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.res.ResourceClassRegistry
 import com.android.tools.res.ResourceNamespacing
@@ -49,17 +47,6 @@ private fun ExternalAndroidLibrary.getResolvedPackageName(): String? {
       AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(it)
     }
     catch (ignore: IOException) {
-      // Workaround for https://issuetracker.google.com/127647973
-      // Until fixed, the VFS might have an outdated view of the gradle cache directory. Some manifests might appear as missing but they
-      // are actually there. In those cases, we issue a refresh call to fix the problem.
-      if (recognizes(it)) {
-        manifestFile.toVirtualFile(true)
-        try {
-          return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(it)
-        }
-        catch (_: IOException) {
-        }
-      }
       null
     }
   }
