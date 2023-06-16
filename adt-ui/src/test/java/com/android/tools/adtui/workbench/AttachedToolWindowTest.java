@@ -112,7 +112,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myWorkBench.getContext()).thenReturn("");
 
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
-    Disposer.register(getTestRootDisposable(), myToolWindow);
+    Disposer.register(getTestRootDisposable(), myWorkBench);
 
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
   }
