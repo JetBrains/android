@@ -96,7 +96,7 @@ class AndroidSdkCompatibilityCheckerTest {
   fun `test dialog is shown when there is a module which violates rules`() {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-UpsideDownCake"),
+      appModuleBuilder(compileSdk = "android-35"),
     )
     val androidModels = getGradleAndroidModels(projectRule.project)
     responseToDialog(true) {
@@ -112,11 +112,11 @@ class AndroidSdkCompatibilityCheckerTest {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
       appModuleBuilder(compileSdk = "android-35"),
-      appModuleBuilder(compileSdk = "android-UpsideDownCake"),
-      appModuleBuilder(compileSdk = "android-UpsideDownCake"),
-      libModuleBuilder(compileSdk = "android-UpsideDownCake"),
-      libModuleBuilder(compileSdk = "android-UpsideDownCake"),
-      libModuleBuilder(compileSdk = "android-UpsideDownCake"),
+      appModuleBuilder(compileSdk = "android-35"),
+      appModuleBuilder(compileSdk = "android-35"),
+      libModuleBuilder(compileSdk = "android-35"),
+      libModuleBuilder(compileSdk = "android-35"),
+      libModuleBuilder(compileSdk = "android-35"),
     )
     val androidModels = getGradleAndroidModels(projectRule.project)
     responseToDialog(true) {
@@ -127,7 +127,6 @@ class AndroidSdkCompatibilityCheckerTest {
     assertThat(dialogMessages[0]).contains(".myapp")
     assertThat(dialogMessages[0]).contains(".mylib")
     assertThat(dialogMessages[0]).contains("(compileSdk=35)")
-    assertThat(dialogMessages[0]).contains("(compileSdk=UpsideDownCake)")
     assertThat(dialogMessages[0]).contains("(and 1 more)")
   }
 

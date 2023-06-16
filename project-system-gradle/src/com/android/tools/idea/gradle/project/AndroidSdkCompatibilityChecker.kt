@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project
 
+import com.android.SdkConstants
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.SdkVersionInfo.HIGHEST_SUPPORTED_API
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationInfo
@@ -105,7 +105,7 @@ class AndroidSdkCompatibilityChecker {
   }
 
   companion object {
-    val MAX_RECOMMENDED_COMPILE_SDK_VERSION = AndroidVersion(HIGHEST_SUPPORTED_API)
+    val MAX_RECOMMENDED_COMPILE_SDK_VERSION: AndroidVersion = SdkConstants.RECOMMENDED_MAXIMUM_SDK_VERSION
     val UPDATE_STUDIO_BUTTON = 0 to "Upgrade Android Studio"
     val DO_NOT_ASK_FOR_PROJECT_BUTTON = 1 to "Don't ask for this project"
     const val MAX_NUM_OF_MODULES = 5
