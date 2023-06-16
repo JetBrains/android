@@ -16,7 +16,6 @@
 package com.android.tools.idea
 
 import com.android.tools.asdriver.tests.AndroidSystem
-import com.android.tools.asdriver.tests.ComponentMatchersBuilder
 import com.android.tools.asdriver.tests.Emulator
 import org.junit.Rule
 import org.junit.Test
@@ -69,10 +68,7 @@ class DebugNativeApkTest {
           println("Running the app")
           studio.executeAction("Debug")
 
-          // XDebuggerTree's presence represents that the debugger hit a breakpoint.
-          println("Checking for the debugger UI")
-          val matchers = ComponentMatchersBuilder().addSwingClassRegexMatch(".*XDebuggerTree$")
-          studio.waitForComponent(matchers)
+          studio.waitForNativeBreakpointHit()
         }
       }
     }

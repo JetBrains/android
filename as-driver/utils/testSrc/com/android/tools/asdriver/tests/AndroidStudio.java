@@ -282,6 +282,11 @@ public class AndroidStudio implements AutoCloseable {
     ASDriver.WaitForIndexResponse ignore = androidStudio.waitForIndex(rq);
   }
 
+  public void waitForNativeBreakpointHit() throws IOException, InterruptedException {
+    System.out.println("Waiting for native breakpoint to hit");
+    install.getIdeaLog().waitForMatchingLine(".*Native breakpoint hit.*", 1, TimeUnit.MINUTES);
+  }
+
   /**
    * Opens a file and then goes to a specific line and column in the first open project's selected
    * text editor.
