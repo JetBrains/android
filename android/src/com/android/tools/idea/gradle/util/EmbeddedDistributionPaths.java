@@ -72,30 +72,32 @@ public class EmbeddedDistributionPaths {
     }
 
     if (StudioPathManager.isRunningFromSources()) {
-      // Repo path candidates, the path should be relative to tools/idea.
-      List<String> repoCandidates = new ArrayList<>();
-
       if (studioCustomRepo == null) {
-        repoCandidates.add("out/repo");
+        addIfExists("out/repo", repoPaths);
       }
-
       // Add locally published offline studio repo
-      repoCandidates.add("out/studio/repo");
-      // Add prebuilts repo.
-      repoCandidates.add("prebuilts/tools/common/m2/repository");
-      repoCandidates.add(System.getProperty("java.io.tmpdir") + "/offline-maven-repo");
+      addIfExists("out/studio/repo", repoPaths);
+      addIfExists(System.getProperty("java.io.tmpdir") + "/offline-maven-repo", repoPaths);
       // TODO: Test repo locations are dynamic and are given via .manifest files, we should not hardcode here
-      repoCandidates.add("../maven/repository");
-
-      for (String candidate : repoCandidates) {
-        Path candidateDir = StudioPathManager.resolvePathFromSourcesRoot(candidate);
-        if (Files.isDirectory(candidateDir)) {
-          repoPaths.add(candidateDir.toFile());
-        }
+      addIfExists("../maven/repository", repoPaths);
+      // Add prebuilts repo only if any have already been added
+      if (!repoPaths.isEmpty()) {
+        addIfExists("prebuilts/tools/common/m2/repository", repoPaths);
       }
     }
 
     return ImmutableList.copyOf(repoPaths);
+  }
+
+  /**
+   * Adds paths that correspond to directories which exist to repoPaths
+   *
+   * The path should be relative to tools/idea.
+   */
+  private static void addIfExists(String path, List<File> repoPaths) {
+    Path directory = StudioPathManager.resolvePathFromSourcesRoot(path);
+    if (!Files.isDirectory(directory)) return;
+    repoPaths.add(directory.toFile());
   }
 
   @NotNull
