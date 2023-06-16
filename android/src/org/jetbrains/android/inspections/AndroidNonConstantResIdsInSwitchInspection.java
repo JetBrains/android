@@ -8,6 +8,7 @@ import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.siyeh.IntentionPowerPackBundle;
 import com.siyeh.ipp.switchtoif.ReplaceSwitchWithIfIntention;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
@@ -80,7 +81,7 @@ public class AndroidNonConstantResIdsInSwitchInspection extends LocalInspectionT
   }
 
   public String getQuickFixName() {
-    return myBaseIntention.getText();
+    return IntentionPowerPackBundle.message("replace.switch.with.if.intention.name");
   }
 
   private class MyQuickFix implements LocalQuickFix {
