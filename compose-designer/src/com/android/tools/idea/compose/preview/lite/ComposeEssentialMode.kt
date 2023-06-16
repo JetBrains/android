@@ -22,11 +22,11 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
-/** If lite mode is enabled, one preview at a time is available with tabs to select between them. */
-class ComposeGallery(
-  content: JComponent,
-  rootComponent: JComponent,
-) {
+/**
+ * If essential mode is enabled, one preview at a time is available with tabs to select between
+ * them.
+ */
+class ComposeEssentialMode(rootComponent: JComponent) {
 
   private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
     val previewElement = tab?.element
@@ -45,14 +45,18 @@ class ComposeGallery(
   private val tabs: GalleryTabs<PreviewElementKey> =
     GalleryTabs(rootComponent, keysProvider, tabChangeListener)
 
-  /** [JPanel] that wraps tabs and content. */
-  val component =
-    JPanel(BorderLayout()).apply {
-      add(tabs as JComponent, BorderLayout.NORTH)
-      add(content, BorderLayout.CENTER)
-    }
+  /** [JPanel] for tabs. */
+  val component: JComponent = tabs
 
   @get:TestOnly
   val selectedKey: PreviewElementKey?
     get() = tabs.selectedKey
+}
+
+class EssentialModeWrapperPanel(northComponent: JComponent, centerComponent: JComponent) :
+  JPanel(BorderLayout()) {
+  init {
+    add(northComponent, BorderLayout.NORTH)
+    add(centerComponent, BorderLayout.CENTER)
+  }
 }

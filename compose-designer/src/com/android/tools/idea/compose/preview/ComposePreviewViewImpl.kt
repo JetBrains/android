@@ -28,8 +28,9 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
-import com.android.tools.idea.compose.preview.lite.ComposeGallery
+import com.android.tools.idea.compose.preview.lite.ComposeEssentialMode
 import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
+import com.android.tools.idea.compose.preview.lite.EssentialModeWrapperPanel
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -94,6 +95,9 @@ interface ComposePreviewView {
 
   /** If true, the contents have been at least rendered once. */
   var hasRendered: Boolean
+
+  /** If Essential Mode is enabled, null if mode is disabled. */
+  var essentialMode: ComposeEssentialMode?
 
   /** Method called to force an update on the notifications for the given [FileEditor]. */
   fun updateNotifications(parentEditor: FileEditor)
@@ -298,18 +302,10 @@ internal class ComposePreviewViewImpl(
     }
   private val actionsToolbar: ActionsToolbar
 
-  /**
-   * If lite mode is enabled, one preview at a time is available with tabs to select between them.
-   */
-  private var gallery: ComposeGallery? = null
+  val content = JPanel(BorderLayout())
 
   init {
     mainSurface.name = "Compose"
-
-    // Initialize gallery if isLiteModeEnabled.
-    if (ComposePreviewLiteModeManager.isLiteModeEnabled) {
-      gallery = ComposeGallery(content = mainSurface, rootComponent = mainSurface)
-    }
 
     val contentPanel =
       JPanel(BorderLayout()).apply {
@@ -324,12 +320,8 @@ internal class ComposePreviewViewImpl(
             add(notificationPanel, VerticalLayout.FILL)
           }
 
-        val content = JPanel(BorderLayout())
         content.add(topPanel, BorderLayout.NORTH)
-        // TODO(b/286416832) If lite mode is enabled when file is opened - content should be
-        // switched here and
-        //  gallery is disabled.
-        content.add(gallery?.component ?: mainSurface, BorderLayout.CENTER)
+        content.add(mainSurface, BorderLayout.CENTER)
 
         add(content, BorderLayout.CENTER)
       }
@@ -366,6 +358,29 @@ internal class ComposePreviewViewImpl(
     DataManager.registerDataProvider(workbench) { getData(it) }
     Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
   }
+
+  override var essentialMode: ComposeEssentialMode? = null
+    set(value) {
+      // Avoid repeated values.
+      if (value == field) return
+      // If lite mode is enabled,disabled or updated - components should be rearranged.
+      // Remove components from its existing places.
+      if (field == null) {
+        content.remove(mainSurface)
+      } else {
+        content.components.filterIsInstance<EssentialModeWrapperPanel>().firstOrNull()?.let {
+          it.remove(mainSurface)
+          content.remove(it)
+        }
+      }
+      // Add components to new places.
+      if (value == null) {
+        content.add(mainSurface, BorderLayout.CENTER)
+      } else {
+        content.add(EssentialModeWrapperPanel(value.component, mainSurface), BorderLayout.CENTER)
+      }
+      field = value
+    }
 
   override fun updateProgress(message: String) =
     UIUtil.invokeLaterIfNeeded {

@@ -34,6 +34,7 @@ import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationM
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.fast.requestFastPreviewRefreshAndTrack
+import com.android.tools.idea.compose.preview.lite.ComposeEssentialMode
 import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
@@ -73,6 +74,7 @@ import com.android.tools.idea.rendering.isErrorResult
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
+import com.android.tools.idea.uibuilder.options.NlOptionsConfigurable
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
@@ -379,10 +381,33 @@ class ComposePreviewRepresentation(
         essentialsModeMessagingService.TOPIC,
         EssentialsModeMessenger.Listener {
           updateFpsForCurrentMode()
+          updateEssentialMode()
           // When getting out of Essentials Mode, request a refresh
           if (!EssentialsMode.isEnabled()) requestRefresh()
         }
       )
+
+    project.messageBus
+      .connect(this as Disposable)
+      .subscribe(
+        NlOptionsConfigurable.Listener.TOPIC,
+        NlOptionsConfigurable.Listener { updateEssentialMode() }
+      )
+  }
+
+  private fun updateEssentialMode() {
+    if (
+      !ComposePreviewLiteModeManager.isLiteModeEnabled && composeWorkBench.essentialMode != null
+    ) {
+      composeWorkBench.essentialMode = null
+      singlePreviewElementInstance = null // Remove filter applied by lite mode.
+      requestRefresh()
+    } else if (
+      ComposePreviewLiteModeManager.isLiteModeEnabled && composeWorkBench.essentialMode == null
+    ) {
+      composeWorkBench.essentialMode = ComposeEssentialMode(composeWorkBench.mainSurface)
+      requestRefresh()
+    }
   }
 
   private fun updateFpsForCurrentMode() {
@@ -735,6 +760,7 @@ class ComposePreviewRepresentation(
 
   init {
     Disposer.register(this, ticker)
+    updateEssentialMode()
   }
 
   override val component: JComponent
