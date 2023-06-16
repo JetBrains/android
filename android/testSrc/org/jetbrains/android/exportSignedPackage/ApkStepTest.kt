@@ -49,7 +49,11 @@ class ApkStepTest : MockitoAwareLightPlatformTestCase() {
     val apkStep = ApkStep(myWizard)
     val properties = PropertiesComponent.getInstance()
     val testPath = this.homePath + File.separator + "custom.apk"
-    properties.setValue(apkStep.getApkPathPropertyName(module.name), testPath)
+    val apkPathPropertyName = apkStep.getApkPathPropertyName(module.name)
+    properties.setValue(apkPathPropertyName, testPath)
     Truth.assertThat(apkStep.getInitialPath(properties, module)).isEqualTo(testPath)
+
+    // Clean up properties after tests
+    properties.setValue(apkPathPropertyName, null)
   }
 }
