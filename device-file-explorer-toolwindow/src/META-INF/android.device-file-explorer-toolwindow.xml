@@ -30,6 +30,7 @@
     <notificationGroup id="Device File Explorer" displayType="BALLOON"/>
     <applicationConfigurable groupId="tools" id="device.file.explorer"
                              provider="com.android.tools.idea.file.explorer.toolwindow.options.DeviceFileExplorerConfigurableProvider"
+                             bundle="messages.DeviceFileExplorerToolWindowBundle"
                              key="configurable.name.android.device.file.explorer"/>
     <applicationService serviceImplementation="com.android.tools.idea.file.explorer.toolwindow.options.DeviceFileExplorerSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbDeviceFileSystemService"/>
