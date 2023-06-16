@@ -661,7 +661,7 @@ public class TestUtils {
 
   @NonNull
   public static String getLatestAndroidPlatform() {
-    return getLatestAndroidPlatform(TestType.OTHER);
+    return getLatestAndroidPlatform(TestType.AGP);
   }
 
   @NonNull
