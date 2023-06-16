@@ -15,17 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.SdkConstants
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.NlModelBuilderUtil
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tabs.TabInfo
 import javax.swing.JPanel
 import kotlin.test.assertNotNull
@@ -41,22 +35,9 @@ class AnimationTabsTest {
 
   private lateinit var parentDisposable: Disposable
 
-  private lateinit var surface: DesignSurface<*>
-
   @Before
   fun setUp() {
     parentDisposable = Disposer.newDisposable()
-    val model = runInEdtAndGet {
-      NlModelBuilderUtil.model(
-          projectRule,
-          "layout",
-          "layout.xml",
-          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
-        )
-        .build()
-    }
-    surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
-    surface.addModelWithoutRender(model)
   }
 
   @After
@@ -67,7 +48,7 @@ class AnimationTabsTest {
   @Test
   fun `create tab panel with navigation`() {
     invokeAndWaitIfNeeded {
-      val tabs = AnimationTabs(surface)
+      val tabs = AnimationTabs(projectRule.project, parentDisposable)
       tabs.component.setSize(300, 300)
       assertNotNull(tabs.component)
       // First added tab should has key listeners for navigation.
@@ -90,7 +71,7 @@ class AnimationTabsTest {
   @Test
   fun `open and close tabs`() {
     invokeAndWaitIfNeeded {
-      val tabs = AnimationTabs(surface)
+      val tabs = AnimationTabs(projectRule.project, parentDisposable)
       tabs.component.setSize(300, 300)
       assertNotNull(tabs.component)
 

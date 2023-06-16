@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.util.ActionToolbarUtil
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.preview.message
 import com.intellij.icons.AllIcons
@@ -40,7 +39,7 @@ import javax.swing.JComponent
 class PlaybackControls(
   val clockControl: SliderClockControl,
   val tracker: AnimationTracker,
-  val surface: DesignSurface<*>,
+  val rootComponent: JComponent,
   parentDisposable: Disposable
 ) {
 
@@ -98,7 +97,7 @@ class PlaybackControls(
           true
         )
         .apply {
-          setTargetComponent(surface)
+          targetComponent = rootComponent
           ActionToolbarUtil.makeToolbarNavigable(this)
         }
 

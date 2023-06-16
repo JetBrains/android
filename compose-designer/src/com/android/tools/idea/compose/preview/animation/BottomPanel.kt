@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -38,7 +37,7 @@ import javax.swing.border.MatteBorder
 /** Bottom control panel. */
 class BottomPanel(
   val previewState: AnimationPreviewState,
-  surface: DesignSurface<*>,
+  rootComponent: JComponent,
   private val tracker: AnimationTracker
 ) : JPanel(BorderLayout()) {
 
@@ -50,7 +49,7 @@ class BottomPanel(
 
   private val westToolbar =
     DefaultToolbarImpl(
-      surface,
+      rootComponent,
       "ResetCoordinationTimeline",
       listOf(ClockTimeLabel(), Separator()) +
         if (COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()) listOf(ResetTimelineAction())

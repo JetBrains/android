@@ -20,8 +20,6 @@ import androidx.compose.animation.tooling.ComposeAnimationType
 import androidx.compose.animation.tooling.TransitionInfo
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.stdui.TooltipLayeredPane
-import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
 import com.android.tools.idea.compose.preview.animation.AnimationPreview.Timeline
 import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.managers.AnimationManager
@@ -43,6 +41,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.JBColor
@@ -85,7 +84,10 @@ private const val DEFAULT_CURVE_POINTS_NUMBER = 200
  *   opened.
  */
 class AnimationPreview(
-  val surface: DesignSurface<LayoutlibSceneManager>,
+  project: Project,
+  val tracker: AnimationTracker,
+  private val sceneManagerProvider: () -> LayoutlibSceneManager?,
+  private val rootComponent: JComponent,
   val psiFilePointer: SmartPsiElementPointer<PsiFile>
 ) : Disposable {
 
@@ -93,9 +95,6 @@ class AnimationPreview(
     JPanel(TabularLayout("*", "*,30px")).apply { name = "Animation Preview" }
 
   val component = TooltipLayeredPane(animationPreviewPanel)
-
-  private val tracker: AnimationTracker =
-    AnimationTracker(AnimationToolingUsageTracker.getInstance(surface))
 
   private val previewState =
     object : AnimationPreviewState {
@@ -111,7 +110,7 @@ class AnimationPreview(
    * from/to state combo boxes.
    */
   @VisibleForTesting
-  val tabbedPane = AnimationTabs(surface).apply { addListener(TabChangeListener()) }
+  val tabbedPane = AnimationTabs(project, this).apply { addListener(TabChangeListener()) }
 
   /** Selected single animation. */
   private var selectedAnimation: SupportedAnimationManager? = null
@@ -187,10 +186,10 @@ class AnimationPreview(
 
   private val clockControl = SliderClockControl(timeline)
 
-  private val playbackControls = PlaybackControls(clockControl, tracker, surface, this)
+  private val playbackControls = PlaybackControls(clockControl, tracker, rootComponent, this)
 
   private val bottomPanel =
-    BottomPanel(previewState, surface, tracker).apply {
+    BottomPanel(previewState, rootComponent, tracker).apply {
       timeline.addChangeListener { clockTimeMs = timeline.value }
       addResetListener {
         timeline.sliderUI.elements.forEach { it.reset() }
@@ -549,7 +548,7 @@ class AnimationPreview(
 
     /** [AnimationCard] for coordination panel. */
     override val card =
-      AnimationCard(previewState, surface, elementState, stateComboBox.extraActions, tracker)
+      AnimationCard(previewState, rootComponent, elementState, stateComboBox.extraActions, tracker)
         .apply {
 
           /** [TabInfo] for the animation when it is opened in a new tab. */
@@ -577,7 +576,7 @@ class AnimationPreview(
 
     val tabComponent =
       JPanel(TabularLayout("Fit,*,Fit", "30px,*")).apply {
-        val toolbar = DefaultToolbarImpl(surface, "State", stateComboBox.extraActions)
+        val toolbar = DefaultToolbarImpl(rootComponent, "State", stateComboBox.extraActions)
         add(toolbar.component, TabularLayout.Constraint(0, 2))
         add(tabScrollPane, TabularLayout.Constraint(1, 0, 3))
         tabScrollPane.setViewportView(tabTimelineParent)
@@ -844,7 +843,7 @@ class AnimationPreview(
       } else {
         30L to TimeUnit.MILLISECONDS
       }
-    return surface.sceneManager?.executeCallbacksAndRequestRender(time, timeUnit) { callback() }
+    return sceneManagerProvider()?.executeCallbacksAndRequestRender(time, timeUnit) { callback() }
       ?: false
   }
 }
