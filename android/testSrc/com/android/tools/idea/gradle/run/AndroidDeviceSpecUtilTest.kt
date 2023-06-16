@@ -197,6 +197,7 @@ class AndroidDeviceSpecUtilTest {
   ): AvdInfo {
     val avdInfo = mock(AvdInfo::class.java)
     whenever(avdInfo.androidVersion).thenReturn(version)
+    whenever(avdInfo.id).thenReturn("id")
     whenever(avdInfo.name).thenReturn(name)
     whenever(avdInfo.displayName).thenReturn(displayName)
     whenever(avdInfo.properties).thenReturn(
