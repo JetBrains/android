@@ -415,7 +415,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> RUNDEBUG_ANDROID_BUILD_BUNDLE_ENABLED = Flag.create(
     RUNDEBUG, "android.bundle.build.enabled", "Enable the Build Bundle action",
     "If enabled, the \"Build Bundle(s)\" menu item is enabled. " +
-    "Changing the value of this flag requires restarting " + ApplicationNamesInfo.getInstance().getFullProductName()+".",
+    "Changing the value of this flag requires restarting " + fullProductName() + ".",
     true);
 
   public static final Flag<Boolean> DELTA_INSTALL = Flag.create(
@@ -757,7 +757,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
-    "This option is only respected when running "+ApplicationNamesInfo.getInstance().getFullProductName()+" internally.", false);
+    "This option is only respected when running " + fullProductName() + " internally.", false);
 
   public static final Flag<Boolean> SUPPORT_FUTURE_AGP_VERSIONS = Flag.create(
     GRADLE_IDE, "support.future.agp.versions", "Support opening projects that use future AGPs",
@@ -1794,4 +1794,8 @@ public final class StudioFlags {
   // endregion PRIVACY_SANDBOX_SDK
 
   private StudioFlags() { }
+
+  private static String fullProductName() {
+    return StudioPathManager.isRunningFromSources() ? "IntelliJ IDEA" : ApplicationNamesInfo.getInstance().getFullProductName();
+  }
 }
