@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.NewUI;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.table.TableView;
 import com.intellij.util.ui.ColumnInfo;
@@ -39,8 +40,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +56,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SortOrder;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -78,7 +78,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final DecimalFormat ourDecimalFormat = new DecimalFormat(".##");
 
   private Multimap<Category, Device> myCategoryToDefinitionMultimap;
-  private final ListTableModel<Device> myModel = new ListTableModel<>();
+  private ListTableModel<Device> myModel;
   private TableView<Device> myTable;
 
   /**
@@ -100,106 +100,14 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   public DeviceDefinitionList() {
     super(new BorderLayout());
-    // List of columns present in our table. Each column is represented by a ColumnInfo which tells the table how to get
-    // the cell value in that column for a given row item.
-    ColumnInfo[] columns = {
-      new DeviceColumnInfo("Name") {
-        @NotNull
-        @Override
-        public String valueOf(Device device) {
-          return device.getDisplayName();
-        }
 
-        @NotNull
-        @Override
-        public String getPreferredStringValue() {
-          // Long string so that preferred column width is set appropriately
-          return "4.65\" 720 (Galaxy Nexus)";
-        }
-
-        @NotNull
-        @Override
-        public Comparator<Device> getComparator() {
-          return Comparator.comparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT));
-        }
-      },
-      new PlayStoreColumnInfo(),
-      new DeviceColumnInfo("Size") {
-        @NotNull
-        @Override
-        public String valueOf(Device device) {
-          return getDiagonalSize(device);
-        }
-
-        @NotNull
-        @Override
-        public Comparator<Device> getComparator() {
-          return (o1, o2) -> {
-            if (o1 == null) {
-              return -1;
-            }
-            else if (o2 == null) {
-              return 1;
-            }
-            else {
-              return Double.compare(o1.getDefaultHardware().getScreen().getDiagonalLength(),
-                                    o2.getDefaultHardware().getScreen().getDiagonalLength());
-            }
-          };
-        }
-      },
-      new DeviceColumnInfo("Resolution") {
-        @NotNull
-        @Override
-        public String valueOf(Device device) {
-          return getDimensionString(device);
-        }
-
-        @NotNull
-        @Override
-        public Comparator<Device> getComparator() {
-          return (o1, o2) -> {
-            if (o1 == null) {
-              return -1;
-            }
-            else if (o2 == null) {
-              return 1;
-            }
-            else {
-              Dimension d1 = o1.getScreenSize(o1.getDefaultState().getOrientation());
-              Dimension d2 = o2.getScreenSize(o2.getDefaultState().getOrientation());
-              if (d1 == null) {
-                return -1;
-              }
-              else if (d2 == null) {
-                return 1;
-              }
-              else {
-                return Integer.compare(d1.width * d1.height, d2.width * d2.height);
-              }
-            }
-          };
-        }
-      },
-      new DeviceColumnInfo("Density") {
-        @NotNull
-        @Override
-        public String valueOf(Device device) {
-          return getDensityString(device);
-        }
-      }};
-    myModel.setColumnInfos(columns);
-    myModel.setSortable(true);
     refreshDeviceProfiles();
     setDefaultDevices();
-    myTable.setModelAndUpdateColumns(myModel);
-    myTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    myTable.setRowSelectionAllowed(true);
 
     myRefreshButton.addActionListener(event -> refreshDeviceProfiles());
-    myTable.getSelectionModel().addListSelectionListener(this);
+
     // The singular column that serves as the header for our category list
-    ColumnInfo[] categoryInfo = {
+    var categoryInfo = new ColumnInfo[]{
       new ColumnInfo<Object, String>("Category") {
         @NotNull
         @Override
@@ -223,22 +131,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myCreateProfileButton.setText("New Hardware Profile");
     myImportProfileButton.setAction(new ImportDevicesAction(this));
     myImportProfileButton.setText("Import Hardware Profiles");
-    myTable.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        possiblyShowPopup(e);
-      }
-
-      @Override
-      public void mousePressed(MouseEvent e) {
-        possiblyShowPopup(e);
-      }
-
-      @Override
-      public void mouseReleased(MouseEvent e) {
-        possiblyShowPopup(e);
-      }
-    });
   }
 
   private void setDefaultDevices() {
@@ -263,23 +155,6 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     JBMenuItem item = new JBMenuItem(action);
     item.setText(action.getText());
     return item;
-  }
-
-  private void possiblyShowPopup(MouseEvent e) {
-    if (!e.isPopupTrigger()) {
-      return;
-    }
-    Point p = e.getPoint();
-    int row = myTable.rowAtPoint(p);
-    int col = myTable.columnAtPoint(p);
-    if (row != -1 && col != -1) {
-      JBPopupMenu menu = new JBPopupMenu();
-      menu.add(createMenuItem(new CloneDeviceAction(this)));
-      menu.add(createMenuItem(new EditDeviceAction(this)));
-      menu.add(createMenuItem(new ExportDeviceAction(this)));
-      menu.add(createMenuItem(new DeleteDeviceAction(this)));
-      menu.show(myTable, p.x, p.y);
-    }
   }
 
   @Override
@@ -419,8 +294,123 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   private void createUIComponents() {
     myCategoryList = new TableView<>();
-    myTable = new TableView<>();
+    createDefinitionTable();
     myRefreshButton = new JButton(AllIcons.Actions.Refresh);
+  }
+
+  private void createDefinitionTable() {
+    var columns = new ColumnInfo[]{
+      new DeviceColumnInfo("Name") {
+        @NotNull
+        @Override
+        public String valueOf(@NotNull Device device) {
+          return device.getDisplayName();
+        }
+
+        @NotNull
+        @Override
+        public String getPreferredStringValue() {
+          return "4.65\" 720 (Galaxy Nexus)";
+        }
+
+        @NotNull
+        @Override
+        public Comparator<Device> getComparator() {
+          return Comparator.comparing(Device::getDisplayName, Collator.getInstance(ULocale.ROOT));
+        }
+      },
+      new PlayStoreColumnInfo(),
+      new DeviceColumnInfo("Size") {
+        @NotNull
+        @Override
+        public String valueOf(@NotNull Device device) {
+          return getDiagonalSize(device);
+        }
+
+        @NotNull
+        @Override
+        public Comparator<Device> getComparator() {
+          return (o1, o2) -> {
+            if (o1 == null) {
+              return -1;
+            }
+            else if (o2 == null) {
+              return 1;
+            }
+            else {
+              return Double.compare(o1.getDefaultHardware().getScreen().getDiagonalLength(),
+                                    o2.getDefaultHardware().getScreen().getDiagonalLength());
+            }
+          };
+        }
+      },
+      new DeviceColumnInfo("Resolution") {
+        @NotNull
+        @Override
+        public String valueOf(@NotNull Device device) {
+          return getDimensionString(device);
+        }
+
+        @NotNull
+        @Override
+        public Comparator<Device> getComparator() {
+          return (o1, o2) -> {
+            if (o1 == null) {
+              return -1;
+            }
+            else if (o2 == null) {
+              return 1;
+            }
+            else {
+              var d1 = o1.getScreenSize(o1.getDefaultState().getOrientation());
+              var d2 = o2.getScreenSize(o2.getDefaultState().getOrientation());
+              if (d1 == null) {
+                return -1;
+              }
+              else if (d2 == null) {
+                return 1;
+              }
+              else {
+                return Integer.compare(d1.width * d1.height, d2.width * d2.height);
+              }
+            }
+          };
+        }
+      },
+      new DeviceColumnInfo("Density") {
+        @NotNull
+        @Override
+        public String valueOf(@NotNull Device device) {
+          return getDensityString(device);
+        }
+      }
+    };
+
+    myModel = new ListTableModel<>(columns, new ArrayList<>(), 0, SortOrder.UNSORTED);
+
+    myTable = new TableView<>(myModel);
+    myTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    myTable.getSelectionModel().addListSelectionListener(this);
+
+    myTable.addMouseListener(new PopupHandler() {
+      @Override
+      public void invokePopup(@NotNull Component component, int x, int y) {
+        var point = new Point(x, y);
+
+        if (myTable.rowAtPoint(point) == -1 || myTable.columnAtPoint(point) == -1) {
+          return;
+        }
+
+        var menu = new JBPopupMenu();
+
+        menu.add(createMenuItem(new CloneDeviceAction(DeviceDefinitionList.this)));
+        menu.add(createMenuItem(new EditDeviceAction(DeviceDefinitionList.this)));
+        menu.add(createMenuItem(new ExportDeviceAction(DeviceDefinitionList.this)));
+        menu.add(createMenuItem(new DeleteDeviceAction(DeviceDefinitionList.this)));
+
+        menu.show(myTable, x, y);
+      }
+    });
   }
 
   @Override
