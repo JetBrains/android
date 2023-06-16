@@ -585,25 +585,6 @@ public class TestUtils {
     return stringBuilder.toString();
   }
 
-  @NonNull
-  public static Path getJava11Jdk() {
-    if (System.getenv("JDK_11") != null) {
-      Path jdkPath = Paths.get(System.getenv("JDK_11"));
-      if (Files.isDirectory(jdkPath)) {
-        return jdkPath;
-      }
-      else {
-        Logger.getInstance(TestUtils.class).warn("Ignore env.JDK_11 because it is not a directory: " + jdkPath);
-      }
-    }
-
-    Path jdk11Path = findInDownloadedJdks("corretto-11.");
-    if (jdk11Path != null) return jdk11Path;
-
-    assert Runtime.version().feature() == 11 : "To continue we need to know where JDK11 is. env.JDK_11 didn't work.";
-    return Paths.get(SystemProperties.getJavaHome());
-  }
-
   @Nullable
   private static Path findInDownloadedJdks(String prefix) {
     Path userHome = Path.of(System.getProperty("user.home"));
@@ -674,7 +655,7 @@ public class TestUtils {
     Path jdk17Path = findInDownloadedJdks("corretto-17.");
     if (jdk17Path != null) return jdk17Path;
 
-    assert Runtime.version().feature() == 8 : "To continue we need to know where JDK8 is. env.JDK_18 didn't work.";
+    assert Runtime.version().feature() == 17 : "To continue we need to know where JDK_17 is. env.JDK_17_0 didn't work.";
     return Paths.get(SystemProperties.getJavaHome());
   }
 

@@ -395,7 +395,7 @@ public class AndroidGradleTests {
 
     // IDEA does not use AndroidStudioGradleInstallationManager, Gradle JVM in this case is not deterministic, and often falls back
     // to JAVA_HOME, which produces different results in different environments.
-    gradleProperties.getProperties().setProperty(GRADLE_JAVA_HOME_PROPERTY, TestUtils.getJava11Jdk().toString());
+    gradleProperties.getProperties().setProperty(GRADLE_JAVA_HOME_PROPERTY, TestUtils.getEmbeddedJdk17Path().toString());
 
     gradleProperties.save();
   }

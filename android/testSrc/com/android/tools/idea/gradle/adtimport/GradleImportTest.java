@@ -45,6 +45,8 @@ import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.testutils.TestUtils;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.ImportUtil;
 import com.android.tools.idea.gradle.util.PropertiesFiles;
@@ -3410,7 +3412,11 @@ public class GradleImportTest extends AndroidTestCase {
     removeJcenter(new File(base, "build.gradle"));
     AndroidGradleTests.updateToolingVersionsAndPaths(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
-    cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().normalize().toAbsolutePath().toString());
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().normalize().toAbsolutePath().toString());
+    } else {
+      cmdLine.withEnvironment("JAVA_HOME", TestUtils.getEmbeddedJdk17Path().toAbsolutePath().toString());
+    }
     cmdLine.withEnvironment(AbstractAndroidLocations.ANDROID_PREFS_ROOT, AndroidLocationsSingleton.INSTANCE.getPrefsLocation().toAbsolutePath().toString());
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
