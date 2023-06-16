@@ -747,31 +747,48 @@ script_template = """\
       args=${{@:2}}
     fi
     tmp_dir=$(mktemp -d -t android-studio-XXXXXXXXXX)
-    unzip -q "{linux_file}" -d "$tmp_dir"
-    STUDIO_VM_OPTIONS="$options" $tmp_dir/android-studio/bin/studio.sh $args
+    unzip -q "{zip_file}" -d "$tmp_dir"
+    if [ -z "$options" ]; then
+        {command} $args
+    else
+        STUDIO_VM_OPTIONS="$options" {command} $args
+    fi
 """
+
+platform_by_name = {platform.name: platform for platform in [LINUX, MAC, MAC_ARM, WIN]}
 
 def _android_studio_impl(ctx):
     plugins = [plugin[PluginInfo].directory for plugin in ctx.attr.plugins]
     ctx.actions.write(ctx.outputs.plugins, "".join([dir + "\n" for dir in plugins]))
 
-    _android_studio_os(ctx, LINUX, ctx.outputs.linux)
-    _android_studio_os(ctx, MAC, ctx.outputs.mac)
-    _android_studio_os(ctx, MAC_ARM, ctx.outputs.mac_arm)
-    _android_studio_os(ctx, WIN, ctx.outputs.win)
+    outputs = {
+        LINUX: ctx.outputs.linux,
+        MAC: ctx.outputs.mac,
+        MAC_ARM: ctx.outputs.mac_arm,
+        WIN: ctx.outputs.win,
+    }
+    for (platform, output) in outputs.items():
+        _android_studio_os(ctx, platform, output)
 
     _produce_update_message_html(ctx)
 
+    host_platform = platform_by_name[ctx.attr.host_platform_name]
     vmoptions = ctx.actions.declare_file("%s-debug.vmoption" % ctx.label.name)
     ctx.actions.write(vmoptions, "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005")
 
     script = ctx.actions.declare_file("%s-run" % ctx.label.name)
     script_content = script_template.format(
-        linux_file = ctx.outputs.linux.short_path,
+        zip_file = outputs[host_platform].short_path,
+        command = {
+            LINUX: "$tmp_dir/android-studio/bin/studio.sh",
+            MAC: "open \"$tmp_dir/" + _android_studio_prefix(ctx, MAC) + "\"",
+            MAC_ARM: "open \"$tmp_dir/" + _android_studio_prefix(ctx, MAC_ARM) + "\"",
+            WIN: "$tmp_dir/android-studio/bin/studio64",
+        }[host_platform],
         vmoptions = vmoptions.short_path,
     )
     ctx.actions.write(script, script_content, is_executable = True)
-    runfiles = ctx.runfiles(files = [ctx.outputs.linux, vmoptions])
+    runfiles = ctx.runfiles(files = [outputs[host_platform], vmoptions])
 
     # Leave everything that is not the main zips as implicit outputs
     return DefaultInfo(
@@ -782,6 +799,7 @@ def _android_studio_impl(ctx):
 
 _android_studio = rule(
     attrs = {
+        "host_platform_name": attr.string(),
         "codesign_entitlements": attr.label(allow_single_file = True),
         "compress": attr.bool(),
         "files_linux": attr.label_keyed_string_dict(allow_files = True, default = {}),
@@ -896,6 +914,13 @@ def android_studio(
     _android_studio(
         name = name,
         compress = is_release(),
+        host_platform_name = select({
+            "@platforms//os:linux": LINUX.name,
+            "//tools/base/bazel/platforms:macos-x86_64": MAC.name,
+            "//tools/base/bazel/platforms:macos-arm64": MAC_ARM.name,
+            "@platforms//os:windows": WIN.name,
+            "//conditions:default": "",
+        }),
         **kwargs
     )
 
