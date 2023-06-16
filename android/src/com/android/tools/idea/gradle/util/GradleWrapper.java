@@ -229,10 +229,16 @@ public final class GradleWrapper {
       return GradleVersion.version(GRADLE_LATEST_VERSION);
     }
 
-    AgpVersion parsedVersion = AgpVersion.parse(agpVersion);
-    CompatibleGradleVersion gradleVersion = CompatibleGradleVersion.Companion.getCompatibleGradleVersion(parsedVersion);
-
-    return gradleVersion.getVersion();
+     try {
+      AgpVersion parsedVersion = AgpVersion.parse(agpVersion);
+      CompatibleGradleVersion gradleVersion = CompatibleGradleVersion.Companion.getCompatibleGradleVersion(parsedVersion);
+      return gradleVersion.getVersion();
+    } catch (IllegalArgumentException e) {
+       Logger.getInstance(GradleWrapper.class)
+         .warn("Unable to parse StudioFlags.AGP_VERSION_TO_USE: " + agpVersion
+               + ". Choosing GRADLE_LATEST_VERSION: " + GRADLE_LATEST_VERSION + "instead.");
+      return GradleVersion.version(GRADLE_LATEST_VERSION);
+    }
   }
 
   /**
