@@ -28,6 +28,7 @@ import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.devices.Abi
 import com.google.common.truth.Truth.assertThat
+import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
@@ -116,6 +117,7 @@ class DeviceInfoPanelTest {
           isVirtual = false
           resolution = Resolution(1080, 2280)
           density = 440
+          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
         }
       )
 

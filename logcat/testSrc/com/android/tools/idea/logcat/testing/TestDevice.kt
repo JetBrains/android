@@ -27,6 +27,7 @@ import com.android.sdklib.devices.Abi
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.idea.logcat.devices.Device
+import icons.StudioIcons
 import java.nio.file.Path
 
 internal class TestDevice(
@@ -48,7 +49,9 @@ internal class TestDevice(
       serialNumber.isEmulatorSerial() ->
         LocalEmulatorProperties.build(
           makeAvdInfo(avdName, manufacturer, model, AndroidVersion(sdk))
-        )
+        ) {
+          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+        }
 
       else ->
         DeviceProperties.build {
@@ -56,6 +59,7 @@ internal class TestDevice(
           model = this@TestDevice.model
           androidRelease = release
           androidVersion = AndroidVersion(sdk)
+          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
         }
     }
 

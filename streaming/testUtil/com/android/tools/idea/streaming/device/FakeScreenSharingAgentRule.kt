@@ -25,6 +25,7 @@ import com.android.fakeadbserver.ShellV2Protocol
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.FakeAdbServiceRule
@@ -35,6 +36,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
+import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
@@ -189,7 +191,15 @@ class FakeScreenSharingAgentRule : TestRule {
     override val stateFlow = MutableStateFlow(createConnectedDeviceState())
 
     fun createConnectedDeviceState(): ProvisionerDeviceState.Connected {
-      val deviceProperties = DeviceProperties.Builder().apply { readCommonProperties(device.deviceState.properties) }.buildBase()
+      val deviceProperties = DeviceProperties.Builder().apply {
+        readCommonProperties(device.deviceState.properties)
+        icon = when(deviceType) {
+          DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
+          DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
+          DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
+          else -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+        }
+      }.buildBase()
       val connectedDevice = mock<ConnectedDevice>().apply {
         whenever(deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(device.serialNumber, ONLINE)))
       }

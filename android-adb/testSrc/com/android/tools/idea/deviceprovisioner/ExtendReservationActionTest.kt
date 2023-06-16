@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.EmptyIcon
+import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,7 +64,9 @@ class ExtendReservationActionTest {
     var totalDuration = Duration.ZERO
     val handle = FakeDeviceHandle(
       scope,
-      MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().buildBase())),
+      MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().apply {
+        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      }.buildBase())),
       object : ReservationAction {
         override suspend fun reserve(duration: Duration): Instant {
           totalDuration = totalDuration.plus(duration)
@@ -114,7 +117,9 @@ class ExtendReservationActionTest {
     var totalDuration = Duration.ZERO
     val handle = FakeDeviceHandle(
       scope,
-      MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().buildBase())),
+      MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().apply {
+        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      }.buildBase())),
       object : ReservationAction {
         override suspend fun reserve(duration: Duration): Instant {
           totalDuration = totalDuration.plus(duration)
@@ -153,7 +158,9 @@ class ExtendReservationActionTest {
     val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val extendReservationAction = CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ID)!! as ExtendReservationAction
     assertThat(extendReservationAction.childrenCount).isEqualTo(3)
-    val handle = FakeDeviceHandle(scope, MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().buildBase())), null)
+    val handle = FakeDeviceHandle(scope, MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().apply {
+      icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+    }.buildBase())), null)
     val dataContext = DataContext {
       if (it == DEVICE_HANDLE_KEY.name) handle
       else null
@@ -193,7 +200,9 @@ class ExtendReservationActionTest {
 
     val stateFetcher: (minutes: Long) -> DeviceState = { minutes ->
       val reservation = Reservation(ReservationState.PENDING, "None", Instant.now(), Instant.now().plusSeconds(minutes * 60 + 55))
-      DeviceState.Disconnected(DeviceProperties.Builder().buildBase(), false, "None", reservation)
+      DeviceState.Disconnected(DeviceProperties.Builder().apply {
+        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      }.buildBase(), false, "None", reservation)
     }
 
     val stateFlow = MutableStateFlow(stateFetcher(65))

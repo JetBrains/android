@@ -61,21 +61,8 @@ internal object DeviceTableColumns {
     override fun updateValue(rowValue: DeviceRowData, component: IconLabel, value: DeviceType) {
       // While we use isVirtual to tweak the icon, this column groups based on device type only.
       component.baseIcon =
-        if (rowValue.isVirtual) {
-          when (value) {
-            DeviceType.HANDHELD -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
-            DeviceType.WEAR -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR
-            DeviceType.TV -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV
-            DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_CAR
-          }
-        } else {
-          when (value) {
-            DeviceType.HANDHELD -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-            DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
-            DeviceType.TV -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV
-            DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
-          }
-        }
+        rowValue.handle?.state?.properties?.icon
+          ?: rowValue.template?.properties?.icon ?: StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
     }
 
     // All icons should be the same size

@@ -31,7 +31,11 @@ internal class FakeDeviceHandle(
   override val scope: CoroutineScope,
 ) : DeviceHandle {
   override val stateFlow =
-    MutableStateFlow<DeviceState>(DeviceState.Disconnected(DeviceProperties.build {}))
+    MutableStateFlow<DeviceState>(
+      DeviceState.Disconnected(
+        DeviceProperties.build { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE }
+      )
+    )
   override val activationAction = FakeActivationAction()
   override val deactivationAction = FakeDeactivationAction()
   override val repairDeviceAction = FakeRepairDeviceAction()

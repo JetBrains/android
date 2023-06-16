@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device
 
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.intellij.openapi.util.SystemInfo
+import icons.StudioIcons
 
 /**
  * Checks if the current platform is suitable for tests depending on the FFmpeg library.
@@ -31,6 +32,7 @@ fun isFFmpegAvailableToTest(): Boolean = !SystemInfo.isWindows
 fun createDeviceConfiguration(propertyMap: Map<String, String>): DeviceConfiguration {
   val properties = DeviceProperties.Builder()
   properties.readCommonProperties(propertyMap)
+  properties.icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
   return DeviceConfiguration(properties.buildBase())
 }
 

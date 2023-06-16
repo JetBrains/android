@@ -39,7 +39,13 @@ class DeviceNamePanelTest {
   @Test
   fun stateTransitionText() {
     fun rowData(isTransitioning: Boolean, status: String): DeviceRowData {
-      val state = DeviceState.Disconnected(DeviceProperties.build {}, isTransitioning, status, null)
+      val state =
+        DeviceState.Disconnected(
+          DeviceProperties.build { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
+          isTransitioning,
+          status,
+          null
+        )
       val handle = mock<DeviceHandle>()
       whenever(handle.state).thenReturn(state)
       val rowData = mock<DeviceRowData>()

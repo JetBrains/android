@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.EmptyIcon
+import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,7 +60,9 @@ class EndReservationActionTest {
     val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val endReservationAction = CustomActionsSchema.getInstance().getCorrectedAction(END_RESERVATION_ID)!! as EndReservationAction
     var reservationEnded = false
-    val stateFlow = MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().buildBase()))
+    val stateFlow = MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().apply {
+      icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+    }.buildBase()))
     val handle = FakeDeviceHandle(
       scope,
       stateFlow,

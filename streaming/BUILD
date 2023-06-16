@@ -127,6 +127,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],
 )
 
@@ -185,5 +186,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],
 )

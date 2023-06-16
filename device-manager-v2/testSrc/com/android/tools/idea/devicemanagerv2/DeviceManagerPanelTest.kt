@@ -25,6 +25,7 @@ import com.android.tools.adtui.categorytable.RowKey
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
+import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -95,6 +96,7 @@ class DeviceManagerPanelTest {
         DeviceProperties.build {
           manufacturer = "Google"
           model = "Pixel 5"
+          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
         }
       )
     }
@@ -150,7 +152,12 @@ class DeviceManagerPanelTest {
   ) : DeviceHandle {
     override val stateFlow =
       MutableStateFlow<DeviceState>(
-        DeviceState.Disconnected(DeviceProperties.build { model = name })
+        DeviceState.Disconnected(
+          DeviceProperties.build {
+            model = name
+            icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+          }
+        )
       )
   }
 }

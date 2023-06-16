@@ -26,7 +26,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 internal class FakeDeviceTemplate(
   override val properties: DeviceProperties,
 ) : DeviceTemplate {
-  constructor(name: String) : this(DeviceProperties.build { model = name })
+  constructor(
+    name: String
+  ) : this(
+    DeviceProperties.build {
+      model = name
+      icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+    }
+  )
 
   override val activationAction =
     object : TemplateActivationAction {

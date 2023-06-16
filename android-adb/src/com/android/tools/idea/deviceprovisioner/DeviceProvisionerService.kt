@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import icons.StudioIcons
 
 /**
  * A project service that instantiates and provides access to the [DeviceProvisioner] and its
@@ -36,7 +37,8 @@ class DeviceProvisionerService(project: Project) : Disposable {
     DeviceProvisioner.create(
       coroutineScope,
       session,
-      DeviceProvisionerFactory.createProvisioners(coroutineScope, project)
+      DeviceProvisionerFactory.createProvisioners(coroutineScope, project),
+      StudioDefaultDeviceIcons
     )
 
   override fun dispose() {}

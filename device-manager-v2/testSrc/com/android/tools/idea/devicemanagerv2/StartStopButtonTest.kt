@@ -105,7 +105,7 @@ class StartStopButtonTest {
 
       handle.stateFlow.update {
         DeviceState.Disconnected(
-          DeviceProperties.build {},
+          DeviceProperties.build { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
           isTransitioning = false,
           "Disconnected",
           error = TestError()

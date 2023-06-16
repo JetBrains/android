@@ -38,6 +38,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBScrollPane
+import icons.StudioIcons
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import org.junit.AfterClass
 import org.junit.BeforeClass
@@ -382,7 +383,9 @@ class ScreenSharingAgentTest {
     private val testRootDisposable
       get() = disposableRule.disposable
     private val emptyDeviceConfiguration =
-      DeviceConfiguration(DeviceProperties.Builder().buildBase())
+      DeviceConfiguration(DeviceProperties.Builder().apply {
+        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+      }.buildBase())
 
     @JvmStatic
     @BeforeClass

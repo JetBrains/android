@@ -32,5 +32,9 @@ iml_module(
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
+        "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],
 )

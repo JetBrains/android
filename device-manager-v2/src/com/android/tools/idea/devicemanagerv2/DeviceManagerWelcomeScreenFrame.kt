@@ -19,6 +19,7 @@ import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.avdmanager.LocalEmulatorProvisionerFactory
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceIcons
 import com.intellij.openapi.ui.FrameWrapper
 
 class DeviceManagerWelcomeScreenFrame :
@@ -36,8 +37,10 @@ class DeviceManagerWelcomeScreenFrame :
       DeviceManagerPanel(
         scope,
         DeviceProvisioner.create(
+          scope,
           session,
-          listOf(LocalEmulatorProvisionerFactory().create(scope, session, null))
+          listOf(LocalEmulatorProvisionerFactory().create(scope, session, null)),
+          StudioDefaultDeviceIcons
         )
       )
   }

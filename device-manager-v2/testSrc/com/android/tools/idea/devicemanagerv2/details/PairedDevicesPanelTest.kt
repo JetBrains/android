@@ -22,6 +22,7 @@ import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.tools.idea.devicemanagerv2.PairingStatus
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.common.truth.Truth.assertThat
+import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -167,6 +168,7 @@ class PairedDevicesPanelTest {
           DeviceProperties.build {
             wearPairingId = name
             model = name
+            icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
           }
         )
       )
