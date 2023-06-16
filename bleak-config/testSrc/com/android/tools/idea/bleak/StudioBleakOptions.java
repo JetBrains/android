@@ -27,13 +27,15 @@ import java.util.function.Supplier;
 public class StudioBleakOptions {
   private static IgnoreList<LeakInfo> globalIgnoreList = new IgnoreList<> (Arrays.stream(new IgnoredRef[]{
     new IgnoredRef(-2, "com.intellij.openapi.util.ObjectTree", "myObject2ParentNode"),
-    new IgnoredRef(-2, "com.android.tools.idea.testing.DisposerExplorer", "object2ParentNode"),
+    new IgnoredRef(1, "com.android.tools.idea.testing.DisposerExplorer", "object2ParentNode"),
     new IgnoredRef(-2, "com.android.tools.idea.diagnostics.report.MetricsLogFileProviderKt", "DefaultMetricsLogFileProvider"),
-    new IgnoredRef(-5, "com.android.tools.idea.tests.gui.framework.GuiPerfLogger", "myMetric"),
+    new IgnoredRef(-4, "com.android.tools.idea.tests.gui.framework.GuiPerfLogger", "myMetric"),
+    new IgnoredRef(1, "org.fest.swing.core.BasicRobot", "inputState"),
+    new IgnoredRef(1, "com.intellij.testGuiFramework.impl.GuiTestThread", "client"),
     new IgnoredRef(1, "com.android.layoutlib.bridge.impl.DelegateManager", "sJavaReferences"),
     new IgnoredRef(-2, "com.intellij.util.ref.DebugReflectionUtil", "allFields"),
     new IgnoredRef(-1, "java.util.concurrent.ForkJoinPool", "workQueues"),
-    new IgnoredRef(-3, "java.io.DeleteOnExitHook", "files"),
+    new IgnoredRef(1, "java.io.DeleteOnExitHook", "files"),
 
     // don't report growing weak or soft maps. Nodes whose weak or soft referents have been GC'd will be removed from the map during some
     // future map operation.
@@ -44,24 +46,26 @@ public class StudioBleakOptions {
     new IgnoredRef(-1, "com.intellij.util.containers.ConcurrentSoftHashMap", "myMap"),
     new IgnoredRef(-1, "com.intellij.util.containers.ConcurrentSoftValueHashMap", "myMap"),
     new IgnoredRef(-1, "com.intellij.util.containers.ConcurrentSoftKeySoftValueHashMap", "myMap"),
+    new IgnoredRef(-2, "com.intellij.util.containers.SLRUMap", "myProtectedQueue"), // SLRUMap is a bounded cache
+    new IgnoredRef(-2, "com.intellij.util.containers.SLRUMap", "myProbationalQueue"),
 
     new IgnoredRef(-2, "com.android.tools.idea.configurations.ConfigurationManager", "myCache"),
     new IgnoredRef(-2, "com.intellij.openapi.vfs.newvfs.impl.VfsData$Segment", "myObjectArray"),
     new IgnoredRef(-2, "com.intellij.openapi.vcs.impl.FileStatusManagerImpl", "cachedStatuses"),
-    new IgnoredRef(-2, "com.intellij.openapi.vcs.impl.FileStatusManagerImpl", "whetherExactlyParentChanged"),
+    new IgnoredRef(-2, "com.intellij.openapi.vcs.impl.FileStatusManagerImpl", "whetherExactlyParentToChanged"),
     new IgnoredRef(-3, "com.intellij.util.indexing.VfsAwareMapIndexStorage", "myCache"),
     new IgnoredRef(-2, "com.intellij.util.indexing.IndexingStamp", "ourTimestampsCache"),
     new IgnoredRef(-2, "com.intellij.util.indexing.IndexingStamp", "ourFinishedFiles"),
     new IgnoredRef(-2, "com.intellij.openapi.fileEditor.impl.EditorWindow", "removedTabs"),
     new IgnoredRef(-2, "com.intellij.notification.EventLog$ProjectTracker", "myInitial"),
+    new IgnoredRef(-2, "com.intellij.notification.impl.ProjectNotificationModel", "myNotifications"),
     new IgnoredRef(1, "sun.java2d.Disposer", "records"),
     new IgnoredRef(1, "sun.java2d.marlin.OffHeapArray", "REF_LIST"),
     new IgnoredRef(1, "sun.awt.X11.XInputMethod", "lastXICFocussedComponent"), // b/150879705
     new IgnoredRef(-1, "sun.font.XRGlyphCache", "cacheMap"),
 
     new IgnoredRef(-2, "com.intellij.openapi.application.impl.ReadMostlyRWLock", "readers"),
-    new IgnoredRef(-3, "org.jdom.JDOMInterner", "myElements"),
-    new IgnoredRef(-3, "org.jdom.JDOMInterner", "myStrings"),
+    new IgnoredRef(1, "org.jdom.JDOMInterner", "INSTANCE"),
     // coroutine scheduler thread pool: b/140457368
     new IgnoredRef(-1, "kotlinx.coroutines.scheduling.CoroutineScheduler", "workers"),
     new IgnoredRef(-2, "com.intellij.util.concurrency.AppScheduledExecutorService$BackendThreadPoolExecutor", "workers"),
@@ -80,6 +84,9 @@ public class StudioBleakOptions {
     new IgnoredRef(-1, "com.intellij.util.xml.EvaluatedXmlNameImpl", "ourInterned"),
     // IDEA-234673
     new IgnoredRef(-1, "com.intellij.ide.util.treeView.AbstractTreeUi", "myElementToNodeMap"),
+    new IgnoredRef(1, "com.intellij.idea.IdeaLogger$MyCache", "cache"),
+    new IgnoredRef(-2, "com.intellij.ide.IdleTracker", "_events"),
+    new IgnoredRef(-2, "com.intellij.codeInsight.codeVision.ProjectEditorLiveList", "lifetime"),
 
     // as-driver-specific:
     new IgnoredRef(2, "com.android.tools.idea.io.grpc.InternalChannelz", "perServerSockets"),
