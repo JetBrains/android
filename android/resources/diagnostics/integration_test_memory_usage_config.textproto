@@ -223,6 +223,8 @@ categories: {
     label: "loaders"
     class_names: "com.intellij.util.lang.FileLoader"
     class_names: "com.intellij.util.lang.JarLoader"
+    class_names: "com.intellij.util.lang.UrlClassLoader"
+    class_names: "com.intellij.ide.plugins.cl.PluginClassLoader"
   }
 }
 shared_components_limit: 200
