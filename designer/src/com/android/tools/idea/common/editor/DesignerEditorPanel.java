@@ -47,6 +47,7 @@ import com.intellij.ProjectTopics;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -318,17 +319,19 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
           });
         }
         else {
-          Throwable cause = exception.getCause();
-          if (cause instanceof WaitingForGradleSyncException) {
-            // Expected exception. Just log the message and listen to the next Gradle sync.
-            Logger.getInstance(DesignerEditorPanel.class).info(cause.getMessage());
-            SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
-            myWorkBench.loadingStopped("Design editor is unavailable until next gradle sync.");
-            return;
-          }
+          ApplicationManager.getApplication().invokeLater(() -> {
+            Throwable cause = exception.getCause();
+            if (cause instanceof WaitingForGradleSyncException) {
+              // Expected exception. Just log the message and listen to the next Gradle sync.
+              Logger.getInstance(DesignerEditorPanel.class).info(cause.getMessage());
+              SyncUtil.listenUntilNextSync(myProject, this, ignore -> initNeleModel());
+              myWorkBench.loadingStopped("Design editor is unavailable until next gradle sync.");
+              return;
+            }
 
-          myWorkBench.loadingStopped("Failed to initialize editor.");
-          Logger.getInstance(DesignerEditorPanel.class).warn("Failed to initialize DesignerEditorPanel", exception);
+            myWorkBench.loadingStopped("Failed to initialize editor.");
+            Logger.getInstance(DesignerEditorPanel.class).warn("Failed to initialize DesignerEditorPanel", exception);
+          });
         }
       });
   }
