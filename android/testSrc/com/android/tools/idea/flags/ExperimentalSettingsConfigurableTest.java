@@ -83,6 +83,12 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(myConfigurable.isModified());
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = true;
     assertFalse(myConfigurable.isModified());
+
+    myConfigurable.enableDeriveRuntimeClasspathsForLibraries(true);
+    mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = false;
+    assertTrue(myConfigurable.isModified());
+    mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
+    assertFalse(myConfigurable.isModified());
   }
 
   public void testApply() throws ConfigurationException {
@@ -93,6 +99,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     myConfigurable.setTraceProfileSelection(DEFAULT);
     myConfigurable.enableParallelSync(true);
     myConfigurable.enableGradleApiOptimization(true);
+    myConfigurable.enableDeriveRuntimeClasspathsForLibraries(true);
 
     myConfigurable.apply();
 
@@ -103,6 +110,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertEquals(DEFAULT, mySettings.TRACE_PROFILE_SELECTION);
     assertTrue(mySettings.SKIP_GRADLE_TASKS_LIST);
     assertTrue(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
+    assertTrue(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
 
     myConfigurable.enableUseMultiVariantExtraArtifacts(false);
     myConfigurable.enableConfigureAllGradleTasks(true);
@@ -111,6 +119,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
     myConfigurable.enableParallelSync(false);
     myConfigurable.enableGradleApiOptimization(false);
+    myConfigurable.enableDeriveRuntimeClasspathsForLibraries(false);
 
     myConfigurable.apply();
 
@@ -121,6 +130,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertEquals(SPECIFIED_LOCATION, mySettings.TRACE_PROFILE_SELECTION);
     assertFalse(mySettings.ENABLE_PARALLEL_SYNC);
     assertFalse(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
+    assertFalse(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
   }
 
   public void testReset() {
@@ -131,6 +141,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     mySettings.TRACE_PROFILE_SELECTION = DEFAULT;
     mySettings.ENABLE_PARALLEL_SYNC = true;
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = true;
+    mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true;
 
     myConfigurable.reset();
 
@@ -141,6 +152,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertEquals(DEFAULT, myConfigurable.getTraceProfileSelection());
     assertTrue(myConfigurable.isParallelSyncEnabled());
     assertTrue(myConfigurable.isGradleApiOptimizationEnabled());
+    assertTrue(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
 
     mySettings.USE_MULTI_VARIANT_EXTRA_ARTIFACTS = false;
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
@@ -149,6 +161,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     mySettings.TRACE_PROFILE_SELECTION = SPECIFIED_LOCATION;
     mySettings.ENABLE_PARALLEL_SYNC = false;
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = false;
+    mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = false;
 
     myConfigurable.reset();
 
@@ -159,6 +172,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertEquals(SPECIFIED_LOCATION, myConfigurable.getTraceProfileSelection());
     assertFalse(myConfigurable.isParallelSyncEnabled());
     assertFalse(myConfigurable.isGradleApiOptimizationEnabled());
+    assertFalse(myConfigurable.isDeriveRuntimeClasspathsForLibraries());
   }
 
   public void testIsTraceProfileValid() {

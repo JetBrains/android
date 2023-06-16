@@ -64,6 +64,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myEnableParallelSync;
 
   private JCheckBox myEnableDeviceApiOptimization;
+  private JCheckBox myDeriveRuntimeClasspathsForLibraries;
 
   private Runnable myRestartCallback;
 
@@ -79,6 +80,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myRenderSettings = renderSettings;
 
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
+    myDeriveRuntimeClasspathsForLibraries.setVisible(StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get());
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
 
     Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
@@ -130,7 +132,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            mySettings.ENABLE_PARALLEL_SYNC != isParallelSyncEnabled() ||
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimizationEnabled() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
-           myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled();
+           myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
+           mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES != isDeriveRuntimeClasspathsForLibraries();
   }
 
   private int getQualitySetting() {
@@ -143,6 +146,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySettings.SKIP_GRADLE_TASKS_LIST = !isConfigureAllGradleTasksEnabled();
     mySettings.ENABLE_PARALLEL_SYNC = isParallelSyncEnabled();
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimizationEnabled();
+    mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = isDeriveRuntimeClasspathsForLibraries();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
 
@@ -222,6 +226,15 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @TestOnly
   void enableGradleApiOptimization(boolean value) {
     myEnableDeviceApiOptimization.setSelected(value);
+  }
+
+  boolean isDeriveRuntimeClasspathsForLibraries() {
+    return myDeriveRuntimeClasspathsForLibraries.isSelected();
+  }
+
+  @TestOnly
+  void enableDeriveRuntimeClasspathsForLibraries(boolean value) {
+    myDeriveRuntimeClasspathsForLibraries.setSelected(value);
   }
 
   private void initTraceComponents() {
@@ -313,6 +326,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myTraceProfilePathField.setText(mySettings.TRACE_PROFILE_LOCATION);
     myEnableParallelSync.setSelected(mySettings.ENABLE_PARALLEL_SYNC);
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
+    myDeriveRuntimeClasspathsForLibraries.setSelected(mySettings.DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES);
     updateTraceComponents();
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
   }

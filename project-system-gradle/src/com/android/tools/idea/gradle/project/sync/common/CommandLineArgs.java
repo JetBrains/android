@@ -122,6 +122,15 @@ public class CommandLineArgs {
     if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isTestingMode) {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
+
+    // If we are going to skip processing runtime classpaths for some artifacts we need to
+    // tell AGP to stop using the runtime classpath to constrain the compile classpath.
+    // If we don't do this then we will still be computing the runtime classpath indirectly.
+    if (StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get() &&
+        GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES) {
+      args.add(createProjectProperty("android.experimental.dependency.excludeLibraryComponentsFromConstraints", true));
+    }
+
     return args;
   }
 }

@@ -764,9 +764,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES = Flag.create(
     GRADLE_IDE,
     "gradle.skip.runtime.classpath.for.libraries",
-    "Skip runtime classpath resolution for libraries",
-    "Skip the runtime classpath resolution for libraries, instead obtain the information from the applications dependency graph.",
-    false
+    "Enable the Gradle experimental setting to skip runtime classpath resolution for libraries",
+    "Enables the Gradle experimental setting to skip the runtime classpath resolution for libraries," +
+    " instead obtain the information from the applications dependency graph.",
+    true
   );
   public static final Flag<String> GRADLE_LOCAL_DISTRIBUTION_URL = Flag.create(
     GRADLE_IDE, "local.distribution.url", "Local override for distributionUrl",

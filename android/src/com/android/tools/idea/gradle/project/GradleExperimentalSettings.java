@@ -43,6 +43,8 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
   public TraceProfileItem TRACE_PROFILE_SELECTION = TraceProfileItem.DEFAULT;
   public String TRACE_PROFILE_LOCATION = "";
 
+  public boolean DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = false;
+
   @NotNull
   public static GradleExperimentalSettings getInstance() {
     return ApplicationManager.getApplication().getService(GradleExperimentalSettings.class);

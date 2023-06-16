@@ -1501,6 +1501,14 @@
     <option name="this" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
     <option name="default" hit="Default profile" />
     <option name="profile" hit="Default profile" />
+    <option name="application" hit="Derive runtime classpaths for libraries from application modules" />
+    <option name="classpaths" hit="Derive runtime classpaths for libraries from application modules" />
+    <option name="derive" hit="Derive runtime classpaths for libraries from application modules" />
+    <option name="for" hit="Derive runtime classpaths for libraries from application modules" />
+    <option name="from" hit="Derive runtime classpaths for libraries from application modules" />
+    <option name="libraries" hit="Derive runtime classpaths for libraries from application modules" />
+    <option name="modules" hit="Derive runtime classpaths for libraries from application modules" />
+    <option name="runtime" hit="Derive runtime classpaths for libraries from application modules" />
     <option name="enable" hit="Enable @Preview picker" />
     <option name="picker" hit="Enable @Preview picker" />
     <option name="preview" hit="Enable @Preview picker" />
