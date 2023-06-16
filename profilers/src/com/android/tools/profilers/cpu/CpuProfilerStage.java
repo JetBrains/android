@@ -351,7 +351,7 @@ public class CpuProfilerStage extends StreamingStage {
   }
 
   public void startCapturing() {
-    LogUtils.log(getClass(), "CPU capture attempting start");
+    LogUtils.log(getClass(), "CPU capture start attempted");
     ProfilingConfiguration config = myProfilerConfigModel.getProfilingConfiguration();
     assert getStudioProfilers().getProcess() != null;
     Common.Process process = getStudioProfilers().getProcess();
@@ -378,7 +378,7 @@ public class CpuProfilerStage extends StreamingStage {
 
   private void startCapturingCallback(@NotNull Trace.TraceStartStatus status) {
     if (status.getStatus().equals(Trace.TraceStartStatus.Status.SUCCESS)) {
-      LogUtils.log(getClass(), "CPU capture successfully started");
+      LogUtils.log(getClass(), "CPU capture start succeeded");
       // Set myCaptureStartTimeNs before updating the state because the timestamp may be used to construct recording panel.
       myCaptureStartTimeNs = currentTimeNs();
       setCaptureState(CaptureState.CAPTURING);
@@ -396,7 +396,7 @@ public class CpuProfilerStage extends StreamingStage {
 
   @VisibleForTesting
   void stopCapturing() {
-    LogUtils.log(getClass(), "CPU capture attempting stop");
+    LogUtils.log(getClass(), "CPU capture stop attempted");
     // We need to send the trace configuration that was used to initiate the capture. Return early if no in-progress trace exists.
     if (Trace.TraceInfo.getDefaultInstance().equals(myInProgressTraceInfo)) {
       return;
@@ -629,7 +629,7 @@ public class CpuProfilerStage extends StreamingStage {
 
           // Inform CpuCaptureParser to track metrics when the successful trace is parsed.
           if (trace.getStopStatus().getStatus().equals(Trace.TraceStopStatus.Status.SUCCESS)) {
-            LogUtils.log(getClass(), "CPU capture successfully stopped");
+            LogUtils.log(getClass(), "CPU capture stop succeeded");
             CpuCaptureMetadata captureMetadata =
               new CpuCaptureMetadata(ProfilingConfiguration.fromProto(finishedTraceToSelect.getConfiguration()));
             // If the capture is successful, we can track a more accurate time, calculated from the capture itself.

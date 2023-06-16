@@ -363,7 +363,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
           }
         }
         else {
-          LogUtils.log(getClass(), "CPU capture successfully parsed");
+          LogUtils.log(getClass(), "CPU capture parse succeeded");
           myCapture = capture;
           onCaptureParsed(capture);
           setState(State.ANALYZING);
