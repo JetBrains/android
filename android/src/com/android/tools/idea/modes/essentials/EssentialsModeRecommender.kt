@@ -23,6 +23,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorNotification
 import com.google.wireless.android.sdk.stats.MemorySettings
 import com.intellij.ide.IdeBundle
+import com.intellij.ide.actions.ToggleEssentialHighlightingAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
@@ -72,6 +73,8 @@ class EssentialsModeRecommender : ProjectActivity {
   inner class EssentialsModeResponseYes : NotificationAction("Yes") {
     override fun actionPerformed(e: AnActionEvent, notification: Notification) {
       EssentialsMode.setEnabled(true)
+      // ToggleEssentialHighlightingAction sends a notification about what the mode does
+      if (StudioFlags.ESSENTIALS_HIGHLIGHTING_MODE.get()) ToggleEssentialHighlightingAction().setSelected(e, true)
       notification.expire()
     }
   }

@@ -17,7 +17,6 @@ package com.android.tools.idea.modes.essentials
 
 import com.android.flags.Flag
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.modes.essentials.EssentialsMode.isEnabled
 import com.intellij.ide.EssentialHighlightingMode
 import com.intellij.ide.actions.ToggleEssentialHighlightingAction
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -35,7 +34,7 @@ class EssentialsModeToggleAction : ToggleAction(
   private val essentialHighlightingAction = ToggleEssentialHighlightingAction()
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return isEnabled()
+    return EssentialsMode.isEnabled()
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
