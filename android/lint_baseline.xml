@@ -534,6 +534,14 @@
         message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
+            line="151"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within package private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/LiveLiteralsService.kt"
             line="309"/>
     </issue>
 
@@ -590,7 +598,23 @@
         message="This method should only be accessed from tests or within package private scope">
         <location
             file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
+            line="60"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within package private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/LiveLiteralsStatusAction.kt"
             line="84"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within package private scope">
+        <location
+            file="src/com/android/tools/idea/rendering/classloading/loaders/ProjectSystemClassLoader.kt"
+            line="81"/>
     </issue>
 
     <issue
@@ -615,6 +639,30 @@
         <location
             file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
             line="64"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within package private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
+            line="64"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within package private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
+            line="73"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within package private scope">
+        <location
+            file="src/com/android/tools/idea/editors/literals/actions/ShowLiveLiteralsProblemAction.kt"
+            line="73"/>
     </issue>
 
     <issue
