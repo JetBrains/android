@@ -22,14 +22,13 @@ class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
   val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
   val prevChildren = prevLeakRoot.children
   val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
-  val addedChildrenObjects = childrenObjects.filter { c -> prevChildrenObjects.all { it !== c } }
   val addedChildren = leakRoot.children.filter { c -> prevChildren.all { it.obj !== c.obj }}
   val retainedByNewChildren = mutableListOf<Node>()
   val retainedByAllChildren = mutableListOf<Node>()
 
   override fun toString() = buildString {
     appendln(leaktrace)
-    appendln(" ${leakRoot.degree} child nodes (+${leakRoot.degree - prevLeakRoot.degree}) [${childrenObjects.size} distinct child objects (+${addedChildrenObjects.size})]. New child nodes: ${addedChildren.size}")
+    appendln(" ${leakRoot.degree} child nodes (+${leakRoot.degree - prevLeakRoot.degree}) [${childrenObjects.size} distinct child objects (+${childrenObjects.size - prevChildrenObjects.size})]. New child nodes: ${addedChildren.size}")
     addedChildren.take(20).forEach {
         appendln("   Added: ${it.objString()}")
     }
