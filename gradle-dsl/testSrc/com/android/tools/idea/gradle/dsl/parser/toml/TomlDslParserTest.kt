@@ -326,7 +326,7 @@ class TomlDslParserTest : PlatformTestCase() {
       "flt2" to 3.1415,
       "flt3" to -0.01,
       "flt4" to 5e22,
-      // https://github.com/JetBrains/intellij-community/pull/2338 "flt5" to 1e06,
+      "flt5" to 1e06,
       "flt6" to -2e-2,
       "flt7" to 6.626e-34,
       "flt8" to 224617.445991228,
