@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
+import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.idea.common.error.IssueNode
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
@@ -1573,21 +1574,32 @@ class ComposePreviewRepresentation(
     ): Sequence<ComposePreviewElement> {
       val baseConfig = base.configuration
       val baseDisplaySettings = base.displaySettings
-      return referenceDeviceIds.keys.asSequence().map { device ->
-        val config = baseConfig.copy(deviceSpec = device)
-        val displaySettings =
-          baseDisplaySettings.copy(
-            name = "${baseDisplaySettings.name} - ${referenceDeviceIds[device]}",
-            group = message("ui.check.mode.screen.size.group")
-          )
-        SingleComposePreviewElementInstance(
-          base.composableMethodFqn,
-          displaySettings,
-          base.previewElementDefinitionPsi,
-          base.previewBodyPsi,
-          config
-        )
+      val idToConfigMap = mutableMapOf<String, PreviewConfiguration>()
+      referenceDeviceIds.keys.forEach {
+        val id = referenceDeviceIds[it] ?: return@forEach
+        val config = baseConfig.copy(deviceSpec = it)
+        idToConfigMap[id] = config
+        if (id == DEVICE_CLASS_PHONE_ID) {
+          idToConfigMap["$id-landscape"] =
+            baseConfig.copy(deviceSpec = "spec:parent=$id,orientation=landscape")
+        }
       }
+      return idToConfigMap
+        .map { (id, config) ->
+          val displaySettings =
+            baseDisplaySettings.copy(
+              name = "${baseDisplaySettings.name} - $id",
+              group = message("ui.check.mode.screen.size.group")
+            )
+          SingleComposePreviewElementInstance(
+            base.composableMethodFqn,
+            displaySettings,
+            base.previewElementDefinitionPsi,
+            base.previewBodyPsi,
+            config
+          )
+        }
+        .asSequence()
     }
   }
 }

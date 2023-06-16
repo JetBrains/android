@@ -281,7 +281,11 @@ class ComposePreviewRepresentationTest {
           assertEquals(uiCheckElement.composableMethodFqn, it.composableMethodFqn)
           devices.add(it.configuration.deviceSpec)
         }
-      assertThat(devices.sorted(), `is`(referenceDeviceIds.keys.sorted()))
+      val deviceDefs =
+        mutableSetOf("spec:parent=_device_class_phone,orientation=landscape").apply {
+          addAll(referenceDeviceIds.keys)
+        }
+      assertThat(devices.sorted(), `is`(deviceDefs.sorted()))
 
       preview.stopUiCheckPreview()
       delayUntilCondition(250) { !preview.isUiCheckPreview }
