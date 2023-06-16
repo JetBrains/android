@@ -32,7 +32,6 @@
     <orderEntry type="module" module-name="intellij.android.navigator" />
     <orderEntry type="module" module-name="intellij.android.gradle.dsl" />
     <orderEntry type="module" module-name="intellij.android.bleak" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.bleak-config" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.psd" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" scope="TEST" />

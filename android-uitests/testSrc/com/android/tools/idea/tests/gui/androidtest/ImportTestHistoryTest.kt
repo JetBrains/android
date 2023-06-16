@@ -17,10 +17,10 @@ package com.android.tools.idea.tests.gui.androidtest
 
 import com.android.tools.idea.bleak.IgnoreList
 import com.android.tools.idea.bleak.IgnoreListEntry
-import com.android.tools.idea.bleak.StudioBleakOptions
 import com.android.tools.idea.bleak.UseBleak
 import com.android.tools.idea.bleak.runWithBleak
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
+import com.android.tools.idea.tests.gui.framework.UiTestBleakOptions
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
 import com.intellij.execution.testframework.sm.runner.history.actions.AbstractImportTestsAction
@@ -48,7 +48,7 @@ class ImportTestHistoryTest {
   fun importTestHistoryDoesNotLeakMemoryAfterDisposed() {
     val ideFrameFixture = guiTest.importSimpleApplication()
     createTestHistoryXmlFileInProject(ideFrameFixture.project)
-    val bleakOptions = StudioBleakOptions.defaultsWithAdditionalIgnoreList(
+    val bleakOptions = UiTestBleakOptions.defaultsWithAdditionalIgnoreList(
       IgnoreList(listOf(
         IgnoreListEntry { it.leaktrace.referenceMatches(2, "java.awt.KeyboardFocusManager", "focusedWindow") },
         IgnoreListEntry { it.leaktrace.element(-1)?.className ==  "com.intellij.util.SmartList" },

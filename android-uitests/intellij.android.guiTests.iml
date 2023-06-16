@@ -75,6 +75,5 @@
     <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.rendering" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.bleak-config" scope="TEST" />
   </component>
 </module>
