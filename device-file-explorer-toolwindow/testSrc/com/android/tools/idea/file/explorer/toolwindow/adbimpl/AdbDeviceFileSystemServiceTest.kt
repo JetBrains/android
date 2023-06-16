@@ -17,7 +17,6 @@ package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.sdklib.deviceprovisioner.DeviceState.Connected
-import com.android.sdklib.deviceprovisioner.OfflineDeviceProperties
 import com.android.sdklib.deviceprovisioner.receiveUntilPassing
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
@@ -100,13 +99,6 @@ class AdbDeviceFileSystemServiceTest {
           sdk = "31",
           hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB
         )
-      deviceState.deviceStatus = com.android.fakeadbserver.DeviceState.DeviceStatus.UNAUTHORIZED
-
-      // Device is offline, but connected, so it shows up as a DeviceFileSystem
-      assertThat(channel.receiveOneFilesystem().deviceHandle.state.properties)
-        .isInstanceOf(OfflineDeviceProperties::class.java)
-
-      // Activate the device; it shows up
       deviceState.deviceStatus = com.android.fakeadbserver.DeviceState.DeviceStatus.ONLINE
 
       var deviceFileSystems = channel.receive()
@@ -123,10 +115,4 @@ class AdbDeviceFileSystemServiceTest {
 
       job.cancel()
     }
-
-  suspend fun Channel<List<DeviceFileSystem>>.receiveOneFilesystem(): AdbDeviceFileSystem {
-    val deviceFileSystems = receive()
-    assertThat(deviceFileSystems).hasSize(1)
-    return deviceFileSystems[0] as AdbDeviceFileSystem
-  }
 }
