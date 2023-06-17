@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.tools.idea.streaming.device.RequestDeviceStateMessage.Companion.PHYSICAL_STATE
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128InputStream.StreamFormatException
 import com.android.utils.Base128OutputStream
@@ -107,6 +108,7 @@ internal data class MotionEventMessage(
     const val ACTION_OUTSIDE = 4
     const val ACTION_POINTER_DOWN = 5
     const val ACTION_POINTER_UP = 6
+    const val ACTION_HOVER_MOVE = 7
     const val ACTION_SCROLL = 8
 
     // - Axes

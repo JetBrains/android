@@ -211,6 +211,10 @@ internal class DeviceViewTest {
     for (i in 0 until 4) {
       assertAppearance("Rotation${i * 90}")
       // Check mouse input.
+      fakeUi.mouse.moveTo(40, 30)
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+          MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_HOVER_MOVE, 0))
+
       fakeUi.mouse.press(40, 30)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
           MotionEventMessage(listOf(expectedCoordinates[i * 2]), MotionEventMessage.ACTION_DOWN, 0))
@@ -309,6 +313,8 @@ internal class DeviceViewTest {
 
     fakeUi.keyboard.setFocus(view)
     fakeUi.mouse.moveTo(mousePosition)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_MOVE, 0))
     fakeUi.keyboard.press(VK_CONTROL)
     fakeUi.layoutAndDispatchEvents()
     assertAppearance("MultiTouch1")

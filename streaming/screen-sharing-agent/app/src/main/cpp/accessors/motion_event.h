@@ -47,7 +47,7 @@ public:
   jfloat y_precision = 1;
   jint device_id = 0;
   jint edge_flags = 0;
-  jint source = AINPUT_SOURCE_STYLUS | AINPUT_SOURCE_TOUCHSCREEN;
+  jint source = 0;
   jint display_id = 0;
   jint flags = 0;
 

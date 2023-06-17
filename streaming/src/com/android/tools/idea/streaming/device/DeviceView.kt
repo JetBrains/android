@@ -690,6 +690,9 @@ internal class DeviceView(
 
     override fun mouseMoved(event: MouseEvent) {
       updateMultiTouchMode(event)
+      if (!multiTouchMode) {
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE)
+      }
     }
 
     override fun mouseWheelMoved(event: MouseWheelEvent) {

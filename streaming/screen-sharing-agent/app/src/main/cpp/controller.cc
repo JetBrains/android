@@ -284,6 +284,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
       motion_event_start_time_ = 0;
     }
   }
+  event.source = action == AMOTION_EVENT_ACTION_HOVER_MOVE ? AINPUT_SOURCE_MOUSE : AINPUT_SOURCE_STYLUS | AINPUT_SOURCE_TOUCHSCREEN;
 
   DisplayInfo display_info = Agent::GetDisplayInfo();
 
