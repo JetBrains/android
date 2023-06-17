@@ -35,7 +35,7 @@ class BuildToolsTooLowReporterIntegrationTest : AndroidGradleTestCase() {
 
   @Test
   @Ignore("Misconfiguration issue. Fix after merge.")
-  fun testModuleLink() {
+  fun moduleLink() {
     loadSimpleApplication()
     val appModule = project.findAppModule()
     val appFile = getGradleBuildFile(appModule)!!
