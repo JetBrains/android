@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.cpu
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_1000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_200
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_2000
@@ -22,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_4200
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_500
 import com.android.tools.idea.gradle.project.sync.BenchmarkTestRule
 import com.android.tools.idea.gradle.project.sync.DaemonIdleTimeoutRule
+import com.android.tools.idea.gradle.project.sync.FEATURE_RUNTIME_CLASSPATH_1000
 import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
@@ -66,6 +69,18 @@ class Benchmark4200CpuTest {
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 2)
   @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(10.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
+}
+
+class Benchmark1000CpuRuntimeClasspathTest {
+  @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(FEATURE_RUNTIME_CLASSPATH_1000, STANDARD_1000)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
+
+  @Test fun testCpu() {
+    StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
+    GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true
+    runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
+  }
 }
 
 private fun runTest(benchmarkTestRule: BenchmarkTestRule,

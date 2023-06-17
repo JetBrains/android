@@ -51,6 +51,12 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "tags": ["manual"],
         },
+        "Benchmark1000MemoryRuntimeClasspath": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryRuntimeClasspath",
+        },
+        "Benchmark1000CpuRuntimeClasspath": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark1000CpuRuntimeClasspath",
+        },
     },
     test_data = [
         "testSrc/com/android/tools/idea/gradle/project/sync/gradle/MeasurementPlugin.kt",

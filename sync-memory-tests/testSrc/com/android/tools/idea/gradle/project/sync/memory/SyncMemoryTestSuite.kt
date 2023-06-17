@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.memory
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_100
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_1000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_200
@@ -22,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_2000
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_4200
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_50
 import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_500
+import com.android.tools.idea.gradle.project.sync.FEATURE_RUNTIME_CLASSPATH_1000
 import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_100_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
@@ -104,3 +107,13 @@ class Benchmark200Repeated20TimesMemoryTest  {
   }
 }
 
+class Benchmark1000MemoryRuntimeClasspathTest {
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(FEATURE_RUNTIME_CLASSPATH_1000, STANDARD_1000)
+  @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
+
+  @Test fun testMemory() {
+    StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
+    GradleExperimentalSettings.getInstance().DERIVE_RUNTIME_CLASSPATHS_FOR_LIBRARIES = true
+    benchmarkTestRule.openProject()
+  }
+}

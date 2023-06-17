@@ -20,7 +20,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 
-// Standard project names
+// Standard benchmark names
 const val SUBSET_50_NAME = "50Modules"
 const val SUBSET_100_NAME = "100Modules"
 const val SUBSET_200_NAME = "200Modules"
@@ -28,6 +28,9 @@ const val SUBSET_500_NAME = "500Modules"
 const val SUBSET_1000_NAME = "1000Modules"
 const val SUBSET_2000_NAME = "2000Modules"
 const val SUBSET_4200_NAME = "4200Modules"
+
+// Feature benchmark names
+const val FEATURE_RUNTIME_CLASSPATH_1000 = "FRuntimeClasspath1000"
 
 interface BenchmarkTestRule : ProjectSetupRule, TestRule
 fun createBenchmarkTestRule(projectName: String, project: BenchmarkProject): BenchmarkTestRule {
