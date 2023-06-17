@@ -13,11 +13,7 @@ PluginInfo = provider(
         "module_deps": "ImlModuleInfo for modules included in this plugin",
         "lib_deps": "libraries to be included in this plugin",
         "licenses": "",
-        "files": "zipped files to copy into the plugin directory",
-        "files_linux": "",
-        "files_mac": "",
-        "files_mac_arm": "",
-        "files_win": "",
+        "plugin_files": "A map from the final studio location to the file it goes there.",
         "overwrite_plugin_version": "whether to stamp version metadata into plugin.xml",
     },
 )
@@ -27,6 +23,8 @@ IntellijInfo = provider(
     fields = {
         "major_version": "The major IntelliJ version.",
         "minor_version": "The minor IntelliJ version.",
+        "base": "A map from final studio location to the file (all non plugin files).",
+        "plugins": "The file maps for all the  bundled plugins.",
     },
 )
 
@@ -59,7 +57,7 @@ def _zipper(ctx, desc, map, out, deps = []):
         mnemonic = "zipper",
     )
 
-def _lnzipper(ctx, desc, filemap, out, deps = []):
+def _lnzipper(ctx, desc, filemap, out, keep_symlink = True, attrs = {}, deps = []):
     """Creates a ZIP out while preserving symlinks.
 
     Note: This action needs to run outside the sandbox to capture an accurate
@@ -70,9 +68,12 @@ def _lnzipper(ctx, desc, filemap, out, deps = []):
     fileargs = []
     for zip_path, f in filemap:
         files.append(f)
-        fileargs.append("%s=%s\n" % (zip_path, f.path if f else ""))
+        attr = ("[" + attrs[zip_path] + "]") if zip_path in attrs else ""
+        fileargs.append("%s%s=%s\n" % (zip_path, attr, f.path if f else ""))
 
-    lnzipper_options = "-cs"
+    lnzipper_options = "-ca"
+    if keep_symlink:
+        lnzipper_options += "s"
     if ctx.attr.compress:
         lnzipper_options += "C"
 
@@ -119,13 +120,18 @@ def _module_deps(ctx, jar_names, modules):
         res_files += [(j, jar_file)]
     return res_files
 
+# TODO: unify get_linux with raw_get_linux
 def _get_linux(dep):
     return dep.files.to_list() + dep.files_linux.to_list()
+
+def _raw_get_linux(x):
+    return x.linux
 
 LINUX = struct(
     name = "linux",
     jre = "jbr/",
     get = _get_linux,
+    raw_get = _raw_get_linux,
     base_path = "",
     resource_path = "",
 )
@@ -133,8 +139,12 @@ LINUX = struct(
 def _get_mac(dep):
     return dep.files.to_list() + dep.files_mac.to_list()
 
+def _raw_get_mac(x):
+    return x.mac
+
 MAC = struct(
     name = "mac",
+    raw_get = _raw_get_mac,
     jre = "jbr/",
     get = _get_mac,
     base_path = "Contents/",
@@ -144,9 +154,13 @@ MAC = struct(
 def _get_mac_arm(dep):
     return dep.files.to_list() + dep.files_mac_arm.to_list()
 
+def _raw_get_mac_arm(x):
+    return x.mac_arm
+
 MAC_ARM = struct(
     name = "mac_arm",
     jre = "jbr/",
+    raw_get = _raw_get_mac_arm,
     get = _get_mac_arm,
     base_path = "Contents/",
     resource_path = "Contents/Resources/",
@@ -155,10 +169,14 @@ MAC_ARM = struct(
 def _get_win(dep):
     return dep.files.to_list() + dep.files_win.to_list()
 
+def _raw_get_win(x):
+    return x.win
+
 WIN = struct(
     name = "win",
     jre = "jbr/",
     get = _get_win,
+    raw_get = _raw_get_win,
     base_path = "",
     resource_path = "",
 )
@@ -172,14 +190,13 @@ def _resource_deps(res_dirs, res, platform):
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
     return files
 
-def _check_plugin(ctx, files, external_xmls = [], verify_id = None, verify_deps = None):
+def _check_plugin(ctx, out, files, external_xmls = [], verify_id = None, verify_deps = None):
     deps = None
     if verify_deps != None:
         deps = [dep[PluginInfo].plugin_metadata for dep in verify_deps]
 
-    plugin_metadata = ctx.actions.declare_file(ctx.attr.name + ".info")
     check_args = ctx.actions.args()
-    check_args.add("--out", plugin_metadata)
+    check_args.add("--out", out)
     check_args.add_all("--files", files)
     if verify_id:
         check_args.add("--plugin_id", verify_id)
@@ -189,22 +206,20 @@ def _check_plugin(ctx, files, external_xmls = [], verify_id = None, verify_deps 
 
     ctx.actions.run(
         inputs = files + (deps if deps else []),
-        outputs = [plugin_metadata],
+        outputs = [out],
         executable = ctx.executable._check_plugin,
         arguments = [check_args],
         progress_message = "Analyzing %s plugin..." % ctx.attr.name,
         mnemonic = "chkplugin",
     )
-    return plugin_metadata
 
-def _studio_plugin_os(ctx, platform, module_deps, plugin_dir, plugin_metadata, out):
-    spec = [(plugin_dir + "/lib/" + d, f) for (d, f) in module_deps]
+def _studio_plugin_os(ctx, platform, module_deps, plugin_dir):
+    files = {plugin_dir + "/lib/" + d: f for (d, f) in module_deps}
 
     res = _resource_deps(ctx.attr.resources_dirs, ctx.attr.resources, platform)
-    spec += [(plugin_dir + "/" + d, f) for (d, f) in res]
+    files.update({plugin_dir + "/" + d: f for (d, f) in res})
 
-    files = [f for (p, f) in spec]
-    _zipper(ctx, "%s plugin" % platform.name, spec, out, [plugin_metadata])
+    return files
 
 def _depset_subtract(depset1, depset2):
     dict1 = {e1: None for e1 in depset1.to_list()}
@@ -214,11 +229,11 @@ def _studio_plugin_impl(ctx):
     plugin_dir = "plugins/" + ctx.attr.directory
     module_deps = _module_deps(ctx, ctx.attr.jars, ctx.attr.modules)
     module_deps = module_deps + [(f.basename, f) for f in ctx.files.libs]
-    plugin_metadata = _check_plugin(ctx, [f for (r, f) in module_deps], ctx.attr.external_xmls, ctx.attr.name, ctx.attr.deps)
-    _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir, plugin_metadata, ctx.outputs.plugin_linux)
-    _studio_plugin_os(ctx, MAC, module_deps, plugin_dir, plugin_metadata, ctx.outputs.plugin_mac)
-    _studio_plugin_os(ctx, MAC_ARM, module_deps, plugin_dir, plugin_metadata, ctx.outputs.plugin_mac_arm)
-    _studio_plugin_os(ctx, WIN, module_deps, plugin_dir, plugin_metadata, ctx.outputs.plugin_win)
+    _check_plugin(ctx, ctx.outputs.plugin_metadata, [f for (r, f) in module_deps], ctx.attr.external_xmls, ctx.attr.name, ctx.attr.deps)
+    plugin_files_linux = _studio_plugin_os(ctx, LINUX, module_deps, plugin_dir)
+    plugin_files_mac = _studio_plugin_os(ctx, MAC, module_deps, plugin_dir)
+    plugin_files_mac_arm = _studio_plugin_os(ctx, MAC_ARM, module_deps, plugin_dir)
+    plugin_files_win = _studio_plugin_os(ctx, WIN, module_deps, plugin_dir)
 
     for lib in ctx.attr.libs:
         if PluginInfo in lib:
@@ -242,16 +257,16 @@ def _studio_plugin_impl(ctx):
         fail("Plugin '" + ctx.attr.name + "' has some compile-time dependencies which are not on the " +
              "runtime classpath in release builds. You may need to edit the plugin definition at " +
              str(ctx.label) + " to include the following dependencies: " + ", ".join(missing))
-
     return [
         PluginInfo(
             directory = ctx.attr.directory,
-            files = depset(),
-            files_linux = depset([ctx.outputs.plugin_linux]),
-            files_mac = depset([ctx.outputs.plugin_mac]),
-            files_mac_arm = depset([ctx.outputs.plugin_mac_arm]),
-            files_win = depset([ctx.outputs.plugin_win]),
-            plugin_metadata = plugin_metadata,
+            plugin_files = struct(
+                linux = plugin_files_linux,
+                mac = plugin_files_mac,
+                mac_arm = plugin_files_mac_arm,
+                win = plugin_files_win,
+            ),
+            plugin_metadata = ctx.outputs.plugin_metadata,
             module_deps = depset(ctx.attr.modules),
             lib_deps = depset(ctx.attr.libs),
             licenses = depset(ctx.files.licenses),
@@ -288,10 +303,7 @@ _studio_plugin = rule(
         ),
     },
     outputs = {
-        "plugin_linux": "%{name}.linux.zip",
-        "plugin_mac": "%{name}.mac.zip",
-        "plugin_mac_arm": "%{name}.mac_arm.zip",
-        "plugin_win": "%{name}.win.zip",
+        "plugin_metadata": "%{name}.info",
     },
     implementation = _studio_plugin_impl,
 )
@@ -508,51 +520,43 @@ def _full_display_version(ctx):
     (micro, _) = _split_version(ctx.attr.version_micro_patch)
     return _form_version_full(ctx).format(intellij_info.major_version, intellij_info.minor_version, micro)
 
-def _stamp(ctx, platform, zip, extra, srcs, out):
-    args = ["--platform", zip.path]
-    args += ["--os", platform.name]
-    args += ["--version_file", ctx.version_file.path]
-    args += ["--info_file", ctx.info_file.path]
-    (_, is_eap) = _get_channel_info(ctx.attr.version_type)
-    args += ["--eap", "true" if is_eap else "false"]
-    (micro, patch) = _split_version(ctx.attr.version_micro_patch)
-    args += ["--version_micro", micro]
-    args += ["--version_patch", patch]
-    args += ["--version_full", _form_version_full(ctx)]
-    args += extra
+def _stamp(ctx, args, srcs, src, out):
+    args.add("--stamp")
+    args.add(src)
+    args.add(out)
     ctx.actions.run(
-        inputs = [zip, ctx.info_file, ctx.version_file] + srcs,
+        inputs = srcs + [src],
         outputs = [out],
         executable = ctx.executable._stamper,
-        arguments = args,
-        progress_message = "Stamping %s file..." % zip.basename,
+        arguments = [args],
+        progress_message = "Stamping %s " % src.basename,
         mnemonic = "stamper",
     )
 
-def _produce_manifest(ctx, platform):
-    out = ctx.outputs.manifest
-    platform_zip = platform.get(ctx.attr.platform.data)[0]
+def _declare_stamped_file(ctx, files, platform, path):
+    original = files[path]
+    stamped = ctx.actions.declare_file(original.basename + ".%s.stamped.%s" % (platform.name, original.extension))
+    files[path] = stamped
+    return original, stamped
 
-    args = ["--produce_manifest", out.path]
-    args += ["--platform", platform_zip.path]
-    args += ["--os", platform.name]
-    args += ["--version_file", ctx.version_file.path]
-    args += ["--info_file", ctx.info_file.path]
+def _produce_manifest(ctx, platform, platform_files):
+    out = ctx.outputs.manifest
+    build_txt = platform_files[platform.resource_path + "build.txt"]
+    resources_jar = platform_files[platform.base_path + "lib/resources.jar"]
+
     (channel, is_eap) = _get_channel_info(ctx.attr.version_type)
-    args += ["--eap", "true" if is_eap else "false"]
-    (micro, patch) = _split_version(ctx.attr.version_micro_patch)
-    args += ["--version_micro", micro]
-    args += ["--version_patch", patch]
-    args += ["--version_full", _form_version_full(ctx)]
+    args = ["--out", out.path]
+    args += ["--build_txt", build_txt.path]
+    args += ["--resources_jar", resources_jar.path]
     args += ["--channel", channel]
     args += ["--code_name", ctx.attr.version_code_name]
 
     ctx.actions.run(
-        inputs = [platform_zip, ctx.info_file, ctx.version_file],
+        inputs = [build_txt, resources_jar, ctx.info_file, ctx.version_file],
         outputs = [out],
-        executable = ctx.executable._stamper,
+        executable = ctx.executable._generate_build_metadata,
         arguments = args,
-        progress_message = "Producing manifest from %s..." % platform_zip.path,
+        progress_message = "Producing manifest for %s..." % ctx.attr.name,
         mnemonic = "stamper",
     )
 
@@ -571,66 +575,99 @@ def _produce_update_message_html(ctx):
         },
     )
 
-def _stamp_platform(ctx, platform, zip, out):
-    args = ["--stamp_platform", out.path]
-    _stamp(ctx, platform, zip, args, [], out)
+def _stamp_platform(ctx, platform, platform_files):
+    args = ["--stamp_platform"]
 
-def _stamp_plugin(ctx, platform, zip, src, dst, overwrite_plugin_version):
-    args = ["--stamp_plugin", src.path, dst.path]
-    if overwrite_plugin_version:
-        args.append("--overwrite_plugin_version")
-    _stamp(ctx, platform, zip, args, [src], dst)
+    ret = {}
+    ret.update(platform_files)
 
-def _zip_merger(ctx, zips, overrides, out):
-    files = [f for (p, f) in zips + overrides]
-    zipper_files = [r + "=" + f.path + "\n" for r, f in zips]
-    zipper_files += [r + "=+" + f.path + "\n" for r, f in overrides]
-    zipper_args = ["cC" if ctx.attr.compress else "c", out.path]
-    zipper_list = create_option_file(ctx, out.basename + ".res.lst", "".join(zipper_files))
-    zipper_args += ["@" + zipper_list.path]
-    ctx.actions.run(
-        inputs = files + [zipper_list],
-        outputs = [out],
-        executable = ctx.executable._zip_merger,
-        arguments = zipper_args,
-        progress_message = "Creating distribution zip...",
-        mnemonic = "zipmerger",
-    )
+    build_txt, stamped_build_txt = _declare_stamped_file(ctx, ret, platform, platform.resource_path + "build.txt")
+    args = ctx.actions.args()
+    args.add("--info_file", ctx.info_file)
+    args.add("--replace_build_number")
+    _stamp(ctx, args, [ctx.info_file], build_txt, stamped_build_txt)
 
-def _codesign(ctx, entitlements, prefix, out):
-    ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
-    files = [
-        ("_codesign/entitlements.xml", entitlements),
-    ]
+    resources_jar, stamped_resources_jar = _declare_stamped_file(ctx, ret, platform, platform.base_path + "lib/resources.jar")
+    (_, is_eap) = _get_channel_info(ctx.attr.version_type)
+    (micro, patch) = _split_version(ctx.attr.version_micro_patch)
+    args = ctx.actions.args()
+    args.add("--entry", "idea/AndroidStudioApplicationInfo.xml")
+    args.add("--version_file", ctx.version_file)
+    args.add("--version_full", _form_version_full(ctx))
+    args.add("--eap", "true" if is_eap else "false")
+    args.add("--version_micro", micro)
+    args.add("--version_patch", patch)
+    args.add("--build_txt", stamped_build_txt.path)
+    args.add("--stamp_app_info")
+    _stamp(ctx, args, [ctx.version_file, stamped_build_txt], resources_jar, stamped_resources_jar)
 
-    _zipper(ctx, "_codesign for macOS", files, out)
+    if platform == MAC or platform == MAC_ARM:
+        info_plist, stamped_info_plist = _declare_stamped_file(ctx, ret, platform, platform.base_path + "Info.plist")
+        args = ctx.actions.args()
+        args.add("--info_file", ctx.info_file)
+        args.add("--replace_build_number")
+        _stamp(ctx, args, [ctx.info_file], info_plist, stamped_info_plist)
+
+    if platform != WIN:
+        product_info_json, stamped_product_info_json = _declare_stamped_file(ctx, ret, platform, platform.resource_path + "product-info.json")
+        args = ctx.actions.args()
+        args.add("--info_file", ctx.info_file)
+        args.add("--build_txt", stamped_build_txt)
+        args.add("--stamp_product_info")
+        _stamp(ctx, args, [ctx.info_file, stamped_build_txt], product_info_json, stamped_product_info_json)
+
+    return ret
+
+def _stamp_plugin(ctx, platform, platform_files, files, overwrite_plugin_version):
+    ret = {}
+    ret.update(files)
+    build_txt = platform_files[platform.resource_path + "build.txt"]
+
+    for rel, file in files.items():
+        if rel.endswith(".jar"):
+            stamped_jar = ctx.actions.declare_file(ctx.attr.name + ".plugin.%s.stamped." % platform.name + rel.replace("/", "_"))
+            ret[rel] = stamped_jar
+
+            args = ctx.actions.args()
+            args.add("--build_txt", build_txt)
+            args.add("--info_file", ctx.info_file)
+            args.add("--entry", "META-INF/plugin.xml")
+            args.add("--optional_entry")
+            args.add("--replace_build_number")
+            if overwrite_plugin_version:
+                args.add("--overwrite_plugin_version")
+            _stamp(ctx, args, [build_txt, ctx.info_file], file, stamped_jar)
+
+    return ret
 
 def _android_studio_prefix(ctx, platform):
     if platform == MAC or platform == MAC_ARM:
         return ctx.attr.platform.platform_info.mac_bundle_name + "/"
     return "android-studio/"
 
+def _get_external_attributes(all_files):
+    attrs = {}
+    for zip_path, file in all_files.items():
+        # Source files are checked in with the right permissions.
+        # For generated files we default to -rw-r--r--
+        if not file.is_source:
+            attrs[zip_path] = "644"
+        if zip_path.endswith(".app/Contents/Info.plist"):
+            attrs[zip_path] = "664"
+    return attrs
+
 def _android_studio_os(ctx, platform, out):
     files = []
-    zips = []
-    overrides = []
+    all_files = {}
 
     platform_prefix = _android_studio_prefix(ctx, platform)
 
-    platform_zip = platform.get(ctx.attr.platform.data)[0]
+    platform_files = platform.raw_get(ctx.attr.platform[IntellijInfo].base)
+    plugin_files = platform.raw_get(ctx.attr.platform[IntellijInfo].plugins)
 
-    platform_plugins = platform.get(ctx.attr.platform.plugins)
-    zips += [(platform_prefix, zip) for zip in [platform_zip] + platform_plugins]
     if ctx.attr.jre:
-        jre_zip = ctx.actions.declare_file(ctx.attr.name + ".jre.%s.zip" % platform.name)
         jre_files = [(ctx.attr.jre.mappings[f], f) for f in platform.get(ctx.attr.jre)]
-
-        # We want to preserve symlinks for the MAC_ARM JRE, b/185519599
-        if platform == MAC_ARM:
-            _lnzipper(ctx, "%s jre" % platform.name, jre_files, jre_zip)
-        else:
-            _zipper(ctx, "%s jre" % platform.name, jre_files, jre_zip)
-        zips += [(platform_prefix + platform.base_path + platform.jre, jre_zip)]
+        all_files.update({platform_prefix + platform.base_path + platform.jre + k: v for k, v in jre_files})
 
         # b/235325129 workaround: keep `jre\` directory for windows patcher
         # TODO remove after no more patches from Dolphin
@@ -640,13 +677,13 @@ def _android_studio_os(ctx, platform, out):
             files += [(platform.base_path + "jre/bin/.marker", jre_bin)]
 
     # Stamp the platform and its plugins
-    platform_stamp = ctx.actions.declare_file(ctx.attr.name + ".%s.platform.stamp.zip" % platform.name)
-    _stamp_platform(ctx, platform, platform_zip, platform_stamp)
-    overrides += [(platform_prefix, platform_stamp)]
-    for plugin in platform_plugins:
-        stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s.%s" % (plugin.basename, platform.name))
-        _stamp_plugin(ctx, platform, platform_zip, plugin, stamp, overwrite_plugin_version = False)
-        overrides += [(platform_prefix, stamp)]
+    platform_files = _stamp_platform(ctx, platform, platform_files)
+    all_files.update({platform_prefix + k: v for k, v in platform_files.items()})
+
+    # for plugin in platform_plugins:
+    for plugin, this_plugin_files in plugin_files.items():
+        this_plugin_files = _stamp_plugin(ctx, platform, platform_files, this_plugin_files, overwrite_plugin_version = False)
+        all_files.update({platform_prefix + k: v for k, v in this_plugin_files.items()})
 
     dev01 = ctx.actions.declare_file(ctx.attr.name + ".dev01." + platform.name)
     ctx.actions.write(dev01, "")
@@ -664,35 +701,36 @@ def _android_studio_os(ctx, platform, out):
         for key in source_map:
             files += [(platform.base_path + source_map[key], key.files.to_list()[0])]
 
-    so_jars = [("%s%s" % (platform.base_path, jar), f) for (jar, f) in ctx.attr.searchable_options.searchable_options]
-    so_extras = ctx.actions.declare_file(ctx.attr.name + ".so.%s.zip" % platform.name)
-    _zipper(ctx, "%s searchable options" % platform.name, so_jars, so_extras)
-    overrides += [(platform_prefix, so_extras)]
+    so_jars = {"%s%s%s" % (platform_prefix, platform.base_path, jar): f for (jar, f) in ctx.attr.searchable_options.searchable_options}
 
     licenses = []
     for p in ctx.attr.plugins + ctx.attr.platform.extra_plugins:
-        plugin_zips = platform.get(p[PluginInfo])
-        if len(plugin_zips) != 1:
-            fail("Expected exactly one plugin zip; instead found: " + str(plugin_zips))
-        plugin_zip = plugin_zips[0]
-        stamp = ctx.actions.declare_file(ctx.attr.name + ".stamp.%s.%s.zip" % (p[PluginInfo].directory, platform.name))
-        _stamp_plugin(ctx, platform, platform_zip, plugin_zip, stamp, p[PluginInfo].overwrite_plugin_version)
-        overrides += [(platform_prefix + platform.base_path, stamp)]
-        zips += [(platform_prefix + platform.base_path, plugin_zip)]
+        pkey = p[PluginInfo].directory
+        this_plugin_files = platform.raw_get(p[PluginInfo].plugin_files)
+
+        this_plugin_files = _stamp_plugin(ctx, platform, platform_files, this_plugin_files, p[PluginInfo].overwrite_plugin_version)
+
         licenses += [p[PluginInfo].licenses]
+        this_plugin_full_files = {platform_prefix + platform.base_path + k: v for k, v in this_plugin_files.items()}
+        for k, f in this_plugin_full_files.items():
+            if k in so_jars:
+                jar_with_so = ctx.actions.declare_file(k + "%s.so.jar" % platform.name)
+                run_singlejar(ctx, [f, so_jars[k]], jar_with_so)
+                this_plugin_full_files[k] = jar_with_so
+        all_files.update(this_plugin_full_files)
 
     files += [(platform.base_path + "license/" + f.basename, f) for f in depset([], transitive = licenses).to_list()]
 
-    extras_zip = ctx.actions.declare_file(ctx.attr.name + ".extras.%s.zip" % platform.name)
-    _zipper(ctx, "%s extras" % platform.name, files, extras_zip)
-    zips += [(platform_prefix, extras_zip)]
+    all_files.update({platform_prefix + k: v for k, v in files})
 
     if platform == MAC or platform == MAC_ARM:
-        codesign = ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
-        _codesign(ctx, ctx.file.codesign_entitlements, platform_prefix, codesign)
-        zips += [("", codesign)]
+        all_files.update({"_codesign/entitlements.xml": ctx.file.codesign_entitlements})
 
-    _zip_merger(ctx, zips, overrides, out)
+    if platform == LINUX:
+        _produce_manifest(ctx, LINUX, platform_files)
+
+    attrs = _get_external_attributes(all_files)
+    _lnzipper(ctx, out.basename, all_files.items(), out, attrs = attrs, keep_symlink = platform == MAC_ARM)
 
 script_template = """\
     #!/bin/bash
@@ -716,7 +754,6 @@ def _android_studio_impl(ctx):
     _android_studio_os(ctx, MAC_ARM, ctx.outputs.mac_arm)
     _android_studio_os(ctx, WIN, ctx.outputs.win)
 
-    _produce_manifest(ctx, LINUX)
     _produce_update_message_html(ctx)
 
     vmoptions = ctx.actions.declare_file("%s-debug.vmoption" % ctx.label.name)
@@ -762,23 +799,18 @@ _android_studio = rule(
             cfg = "host",
             executable = True,
         ),
-        "_zip_merger": attr.label(
-            default = Label("//tools/base/bazel:zip_merger"),
-            cfg = "host",
-            executable = True,
-        ),
         "_stamper": attr.label(
             default = Label("//tools/adt/idea/studio:stamper"),
             cfg = "exec",
             executable = True,
         ),
-        "_zipper": attr.label(
-            default = Label("@bazel_tools//tools/zip:zipper"),
-            cfg = "host",
+        "_generate_build_metadata": attr.label(
+            default = Label("//tools/adt/idea/studio:generate_build_metadata"),
+            cfg = "exec",
             executable = True,
         ),
-        "_unzipper": attr.label(
-            default = Label("//tools/base/bazel:unzipper"),
+        "_zipper": attr.label(
+            default = Label("@bazel_tools//tools/zip:zipper"),
             cfg = "host",
             executable = True,
         ),
@@ -855,39 +887,37 @@ def android_studio(
     )
 
 def _intellij_plugin_import_impl(ctx):
-    plugin_zips = []
+    files = {}
 
     # Note: platform plugins will have no files because they are already in intellij-sdk.
     if ctx.attr.files:
         plugin_dir = "plugins/" + ctx.attr.target_dir
-        zip_spec = []
         for f in ctx.files.files:
             if not f.short_path.startswith(ctx.attr.strip_prefix):
                 fail("File " + f.short_path + " does not start with prefix " + ctx.attr.strip_prefix)
             relpath = f.short_path[len(ctx.attr.strip_prefix):]
-            zip_spec.append((plugin_dir + "/" + relpath, f))
-        plugin_zip = ctx.actions.declare_file(ctx.label.name + ".zip")
-        _zipper(ctx, ctx.attr.name, zip_spec, plugin_zip)
-        plugin_zips.append(plugin_zip)
+            files[plugin_dir + "/" + relpath] = f
 
     java_info = java_common.merge([export[JavaInfo] for export in ctx.attr.exports])
     jars = java_info.runtime_output_jars
-    plugin_metadata = _check_plugin(ctx, jars)
+
+    _check_plugin(ctx, ctx.outputs.plugin_metadata, jars)
 
     return [
         java_info,
         DefaultInfo(runfiles = ctx.runfiles(files = ctx.files.files)),
         PluginInfo(
             directory = ctx.attr.target_dir,
-            files = depset(plugin_zips),
-            files_linux = depset(),
-            files_mac = depset(),
-            files_mac_arm = depset(),
-            files_win = depset(),
-            plugin_metadata = plugin_metadata,
+            plugin_metadata = ctx.outputs.plugin_metadata,
             module_deps = depset(),
             lib_deps = depset(ctx.attr.exports),
             licenses = depset(),
+            plugin_files = struct(
+                linux = files,
+                mac = files,
+                mac_arm = files,
+                win = files,
+            ),
             overwrite_plugin_version = False,
         ),
     ]
@@ -905,11 +935,9 @@ _intellij_plugin_import = rule(
             cfg = "host",
             executable = True,
         ),
-        "_zipper": attr.label(
-            default = Label("@bazel_tools//tools/zip:zipper"),
-            cfg = "host",
-            executable = True,
-        ),
+    },
+    outputs = {
+        "plugin_metadata": "%{name}.info",
     },
     implementation = _intellij_plugin_import_impl,
 )
@@ -926,7 +954,7 @@ def intellij_plugin_import(name, files_root_dir, target_dir, exports, **kwargs):
         **kwargs
     )
 
-def _intellij_platform_impl_os(ctx, platform, data):
+def _intellij_platform_impl_os(ctx, platform, data, zip_out):
     files = platform.get(data)
     plugin_dir = "%splugins/" % platform.base_path
     base = []
@@ -945,49 +973,40 @@ def _intellij_platform_impl_os(ctx, platform, data):
             plugins[plugin] = []
         plugins[plugin].append((rel, file))
 
-    base_zip = ctx.actions.declare_file("%s.%s.zip" % (ctx.label.name, platform.name))
-    _zipper(ctx, "base %s platform zip" % platform.name, base, base_zip)
+    _zipper(ctx, "base %s platform zip" % platform.name, base, zip_out)
 
-    plugin_zips = []
-    for plugin, files in plugins.items():
-        plugin_zip = ctx.actions.declare_file("%s.plugin.%s.%s.zip" % (ctx.label.name, plugin, platform.name))
-        _zipper(ctx, "platform plugin %s %s zip" % (plugin, platform.name), files, plugin_zip)
-        plugin_zips.append(plugin_zip)
-    return base_zip, plugin_zips
+    base_files = {rel: file for rel, file in base}
+    plugin_files = {plugin: {rel: file for rel, file in files} for plugin, files in plugins.items()}
+    return base_files, plugin_files
 
 def _intellij_platform_impl(ctx):
-    base_linux, plugins_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.studio_data)
-    base_win, plugins_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.studio_data)
-    base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.studio_data)
-    base_mac_arm, plugins_mac_arm = _intellij_platform_impl_os(ctx, MAC_ARM, ctx.attr.studio_data)
+    base_files_linux, plugin_files_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.studio_data, ctx.outputs.linux_zip)
+    base_files_win, plugin_files_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.studio_data, ctx.outputs.win_zip)
+    base_files_mac, plugin_files_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.studio_data, ctx.outputs.mac_zip)
+    base_files_mac_arm, plugin_files_mac_arm = _intellij_platform_impl_os(ctx, MAC_ARM, ctx.attr.studio_data, ctx.outputs.mac_arm_zip)
 
     runfiles = ctx.runfiles(files = ctx.files.data)
-    files = depset([base_linux, base_mac, base_mac_arm, base_win])
     return struct(
         providers = [
-            DefaultInfo(files = files, runfiles = runfiles),
+            DefaultInfo(runfiles = runfiles),
             java_common.merge([export[JavaInfo] for export in ctx.attr.exports]),
             IntellijInfo(
                 major_version = ctx.attr.major_version,
                 minor_version = ctx.attr.minor_version,
+                base = struct(
+                    linux = base_files_linux,
+                    mac = base_files_mac,
+                    mac_arm = base_files_mac_arm,
+                    win = base_files_win,
+                ),
+                plugins = struct(
+                    linux = plugin_files_linux,
+                    mac = plugin_files_mac,
+                    mac_arm = plugin_files_mac_arm,
+                    win = plugin_files_win,
+                ),
             ),
         ],
-        data = struct(
-            files = depset([]),
-            files_linux = depset([base_linux]),
-            files_mac = depset([base_mac]),
-            files_mac_arm = depset([base_mac_arm]),
-            files_win = depset([base_win]),
-            mappings = {},
-        ),
-        plugins = struct(
-            files = depset([]),
-            files_linux = depset(plugins_linux),
-            files_mac = depset(plugins_mac),
-            files_mac_arm = depset(plugins_mac_arm),
-            files_win = depset(plugins_win),
-            mappings = {},
-        ),
         extra_plugins = ctx.attr.extra_plugins,
         platform_info = struct(
             mac_bundle_name = ctx.attr.mac_bundle_name,
@@ -1009,6 +1028,12 @@ _intellij_platform = rule(
             cfg = "host",
             executable = True,
         ),
+    },
+    outputs = {
+        "linux_zip": "%{name}.linux.zip",
+        "win_zip": "%{name}.win.zip",
+        "mac_zip": "%{name}.mac.zip",
+        "mac_arm_zip": "%{name}.mac_arm.zip",
     },
     provides = [DefaultInfo, JavaInfo, IntellijInfo],
     implementation = _intellij_platform_impl,

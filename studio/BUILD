@@ -759,10 +759,24 @@ py_test(
     tags = ["no_windows"],  # b/233968084
 )
 
+py_library(
+    name = "utils",
+    srcs = ["utils.py"],
+    visibility = ["//visibility:public"],
+)
+
 py_binary(
     name = "stamper",
     srcs = ["stamper.py"],
     visibility = ["//visibility:public"],
+    deps = [":utils"],
+)
+
+py_binary(
+    name = "generate_build_metadata",
+    srcs = ["generate_build_metadata.py"],
+    visibility = ["//visibility:public"],
+    deps = [":utils"],
 )
 
 py_binary(

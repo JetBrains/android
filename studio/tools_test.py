@@ -2,8 +2,8 @@ import json
 import os
 import io
 import unittest
-import stamper
 import zipfile
+from tools.adt.idea.studio import stamper
 
 
 def read_file(path, mode = "r"):
@@ -55,190 +55,127 @@ def read_zip(path):
 class ToolsTest(unittest.TestCase):
   """Tests tools used to bundle Android Studio."""
 
-  def test_change_version(self):
-    stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
-    volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
-    platform = create_zip("platform.zip", {
-      "build.txt": "AI-1234.__BUILD_NUMBER__"
+  def test_overwrite_plugin_version(self):
+    build_txt = create_file("build.txt", "AI-1234.3333")
+    before = create_zip("before.jar", {
+          "ANY-DIR/anyfile.xml": "<version>1</version>"
     })
-    before = create_zip("plugin.zip", {
-      "plugin/a/lib/a.jar": {
-          "META-INF/plugin.xml": "<version>1</version>"
-        }
-    })
-    res = get_path("res.zip")
+    after = get_path("res.jar")
     stamper.main([
-        "--os", "linux",
-        "--info_file", stable,
-        "--version_file", volatile,
-        "--platform", platform,
-        "--stamp_plugin", before, res,
+        "--entry", "ANY-DIR/anyfile.xml",
+        "--build_txt", build_txt,
+        "--stamp", before, after,
         "--overwrite_plugin_version",
     ])
 
     self.assertEqual({
-      "plugin/a/lib/a.jar": {
-          "META-INF/plugin.xml": "<version>1234.3333</version>"
-        }
-      }, read_zip(res))
+        "ANY-DIR/anyfile.xml": "<version>1234.3333</version>"
+      }, read_zip(after))
 
   def test_change_since_until(self):
-    stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
-    volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
-    platform = create_zip("platform.zip", {
-      "build.txt": "AI-1234.__BUILD_NUMBER__"
+    build_txt = create_file("build.txt", "AI-1234.3333")
+    before = create_zip("before.jar", {
+          "ANY-DIR/anyfile.xml": "<idea-version since-build=\"1.1\" until-build=\"2.1\">"
     })
-    before = create_zip("plugin.zip", {
-      "plugin/a/lib/a.jar": {
-          "META-INF/plugin.xml": "<idea-version since-build=\"1.1\" until-build=\"2.1\">"
-        }
-    })
-    res = get_path("res.zip")
+    after = get_path("res.jar")
     stamper.main([
-        "--os", "linux",
-        "--info_file", stable,
-        "--version_file", volatile,
-        "--platform", platform,
-        "--stamp_plugin", before, res,
+        "--entry", "ANY-DIR/anyfile.xml",
+        "--build_txt", build_txt,
+        "--stamp", before, after,
         "--overwrite_plugin_version",
     ])
 
     self.assertEqual({
-      "plugin/a/lib/a.jar": {
-          "META-INF/plugin.xml": "<idea-version since-build=\"1234.3333\" until-build=\"1234.3333\">"
-        }
-      }, read_zip(res))
+        "ANY-DIR/anyfile.xml": "<idea-version since-build=\"1234.3333\" until-build=\"1234.3333\">"
+      }, read_zip(after))
 
   def test_change_since(self):
-    stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
-    volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
-    platform = create_zip("platform.zip", {
-      "build.txt": "AI-1234.__BUILD_NUMBER__"
+    build_txt = create_file("build.txt", "AI-1234.3333")
+    before = create_zip("before.jar", {
+          "ANY-DIR/anyfile.xml": "<idea-version since-build=\"1.1\">"
     })
-    before = create_zip("plugin.zip", {
-      "plugin/a/lib/a.jar": {
-          "META-INF/plugin.xml": "<idea-version since-build=\"1.1\">"
-        }
-    })
-    res = get_path("res.zip")
+    after = get_path("res.jar")
     stamper.main([
-        "--os", "linux",
-        "--info_file", stable,
-        "--version_file", volatile,
-        "--platform", platform,
-        "--stamp_plugin", before, res,
+        "--entry", "ANY-DIR/anyfile.xml",
+        "--build_txt", build_txt,
+        "--stamp", before, after,
         "--overwrite_plugin_version",
     ])
 
     self.assertEqual({
-      "plugin/a/lib/a.jar": {
-          "META-INF/plugin.xml": "<idea-version since-build=\"1234.3333\">"
-        }
-      }, read_zip(res))
+        "ANY-DIR/anyfile.xml": "<idea-version since-build=\"1234.3333\">"
+      }, read_zip(after))
 
-  def test_stamp_linux_platform(self):
+  def test_stamp_product_info(self):
+    build_txt = create_file("build.txt", "AI-1234.3333")
     stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
+    before = create_file("product-info.json", '{"name": "Studio", "version": "dev build", "buildNumber": "AI-1234.__BUILD_NUMBER__"}')
+    after = get_path("res.json")
+    stamper.main([
+        "--info_file", stable,
+        "--build_txt", build_txt,
+        "--stamp", before, after,
+        "--stamp_product_info"
+    ])
+    self.assertEqual(json.dumps({"name": "Studio", "version": "AI-1234.3333", "buildNumber": "AI-1234.3333"}, sort_keys=True, indent=2),
+                     read_file(after))
+
+  def test_replace_build_number(self):
+    stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
+    before = create_file("like_build.txt", "AI-1234.__BUILD_NUMBER__")
+    after = get_path("res.txt")
+    stamper.main([
+        "--info_file", stable,
+        "--stamp", before, after,
+        "--replace_build_number"
+    ])
+    self.assertEqual("AI-1234.3333", read_file(after)) 
+
+  def test_stamp_app_info(self):
     volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
-    platform = create_zip("platform.zip", {
-      "build.txt": "AI-1234.__BUILD_NUMBER__",
-      "product-info.json": '{"name": "Studio", "version": "dev build", "buildNumber": "AI-1234.__BUILD_NUMBER__"}',
-      "lib/resources.jar": {
+    build_txt = create_file("build.txt", "AI-1234.3333")
+    before = create_zip("resources.jar", {
         "idea/AndroidStudioApplicationInfo.xml": """
       <build number="AI-__BUILD__" date="__BUILD_DATE__">
       <version major="4" minor="3" micro="2" patch="1" full="a" eap="false" >"""
-      }
     })
-    res = get_path("res.zip")
+    after = get_path("res.zip")
     stamper.main([
-        "--os", "linux",
-        "--info_file", stable,
-        "--version_file", volatile,
-        "--platform", platform,
+        "--entry", "idea/AndroidStudioApplicationInfo.xml",
+        "--version_file", volatile, 
+        "--build_txt", build_txt,
         "--version_micro", "33",
         "--version_patch", "44",
         "--version_full", "{0} Canary 5",
         "--eap", "true",
-        "--stamp_platform", res,
+        "--stamp", before, after,
+        "--stamp_app_info"
     ])
     self.maxDiff=None
     self.assertEqual({
-      "build.txt": "AI-1234.3333",
-      "product-info.json": json.dumps({"name": "Studio", "version": "AI-1234.3333", "buildNumber": "AI-1234.3333"},
-         sort_keys=True, indent=2),
-      "lib/resources.jar": {
         "idea/AndroidStudioApplicationInfo.xml": """
       <build number="AI-1234.3333" date="202008192252">
       <version major="4" minor="3" micro="33" patch="44" full="{0} Canary 5" eap="true" >"""
-      }
-    }, read_zip(res))
-
-  def test_stamp_mac_platform(self):
-    stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
-    volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
-    platform = create_zip("platform.zip", {
-      "Contents/Resources/build.txt": "AI-1234.__BUILD_NUMBER__",
-      "Contents/Resources/product-info.json": '{"name": "Studio", "version": "dev build", "buildNumber": "AI-1234.__BUILD_NUMBER__"}',
-      "Contents/Info.plist": "Info __BUILD_NUMBER__ __BUILD_NUMBER__",
-      "Contents/lib/resources.jar": {
-        "idea/AndroidStudioApplicationInfo.xml": """
-      <build number="AI-__BUILD__" date="__BUILD_DATE__">
-      <version major="4" minor="3" micro="2" patch="1" full="a" eap="false" >"""
-      }
-    })
-    res = get_path("res.zip")
-    stamper.main([
-        "--os", "mac",
-        "--info_file", stable,
-        "--version_file", volatile,
-        "--platform", platform,
-        "--version_micro", "33",
-        "--version_patch", "44",
-        "--version_full", "{0} Canary 5",
-        "--eap", "true",
-        "--stamp_platform", res,
-    ])
-
-    self.maxDiff=None
-    self.assertEqual({
-      "Contents/Resources/build.txt": "AI-1234.3333",
-      "Contents/Resources/product-info.json": json.dumps({"name": "Studio", "version": "AI-1234.3333", "buildNumber": "AI-1234.3333"},
-         sort_keys=True, indent=2),
-      "Contents/Info.plist": "Info 3333 3333",
-      "Contents/lib/resources.jar": {
-        "idea/AndroidStudioApplicationInfo.xml": """
-      <build number="AI-1234.3333" date="202008192252">
-      <version major="4" minor="3" micro="33" patch="44" full="{0} Canary 5" eap="true" >"""
-      }
-    }, read_zip(res))
+    }, read_zip(after))
 
   def test_inject(self):
-    stable = create_file("info.txt", "BUILD_EMBED_LABEL 3333")
-    volatile = create_file("volatile.txt", "BUILD_TIMESTAMP 1597877532")
-    platform = create_zip("platform.zip", {
-      "build.txt": "AI-1234.__BUILD_NUMBER__"
+    build_txt = create_file("build.txt", "AI-1234.3333")
+    before = create_zip("before.jar", {
+          "ANY-DIR/anyfile.xml": "<id>x</id>"
     })
-    before = create_zip("plugin.zip", {
-      "plugin/a/lib/a.jar": {
-          "META-INF/plugin.xml": "<id>x</id>"
-        }
-    })
-    res = get_path("res.zip")
+    after = get_path("res.jar")
     stamper.main([
-        "--os", "linux",
-        "--info_file", stable,
-        "--version_file", volatile,
-        "--platform", platform,
-        "--stamp_plugin", before, res,
+        "--entry", "ANY-DIR/anyfile.xml",
+        "--build_txt", build_txt,
+        "--stamp", before, after,
         "--overwrite_plugin_version",
     ])
 
     self.assertEqual({
-      "plugin/a/lib/a.jar": {
-          "META-INF/plugin.xml": "<id>x</id>\n" +
+        "ANY-DIR/anyfile.xml": "<id>x</id>\n" +
         "  <idea-version since-build=\"1234.3333\" until-build=\"1234.3333\"/>\n" +
         "  <version>1234.3333</version>"
-        }
-      }, read_zip(res))
+      }, read_zip(after))
 
 
 if __name__ == "__main__":

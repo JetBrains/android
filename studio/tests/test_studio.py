@@ -142,7 +142,7 @@ class StudioTests(unittest.TestCase):
           self.assertFalse(f.external_attr == 0x1ED0000, "studio should be \"-rwxr-xr-x\"")
           self.assertFalse(is_symlink, f.filename + " should not be a symlink")
         elif f.filename.endswith(".app/Contents/Info.plist"):
-          self.assertTrue(f.external_attr == 0x81B40000, "Info.plist should be \"-rw-r--r--\"")
+          self.assertTrue(f.external_attr == 0x81B40000, "Info.plist should be 0x81B40000 \"-rw-rw-r--\" but is (%x)" % f.external_attr)
         else:
           self.assertFalse(f.external_attr == 0, "Unix attributes are missing from the entry")
           self.assertFalse(is_symlink, f.filename + " should not be a symlink")
