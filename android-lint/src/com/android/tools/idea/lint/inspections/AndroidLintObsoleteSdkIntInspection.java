@@ -41,6 +41,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.intellij.codeInsight.daemon.impl.quickfix.SimplifyBooleanExpressionFix;
+import com.intellij.codeInspection.LocalQuickFixAndIntentionActionOnPsiElement;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -82,7 +83,8 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
         PsiBinaryExpression subExpression = PsiTreeUtil.getParentOfType(startElement, PsiBinaryExpression.class, false);
         if (subExpression != null) {
           return new LintIdeQuickFix[]{
-            new LintIdeQuickFix.LocalFixWrappee(new SimplifyBooleanExpressionFix(subExpression, constant))
+            new LintIdeQuickFix.LocalFixWrappee(
+              LocalQuickFixAndIntentionActionOnPsiElement.from(new SimplifyBooleanExpressionFix(subExpression, constant), subExpression))
           };
         }
         else if (startElement.getLanguage() == KotlinLanguage.INSTANCE) {
