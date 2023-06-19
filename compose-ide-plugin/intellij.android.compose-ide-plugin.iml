@@ -17,13 +17,14 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module-library">
-      <library name="compiler-hosted">
+      <library name="compiler-hosted" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compiler-hosted:223.0.1.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.0-SNAPSHOT.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compiler-hosted-1.4.0-SNAPSHOT/223.0.1.0/compiler-hosted-1.4.0-SNAPSHOT-223.0.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.0-SNAPSHOT-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compiler-hosted-1.4.0-SNAPSHOT-sources/223.0.1.0/compiler-hosted-1.4.0-SNAPSHOT-sources-223.0.1.0.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>

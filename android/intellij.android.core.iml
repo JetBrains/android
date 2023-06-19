@@ -18,14 +18,13 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" />
     <orderEntry type="module-library">
-      <library name="spantable">
+      <library name="spantable" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:spantable:223.0.1.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/spantable.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/spantable/223.0.1.0/spantable-223.0.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/src/spantable-src.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.repository" />
@@ -57,9 +56,10 @@
     <orderEntry type="module" module-name="intellij.android.lang" />
     <orderEntry type="module" module-name="intellij.android.adb" />
     <orderEntry type="module-library">
-      <library name="instantapps-api">
+      <library name="instantapps-api" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:instantapps-api:223.0.1.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/instantapps-api-1.8.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/instantapps-api-1.8/223.0.1.0/instantapps-api-1.8-223.0.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
