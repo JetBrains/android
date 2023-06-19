@@ -29,10 +29,9 @@
     <orderEntry type="module" module-name="intellij.android.designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
-      <library name="ui-animation-tooling" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:ui-animation-tooling:223.0.1.0" />
+      <library name="ui-animation-tooling">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/ui-animation-tooling-internal/223.0.1.0/ui-animation-tooling-internal-223.0.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/ui-animation-tooling-internal.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

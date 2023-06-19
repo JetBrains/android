@@ -38,10 +38,9 @@
     <orderEntry type="module" module-name="android.sdktools.tracer" />
     <orderEntry type="library" name="utp-core-proto-jarjar" level="project" />
     <orderEntry type="module-library">
-      <library name="pepk" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:pepk:223.0.1.0" />
+      <library name="pepk">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/pepk/223.0.1.0/pepk-223.0.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/pepk.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

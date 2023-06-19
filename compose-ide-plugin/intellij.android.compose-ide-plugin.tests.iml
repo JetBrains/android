@@ -23,14 +23,13 @@
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.compose-common" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
-      <library name="compiler-hosted" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compiler-hosted:223.0.1.0" />
+      <library name="compiler-hosted">
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compiler-hosted-1.4.0-SNAPSHOT/223.0.1.0/compiler-hosted-1.4.0-SNAPSHOT-223.0.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.0-SNAPSHOT.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compiler-hosted-1.4.0-SNAPSHOT-sources/223.0.1.0/compiler-hosted-1.4.0-SNAPSHOT-sources-223.0.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.0-SNAPSHOT-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
