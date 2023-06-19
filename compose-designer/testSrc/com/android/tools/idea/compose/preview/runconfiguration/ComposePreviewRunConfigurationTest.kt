@@ -20,6 +20,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.run.editor.NoApksProvider
@@ -62,6 +63,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
       false,
       noApksProvider,
       EmptyTestConsoleView(),
+      RunStats(project),
     )
     verify(device)
       .executeShellCommand(

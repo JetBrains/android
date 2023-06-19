@@ -18,9 +18,7 @@ package com.android.tools.idea.run;
 import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.createApp;
 import static com.android.tools.idea.util.ModuleExtensionsKt.getAndroidFacet;
 import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
-import static junit.framework.TestCase.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -29,9 +27,9 @@ import static org.mockito.Mockito.when;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.deployer.model.App;
+import com.android.tools.idea.execution.common.stats.RunStats;
 import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.util.ReflectionUtil;
@@ -82,8 +80,8 @@ public class AndroidRunConfigurationTest {
                               "--start-profiler file",
                               false,
                               new NoApksProvider(),
-                              consolePrinter
-    );
+                              consolePrinter,
+                              new RunStats(myProjectRule.getProject()));
     verify(device).executeShellCommand(eq("am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
                                           "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --start-profiler file"),
                                        any(), anyLong(), any());
@@ -104,8 +102,8 @@ public class AndroidRunConfigurationTest {
                               "",
                               false,
                               new NoApksProvider(),
-                              consolePrinter
-    );
+                              consolePrinter,
+                              new RunStats(myProjectRule.getProject()));
     verify(device).executeShellCommand(eq("am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
                  any(), anyLong(), any());
@@ -117,8 +115,8 @@ public class AndroidRunConfigurationTest {
                               "",
                               false,
                               new NoApksProvider(),
-                              consolePrinter
-    );
+                              consolePrinter,
+                              new RunStats(myProjectRule.getProject()));
     verify(device).executeShellCommand(eq("am start -n com.example.mypackage/com.example.mypackage.MyActivity " +
                                           "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --splashscreen-show-icon"),
                                        any(), anyLong(), any());
@@ -151,8 +149,8 @@ public class AndroidRunConfigurationTest {
                               extraFlags,
                               false,
                               new NoApksProvider(),
-                              consolePrinter
-    );
+                              consolePrinter,
+                              new RunStats(myProjectRule.getProject()));
     verify(device).executeShellCommand(eq(expectedCommand), any(), anyLong(), any());
   }
 }

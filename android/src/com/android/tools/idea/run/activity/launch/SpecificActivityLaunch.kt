@@ -73,6 +73,7 @@ class SpecificActivityLaunch : LaunchOption<SpecificActivityLaunch.State>() {
     }
 
     override fun getQualifiedActivityName(device: IDevice, apkProvider: ApkProvider, appId: String) = ACTIVITY_CLASS
+    override val id = "SPECIFIC_ACTIVITY"
 
     @VisibleForTesting
     protected open fun getActivityLocator(facet: AndroidFacet): SpecificActivityLocator {

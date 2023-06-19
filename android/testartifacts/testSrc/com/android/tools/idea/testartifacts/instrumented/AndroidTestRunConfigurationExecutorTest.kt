@@ -11,6 +11,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
+import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
@@ -23,7 +24,6 @@ import com.android.tools.idea.run.editor.NoApksProvider
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
@@ -148,8 +148,7 @@ class AndroidTestRunConfigurationExecutorTest {
 
     assertThat(runContentDescriptor.executionConsole).isInstanceOf(AndroidTestSuiteView::class.java)
     stats.success()
-    val runEvent = usageTrackerRule.usages.find { it.studioEvent.kind == AndroidStudioEvent.EventKind.RUN_EVENT }!!.studioEvent.runEvent
-    assertThat(runEvent.launchTaskDetailList.map { it.id }.contains("startDebuggerSession")).isTrue()
+    assertTaskPresentedInStats(usageTrackerRule.usages, "startDebuggerSession")
     deviceState.stopClient(1235)
     runContentDescriptor.processHandler!!.waitFor()
     if (!historyLatch.await(20, TimeUnit.SECONDS)) {

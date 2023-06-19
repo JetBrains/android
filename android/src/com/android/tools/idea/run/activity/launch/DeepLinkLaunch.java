@@ -69,10 +69,10 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
     public String DEEP_LINK = "";
 
     @Override
-    public void launch(@NotNull IDevice device,
-                       @NotNull App app,
-                       @NotNull ApkProvider apkProvider, boolean isDebug, @NotNull String extraFlags,
-                       @NotNull ConsoleView console) throws ExecutionException {
+    protected void doLaunch(@NotNull IDevice device,
+                            @NotNull App app,
+                            @NotNull ApkProvider apkProvider, boolean isDebug, @NotNull String extraFlags,
+                            @NotNull ConsoleView console) throws ExecutionException {
       IShellOutputReceiver receiver = new AndroidBackgroundTaskReceiver(console);
       String quotedLink = "'" + DEEP_LINK.replace("'", "'\\''") + "'";
       String command = "am start" +
@@ -120,6 +120,12 @@ public class DeepLinkLaunch extends LaunchOption<DeepLinkLaunch.State> {
         }
       }
       return ImmutableList.of();
+    }
+
+    @NotNull
+    @Override
+    public String getId() {
+      return "LAUNCH_DEEP_LINK";
     }
   }
 }

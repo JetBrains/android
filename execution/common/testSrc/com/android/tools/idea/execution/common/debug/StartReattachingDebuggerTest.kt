@@ -24,13 +24,13 @@ import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -105,8 +105,7 @@ class StartReattachingDebuggerTest {
     assertThat(firstSession.debugProcess.processHandler).isInstanceOf(
       AndroidRemoteDebugProcessHandler::class.java)
     stats.success()
-    val runEvent = usageTrackerRule.usages.find { it.studioEvent.kind == AndroidStudioEvent.EventKind.RUN_EVENT }!!.studioEvent.runEvent
-    assertThat(runEvent.launchTaskDetailList.map { it.id }).contains("startReattachingDebuggerSession")
+    assertTaskPresentedInStats(usageTrackerRule.usages, "startReattachingDebuggerSession")
     // Clean up.
     // force close process monitor, as SingleDeviceAndroidProcessMonitor never connected and keep holding Project reference for 3 minutes
     masterProcessHandler.destroyProcess()

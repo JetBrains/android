@@ -21,6 +21,8 @@ import com.android.tools.deployer.model.component.AppComponent
 import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ComponentLaunchOptions
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.run.configuration.AndroidBackgroundTaskReceiver
@@ -35,9 +37,30 @@ Each Launch Option should extend this class and add a set of public fields such 
 DefaultJDOMExternalizer
 */
 abstract class LaunchOptionState {
+  abstract val id: String
 
   @Throws(ExecutionException::class)
-  abstract fun launch(device: IDevice, app: App, apkProvider: ApkProvider, isDebug: Boolean, extraFlags: String, console: ConsoleView)
+  fun launch(
+    device: IDevice,
+    app: App,
+    apkProvider: ApkProvider,
+    isDebug: Boolean,
+    extraFlags: String,
+    console: ConsoleView,
+    stats: RunStats
+  ) {
+    stats.track(id) { doLaunch(device, app, apkProvider, isDebug, extraFlags, console) }
+  }
+
+  @Throws(ExecutionException::class)
+  protected abstract fun doLaunch(
+    device: IDevice,
+    app: App,
+    apkProvider: ApkProvider,
+    isDebug: Boolean,
+    extraFlags: String,
+    console: ConsoleView
+  )
 
   open fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
     return emptyList()
@@ -49,7 +72,7 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
   override val componentType = ComponentType.ACTIVITY
   override val userVisibleComponentTypeName = "Activity"
 
-  override fun launch(device: IDevice, app: App, apkProvider: ApkProvider, isDebug: Boolean, extraFlags: String, console: ConsoleView) {
+  override fun doLaunch(device: IDevice, app: App, apkProvider: ApkProvider, isDebug: Boolean, extraFlags: String, console: ConsoleView) {
     ProgressManager.checkCanceled()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val activityQualifiedName = getQualifiedActivityName(device, apkProvider, app.appId)

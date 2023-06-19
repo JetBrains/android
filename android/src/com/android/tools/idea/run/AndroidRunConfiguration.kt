@@ -204,7 +204,8 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     contributorsAmStartOptions: String,
     isDebug: Boolean,
     apkProvider: ApkProvider,
-    consoleView: ConsoleView
+    consoleView: ConsoleView,
+    stats: RunStats
   ) {
     val state = getLaunchOptionState(MODE)
     var extraFlags = ACTIVITY_EXTRA_FLAGS
@@ -222,7 +223,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
       DefaultStartActivityFlagsProvider(project, isDebug, extraFlags)
     }
 
-    return state.launch(device, app, apkProvider, isDebug, startActivityFlagsProvider.getFlags(device), consoleView)
+    return state.launch(device, app, apkProvider, isDebug, startActivityFlagsProvider.getFlags(device), consoleView, stats)
   }
 
   /**

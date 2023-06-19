@@ -24,18 +24,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
 import com.android.tools.deployer.model.App;
+import com.android.tools.idea.execution.common.stats.RunStats;
 import com.android.tools.idea.run.ValidationError;
 import com.android.tools.idea.run.activity.SpecificActivityLocator;
 import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.testFramework.EdtRule;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -83,14 +80,14 @@ public class SpecificActivityLaunchTest {
   }
 
   @Test
-  public void testLaunch() throws ShellCommandUnresponsiveException, AdbCommandRejectedException, IOException, TimeoutException {
+  public void testLaunch() throws Exception {
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
     state.ACTIVITY_CLASS = "com.example.app.MyActivity";
     IDevice device = Mockito.mock(IDevice.class);
     App app =
       createApp(device, "com.example.app", Collections.emptyList(), new ArrayList<>(Collections.singleton("com.example.app.MyActivity")));
 
-    state.launch(device, app, new NoApksProvider(), false, "", new EmptyTestConsoleView());
+    state.launch(device, app, new NoApksProvider(), false, "", new EmptyTestConsoleView(), new RunStats(myProjectRule.getProject()));
     Mockito.verify(device).executeShellCommand(
       eq("am start -n com.example.app/com.example.app.MyActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"),
       any(IShellOutputReceiver.class),

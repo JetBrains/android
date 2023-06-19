@@ -18,6 +18,7 @@ package com.android.tools.idea.execution.common
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt
+import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.NotificationRule
 import com.google.common.truth.Truth
@@ -40,7 +41,7 @@ class ClearAppStorageTest {
   @Test
   fun appExists_success() {
     val device = mockDevice("com.company.application")
-    clearAppStorage(projectRule.project, device, "com.company.application")
+    clearAppStorage(projectRule.project, device, "com.company.application", RunStats(projectRule.project))
 
     Mockito.verify(device).executeShellCommand(MockitoKt.eq("pm clear com.company.application"), MockitoKt.any())
   }
@@ -48,7 +49,7 @@ class ClearAppStorageTest {
   @Test
   fun appExists_failure() {
     val device = mockDevice("com.company.application", clearAppStorageSuccess = false)
-    clearAppStorage(projectRule.project, device, "com.company.application")
+    clearAppStorage(projectRule.project, device, "com.company.application", RunStats(projectRule.project))
 
     Mockito.verify(device).executeShellCommand(MockitoKt.eq("pm clear com.company.application"), MockitoKt.any())
     val notificationInfo = notificationRule.notifications.find { it.content == "Failed to clear app storage for com.company.application on device device1" }
@@ -58,7 +59,7 @@ class ClearAppStorageTest {
   @Test
   fun appDoesNotExists() {
     val device = mockDevice("com.company.application1")
-    clearAppStorage(projectRule.project, device, "com.company.application")
+    clearAppStorage(projectRule.project, device, "com.company.application", RunStats(projectRule.project))
 
     Mockito.verify(device, Mockito.never()).executeShellCommand(MockitoKt.eq("pm clear com.company.application"), MockitoKt.any())
   }

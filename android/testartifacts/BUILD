@@ -63,6 +63,7 @@ iml_module(
         "//tools/adt/idea/android/testartifacts:libstudio.android-test-plugin-host-retention-proto[test]",
         "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common.tests[module, test]",
     ],
 )
 

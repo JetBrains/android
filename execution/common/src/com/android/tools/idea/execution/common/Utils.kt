@@ -18,6 +18,8 @@ package com.android.tools.idea.execution.common
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.processhandler.DeviceAwareProcessHandler
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.track
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.impl.ExecutionManagerImpl
 import com.intellij.execution.impl.isOfSameType
@@ -41,13 +43,15 @@ fun RunnerAndConfigurationSettings.getProcessHandlersForDevices(project: Project
  *
  * If the app is installed on the device, executes `pm clear <package>`.
  */
-fun clearAppStorage(project: Project, device: IDevice, packageName: String) {
-  val packageList = device.shellToString("pm list packages $packageName")
-  if (packageList.contains("^package:${packageName.replace(".", "\\.")}$".toRegex())) {
-    val result = device.shellToString("pm clear $packageName").trim()
-    if (result != "Success") {
-      val message = "Failed to clear app storage for $packageName on device ${device.name}"
-      RunConfigurationNotifier.notifyWarning(project, "", message)
+fun clearAppStorage(project: Project, device: IDevice, packageName: String, stats: RunStats) {
+  stats.track("CLEAR_APP_STORAGE_TASK") {
+    val packageList = device.shellToString("pm list packages $packageName")
+    if (packageList.contains("^package:${packageName.replace(".", "\\.")}$".toRegex())) {
+      val result = device.shellToString("pm clear $packageName").trim()
+      if (result != "Success") {
+        val message = "Failed to clear app storage for $packageName on device ${device.name}"
+        RunConfigurationNotifier.notifyWarning(project, "", message)
+      }
     }
   }
 }

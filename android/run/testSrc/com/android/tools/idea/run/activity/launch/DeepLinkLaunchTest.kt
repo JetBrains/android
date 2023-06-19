@@ -17,21 +17,38 @@ package com.android.tools.idea.run.activity.launch;
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
+import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.execution.common.assertTaskPresentedInStats
+import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.run.configuration.execution.createApp
-import org.jetbrains.android.AndroidTestCase
+import com.android.tools.idea.testing.AndroidProjectRule
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
 
-class DeepLinkLaunchTest : AndroidTestCase() {
+class DeepLinkLaunchTest {
 
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
+
+  @get:Rule
+  val usageTrackerRule = UsageTrackerRule()
+
+  @Test
   fun testLaunch() {
     val state = DeepLinkLaunch.State()
     state.DEEP_LINK = "com.example"
     val device = Mockito.mock(IDevice::class.java)
 
     val app = createApp(device, "com.example.myapplication", emptyList(), ArrayList(setOf("com.example.myapplication.MainActivity")))
-    state.launch(device, app, { emptyList() }, false, "", EmptyTestConsoleView())
+    val stats = RunStats(projectRule.project);
+    state.launch(device, app, { emptyList() }, false, "", EmptyTestConsoleView(), stats)
+
+    stats.success()
+    assertTaskPresentedInStats(usageTrackerRule.usages, "LAUNCH_DEEP_LINK")
+
     Mockito.verify(device).executeShellCommand(
       ArgumentMatchers.eq(
         "am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE -d 'com.example'"),

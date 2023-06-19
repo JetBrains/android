@@ -26,13 +26,13 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.AndroidSessionInfo
+import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.run.DeploymentApplicationService
 import com.google.common.truth.Truth.assertThat
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.DebuggerManagerEx
 import com.intellij.execution.ExecutionException
@@ -52,7 +52,6 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlin.test.assertSame
 
 /**
  * Tests for [AndroidJavaDebugger] code.
@@ -138,8 +137,7 @@ class AndroidJavaDebuggerTest {
     assertThat(session).isNotNull()
     assertThat(session.sessionName).isEqualTo("myConfiguration")
     stats.success()
-    val runEvent = usageTrackerRule.usages.find { it.studioEvent.kind == AndroidStudioEvent.EventKind.RUN_EVENT }!!.studioEvent.runEvent
-    assertThat(runEvent.launchTaskDetailList.map { it.id }).contains("startDebuggerSession")
+    assertTaskPresentedInStats(usageTrackerRule.usages, "startDebuggerSession")
   }
 
   @Test

@@ -19,6 +19,10 @@ import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.idea.execution.common.assertTaskPresentedInStats
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.DeviceFutures
@@ -48,6 +52,9 @@ class GradleAndroidTestRunConfigurationExecutorTest {
   @get:Rule
   val projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
 
+  @get:Rule
+  val usageTrackerRule = UsageTrackerRule()
+
   @Mock
   lateinit var mockGradleConnectedAndroidTestInvoker: GradleConnectedAndroidTestInvoker
 
@@ -69,7 +76,11 @@ class GradleAndroidTestRunConfigurationExecutorTest {
 
   @Test
   fun testTaskReturnsSuccessForAllInModuleTest() {
-    val env = getEnv(DefaultRunExecutor.getRunExecutorInstance())
+    val stats = RunStatsService.get(projectRule.project).create()
+
+    val env = getEnv(DefaultRunExecutor.getRunExecutorInstance()).apply {
+      putUserData(RunStats.KEY, stats)
+    }
     val androidTestRunConfiguration = env.runProfile as AndroidTestRunConfiguration
     androidTestRunConfiguration.TESTING_TYPE = AndroidTestRunConfiguration.TEST_ALL_IN_MODULE
     val executor = object : GradleAndroidTestRunConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device))) {
@@ -77,6 +88,9 @@ class GradleAndroidTestRunConfigurationExecutorTest {
     }
 
     executor.run(EmptyProgressIndicator())
+
+    stats.success()
+    assertTaskPresentedInStats(usageTrackerRule.usages, "GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK")
 
     verify(mockGradleConnectedAndroidTestInvoker).runGradleTask(eq(projectRule.project), eq(listOf(device)), eq("applicationId"), any(),
                                                                 any(),/*waitForDebugger*/ eq(false), eq(""), eq(""), eq(""),

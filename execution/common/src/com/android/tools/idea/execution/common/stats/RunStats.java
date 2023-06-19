@@ -228,6 +228,7 @@ public class RunStats {
       // This would be unexpected, so a transient stats is created and marked as such.
       data = new RunStats(env.getProject());
       data.setPartial(true);
+      env.putUserData(KEY, data);
     }
     return data;
   }

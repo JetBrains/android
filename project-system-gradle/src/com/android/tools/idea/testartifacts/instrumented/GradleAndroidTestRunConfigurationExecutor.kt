@@ -21,6 +21,7 @@ import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.track
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
@@ -99,7 +100,9 @@ open class GradleAndroidTestRunConfigurationExecutor(
     try {
       printLaunchTaskStartedMessage(console)
       indicator.text = "Start gradle task"
-      doRunGradleTask(devices, console, isDebug)
+      RunStats.from(env).track("GRADLE_ANDROID_TEST_APPLICATION_LAUNCH_TASK") {
+        doRunGradleTask(devices, console, isDebug)
+      }
     } finally {
       devices.forEach {
         // Notify listeners of the deployment.

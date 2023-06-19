@@ -118,7 +118,7 @@ class BlazeAndroidConfigurationExecutor(
       devices.map { device ->
         async {
           if (launchOptions.isClearAppStorage) {
-            clearAppStorage(project, device, applicationId)
+            clearAppStorage(project, device, applicationId, RunStats.from(env))
           }
 
           LaunchUtils.initiateDismissKeyguard(device)

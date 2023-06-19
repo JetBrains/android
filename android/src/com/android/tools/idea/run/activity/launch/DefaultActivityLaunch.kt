@@ -43,6 +43,8 @@ class DefaultActivityLaunch : LaunchOption<DefaultActivityLaunch.State>() {
         throw AndroidExecutionException(UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY, e.message)
       }
     }
+
+    override val id = "DEFAULT_ACTIVITY"
   }
 
   override fun getId(): String {

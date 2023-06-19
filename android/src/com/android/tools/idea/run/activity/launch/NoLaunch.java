@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.deployer.model.App;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApkProvider;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.project.Project;
 import javax.swing.JComponent;
@@ -68,11 +69,20 @@ public class NoLaunch extends LaunchOption<NoLaunch.State> {
 
   public static class State extends LaunchOptionState {
 
+    @NotNull
     @Override
-    public void launch(@NotNull IDevice device,
-                       @NotNull App app,
-                       @NotNull ApkProvider apkProvider, boolean isDebug, @NotNull String extraFlags,
-                       @NotNull ConsoleView console) {
+    public String getId() {
+      return "NO_LAUNCH";
+    }
+
+    @Override
+    protected void doLaunch(@NotNull IDevice device,
+                            @NotNull App app,
+                            @NotNull ApkProvider apkProvider,
+                            boolean isDebug,
+                            @NotNull String extraFlags,
+                            @NotNull ConsoleView console) throws ExecutionException {
+
     }
   }
 }

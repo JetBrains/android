@@ -70,5 +70,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jimfs[test]",
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
+        "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common.tests[module, test]",
     ],
 )

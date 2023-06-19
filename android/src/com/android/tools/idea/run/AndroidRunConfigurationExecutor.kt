@@ -107,7 +107,7 @@ class AndroidRunConfigurationExecutor(
         project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(it.serialNumber)
       }
       if (configuration.CLEAR_APP_STORAGE) {
-        clearAppStorage(project, it, packageName)
+        clearAppStorage(project, it, packageName, RunStats.from(env))
       }
       LaunchUtils.initiateDismissKeyguard(it)
     }
@@ -159,7 +159,9 @@ class AndroidRunConfigurationExecutor(
   private fun deployAsInstantApp(devices: List<IDevice>, console: ConsoleView) {
     val state: DeepLinkLaunch.State = configuration.getLaunchOptionState(AndroidRunConfiguration.LAUNCH_DEEP_LINK) as DeepLinkLaunch.State
     devices.forEach { device ->
-      RunInstantApp(apkInfosSafe(device), state.DEEP_LINK, configuration.disabledDynamicFeatures).run(console, device)
+      RunStats.from(env).track("RUN_INSTANT_APP") {
+        RunInstantApp(apkInfosSafe(device), state.DEEP_LINK, configuration.disabledDynamicFeatures).run(console, device)
+      }
     }
   }
 
@@ -220,7 +222,7 @@ class AndroidRunConfigurationExecutor(
       project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
     }
     if (configuration.CLEAR_APP_STORAGE) {
-      clearAppStorage(project, device, packageName)
+      clearAppStorage(project, device, packageName, RunStats.from(env))
     }
     LaunchUtils.initiateDismissKeyguard(device)
 
@@ -477,7 +479,7 @@ class AndroidRunConfigurationExecutor(
     }
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
     try {
-      configuration.launch(app, device, facet, amStartOptions.toString(), isDebug, apkProvider, consoleView)
+      configuration.launch(app, device, facet, amStartOptions.toString(), isDebug, apkProvider, consoleView, RunStats.from(env))
     } catch (e: DeployerException) {
       throw AndroidExecutionException(e.id, e.message)
     }

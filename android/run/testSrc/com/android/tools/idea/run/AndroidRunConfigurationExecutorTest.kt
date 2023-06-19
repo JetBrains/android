@@ -23,6 +23,7 @@ import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.editors.literals.LiveEditService
@@ -30,8 +31,11 @@ import com.android.tools.idea.editors.literals.LiveEditServiceImpl
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
+import com.android.tools.idea.execution.common.assertTaskPresentedInStats
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
+import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
@@ -88,8 +92,11 @@ class AndroidRunConfigurationExecutorTest {
 
   val cleaner = MockitoCleanerRule()
 
+  val usageTrackerRule = UsageTrackerRule()
+
   @get:Rule
-  val chain = RuleChain.outerRule(cleaner).around(projectRule).around(fakeAdb)
+  val chain = RuleChain.outerRule(cleaner).around(usageTrackerRule).around(projectRule).around(fakeAdb)
+
 
   @Test
   fun runSucceeded() {
@@ -105,7 +112,10 @@ class AndroidRunConfigurationExecutorTest {
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val deviceFutures = DeviceFutures.forDevices(listOf(device))
 
-    val env = getExecutionEnvironment(listOf(device))
+    val stats = RunStatsService.get(projectRule.project).create()
+    val env = getExecutionEnvironment(listOf(device)).apply {
+      putUserData(RunStats.KEY, stats)
+    }
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.CLEAR_APP_STORAGE = true
     configuration.CLEAR_LOGCAT = true
@@ -125,6 +135,11 @@ class AndroidRunConfigurationExecutorTest {
     )
 
     val runContentDescriptor = runner.run(EmptyProgressIndicator())
+
+    stats.success()
+    assertTaskPresentedInStats(usageTrackerRule.usages, "CLEAR_APP_STORAGE_TASK")
+    assertTaskPresentedInStats(usageTrackerRule.usages, "DEFAULT_ACTIVITY")
+
     val processHandler = runContentDescriptor.processHandler!!
     processHandler.startNotify()
 
@@ -160,7 +175,11 @@ class AndroidRunConfigurationExecutorTest {
     }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val deviceFutures = DeviceFutures.forDevices(listOf(device))
-    val env = getExecutionEnvironment(listOf(device), isDebug = true)
+
+    val stats = RunStatsService.get(projectRule.project).create()
+    val env = getExecutionEnvironment(listOf(device), isDebug = true).apply {
+      putUserData(RunStats.KEY, stats)
+    }
     val configuration = env.runProfile as AndroidRunConfiguration
     configuration.executeMakeBeforeRunStepInTest(device)
     configuration.setLaunchActivity(ACTIVITY_NAME)
@@ -174,6 +193,12 @@ class AndroidRunConfigurationExecutorTest {
     )
 
     val processHandler = (runner.debug(EmptyProgressIndicator()).processHandler as AndroidRemoteDebugProcessHandler)
+
+    stats.success()
+    assertTaskPresentedInStats(usageTrackerRule.usages, "waitForProcessTermination")
+    assertTaskPresentedInStats(usageTrackerRule.usages, "SPECIFIC_ACTIVITY")
+    assertTaskPresentedInStats(usageTrackerRule.usages, "startDebuggerSession")
+
     assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated)
     deviceState.stopClient(1234)
     if (!processHandler.waitFor(5000)) {
