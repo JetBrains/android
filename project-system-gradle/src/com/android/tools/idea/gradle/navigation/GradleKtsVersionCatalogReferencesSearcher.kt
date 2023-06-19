@@ -8,6 +8,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceBase
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.RequestResultProcessor
 import com.intellij.psi.search.UsageSearchContext
 import com.intellij.psi.search.searches.ReferencesSearch
@@ -43,7 +44,10 @@ class GradleKtsVersionCatalogReferencesSearcher : QueryExecutorBase<PsiReference
     val getter = PropertyUtilBase.getAccessorName(identifier, PropertyKind.GETTER)
 
     val project = element.project
-    val searchScope = KotlinScriptSearchScope(project, project.projectScope())
+    val searchScope = when (val effectiveScope = queryParameters.effectiveSearchScope) {
+      is GlobalSearchScope -> KotlinScriptSearchScope(project, effectiveScope)
+      else -> effectiveScope
+    }
     val searchContext = UsageSearchContext.IN_CODE
     val processor = MyProcessor(keyValue, nameParts)
     val search: (String) -> Unit = { queryParameters.optimizer.searchWord(it, searchScope, searchContext, true, element, processor) }
