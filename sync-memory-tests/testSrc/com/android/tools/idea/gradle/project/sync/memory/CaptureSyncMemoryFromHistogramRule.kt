@@ -65,7 +65,10 @@ class CaptureSyncMemoryFromHistogramRule(private val projectName: String) : Exte
 
   private fun recordHistogramValues(projectName: String) {
     for (metricFilePath in File(OUTPUT_DIRECTORY).walk().filter { !it.isDirectory }.asIterable()) {
-        val bytes = metricFilePath.readLines()
+        val lines = metricFilePath.readLines()
+        // Files less than three lines are likely not heap snapshots
+        if (lines.size < 3) continue
+        val bytes = lines
           .last()
           .trim()
           .split("\\s+".toRegex())[2]
