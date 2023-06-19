@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.findAppModule
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.idea.IgnoreJUnit3
+import org.junit.Test
 import org.mockito.Mockito.mock
 
 class BuildToolsTooLowReporterIntegrationTest : AndroidGradleTestCase() {
@@ -32,6 +33,7 @@ class BuildToolsTooLowReporterIntegrationTest : AndroidGradleTestCase() {
     reporter = BuildToolsTooLowReporter()
   }
 
+  @Test
   @IgnoreJUnit3(reason = "Misconfiguration issue. Fix after merge.")
   fun testModuleLink() {
     loadSimpleApplication()
