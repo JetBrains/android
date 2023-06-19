@@ -62,7 +62,11 @@ public class AndroidStudioInstallation {
     String platform = "linux";
     String studioDir = "android-studio";
     if (SystemInfo.isMac) {
-      platform = "mac";
+      if (SystemInfo.OS_ARCH.equals("aarch64")) {
+        platform = "mac_arm";
+      } else {
+        platform = "mac";
+      }
       studioDir = "Android Studio Preview.app/Contents";
     } else if (SystemInfo.isWindows) {
       platform = "win";
