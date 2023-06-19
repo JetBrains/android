@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import com.google.protobuf.TextFormat;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.Strings;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -199,6 +200,13 @@ public final class ComponentsSet {
   @Nullable
   private Component getClassComponent(@NotNull final Class<?> aClass) {
     String objClassName = aClass.getName();
+
+    if ((aClass.isSynthetic() || aClass.isMemberClass() || aClass.isAnonymousClass()) && Strings.containsChar(objClassName, '$')) {
+      String outerClassName = objClassName.substring(0, Strings.indexOf(objClassName, '$'));
+      if (classNameToComponent.containsKey(outerClassName)) {
+        return classNameToComponent.get(outerClassName);
+      }
+    }
 
     if (classNameToComponent.containsKey(objClassName)) {
       return classNameToComponent.get(objClassName);

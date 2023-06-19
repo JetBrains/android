@@ -233,6 +233,8 @@ categories: {
     class_names: "com.intellij.util.lang.JarLoader"
     class_names: "com.intellij.util.lang.UrlClassLoader"
     class_names: "com.intellij.ide.plugins.cl.PluginClassLoader"
+    class_names: "com.intellij.util.lang.JdkZipResourceFile"
+    class_names: "com.intellij.util.lang.ZipResourceFile"
   }
 }
 shared_components_limit: 200
