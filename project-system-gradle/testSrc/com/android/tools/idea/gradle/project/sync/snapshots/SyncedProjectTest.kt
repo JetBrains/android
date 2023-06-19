@@ -247,6 +247,7 @@ abstract class SyncedProjectTest(
   @Test
   fun testPureJavaProject() = testProject(TestProject.PURE_JAVA_PROJECT)
 
+  /** Some snapshots have incorrect data, see IDEA-322947. */
   @Test
   fun testBuildSrcWithComposite() = testProject(TestProject.BUILDSRC_WITH_COMPOSITE)
 
