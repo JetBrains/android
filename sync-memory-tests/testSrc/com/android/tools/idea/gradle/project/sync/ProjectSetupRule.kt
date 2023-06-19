@@ -24,39 +24,57 @@ import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.project.Project
 import com.intellij.util.containers.map2Array
-import com.intellij.util.messages.Topic
-import org.jetbrains.android.AndroidTestBase
 import org.junit.rules.ExternalResource
-import java.io.File
-import java.nio.file.Path
 import java.nio.file.Paths
 
 private const val DIRECTORY = "benchmark"
 private val rootDirectory = if (TestUtils.runningFromBazel()) Paths.get("") else TestUtils.getTestOutputDir()
 
-private val SUBSET_TO_DIFF = mapOf(
-  SUBSET_50_NAME to "diff-50",
-  SUBSET_100_NAME to "diff-100",
-  SUBSET_200_NAME to "diff-200",
-  SUBSET_500_NAME to "diff-500",
-  SUBSET_1000_NAME to "diff-1000",
-  SUBSET_2000_NAME to "diff-app",
-  SUBSET_4200_NAME to null
-)
+private const val STANDARD_PATH = "prebuilts/studio/buildbenchmarks/extra-large.2022.9"
 
+/**
+ * Represents a specific project used for to collect metrics from.
+ *
+ * It consists of a base path, collections of diffs which will be applied to the project
+ * before the benchmark is run and other properties pertaining to the project.
+ *
+ * The base path is expected to by a directory containing the following files
+ *   1. src.zip - the bulk of the project which will be extracted and used as a base for other diffs
+ *   2. repo.zip - a maven repository containing all the required dependencies for the project
+ *   3. diff-properties - a diff which will be applied to the gradle.properties file of the project
+ *
+ * The diffs are all assumed to be paths relative to the base path.
+ */
+enum class BenchmarkProject(val projectPath: String, val maxHeapMB: Int, val diffs: List<String>) {
+  STANDARD_50(STANDARD_PATH, maxHeapMB = 400, listOf("diff-50")),
+  STANDARD_100(STANDARD_PATH, maxHeapMB = 600, listOf("diff-100")),
+  STANDARD_200(STANDARD_PATH, maxHeapMB = 1300, listOf("diff-200")),
+  STANDARD_500(STANDARD_PATH, maxHeapMB = 4000, listOf("diff-500")),
+  STANDARD_1000(STANDARD_PATH, maxHeapMB = 8000, listOf("diff-1000")),
+  STANDARD_2000(STANDARD_PATH, maxHeapMB = 22000, listOf("diff-app")),
+  STANDARD_4200(STANDARD_PATH, maxHeapMB = 60000, emptyList());
+}
+
+/**
+ * Test rule used to setup a project for metric collection. The [projectName]
+ * is generally used as an identifier for any collected metrics whereas the
+ * [project] defines which project will be used to collect them.
+ */
 interface ProjectSetupRule {
   val projectName: String
+  val project: BenchmarkProject
   fun openProject(body: (Project) -> Any = {})
   fun addListener(listener: GradleSyncListenerWithRoot)
 }
 
 class ProjectSetupRuleImpl(
   override val projectName: String,
+  override val project: BenchmarkProject,
   private val testEnvironmentRule: IntegrationTestEnvironmentRule) : ProjectSetupRule, ExternalResource() {
   private val listeners = mutableListOf<GradleSyncListenerWithRoot>()
 
   override fun before() {
-    setUpProject(listOfNotNull(SUBSET_TO_DIFF[projectName]))
+    setUpProject(project)
   }
 
   override fun addListener(listener: GradleSyncListenerWithRoot) {
@@ -85,15 +103,15 @@ class ProjectSetupRuleImpl(
   }
 
   companion object : IdeaTestSuiteBase() {
-    fun setUpProject(diffSpecs: List<String>) {
+    fun setUpProject(project: BenchmarkProject) {
       setUpSourceZip(
-        "prebuilts/studio/buildbenchmarks/extra-large.2022.9/src.zip",
+        "${project.projectPath}/src.zip",
         rootDirectory.resolve(DIRECTORY).toString(),
-        DiffSpec("prebuilts/studio/buildbenchmarks/extra-large.2022.9/diff-properties", 0),
-        *(diffSpecs.map2Array { it.toSpec() })
+        "diff-properties".toSpec(project),
+        *(project.diffs.map2Array { it.toSpec(project) })
       )
 
-      unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/extra-large.2022.9/repo.zip")
+      unzipIntoOfflineMavenRepo("${project.projectPath}/repo.zip")
       if (TestUtils.runningFromBazel()) { // If not running from bazel, you'll need to make sure
         // latest AGP is published, with databinding artifacts.
         unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
@@ -103,7 +121,7 @@ class ProjectSetupRuleImpl(
       }
     }
 
-    private fun String.toSpec() = DiffSpec("prebuilts/studio/buildbenchmarks/extra-large.2022.9/$this", 0)
+    private fun String.toSpec(project: BenchmarkProject) = DiffSpec("${project.projectPath}/$this", 0)
   }
 }
 

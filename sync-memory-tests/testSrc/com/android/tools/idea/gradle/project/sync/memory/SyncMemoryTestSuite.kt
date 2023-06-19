@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.memory
 
-import com.android.tools.idea.gradle.project.sync.BenchmarkTestRule
-import org.junit.Rule
-import org.junit.Test
-
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_100
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_1000
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_200
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_2000
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_4200
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_50
+import com.android.tools.idea.gradle.project.sync.BenchmarkProject.STANDARD_500
 import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_100_NAME
 import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
@@ -29,46 +32,48 @@ import com.android.tools.idea.gradle.project.sync.SUBSET_50_NAME
 import com.android.tools.idea.gradle.project.sync.createBenchmarkTestRule
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.intellij.util.io.createDirectories
+import org.junit.Rule
+import org.junit.Test
 import java.io.File
 
 class Benchmark50MemoryTest {
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_50_NAME)
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_50_NAME, STANDARD_50)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 class Benchmark100MemoryTest {
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_100_NAME)
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_100_NAME, STANDARD_100)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark200MemoryTest {
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME)
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME, STANDARD_200)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark500MemoryTest {
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_500_NAME)
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_500_NAME, STANDARD_500)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark1000MemoryTest {
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_1000_NAME)
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_1000_NAME, STANDARD_1000)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
 
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark2000MemoryTest {
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_2000_NAME)
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_2000_NAME, STANDARD_2000)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
 
 class Benchmark4200MemoryTest {
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_4200_NAME)
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_4200_NAME, STANDARD_4200)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule(benchmarkTestRule.projectName)
   @Test fun testMemory() = benchmarkTestRule.openProject()
 }
@@ -76,7 +81,7 @@ class Benchmark4200MemoryTest {
 class Benchmark200Repeated20TimesMemoryTest  {
   private val repeatCount = 20
 
-  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME)
+  @get:Rule val benchmarkTestRule = createBenchmarkTestRule(SUBSET_200_NAME, STANDARD_200)
   @get:Rule val captureFromHistogramRule = CaptureSyncMemoryFromHistogramRule("${benchmarkTestRule.projectName}_Post_${repeatCount}_Repeats")
 
   @Test

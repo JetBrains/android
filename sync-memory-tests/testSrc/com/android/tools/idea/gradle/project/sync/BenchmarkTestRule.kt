@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 
+// Standard project names
 const val SUBSET_50_NAME = "50Modules"
 const val SUBSET_100_NAME = "100Modules"
 const val SUBSET_200_NAME = "200Modules"
@@ -29,13 +30,13 @@ const val SUBSET_2000_NAME = "2000Modules"
 const val SUBSET_4200_NAME = "4200Modules"
 
 interface BenchmarkTestRule : ProjectSetupRule, TestRule
-fun createBenchmarkTestRule(projectName: String): BenchmarkTestRule {
+fun createBenchmarkTestRule(projectName: String, project: BenchmarkProject): BenchmarkTestRule {
   val testEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
-  val projectSetupRule =  ProjectSetupRuleImpl(projectName, testEnvironmentRule)
+  val projectSetupRule =  ProjectSetupRuleImpl(projectName, project, testEnvironmentRule)
 
   val wrappedRules =  RuleChain.outerRule(testEnvironmentRule)
     .around(projectSetupRule)
-    .around(MemoryConstrainedTestRule(projectName).also {
+    .around(MemoryConstrainedTestRule(projectName, project.maxHeapMB).also {
       projectSetupRule.addListener(it.listener)
     })
     .around(CollectDaemonLogsRule())

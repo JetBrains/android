@@ -65,17 +65,9 @@ private val GC_COLLECTION_TIME_ANALYZER = listOf(
     .build()
 )
 
-val SUBSET_TO_MAX_HEAP_MB = mapOf(
-  SUBSET_50_NAME to 400,
-  SUBSET_100_NAME to 600,
-  SUBSET_200_NAME to 1300,
-  SUBSET_500_NAME to 4000,
-  SUBSET_1000_NAME to 8000,
-  SUBSET_2000_NAME to 22000,
-  SUBSET_4200_NAME to 60000
-)
 class MemoryConstrainedTestRule(
   private val projectName: String,
+  private val maxHeapMB: Int
 ) : ExternalResource() {
   private val gcCollectionTimeMeasurements = mutableListOf<Pair<Instant, Duration>>()
   private val processedFiles = mutableSetOf<String>()
@@ -83,13 +75,12 @@ class MemoryConstrainedTestRule(
   private var lastKnownDaemonPid : Long? = null
 
   override fun before() {
-    val memoryLimitMb = SUBSET_TO_MAX_HEAP_MB[projectName]!!
     mutateGradleProperties {
-      setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${memoryLimitMb}m"))
+      setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${maxHeapMB}m"))
     }
     startMemoryPolling()
     recordMeasurement("${projectName}_Max_Heap",
-                      listOf(Clock.System.now() to (memoryLimitMb.toLong() shl 20)))
+                      listOf(Clock.System.now() to (maxHeapMB.toLong() shl 20)))
   }
 
   val listener = object : GradleSyncListenerWithRoot {
