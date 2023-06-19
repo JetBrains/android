@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import org.objectweb.asm.AnnotationVisitor
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassVisitor
-import org.objectweb.asm.Opcodes
+import org.jetbrains.org.objectweb.asm.AnnotationVisitor
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 
 data class InvalidateGroupEntry (var key : Int, val startOffset : Int, val endOffSet : Int)
 

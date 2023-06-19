@@ -48,7 +48,7 @@ import com.intellij.util.lang.UrlClassLoader
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import org.objectweb.asm.ClassWriter
+import org.jetbrains.org.objectweb.asm.ClassWriter
 import java.io.File
 import java.net.URL
 import java.nio.file.Path

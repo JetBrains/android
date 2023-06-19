@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.jetbrains.kotlin.types.KotlinType
-import org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.ClassReader
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.math.ceil
