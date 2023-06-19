@@ -105,7 +105,7 @@ class AndroidSdkCompatibilityChecker {
   }
 
   companion object {
-    val MAX_RECOMMENDED_COMPILE_SDK_VERSION: AndroidVersion = SdkConstants.RECOMMENDED_MAXIMUM_SDK_VERSION
+    val MAX_RECOMMENDED_COMPILE_SDK_VERSION: AndroidVersion = SdkConstants.MAX_SUPPORTED_ANDROID_PLATFORM_VERSION
     val UPDATE_STUDIO_BUTTON = 0 to "Upgrade Android Studio"
     val DO_NOT_ASK_FOR_PROJECT_BUTTON = 1 to "Don't ask for this project"
     const val MAX_NUM_OF_MODULES = 5
