@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * This class observes [LayoutInspector] and keeps track of when it is in a loading state. It can be
@@ -31,20 +32,10 @@ class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspecto
 
   var listeners = mutableListOf<Listener>()
 
-  var isLoading = false
-    private set(value) {
-      if (field == value) {
-        return
-      }
+  val isLoading
+    get() = _isLoading.get()
 
-      field = value
-
-      if (isLoading) {
-        listeners.forEach { it.onStartLoading() }
-      } else {
-        listeners.forEach { it.onStopLoading() }
-      }
-    }
+  private val _isLoading = AtomicBoolean(false)
 
   init {
     layoutInspector.stopInspectorListeners.add(this::onStopInspector)
@@ -63,15 +54,18 @@ class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspecto
   }
 
   private fun onStopInspector() {
-    isLoading = false
+    _isLoading.set(false)
+    listeners.forEach { it.onStopLoading() }
   }
 
   private fun onSelectedProcess() {
     if (layoutInspector.processModel?.selectedProcess?.isRunning == true) {
-      isLoading = true
+      _isLoading.set(true)
+      listeners.forEach { it.onStartLoading() }
     }
     if (layoutInspector.processModel?.selectedProcess == null) {
-      isLoading = false
+      _isLoading.set(false)
+      listeners.forEach { it.onStopLoading() }
     }
   }
 
@@ -80,6 +74,7 @@ class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspecto
     newWindow: AndroidWindow?,
     isStructuralChange: Boolean
   ) {
-    isLoading = false
+    _isLoading.set(false)
+    listeners.forEach { it.onStopLoading() }
   }
 }
