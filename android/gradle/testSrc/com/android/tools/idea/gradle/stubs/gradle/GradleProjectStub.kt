@@ -49,6 +49,7 @@ class GradleProjectStub(
         override fun getPath(): String {
           throw UnsupportedOperationException()
         }
+        override fun getBuildTreePath() = throw UnsupportedOperationException()
         override fun getName() = taskName
         override fun getDescription() = null
         override fun getGroup() = null
