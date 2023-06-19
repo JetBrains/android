@@ -21,8 +21,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.findAppModule
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
-import org.junit.Ignore
-import org.junit.Test
+import com.intellij.idea.IgnoreJUnit3
 import org.mockito.Mockito.mock
 
 class BuildToolsTooLowReporterIntegrationTest : AndroidGradleTestCase() {
@@ -33,9 +32,8 @@ class BuildToolsTooLowReporterIntegrationTest : AndroidGradleTestCase() {
     reporter = BuildToolsTooLowReporter()
   }
 
-  @Test
-  @Ignore("Misconfiguration issue. Fix after merge.")
-  fun moduleLink() {
+  @IgnoreJUnit3(reason = "Misconfiguration issue. Fix after merge.")
+  fun testModuleLink() {
     loadSimpleApplication()
     val appModule = project.findAppModule()
     val appFile = getGradleBuildFile(appModule)!!
