@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.annotator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle.message
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.LineMarkerInfo
@@ -45,7 +46,7 @@ private const val ROOM_ENTITY: String = "androidx.room.Entity"
  */
 internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
   override fun getId(): String = "RunSqliteStatement"
-  override fun getName(): String = "Run Sqlite statement"
+  override fun getName(): String = message("gutter.name.run.sqlite.statement")
   override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
 
   override fun collectSlowLineMarkers(elements: List<PsiElement>, result: MutableCollection<in LineMarkerInfo<*>>) {
@@ -86,10 +87,10 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
       element,
       element.textRange,
       StudioIcons.DatabaseInspector.NEW_QUERY,
-      { "Run Sqlite statement in Database Inspector" },
+      { message("marker.run.sqlite.statement") },
       getNavHandler(),
       Alignment.CENTER,
-      { "Run Sqlite statement in Database Inspector" }
+      { message("marker.run.sqlite.statement") }
     ))
   }
 
@@ -98,7 +99,7 @@ internal class RunSqliteStatementAnnotator : LineMarkerProviderDescriptor() {
       val sqliteExplorerProjectService = DatabaseInspectorProjectService.getInstance(element.project)
       if (!sqliteExplorerProjectService.hasOpenDatabase()) {
         JBPopupFactory.getInstance()
-          .createBalloonBuilder(JLabel("No Room database in Database Inspector"))
+          .createBalloonBuilder(JLabel(message("no.db.in.inspector")))
           .setFillColor(HintUtil.getWarningColor())
           .createBalloon()
           .show(RelativePoint(event), Balloon.Position.above)
