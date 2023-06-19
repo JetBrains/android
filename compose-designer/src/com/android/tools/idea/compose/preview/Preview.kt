@@ -1589,13 +1589,25 @@ class ComposePreviewRepresentation(
               name = "${baseDisplaySettings.name} - $id",
               group = message("ui.check.mode.screen.size.group")
             )
-          SingleComposePreviewElementInstance(
-            base.composableMethodFqn,
-            displaySettings,
-            base.previewElementDefinitionPsi,
-            base.previewBodyPsi,
-            config
-          )
+          val singleInstance =
+            SingleComposePreviewElementInstance(
+              base.composableMethodFqn,
+              displaySettings,
+              base.previewElementDefinitionPsi,
+              base.previewBodyPsi,
+              config
+            )
+          if (base is ParametrizedComposePreviewElementInstance) {
+            ParametrizedComposePreviewElementInstance(
+              singleInstance,
+              "",
+              base.providerClassFqn,
+              base.index,
+              base.maxIndex,
+            )
+          } else {
+            singleInstance
+          }
         }
         .asSequence()
     }

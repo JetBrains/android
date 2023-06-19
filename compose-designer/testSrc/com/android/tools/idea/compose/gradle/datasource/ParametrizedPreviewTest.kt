@@ -16,15 +16,20 @@
 package com.android.tools.idea.compose.gradle.datasource
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.idea.compose.preview.ParametrizedComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.PreviewElementTemplateInstanceProvider
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.TestComposePreviewView
+import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
 import com.android.tools.idea.preview.StaticPreviewProvider
 import com.android.tools.idea.rendering.StudioRenderService
@@ -32,10 +37,17 @@ import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.withKotlin
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.rendering.RenderService
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.psi.PsiManager
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.assertInstanceOf
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -75,6 +87,9 @@ class ParametrizedPreviewTest {
       "The project must compile correctly for the test to pass",
       projectRule.invokeTasks("compileDebugSources").isBuildSuccessful
     )
+
+    // Create VisualLintService early to avoid it being created at the time of project disposal
+    VisualLintService.getInstance(projectRule.project)
   }
 
   @After
@@ -244,6 +259,66 @@ class ParametrizedPreviewTest {
         assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
       }
     }
+  }
+
+  @Test
+  fun testUiCheckForParametrizedPreview() = runBlocking {
+    val project = projectRule.project
+
+    val parametrizedPreviews =
+      VfsUtil.findRelativeFile(
+        SimpleComposeAppPaths.APP_PARAMETRIZED_PREVIEWS.path,
+        ProjectRootManager.getInstance(project).contentRoots[0]
+      )
+        ?: throw RuntimeException("Cannot find relative file")
+    val psiFile = runReadAction { PsiManager.getInstance(project).findFile(parametrizedPreviews)!! }
+
+    val elements =
+      PreviewElementTemplateInstanceProvider(
+          StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestWithProvider" }
+          )
+        )
+        .previewElements()
+    assertEquals(3, elements.count())
+
+    val navigationHandler = ComposePreviewNavigationHandler()
+    val mainSurface =
+      NlDesignSurface.builder(project, projectRule.fixture.testRootDisposable)
+        .setNavigationHandler(navigationHandler)
+        .build()
+
+    val composeView = TestComposePreviewView(mainSurface)
+    val preview =
+      ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
+        composeView
+      }
+    Disposer.register(projectRule.fixture.testRootDisposable, preview)
+    preview.onActivate()
+
+    val uiCheckElement = elements.first() as ParametrizedComposePreviewElementInstance
+    preview.startUiCheckPreview(uiCheckElement)
+    delayUntilCondition(250) { preview.isUiCheckPreview }
+
+    assertInstanceOf<ComposePreviewRepresentation.UiCheckPreviewElementProvider>(
+      preview.previewElementProvider.previewProvider
+    )
+
+    assert(preview.availableGroups.size == 1)
+    assertEquals("Screen sizes", preview.availableGroups.first().displayName)
+    mainSurface.models
+      .mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
+      .forEach {
+        assertInstanceOf<ParametrizedComposePreviewElementInstance>(it)
+        assertEquals(uiCheckElement.composableMethodFqn, it.composableMethodFqn)
+        assertEquals(
+          uiCheckElement.providerClassFqn,
+          (it as ParametrizedComposePreviewElementInstance).providerClassFqn
+        )
+        assertEquals(uiCheckElement.index, it.index)
+        assertEquals(uiCheckElement.maxIndex, it.maxIndex)
+      }
   }
 
   private fun getEnumerationNumberFromPreviewName(elements: List<ComposePreviewElementInstance>) =
