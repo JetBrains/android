@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.rendering.classloading.FilteringClassLoader
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
-import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
+import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.rendering.classloading.loaders.NopLoader
 import org.jetbrains.android.uipreview.PseudoClassLocatorForLoader
 import org.junit.Assert.assertEquals

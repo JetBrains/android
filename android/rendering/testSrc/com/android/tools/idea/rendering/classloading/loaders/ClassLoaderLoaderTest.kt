@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.classloading.loaders
 
+import com.android.tools.rendering.classloading.loaders.ClassLoaderLoader
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.uipreview.createUrlClassLoader
