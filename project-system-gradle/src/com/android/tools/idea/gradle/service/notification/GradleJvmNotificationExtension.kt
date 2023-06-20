@@ -36,6 +36,7 @@ import org.jetbrains.plugins.gradle.service.notification.GradleNotificationExten
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleBundle
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
 
 /**
@@ -178,12 +179,12 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       notificationData.message = "$modifiedMessage\n"
       // Suggest use embedded
       var registeredListeners = notificationData.registeredListenerIds
-      val embeddedJdkPath = ideSdks.embeddedJdkPath
-      if (ideSdks.validateJdkPath(embeddedJdkPath) != null) {
+      val embeddedJdkPath: Path? = ideSdks.jdkPath
+      if (embeddedJdkPath != null && ideSdks.validateJdkPath(embeddedJdkPath) != null) {
         val absolutePath = embeddedJdkPath.toAbsolutePath().toString()
         val listener = UseJdkAsProjectJdkListener(project, absolutePath, ".embedded")
         if (!registeredListeners.contains(listener.id)) {
-          notificationData.message += "<a href=\"${listener.id}\">Use Embedded JDK ($absolutePath)</a>\n"
+          notificationData.message += "<a href=\"${listener.id}\">Use JDK ($absolutePath)</a>\n"
           notificationData.setListener(listener.id, listener)
           registeredListeners = notificationData.registeredListenerIds
         }
@@ -193,7 +194,7 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       val defaultPath = defaultJdk?.homePath
       if (defaultPath != null) {
         if (ideSdks.validateJdkPath(Paths.get(defaultPath)) != null) {
-          if (!FileUtils.isSameFile(embeddedJdkPath.toFile(), File(defaultPath))) {
+          if (!FileUtils.isSameFile(embeddedJdkPath?.toFile(), File(defaultPath))) {
             val listener = UseJdkAsProjectJdkListener(project, defaultPath)
             if (!registeredListeners.contains(listener.id)) {
               notificationData.message += "<a href=\"${listener.id}\">Use JDK ${defaultJdk.name} ($defaultPath)</a>\n"
