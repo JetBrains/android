@@ -63,6 +63,8 @@ class SystemTraceTest : ProfilersTestBase() {
 
         startSystemTrace(studio)
 
+        verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+attempting\\s+start\$", 120)
+
         studio.waitForComponentByClass("TooltipLayeredPane", "RecordingOptionsView", "FlexibleGrid", "ProfilerCombobox")
         studio.waitForComponentByClass("TooltipLayeredPane", "HideablePanel", "CpuListScrollPane", "DragAndDropList")
 
