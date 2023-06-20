@@ -211,7 +211,7 @@ iml_studio_test(
     data = [
         ":createproject_deps",
         "//prebuilts/studio/sdk:build-tools/30.0.3",
-        INTEGRATION_TEST_GRADLE_VERSION,
+        "//tools/base/build-system:gradle-distrib-7.5",  # The test itself sets a flag for which AGP version to use, so we can't rely on the framework choosing INTEGRATION_TEST_GRADLE_VERSION for us
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
