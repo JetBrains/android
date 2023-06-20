@@ -22,6 +22,7 @@ import com.android.tools.adtui.categorytable.ColorableAnimatedSpinnerIcon
 import com.android.tools.adtui.categorytable.Column
 import com.android.tools.adtui.categorytable.IconLabel
 import com.android.tools.adtui.categorytable.LabelColumn
+import com.google.common.collect.Ordering
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
@@ -105,7 +106,8 @@ internal object DeviceTableColumns {
     override val columnHeaderName = "" // no room for a name
     override val attribute =
       object : Attribute<DeviceRowData, DeviceRowData.Status> {
-        override val sorter: Comparator<DeviceRowData.Status> = naturalOrder()
+        override val sorter: Comparator<DeviceRowData.Status> =
+          Ordering.explicit(DeviceRowData.Status.ONLINE, DeviceRowData.Status.OFFLINE)
 
         override fun value(t: DeviceRowData) = t.status
       }
