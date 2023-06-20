@@ -2032,9 +2032,9 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
+            ApiLevel                      : 1.8
             CompilerArguments
-                apiVersion                    : 1.9
+                apiVersion                    : 1.8
                 languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
@@ -2052,7 +2052,7 @@ PROJECT                       : Kotlin Multiplatform
             Kind                          : SOURCE_SET_HOLDER
             LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.9
+                apiVersion                    : 1.8
                 languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
@@ -2070,10 +2070,6 @@ PROJECT                       : Kotlin Multiplatform
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
-        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
-        LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/build/classes/production/Kotlin_Multiplatform.kmpSecondLib.commonMain
         BUILD_TASKS
