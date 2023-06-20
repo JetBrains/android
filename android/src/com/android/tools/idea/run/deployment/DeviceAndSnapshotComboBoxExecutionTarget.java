@@ -17,7 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
-import com.android.tools.idea.execution.common.DeviceDeploymentUtil;
+import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -119,7 +119,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
   @Override
   public boolean canRun(@NotNull RunConfiguration configuration) {
-    return DeviceDeploymentUtil.deploysToLocalDevice(configuration);
+    return DeployableToDevice.deploysToLocalDevice(configuration);
   }
 
   @Override

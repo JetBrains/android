@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.execution.common.DeviceDeploymentUtil;
+import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -176,7 +176,7 @@ final class Updater {
 
     var configuration = myConfigurationAndSettings.getConfiguration();
 
-    if (DeviceDeploymentUtil.deploysToLocalDevice(configuration)) {
+    if (DeployableToDevice.deploysToLocalDevice(configuration)) {
       myPresentation.setEnabled(true);
       myPresentation.setDescription((String)null);
 

@@ -19,10 +19,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.withSettings;
 
 import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
 import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
@@ -88,10 +88,10 @@ public final class UpdaterTest {
   @Test
   public void updateDependingOnConfigurationConfigurationDeploysToLocalDevice() {
     // Arrange
-    RunConfiguration configuration = Mockito.mock(RunConfiguration.class, withSettings().extraInterfaces(DeployableToDevice.class));
-    Mockito.when(((DeployableToDevice)configuration).deploysToLocalDevice()).thenReturn(true);
+    var configuration = Mockito.mock(AndroidRunConfiguration.class);
+    Mockito.when(configuration.getUserData(DeployableToDevice.getKEY())).thenReturn(true);
 
-    Updater updater = new Updater.Builder()
+    var updater = new Updater.Builder()
       .setProject(myRule.getProject())
       .setPresentation(myPresentation)
       .setDevicesSelectedService(Mockito.mock(DevicesSelectedService.class))

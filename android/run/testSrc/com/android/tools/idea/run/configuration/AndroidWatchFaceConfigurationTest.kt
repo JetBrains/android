@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.tools.idea.execution.common.DeployableToDevice
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
@@ -49,8 +50,7 @@ class AndroidWatchFaceConfigurationTest {
   fun testDeploysToLocalDevice() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run watch face", AndroidWatchFaceConfigurationType().configurationFactories.single())
-    val runConfig = configSettings.configuration as AndroidWatchFaceConfiguration
 
-    assertThat(runConfig.deploysToLocalDevice()).isTrue()
+    assertThat(DeployableToDevice.deploysToLocalDevice(configSettings.configuration)).isTrue()
   }
 }

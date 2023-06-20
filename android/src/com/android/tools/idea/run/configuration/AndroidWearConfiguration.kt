@@ -58,7 +58,7 @@ import org.jetbrains.android.util.AndroidBundle
 
 abstract class AndroidWearConfiguration(project: Project, factory: ConfigurationFactory) :
   ModuleBasedConfiguration<JavaRunConfigurationModule, Element>(JavaRunConfigurationModule(project, false), factory),
-  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, RunConfigurationWithDebugger, DeployableToDevice {
+  RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction, PreferGradleMake, RunConfigurationWithDebugger {
 
   companion object {
     const val LAUNCH_OPTIONS_ELEMENT_NAME = "LaunchOptions"
@@ -71,6 +71,10 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   abstract val componentLaunchOptions: WearSurfaceLaunchOptions
 
   val deployOptions: DeployOptions = DeployOptions(emptyList(), "", installOnAllUsers = true, alwaysInstallWithPm = true)
+
+  init {
+    putUserData(DeployableToDevice.KEY, true)
+  }
 
   override fun getConfigurationEditor(): AndroidWearConfigurationEditor<*> = AndroidWearConfigurationEditor(project, this)
 
@@ -183,5 +187,4 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
   val module: Module?
     get() = configurationModule.module
 
-  override fun deploysToLocalDevice() = true
 }

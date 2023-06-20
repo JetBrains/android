@@ -249,7 +249,7 @@ class LiveEditServiceImpl(val project: Project,
       return facet != null && LaunchUtils.canDebugApp(facet)
     }
     // TODO(b/286911223): Check if its possible to retrieve AndroidFacet from BlazeCommandRunConfiguration instance of RunProfile and if LaunchUtils.canDebugApp may be run on it
-    // Check for DeployableToDevice interface to allow BlazeCommandRunConfiguration based run profiles
-    return runProfile is DeployableToDevice
+    // Check if the run profile deploys to local device to allow BlazeCommandRunConfiguration based run profiles
+    return DeployableToDevice.deploysToLocalDevice(runProfile)
   }
 }

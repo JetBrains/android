@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.execution.common
 
-import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.RunProfile
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolder
 
-object DeviceDeploymentUtil {
+object DeployableToDevice {
   @JvmStatic
-  fun deploysToLocalDevice(configuration: RunConfiguration): Boolean {
-    return (configuration as? DeployableToDevice)?.deploysToLocalDevice() == true
+  fun deploysToLocalDevice(profile: RunProfile): Boolean {
+    return (profile as? UserDataHolder)?.getUserData(KEY) == true
   }
+
+  @JvmStatic
+  val KEY: Key<Boolean> = Key.create("android.execution.deploysToLocalDevice")
 }

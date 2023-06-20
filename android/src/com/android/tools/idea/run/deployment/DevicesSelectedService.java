@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.execution.common.DeviceDeploymentUtil;
+import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.util.InstantConverter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -247,7 +247,7 @@ final class DevicesSelectedService {
         return new State();
       }
 
-      if (!DeviceDeploymentUtil.deploysToLocalDevice(runConfiguration)) {
+      if (!DeployableToDevice.deploysToLocalDevice(runConfiguration)) {
         // We do not want to keep track of states for configurations that don't deploy to local devices
         return new State();
       }
@@ -274,7 +274,7 @@ final class DevicesSelectedService {
 
     private boolean validRunConfigurationExists(String runConfigurationName) {
       return myRunManager.getAllConfigurationsList().stream()
-        .filter(DeviceDeploymentUtil::deploysToLocalDevice)
+        .filter(DeployableToDevice::deploysToLocalDevice)
         .anyMatch(runConfiguration -> runConfiguration.getName().equals(runConfigurationName));
     }
   }

@@ -76,7 +76,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class AndroidRunConfigurationBase extends ModuleBasedConfiguration<AndroidRunConfigurationModule, Element>
   implements PreferGradleMake, RunConfigurationWithSuppressedDefaultRunAction, RunConfigurationWithSuppressedDefaultDebugAction,
-             RunConfigurationWithDebugger, DeployableToDevice {
+             RunConfigurationWithDebugger {
 
   /**
    * Element name used to group the {@link ProfilerState} settings
@@ -104,6 +104,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       // Start up debugger auto attach.
       AttachOnWaitForDebuggerMonitor.getInstance(project);
     }
+
+    putUserData(DeployableToDevice.getKEY(), getDeployTargetContext().getCurrentDeployTargetProvider().canDeployToLocalDevice());
   }
 
   @Override
@@ -418,8 +420,4 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return myProfilerState;
   }
 
-  @Override
-  public boolean deploysToLocalDevice() {
-    return getDeployTargetContext().getCurrentDeployTargetProvider().canDeployToLocalDevice();
-  }
 }

@@ -38,10 +38,6 @@ interface WearSurfaceLaunchOptions : ComponentLaunchOptions {
   val componentBaseClassesFqNames: Array<String>
 }
 
-interface DeployableToDevice {
-  fun deploysToLocalDevice(): Boolean
-}
-
 interface AppRunConfiguration {
   companion object {
     @JvmStatic

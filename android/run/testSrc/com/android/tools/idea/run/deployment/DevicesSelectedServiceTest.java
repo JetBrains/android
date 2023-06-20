@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.MapState;
@@ -511,10 +512,10 @@ public final class DevicesSelectedServiceTest {
 
   @NotNull
   private static RunnerAndConfigurationSettings mockConfigurationAndSettings(@NotNull String name) {
-    AndroidRunConfiguration runConfiguration = Mockito.mock(AndroidRunConfiguration.class);
+    var runConfiguration = Mockito.mock(AndroidRunConfiguration.class);
     Mockito.when(runConfiguration.getName()).thenReturn(name);
-    Mockito.when(runConfiguration.deploysToLocalDevice()).thenReturn(true);
-    RunnerAndConfigurationSettings configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
+    Mockito.when(runConfiguration.getUserData(DeployableToDevice.getKEY())).thenReturn(true);
+    var configurationAndSettings = Mockito.mock(RunnerAndConfigurationSettings.class);
     Mockito.when(configurationAndSettings.getConfiguration()).thenReturn(runConfiguration);
     return configurationAndSettings;
   }

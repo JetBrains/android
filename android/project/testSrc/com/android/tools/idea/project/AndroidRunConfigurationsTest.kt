@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.project
 
+import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.run.AndroidRunConfiguration
@@ -72,7 +73,7 @@ class AndroidRunConfigurationsTest {
 
       assertThat(configurations).hasSize(1)
       assertThat(configurations[0]).isInstanceOf(AndroidRunConfiguration::class.java)
-      assertThat((configurations[0] as AndroidRunConfiguration).deploysToLocalDevice()).isTrue()
+      assertThat(DeployableToDevice.deploysToLocalDevice(configurations[0])).isTrue()
     }
   }
 }
