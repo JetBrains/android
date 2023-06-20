@@ -590,7 +590,6 @@ class StreamingToolWindowManagerTest {
         "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
   }
 
-  @Ignore("b/287352546")
   @Test
   fun testMirroringManager() {
     if (!isFFmpegAvailableToTest()) {

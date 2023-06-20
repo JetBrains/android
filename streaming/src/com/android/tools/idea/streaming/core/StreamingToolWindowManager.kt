@@ -325,7 +325,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
     else {
-      lastSelectedDeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
+      if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+        recentAttentionRequests.put(deviceSerialNumber, activationLevel)
+      } else {
+        lastSelectedDeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
+      }
       toolWindow.activate(activationLevel)
     }
   }
@@ -712,7 +716,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
     else if (activationLevel >= ActivationLevel.SHOW_TOOL_WINDOW) {
-      if (activationLevel >= ActivationLevel.SELECT_TAB) {
+      if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+        recentAttentionRequests.put(serialNumber, activationLevel)
+      } else {
         lastSelectedDeviceId = DeviceId.ofPhysicalDevice(serialNumber)
       }
       toolWindow.activate(activationLevel)
@@ -760,7 +766,11 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         }
       }
       else if (activationLevel >= ActivationLevel.SHOW_TOOL_WINDOW) {
-        lastSelectedDeviceId = DeviceId.ofPhysicalDevice(serialNumber)
+        if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+          recentAttentionRequests.put(serialNumber, activationLevel)
+        } else {
+          lastSelectedDeviceId = DeviceId.ofPhysicalDevice(serialNumber)
+        }
         toolWindow.activate(activationLevel)
       }
     }
