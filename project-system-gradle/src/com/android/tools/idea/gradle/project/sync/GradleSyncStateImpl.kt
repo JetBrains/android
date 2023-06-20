@@ -202,7 +202,9 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
     eventLogger.syncStarted(GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_SINGLE_VARIANT, trigger)
 
-    addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started", MessageType.INFO, null)
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      addToEventLog(SYNC_NOTIFICATION_GROUP, "Gradle sync started", MessageType.INFO, null)
+    }
 
     GradleFiles.getInstance(project).maybeProcessSyncStarted()
 
@@ -230,11 +232,14 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     val millisTook = eventLogger.syncEnded()
 
     val message = "Gradle sync finished in ${formatDuration(millisTook)}"
-    addToEventLog(SYNC_NOTIFICATION_GROUP,
-                  message,
-                  MessageType.INFO,
-                  null
-    )
+
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      addToEventLog(SYNC_NOTIFICATION_GROUP,
+                    message,
+                    MessageType.INFO,
+                    null)
+    }
+
     LOG.info(message)
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED, rootProjectPath)
