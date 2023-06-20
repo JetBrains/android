@@ -288,9 +288,39 @@ class LayoutInspectorRendererTest {
   }
 
   @Test
-  fun testMouseHover() {
+  fun testMouseHoverRegular() {
     val parent = BorderLayoutPanel()
     val layoutInspectorRenderer = createRenderer()
+    parent.add(layoutInspectorRenderer)
+    parent.size = screenDimension
+    layoutInspectorRenderer.size = screenDimension
+    val fakeUi = FakeUi(layoutInspectorRenderer)
+
+    assertThat(renderModel.model.hoveredNode).isNull()
+
+    // move mouse above VIEW1.
+    fakeUi.mouse.moveTo(deviceDisplayRectangle.x + 10, deviceDisplayRectangle.y + 15)
+
+    fakeUi.render()
+
+    // mouse hover should be disabled when we are not in deep inspect mode.
+    assertThat(renderModel.model.hoveredNode).isNull()
+
+    renderModel.overlay =
+      ImageIO.read(
+        TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile()
+      )
+
+    val renderImage = createRenderImage()
+    paint(renderImage, layoutInspectorRenderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  @Test
+  fun testMouseHoverInterceptClicks() {
+    val parent = BorderLayoutPanel()
+    val layoutInspectorRenderer = createRenderer()
+    layoutInspectorRenderer.interceptClicks = true
     parent.add(layoutInspectorRenderer)
     parent.size = screenDimension
     layoutInspectorRenderer.size = screenDimension

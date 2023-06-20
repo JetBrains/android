@@ -257,6 +257,8 @@ class LayoutInspectorRenderer(
     }
 
     override fun mouseMoved(e: MouseEvent) {
+      if (e.isConsumed || !interceptClicks) return
+
       val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
 
       val hoveredNodeDrawInfo =
