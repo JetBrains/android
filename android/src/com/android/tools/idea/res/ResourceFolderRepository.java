@@ -71,6 +71,7 @@ import com.android.tools.res.LocalResourceRepository;
 import com.android.utils.Base128InputStream;
 import com.android.utils.SdkUtils;
 import com.android.utils.TraceUtils;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
@@ -235,6 +236,13 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private int fileRescans;
   private int layoutlibCacheFlushes;
 
+  @GuardedBy("ITEM_MAP_LOCK")
+  @Nullable
+  private Map<ResourceType, ImmutableSet<FolderConfiguration>> myResourceTypeToFolderConfigs = null;
+
+  @GuardedBy("ITEM_MAP_LOCK")
+  private long myResourceTypeToFolderConfigsGeneration = 0;
+
   /**
    * Creates a ResourceFolderRepository and loads its contents.
    * <p>
@@ -347,6 +355,37 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @VisibleForTesting
   public int getLayoutlibCacheFlushes() {
     return layoutlibCacheFlushes;
+  }
+
+  public ImmutableSet<FolderConfiguration> getFolderConfigurations(ResourceType resourceType) {
+    synchronized (ITEM_MAP_LOCK) {
+      // Ideally this would be stored on CachedValuesManager since ResourceFolderRepository is already a ModificationTracker; but we can't
+      // store cached values on a VirtualFile, and this repository is designed to work without PsiElements having been creating.
+      // This logic mimics what CachedValuesManager would do in terms of invalidation and lazy creation, since this is intended for use only
+      // by the translations editor and will not be needed for a majority of scenarios.
+      long modificationCount = getModificationCount();
+      if (myResourceTypeToFolderConfigs == null || myResourceTypeToFolderConfigsGeneration != modificationCount) {
+        // Get the FolderConfiguration for every resource contained in this repository, rather than by looking at folders/files. This
+        // ensures no configuration is created for any empty files, even though the folder containing such a file would exist.
+        Map<ResourceType, Set<FolderConfiguration>> map = new HashMap<>();
+        accept(item -> {
+          Set<FolderConfiguration> set = map.computeIfAbsent(item.getType(), key -> new HashSet<>());
+          set.add(item.getConfiguration());
+
+          return ResourceVisitor.VisitResult.CONTINUE;
+        });
+
+        // Convert to immutable sets to codify that consumers cannot modify the values.
+        myResourceTypeToFolderConfigs = new HashMap<>();
+        myResourceTypeToFolderConfigsGeneration = modificationCount;
+        for (Map.Entry<ResourceType, Set<FolderConfiguration>> entry : map.entrySet()) {
+          myResourceTypeToFolderConfigs.put(entry.getKey(), ImmutableSet.copyOf(entry.getValue()));
+        }
+      }
+
+      ImmutableSet<FolderConfiguration> folderConfigurations = myResourceTypeToFolderConfigs.get(resourceType);
+      return folderConfigurations != null ? folderConfigurations : ImmutableSet.of();
+    }
   }
 
   private static void addToResult(@NotNull ResourceItem item,

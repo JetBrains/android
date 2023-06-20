@@ -95,7 +95,8 @@ class StringResourceDataTest {
 
   @Test
   fun parser() {
-    assertThat(data.localeSet.map(Locale::toLocaleId)).containsExactly("en", "en-GB", "en-IN", "fr", "hi")
+    assertThat(data.localeSet.map(Locale::toLocaleId)).containsExactly("en", "en-IN", "en-GB", "fr", "hi")
+    assertThat(data.localeList.map(Locale::toLocaleId)).containsExactly("en", "en-IN", "en-GB", "fr", "hi").inOrder()
 
     assertThat(data.getStringResource(newStringResourceKey("key1")).defaultValueAsResourceItem).isNotNull()
 

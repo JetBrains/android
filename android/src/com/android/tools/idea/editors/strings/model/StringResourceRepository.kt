@@ -62,6 +62,11 @@ interface StringResourceRepository {
    */
   fun invokeAfterPendingUpdatesFinish(key: StringResourceKey, callback: Runnable)
 
+  /**
+   * Gets a set of [Locale] objects for which this [StringResourceRepository] contains at least one resource.
+   */
+  fun getTranslatedLocales(): Set<Locale>
+
   /** Suspends execution until updates to the repository for the given [key] are complete. */
   suspend fun waitForUpdates(key: StringResourceKey)
 
@@ -157,6 +162,13 @@ private class StringResourceRepositoryImpl(repository: LocalResourceRepository) 
   override fun invokeAfterPendingUpdatesFinish(key: StringResourceKey, callback: Runnable) =
       key.getRepository()
           .invokeAfterPendingUpdatesFinish(EdtExecutorService.getInstance(), callback)
+
+  override fun getTranslatedLocales(): Set<Locale> =
+    resourceDirectoryRepositoryMap.values
+      .flatMap { it.getFolderConfigurations(ResourceType.STRING) }
+      .mapNotNull { it.localeQualifier }
+      .map(Locale::create)
+      .toSet()
 
   override suspend fun waitForUpdates(key: StringResourceKey) {
     suspendCoroutine<Unit> { cont ->

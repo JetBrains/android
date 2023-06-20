@@ -4671,4 +4671,49 @@ public class ResourceFolderRepositoryTest {
     assertThat(wolfTheProblemSolver.isProblemFile(invalid)).isFalse();
     assertThat(wolfTheProblemSolver.isProblemFile(invalidButIdentifier)).isFalse();
   }
+
+  @Test
+  public void getFolderConfigurations() throws Exception {
+    VirtualFile stringsFile = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
+    assertThat(PsiManager.getInstance(myProject).findFile(stringsFile)).isNotNull();
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertThat(repository).isNotNull();
+
+    assertThat(repository.getFolderConfigurations(ResourceType.STRING)).containsExactly(new FolderConfiguration());
+    assertThat(repository.getFolderConfigurations(ResourceType.LAYOUT)).isEmpty();
+
+    // Add three new string files with locales, but only the non-empty files should be returned below.
+    VirtualFile stringsDeFile = myFixture.copyFileToProject(STRINGS, "res/values-de/strings.xml");
+    VirtualFile stringsFrFile = myFixture.copyFileToProject(STRINGS, "res/values-fr/strings.xml");
+    VirtualFile stringsEsFile = myFixture.copyFileToProject(VALUES_EMPTY, "res/values-es/strings.xml");
+    assertThat(PsiManager.getInstance(myProject).findFile(stringsDeFile)).isNotNull();
+    assertThat(PsiManager.getInstance(myProject).findFile(stringsFrFile)).isNotNull();
+    assertThat(PsiManager.getInstance(myProject).findFile(stringsEsFile)).isNotNull();
+    commitAndWaitForUpdates(repository);
+
+    assertThat(repository.getFolderConfigurations(ResourceType.STRING)).containsExactly(
+      new FolderConfiguration(),
+      FolderConfiguration.getConfig(new String[] { "values", "de" }),
+      FolderConfiguration.getConfig(new String[] { "values", "fr" })
+    );
+    assertThat(repository.getFolderConfigurations(ResourceType.LAYOUT)).isEmpty();
+
+    // Add two layout files. This should affect the folders returned for layouts, but not strings.
+    VirtualFile layoutFile = myFixture.copyFileToProject(LAYOUT1, "res/layout/layout1.xml");
+    VirtualFile layoutFileFr = myFixture.copyFileToProject(LAYOUT1, "res/layout-fr/layout1.xml");
+    assertThat(PsiManager.getInstance(myProject).findFile(layoutFile)).isNotNull();
+    assertThat(PsiManager.getInstance(myProject).findFile(layoutFileFr)).isNotNull();
+    commitAndWaitForUpdates(repository);
+
+    assertThat(repository.getFolderConfigurations(ResourceType.STRING)).containsExactly(
+      new FolderConfiguration(),
+      FolderConfiguration.getConfig(new String[] { "values", "de" }),
+      FolderConfiguration.getConfig(new String[] { "values", "fr" })
+    );
+    assertThat(repository.getFolderConfigurations(ResourceType.LAYOUT)).containsExactly(
+      new FolderConfiguration(),
+      FolderConfiguration.getConfig(new String[] { "values", "fr" })
+    );
+  }
 }

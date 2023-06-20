@@ -107,16 +107,12 @@ class StringResourceData private constructor(
     get() = keyToResourceMap.keys.toList()
 
   val localeList: List<Locale>
-    get() = translatedLocaleStream
-      .distinct()
+    get() = localeSet
       .sortedWith(Locale.LANGUAGE_NAME_COMPARATOR)
       .toList()
 
   val localeSet: Set<Locale>
-    get() = translatedLocaleStream.toSet()
-
-  private val translatedLocaleStream: Sequence<Locale>
-    get() = keyToResourceMap.values.asSequence().flatMap(StringResource::translatedLocales)
+    get() = repository.getTranslatedLocales()
 
   /**
    * Finds the single XML file responsible for all the translations.

@@ -246,6 +246,17 @@ class StringResourceRepositoryTest {
     }
   }
 
+  @Test
+  fun getLocales() {
+    assertThat(stringResourceRepository.getTranslatedLocales())
+      .containsExactly(
+        Locale.create("en"),
+        Locale.create("en-rGB"),
+        Locale.create("en-rIN"),
+        Locale.create("fr"),
+        Locale.create("hi"))
+  }
+
   /** Runs code inside the [EdtExecutorService] and waits for it to return a value. */
   private fun <T> evaluateInEdtExecutor(block: () -> T): T {
     return runBlocking {
