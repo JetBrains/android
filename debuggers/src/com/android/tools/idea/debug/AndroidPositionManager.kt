@@ -57,6 +57,8 @@ import com.sun.jdi.ReferenceType
 import com.sun.jdi.request.ClassPrepareRequest
 import java.lang.ref.WeakReference
 
+private const val COMPANION_CLASS_SUFFIX = "\$-CC"
+
 /**
  * AndroidPositionManager provides android java specific position manager augmentations on top of
  * [PositionManagerImpl] such as:
@@ -97,7 +99,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
     if (allClasses.isEmpty()) {
       throw NoDataException.INSTANCE
     }
-    return allClasses
+    return allClasses.distinct()
   }
 
   @Throws(NoDataException::class)
@@ -206,7 +208,7 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
       // actual code.
       // The companion class should be an inner class of the interface. Let's get notified of any inner class that is loaded and
       // check if the class contains the position we're looking for.
-      val classPattern = classHolder.qualifiedName + "$*"
+      val classPattern = classHolder.getJvmName() + "$*"
       val trampolinePrepareRequestor = ClassPrepareRequestor { debuggerProcess, referenceType ->
         if (referenceType.hasLocationsForPosition(position)) {
           requestor.processClassPrepare(debuggerProcess, referenceType)
@@ -232,22 +234,26 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
         debugProcess.project.findClassInAllScope(type)?.canBeTransformedForDesugaring() == true
       }
     }
-    if (candidatesForDesugaringCompanion.isEmpty()) {
-      return emptyList()
-    }
 
-    // There is at least one interface that may have a companion class synthesized by desugaring.
-    val allLoadedTypes = debugProcess.virtualMachineProxy.allClasses()
-    val companions = allLoadedTypes.filter { loadedType ->
-      candidatesForDesugaringCompanion.any { candidate ->
+
+    return getCompanionsOfTypes(position, candidatesForDesugaringCompanion) + getCompanionsForPositionByName(position)
+  }
+
+  private fun getCompanionsOfTypes(position: SourcePosition, types: List<ReferenceType>): List<ReferenceType> {
+    val allLoadedTypes = runCatching { debugProcess.virtualMachineProxy.allClasses() }.getOrDefault(emptyList())
+    return allLoadedTypes.filter { loadedType ->
+      types.any { candidate ->
         loadedType.isCompanion(candidate.name(), position)
       }
     }
-
-
-    return companions
   }
 
+  private fun getCompanionsForPositionByName(position: SourcePosition): List<ReferenceType> =
+    ReadAction.compute<List<ReferenceType>, RuntimeException> {
+      getLineClasses(position.file, position.line).flatMap {
+        debugProcess.virtualMachineProxy.classesByName("${it.getJvmName()}$COMPANION_CLASS_SUFFIX")
+      }
+    }
 
   private fun ReferenceType.hasLocationsForPosition(position: SourcePosition) =
     runCatching { locationsOfLine(this, position).isNotEmpty() }.getOrDefault(false)

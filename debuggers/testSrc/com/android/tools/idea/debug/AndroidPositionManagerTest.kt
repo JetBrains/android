@@ -68,6 +68,7 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.anyString
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -123,6 +124,11 @@ class AndroidPositionManagerTest {
     whenever(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).thenAnswer { targetDeviceAndroidVersion }
     // todo: In reality, `allClasses` throws so, add a mode where we test when it throws.
     whenever(mockVirtualMachineProxyImpl.allClasses()).thenReturn(allVirtualMachineClasses)
+    whenever(mockVirtualMachineProxyImpl.classesByName(anyString())).thenAnswer { invocation ->
+      allVirtualMachineClasses.filter { type ->
+        type.name() == invocation.getArgument<String>(0)
+      }
+    }
     whenever(mockDebugProcessImpl.requestsManager).thenReturn(mockRequestManagerImpl)
     whenever(mockRequestManagerImpl.createClassPrepareRequest(any(), ArgumentMatchers.anyString())).thenAnswer { invocation ->
       FakeClassPrepareRequest(invocation.arguments[1].toString())
@@ -361,6 +367,31 @@ class AndroidPositionManagerTest {
   }
 
   @Test
+  fun createPrepareRequests_InnerInterfaceWithStaticMethod_addsRequest() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+
+      interface Foo {
+        interface Bar {
+          static void bar() {
+            int test = 2; // break here
+          }
+        }
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val requests = myPositionManager.createPrepareRequests(mockClassPrepareRequestor, position)
+
+    assertThat(requests.map { it.toString() }).containsExactly(
+      "p1.p2.Foo\$Bar",
+      "p1.p2.Foo\$Bar\$*",
+    )
+  }
+
+  @Test
   fun createPrepareRequests_InterfaceWithDefaultMethod_addsRequest() {
     @Language("JAVA")
     val text = """
@@ -437,7 +468,6 @@ class AndroidPositionManagerTest {
         if (psiClass.isInterfaceWithStaticMethod()) {
           allVirtualMachineClasses.add(FakeReferenceType("$jvmName$COMPANION_PREFIX", hasLocations = true))
         }
-        whenever(mockVirtualMachineProxyImpl.classesByName(jvmName)).thenReturn(listOf(referenceType))
       }
     }
     return psiFile
@@ -502,6 +532,31 @@ class AndroidPositionManagerTest {
     assertThat(types.map { it.name() }).containsExactly(
       "p1.p2.Foo",
       "p1.p2.Foo$-CC",
+    )
+  }
+
+  @Test
+  fun getAllClasses_InnerInterfaceWithStaticMethod_hasResults_addsCompanion() {
+    @Language("JAVA")
+    val text = """
+      package p1.p2;
+
+      interface Foo {
+        interface Bar {
+          static void bar() {
+            int test = 2; // break here
+          }
+        }
+      }
+    """.trimIndent()
+    val file = setupFromFile(text)
+    val position = file.getBreakpointPosition()
+
+    val types = myPositionManager.getAllClasses(position)
+
+    assertThat(types.map { it.name() }).containsExactly(
+      "p1.p2.Foo\$Bar",
+      "p1.p2.Foo\$Bar$-CC",
     )
   }
 
