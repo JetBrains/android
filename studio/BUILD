@@ -728,24 +728,6 @@ py_test(
     ],
 )
 
-config_setting(
-    name = "macos-arm64",
-    constraint_values = [
-        "@platforms//os:macos",
-        "@platforms//cpu:arm64",
-    ],
-    visibility = ["//visibility:private"],
-)
-
-config_setting(
-    name = "macos-x86_64",
-    constraint_values = [
-        "@platforms//os:macos",
-        "@platforms//cpu:x86_64",
-    ],
-    visibility = ["//visibility:private"],
-)
-
 py_test(
     name = "test_updater",
     timeout = "long",  # b/233245811
@@ -755,11 +737,11 @@ py_test(
         ":updater.jar",
     ] + select({
         # On macOS, the test converts macOS ↔ Windows
-        ":macos-arm64": [
+        "//tools/base/bazel/platforms:macos-arm64": [
             ":android-studio.mac_arm.zip",
             ":android-studio.win.zip",
         ],
-        ":macos-x86_64": [
+        "//tools/base/bazel/platforms:macos-x86_64": [
             ":android-studio.mac.zip",
             ":android-studio.win.zip",
         ],
