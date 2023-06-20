@@ -59,6 +59,7 @@ private fun DaggerConceptIndexers.runIndexerOn(
 ): Map<String, Set<IndexValue>> {
   val fileContent: FileContent = mock()
   whenever(fileContent.psiFile).thenReturn(psiFile)
+  whenever(fileContent.contentAsText).thenReturn(psiFile.text)
   whenever(fileContent.fileType).thenReturn(fileType)
 
   return DaggerDataIndexer(this).map(fileContent)

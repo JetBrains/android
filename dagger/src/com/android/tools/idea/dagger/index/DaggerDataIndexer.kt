@@ -48,9 +48,16 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
 
   companion object {
     val INSTANCE = DaggerDataIndexer()
+
+    // All the indexed files contain annotations that are either in the `dagger` package, or are
+    // `javax.inject.Inject`. These annotations are specified in DaggerAnnotations.kt. If the file
+    // doesn't contain either of those tokens, we can avoid visiting its contents.
+    private val DAGGER_FILE_PATTERN = Regex("dagger|inject")
   }
 
   override fun map(inputData: FileContent): Map<String, Set<IndexValue>> {
+    if (!DAGGER_FILE_PATTERN.containsMatchIn(inputData.contentAsText)) return emptyMap()
+
     val results: IndexEntries = mutableMapOf()
     val visitor =
       when (inputData.fileType) {
