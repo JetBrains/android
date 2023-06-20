@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.categorytable
 
+import java.text.Collator
 import javax.swing.SortOrder
 
 /**
@@ -32,7 +33,7 @@ import javax.swing.SortOrder
 interface Attribute<in T, C> {
 
   /** If present, a [Comparator] that can be used to sort values of this attribute. */
-  val sorter: Comparator<C>?
+  val sorter: Comparator<in C>?
 
   /**
    * Extracts the attribute value from this row value. This function is expected to consistently
@@ -58,7 +59,7 @@ interface Attribute<in T, C> {
 
   companion object {
     fun <T> stringAttribute(
-      sorter: Comparator<String> = naturalOrder(),
+      sorter: Comparator<in String> = Collator.getInstance(),
       isGroupable: Boolean = true,
       valueFn: (t: T) -> String
     ): Attribute<T, String> =
