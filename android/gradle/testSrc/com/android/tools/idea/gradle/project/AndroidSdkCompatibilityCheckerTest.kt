@@ -97,7 +97,7 @@ class AndroidSdkCompatibilityCheckerTest {
   fun `test dialog is shown when there is a module which violates rules`() {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-35"),
+      appModuleBuilder(compileSdk = "android-1000"),
     )
     val androidModels = getGradleAndroidModels(projectRule.project)
     responseToDialog(true) {
@@ -112,12 +112,12 @@ class AndroidSdkCompatibilityCheckerTest {
   fun `test dialog is shown when there is are more than 5 modules which violates rules`() {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-35"),
-      appModuleBuilder(compileSdk = "android-35"),
-      appModuleBuilder(compileSdk = "android-35"),
-      libModuleBuilder(compileSdk = "android-35"),
-      libModuleBuilder(compileSdk = "android-35"),
-      libModuleBuilder(compileSdk = "android-35"),
+      appModuleBuilder(compileSdk = "android-1000"),
+      appModuleBuilder(compileSdk = "android-1000"),
+      appModuleBuilder(compileSdk = "android-1000"),
+      libModuleBuilder(compileSdk = "android-1000"),
+      libModuleBuilder(compileSdk = "android-1000"),
+      libModuleBuilder(compileSdk = "android-1000"),
     )
     val androidModels = getGradleAndroidModels(projectRule.project)
     responseToDialog(true) {
@@ -127,7 +127,7 @@ class AndroidSdkCompatibilityCheckerTest {
     assertThat(dialogMessages[0]).startsWith("Your project is configured with a compile sdk version that is not supported by this version of Android Studio")
     assertThat(dialogMessages[0]).contains(".myapp")
     assertThat(dialogMessages[0]).contains(".mylib")
-    assertThat(dialogMessages[0]).contains("(compileSdk=35)")
+    assertThat(dialogMessages[0]).contains("(compileSdk=1000)")
     assertThat(dialogMessages[0]).contains("(and 1 more)")
   }
 
@@ -140,12 +140,7 @@ class AndroidSdkCompatibilityCheckerTest {
 
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-35"),
-      appModuleBuilder(compileSdk = "android-35"),
-      appModuleBuilder(compileSdk = "android-35"),
-      libModuleBuilder(compileSdk = "android-35"),
-      libModuleBuilder(compileSdk = "android-35"),
-      libModuleBuilder(compileSdk = "android-35"),
+      appModuleBuilder(compileSdk = "android-1000"),
     )
     val androidModels = getGradleAndroidModels(projectRule.project)
     responseToDialog(true, replyWith = 1) {
@@ -162,7 +157,7 @@ class AndroidSdkCompatibilityCheckerTest {
   fun `test dialog shown when only doNotAskAgainIdeLevel is set`() {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-35"),
+      appModuleBuilder(compileSdk = "android-1000"),
     )
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainIdeLevel = true
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = false
@@ -178,7 +173,7 @@ class AndroidSdkCompatibilityCheckerTest {
   fun `test dialog shown when only doNotAskAgainProjectLevel is set`() {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-35"),
+      appModuleBuilder(compileSdk = "android-1000"),
     )
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainIdeLevel = false
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = true
@@ -194,7 +189,7 @@ class AndroidSdkCompatibilityCheckerTest {
   fun `test dialog not shown when both properties are set`() {
     projectRule.setupProjectFrom(
       JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-35"),
+      appModuleBuilder(compileSdk = "android-1000"),
     )
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainIdeLevel = true
     AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = true
