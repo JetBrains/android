@@ -26,6 +26,12 @@ import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
+import com.android.tools.profilers.cpu.systemtrace.CounterModel
+import com.android.tools.profilers.cpu.systemtrace.ProcessModel
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCaptureBuilder
+import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCaptureBuilderTest
+import com.android.tools.profilers.cpu.systemtrace.ThreadModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -86,5 +92,63 @@ class FullTraceSummaryDetailsViewTest {
     selectionRange.set(TimeUnit.MILLISECONDS.toMicros(1).toDouble(), TimeUnit.MILLISECONDS.toMicros(2).toDouble())
     assertThat(view.timeRangeLabel.text).isEqualTo("00:00.001 - 00:00.002")
     assertThat(view.durationLabel.text).isEqualTo("1 ms")
+
+  }
+
+  @Test
+  fun `total power row and power table not present with no power rail data`() {
+    val processes = mapOf(
+      1 to ProcessModel(
+        1, "Process",
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf()))
+
+    val systemTraceCpuCaptureModel = SystemTraceCpuCaptureBuilderTest.TestModel(processes, emptyMap(), emptyList(), emptyList(),
+                                                                                emptyList(),
+                                                                                emptyList())
+    val builder = SystemTraceCpuCaptureBuilder(systemTraceCpuCaptureModel)
+    val systemTraceCpuCapture = builder.build(0L, 1, Range())
+
+    val selectionRange = Range(TimeUnit.SECONDS.toMicros(1).toDouble(), TimeUnit.SECONDS.toMicros(60).toDouble())
+    val model = FullTraceAnalysisSummaryTabModel(CAPTURE_RANGE, selectionRange).apply {
+      dataSeries.add(systemTraceCpuCapture)
+    }
+
+    val view = FullTraceSummaryDetailsView(profilersView, model)
+
+    // Four components expected, as there are two rows of common data (Time Range and Duration), each with a key and value component.
+    assertThat(view.commonSection.componentCount).isEqualTo(4)
+    // Two components expected: the common section and the help text section.
+    assertThat(view.components.size).isEqualTo(2)
+  }
+
+  @Test
+  fun `total power row and power table not present with power rail data`() {
+    val processes = mapOf(
+      1 to ProcessModel(
+        1, "Process",
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf()))
+
+    val powerRails = listOf(
+      CounterModel("power.rails.ddr.a", sortedMapOf(1L to 100.0, 2L to 200.0)))
+
+    val systemTraceCpuCaptureModel = SystemTraceCpuCaptureBuilderTest.TestModel(processes, emptyMap(), emptyList(), powerRails, emptyList(),
+                                                                                emptyList())
+
+    val builder = SystemTraceCpuCaptureBuilder(systemTraceCpuCaptureModel)
+    val systemTraceCpuCapture = builder.build(0L, 1, Range())
+
+    val selectionRange = Range(TimeUnit.SECONDS.toMicros(1).toDouble(), TimeUnit.SECONDS.toMicros(60).toDouble())
+    val model = FullTraceAnalysisSummaryTabModel(CAPTURE_RANGE, selectionRange).apply {
+      dataSeries.add(systemTraceCpuCapture)
+    }
+
+    val view = FullTraceSummaryDetailsView(profilersView, model)
+
+    // Six components expected, as there are three rows of common data (Time Range, Duration, and Total Power), each with a key and value component.
+    assertThat(view.commonSection.componentCount).isEqualTo(6)
+    // Three components expected: the common section, the power table section, and the help text section.
+    assertThat(view.components.size).isEqualTo(3)
   }
 }

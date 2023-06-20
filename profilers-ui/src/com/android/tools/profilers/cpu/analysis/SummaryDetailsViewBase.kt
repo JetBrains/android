@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.profilers.StudioProfilersView
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import javax.swing.JComponent
@@ -40,7 +41,8 @@ import javax.swing.SwingConstants
  */
 open class SummaryDetailsViewBase<T : CpuAnalysisSummaryTabModel<*>>(val profilersView: StudioProfilersView, val tabModel: T) : JPanel() {
   val observer = AspectObserver()
-  private val commonSection: JPanel
+  @VisibleForTesting
+  val commonSection: JPanel
 
   init {
     commonSection = JPanel(TabularLayout("30*,70*", "Fit-").setVGap(COMMON_SECTION_ROW_PADDING_PX)).apply {

@@ -25,6 +25,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import perfetto.protos.PerfettoTrace
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import com.google.common.annotations.VisibleForTesting
 import com.jetbrains.rd.util.first
 
 class SystemTraceCpuCaptureBuilderTest {
@@ -462,7 +463,7 @@ class SystemTraceCpuCaptureBuilderTest {
     }
   }
 
-  private class TestModel(
+  class TestModel(
     private val processes: Map<Int, ProcessModel>,
     private val danglingThreads: Map<Int, ThreadModel>,
     private val cpuCores: List<CpuCoreModel>,
