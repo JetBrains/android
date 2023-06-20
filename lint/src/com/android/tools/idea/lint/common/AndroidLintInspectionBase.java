@@ -864,9 +864,9 @@ public abstract class AndroidLintInspectionBase extends GlobalInspectionTool {
    * and clicking on them will navigate to the correct icon.
    */
   private static class NonTextFileProblemDescriptor implements ProblemDescriptor {
-    private final @NotNull PsiFileSystemItem myFile;
-    private final @NotNull String myMessage;
-    private final @NotNull LocalQuickFix @NotNull [] myFixes;
+    private final PsiFileSystemItem myFile;
+    private final String myMessage;
+    private final LocalQuickFix[] myFixes;
     private ProblemGroup myGroup;
 
     private NonTextFileProblemDescriptor(@NotNull PsiFileSystemItem file, @NotNull String message, @NotNull LocalQuickFix[] fixes) {
