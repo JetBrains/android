@@ -88,6 +88,7 @@ import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -589,6 +590,7 @@ class StreamingToolWindowManagerTest {
         "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
   }
 
+  @Ignore("b/287352546")
   @Test
   fun testMirroringManager() {
     if (!isFFmpegAvailableToTest()) {
