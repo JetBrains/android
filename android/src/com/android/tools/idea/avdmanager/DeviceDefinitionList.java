@@ -40,6 +40,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.event.HierarchyEvent;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -199,20 +200,31 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     if (Objects.equals(device, myTable.getSelectedObject())) {
       return;
     }
-    onSelectionSet(device);
-    if (device != null) {
-      var category = Category.valueOfDefinition(device);
-      for (Device listItem : myModel.getItems()) {
-        if (listItem.getId().equals(device.getId())) {
-          myTable.setSelection(ImmutableSet.of(listItem));
 
-          var viewColumnIndex = myTable.convertColumnIndexToView(NAME_MODEL_COLUMN_INDEX);
-          myTable.scrollRectToVisible(myTable.getCellRect(myTable.getSelectedRow(), viewColumnIndex, true));
-        }
-      }
-      myCategoryList.setSelection(ImmutableSet.of(category));
-      setCategory(category);
+    onSelectionSet(device);
+
+    if (device == null) {
+      return;
     }
+
+    var id = device.getId();
+
+    myModel.getItems().stream()
+      .filter(definition -> definition.getId().equals(id))
+      .map(List::of)
+      .findFirst()
+      .ifPresent(definition -> {
+        myTable.setSelection(definition);
+
+        if (myTable.isShowing()) {
+          scrollDefinitionTableCellRectToVisible();
+        }
+      });
+
+    var category = Category.valueOfDefinition(device);
+
+    myCategoryList.setSelection(List.of(category));
+    setCategory(category);
   }
 
   /**
@@ -392,6 +404,12 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
     myTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     myTable.getSelectionModel().addListSelectionListener(this);
 
+    myTable.addHierarchyListener(event -> {
+      if ((event.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0) {
+        scrollDefinitionTableCellRectToVisible();
+      }
+    });
+
     myTable.addMouseListener(new PopupHandler() {
       @Override
       public void invokePopup(@NotNull Component component, int x, int y) {
@@ -411,6 +429,11 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
         menu.show(myTable, x, y);
       }
     });
+  }
+
+  private void scrollDefinitionTableCellRectToVisible() {
+    var rect = myTable.getCellRect(myTable.getSelectedRow(), myTable.convertColumnIndexToView(NAME_MODEL_COLUMN_INDEX), true);
+    myTable.scrollRectToVisible(rect);
   }
 
   @Override
