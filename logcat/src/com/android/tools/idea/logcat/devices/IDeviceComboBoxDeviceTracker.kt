@@ -25,6 +25,6 @@ import kotlinx.coroutines.flow.Flow
  * Devices are not removed when they go offline.
  */
 internal interface IDeviceComboBoxDeviceTracker {
-  suspend fun trackDevices(retryOnException: Boolean = true): Flow<DeviceEvent>
+  suspend fun trackDevices(): Flow<DeviceEvent>
 }
 

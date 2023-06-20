@@ -308,8 +308,8 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
    * (changes for b/192344567, b/64995008).
    */
   @Slow
-  private static @NotNull Optional<@NotNull Credentials> retrievePassword(@NotNull PasswordSafe passwordSafe,
-                                                                          @NotNull List<@NotNull CredentialAttributes> credentialAttributesToTry) {
+  private static @NotNull Optional<Credentials> retrievePassword(
+    @NotNull PasswordSafe passwordSafe, @NotNull List<CredentialAttributes> credentialAttributesToTry) {
     return credentialAttributesToTry.stream()
       .map(attributes -> Optional.ofNullable(passwordSafe.get(attributes)))
       .filter(Optional::isPresent)

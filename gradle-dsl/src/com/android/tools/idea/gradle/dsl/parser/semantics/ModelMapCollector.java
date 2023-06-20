@@ -30,11 +30,13 @@ public final class ModelMapCollector {
       SemanticsDescription description = (SemanticsDescription)data[3];
       if (Objects.equals(arity, ArityHelper.property)) {
         if (!(description instanceof PropertySemanticsDescription)) {
+          // OK to throw: used in static initializers
           throw new RuntimeException("Dsl setup problem for " + name + ": property/semantics description mismatch");
         }
       }
       else {
         if (!(description instanceof MethodSemanticsDescription)) {
+          // OK to throw: used in static initializers
           throw new RuntimeException("Dsl setup problem for " + name + ": method/semantics description mismatch");
         }
       }
@@ -52,6 +54,7 @@ public final class ModelMapCollector {
         mpd = (ModelPropertyDescription)propertyDescriptionDesignator;
       }
       else {
+        // OK to throw: used in static initializers
         throw new RuntimeException("Unrecognized model property description designator for " + name + ": " + propertyDescriptionDesignator);
       }
       VersionConstraint vc = data.length == 4 ? null : (VersionConstraint)data[4];

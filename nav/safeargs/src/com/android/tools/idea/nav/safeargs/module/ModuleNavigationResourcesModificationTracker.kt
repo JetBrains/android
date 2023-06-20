@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.module
 
+import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module

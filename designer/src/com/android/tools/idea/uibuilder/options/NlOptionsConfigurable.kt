@@ -25,7 +25,7 @@ import javax.swing.JList
 import javax.swing.JSlider
 
 private const val CONFIGURABLE_ID = "nele.options"
-private val DISPLAY_NAME = if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else "Android Design Tools"
+private val DISPLAY_NAME = if (IdeInfo.getInstance().isAndroidStudio) "Design Tools" else AndroidDesignerBundle.message("android.uibuilder.nloptionsconfigurable.displayName")
 
 @VisibleForTesting const val LABEL_TRACK_PAD = "Track Pad"
 @VisibleForTesting const val LABEL_MAGNIFY_ZOOMING_SENSITIVITY = "Magnify zooming (pinch) sensitivity"
@@ -35,11 +35,13 @@ private val MAGNIFY_SUPPORTED = SystemInfo.isMac && Registry.`is`("actionSystem.
 class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigurable {
 
   private class EditorModeCellRenderer : SimpleListCellRenderer<AndroidEditorSettings.EditorMode>() {
-    override fun customize(list: JList<out AndroidEditorSettings.EditorMode>,
-                           value: AndroidEditorSettings.EditorMode?,
-                           index: Int,
-                           selected: Boolean,
-                           hasFocus: Boolean) {
+    override fun customize(
+      list: JList<out AndroidEditorSettings.EditorMode>,
+      value: AndroidEditorSettings.EditorMode?,
+      index: Int,
+      selected: Boolean,
+      hasFocus: Boolean,
+    ) {
       value?.let {
         text = it.displayName
         icon = it.icon
@@ -114,9 +116,9 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
   override fun isModified(): Boolean {
     val magnifySensitivityValue = magnifySensitivity?.value
     return super<BoundConfigurable>.isModified()
-           || preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode
-           || preferredEditorMode.selectedItem != state.preferredEditorMode
-           || (magnifySensitivityValue != null && magnifySensitivityValue != doubleToPercentageValue(state.magnifySensitivity))
+      || preferredDrawablesEditorMode.selectedItem != state.preferredDrawableEditorMode
+      || preferredEditorMode.selectedItem != state.preferredEditorMode
+      || (magnifySensitivityValue != null && magnifySensitivityValue != doubleToPercentageValue(state.magnifySensitivity))
   }
 
   @Throws(ConfigurationException::class)

@@ -31,7 +31,9 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ColorIcon
 import java.text.DecimalFormat
 import javax.swing.Icon
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
+
+private const val DEFAULT_DENSITY = 160  // Same as Density.MEDIUM.dpiValue
+private const val DEFAULT_DENSITY_FLOAT = 160.0f
 
 /**
  * A [PropertyItem] in the inspector with a snapshot of the value.
@@ -48,7 +50,7 @@ open class InspectorPropertyItem(
   override val name: String,
 
   /** The type of the attribute */
-  initialType: Type,
+  initialType: PropertyType,
 
   /** The value of the attribute when the snapshot was taken */
   val initialValue: String?,
@@ -67,7 +69,7 @@ open class InspectorPropertyItem(
 
 ) : PropertyItem {
 
-  constructor(namespace: String, attrName: String, type: Type, value: String?, group: PropertySection,
+  constructor(namespace: String, attrName: String, type: PropertyType, value: String?, group: PropertySection,
               source: ResourceReference?, viewId: Long, lookup: ViewNodeAndResourceLookup) :
     this(namespace, attrName, attrName, type, value, group, source, viewId, lookup)
 
@@ -90,22 +92,22 @@ open class InspectorPropertyItem(
   var dimensionValue: Int = computeDimensionValue(initialType)
     private set
 
-  private fun computeDimensionValue(type: Type): Int = when (type) {
-    Type.DIMENSION -> initialValue?.toIntOrNull() ?: -1
-    Type.DIMENSION_EM,
-    Type.DIMENSION_DP,
-    Type.DIMENSION_FLOAT,
-    Type.DIMENSION_SP -> (initialValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
+  private fun computeDimensionValue(type: PropertyType): Int = when (type) {
+    PropertyType.DIMENSION -> initialValue?.toIntOrNull() ?: -1
+    PropertyType.DIMENSION_EM,
+    PropertyType.DIMENSION_DP,
+    PropertyType.DIMENSION_FLOAT,
+    PropertyType.DIMENSION_SP -> (initialValue?.toFloatOrNull() ?: Float.NaN).toRawBits()
     else -> -1
   }
 
   override var value: String?
     get() = when (type) {
-      Type.DIMENSION -> formatDimension(dimensionValue)
-      Type.DIMENSION_DP -> formatDimensionFloatDp(Float.fromBits(dimensionValue))
-      Type.DIMENSION_EM -> formatDimensionFloatAsEm(Float.fromBits(dimensionValue))
-      Type.DIMENSION_FLOAT -> formatDimensionFloat(Float.fromBits(dimensionValue))
-      Type.DIMENSION_SP -> formatDimensionFloatAsSp(Float.fromBits(dimensionValue))
+      PropertyType.DIMENSION -> formatDimension(dimensionValue)
+      PropertyType.DIMENSION_DP -> formatDimensionFloatDp(Float.fromBits(dimensionValue))
+      PropertyType.DIMENSION_EM -> formatDimensionFloatAsEm(Float.fromBits(dimensionValue))
+      PropertyType.DIMENSION_FLOAT -> formatDimensionFloat(Float.fromBits(dimensionValue))
+      PropertyType.DIMENSION_SP -> formatDimensionFloatAsSp(Float.fromBits(dimensionValue))
       else -> initialValue
     }
     set(_) {}
@@ -137,13 +139,11 @@ open class InspectorPropertyItem(
       return initialValue
     }
     val resourceLookup = lookup.resourceLookup
-    if (resourceLookup.dpi <= 0) {
-      // If we are unable to get the dpi from the device, just show pixels
-      return "${pixels}px"
-    }
+    // If we are unable to get the dpi from the device, just show pixels
+    val dpi = resourceLookup.dpi ?: return "${pixels}px"
     return when (PropertiesSettings.dimensionUnits) {
       DimensionUnits.PIXELS -> "${pixels}px"
-      DimensionUnits.DP -> "${pixels * 160 / resourceLookup.dpi}dp"
+      DimensionUnits.DP -> "${pixels * DEFAULT_DENSITY / dpi}dp"
     }
   }
 
@@ -152,16 +152,17 @@ open class InspectorPropertyItem(
       return initialValue
     }
     val resourceLookup = lookup.resourceLookup
-    if (resourceLookup.dpi <= 0) {
-      // If we are unable to get the dpi from the device, just show pixels
-      return "${formatFloat(pixels)}px"
-    }
+    // If we are unable to get the dpi from the device, just show pixels
+    val dpi = resourceLookup.dpi ?: return "${formatFloat(pixels)}px"
     if (name == ATTR_TEXT_SIZE && resourceLookup.fontScale != 0.0f && PropertiesSettings.dimensionUnits == DimensionUnits.DP) {
-      return "${DecimalFormat("0.0").format(pixels * pixelsToSpFactor)}sp"
+      val spFactor = pixelsToSpFactor
+      if (spFactor != null) {
+        return "${DecimalFormat("0.0").format(pixels * spFactor)}sp"
+      }
     }
     return when (PropertiesSettings.dimensionUnits) {
       DimensionUnits.PIXELS -> "${formatFloat(pixels)}px"
-      DimensionUnits.DP -> "${formatFloat(pixels * 160.0f / resourceLookup.dpi)}dp"
+      DimensionUnits.DP -> "${formatFloat(pixels * DEFAULT_DENSITY_FLOAT / dpi)}dp"
     }
   }
 
@@ -170,13 +171,11 @@ open class InspectorPropertyItem(
       return initialValue
     }
     val resourceLookup = lookup.resourceLookup
-    if (resourceLookup.dpi <= 0) {
-      // If we are unable to get the dpi from the device, just show dp
-      return "${formatFloat(dp)}dp"
-    }
+    // If we are unable to get the dpi from the device, just show dp
+    val dpi = resourceLookup.dpi ?: return "${formatFloat(dp)}dp"
     return when (PropertiesSettings.dimensionUnits) {
       DimensionUnits.DP -> "${formatFloat(dp)}dp"
-      DimensionUnits.PIXELS -> "${formatFloat(dp / 160.0f * resourceLookup.dpi)}px"
+      DimensionUnits.PIXELS -> "${formatFloat(dp / DEFAULT_DENSITY_FLOAT * dpi)}px"
     }
   }
 
@@ -184,12 +183,10 @@ open class InspectorPropertyItem(
     if (sp.isNaN()) {
       return initialValue
     }
-    if (lookup.resourceLookup.dpi <= 0 || lookup.resourceLookup.fontScale <= 0.0f) {
-      // If we are unable to get the dpi or scale factor from the device, just show in sp
-      return "${formatFloat(sp)}sp"
-    }
+    // If we are unable to get the dpi or scale factor from the device, just show in sp
+    val spFactor = pixelsToSpFactor ?: return "${formatFloat(sp)}sp"
     return when (PropertiesSettings.dimensionUnits) {
-      DimensionUnits.PIXELS -> "${formatFloat(sp / pixelsToSpFactor)}px"
+      DimensionUnits.PIXELS -> "${formatFloat(sp / spFactor)}px"
       DimensionUnits.DP -> "${formatFloat(sp)}sp"
     }
   }
@@ -201,22 +198,26 @@ open class InspectorPropertyItem(
     return "${formatFloat(em)}em"
   }
 
-  private val pixelsToSpFactor: Float
-    get() = 160.0f / lookup.resourceLookup.fontScale / lookup.resourceLookup.dpi
+  private val pixelsToSpFactor: Float?
+    get() {
+      val dpi = lookup.resourceLookup.dpi ?: return null
+      val fontScale = lookup.resourceLookup.fontScale ?: return null
+      return DEFAULT_DENSITY_FLOAT / fontScale / dpi
+    }
 
   private fun formatFloat(value: Float): String = if (value == 0.0f) "0" else DecimalFormat("0.0##").format(value)
 
   private fun createColorButton(): ActionIconButton? =
     when (type) {
-      Type.COLOR,
-      Type.DRAWABLE -> value?.let { ColorActionIconButton(this) }
+      PropertyType.COLOR,
+      PropertyType.DRAWABLE -> value?.let { ColorActionIconButton(this) }
       else -> null
     }
 
   @Slow
   fun resolveDimensionType(view: ViewNode) {
-    if ((type == Type.INT32 || type == Type.FLOAT) && lookup.resourceLookup.isDimension(view, name)) {
-      type = if (type == Type.INT32) Type.DIMENSION else Type.DIMENSION_FLOAT
+    if ((type == PropertyType.INT32 || type == PropertyType.FLOAT) && lookup.resourceLookup.isDimension(view, name)) {
+      type = if (type == PropertyType.INT32) PropertyType.DIMENSION else PropertyType.DIMENSION_FLOAT
     }
   }
 

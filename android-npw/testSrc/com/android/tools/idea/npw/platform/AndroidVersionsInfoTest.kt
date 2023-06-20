@@ -55,7 +55,7 @@ class AndroidVersionsInfoTest {
   fun previewVersion() {
     val version = AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME")
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidVersion(version)
-    assertEquals("API TEST_CODENAME: Android TEST_CODENAME (TEST_CODENAME preview)", versionItem.label)
+    assertEquals("API TEST_CODENAME Preview", versionItem.label)
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
     assertEquals("TEST_CODENAME", versionItem.minApiLevelStr)
     assertEquals(FUTURE_VERSION, versionItem.buildApiLevel)
@@ -92,7 +92,7 @@ class AndroidVersionsInfoTest {
       override fun getVersion(): AndroidVersion = AndroidVersion(FUTURE_VERSION - 1, "TEST_CODENAME")
     }
     val versionItem = AndroidVersionsInfo.VersionItem.fromAndroidTarget(androidTarget)
-    assertEquals("API TEST_CODENAME: Android TEST_CODENAME (TEST_CODENAME preview)", versionItem.label)
+    assertEquals("API TEST_CODENAME Preview", versionItem.label)
     assertEquals(FUTURE_VERSION, versionItem.minApiLevel)
     assertEquals("TEST_CODENAME", versionItem.minApiLevelStr)
     assertEquals(FUTURE_VERSION, versionItem.buildApiLevel)

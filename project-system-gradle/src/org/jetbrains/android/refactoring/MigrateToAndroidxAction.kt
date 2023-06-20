@@ -15,7 +15,8 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.annotations.concurrency.UiThread
+import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.support.MigrationParserVisitor
@@ -23,8 +24,10 @@ import com.android.support.parseMigrationFile
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.util.GradleProjects
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -40,10 +43,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ClassMigrationEntry
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependencyMigrationEntry
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.PackageMigrationEntry
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDependencyVersionMigrationEntry
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*
 
 class MigrateToAndroidxAction : BaseRefactoringAction() {
 
@@ -51,11 +52,11 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
 
   override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
     val module = dataContext.getData(PlatformCoreDataKeys.MODULE)
-    return module != null && GradleProjects.isIdeaAndroidModule(module)
+    return module != null && isIdeaAndroidModule(module)
   }
 
   override fun isEnabledOnElements(elements: Array<out PsiElement>) =
-    elements.any { ModuleUtilCore.findModuleForPsiElement(it)?.let { GradleProjects.isIdeaAndroidModule(it) } == true }
+    elements.any { element -> ModuleUtilCore.findModuleForPsiElement(element)?.let { module -> isIdeaAndroidModule(module) } == true }
 
   override fun isAvailableOnElementInEditorAndFile(element: PsiElement,
                                                    editor: Editor,
@@ -63,10 +64,17 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
                                                    context: DataContext,
                                                    place: String): Boolean {
     val module = context.getData(PlatformCoreDataKeys.MODULE)
-    return module != null && GradleProjects.isIdeaAndroidModule(module)
+    return module != null && isIdeaAndroidModule(module)
   }
 
-  override fun getHandler(dataContext: DataContext): RefactoringActionHandler = MigrateToAndroidxHandler()
+  private fun isIdeaAndroidModule(module: Module): Boolean {
+    if (GradleFacet.getInstance(module) != null) return true
+
+    val androidFacet = AndroidFacet.getInstance(module)
+    return androidFacet != null && AndroidModel.isRequired(androidFacet)
+  }
+
+  override fun getHandler(dataContext: DataContext): RefactoringActionHandler? = MigrateToAndroidxHandler()
 
   override fun update(anActionEvent: AnActionEvent) {
     anActionEvent.presentation.description = "Migrates to AndroidX package names"
@@ -79,10 +87,12 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
                                var callSyncAfterMigration: Boolean = true,
                                var checkPrerequisites: Boolean = true
 ) : RefactoringActionHandler {
+  @UiThread
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?, dataContext: DataContext?) {
     invoke(project, if (file == null) arrayOf() else arrayOf<PsiElement>(file), dataContext)
   }
 
+  @UiThread
   override fun invoke(project: Project, elements: Array<out PsiElement>, dataContext: DataContext?) {
     if (checkPrerequisites && !checkRefactoringPrerequisites(project)) {
       return
@@ -123,7 +133,7 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
     // If we couldn't find the version from the model parser, try to get it
     // from the AndroidModuleInfo. This could happen if the version is coming
     // from a variable that the Gradle parser is not handling correctly
-    return modelVersion ?: AndroidModuleInfo.getInstance(first)?.buildSdkVersion
+    return modelVersion ?: StudioAndroidModuleInfo.getInstance(first)?.buildSdkVersion
   }
 
   private fun checkRefactoringPrerequisites(project: Project): Boolean {
@@ -141,21 +151,21 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
       true // Enable by default when we can not find out the version
     }
 
-    val gradleVersionString = moduleModels.mapNotNull { it.second }
+    val agpVersionString = moduleModels.mapNotNull { it.second }
       .map { it.buildscript().dependencies() }
       .flatMap { it.artifacts() }
       .filter { it.name().forceString() == "gradle" && it.group().forceString() == "com.android.tools.build" }
       .map { it.version().getValue(GradlePropertyModel.STRING_TYPE) }
       .firstOrNull()
-    val supportedGradleVersion = if (gradleVersionString?.startsWith('$') == false) {
-      GradleVersion.tryParse(gradleVersionString)?.isAtLeastIncludingPreviews(3, 2, 0) ?: false
+    val supportedAgpVersion = if (agpVersionString?.startsWith('$') == false) {
+      AgpVersion.tryParse(agpVersionString)?.isAtLeastIncludingPreviews(3, 2, 0) ?: false
     }
     else {
       // For now, ignore this case since the DSL parser does not seem to handle that correctly
       true
     }
 
-    if (supportedCompileSdk && supportedGradleVersion) {
+    if (supportedCompileSdk && supportedAgpVersion) {
       return true
     }
 
@@ -164,7 +174,7 @@ class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
     }
                          else {
       ""
-    } + if (!supportedGradleVersion) {
+    } + if (!supportedAgpVersion) {
       "The gradle plugin version in your project build.gradle file needs to be set to at least com.android.tools.build:gradle:3.2.0 " +
       "in order to migrate to AndroidX."
     }

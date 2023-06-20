@@ -23,9 +23,9 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.KotlinFileType
 
-fun CodeInsightTestFixture.stubComposableAnnotation(composableAnnotationPackage: String = "androidx.compose") {
+fun CodeInsightTestFixture.stubComposableAnnotation(composableAnnotationPackage: String = "androidx.compose", modulePath: String = "") {
   addFileToProject(
-    "src/${composableAnnotationPackage.replace(".", "/")}/Composable.kt",
+    "$modulePath/src/${composableAnnotationPackage.replace(".", "/")}/Composable.kt",
     // language=kotlin
     """
     package $composableAnnotationPackage
@@ -60,6 +60,18 @@ fun CodeInsightTestFixture.stubComposeRuntime() {
     @Target(AnnotationTarget.TYPE)
     annotation class DisallowComposableCalls
 
+    @Target(
+        AnnotationTarget.FILE,
+        AnnotationTarget.CLASS,
+        AnnotationTarget.FUNCTION,
+        AnnotationTarget.PROPERTY_GETTER,
+        AnnotationTarget.TYPE,
+        AnnotationTarget.TYPE_PARAMETER,
+    )
+    annotation class ComposableTarget(val applier: String)
+
+    @Target(AnnotationTarget.ANNOTATION_CLASS)
+    annotation class ComposableTargetMarker(val description: String = "")
 
     @Composable
     inline fun <T> remember(calculation: @DisallowComposableCalls () -> T): T = calculation()
@@ -137,9 +149,27 @@ fun CodeInsightTestFixture.stubKotlinStdlib() {
   )
 }
 
-fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: String = "androidx.compose.ui.tooling.preview") {
+fun CodeInsightTestFixture.stubComposeFoundation() {
   addFileToProject(
-    "src/${previewAnnotationPackage.replace(".", "/")}/Preview.kt",
+    "src/androidx/compose/foundation/text/BasicText.kt",
+    // language=kotlin
+    """
+    package androidx.compose.foundation.text
+
+    import androidx.compose.Composable
+
+    @Composable
+    @ComposableTarget("UI Composable")
+    fun BasicText(
+        text: String
+    ) { }
+    """.trimIndent()
+  )
+}
+
+fun CodeInsightTestFixture.stubPreviewAnnotation(previewAnnotationPackage: String = "androidx.compose.ui.tooling.preview", modulePath: String = "") {
+  addFileToProject(
+    "$modulePath/src/${previewAnnotationPackage.replace(".", "/")}/Preview.kt",
     // language=kotlin
     """
     package $previewAnnotationPackage
@@ -227,50 +257,6 @@ fun CodeInsightTestFixture.stubDevicesAsLibrary(devicesPackageName: String) {
     }
     """.trimIndent()
   this.stubClassAsLibrary("devices", "$devicesPackageName.Devices", KotlinFileType.INSTANCE, fileContents)
-}
-
-/**
- * Memory/light fixture only.
- *
- * @see stubClassAsLibrary
- */
-fun CodeInsightTestFixture.stubSpringSpecLibrary() {
-  @Language("kotlin")
-  val fileContents =
-    """
-package ${SdkConstants.PACKAGE_COMPOSE_ANIMATION}
-class SpringSpec<T>(
-    val dampingRatio: Float = Spring.DampingRatioNoBouncy,
-    val stiffness: Float = Spring.StiffnessMedium,
-    val visibilityThreshold: T? = null
-)
-
-fun <T> spring(
-    dampingRatio: Float = Spring.DampingRatioNoBouncy,
-    stiffness: Float = Spring.StiffnessMedium,
-    visibilityThreshold: T? = null
-): SpringSpec<T> =
-    SpringSpec(dampingRatio, stiffness, visibilityThreshold)
-
-class FloatSpringSpec(
-    val dampingRatio: Float = Spring.DampingRatioNoBouncy,
-    val stiffness: Float = Spring.StiffnessMedium,
-    private val visibilityThreshold: Float = Spring.DefaultDisplacementThreshold
-)
-
-object Spring {
-    const val StiffnessHigh = 10_000f
-    const val StiffnessMedium = 1500f
-    const val StiffnessLow = 200f
-    const val StiffnessVeryLow = 50f
-    const val DampingRatioHighBouncy = 0.2f
-    const val DampingRatioMediumBouncy = 0.5f
-    const val DampingRatioLowBouncy = 0.75f
-    const val DampingRatioNoBouncy = 1f
-    const val DefaultDisplacementThreshold = 0.01f
-}
-    """.trimIndent()
-  this.stubClassAsLibrary("spring", SdkConstants.PACKAGE_COMPOSE_ANIMATION + ".SpringKt", KotlinFileType.INSTANCE, fileContents)
 }
 
 /**

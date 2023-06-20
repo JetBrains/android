@@ -1,0 +1,14 @@
+<options>
+  <configurable id="preferences.keymap" configurable_name="Keymap">
+    <option name="android" path="ActionManager" hit="Android SDK Upgrade Assistant" />
+    <option name="assistant" path="ActionManager" hit="Android SDK Upgrade Assistant" />
+    <option name="sdk" path="ActionManager" hit="Android SDK Upgrade Assistant" />
+    <option name="upgrade" path="ActionManager" hit="Android SDK Upgrade Assistant" />
+    <option name="android" path="ActionManager" hit="Help upgrade to newer Android SDKs!" />
+    <option name="help" path="ActionManager" hit="Help upgrade to newer Android SDKs!" />
+    <option name="newer" path="ActionManager" hit="Help upgrade to newer Android SDKs!" />
+    <option name="sdks" path="ActionManager" hit="Help upgrade to newer Android SDKs!" />
+    <option name="to" path="ActionManager" hit="Help upgrade to newer Android SDKs!" />
+    <option name="upgrade" path="ActionManager" hit="Help upgrade to newer Android SDKs!" />
+  </configurable>
+</options>

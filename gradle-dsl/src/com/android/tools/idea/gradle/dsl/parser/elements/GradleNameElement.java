@@ -19,17 +19,20 @@ import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class GradleNameElement {
   /**
@@ -309,30 +312,24 @@ public class GradleNameElement {
 
   @NotNull
   public static List<String> split(@NotNull String name) {
-    if (name.contains(".") || name.contains("\\")) {
-      StringBuilder buf = new StringBuilder();
-      List<String> result = new ArrayList<>();
-      for (int i = 0; i < name.length(); i++) {
-        char c = name.charAt(i);
-        if (c == '\\') {
-          assert i < name.length() - 1;
-          buf.append(name.charAt(++i));
-        }
-        else if (c == '.') {
-          result.add(buf.toString());
-          buf.setLength(0);
-        }
-        else {
-          buf.append(name.charAt(i));
-        }
+    StringBuilder buf = new StringBuilder();
+    List<String> result = new ArrayList<>();
+    for (int i = 0; i < name.length(); i++) {
+      char c = name.charAt(i);
+      if (c == '\\') {
+        assert i < name.length() - 1;
+        buf.append(name.charAt(++i));
       }
-      result.add(buf.toString());
-      buf.setLength(0);
-      return result;
+      else if (c == '.') {
+        result.add(buf.toString());
+        buf.setLength(0);
+      }
+      else {
+        buf.append(name.charAt(i));
+      }
     }
-    else {
-      return List.of(name);
-    }
+    result.add(buf.toString());
+    return result;
   }
 
   /**

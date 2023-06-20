@@ -19,14 +19,12 @@ import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androi
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColorsMaterial3
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemesMaterial3
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values_v29.androidModuleThemesMaterial3V29
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.has
@@ -39,7 +37,8 @@ fun RecipeExecutor.generateAndroidModule(
   useKts: Boolean,
   bytecodeLevel: BytecodeLevel,
   enableCpp: Boolean = false,
-  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
+  useVersionCatalog: Boolean = false
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
   val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.api >= 31
@@ -50,7 +49,6 @@ fun RecipeExecutor.generateAndroidModule(
     useKts = useKts,
     manifestXml = generateManifest(
       hasApplicationBlock = !data.isLibrary,
-      hasRoundIcon = data.apis.targetApi.api <= 32, // b/218931654; roundIcon can affect themed app icons from appearing in new projects
       theme = "@style/${data.themesData.main.name}",
       addBackupRules = addBackupRules
     ),
@@ -64,17 +62,14 @@ fun RecipeExecutor.generateAndroidModule(
       androidModuleThemesNightMaterial3(data.themesData.main.name)
     else
       androidModuleThemesNight(useAndroidX, data.apis.minApi, data.themesData.main.name),
-    themesXmlV29 = if (isMaterial3 && data.apis.targetApi.api >= 29)
-      androidModuleThemesMaterial3V29(data.themesData.main.name)
-    else
-      null,
     colorsXml = if (isMaterial3 && data.category != Category.Compose) androidModuleColorsMaterial3() else androidModuleColors(),
     enableCpp = enableCpp,
-    cppStandard = cppStandard
+    cppStandard = cppStandard,
+    bytecodeLevel = bytecodeLevel,
+    useVersionCatalog = useVersionCatalog
   )
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames
-  requireJavaVersion(bytecodeLevel.versionString, data.projectTemplateData.language == Language.Kotlin)
   if (data.category != Category.Compose) {
     addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
   }

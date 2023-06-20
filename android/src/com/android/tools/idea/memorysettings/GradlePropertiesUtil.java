@@ -25,7 +25,7 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class GradlePropertiesUtil {
+public class GradlePropertiesUtil {
   private static final String XMX_PROPERTY = "-Xmx";
   private static final String TOP_SPLIT_REGEX = "([^ \"']|\"[^\"]*\"|'[^']*')+";
   private static final String INNER_SPLIT_REGEX = "([^, \"']|\"[^\"]*\"|'[^']*')+";

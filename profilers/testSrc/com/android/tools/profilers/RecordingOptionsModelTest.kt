@@ -52,7 +52,12 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
     assertThat(model.isRecording).isTrue()
     assertThat(model.canStop()).isTrue()
     model.stop()
-    assertThat(model.isRecording).isFalse()
+    // Because setFinished() (which sets isRecording to false) is only called when the TraceStopStatus event
+    // is received, isRecording should still be true.
+    assertThat(model.isRecording).isTrue()
+    // The value will eventually be false once a trace stop status even is received. This is verified by
+    // other tests such as MainMemoryProfilerStageTest's testToggleNativeAllocationRecordingChangesIsRecordingState()
+    // test as well as CpuProfilerStageTest's receivingTraceStopStatusEventSetsRecordingToFinished() test.
   }
 
   @Test
@@ -87,7 +92,12 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
     assertThat(recording).isTrue()
     model.stop()
     assertThat(state).isEqualTo("Attempted to stop")
-    assertThat(recording).isFalse()
+    // Because setFinished() (which sets isRecording to false) is only called when the TraceStopStatus event
+    // is received, isRecording should still be true.
+    assertThat(recording).isTrue()
+    // The value will eventually be false once a trace stop status even is received. This is verified by
+    // other tests such as MainMemoryProfilerStageTest's testToggleNativeAllocationRecordingChangesIsRecordingState()
+    // test as well as CpuProfilerStageTest's receivingTraceStopStatusEventSetsRecordingToFinished() test.
   }
 
   @Test
@@ -154,6 +164,32 @@ class RecordingOptionsModelTest(configs: Array<RecordingOption>) {
       // First built-in option is selected if no match.
       assertThat(model.selectedOption).isEqualTo(BuiltIns[0])
     }
+  }
+
+  @Test
+  fun `switching custom option dropdown selection changes model selection`() {
+    // Make the custom configs considered valid so setting the selectedOption is allowed.
+    model.addConfigurations(CustomConfigs[0])
+    model.addConfigurations(CustomConfigs[1])
+
+    // Simulate selection of custom recording option.
+    model.selectedOption = CustomConfigs[1]
+    model.selectCurrentCustomConfiguration()
+
+    // Change selected custom option in dropdown.
+    model.customConfigurationModel.selectedItem = CustomConfigs[0]
+    // Make sure that the change in custom dropdown reflects the
+    // overall model option selection.
+    assertThat(model.selectedOption).isEqualTo(CustomConfigs[0])
+
+    // Change selected custom option in dropdown again.
+    model.customConfigurationModel.selectedItem = CustomConfigs[1]
+    // Make sure that the change in custom dropdown reflects the
+    // overall model option selection.
+    assertThat(model.selectedOption).isEqualTo(CustomConfigs[1])
+
+    // Clean up custom configurations.
+    model.clearConfigurations()
   }
 
   companion object {

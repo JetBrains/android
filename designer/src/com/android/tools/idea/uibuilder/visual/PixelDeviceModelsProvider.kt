@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.type.typeOf
+import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -27,12 +28,22 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.facet.AndroidFacet
+import java.util.ArrayList
 
 /**
  * We predefined some pixel devices for now.
  */
 @VisibleForTesting
 val DEVICES_TO_DISPLAY = listOf("Pixel 3", "Pixel 3 XL", "Pixel 3a", "Pixel 3a XL", "Pixel 2", "Pixel 2 XL", "Pixel", "Pixel XL", "Pixel C")
+
+private const val EFFECTIVE_FLAGS = ConfigurationListener.CFG_ADAPTIVE_SHAPE or
+  ConfigurationListener.CFG_DEVICE_STATE or
+  ConfigurationListener.CFG_UI_MODE or
+  ConfigurationListener.CFG_NIGHT_MODE or
+  ConfigurationListener.CFG_THEME or
+  ConfigurationListener.CFG_TARGET or
+  ConfigurationListener.CFG_LOCALE or
+  ConfigurationListener.CFG_FONT_SCALE
 
 /**
  * This class provides the [NlModel]s with predefined pixel devices for [VisualizationForm].
@@ -49,7 +60,7 @@ object PixelDeviceModelsProvider: VisualizationModelsProvider {
 
     val virtualFile = file.virtualFile ?: return emptyList()
 
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val pixelDevices = deviceCaches.getOrElse(configurationManager) {
       val deviceList = ArrayList<Device>()
       for (name in DEVICES_TO_DISPLAY) {
@@ -69,12 +80,15 @@ object PixelDeviceModelsProvider: VisualizationModelsProvider {
       val config = defaultConfig.clone()
       config.setDevice(device, false)
       val betterFile = ConfigurationMatcher.getBetterMatch(config, null, null, null, null) ?: virtualFile
-      models.add(NlModel.builder(facet, betterFile, config)
-                   .withParentDisposable(parentDisposable)
-                   .withModelDisplayName(device.displayName)
-                   .withModelTooltip(config.toHtmlTooltip())
-                   .withComponentRegistrar(NlComponentRegistrar)
-                   .build())
+      val model = NlModel.builder(facet, betterFile, config)
+        .withParentDisposable(parentDisposable)
+        .withModelTooltip(config.toHtmlTooltip())
+        .withComponentRegistrar(NlComponentRegistrar)
+        .build()
+      model.modelDisplayName = device.displayName
+      models.add(model)
+
+      registerModelsProviderConfigurationListener(model, defaultConfig, config, EFFECTIVE_FLAGS)
     }
     return models
   }

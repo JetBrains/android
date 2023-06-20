@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.SdkConstants.GRADLE_LATEST_VERSION
-import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginIssueChecker.Companion.MINIMUM_AGP_VERSION_JDK_11
 import com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginIssueChecker.Companion.MINIMUM_AGP_VERSION_JDK_8
@@ -48,30 +46,23 @@ class OldAndroidPluginIssueCheckerTest: AndroidGradleTestCase() {
     }
   }
 
-  fun verifyGradleIssue(minimumAgpVersion: GradleVersion) {
+  fun verifyGradleIssue(minimumAgpVersion: AgpVersion) {
     val errMsg = "Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version 2.2. You should upgrade your Gradle build to use Gradle 2.6 or later."
     val expectedErrorMsg = "This version of ${ApplicationNamesInfo.getInstance().fullProductName} requires projects to use Gradle 4.8.1 or newer. This project is using Gradle 2.2."
     val issueData = GradleIssueData(projectFolderPath.path, Throwable(errMsg, UnsupportedVersionException(errMsg)), null, null)
     val minimumGradleVersion = OldAndroidPluginIssueChecker.MINIMUM_GRADLE_VERSION
-    val latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
-    val latestAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
 
     val buildIssue = oldAndroidPluginIssueChecker.check(issueData)
     assertThat(buildIssue).isNotNull()
     assertThat(buildIssue!!.description).contains(expectedErrorMsg)
-    assertThat(buildIssue.quickFixes).hasSize(3)
+    assertThat(buildIssue.quickFixes).hasSize(2)
 
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(UpgradeGradleVersionsQuickFix::class.java)
     val upgradeQuickFixMinimum = buildIssue.quickFixes[0] as UpgradeGradleVersionsQuickFix
     assertThat(upgradeQuickFixMinimum.agpVersion).isEqualTo(minimumAgpVersion)
     assertThat(upgradeQuickFixMinimum.gradleVersion).isEqualTo(minimumGradleVersion)
 
-    assertThat(buildIssue.quickFixes[1]).isInstanceOf(UpgradeGradleVersionsQuickFix::class.java)
-    val upgradeQuickFixLatest = buildIssue.quickFixes[1] as UpgradeGradleVersionsQuickFix
-    assertThat(upgradeQuickFixLatest.agpVersion).isEqualTo(latestAgpVersion)
-    assertThat(upgradeQuickFixLatest.gradleVersion).isEqualTo(latestGradleVersion)
-
-    assertThat(buildIssue.quickFixes[2]).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
+    assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenPluginBuildFileQuickFix::class.java)
   }
 
   fun testCheckIssueHandled() {

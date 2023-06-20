@@ -24,7 +24,16 @@ import org.junit.Test
 class ShellCommandRecordingProviderTest {
   @Test
   fun getScreenRecordCommand() {
-    val options = ScreenRecorderOptions(width = 600, height = 400, bitrateMbps = 6, showTouches = true)
+    val options = ScreenRecorderOptions(width = 600, height = 400, bitrateMbps = 6, showTouches = true, timeLimitSec = 300)
+
+    val command = ShellCommandRecordingProvider.getScreenRecordCommand(options, "/sdcard/foo.mp4")
+
+    assertThat(command).isEqualTo("screenrecord --size 600x400 --bit-rate 6000000 --time-limit 300 /sdcard/foo.mp4")
+  }
+
+  @Test
+  fun getScreenRecordCommandDefaultTimeLimit() {
+    val options = ScreenRecorderOptions(width = 600, height = 400, bitrateMbps = 6, showTouches = true, timeLimitSec = 0)
 
     val command = ShellCommandRecordingProvider.getScreenRecordCommand(options, "/sdcard/foo.mp4")
 

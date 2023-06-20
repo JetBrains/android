@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.data
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.google.common.truth.Truth
 import org.junit.Test
 
@@ -41,7 +41,7 @@ class GradlePluginsDataTest {
             pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"),
             name = "MyPlugin",
             pluginArtifact = GradlePluginsData.DependencyCoordinates("org.my", "gradle-plugin"),
-            configurationCachingCompatibleFrom = GradleVersion.parse("1.0.0")
+            configurationCachingCompatibleFrom = Version.parse("1.0.0")
           )
         )
       )
@@ -93,7 +93,7 @@ class GradlePluginsDataTest {
             pluginClasses = listOf("my.plugin.pluginA", "my.plugin.pluginB"),
             name = "MyPlugin",
             pluginArtifact = GradlePluginsData.DependencyCoordinates("org.my", "gradle-plugin"),
-            configurationCachingCompatibleFrom = GradleVersion.parse("1.0.0")
+            configurationCachingCompatibleFrom = Version.parse("1.0.0")
           )
         )
       )

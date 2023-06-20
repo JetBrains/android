@@ -16,8 +16,6 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.repository.api.RemotePackage
-import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
-import com.android.tools.idea.sdk.IdeSdks.isSameAsJavaHomeJdk
 import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.utils.HtmlBuilder
@@ -68,16 +66,6 @@ class InstallSummaryStep(
     }
   }
 
-  private val jdkFolderSection: Section
-    get() {
-      var jdkLocationText = model.jdkLocation.toAbsolutePath().toString()
-
-      if (!isSameAsJavaHomeJdk(model.jdkLocation)) {
-        jdkLocationText += " (<b>Note:</b> Gradle may be using JAVA_HOME when invoked from command line. " +
-                           "<a href=\"$JDK_LOCATION_WARNING_URL\">More info...</a>)"
-      }
-      return Section("JDK Location", jdkLocationText)
-    }
   private val sdkFolderSection: Section
     get() {
       val suffix = " (read-only)".takeUnless { (isWritable(sdkDirectory.toPath())) } ?: ""
@@ -95,7 +83,7 @@ class InstallSummaryStep(
 
   override fun getComponent(): JComponent = panel
 
-  override fun getPreferredFocusComponent(): JComponent = summaryText
+  override fun getPreferredFocusComponent(): JComponent? = summaryText
 
   override fun onEntering() {
     val packages = packagesProvider.get()
@@ -104,7 +92,7 @@ class InstallSummaryStep(
       return
     }
     val sections = listOf(
-      setupTypeSection, sdkFolderSection, jdkFolderSection, getDownloadSizeSection(packages), getPackagesSection(packages)
+      setupTypeSection, sdkFolderSection, getDownloadSizeSection(packages), getPackagesSection(packages)
     )
 
     // TODO(qumeric): change to HtmlBuilder/similar.

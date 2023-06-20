@@ -97,7 +97,7 @@ internal val INSIDE_VERSIONS_TOML_FILE = psiFile().with(
   object : PatternCondition<PsiFile>(null) {
     override fun accepts(psiFile: PsiFile, context: ProcessingContext?): Boolean {
       val vFile = psiFile.virtualFile ?: psiFile.originalFile.virtualFile ?: return false
-      return vFile.name.endsWith(".versions.toml")
+      return vFile.name.endsWith(SdkConstants.DOT_VERSIONS_DOT_TOML)
     }
   }
 )

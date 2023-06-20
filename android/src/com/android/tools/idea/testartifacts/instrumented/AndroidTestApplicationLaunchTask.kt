@@ -21,12 +21,12 @@ import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner.StatusReporterMode
 import com.android.ddmlib.testrunner.TestIdentifier
+import com.android.tools.idea.execution.common.RunConfigurationNotifier
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.model.TestExecutionOption
-import com.android.tools.idea.run.AndroidProcessHandler
-import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.tasks.AppLaunchTask
 import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.android.tools.idea.stats.UsageTrackerTestRunListener
@@ -39,6 +39,7 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.Ddmli
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.Future
@@ -49,12 +50,12 @@ import java.util.concurrent.Future
  * Use one of [allInModuleTest], [allInPackageTest], [classTest], or [methodTest] to instantiate an object of this class.
  */
 class AndroidTestApplicationLaunchTask(
+  private val testLibrariesInUse: TestLibraries?,
   private val myInstrumentationTestRunner: String,
   private val myTestApplicationId: String,
   private val myExecutionOption: TestExecutionOption?,
   private val myWaitForDebugger: Boolean,
   private val myInstrumentationOptions: String,
-  private val myTestListeners: List<ITestRunListener>,
   private val myBackgroundTaskExecutor: (Runnable) -> Future<*> = ApplicationManager.getApplication()::executeOnPooledThread,
   private val myAndroidTestConfigurationProvider: () -> AndroidTestConfiguration = { AndroidTestConfiguration.getInstance() },
   private val myAndroidTestRunnerConfigurator: (RemoteAndroidTestRunner) -> Unit) : AppLaunchTask() {
@@ -73,16 +74,15 @@ class AndroidTestApplicationLaunchTask(
       instrumentationOptions: String,
       testLibrariesInUse: TestLibraries?,
       testExecutionOption: TestExecutionOption?,
-      processHandler: ProcessHandler,
-      consolePrinter: ConsolePrinter,
       device: IDevice): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
+        testLibrariesInUse,
         instrumentationTestRunner,
         testApplicationId,
         testExecutionOption,
         waitForDebugger,
         instrumentationOptions,
-        createRunListeners(processHandler, consolePrinter, device, testLibrariesInUse, testExecutionOption)) {}
+      ) {}
     }
 
     /**
@@ -96,17 +96,15 @@ class AndroidTestApplicationLaunchTask(
       instrumentationOptions: String,
       testLibrariesInUse: TestLibraries?,
       testExecutionOption: TestExecutionOption?,
-      processHandler: ProcessHandler,
-      consolePrinter: ConsolePrinter,
       device: IDevice,
       packageName: String): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
+        testLibrariesInUse,
         instrumentationTestRunner,
         testApplicationId,
         testExecutionOption,
         waitForDebugger,
-        instrumentationOptions,
-        createRunListeners(processHandler, consolePrinter, device, testLibrariesInUse, testExecutionOption)) { runner -> runner.setTestPackageName(packageName) }
+        instrumentationOptions) { runner -> runner.setTestPackageName(packageName) }
     }
 
     /**
@@ -120,17 +118,15 @@ class AndroidTestApplicationLaunchTask(
       instrumentationOptions: String,
       testLibrariesInUse: TestLibraries?,
       testExecutionOption: TestExecutionOption?,
-      processHandler: ProcessHandler,
-      consolePrinter: ConsolePrinter,
       device: IDevice,
       testClassName: String): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
+        testLibrariesInUse,
         instrumentationTestRunner,
         testApplicationId,
         testExecutionOption,
         waitForDebugger,
-        instrumentationOptions,
-        createRunListeners(processHandler, consolePrinter, device, testLibrariesInUse, testExecutionOption)) { runner -> runner.setClassName(testClassName) }
+        instrumentationOptions) { runner -> runner.setClassName(testClassName) }
     }
 
     /**
@@ -144,25 +140,23 @@ class AndroidTestApplicationLaunchTask(
       instrumentationOptions: String,
       testLibrariesInUse: TestLibraries?,
       testExecutionOption: TestExecutionOption?,
-      processHandler: ProcessHandler,
-      consolePrinter: ConsolePrinter,
       device: IDevice,
       testClassName: String,
       testMethodName: String): AndroidTestApplicationLaunchTask {
       return AndroidTestApplicationLaunchTask(
+        testLibrariesInUse,
         instrumentationTestRunner,
         testApplicationId,
         testExecutionOption,
         waitForDebugger,
-        instrumentationOptions,
-        createRunListeners(processHandler, consolePrinter, device, testLibrariesInUse, testExecutionOption)) { runner ->
-          runner.setMethodName(testClassName, testMethodName)
-        }
+        instrumentationOptions) { runner ->
+        runner.setMethodName(testClassName, testMethodName)
+      }
     }
 
     private fun createRunListeners(
       processHandler: ProcessHandler,
-      printer: ConsolePrinter,
+      printer: ConsoleView,
       device: IDevice,
       testLibrariesInUse: TestLibraries?,
       testExecutionOption: TestExecutionOption?
@@ -173,14 +167,15 @@ class AndroidTestApplicationLaunchTask(
       )
     }
 
-    private fun createTestListener(processHandler: ProcessHandler, printer: ConsolePrinter, device: IDevice): ITestRunListener {
+    private fun createTestListener(processHandler: ProcessHandler, printer: ConsoleView, device: IDevice): ITestRunListener {
       // Use testsuite's AndroidTestResultListener if one is attached to the process handler, otherwise use the default one.
       val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
       return if (androidTestResultListener != null) {
         DdmlibTestRunListenerAdapter(device, androidTestResultListener).also {
           processHandler.addProcessListener(it)
         }
-      } else {
+      }
+      else {
         AndroidTestListener(printer)
       }
     }
@@ -194,33 +189,31 @@ class AndroidTestApplicationLaunchTask(
     }
   }
 
-  override fun run(launchContext: LaunchContext): LaunchResult {
-    val printer = launchContext.consolePrinter
+  override fun run(launchContext: LaunchContext) {
+    val console = launchContext.consoleView
     val device = launchContext.device
-    val launchStatus = launchContext.launchStatus
 
     if (myAndroidTestConfigurationProvider().RUN_ANDROID_TEST_USING_GRADLE) {
-      printer.stderr(
-        "\"Run Android instrumented tests using Gradle\" option was ignored because this module type is not supported yet.")
+      RunConfigurationNotifier.notifyWarning(launchContext.env.project,
+                                             launchContext.env.runProfile.name,
+                                             "\"Run Android instrumented tests using Gradle\" option was ignored because this module type is not supported yet.")
     }
 
-    printer.stdout("Running tests\n")
+    console.println("Running tests")
 
     val runner = createRemoteAndroidTestRunner(device)
 
-    printer.stdout("$ adb shell ${runner.amInstrumentCommand}")
+    console.println("$ adb shell ${runner.amInstrumentCommand}")
 
     // Run "am instrument" command in a separate thread.
-    val testExecutionFuture = myBackgroundTaskExecutor {
+    myBackgroundTaskExecutor {
       try {
         var hasTestRunEndedReported = false
-        val checkLaunchState = object: ITestRunListener {
+        val checkLaunchState = object : ITestRunListener {
           private fun checkStatusAndRequestCancel() {
             // Note: Should not use launchContext.processHandler. The process handler may
             // be replaced in later launch tasks. For instance ConnectJavaDebuggerTask.
-            if (launchStatus.isLaunchTerminated ||
-                launchStatus.processHandler.isProcessTerminating ||
-                launchStatus.processHandler.isProcessTerminated) {
+            if (!launchContext.progressIndicator.isCanceled || launchContext.processHandler.isProcessTerminated) {
               runner.cancel()
             }
           }
@@ -237,36 +230,34 @@ class AndroidTestApplicationLaunchTask(
           }
         }
 
+        val testListener = createRunListeners(launchContext.processHandler, launchContext.consoleView, device, testLibrariesInUse,
+                                              myExecutionOption)
+
         // This issues "am instrument" command and blocks execution.
-        runner.run(*myTestListeners.toTypedArray(), checkLaunchState)
+        runner.run(*testListener.toTypedArray(), checkLaunchState)
 
         // Call testRunEnded() if it hasn't called yet. This may happen by several situations,
         // such as disconnecting a device during the test (b/170235394) and calling runner.cancel()
         // which stops parsing the test results immediately.
         if (!hasTestRunEndedReported) {
-          myTestListeners.forEach {
+          testListener.forEach {
             it.testRunEnded(0, mapOf())
           }
         }
 
-        (launchStatus.processHandler as? AndroidProcessHandler)?.let { androidProcessHandler ->
+        (launchContext.processHandler as? AndroidProcessHandler)?.let { androidProcessHandler ->
           // runner.cancel() may leave application keep running (b/170232723).
-          device.forceStop(androidProcessHandler.targetApplicationId)
+          device.forceStop(myTestApplicationId)
 
           // Detach the device from the android process handler manually as soon as "am instrument" command finishes.
           androidProcessHandler.detachDevice(device)
         }
       }
       catch (e: Exception) {
-        LOG.info(e)
+        launchContext.processHandler.detachProcess()
+        LOG.warn(e)
       }
     }
-    // Add launch termination condition so that the launch is not considered as terminated until the test execution
-    // is fully finished. This is required because test process on device might finish earlier than AndroidTestListener
-    // is notified.
-    launchStatus.addLaunchTerminationCondition(testExecutionFuture::isDone)
-
-    return LaunchResult.success()
   }
 
   /**

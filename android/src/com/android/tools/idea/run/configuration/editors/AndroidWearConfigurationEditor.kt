@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.configuration.editors
 
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -36,7 +37,9 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiModifier
+import com.intellij.psi.scope.util.PsiScopesUtil
 import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBPanelWithEmptyText
@@ -58,14 +61,24 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   SettingsEditor<T>() {
 
   private val modulesComboBox = ModulesComboBox()
-  protected val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
+
+  val moduleSelector = object : ConfigurationModuleSelector(project, modulesComboBox) {
     override fun isModuleAccepted(module: Module?): Boolean {
       if (module == null || !super.isModuleAccepted(module)) {
         return false
       }
       val facet = AndroidFacet.getInstance(module) ?: return false
       if (!module.isHolderModule()) return false
-      return !facet.configuration.isLibraryProject
+      return when (facet.getModuleSystem().type) {
+        AndroidModuleSystem.Type.TYPE_NON_ANDROID -> false
+        AndroidModuleSystem.Type.TYPE_APP -> true
+        AndroidModuleSystem.Type.TYPE_LIBRARY -> false
+        AndroidModuleSystem.Type.TYPE_TEST -> false
+        AndroidModuleSystem.Type.TYPE_ATOM -> false
+        AndroidModuleSystem.Type.TYPE_INSTANTAPP -> false
+        AndroidModuleSystem.Type.TYPE_FEATURE -> false
+        AndroidModuleSystem.Type.TYPE_DYNAMIC_FEATURE -> false
+      }
     }
   }
 
@@ -146,7 +159,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
 
   protected fun LayoutBuilder.getComponentCompoBox() {
     row {
-      label(configuration.componentLaunchOptions.userVisibleComponentTypeName)
+      label(configuration.componentLaunchOptions.userVisibleComponentTypeName + ":")
       wearComponentFqNameComboBox = comboBox(
         DefaultComboBoxModel(emptyArray<String>()),
         { componentName },
@@ -187,14 +200,22 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   private fun findAvailableComponents(module: Module): Set<String> {
     ApplicationManager.getApplication().assertIsNonDispatchThread()
     val facade = JavaPsiFacade.getInstance(project)
+    val projectAllScope = ProjectScope.getAllScope(project)
     val surfaceBaseClasses = configuration.componentLaunchOptions.componentBaseClassesFqNames.mapNotNull {
-      facade.findClass(it, ProjectScope.getAllScope(project))
+      facade.findClass(it, projectAllScope)
     }
+    val resultScope = getComponentSearchScope(module)
     return surfaceBaseClasses.flatMap { baseClass ->
-      ClassInheritorsSearch.search(baseClass, getComponentSearchScope(module), true)
+      ClassInheritorsSearch.search(baseClass, projectAllScope, true)
+        .filtering {
+          // TODO: filter base on manifest index.
+          // We use this to filter based on the scope applicable for the module since, using the scope returned by [getComponentSearchScope]
+          // does not currently work when using the ClassInheritorSearch with Kotlin classes. The inheritance index is broken and we are
+          // forced to use the ProjectScope to ensure the parent classes are found by the ClassInheritorsSearch.
+          !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) &&
+          PsiSearchScopeUtil.isInScope(resultScope, it)
+        }
         .findAll()
-        // TODO: filter base on manifest index.
-        .filter { !(it.isInterface || it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) == true) }
         .mapNotNull { it.qualifiedName }
     }.distinct()
       .sorted()

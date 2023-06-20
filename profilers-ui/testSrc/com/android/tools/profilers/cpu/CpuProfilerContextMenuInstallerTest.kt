@@ -23,11 +23,9 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -36,18 +34,14 @@ import javax.swing.JPanel
 
 class CpuProfilerContextMenuInstallerTest {
 
-  private val timer = FakeTimer()
-
   private val ideServices = FakeIdeProfilerServices()
-
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer)
   private val ideComponents = FakeIdeProfilerComponents()
 
   @JvmField
   @Rule
-  val myGrpcChannel = FakeGrpcChannel(
-    "CpuProfilerContextMenuInstallerTest", FakeCpuService(), FakeTransportService(timer), FakeProfilerService(timer),
-    FakeMemoryService(), FakeEventService()
-  )
+  val myGrpcChannel = FakeGrpcChannel(javaClass.simpleName, transportService, FakeEventService())
 
   private lateinit var stage: CpuProfilerStage
 
@@ -92,6 +86,8 @@ class CpuProfilerContextMenuInstallerTest {
     assertThat(recordTraceEntry.isEnabled).isTrue()
 
     stage.studioProfilers.sessionsManager.endCurrentSession()
+    timer.tick(FakeTimer.ONE_SECOND_IN_NS)
+
     // Clear the components again and create a new instance of CpuProfilerStageView to re-add the components.
     ideComponents.clearContextMenuItems()
     CpuProfilerContextMenuInstaller.install(stage, ideComponents, JPanel(), JPanel())

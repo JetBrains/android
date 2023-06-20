@@ -20,15 +20,15 @@ import com.android.tools.idea.sqlite.model.SqliteRow
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
-/**
- * Implementation of [SqliteResultSet] that is empty.
- */
+/** Implementation of [SqliteResultSet] that is empty. */
 class EmptySqliteResultSet : SqliteResultSet {
   override val totalRowCount: ListenableFuture<Int> = Futures.immediateFuture(0)
 
-  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> = Futures.immediateFuture(emptyList())
+  override val columns: ListenableFuture<List<ResultSetSqliteColumn>> =
+    Futures.immediateFuture(emptyList())
 
-  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> = Futures.immediateFuture(emptyList())
+  override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> =
+    Futures.immediateFuture(emptyList())
 
-  override fun dispose() { }
+  override fun dispose() {}
 }

@@ -1,10 +1,11 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 
 package org.jetbrains.kotlin.android
 
 import com.android.SdkConstants.CLASS_PARCEL
 import com.android.SdkConstants.CLASS_PARCELABLE
 import com.android.tools.idea.kotlin.isSubclassOf
+import com.android.tools.idea.lint.common.findAnnotation
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
@@ -18,7 +19,6 @@ import org.jetbrains.kotlin.idea.codeInsight.shorten.performDelayedRefactoringRe
 import org.jetbrains.kotlin.idea.codeinsight.utils.getLeftMostReceiverExpression
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.idea.search.usagesSearch.propertyDescriptor
-import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -350,7 +350,7 @@ private fun KtClass.findOrCreateCreator(factory: KtPsiFactory): KtClassOrObject 
     return addDeclaration(creator).apply { addToShorteningWaitSet() }
 }
 
-private fun KtClass.findOrCreateParcelableSupertype(factory: KtPsiFactory): KtSuperTypeListEntry {
+private fun KtClass.findOrCreateParcelableSupertype(factory: KtPsiFactory): KtSuperTypeListEntry? {
     findParcelableSupertype()?.let {
         return it
     }

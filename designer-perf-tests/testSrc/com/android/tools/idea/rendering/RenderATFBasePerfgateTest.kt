@@ -16,8 +16,8 @@
 package com.android.tools.idea.rendering
 
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.validator.LayoutValidator
+import com.android.tools.res.FrameworkResourceRepositoryManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase

@@ -1,0 +1,30 @@
+{
+  "host": "fonts.gstatic.com",
+  "asset_url_pattern": "/s/i/{family}/{icon}/v{version}/{asset}",
+  "families": [
+    "Style 1",
+    "Style 2"
+  ],
+  "icons": [
+    {
+      "name": "my_icon_1",
+      "version": 1,
+      "unsupported_families": [],
+      "categories": [
+        "category1",
+        "category2"
+      ],
+      "tags": []
+    },
+    {
+      "name": "my_icon_2",
+      "version": 1,
+      "unsupported_families": [],
+      "categories": [
+        "category1",
+        "category3"
+      ],
+      "tags": []
+    }
+  ]
+}

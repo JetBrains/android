@@ -15,15 +15,16 @@
  */
 package com.android.tools.idea.common.fixtures;
 
-import static org.junit.Assert.assertTrue;
-
-import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import com.android.tools.idea.common.model.NlComponent;
+import com.google.common.collect.Lists;
+
+import java.util.List;
+
+import static org.junit.Assert.assertTrue;
 
 public class ComponentListFixture {
   private final ScreenFixture myScreenFixture;

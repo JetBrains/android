@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,7 +79,7 @@ public class CpuCaptureMetadata {
     PARSING_FAILED_CAUSE_UNKNOWN
     ;
 
-    public static CaptureStatus fromStopStatus(Cpu.TraceStopStatus.Status status) {
+    public static CaptureStatus fromStopStatus(Trace.TraceStopStatus.Status status) {
       switch (status) {
         case NO_ONGOING_PROFILING:
           return STOP_FAILED_NO_GOING_PROFILING;
@@ -149,6 +149,11 @@ public class CpuCaptureMetadata {
   private int myStoppingTimeMs;
 
   /**
+   * Whether the trace contains Compose Tracing nodes
+   */
+  private @Nullable Boolean myHasComposeTracingNodes;
+
+  /**
    * {@link ProfilingConfiguration} used to start the capture.
    */
   private @NotNull ProfilingConfiguration myProfilingConfiguration;
@@ -188,6 +193,14 @@ public class CpuCaptureMetadata {
 
   public void setStoppingTimeMs(int stoppingTimeMs) {
     myStoppingTimeMs = stoppingTimeMs;
+  }
+
+  public @Nullable Boolean getHasComposeTracingNodes() {
+    return myHasComposeTracingNodes;
+  }
+
+  public void setHasComposeTracingNodes(@Nullable Boolean hasComposeTracingNodes) {
+    myHasComposeTracingNodes = hasComposeTracingNodes;
   }
 
   public long getParsingTimeMs() {

@@ -33,16 +33,14 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.energy.EnergyDuration
-import com.android.tools.profilers.energy.EnergyUsageDataSeries
-import com.android.tools.profilers.energy.LegacyEnergyEventsDataSeries
-import com.android.tools.profilers.energy.LegacyMergedEnergyEventsDataSeries
+import com.android.tools.profilers.cpu.CpuThreadCountDataSeries
+import com.android.tools.profilers.cpu.CpuThreadStateDataSeries
+import com.android.tools.profilers.cpu.CpuUsage
+import com.android.tools.profilers.energy.EnergyUsage
 import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
-import com.android.tools.profilers.memory.LegacyGcStatsDataSeries
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
-import com.android.tools.profilers.memory.MemoryDataSeries
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
 import com.google.common.util.concurrent.MoreExecutors
 import org.junit.After
@@ -97,16 +95,15 @@ class DataSeriesPerformanceTest {
     val timer = FakeTimer()
     val studioProfilers = StudioProfilers(client, FakeIdeProfilerServices(), timer)
     studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-    val dataSeriesToTest = mapOf(Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
+    val dataSeriesToTest = mapOf(Pair("Cpu-Usage",
+                                      CpuUsage.buildDataSeries(client.transportClient, session, null)),
+                                 Pair("Cpu-Thread-Count",
+                                      CpuThreadCountDataSeries(client.transportClient, session.streamId, session.pid)),
+                                 Pair("Cpu-Thread-State",
+                                      CpuThreadStateDataSeries(client.transportClient, session.streamId, session.pid, 1, null)),
+                                 Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
                                  Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
-                                 Pair("Energy-Usage", EnergyUsageDataSeries(client, session)),
-                                 Pair("Energy-Events",
-                                      LegacyMergedEnergyEventsDataSeries(
-                                        LegacyEnergyEventsDataSeries(client, session), EnergyDuration.Kind.WAKE_LOCK,
-                                        EnergyDuration.Kind.JOB)),
-                                 Pair("Memory-GC-Stats",
-                                      LegacyGcStatsDataSeries(client.memoryClient, session)),
-                                 Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session) { sample -> sample.timestamp }),
+                                 Pair("Energy-Usage", EnergyUsage.buildDataSeries(client.transportClient, session)),
                                  Pair("Memory-Allocation",
                                       AllocStatsDataSeries(studioProfilers) { sample -> sample.javaAllocationCount.toLong() }),
                                  Pair("Memory-LiveAllocation", TestLiveAllocationSeries(studioProfilers, session))
@@ -153,7 +150,7 @@ class DataSeriesPerformanceTest {
       val LOAD_JOINER = MoreExecutors.directExecutor()
     }
 
-    override fun getDataForRange(range: Range?): MutableList<SeriesData<Long>> {
+    override fun getDataForRange(range: Range): List<SeriesData<Long>> {
       liveAllocation.load(range, LOAD_JOINER)
       return mutableListOf()
     }

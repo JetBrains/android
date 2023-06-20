@@ -32,7 +32,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public final class GradleTaskRunner {
+public class GradleTaskRunner {
   @WorkerThread
   public static AssembleInvocationResult run(@NotNull Project project,
                                              @NotNull Module[] assembledModules,

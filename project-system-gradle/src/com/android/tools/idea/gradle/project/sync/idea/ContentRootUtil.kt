@@ -53,17 +53,17 @@ private fun IdeSourceProvider.processAll(
   forTest: Boolean = false,
   processor: (String, ExternalSystemSourceType?) -> Unit
 ) {
-  (resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories).forEach {
+  val allResources = resourcesDirectories + resDirectories + assetsDirectories + mlModelsDirectories + baselineProfileDirectories +
+                    customSourceDirectories.map { it.directory }
+  allResources.distinctBy { it.absolutePath }.forEach {
     processor(it.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
   }
-  customSourceDirectories.forEach {
-    processor(it.directory.absolutePath, if (forTest) TEST_RESOURCE else RESOURCE)
-  }
+
   processor(manifestFile.absolutePath, null)
 
   val allSources = aidlDirectories + javaDirectories + kotlinDirectories + renderscriptDirectories + shadersDirectories
 
-  allSources.forEach {
+  allSources.distinctBy { it.absolutePath }.forEach {
     processor(it.absolutePath, if (forTest) TEST else SOURCE)
   }
 }
@@ -134,7 +134,9 @@ private fun collectContentRootDataForArtifact(
   fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it.absolutePath, type) }
   fun Collection<String>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it, type) }
 
-  val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(artifact, androidModel).map(File::getAbsolutePath).toSet()
+  val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(
+    artifact, androidModel.androidProject
+  ).map(File::getAbsolutePath).toSet()
   sourceProviderSelector(androidModel).forEach { sourceProvider ->
     sourceProvider.processAll(artifact.isTestArtifact) { path, sourceType ->
       // For b/232007221 the variant specific source provider is currently giving us a kapt generated source folder as a Java folder.

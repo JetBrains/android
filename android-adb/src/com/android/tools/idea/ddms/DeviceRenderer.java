@@ -34,7 +34,7 @@ import javax.swing.JTable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class DeviceRenderer {
+public class DeviceRenderer {
 
   // Prevent instantiation
   private DeviceRenderer() {

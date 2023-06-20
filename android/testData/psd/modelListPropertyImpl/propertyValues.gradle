@@ -1,5 +1,5 @@
 ext {
-  propB = "2"
+  propB = '2'
   propC = "3"
   propRef = propB
   propInterpolated = "${propB}nd"

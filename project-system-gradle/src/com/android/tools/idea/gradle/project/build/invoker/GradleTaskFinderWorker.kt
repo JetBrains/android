@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
-import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
@@ -29,8 +28,8 @@ import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.jetbrains.annotations.NonNls
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
+import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import java.io.File
 import java.nio.file.Path
 import java.util.ArrayDeque
@@ -212,10 +211,15 @@ class GradleTaskFinderWorker private constructor(
               cleanTasks = emptySet(),
               tasks =
               // TODO(b/235567998): Review. Maybe replace with test compile mode expansion.
-              moduleToProcess.getTaskBy { (it as? IdeAndroidArtifact)?.buildInformation?.apkFromBundleTaskName }.tasks +
-                if (moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE && moduleToProcess.testCompileMode.compileAndroidTests)
-                  setOfNotNull(moduleToProcess.androidModel.selectedVariant.androidTestArtifact?.assembleTaskName)
-                else emptySet()
+              moduleToProcess.getTasksBy {
+                listOfNotNull(
+                  (it as? IdeAndroidArtifact)?.buildInformation?.apkFromBundleTaskName,
+                  it.getPrivacySandboxSdkTask()
+                )
+              }.tasks +
+              if (moduleToProcess.androidModel.androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_DYNAMIC_FEATURE && moduleToProcess.testCompileMode.compileAndroidTests)
+                setOfNotNull(moduleToProcess.androidModel.selectedVariant.androidTestArtifact?.assembleTaskName)
+              else emptySet()
             )
           }
         }
@@ -276,12 +280,13 @@ private fun Module.isGradleJavaModule(): Boolean {
   val gradleModuleData =
     CachedModuleDataFinder.getGradleModuleData(this) // `buildSrc` modules are handled by Gradle so we don't need to run any tasks for them.
   if (gradleModuleData == null || gradleModuleData.isBuildSrcModule) return false
+  val extensions = gradleModuleData.findAll(GradleExtensionsDataService.KEY).firstOrNull() ?: return false
 
   // Check to see if the Java plugin is applied to this project.
-  return gradleModuleData.find(AndroidProjectKeys.GRADLE_MODULE_MODEL)?.gradlePlugins?.contains("org.gradle.api.plugins.JavaPlugin") ?: false
+  return extensions.extensions.any { it.name == "java" }
 }
 
-private fun getGradleJavaTaskNames(buildMode: BuildMode, testCompileMode: TestCompileType): Set<@NonNls String> {
+private fun getGradleJavaTaskNames(buildMode: BuildMode, testCompileMode: TestCompileType): Set<String> {
   return setOfNotNull(
     when (buildMode) {
       BuildMode.ASSEMBLE -> GradleBuilds.DEFAULT_ASSEMBLE_TASK_NAME

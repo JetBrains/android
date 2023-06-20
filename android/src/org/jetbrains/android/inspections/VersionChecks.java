@@ -1,4 +1,3 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.inspections;
 
 import static com.android.tools.lint.detector.api.VersionChecks.SDK_INT;
@@ -43,7 +42,7 @@ import com.intellij.psi.util.PsiUtil;
  * This is a copy of {@link com.android.tools.lint.checks.VersionChecks}, but applies
  * to PSI elements instead of UAST elements.
  */
-public final class VersionChecks {
+public class VersionChecks {
   private interface ApiLevelLookup {
     int getApiLevel(@NonNull PsiElement element);
   }

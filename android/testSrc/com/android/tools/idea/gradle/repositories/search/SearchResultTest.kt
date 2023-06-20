@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.repositories.search
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository
 import org.junit.Test
@@ -25,9 +25,13 @@ class SearchResultTest {
 
   @Test
   fun getArtifactCoordinates() {
-    val artifactA = FoundArtifact("test", "group", "artifactA", GradleVersion.parse("1.0.2.+"))
-    val artifactB = FoundArtifact("test", "group", "artifactB", GradleVersion.parse("2.0.2.+"))
-    val artifactC = FoundArtifact("test", "group", "artifactB", GradleVersion.parse("3.0.2.+"))
+    // TODO(xof): this test might pass after Version conversion, but I don't know if it's doing what is intended: I think a FoundArtifact
+    //  is a concrete version from a repository, rather than a version specifier given by a user.  On the other hand, "1.0.2.+" is a legal
+    //  version (if hard to specify, because the external syntax would be interpreted by Gradle as a prefix match) so it's possible that
+    //  a repository could return it.
+    val artifactA = FoundArtifact("test", "group", "artifactA", Version.parse("1.0.2.+"))
+    val artifactB = FoundArtifact("test", "group", "artifactB", Version.parse("2.0.2.+"))
+    val artifactC = FoundArtifact("test", "group", "artifactB", Version.parse("3.0.2.+"))
     val searchResult = SearchResult(listOf(artifactA, artifactB, artifactC))
     assertThat(searchResult.artifactCoordinates)
       .containsExactly("group:artifactA:1.0.2.+", "group:artifactB:2.0.2.+", "group:artifactB:3.0.2.+")
@@ -37,12 +41,12 @@ class SearchResultTest {
   fun combineSearchResults() {
     val error1 = RuntimeException("e1")
     val error2 = RuntimeException("e2")
-    val artifactA = FoundArtifact("repo1", "group", "artifactA", GradleVersion.parse("1.0.2.+"))
+    val artifactA = FoundArtifact("repo1", "group", "artifactA", Version.parse("1.0.2.+"))
     val searchResult1 = SearchResult(listOf(artifactA))
-    val artifactB1 = FoundArtifact("repo2", "group", "artifactB", GradleVersion.parse("2.0.2.+"))
-    val artifactB2 = FoundArtifact("repo2", "group", "artifactB", GradleVersion.parse("3.0.2.+"))
+    val artifactB1 = FoundArtifact("repo2", "group", "artifactB", Version.parse("2.0.2.+"))
+    val artifactB2 = FoundArtifact("repo2", "group", "artifactB", Version.parse("3.0.2.+"))
     val searchResult2 = SearchResult(listOf(artifactB1, artifactB2), listOf(error1))
-    val artifactB3 = FoundArtifact("repo3", "group", "artifactB", GradleVersion.parse("4.1"))
+    val artifactB3 = FoundArtifact("repo3", "group", "artifactB", Version.parse("4.1"))
     val searchResult3 = SearchResult(listOf(artifactB3), listOf(error2))
 
     val combined = listOf(searchResult1, searchResult2, searchResult3).combine()
@@ -50,11 +54,11 @@ class SearchResultTest {
     assertThat(combined).isEqualTo(
       SearchResult(
         listOf(
-          FoundArtifact("repo1", "group", "artifactA", GradleVersion.parse("1.0.2.+")),
+          FoundArtifact("repo1", "group", "artifactA", Version.parse("1.0.2.+")),
           FoundArtifact(setOf("repo2", "repo3"),
                         "group",
                         "artifactB",
-                        setOf(GradleVersion.parse("2.0.2.+"), GradleVersion.parse("3.0.2.+"), GradleVersion.parse("4.1")))
+                        setOf(Version.parse("2.0.2.+"), Version.parse("3.0.2.+"), Version.parse("4.1")))
         ),
         listOf(
           error1, error2

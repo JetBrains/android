@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"UseJBColor"})
-public final class MaterialColorUtils {
+public class MaterialColorUtils {
 
   private static final ImmutableMap<Color, String> MATERIAL_NAMES_MAP = ImmutableMap.<Color, String>builder()
     .put(MaterialColors.RED_50, "Material Red 50")

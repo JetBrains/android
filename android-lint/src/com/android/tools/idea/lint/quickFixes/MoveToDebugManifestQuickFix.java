@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.model.IdeBuildTypeContainer;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
@@ -45,7 +46,6 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
 import java.io.IOException;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.uipreview.EditorUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,9 +77,10 @@ public class MoveToDebugManifestQuickFix extends DefaultLintQuickFix {
             // TODO: b/22928250
             GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
             if (androidModel != null && mainManifest != null
-                && mainManifest.getParent() != null && mainManifest.getParent().getParent() != null) {
+                && mainManifest.getParent() != null && mainManifest.getParent().getParent() != null
+                && androidModel.getAndroidProject().getMultiVariantData() != null) {
               final VirtualFile src = mainManifest.getParent().getParent();
-              for (IdeBuildTypeContainer container : androidModel.getAndroidProject().getBuildTypes()) {
+              for (IdeBuildTypeContainer container : androidModel.getAndroidProject().getMultiVariantData().getBuildTypes()) {
                 IdeBuildType buildType = container.getBuildType();
                 if (buildType.isDebuggable()) {
                   addManifest(module, src, buildType.getName());

@@ -75,11 +75,7 @@ public class AndroidJavaDocWithGradleTest extends AndroidGradleTestCase implemen
     myFixture.openFileInEditor(virtualFile);
 
     // Resource from Aar define in module R class.
-    AndroidTestUtils.moveCaret(myFixture, "R.color.abc_tint_default|");
-    myFixture.type("\n    R.attr.actionBarDivider");
-    checkJavadoc(activityPath);
-
-
+    AndroidTestUtils.moveCaret(myFixture, "androidx.appcompat.R.color.abc_tint_default|");
     myFixture.type("\n    androidx.appcompat.R.attr.actionBarDivider");
     checkJavadoc(activityPath);
   }

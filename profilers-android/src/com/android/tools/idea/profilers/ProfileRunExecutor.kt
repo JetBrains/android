@@ -16,13 +16,11 @@
 package com.android.tools.idea.profilers
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.run.ExecutorIconProvider
-import com.android.tools.profilers.sessions.SessionsManager
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.execution.Executor
 import com.intellij.execution.Executor.ActionWrapper
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.executors.DefaultRunExecutor
-import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.EmptyAction
 import com.intellij.openapi.project.Project
@@ -30,7 +28,7 @@ import icons.StudioIcons
 import org.jetbrains.android.util.AndroidUtils
 import javax.swing.Icon
 
-class ProfileRunExecutor : DefaultRunExecutor(), ExecutorIconProvider {
+class ProfileRunExecutor : DefaultRunExecutor() {
   override fun getIcon(): Icon = StudioIcons.Shell.Toolbar.PROFILER
 
   override fun getDisabledIcon(): Icon = StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
@@ -47,25 +45,17 @@ class ProfileRunExecutor : DefaultRunExecutor(), ExecutorIconProvider {
 
   override fun getHelpId(): String? = null
 
-  override fun getExecutorIcon(project: Project, executor: Executor): Icon {
-    AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)?.profilers?.let {
-      if (SessionsManager.isSessionAlive(it.sessionsManager.profilingSession)) {
-        return ExecutionUtil.getLiveIndicator(icon)
-      }
-    }
-    return icon
-  }
-
   override fun isApplicable(project: Project): Boolean = AndroidUtils.hasAndroidFacets(project)
 
   /**
-   * Wraps the original action so that it's only visible when the feature flag is true.
-   * Can be removed once the feature flag is removed.
+   * Wraps the original action so that it's only visible when the feature flag is true or if the project's system doesn't support profiling
+   * mode (e.g. Blaze).
    */
   override fun runnerActionsGroupExecutorActionCustomizer() = ActionWrapper { original ->
     object : EmptyAction.MyDelegatingAction(original) {
       override fun update(e: AnActionEvent) {
-        if (StudioFlags.PROFILEABLE_BUILDS.get()) {
+        val isProfilingModeSupported = e.project?.getProjectSystem()?.supportsProfilingMode() ?: false
+        if (isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()) {
           e.presentation.isEnabledAndVisible = false
         }
         else {

@@ -25,15 +25,10 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import java.io.File
 
-
 abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
-
-    companion object {
-        val COM_MYAPP_PACKAGE_PATH = "com/myapp/"
-    }
-
     fun doTest(path: String) {
         val configFile = File(testDataPath, path)
         val testDataPath = configFile.parent
@@ -85,14 +80,17 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
             return
         }
 
-        val element = getTargetElement()
-        element?.putUserData(CREATE_XML_RESOURCE_PARAMETERS_NAME_KEY, "resource_id")
-
         myFixture.launchAction(intentionAction)
 
         FileDocumentManager.getInstance().saveAllDocuments()
 
-        myFixture.checkResultByFile("/expected/main.kt")
+        val fileWithExpectedResult = if (isK2Plugin() && FileUtil.exists(myFixture.getTestDataPath() + "/expected/main.k2.kt")) {
+            "/expected/main.k2.kt"
+        }
+        else {
+            "/expected/main.kt"
+        }
+        myFixture.checkResultByFile(fileWithExpectedResult)
         assertResourcesEqual(testDataPath + "/expected/res")
     }
 

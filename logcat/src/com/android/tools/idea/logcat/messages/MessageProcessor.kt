@@ -71,6 +71,7 @@ internal class MessageProcessor @TestOnly constructor(
   internal suspend fun appendMessages(messages: List<LogcatMessage>): List<LogcatMessage> {
     val filteredMessages = LogcatMasterFilter(logcatFilter).filter(messages)
     if (filteredMessages.isNotEmpty()) {
+      LOGGER.debug { "Sending ${filteredMessages.size} messages to messageChannel" }
       messageChannel.send(filteredMessages)
     }
     return filteredMessages
@@ -96,6 +97,7 @@ internal class MessageProcessor @TestOnly constructor(
 
       while (true) {
         val messages = messageChannel.receive()
+        LOGGER.debug { "messageChannel received ${messages.size} messages" }
         if (startTime == 0L) {
           startTime = clock.millis()
           lastFlushTime = startTime

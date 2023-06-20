@@ -17,6 +17,8 @@ package com.android.tools.idea.stats
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.toProto
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.stats.TypingLatencyTracker.reportTypingLatency
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorFileType
@@ -24,7 +26,9 @@ import com.google.wireless.android.sdk.stats.TypingLatencyStats
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import kotlinx.coroutines.async
 import org.HdrHistogram.SingleWriterRecorder
+import org.jetbrains.android.AndroidPluginDisposable
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -39,13 +43,18 @@ object TypingLatencyTracker : LatencyListener {
    */
   private val latencyRecorders = ConcurrentHashMap<EditorFileType, SingleWriterRecorder>()
 
+  private val coroutineScope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
+
   override fun recordTypingLatency(editor: Editor, action: String, latencyMs: Long) {
-    // This runs on the EDT, but is thread-safe with respect to a background thread running reportTypingLatency().
     if (latencyMs < 0) return // Can happen due to non-monotonic system time, for example.
     val file = FileDocumentManager.getInstance().getFile(editor.document) ?: return
-    val fileType = getEditorFileTypeForAnalytics(file)
-    val recorder = latencyRecorders.computeIfAbsent(fileType) { SingleWriterRecorder(1) }
-    recorder.recordValue(latencyMs)
+
+    coroutineScope.async(uiThread) {
+      val fileType = getEditorFileTypeForAnalytics(file, editor.project)
+      val recorder = latencyRecorders.computeIfAbsent(fileType) { SingleWriterRecorder(1) }
+      // This runs on the EDT to ensure a single writer, but is thread-safe with respect to a background thread reading the histogram.
+      recorder.recordValue(latencyMs)
+    }
   }
 
   /**

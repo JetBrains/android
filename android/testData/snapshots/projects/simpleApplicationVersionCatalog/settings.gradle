@@ -6,5 +6,4 @@ pluginManagement {
     // This will be populated by AndroidGradleTestCase
   }
 }
-enableFeaturePreview 'VERSION_CATALOGS'
 include ':app'

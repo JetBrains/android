@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.ACCEPT_NEW_DEFAULT
 import com.android.tools.idea.gradle.project.upgrade.R8FullModeDefaultRefactoringProcessor.NoPropertyPresentAction.INSERT_OLD_DEFAULT
 import com.intellij.openapi.application.runWriteAction
@@ -24,7 +24,6 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -46,57 +45,63 @@ class R8FullModeDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   }
 
   @Test
-  fun testIsDisabledFor800Alpha03() {
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0-alpha03"))
+  fun testIsDisabledFor740() {
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("7.4.0"))
     assertFalse(processor.isEnabled)
   }
 
   @Test
-  fun testIsEnabledFor800Alpha04() {
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0-alpha04"))
+  fun testIsEnabledFor800Alpha01() {
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0-alpha01"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
-  fun testIsEnabledFrom800Alpha03() {
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("8.0.0-alpha03"), GradleVersion.parse("8.0.0"))
+  fun testIsEnabledFrom740() {
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.4.0"), AgpVersion.parse("8.0.0"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
-  fun testIsDisabledFrom800Alpha04() {
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("8.0.0-alpha04"), GradleVersion.parse("8.0.0"))
+  fun testIsDisabledFrom800Alpha01() {
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("8.0.0-alpha01"), AgpVersion.parse("8.0.0"))
     assertFalse(processor.isEnabled)
   }
 
   @Test
   fun testIsEnabledFor800Release() {
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     assertTrue(processor.isEnabled)
   }
 
   @Test
   fun testNecessities() {
     val expectedNecessitiesMap = mapOf(
-      ("7.3.0" to "8.0.0-alpha03") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
-      ("7.3.0" to "8.0.0-alpha04") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
+      ("7.3.0" to "7.4.0") to AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE,
+      ("7.3.0" to "8.0.0-alpha01") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
       ("7.3.0" to "8.0.0-beta01") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
       ("7.3.0" to "8.0.0-rc01") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
       ("7.3.0" to "8.0.0") to AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT,
-      ("8.0.0-alpha04" to "8.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
+      ("8.0.0-alpha01" to "8.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
       ("8.0.0-beta01" to "8.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST,
       ("8.0.0-rc01" to "8.0.0") to AgpUpgradeComponentNecessity.IRRELEVANT_PAST
     )
     expectedNecessitiesMap.forEach { (t, u) ->
-      val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse(t.first), GradleVersion.parse(t.second))
-      Assert.assertEquals("${t.first} to ${t.second}", u, processor.necessity())
+      val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse(t.first), AgpVersion.parse(t.second))
+      assertEquals("${t.first} to ${t.second}", u, processor.necessity())
     }
+  }
+
+  @Test
+  fun testReadMoreUrl() {
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
+    assertEquals("https://developer.android.com/r/tools/upgrade-assistant/r8-full-mode-default", processor.getReadMoreUrl())
   }
 
   @Test
   fun testEmptyProperties() {
     writeToGradlePropertiesFile(TestFileName("R8FullModeDefault/Empty"))
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.run()
     verifyGradlePropertiesFileContents(gradlePropertiesFile, TestFileName("R8FullModeDefault/EmptyExpected"))
   }
@@ -104,7 +109,7 @@ class R8FullModeDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testEmptyPropertiesInsertOld() {
     writeToGradlePropertiesFile(TestFileName("R8FullModeDefault/Empty"))
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.noPropertyPresentAction = INSERT_OLD_DEFAULT
     processor.run()
     verifyGradlePropertiesFileContents(gradlePropertiesFile, TestFileName("R8FullModeDefault/EmptyExpected"))
@@ -113,7 +118,7 @@ class R8FullModeDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testEmptyPropertiesAcceptNew() {
     writeToGradlePropertiesFile(TestFileName("R8FullModeDefault/Empty"))
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.noPropertyPresentAction = ACCEPT_NEW_DEFAULT
     processor.run()
     verifyGradlePropertiesFileContents(gradlePropertiesFile, TestFileName("R8FullModeDefault/Empty"))
@@ -122,7 +127,7 @@ class R8FullModeDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testFalse() {
     writeToGradlePropertiesFile(TestFileName("R8FullModeDefault/False"))
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.noPropertyPresentAction = INSERT_OLD_DEFAULT
     processor.run()
     verifyGradlePropertiesFileContents(gradlePropertiesFile, TestFileName("R8FullModeDefault/False"))
@@ -131,7 +136,7 @@ class R8FullModeDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testTrue() {
     writeToGradlePropertiesFile(TestFileName("R8FullModeDefault/True"))
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.noPropertyPresentAction = INSERT_OLD_DEFAULT
     processor.run()
     verifyGradlePropertiesFileContents(gradlePropertiesFile, TestFileName("R8FullModeDefault/True"))
@@ -140,7 +145,7 @@ class R8FullModeDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testMissingGradlePropertiesInsertOld() {
     runWriteAction { gradlePropertiesFile.delete(this) }
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.noPropertyPresentAction = INSERT_OLD_DEFAULT
     processor.run()
     val newGradlePropertiesFile = projectRule.fixture.tempDirFixture.getFile("gradle.properties")
@@ -151,7 +156,7 @@ class R8FullModeDefaultRefactoringProcessorTest : UpgradeGradleFileModelTestCase
   @Test
   fun testMissingGradlePropertiesAcceptNew() {
     runWriteAction { gradlePropertiesFile.delete(this) }
-    val processor = R8FullModeDefaultRefactoringProcessor(project, GradleVersion.parse("7.3.0"), GradleVersion.parse("8.0.0"))
+    val processor = R8FullModeDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("8.0.0"))
     processor.noPropertyPresentAction = ACCEPT_NEW_DEFAULT
     processor.run()
     val newGradlePropertiesFile = projectRule.fixture.tempDirFixture.getFile("gradle.properties")

@@ -16,7 +16,6 @@
 package com.android.tools.idea.wearpairing
 
 import com.android.annotations.concurrency.Slow
-import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.EmulatorConsole
@@ -26,7 +25,10 @@ import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.AndroidStartupActivity
 import com.android.tools.idea.adb.AdbService
+import com.android.tools.idea.avdmanager.AvdLaunchListener
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
@@ -42,6 +44,7 @@ import com.intellij.notification.NotificationType.INFORMATION
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -64,10 +67,14 @@ import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
+import kotlin.io.path.Path
 
 private val LOG get() = logger<WearPairingManager>()
 
-object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidStartupActivity {
+@Service(
+  Service.Level.APP
+)
+class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   enum class PairingState {
     UNKNOWN,
     OFFLINE, // One or both device are offline/disconnected
@@ -88,7 +95,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
   private var runningJob: Job? = null
   private var model = WearDevicePairingModel()
   private var wizardAction: WizardAction? = null
-  private var virtualDevicesProvider: () -> List<AvdInfo> = { AvdManagerConnection.getDefaultAvdManagerConnection().getAvds(false) }
+  private var virtualDevicesProvider: () -> List<AvdInfo> = { getDefaultAvdManagerConnection().getAvds(false) }
   private var connectedDevicesProvider: () -> List<IDevice> = { findAdb()?.devices?.toList() ?: emptyList() }
 
   data class PhoneWearPair(
@@ -116,17 +123,6 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     virtualDevicesProvider = virtualDevices
     connectedDevicesProvider = connectedDevices
     pairedDevicesList.clear()
-  }
-
-  @UiThread
-  override fun runActivity(project: Project, disposable: Disposable) {
-    NonUrgentExecutor.getInstance().execute {
-      synchronized(this) {
-        if (runningJob == null) {
-          loadSettings()
-        }
-      }
-    }
   }
 
   @WorkerThread
@@ -423,7 +419,7 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
     connectedDevicesProvider().find { it.getDeviceID() == deviceId }?.apply {
       return Futures.immediateFuture(this)
     }
-    return AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, avdInfo)
+    return getDefaultAvdManagerConnection().startAvd(project, avdInfo, RequestType.DIRECT)
   }
 
   private fun findAdb() : AndroidDebugBridge? {
@@ -481,6 +477,24 @@ object WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, AndroidSta
       }
     }
   }
+
+  object WearPairingManagerStartupActivity : AndroidStartupActivity {
+    override fun runActivity(project: Project, disposable: Disposable) {
+      val wearPairingManager = getInstance()
+      NonUrgentExecutor.getInstance().execute {
+        synchronized(wearPairingManager) {
+          if (wearPairingManager.runningJob == null) {
+            wearPairingManager.loadSettings()
+          }
+        }
+      }
+    }
+  }
+
+  companion object {
+    @JvmStatic
+    fun getInstance(): WearPairingManager = ApplicationManager.getApplication().getService(WearPairingManager::class.java)
+  }
 }
 
 private fun IDevice.toPairingDevice(deviceID: String, avdDevice: PairingDevice?): PairingDevice {
@@ -507,7 +521,7 @@ private fun AvdInfo.toPairingDevice(deviceID: String): PairingDevice {
     state = ConnectionState.OFFLINE,
     hasPlayStore = hasPlayStore(),
   ).apply {
-    launch = { project -> WearPairingManager.launchDevice(project, deviceID, this@toPairingDevice) }
+    launch = { project -> WearPairingManager.getInstance().launchDevice(project, deviceID, this@toPairingDevice) }
   }
 }
 
@@ -539,10 +553,21 @@ private fun IDevice.getDeviceName(unknown: String): String {
 
 private val WIFI_DEVICE_SERIAL_PATTERN = Pattern.compile("adb-(.*)-.*\\._adb-tls-connect\\._tcp\\.?")
 
+private fun normalizeAvdId(avdId: String) = try {
+  Path(avdId.trim()).normalize().toString()
+} catch (_: Throwable) {
+  avdId
+}
+
 private fun IDevice.getDeviceID(): String {
   return when {
-    isEmulator && avdData?.isDone == true -> avdData.get()?.path ?: name
-    isEmulator -> EmulatorConsole.getConsole(this)?.avdPath ?: name
+    // normalizeAvdId is applied to the returned path from the AVD data to remove any .. in the path.
+    // They were added in https://r.android.com/2441481 and, since we use the path as an ID, the .. does
+    // not match the path information we have in Studio.
+    // We intentionally use normalize since it does not access disk and will just normalize the path removing
+    // the ..
+    isEmulator && avdData?.isDone == true -> avdData.get()?.path?.let { normalizeAvdId(it) } ?: name
+    isEmulator -> EmulatorConsole.getConsole(this)?.avdPath?.let { normalizeAvdId(it) } ?: name
     else -> {
       val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(this.serialNumber)
       if (matcher.matches()) matcher.group(1) else this.serialNumber
@@ -583,5 +608,27 @@ private fun showMessageBalloon(title: String, text: String, wizardAction: Wizard
   LOG.warn(text)
   ProjectManager.getInstance().openProjects.forEach {
     AndroidNotification.getInstance(it).showBalloon(title, "$text<br/>", INFORMATION, hyperlink)
+  }
+}
+
+/**
+ * Asynchronous version of [WearPairingManager.removeAllPairedDevices] aimed to be used in asynchronous contexts from Java. Prefer the use
+ * of the coroutine version when possible.
+ */
+fun WearPairingManager.removeAllPairedDevicesAsync(deviceID: String, restartWearGmsCore: Boolean = true) {
+  @Suppress("OPT_IN_USAGE") // We want the action to be launched in the background and survive the scope of the WearPairingManager.
+  GlobalScope.launch(Dispatchers.IO) {
+    removeAllPairedDevices(deviceID, restartWearGmsCore)
+  }
+}
+
+/**
+ * Asynchronous version of [WearPairingManager.removePairedDevices] aimed to be used in asynchronous contexts from Java. Prefer the use of
+ * the coroutine version when possible.
+ */
+fun WearPairingManager.removePairedDevicesAsync(phoneWearPair: WearPairingManager.PhoneWearPair, restartWearGmsCore: Boolean = true) {
+  @Suppress("OPT_IN_USAGE") // We want the action to be launched in the background and survive the scope of the WearPairingManager.
+  GlobalScope.launch(Dispatchers.IO) {
+    removePairedDevices(phoneWearPair, restartWearGmsCore)
   }
 }

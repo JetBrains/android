@@ -18,17 +18,20 @@ package com.android.tools.idea.res
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalAndroidLibrary
+import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
-import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.LightResourceClassService
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_BUILD_TOPIC
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.res.ResourceNamespacing
 import com.android.utils.concurrency.getAndUnwrap
 import com.android.utils.concurrency.retainAll
 import com.google.common.cache.Cache
@@ -68,12 +71,12 @@ private data class ResourceClasses(
 
   val all = sequenceOf(namespaced, nonNamespaced, testNamespaced, testNonNamespaced)
 
-  fun pickRelevant(namespacing: Namespacing, includeTestClasses: Boolean): Set<PsiClass?> {
+  fun pickRelevant(namespacing: ResourceNamespacing, includeTestClasses: Boolean): Set<PsiClass?> {
     return when (namespacing) {
-      Namespacing.REQUIRED -> {
+      ResourceNamespacing.REQUIRED -> {
         if (includeTestClasses) setOf(namespaced, testNamespaced) else setOf(namespaced)
       }
-      Namespacing.DISABLED -> {
+      ResourceNamespacing.DISABLED -> {
         if (includeTestClasses) setOf(nonNamespaced, testNonNamespaced) else setOf(nonNamespaced)
       }
     }
@@ -114,6 +117,20 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       }
     })
 
+    connection.subscribe(PROJECT_SYSTEM_BUILD_TOPIC, object : ProjectSystemBuildManager.BuildListener {
+      override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+        if (
+          result.mode != ProjectSystemBuildManager.BuildMode.CLEAN &&
+          result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS
+        ) {
+          // The light R classes might use the actual IDs when available. If the project is successfully compiled,
+          // new IDs might have been generated. This ensures the IDs are invalidated.
+          moduleClassesCache.invalidateAll()
+          invokeAndWaitIfNeeded { PsiManager.getInstance(project).dropPsiCaches() }
+        }
+      }
+    })
+
     aarsByPackage = CachedValuesManager.getManager(project).createCachedValue({
       val libsWithResources = findAllLibrariesWithResources(project).values
       aarPackageNamesCache.retainAll(libsWithResources) // remove old items that are not needed anymore
@@ -148,7 +165,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   }
 
   override fun getLightRClassesAccessibleFromModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass> {
-    val namespacing = ResourceRepositoryManager.getInstance(module)?.namespacing ?: return emptySet()
+    val namespacing = StudioResourceRepositoryManager.getInstance(module)?.namespacing ?: return emptySet()
     val androidFacet = module.androidFacet ?: return emptySet()
 
     val result = mutableListOf<ResourceClasses>()
@@ -170,10 +187,10 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     val facet = module.androidFacet ?: return emptySet()
     val moduleRClasses = getModuleRClasses(facet)
     val relevant = if (ProjectNamespacingStatusService.getInstance(module.project).namespacesUsed) {
-      moduleRClasses.pickRelevant(Namespacing.DISABLED, includeTestClasses) +
-      moduleRClasses.pickRelevant(Namespacing.REQUIRED, includeTestClasses)
+      moduleRClasses.pickRelevant(ResourceNamespacing.DISABLED, includeTestClasses) +
+      moduleRClasses.pickRelevant(ResourceNamespacing.REQUIRED, includeTestClasses)
     } else {
-      moduleRClasses.pickRelevant(Namespacing.DISABLED, includeTestClasses)
+      moduleRClasses.pickRelevant(ResourceNamespacing.DISABLED, includeTestClasses)
     }
 
     return relevant.filterNotNull()

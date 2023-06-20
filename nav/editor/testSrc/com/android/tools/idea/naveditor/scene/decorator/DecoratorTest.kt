@@ -39,6 +39,7 @@ import com.android.tools.idea.naveditor.scene.draw.verifyDrawHorizontalAction
 import com.android.tools.idea.naveditor.scene.draw.verifyDrawNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.psi.xml.XmlFile
+import com.intellij.ui.scale.ScaleContext
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.verifyNoMoreInteractions
@@ -176,8 +177,9 @@ class DecoratorTest : NavTestCase() {
     val drawRect = sceneComponent.inlineDrawRect(sceneView).value
     val headerRect = makeHeaderRectangle(drawRect)
     val dimensions = Dimension(drawRect.width.toInt(), drawRect.height.toInt())
+    val scaleContext = ScaleContext.createIdentity()
 
-    Mockito.doReturn(refinableImage).whenever(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions)
+    Mockito.doReturn(refinableImage).whenever(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions, scaleContext)
 
     try {
       ThumbnailManager.setInstance(myFacet, thumbnailManager)
@@ -190,7 +192,7 @@ class DecoratorTest : NavTestCase() {
       ThumbnailManager.setInstance(myFacet, origThumbnailManager)
     }
 
-    Mockito.verify(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions)
+    Mockito.verify(thumbnailManager).getThumbnail(layoutFile, configuration, dimensions, scaleContext)
   }
 
   fun testActivity() {

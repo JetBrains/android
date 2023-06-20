@@ -133,7 +133,7 @@ class ClassStore(private val classes: Long2ObjectOpenHashMap<ClassDefinition>) {
     return primitiveArrayToClassDefinition[t]
   }
 
-  fun size() = classes.size
+  fun size() = classes.count()
 
   fun isSoftOrWeakReferenceClass(classDefinition: ClassDefinition): Boolean {
     return classDefinition == softReferenceClass || classDefinition == weakReferenceClass

@@ -1,0 +1,4 @@
+plugins{
+  alias(libs.plugins.app) apply false
+  alias(libs.plugins.kotlin) apply false
+}

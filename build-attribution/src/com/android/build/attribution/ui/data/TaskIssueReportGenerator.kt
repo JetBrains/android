@@ -17,7 +17,7 @@ package com.android.build.attribution.ui.data
 
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.percentageString
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.util.text.DateFormatUtil
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
@@ -28,7 +28,7 @@ import java.util.Locale
 class TaskIssueReportGenerator(
   private val reportData: BuildAttributionReportUiData,
   private val platformInformationProvider: () -> String,
-  private val agpVersionsProvider: () -> List<GradleVersion>
+  private val agpVersionsProvider: () -> List<AgpVersion>
 ) {
 
   fun generateReportText(taskData: TaskUiData): String {

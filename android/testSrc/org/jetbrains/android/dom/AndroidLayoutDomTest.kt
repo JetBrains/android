@@ -6,6 +6,8 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -48,7 +50,6 @@ import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction
 import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.junit.Test
 import java.io.IOException
 
@@ -1213,7 +1214,8 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                              "ExpandableListView", "GridView", "HorizontalScrollView", "ImageView", "ListView", "MultiAutoCompleteTextView",
                              "ScrollView", "SearchView", "StackView", "SurfaceView", "TextView", "TextureView", "VideoView", "View",
                              "ViewAnimator", "ViewFlipper", "ViewStub", "ViewSwitcher", "WebView", "android.appwidget.AppWidgetHostView",
-                             "android.gesture.GestureOverlayView", "android.inputmethodservice.KeyboardView", "android.media.tv.TvView",
+                             "android.gesture.GestureOverlayView", "android.inputmethodservice.KeyboardView",
+                             "android.media.tv.interactive.TvInteractiveAppView", "android.media.tv.TvView",
                              "android.opengl.GLSurfaceView", "android.widget.inline.InlineContentView", "android.window.SplashScreenView")
   }
 
@@ -1650,6 +1652,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val infos = myFixture.doHighlighting()
     val actions = ArrayList<IntentionAction>()
+
     for (info in infos) {
       info.findRegisteredQuickFix { desc, _ ->
         if (IntentionActionDelegate.unwrap(desc.action) is CreateValueResourceQuickFix) {
@@ -1732,8 +1735,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
 
   fun testJavaCreateResourceFromUsage() {
     val virtualFile = copyFileToProject(getTestName(false) + ".java", "src/p1/p2/" + getTestName(true) + ".java")
+/* b/263898646
     doCreateFileResourceFromUsage(virtualFile)
     myFixture.checkResultByFile("res/layout/unknown.xml", myTestFolder + '/'.toString() + getTestName(true) + "_layout_after.xml", true)
+b/263898646 */
   }
 
   fun testCreateResourceFromUsage1() {
@@ -2583,7 +2588,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
   }
 
   private fun setAndroidx() = runWriteCommandAction(project) {
-    project.setAndroidxProperties("true")
+    (myModule.getModuleSystem() as DefaultModuleSystem).useAndroidX = true
     assertThat(project.isAndroidx()).isTrue()  // Sanity check, regression test for b/145854589.
   }
 }

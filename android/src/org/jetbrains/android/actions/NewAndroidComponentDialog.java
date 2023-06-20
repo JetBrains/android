@@ -107,8 +107,9 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     setTitle(AndroidBundle.message("android.new.component.action.command.name"));
     myCreator = new ElementCreator(module.getProject(), CommonBundle.getErrorTitle()) {
 
+      @NotNull
       @Override
-      protected PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
+      protected PsiElement [] create(@NotNull String newName) throws Exception {
         final PsiElement element = NewAndroidComponentDialog.this.create(newName, directory, module.getProject());
         if (element != null) {
           return new PsiElement[]{element};

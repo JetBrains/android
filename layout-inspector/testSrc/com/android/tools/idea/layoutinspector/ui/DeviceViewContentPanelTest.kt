@@ -25,7 +25,6 @@ import com.android.ide.common.resources.configuration.ScreenWidthQualifier
 import com.android.resources.Density
 import com.android.resources.ResourceType
 import com.android.resources.ScreenRound
-import com.android.testutils.AssumeUtil
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
@@ -35,7 +34,7 @@ import com.android.tools.adtui.imagediff.ImageDiffTestUtil
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
-import com.android.tools.adtui.swing.SetPortableUiFontRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
@@ -57,6 +56,8 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.Screenshot
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewAndroidWindow
+import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.DropDownActionWithButton
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.view
@@ -69,7 +70,12 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPopupMenu
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
@@ -84,7 +90,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import org.mockito.MockedStatic
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.atLeastOnce
@@ -122,7 +127,7 @@ class DeviceViewContentPanelTest {
   val chain = RuleChain.outerRule(projectRule).around(EdtRule()).around(IconLoaderRule())!!
 
   @get:Rule
-  val fontRule = SetPortableUiFontRule()
+  val fontRule = PortableUiFontRule()
 
   private var testDataPath: Path = Path.of("")
 
@@ -144,16 +149,17 @@ class DeviceViewContentPanelTest {
     }
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val settings = FakeDeviceViewSettings()
-    settings.scalePercent = 30
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.scalePercent = 30
+    renderSettings.drawLabel = false
 
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     assertEquals(Dimension(130, 160), panel.preferredSize)
-    panel.model.rotate(1.0, 0.0)
+    panel.renderModel.rotate(1.0, 0.0)
     assertEquals(Dimension(376, 395), panel.preferredSize)
 
-    settings.scalePercent = 100
+    renderSettings.scalePercent = 100
     assertEquals(Dimension(1020, 1084), panel.preferredSize)
 
     model.update(
@@ -161,9 +167,9 @@ class DeviceViewContentPanelTest {
         view(VIEW1, 0, 0, 50, 50)
       }, listOf(ROOT), 0)
     // This is usually handled by a listener registered in DeviceViewPanel
-    panel.model.refresh()
+    panel.renderModel.refresh()
     assertEquals(Dimension(200, 300), panel.preferredSize)
-    panel.model.rotate(1.0, 0.0)
+    panel.renderModel.rotate(1.0, 0.0)
     assertEquals(Dimension(732, 820), panel.preferredSize)
   }
 
@@ -179,44 +185,46 @@ class DeviceViewContentPanelTest {
     }
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(120, 200, TYPE_INT_ARGB)
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(120, 200)
 
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint.png"), generatedImage, DIFF_THRESHOLD)
 
-    settings.scalePercent = 50
+    renderSettings.scalePercent = 50
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_scaled.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 3
-    settings.scalePercent = 100
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.layerSpacing = 3
+    renderSettings.scalePercent = 100
+    panel.renderModel.rotate(0.3, 0.2)
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_rotated.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 1
+    panel.renderModel.layerSpacing = 1
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_spacing1.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 15
+    panel.renderModel.layerSpacing = 15
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_spacing2.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 3
+    panel.renderModel.layerSpacing = 3
     val windowRoot = model[ROOT]!!
     model.setSelection(windowRoot, SelectionOrigin.INTERNAL)
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_selected.png"), generatedImage, DIFF_THRESHOLD)
 
-    settings.drawLabel = true
+    renderSettings.drawLabel = true
     model.setSelection(model[COMPOSE1], SelectionOrigin.INTERNAL)
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
@@ -234,7 +242,7 @@ class DeviceViewContentPanelTest {
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_label_hides_count.png"), generatedImage, 0.2)
     compose1.qualifiedName = "Text"
 
-    settings.drawBorders = false
+    renderSettings.drawBorders = false
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_noborders.png"), generatedImage, DIFF_THRESHOLD_TEXT)
@@ -245,7 +253,7 @@ class DeviceViewContentPanelTest {
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
     model.setSelection(null, SelectionOrigin.INTERNAL)
-    settings.drawBorders = true
+    renderSettings.drawBorders = true
     model.hoveredNode = null
     model.maxHighlight = 17f
     compose1.recompositions.highlightCount = 17f
@@ -260,7 +268,7 @@ class DeviceViewContentPanelTest {
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_highlight2.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
     compose1.recompositions.highlightCount = 17f
-    settings.highlightColor = HIGHLIGHT_COLOR_ORANGE
+    renderSettings.highlightColor = HIGHLIGHT_COLOR_ORANGE
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_highlight3.png"), generatedImage, DIFF_THRESHOLD_TEXT)
@@ -270,7 +278,7 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_highlight4.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
-    settings.drawBorders = false
+    renderSettings.drawBorders = false
     paint(panel, generatedImage)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_highlight5.png"), generatedImage, DIFF_THRESHOLD_TEXT)
@@ -291,27 +299,29 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(130, 250, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = EditorDeviceViewSettings(scalePercent = 100)
-    settings.drawLabel = false
+    val renderSettings = EditorRenderSettings(scalePercent = 100)
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val client = mock<InspectorClient>()
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { client }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings, { client })
+
     panel.setSize(130, 250)
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
-    panel.model.layerSpacing = 10
-    panel.model.rotate(0.5, 0.7)
+    panel.renderModel.layerSpacing = 10
+    panel.renderModel.rotate(0.5, 0.7)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_rotated.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
-    panel.model.hoveredDrawInfo = panel.model.hitRects.find { it.node is DrawViewImage }
+    panel.renderModel.hoveredDrawInfo = panel.renderModel.hitRects.find { it.node is DrawViewImage }
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
@@ -323,17 +333,17 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_hovered_selected.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
-    panel.model.hoveredDrawInfo = null
+    panel.renderModel.hoveredDrawInfo = null
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_selected.png"), generatedImage, DIFF_THRESHOLD_TEXT)
 
-    settings.drawFold = false
+    renderSettings.drawFold = false
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(testDataPath.resolve("testPaintFold_no_fold.png"), generatedImage, DIFF_THRESHOLD)
-    settings.drawFold = true
+    renderSettings.drawFold = true
 
     panel.setSize(350, 100)
     @Suppress("UndesirableClassUsage")
@@ -342,7 +352,10 @@ class DeviceViewContentPanelTest {
     graphics = generatedImage2.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
-      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_horizontal.png"), generatedImage2, DIFF_THRESHOLD_TEXT)
+      resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintFold_horizontal.png"),
+      generatedImage2,
+      DIFF_THRESHOLD_TEXT
+    )
   }
 
   @Test
@@ -358,25 +371,27 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(40, 60, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(40, 60)
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithHiddenSystemViews.png"),
                                      generatedImage, DIFF_THRESHOLD)
 
-    settings.scalePercent = 100
-    panel.model.layerSpacing = 3
-    panel.model.rotate(0.3, 0.2)
+    renderSettings.scalePercent = 100
+    panel.renderModel.layerSpacing = 3
+    panel.renderModel.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithHiddenSystemView_rotated.png"),
                                      generatedImage, DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 10
+    panel.renderModel.layerSpacing = 10
     val windowRoot = model[ROOT]!!
     model.setSelection(windowRoot, SelectionOrigin.INTERNAL)
     graphics = generatedImage.createGraphics()
@@ -403,14 +418,17 @@ class DeviceViewContentPanelTest {
     model.setSelection(model[VIEW1], SelectionOrigin.INTERNAL)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeDeviceViewSettings(), { mock() }, mock(), null, disposable.disposable)
+
+    val renderSettings = InspectorRenderSettings()
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(10, 15)
-    panel.model.rotate(-1.0, -1.0)
+    panel.renderModel.rotate(-1.0, -1.0)
 
     for (i in 0..20) {
-      panel.model.rotate(-2.0, 0.1)
+      panel.renderModel.rotate(-2.0, 0.1)
       for (j in 0..20) {
-        panel.model.rotate(0.1, 0.0)
+        panel.renderModel.rotate(0.1, 0.0)
         panel.paint(graphics)
       }
     }
@@ -428,24 +446,26 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(1000, 1500, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(1000, 1500)
 
-    panel.model.overlay = ImageIO.read(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
+    panel.renderModel.overlay = ImageIO.read(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/overlay.png").toFile())
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_overlay-60.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.overlayAlpha = 0.2f
+    panel.renderModel.overlayAlpha = 0.2f
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_overlay-20.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.overlayAlpha = 0.9f
+    panel.renderModel.overlayAlpha = 0.9f
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaint_overlay-90.png"), generatedImage, DIFF_THRESHOLD)
@@ -459,12 +479,14 @@ class DeviceViewContentPanelTest {
       }
     }
 
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val client: InspectorClient = mock()
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { client }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings, { client })
+
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     val layoutInspector: LayoutInspector = mock()
     whenever(layoutInspector.currentClient).thenReturn(client)
@@ -480,18 +502,19 @@ class DeviceViewContentPanelTest {
 
     fakeUi.mouse.drag(10, 10, 50, 10)
     // We're not in rotated mode, so nothing should have happened yet.
-    assertEquals(0.0, panel.model.xOff)
-    assertEquals(0.0, panel.model.yOff)
+    assertEquals(0.0, panel.renderModel.xOff)
+    assertEquals(0.0, panel.renderModel.yOff)
 
     // Now modify the model to be rotated and verify that dragging changes the rotation
-    panel.model.xOff = 0.1
+    panel.renderModel.xOff = 0.1
     fakeUi.mouse.drag(10, 10, 10, 10)
-    assertEquals(0.11, panel.model.xOff)
-    assertEquals(0.01, panel.model.yOff)
+    assertEquals(0.11, panel.renderModel.xOff)
+    assertEquals(0.01, panel.renderModel.yOff)
 
-    panel.model.resetRotation()
-    assertEquals(0.0, panel.model.xOff)
-    assertEquals(0.0, panel.model.yOff)
+    // Simulate a connection change. This should reset the rotation
+    model.connectionListeners.forEach { it(client) }
+    assertEquals(0.0, panel.renderModel.xOff)
+    assertEquals(0.0, panel.renderModel.yOff)
   }
 
   @Test
@@ -507,11 +530,13 @@ class DeviceViewContentPanelTest {
         }
       }
     }
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.selection).isNull()
@@ -540,11 +565,13 @@ class DeviceViewContentPanelTest {
         }
       }
     }
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.hoveredNode).isNull()
@@ -574,11 +601,13 @@ class DeviceViewContentPanelTest {
         }
       }
     }
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(100, 200)
     val fakeUi = FakeUi(panel)
     assertThat(model.selection).isNull()
@@ -602,8 +631,8 @@ class DeviceViewContentPanelTest {
 
   @Test
   fun testEmptyTextVisibility() {
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val model = model {}
     val launcher: InspectorClientLauncher = mock()
     val client = mock<InspectorClient>()
@@ -613,8 +642,9 @@ class DeviceViewContentPanelTest {
     val selectProcessAction = mock<SelectProcessAction>()
     whenever(selectProcessAction.templatePresentation).thenReturn(mock())
     val dropDownActionWithButton = DropDownActionWithButton(selectProcessAction) { null }
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { client }, mock(), dropDownActionWithButton,
-                                       disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings, { client }, dropDownActionWithButton)
+
     panel.setSize(200, 200)
     val fakeUi = FakeUi(panel)
     val hand = Cursor.getPredefinedCursor(HAND_CURSOR)
@@ -627,9 +657,7 @@ class DeviceViewContentPanelTest {
           }
         }
       }
-      browserUtil.verify(MockedStatic.Verification {
-        BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector")
-      }, atLeastOnce())
+      browserUtil.verify({ BrowserUtil.browse("https://developer.android.com/studio/debug/layout-inspector") }, atLeastOnce())
       verify(selectProcessAction, atLeastOnce()).actionPerformed(any())
     }
 
@@ -663,11 +691,13 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(200, 300)
 
     panel.paint(graphics)
@@ -679,7 +709,7 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintMultiWindow_selected.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintMultiWindow_rotated.png"), generatedImage,
@@ -707,18 +737,20 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(200, 300)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintMultiWindowDimBehind.png"), generatedImage, DIFF_THRESHOLD)
 
-    panel.model.rotate(0.3, 0.2)
-    settings.scalePercent = 50
+    panel.renderModel.rotate(0.3, 0.2)
+    renderSettings.scalePercent = 50
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintMultiWindowDimBehind_rotated.png"), generatedImage,
@@ -747,12 +779,14 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(350, 450, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
-    settings.scalePercent = 50
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.scalePercent = 50
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(350, 450)
 
     panel.paint(graphics)
@@ -786,7 +820,7 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithImages_view2.png"), generatedImage, DIFF_THRESHOLD)
 
-    settings.drawLabel = true
+    renderSettings.drawLabel = true
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
@@ -831,15 +865,18 @@ class DeviceViewContentPanelTest {
 
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeDeviceViewSettings(), { mock() }, mock(), null, disposable.disposable)
+
+    val renderSettings = InspectorRenderSettings()
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(120, 140)
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithImagesBetweenChildren.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 60
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.layerSpacing = 60
+    panel.renderModel.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithImagesBetweenChildren_rotated.png"),
@@ -869,12 +906,14 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(350, 450, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
-    settings.scalePercent = 50
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.scalePercent = 50
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(350, 450)
 
     panel.paint(graphics)
@@ -915,12 +954,14 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
-    val settings = FakeDeviceViewSettings()
-    settings.scalePercent = 50
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.scalePercent = 50
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(400, 600)
 
     panel.paint(graphics)
@@ -934,21 +975,21 @@ class DeviceViewContentPanelTest {
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintTransformed_view1.png"), generatedImage, DIFF_THRESHOLD)
 
-    settings.drawLabel = true
+    renderSettings.drawLabel = true
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintTransformed_label.png"), generatedImage, DIFF_THRESHOLD)
 
-    settings.drawUntransformedBounds = true
+    renderSettings.drawUntransformedBounds = true
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintTransformed_untransformed.png"), generatedImage, DIFF_THRESHOLD)
 
-    settings.drawBorders = false
+    renderSettings.drawBorders = false
     graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     panel.paint(graphics)
@@ -977,12 +1018,14 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
-    val settings = FakeDeviceViewSettings()
-    settings.scalePercent = 75
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.scalePercent = 75
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(200, 200)
 
     panel.paint(graphics)
@@ -1011,7 +1054,10 @@ class DeviceViewContentPanelTest {
     val view1 = model[VIEW1]
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeDeviceViewSettings(), { mock() }, mock(), null, disposable.disposable)
+
+    val renderSettings = InspectorRenderSettings()
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     val scrollPane = JBScrollPane(panel)
     panel.setBounds(0, 0, 1000, 1000)
     scrollPane.setBounds(0, 0, 200, 200)
@@ -1082,12 +1128,14 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(350, 450, TYPE_INT_ARGB)
     val graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
-    settings.scalePercent = 50
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.scalePercent = 50
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(350, 450)
 
     panel.paint(graphics)
@@ -1108,19 +1156,21 @@ class DeviceViewContentPanelTest {
     val generatedImage = BufferedImage(90, 70, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(90, 70)
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithChildrenOutsideParent.png"), generatedImage,
                                      DIFF_THRESHOLD)
 
-    panel.model.layerSpacing = 30
-    settings.scalePercent = 100
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.layerSpacing = 30
+    renderSettings.scalePercent = 100
+    panel.renderModel.rotate(0.3, 0.2)
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(resolveWorkspacePathUnchecked("$TEST_DATA_PATH/testPaintWithChildrenOutsideParent_rotated.png"),
@@ -1138,16 +1188,18 @@ class DeviceViewContentPanelTest {
       }
     }
 
-    val settings = FakeDeviceViewSettings()
-    settings.drawLabel = false
+    val renderSettings = FakeRenderSettings()
+    renderSettings.drawLabel = false
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
-    val panel = DeviceViewContentPanel(model, null, treeSettings, settings, { mock() }, mock(), null, disposable.disposable)
+
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(70, 70)
 
-    panel.model.layerSpacing = 30
-    settings.scalePercent = 100
-    panel.model.rotate(0.3, 0.2)
+    panel.renderModel.layerSpacing = 30
+    renderSettings.scalePercent = 100
+    panel.renderModel.rotate(0.3, 0.2)
 
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(70, 70, TYPE_INT_ARGB)
@@ -1167,19 +1219,24 @@ class DeviceViewContentPanelTest {
 
 class DeviceViewContentPanelWithScaledFontTest {
   @get:Rule
-  val fontRule = SetPortableUiFontRule(2.0f)
+  val projectRule = ProjectRule()
+
+  @get:Rule
+  val fontRule = PortableUiFontRule(2.0f)
 
   @get:Rule
   val disposable = DisposableRule()
 
   @Test
   fun testPaintEmpty() {
-    AssumeUtil.assumeNotMac() // b/163289116
+    ApplicationManager.getApplication().replaceService(ActionManager::class.java, mock(), disposable.disposable)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
     val model = model {}
-    val panel = DeviceViewContentPanel(model, null, treeSettings, FakeDeviceViewSettings(), { mock() }, mock(), mock(),
-                                       disposable.disposable)
+
+    val renderSettings = FakeRenderSettings()
+    val panel = createDeviceViewContentPanel(disposable.disposable, model, treeSettings, renderSettings)
+
     panel.setSize(800, 400)
     @Suppress("UndesirableClassUsage")
     val generatedImage = BufferedImage(panel.width, panel.height, TYPE_INT_ARGB)
@@ -1188,4 +1245,30 @@ class DeviceViewContentPanelWithScaledFontTest {
     CheckUtil.assertImageSimilarPerPlatform(
       resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testPaintEmpty", generatedImage, DIFF_THRESHOLD_TEXT)
   }
+}
+
+private fun createDeviceViewContentPanel(
+  disposable: Disposable,
+  model: InspectorModel,
+  treeSettings: TreeSettings,
+  renderSettings: RenderSettings,
+  clientProvider: () -> InspectorClient = { mock() },
+  selectTargetAction: DropDownActionWithButton? = mock(),
+  renderModel: RenderModel = RenderModel(model, treeSettings, clientProvider),
+  renderLogic: RenderLogic = RenderLogic(renderModel, renderSettings)
+): DeviceViewContentPanel {
+  return DeviceViewContentPanel(
+    inspectorModel = model,
+    deviceModel = null,
+    treeSettings = treeSettings,
+    currentClient = clientProvider,
+    pannable = mock(),
+    selectTargetAction = selectTargetAction,
+    disposableParent =  disposable,
+    isLoading = { false },
+    isCurrentForegroundProcessDebuggable = { false },
+    hasForegroundProcess = { false },
+    renderModel = renderModel,
+    renderLogic = renderLogic
+  )
 }

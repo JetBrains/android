@@ -52,7 +52,6 @@ public class PaletteTest extends AndroidTestCase {
   private static final ViewHandler STANDARD_TEXT = new TextViewHandler();
   private static final ViewHandler STANDARD_LAYOUT = new ViewGroupHandler();
   private static final Splitter SPLITTER = Splitter.on("\n").trimResults();
-  private static final boolean SUGGESTED = true;
 
   public void testPaletteStructure() throws Exception {
     Palette palette = loadPalette();
@@ -95,7 +94,7 @@ public class PaletteTest extends AndroidTestCase {
   }
 
   private void assertTextViewItem(@NotNull Palette.BaseItem item) {
-    assertStandardTextView(item, TEXT_VIEW, IN_PLATFORM, SUGGESTED);
+    assertStandardTextView(item, TEXT_VIEW, IN_PLATFORM);
   }
 
   @Language("XML")
@@ -108,7 +107,7 @@ public class PaletteTest extends AndroidTestCase {
 
   private void assertLinearLayoutItem(@NotNull Palette.BaseItem item) {
     checkItem(item, LINEAR_LAYOUT, "LinearLayout (horizontal)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ,
-              HORIZONTAL_LINEAR_LAYOUT_XML, NO_PREVIEW, IN_PLATFORM, SUGGESTED);
+              HORIZONTAL_LINEAR_LAYOUT_XML, NO_PREVIEW, IN_PLATFORM);
     checkComponent(createMockComponent(LINEAR_LAYOUT), "LinearLayout (horizontal)", StudioIcons.LayoutEditor.Palette.LINEAR_LAYOUT_HORZ);
   }
 
@@ -122,32 +121,30 @@ public class PaletteTest extends AndroidTestCase {
 
   private void assertNormalProgressBarItem(@NotNull Palette.BaseItem item) {
     checkItem(item, "ProgressBar", "ProgressBar", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR, NORMAL_PROGRESS_XML, NORMAL_PROGRESS_XML,
-              IN_PLATFORM, SUGGESTED);
+              IN_PLATFORM);
     checkComponent(createMockComponent("ProgressBar"), "ProgressBar", StudioIcons.LayoutEditor.Palette.PROGRESS_BAR);
   }
 
   private void assertCoordinatorLayoutItem(@NotNull Palette.BaseItem item) {
-    assertStandardLayout(item, AndroidXConstants.COORDINATOR_LAYOUT.defaultName(), DESIGN_LIB_ARTIFACT, SUGGESTED);
+    assertStandardLayout(item, AndroidXConstants.COORDINATOR_LAYOUT.defaultName(), DESIGN_LIB_ARTIFACT);
   }
 
   private void assertIncludeItem(@NotNull Palette.BaseItem item) {
-    checkItem(item, VIEW_INCLUDE, "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE, "<include/>\n", NO_PREVIEW, IN_PLATFORM,
-              !SUGGESTED);
+    checkItem(item, VIEW_INCLUDE, "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE, "<include/>\n", NO_PREVIEW, IN_PLATFORM
+    );
     checkComponent(createMockComponent(VIEW_INCLUDE), "<include>", StudioIcons.LayoutEditor.Palette.INCLUDE);
   }
 
-  private void assertStandardLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate,
-                                    boolean expectedInSuggested) {
+  private void assertStandardLayout(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
     checkItem(item, tag, STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag), STANDARD_LAYOUT.getXml(tag, XmlType.COMPONENT_CREATION),
-              NO_PREVIEW, expectedGradleCoordinate, expectedInSuggested);
+              NO_PREVIEW, expectedGradleCoordinate);
     checkComponent(createMockComponent(tag), STANDARD_VIEW.getTitle(tag), STANDARD_LAYOUT.getIcon(tag));
   }
 
-  private void assertStandardTextView(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate,
-                                      boolean expectedInSuggested) {
+  private void assertStandardTextView(@NotNull Palette.BaseItem item, @NotNull String tag, @NotNull String expectedGradleCoordinate) {
     @Language("XML")
     String xml = STANDARD_TEXT.getXml(tag, XmlType.COMPONENT_CREATION);
-    checkItem(item, tag, STANDARD_TEXT.getTitle(tag), STANDARD_TEXT.getIcon(tag), xml, xml, expectedGradleCoordinate, expectedInSuggested);
+    checkItem(item, tag, STANDARD_TEXT.getTitle(tag), STANDARD_TEXT.getIcon(tag), xml, xml, expectedGradleCoordinate);
     NlComponent component = createMockComponent(tag);
     checkComponent(component, String.format("%1$s", tag), STANDARD_TEXT.getIcon(tag));
 
@@ -177,8 +174,7 @@ public class PaletteTest extends AndroidTestCase {
                                 @NotNull Icon expectedIcon,
                                 @NotNull @Language("XML") String expectedXml,
                                 @NotNull @Language("XML") String expectedDragPreviewXml,
-                                @NotNull String expectedGradleCoordinateId,
-                                boolean expectedInSuggested) {
+                                @NotNull String expectedGradleCoordinateId) {
     assertTrue(base instanceof Palette.Item);
     Palette.Item item = (Palette.Item)base;
 
@@ -188,7 +184,6 @@ public class PaletteTest extends AndroidTestCase {
     assertEquals(expectedTag + ".XML", formatXml(expectedXml), formatXml(item.getXml()));
     assertEquals(expectedTag + ".DragPreviewXML", formatXml(expectedDragPreviewXml), formatXml(item.getDragPreviewXml()));
     assertEquals(expectedTag + ".GradleCoordinateId", expectedGradleCoordinateId, item.getGradleCoordinateId());
-    assertEquals(expectedInSuggested, item.isSuggested());
   }
 
   private void checkComponent(@NotNull NlComponent component, @NotNull String expectedTitle, @NotNull Icon expectedIcon) {

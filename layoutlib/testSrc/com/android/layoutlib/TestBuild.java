@@ -15,7 +15,7 @@
  */
 package com.android.layoutlib;
 
-public final class TestBuild {
+public class TestBuild {
   public static final String TEST_FIELD = "TestValue";
 
   private static String privateMethod() {
@@ -26,12 +26,12 @@ public final class TestBuild {
     return "#" + privateMethod();
   }
 
-  public static final class InnerClass {
+  public static class InnerClass {
     public static final String TEST_INNER_FIELD = "TestInnerValue";
     public static final int INNER_VALUE = 1;
   }
 
-  public static final class InnerClass2 {
+  public static class InnerClass2 {
     public static final String TEST_INNER_FIELD2;
 
     static {

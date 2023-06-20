@@ -22,6 +22,7 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.jetbrains.android.AndroidFacetProjectDescriptor
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.assertNotEquals
+import java.util.concurrent.CountDownLatch
 
 class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
   override fun getProjectDescriptor() = AndroidFacetProjectDescriptor
@@ -33,6 +34,11 @@ class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
     super.setUp()
     facet = AndroidFacet.getInstance(module)!!
     idManager = ResourceIdManager.get(module)
+  }
+
+  override fun tearDown() {
+    idManager.resetCompiledIds { }
+    super.tearDown()
   }
 
   fun testDynamicIds() {
@@ -84,7 +90,7 @@ class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
     val styleId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STYLE, "style"))
     val layoutId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.LAYOUT, "layout"))
 
-    idManager.loadCompiledIds(R::class.java)
+    idManager.resetCompiledIds { it.parse(R::class.java) }
 
     // Compiled resources should replace the dynamic IDs.
     assertNotEquals(stringId, idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string")))
@@ -104,6 +110,33 @@ class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
     assertNull(idManager.findById(stringId))
     assertNull(idManager.findById(styleId))
     assertNull(idManager.findById(layoutId))
+  }
+
+  fun testResetIdsDoesNotPreventAccess() {
+    assertNull(idManager.findById(0x7f000001))
+
+    idManager.resetCompiledIds { it.parse(R::class.java) }
+
+    assertNotNull(idManager.findById(0x7f000001))
+
+    val idsReset = CountDownLatch(1)
+    val canParse = CountDownLatch(1)
+
+    val thread = Thread {
+      idManager.resetCompiledIds {
+        idsReset.countDown()
+        canParse.await()
+        it.parse(R::class.java)
+      }
+    }
+    thread.start()
+
+    idsReset.await()
+
+    assertNotNull(idManager.findById(0x7f000001))
+
+    canParse.countDown()
+    thread.join()
   }
 
   class R {

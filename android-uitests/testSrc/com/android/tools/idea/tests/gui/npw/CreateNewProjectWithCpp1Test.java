@@ -82,7 +82,7 @@ public class CreateNewProjectWithCpp1Test {
    *   4. Run
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void createNewProjectWithCpp1() throws Exception {
     createNewProjectWithCpp(CppStandardType.DEFAULT, guiTest);

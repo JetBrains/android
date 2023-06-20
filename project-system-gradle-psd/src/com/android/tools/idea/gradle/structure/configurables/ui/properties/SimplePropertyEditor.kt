@@ -34,9 +34,13 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.valueFormatter
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.ActionLink
+import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.util.ui.accessibility.ScreenReader
 import icons.StudioIcons
 import java.awt.BorderLayout
@@ -47,6 +51,7 @@ import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.BorderFactory
 import javax.swing.DefaultComboBoxModel
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -59,7 +64,7 @@ import javax.swing.table.TableCellEditor
  * A property editor [ModelPropertyEditor] for properties of simple (not complex) types.
  *
  * This is a [ComboBox] based editor allowing manual text entry as well as entry by selecting an item from the list of values provided by
- * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parse].
+ * [ModelSimpleProperty.getKnownValues]. Text free text input is parsed by [ModelSimpleProperty.parseEditorText].
  */
 class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<PropertyT>>(
     property: ModelPropertyT,
@@ -68,7 +73,10 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     private val extensions: List<EditorExtensionAction<PropertyT, ModelPropertyT>>,
     cellEditor: TableCellEditor? = null,
     private val isPropertyContext: Boolean = false,
-    private val logValueEdited: () -> Unit = {}
+    private val logValueEdited: () -> Unit = {},
+    private val hideMiniButton: Boolean = false,
+    private val viewOnly: Boolean = false,
+    private val note: Pair<String, String?>? = null
 ) :
     PropertyEditorBase<ModelPropertyT, PropertyT>(property, propertyContext, variablesScope),
     ModelPropertyEditor<PropertyT>,
@@ -84,6 +92,11 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   private var disposed = false
   private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
   private val formatter = propertyContext.valueFormatter()
+  var customRenderTo: RenderToHandler<PropertyT>? = null
+    set(value) {
+      field = value
+      renderedComboBox.updateWatermark()
+    }
 
   private val renderedComboBox = object : RenderedComboBox<Annotated<ParsedValue<PropertyT>>>(DefaultComboBoxModel()) {
 
@@ -95,7 +108,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       else dimensions
     }
 
-    override fun parseEditorText(text: String): Annotated<ParsedValue<PropertyT>> = propertyContext.parseEditorText(text)
+    override fun parseEditorText(text: String): Annotated<ParsedValue<PropertyT>>? = propertyContext.parseEditorText(text)
 
     override fun toEditorText(anObject: Annotated<ParsedValue<PropertyT>>?): String = when (anObject) {
       null -> ""
@@ -104,7 +117,10 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     }
 
     override fun TextRenderer.renderCell(value: Annotated<ParsedValue<PropertyT>>?) {
-      (value ?: ParsedValue.NotSet.annotated()).renderTo(this, formatter, knownValueRenderers)
+      val annotatedVal = value ?: ParsedValue.NotSet.annotated()
+      val rendered = customRenderTo?.invoke(annotatedVal, this, formatter, knownValueRenderers) ?: false
+      // if custom RenderTo was empty or did not work - call standard renderTo
+      if (!rendered) annotatedVal.renderTo(this, formatter, knownValueRenderers)
     }
 
     override fun createEditorExtensions(): List<Extension> =
@@ -183,8 +199,11 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         UpdatePropertyOutcome.INVALID -> Unit
       }
 
-    private fun getAvailableVariables(): List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? =
-      variablesScope?.getAvailableVariablesFor(propertyContext)
+    private fun getAvailableVariables(): List<Annotated<ParsedValue.Set.Parsed<PropertyT>>>? {
+      // use property scope as property can be from another build/toml file and has another scope than module
+      val scope: PsVariablesScope? = property.variableScope?.invoke() ?: variablesScope
+      return scope?.getAvailableVariablesFor(propertyContext)
+    }
 
     fun addFocusGainedListener(listener: () -> Unit) {
       val focusListener = object : FocusListener {
@@ -221,6 +240,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
         putClientProperty(TABLE_CELL_EDITOR_PROPERTY, cellEditor)
       }
       setEditable(true)
+      isEnabled = !viewOnly
 
       addActionListener {
         if (!disposed && !beingLoaded) {
@@ -254,7 +274,24 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     init {
       isFocusable = false
       add(renderedComboBox)
-      add(createMiniButton(extensions.firstOrNull { it.isMainAction }), BorderLayout.EAST)
+      if(!hideMiniButton) add(createMiniButton(extensions.firstOrNull { it.isMainAction }), BorderLayout.EAST)
+      if(note != null) {
+        val subPanel = JPanel(HorizontalLayout(5)).apply {
+          add(JBLabel(note.first), HorizontalLayout.LEFT)
+          note.second?.let { url ->
+            ActionLink("Learn more")
+              .apply {
+                addActionListener { BrowserUtil.browse(url) }
+                setExternalLinkIcon()
+              }
+              .also {
+                add(it, HorizontalLayout.LEFT)
+              }
+          }
+        }
+        subPanel.border = BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0), subPanel.border)
+        add(subPanel, BorderLayout.SOUTH)
+      }
     }
 
     private fun createMiniButton(extensionAction: EditorExtensionAction<PropertyT, ModelPropertyT>?): JComponent {
@@ -356,7 +393,10 @@ fun <ModelPropertyT : ModelPropertyCore<PropertyT>, PropertyT : Any> simplePrope
     extensions: Collection<EditorExtensionAction<PropertyT, ModelPropertyT>>,
     isPropertyContext: Boolean,
     cellEditor: TableCellEditor?,
-    logValueEdited: () -> Unit = { /* no usage tracking */ }
+    logValueEdited: () -> Unit = { /* no usage tracking */ },
+    hideMiniButton: Boolean = false,
+    viewOnly: Boolean = false,
+    note: Pair<String, String?>? = null
 ): SimplePropertyEditor<PropertyT, ModelPropertyT> =
     SimplePropertyEditor(
         boundProperty,
@@ -365,4 +405,7 @@ fun <ModelPropertyT : ModelPropertyCore<PropertyT>, PropertyT : Any> simplePrope
         extensions.filter { it.isAvailableFor(boundProperty, isPropertyContext) },
         cellEditor,
         isPropertyContext,
-        logValueEdited)
+        logValueEdited,
+        hideMiniButton,
+        viewOnly,
+        note)

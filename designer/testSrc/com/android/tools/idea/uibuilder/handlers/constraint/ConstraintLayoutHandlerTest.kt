@@ -15,18 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint
 
-import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
-import com.android.AndroidXConstants.RECYCLER_VIEW
+import com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP
 import com.android.SdkConstants.CLASS_VIEW
+import com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_FLOW
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT
+import com.android.AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER
+import com.android.AndroidXConstants.RECYCLER_VIEW
+import com.android.SdkConstants
+import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler.getSelectedIds
-import com.android.tools.idea.uibuilder.model.viewGroupHandler
+import com.android.tools.idea.uibuilder.model.layoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import org.mockito.Mockito
 
@@ -41,19 +49,21 @@ class ConstraintLayoutHandlerTest: SceneTest() {
                           .height("1000dp"))
       .build()
 
-    val handler = nlModel.find("root")!!.viewGroupHandler!!
+    val handler = nlModel.find("root")!!.layoutHandler!!
     assertNoException<IllegalArgumentException>(IllegalArgumentException::class.java) {
         handler.clearAttributes(listOf())
       }
   }
 
   fun testClearConstraintAttributes() {
-    val handler = myModel.find("root")!!.viewGroupHandler!!
+    val handler = myModel.find("root")!!.layoutHandler!!
     val button1 = myModel.find("button1")!!
     val text1 = myModel.find("text1")!!
+    val barrier1 = myModel.find("barrier1")!!
+    val group1 = myModel.find("group1")!!
     val recyclerView = myModel.find("recycler_view")!!
 
-    handler.clearAttributes(listOf(button1, text1, recyclerView))
+    handler.clearAttributes(listOf(button1, text1, recyclerView, barrier1, group1))
 
     myScreen.get("@+id/button1")
       .expectXml("<TextView\n" +
@@ -76,6 +86,20 @@ class ConstraintLayoutHandlerTest: SceneTest() {
                  "        android:layout_height=\"860dp\"\n" +
                  "        tools:layout_editor_absoluteX=\"70dp\"\n" +
                  "        tools:layout_editor_absoluteY=\"70dp\" />")
+    myScreen.get("@+id/barrier1")
+      .expectXml("<android.support.constraint.Barrier\n" +
+                 "        android:id=\"@+id/barrier1\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        app:barrierDirection=\"left\"\n" +
+                 "        app:constraint_referenced_ids=\"button1,text1\" />")
+    myScreen.get("@+id/group1")
+      .expectXml("<android.support.constraint.Group\n" +
+                 "        android:id=\"@+id/group1\"\n" +
+                 "        android:layout_width=\"wrap_content\"\n" +
+                 "        android:layout_height=\"wrap_content\"\n" +
+                 "        android:visibility=\"visible\"\n" +
+                 "        app:constraint_referenced_ids=\"button1,text1\" />")
   }
 
   override fun createModel(): ModelBuilder {
@@ -117,7 +141,23 @@ class ConstraintLayoutHandlerTest: SceneTest() {
                        .withAttribute("app:layout_constraintStart_toStartOf", "parent")
                        .withAttribute("app:layout_constraintEnd_toEndOf", "parent")
                        .withAttribute("app:layout_constraintTop_toTopOf", "parent")
-                       .withAttribute("app:layout_constraintBottom_toBottomOf", "parent")
+                       .withAttribute("app:layout_constraintBottom_toBottomOf", "parent"),
+                     component(CONSTRAINT_LAYOUT_BARRIER.defaultName())
+                       .id("@+id/barrier1")
+                       .width("wrap_content")
+                       .height("wrap_content")
+                       .withAttribute("app:barrierDirection", "left")
+                       .withAttribute("app:constraint_referenced_ids", "button1,text1")
+                       .withAttribute("tools:layout_editor_absoluteX", "56dp")
+                       .withAttribute("tools:layout_editor_absoluteY", "81dp"),
+                     component(CLASS_CONSTRAINT_LAYOUT_GROUP.defaultName())
+                       .id("@+id/group1")
+                       .width("wrap_content")
+                       .height("wrap_content")
+                       .withAttribute("android:visibility", "visible")
+                       .withAttribute("app:constraint_referenced_ids", "button1,text1")
+                       .withAttribute("tools:layout_editor_absoluteX", "99dp")
+                       .withAttribute("tools:layout_editor_absoluteY", "109dp")
                    ))
   }
 
@@ -145,7 +185,7 @@ class ConstraintLayoutHandlerTest: SceneTest() {
     val button = model.find("button")!!
     val button2 = model.find("button2")!!
 
-    val handler = model.find("root")!!.viewGroupHandler!!
+    val handler = model.find("root")!!.layoutHandler!!
     handler.clearAttributes(listOf(button, button2))
 
     screen.get("@id/button")
@@ -184,10 +224,43 @@ class ConstraintLayoutHandlerTest: SceneTest() {
     assertEquals("view1,view2", getSelectedIds(list))
   }
 
+  fun testMoveOutRemovesReference() {
+    val model = createTestFlowModel()
+    val text1 = model.find("text1")!!
+    val linear = model.find("linear")!!
+    val flow = model.find("flow")!!
+    NlWriteCommandActionUtil.run(text1, "Move text1") {
+      text1.moveTo(linear, null, InsertType.MOVE, emptySet())
+    }
+    assertEquals("text2,button", flow.getAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS))
+  }
+
   private fun nonViewMockedComponent(id: String): NlComponent {
     val component = Mockito.mock(NlComponent::class.java)
     whenever(component.id).thenReturn(id)
     return component
+  }
+
+  private fun createTestFlowModel(): NlModel {
+    return model("constraint.xml",
+                 component(LINEAR_LAYOUT).id("@id/linear")
+                   .children(
+                     component(CONSTRAINT_LAYOUT.defaultName())
+                       .id("@id/root")
+                       .children(
+                         component(TEXT_VIEW).id("@id/text1"),
+                         component(TEXT_VIEW).id("@id/text2"),
+                         component(BUTTON).id("@id/button"),
+                         component(CLASS_CONSTRAINT_LAYOUT_FLOW.defaultName())
+                           .id("@id/flow")
+                           .withAttribute(SdkConstants.ATTR_ORIENTATION, "vertical")
+                           .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_START_TO_START_OF, "parent")
+                           .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF, "parent")
+                           .withAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent")
+                           .withAttribute(SdkConstants.AUTO_URI, SdkConstants.CONSTRAINT_REFERENCED_IDS, "text1,text2,button")
+                       )
+                   )
+    ).build()
   }
 
   private fun createTestModel(): NlModel {

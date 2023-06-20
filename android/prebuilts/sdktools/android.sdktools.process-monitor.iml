@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" />
+    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
+    <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
+    <orderEntry type="module" module-name="android.sdktools.ddmlib" />
+    <orderEntry type="module" module-name="android.sdktools.sdklib" />
+    <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlinx-coroutines-test" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-process-monitor" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.process-monitor:223.0.1.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.process-monitor/223.0.1.0/studio.android.sdktools.process-monitor-223.0.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="" scope="TEST">
+      <library name="precompiled-process-monitor-test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.process-monitor_test:223.0.1.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.process-monitor_test/223.0.1.0/studio.android.sdktools.process-monitor_test-223.0.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+  </component>
+</module>

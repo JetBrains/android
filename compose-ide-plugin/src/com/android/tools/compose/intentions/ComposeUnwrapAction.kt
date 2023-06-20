@@ -16,20 +16,20 @@
 package com.android.tools.compose.intentions
 
 import com.android.tools.compose.ComposeBundle
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.references.mainReference
+import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 
 /**
@@ -50,7 +50,6 @@ class ComposeUnwrapAction : IntentionAction {
 
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
     return when {
-      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> false
       file == null || editor == null -> false
       !file.isWritable || file !is KtFile -> false
       else -> isCaretAtWrapper(editor, file)
@@ -59,14 +58,14 @@ class ComposeUnwrapAction : IntentionAction {
 
   private fun isCaretAtWrapper(editor: Editor, file: PsiFile): Boolean {
     val elementAtCaret = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>() ?: return false
-    val name = elementAtCaret.mainReference.resolve().safeAs<KtNamedFunction>()?.fqName?.asString() ?: return false
+    val name = elementAtCaret.mainReference.resolve()?.kotlinFqName?.asString() ?: return false
     return WRAPPERS_FQ_NAMES.contains(name)
   }
 
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
     if (file == null || editor == null) return
     val wrapper = file.findElementAt(editor.caretModel.offset)?.parentOfType<KtNameReferenceExpression>() ?: return
-    val outerBlock = wrapper.parent.safeAs<KtCallExpression>() ?: return
+    val outerBlock = wrapper.parent as? KtCallExpression ?: return
     val lambdaBlock = PsiTreeUtil.findChildOfType(outerBlock, KtBlockExpression::class.java, true) ?: return
     outerBlock.replace(lambdaBlock)
   }

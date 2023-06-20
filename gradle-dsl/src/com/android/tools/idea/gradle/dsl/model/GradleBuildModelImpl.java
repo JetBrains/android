@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.BOOLEAN;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType.NONE;
+import static com.android.tools.idea.gradle.dsl.model.PluginModelImpl.ALIAS;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES;
@@ -36,6 +37,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
@@ -47,14 +49,17 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import java.io.File;
@@ -62,6 +67,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -71,6 +77,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleBuildModel {
+  private static final Logger LOG = Logger.getInstance(GradleBuildModelImpl.class);
   @NonNls private static final String PLUGIN = "plugin";
   // TODO(xof): duplication with PluginModelImpl strings
   @NonNls private static final String ID = "id";
@@ -120,6 +127,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
         return false;
       }
     };
+    //noinspection SSBasedInspection
     return plugins().stream().filter(appliedPredicate).collect(Collectors.toList());
   }
 
@@ -199,6 +207,35 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     pluginsElement.setNewElement(expression);
 
     return new PluginModelImpl(expression);
+  }
+
+  @Override
+  public @NotNull PluginModel applyPlugin(@NotNull ReferenceTo reference, @Nullable Boolean apply) {
+    int at = 0;
+    List<GradleDslElement> elements = myGradleDslFile.getCurrentElements();
+    if (elements.size() > 0 && elements.get(0) instanceof BuildScriptDslElement) {
+      at += 1;
+    }
+    PluginsDslElement pluginsElement = myGradleDslFile.ensurePropertyElementAt(PLUGINS, at);
+
+    // not: reparented if apply is non-null
+    GradleDslMethodCall alias = new GradleDslMethodCall(pluginsElement, GradleNameElement.empty(), ALIAS);
+    GradleDslLiteral target = new GradleDslLiteral(alias.getArgumentsElement(), GradleNameElement.empty());
+    target.setValue(reference);
+    alias.addNewArgument(target);
+    if (apply != null) {
+      GradleDslInfixExpression expression = new GradleDslInfixExpression(pluginsElement, null);
+      alias.setParent(expression);
+      expression.setNewElement(alias);
+      expression.setNewLiteral(APPLY, apply);
+      pluginsElement.setNewElement(expression);
+      return new PluginModelImpl(expression);
+    }
+    else {
+      pluginsElement.setNewElement(alias);
+      return new PluginModelImpl(alias);
+    }
+
   }
 
   @Override
@@ -288,7 +325,8 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @NotNull
   public Set<GradleFileModel> getInvolvedFiles() {
-    return getAllInvolvedFiles().stream().distinct().map(e -> getFileModel(e)).collect(Collectors.toSet());
+    return getAllInvolvedFiles().stream().distinct()
+      .map(GradleBuildModelImpl::getFileModel).filter(Objects::nonNull).collect(Collectors.toSet());
   }
 
   @Override
@@ -329,16 +367,17 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
       currentFiles.addAll(currentFile.getApplyDslElement());
     }
 
-    // Get all the properties files.
-    for (GradleDslFile file : new ArrayList<>(files)) {
+    // Get all the properties and version catalog files.
+    for (final GradleDslFile file : new ArrayList<>(files)) {
       if (file instanceof GradleBuildFile) {
-        GradleBuildFile buildFile = (GradleBuildFile)file;
-        GradleDslFile sibling = buildFile.getPropertiesFile();
+        final GradleBuildFile buildFile = (GradleBuildFile)file;
+        final GradleDslFile sibling = buildFile.getPropertiesFile();
         if (sibling != null) {
           files.add(sibling);
         }
       }
     }
+    files.addAll(getContext().getVersionCatalogFiles());
 
     return files;
   }
@@ -357,7 +396,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @NotNull
   public Map<String, List<BuildModelNotification>> getNotifications() {
     return getAllInvolvedFiles().stream().filter(e -> !e.getPublicNotifications().isEmpty())
-      .collect(Collectors.toMap(e -> e.getFile().getPath(), e -> e.getPublicNotifications()));
+      .collect(Collectors.toMap(e -> e.getFile().getPath(), GradleDslFile::getPublicNotifications));
   }
 
   @Override
@@ -373,10 +412,11 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @TestOnly
   public void removeRepositoriesBlocks() {
+    //noinspection ConstantConditions
     myGradleDslFile.removeProperty(REPOSITORIES.name);
   }
 
-  @NotNull
+  @Nullable
   private static GradleFileModel getFileModel(@NotNull GradleDslFile file) {
     if (file instanceof GradleBuildFile) {
       return new GradleBuildModelImpl((GradleBuildFile)file);
@@ -387,6 +427,19 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     else if (file instanceof GradlePropertiesFile) {
       return new GradlePropertiesModelImpl((GradlePropertiesFile)file);
     }
-    throw new IllegalStateException("Unknown GradleDslFile type found!");
+    else if (file instanceof GradleVersionCatalogFile) {
+      return new GradleVersionCatalogModelImpl((GradleVersionCatalogFile)file);
+    }
+    else {
+      LOG.warn(new IllegalStateException("Unknown GradleDslFile type found!" + file));
+      return null;
+    }
+  }
+
+  @Override
+  public @NotNull GradleDslElement getRawPropertyHolder() {
+    // This implementation is needed here essentially because we do not model plugins { ... } as a block, which itself is because
+    // historically plugins have been declared in multiple ways (in apply statements / blocks as well as in a plugins block).
+    return myGradleBuildFile;
   }
 }

@@ -16,14 +16,11 @@
 package com.android.tools.idea.compose.annotator.check.common
 
 /**
- * Contains any Issues found by the check, if the issues can be resolved, [proposedFix] will be a not-null string that can be applied to
- * resolve the issues.
+ * Contains any Issues found by the check, if the issues can be resolved, [proposedFix] will be a
+ * not-null string that can be applied to resolve the issues.
  *
  * So when [issues] is empty, the check completed successfully and [proposedFix] should be null.
  */
-internal data class CheckResult(
-  val issues: List<IssueReason>,
-  val proposedFix: String?
-) {
+internal data class CheckResult(val issues: List<IssueReason>, val proposedFix: String?) {
   val hasIssues: Boolean = issues.isNotEmpty()
 }

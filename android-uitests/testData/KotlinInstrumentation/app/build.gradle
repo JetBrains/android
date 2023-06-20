@@ -6,6 +6,7 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 30
+    namespace "android.com.kotlininstrumentation"
     defaultConfig {
         applicationId "android.com.kotlininstrumentation"
         minSdkVersion 15

@@ -15,19 +15,18 @@
  */
 package com.android.tools.idea.testing;
 
+import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.PathUtil.toSystemIndependentName;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.junit.Assert.assertNotNull;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.startup.ExternalAnnotationsSupport;
+import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
@@ -41,13 +40,11 @@ import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.intellij.util.ArrayUtil;
 import java.io.File;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,20 +95,7 @@ public final class Sdks {
       sdkModificator.addRoot(docsFolder, JavadocOrderRootType.getInstance());
     }
 
-    Path jdk11 = TestUtils.getJava11Jdk();
-    if (parentDisposable != null) {
-      VfsRootAccess.allowRootAccess(parentDisposable, jdk11.toAbsolutePath().toString());
-    }
-    else {
-      // TODO: nullable parentDisposable is a bad idea. Please make it not-null.
-      Logger.getInstance(Sdks.class).warn("Cannot register allowed roots because no parent disposable provided. The root is: " + jdk11);
-    }
-    Sdk jdk = IdeSdks.getInstance().getOrCreateJdk(jdk11);
-    if (parentDisposable != null) {
-      Disposer.register(parentDisposable, () -> WriteAction.run(() -> ProjectJdkTable.getInstance().removeJdk(jdk)));
-    }
-
-    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk, jdk);
+    AndroidSdkAdditionalData data = new AndroidSdkAdditionalData(sdk);
     AndroidSdkData sdkData = getSdkData(sdkPath);
     assertNotNull(sdkData);
     IAndroidTarget foundTarget = null;

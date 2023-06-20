@@ -16,11 +16,11 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 
 class AndroidIndicesHelperExtension : KotlinIndicesHelperExtension {
     override fun appendExtensionCallables(
-            consumer: MutableList<in CallableDescriptor>,
-            moduleDescriptor: ModuleDescriptor,
-            receiverTypes: Collection<KotlinType>,
-            nameFilter: (String) -> Boolean,
-            lookupLocation: LookupLocation,
+      consumer: MutableList<in CallableDescriptor>,
+      moduleDescriptor: ModuleDescriptor,
+      receiverTypes: Collection<KotlinType>,
+      nameFilter: (String) -> Boolean,
+      lookupLocation: LookupLocation,
     ) {
         for (packageFragment in moduleDescriptor.getPackage(FqName(AndroidConst.SYNTHETIC_PACKAGE)).fragments) {
             if (packageFragment !is PredefinedPackageFragmentDescriptor) continue

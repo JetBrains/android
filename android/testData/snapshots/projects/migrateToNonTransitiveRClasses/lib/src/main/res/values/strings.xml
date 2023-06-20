@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="from_lib">From lib</string>
+    <string name="another.lib.string">From lib</string>
+    <declare-styleable name="styleable_from_lib">
+        <attr name="Attr_from_lib" format="string"/>
+    </declare-styleable>
+</resources>

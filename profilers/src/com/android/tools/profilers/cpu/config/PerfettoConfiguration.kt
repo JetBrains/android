@@ -16,15 +16,39 @@
 package com.android.tools.profilers.cpu.config
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
+import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders
+import perfetto.protos.PerfettoConfig.TraceConfig
 
 /**
- * Perfetto configuration. This is used internally to differentiate the perfetto config from the atrace config.
- * Exposed properties only from {@link AtraceConfiguration}
+ * Configuration for Perfetto traces.
  */
-class PerfettoConfiguration(name: String) : AtraceConfiguration(name) {
-  override fun getTraceType(): Cpu.CpuTraceType {
-    return Cpu.CpuTraceType.PERFETTO
+class PerfettoConfiguration(name: String) : ProfilingConfiguration(name) {
+  override fun getOptions(): TraceConfig {
+    return PerfettoTraceConfigBuilders.getCpuTraceConfig(SYSTEM_TRACE_BUFFER_SIZE_MB)
+  }
+
+  private fun setAppPkgName(optionsBuilder: TraceConfig.Builder, appPkgName: String) {
+    val ftraceDataSourceIndex = optionsBuilder.dataSourcesList.indexOfFirst { it.config.name.equals("linux.ftrace") }
+
+    if (ftraceDataSourceIndex == -1) {
+      return
+    }
+
+    optionsBuilder.dataSourcesBuilderList[ftraceDataSourceIndex].configBuilder.perfEventConfigBuilder.addTargetCmdline(appPkgName)
+  }
+
+  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder, additionalOptions: Map<AdditionalOptions, Any>) {
+    val perfettoOptionsBuilder = options.toBuilder()
+
+    val appPkgName = additionalOptions.getOrDefault(AdditionalOptions.APP_PKG_NAME, null) as String?
+    appPkgName?.let { setAppPkgName(perfettoOptionsBuilder, it) }
+
+    configBuilder.perfettoOptions = perfettoOptionsBuilder.build()
+  }
+
+  override fun getTraceType(): TraceType {
+    return TraceType.PERFETTO
   }
 
   override fun getRequiredDeviceLevel(): Int {

@@ -21,7 +21,6 @@ import com.android.SdkConstants.FQCN_LINEAR_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
-import com.android.tools.componenttree.common.ViewTreeCellRenderer
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
@@ -60,13 +59,14 @@ class TreeTableModelImplTest {
                                                          Pair(Style::class.java, StyleNodeType())), SwingUtilities::invokeLater)
   private val table = TreeTableImpl(
     model,
-    contextPopup = { _, _, _ -> },
+    contextPopup = { _, _, _, _ -> },
     doubleClick = {},
     painter = null,
     installKeyboardActions = {},
     treeSelectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION,
     installTreeSearch = false,
     autoScroll = false,
+    expandAllOnRootChange = false,
     treeHeaderRenderer = null
   )
   private val selectionModel = table.treeTableSelectionModel

@@ -48,11 +48,13 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.surface.SinglePositionableContentLayoutManager;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
+import com.android.tools.idea.configurations.StudioConfigurationStateManager;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.model.ActionType;
@@ -78,6 +80,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
@@ -334,8 +337,15 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
 
     AtomicBoolean didAdd = new AtomicBoolean(false);
     ApplicationManager.getApplication().invokeAndWait(
-      () -> didAdd.set(DependencyManagementUtil.addDependenciesWithUiConfirmation(
-        facet.getModule(), dependencies, true, false).isEmpty()));
+      () -> {
+        try {
+          didAdd.set(DependencyManagementUtil.addDependenciesWithUiConfirmation(
+            facet.getModule(), dependencies, true, false).isEmpty());
+        } catch(Throwable t) {
+          Logger.getInstance(NavDesignSurface.class).warn("Failed to add dependencies", t);
+          didAdd.set(false);
+        }
+      });
     return didAdd.get();
   }
 
@@ -452,26 +462,8 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
   }
 
   @Override
-  protected Dimension getDefaultOffset() {
+  protected Dimension getScrollToVisibleOffset() {
     return new Dimension(0, 0);
-  }
-
-  @NavCoordinate
-  @Override
-  @NotNull
-  protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
-    SceneView view = getFocusedSceneView();
-    if (view == null) {
-      return new Dimension(0, 0);
-    }
-
-    SceneComponent root = view.getScene().getRoot();
-    if (root == null) {
-      return new Dimension(0, 0);
-    }
-
-    @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
-    return boundingBox.getSize();
   }
 
   @Override
@@ -530,15 +522,32 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
       return false;
     }
 
-    Double fitScale = getFitScale(true);
+    Double fitScale = getFitScale();
     Double scale = getScale();
 
     return Math.abs(fitScale - scale) > SCALING_THRESHOLD;
   }
 
   @Override
-  public double getFitScale(boolean fitInto) {
-    return Math.min(super.getFitScale(fitInto), 1.0);
+  public double getFitScale() {
+    Dimension size = new Dimension();
+    SceneView view = getFocusedSceneView();
+    if (view != null) {
+      SceneComponent root = view.getScene().getRoot();
+      if (root == null) {
+        size.setSize(0, 0);
+      }
+      else {
+        @NavCoordinate Rectangle boundingBox = NavSceneManagerKt.getBoundingBox(root);
+        size.setSize(boundingBox.getSize());
+      }
+    }
+    else {
+      size.setSize(0, 0);
+    }
+
+    double scale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, size);
+    return Math.min(scale, 1.0);
   }
 
   private boolean isEmpty() {
@@ -663,8 +672,10 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     @SwingCoordinate Point start = new Point(swingStartCenterXInViewport, swingStartCenterYInViewport);
     @SwingCoordinate Point end = new Point(swingViewportSize.width / 2, swingViewportSize.height / 2);
     @SwingCoordinate LerpPoint lerpPoint = new LerpPoint(start, end, getScrollDurationMs());
-    LerpValue zoomLerp = new LerpDouble(view.getScale(), getFitScale(selectionBounds.getSize(), true),
-                                        getScrollDurationMs());
+
+    double fitSelectionScale = DesignSurfaceHelper.getFitContentIntoWindowScale(this, selectionBounds.getSize());
+    fitSelectionScale = Math.min(fitSelectionScale, 1.0);
+    LerpValue zoomLerp = new LerpDouble(view.getScale(), fitSelectionScale, getScrollDurationMs());
 
     if (getScheduleRef().get() != null) {
       getScheduleRef().get().cancel(false);
@@ -693,7 +704,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     return myScheduleRef;
   }
 
-  @VisibleForTesting
   int getScrollDurationMs() {
     return SCROLL_DURATION_MS;
   }
@@ -830,7 +840,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     @Override
     public ConfigurationStateManager getStateManager() {
       // Nav editor doesn't want persistent configuration state.
-      return new ConfigurationStateManager();
+      return new StudioConfigurationStateManager();
     }
   }
 }

@@ -56,8 +56,8 @@ import com.android.ide.common.resources.ResourceItem.XLIFF_NAMESPACE_PREFIX
 import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
-import com.android.ide.common.resources.ValueXmlHelper
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.escape.string.StringResourceEscaper
 import com.android.ide.common.resources.toFileResourcePathString
 import com.android.ide.common.util.PathString
 import com.android.resources.FolderTypeRelationship
@@ -70,7 +70,6 @@ import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.GutterIconCache
@@ -79,7 +78,10 @@ import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.stripIdPrefix
+import com.android.tools.res.ResourceNamespacing
 import com.android.utils.SdkUtils
+import com.android.utils.isBindingExpression
+import com.google.common.base.CharMatcher
 import com.google.common.base.Joiner
 import com.google.common.base.Preconditions
 import com.google.common.collect.Lists
@@ -149,12 +151,13 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import org.jetbrains.android.sdk.AndroidPlatform
+import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.Contract
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import org.jetbrains.kotlin.util.collectionUtils.filterIsInstanceAnd
 import java.awt.Color
 import java.io.File
@@ -170,6 +173,13 @@ private const val LAYOUT_HEIGHT_PROPERTY = "LAYOUT_HEIGHT"
 private val LOG: Logger = Logger.getInstance("IdeResourcesUtil.kt")
 const val RESOURCE_ICON_SIZE = 16
 const val ALPHA_FLOATING_ERROR_FORMAT = "The alpha attribute in %1\$s/%2\$s does not resolve to a floating point number"
+const val DEFAULT_STRING_RESOURCE_FILE_NAME = "strings.xml"
+
+/** Matches characters that are not allowed in a resource name. */
+private val RESOURCE_NAME_DISALLOWED_CHARS = CharMatcher.inRange('a', 'z')
+  .or(CharMatcher.inRange('A', 'Z'))
+  .or(CharMatcher.inRange('0', '9'))
+  .negate()
 
 @JvmField
 val VALUE_RESOURCE_TYPES: EnumSet<ResourceType> = EnumSet.of(
@@ -219,29 +229,6 @@ fun ResourceType.isValueBased(): Boolean {
   return FolderTypeRelationship.getRelatedFolders(this).contains(ResourceFolderType.VALUES)
 }
 
-/**
- * Checks if this a resource that is defined in a file named by the resource plus the extension.
- *
- * Some resource types can be defined **both** as a separate XML file as well as
- * defined within a value XML file along with other properties. This method will
- * return true for these resource types as well. In other words, a ResourceType can
- * return true for both [ResourceType.isValueBased] and [ResourceType.isFileBased].
- *
- * @return true if the given resource type is stored in a file named by the resource
- */
-fun ResourceType.isFileBased(): Boolean {
-  if (this == ResourceType.ID) {
-    // The folder types for ID is not only VALUES but also
-    // LAYOUT and MENU. However, unlike resources, they are only defined
-    // inline there so for the purposes of isFileBased
-    // (where the intent is to figure out files that are uniquely identified
-    // by a resource's name) this method should return false anyway.
-    return false
-  }
-
-  return FolderTypeRelationship.getRelatedFolders(this).firstOrNull { it != ResourceFolderType.VALUES } != null
-}
-
 fun getFolderType(file: PsiFile?): ResourceFolderType? {
   return when {
     file == null -> null
@@ -257,8 +244,6 @@ fun getFolderType(file: PsiFile?): ResourceFolderType? {
     }
   }
 }
-
-fun getFolderType(file: VirtualFile?): ResourceFolderType? = file?.parent?.let { ResourceFolderType.getFolderType(it.name) }
 
 fun getFolderType(file: ResourceFile): ResourceFolderType? = file.file.parentFile?.let { ResourceFolderType.getFolderType(it.name) }
 
@@ -607,7 +592,7 @@ val PsiElement.resourceNamespace: ResourceNamespace?
     return if (getUserData(ModuleUtilCore.KEY_MODULE) != null
                || (vFile != null && (projectFileIndex.isInSource(vFile) || projectFileIndex.getModuleForFile(vFile) != null))) {
       AndroidFacet.getInstance(this)
-        ?.let { ResourceRepositoryManager.getInstance(it) }
+        ?.let { StudioResourceRepositoryManager.getInstance(it) }
         ?.namespace
     }
     else {
@@ -827,7 +812,7 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
 
   var depth = 0
   while (value != null && depth < MAX_RESOURCE_INDIRECTION) {
-    if (DataBindingUtil.isBindingExpression(value)) {
+    if (isBindingExpression(value)) {
       value = DataBindingUtil.getBindingExprDefault(value) ?: return null
     }
     if (value.startsWith(PREFIX_RESOURCE_REF)) {
@@ -843,16 +828,6 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
 
   return null
 }
-
-/**
- * Checks if the given path points to a file resource. The resource path can point
- * to either file on disk, or a ZIP file entry. If the candidate path contains
- * "file:" or "apk:" scheme prefix, the method returns true without doing any I/O.
- * Otherwise, the local file system is checked for existence of the file.
- */
-fun isFileResource(candidatePath: String): Boolean =
-  candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || candidatePath.startsWith("jar:") ||
-  File(candidatePath).isFile
 
 /**
  * Returns the given resource name, and possibly prepends a project-configured prefix to the name
@@ -918,9 +893,9 @@ fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
     }
   }
 
-  val repositoryManager = ResourceRepositoryManager.getInstance(element) ?: return ResourceNamespace.Resolver.EMPTY_RESOLVER
+  val repositoryManager = StudioResourceRepositoryManager.getInstance(element) ?: return ResourceNamespace.Resolver.EMPTY_RESOLVER
 
-  return if (repositoryManager.namespacing == Namespacing.DISABLED) {
+  return if (repositoryManager.namespacing == ResourceNamespacing.DISABLED) {
     // In non-namespaced projects, framework is the only namespace, but the resource merger messes with namespaces at build time, so you
     // have to use "android" as the prefix, which is equivalent not to defining a prefix at all (since "android" is the package name of the
     // framework). We also need to keep in mind we recognize "tools" even without the xmlns definition in non-namespaced projects.
@@ -1080,7 +1055,7 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
 // TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module)
 //                   into repositories, items and values.
 fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
-  val repositoryManager = ResourceRepositoryManager.getInstance(facet)
+  val repositoryManager = StudioResourceRepositoryManager.getInstance(facet)
   val repository = repositoryManager.getResourcesForNamespace(namespace)
   // For some unclear reason nonexistent resources in the application workspace are treated differently from the framework ones.
   // This non-intuitive behavior is required for the DerivedStyleFinderTest to pass.
@@ -1175,7 +1150,7 @@ fun requiresDynamicFeatureModuleResources(context: PsiElement): Boolean {
 }
 
 fun normalizeXmlResourceValue(value: String): String {
-  return ValueXmlHelper.escapeResourceString(value, false)
+  return StringResourceEscaper.escape(value, false)
 }
 
 fun packageToRClass(packageName: String): String {
@@ -1488,22 +1463,16 @@ fun getResourceSubdirs(resourceType: ResourceFolderType, resourceDirs: Iterable<
 }
 
 fun getDefaultResourceFileName(type: ResourceType): String? {
-  if (ResourceType.PLURALS == type || ResourceType.STRING == type) {
-    return "strings.xml"
+  return when (type) {
+    ResourceType.STRING, ResourceType.PLURALS -> DEFAULT_STRING_RESOURCE_FILE_NAME
+    ResourceType.ATTR, ResourceType.STYLEABLE -> "attrs.xml"
+    // Lots of unit tests assume drawable aliases are written in "drawables.xml" but going
+    // forward let's combine both layouts and drawables in refs.xml as is done in the templates:
+    ResourceType.LAYOUT, ResourceType.DRAWABLE ->
+      if (ApplicationManager.getApplication().isUnitTestMode) (type.getName() + "s.xml") else "refs.xml"
+    in VALUE_RESOURCE_TYPES -> type.getName() + "s.xml"
+    else -> null
   }
-  if (VALUE_RESOURCE_TYPES.contains(type)) {
-    return if (type == ResourceType.LAYOUT // Lots of unit tests assume drawable aliases are written in "drawables.xml" but going
-               // forward lets combine both layouts and drawables in refs.xml as is done in the templates:
-               || type == ResourceType.DRAWABLE && !ApplicationManager.getApplication().isUnitTestMode) {
-      "refs.xml"
-    }
-    else type.getName() + "s.xml"
-  }
-  return if (ResourceType.ATTR == type ||
-             ResourceType.STYLEABLE == type) {
-    "attrs.xml"
-  }
-  else null
 }
 
 fun getValueResourcesFromElement(resourceType: ResourceType, resources: Resources): List<ResourceElement> {
@@ -1969,7 +1938,7 @@ fun getReferredResourceOrManifestField(
 }
 
 fun getRClassNamespace(facet: AndroidFacet, qName: String?): ResourceNamespace {
-  return if (ResourceRepositoryManager.getInstance(facet).namespacing == Namespacing.DISABLED) {
+  return if (StudioResourceRepositoryManager.getInstance(facet).namespacing == ResourceNamespacing.DISABLED) {
     ResourceNamespace.RES_AUTO
   }
   else {
@@ -2040,10 +2009,10 @@ fun ensureFilesWritable(project: Project, files: Collection<VirtualFile>): Boole
  *
  * @param facets set of facets which may have resource directories
  */
-fun getResourceDirectoriesForFacets(facets: List<AndroidFacet?>): Map<VirtualFile, AndroidFacet?> {
-  val resDirectories: MutableMap<VirtualFile, AndroidFacet?> = HashMap()
+fun getResourceDirectoriesForFacets(facets: List<AndroidFacet>): Map<VirtualFile, AndroidFacet> {
+  val resDirectories = HashMap<VirtualFile, AndroidFacet>()
   for (facet in facets) {
-    for (resourceDir in ResourceFolderManager.getInstance(facet!!).folders) {
+    for (resourceDir in ResourceFolderManager.getInstance(facet).folders) {
       if (!resDirectories.containsKey(resourceDir)) {
         resDirectories[resourceDir] = facet
       }
@@ -2232,9 +2201,7 @@ fun createFileResource(
   }
   if (ResourceType.LAYOUT.getName() == resourceType) {
     val module = ModuleUtilCore.findModuleForPsiElement(resSubdir)
-    val platform = if (module != null) AndroidPlatform.getInstance(
-      module)
-    else null
+    val platform = if (module != null) getInstance(module) else null
     val apiLevel = platform?.apiLevel ?: -1
     val value = if (apiLevel == -1 || apiLevel >= 8) "match_parent" else "fill_parent"
     properties.setProperty(LAYOUT_WIDTH_PROPERTY, value)
@@ -2332,6 +2299,14 @@ fun findOrCreateStateListFiles(
   }
 
   return if (foundFiles) files else null
+}
+
+fun buildResourceNameFromStringValue(resourceValue: String): String? {
+  val result = RESOURCE_NAME_DISALLOWED_CHARS.trimAndCollapseFrom(resourceValue, '_').toLowerCaseAsciiOnly()
+
+  if (result.isEmpty()) return null
+  if (CharMatcher.inRange('0', '9').matches(result[0])) return "_$result"
+  return result
 }
 
 /**

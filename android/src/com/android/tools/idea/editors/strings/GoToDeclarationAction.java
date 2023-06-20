@@ -32,13 +32,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class GoToDeclarationAction extends AbstractAction {
 
-  private final StringResourceViewPanel myPanel;
+  private final Project myProject;
 
   @Nullable private ResourceItem myItemAtMouseClickLocation;
 
-  public GoToDeclarationAction(@NotNull StringResourceViewPanel panel) {
+  public GoToDeclarationAction(@NotNull Project project) {
     super("Go to Declaration");
-    myPanel = panel;
+    myProject = project;
   }
 
   public void update(@NotNull JMenuItem goTo, @NotNull FrozenColumnTableEvent event) {
@@ -56,14 +56,13 @@ public class GoToDeclarationAction extends AbstractAction {
 
   @Override
   public void actionPerformed(@Nullable ActionEvent e) {
-    Project project = myPanel.getFacet().getModule().getProject();
     assert myItemAtMouseClickLocation != null;
-    XmlTag tag = IdeResourcesUtil.getItemTag(project, myItemAtMouseClickLocation);
+    XmlTag tag = IdeResourcesUtil.getItemTag(myProject, myItemAtMouseClickLocation);
     if (tag == null) {
       // TODO strings can also be defined in gradle, find a way to go there too
       return;
     }
-    OpenFileDescriptor descriptor = new OpenFileDescriptor(project, tag.getContainingFile().getVirtualFile(), tag.getTextOffset());
-    FileEditorManager.getInstance(project).openEditor(descriptor, true);
+    OpenFileDescriptor descriptor = new OpenFileDescriptor(myProject, tag.getContainingFile().getVirtualFile(), tag.getTextOffset());
+    FileEditorManager.getInstance(myProject).openEditor(descriptor, true);
   }
 }

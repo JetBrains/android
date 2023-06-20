@@ -15,37 +15,43 @@
  */
 package com.android.tools.idea.tests.gui.editors;
 
+import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
+import com.android.tools.idea.tests.util.WizardUtils;
+import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import javax.swing.JDialog;
+import org.fest.swing.fixture.DialogFixture;
+import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.timing.Wait;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.fest.swing.core.matcher.DialogMatcher.withTitle;
 import static org.fest.swing.core.matcher.JButtonMatcher.withText;
 import static org.fest.swing.finder.WindowFinder.findDialog;
 
-import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.util.WizardUtils;
-import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.util.concurrent.TimeUnit;
-import org.fest.swing.fixture.DialogFixture;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class InferNullityTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Activity";
+  protected static final String EMPTY_VIEWS_ACTIVITY_TEMPLATE = "Empty Views Activity";
   private static String ANALYZE = "Analyze";
 
   @Before
   public void setUp() throws Exception {
-    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
+    WizardUtils.createNewProject(guiTest, EMPTY_VIEWS_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
     guiTest.robot().waitForIdle();
   }
 
@@ -58,7 +64,7 @@ public class InferNullityTest {
    * <p>
    *   <pre>
    *   Test Steps:
-   *   1. Create Empty Activity project and add the sample methods to MainActivity class
+   *   1. Create Empty Views Activity project and add the sample methods to MainActivity class
    *   2. Click on Analyze > Infer Nullity.
    *   3. Select Annotations scope as "Whole Project" and click OK.
    *   4. Click OK when prompted to add the support-annotations dependency to the project.
@@ -88,14 +94,20 @@ public class InferNullityTest {
     DialogFixture specifyScopeDialog = findDialog(withTitle("Specify Infer Nullity Scope"))
       .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
     specifyScopeDialog.button(withText(ANALYZE)).click();
-
     guiTest.waitForBackgroundTasks();
 
-    EditorFixture editorFixture = ideFrame
-      .getEditor()
-      .open("/app/src/main/java/com/google/myapplication/MainActivity.java");
-    String codeContents = editorFixture.getCurrentFileContents();
-    assertThat(codeContents).contains("@Nullable");
-    assertThat(codeContents).contains("@NonNull");
+    DialogFixture addDependecyDialog = findDialog(withTitle("Infer Nullity Annotations"))
+      .withTimeout(SECONDS.toMillis(30)).using(guiTest.robot());
+    addDependecyDialog.button(withText("OK")).click();
+    guiTest.waitForBackgroundTasks();
+
+    editor.open("app/build.gradle.kts");
+    String buildGradleContents = editor.getCurrentFileContents();
+    assertThat(buildGradleContents).contains("androidx.annotation:annotation");
+
+    editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java");
+    String codeContents = editor.getCurrentFileContents();
+    assertThat(codeContents).contains("@androidx.annotation.Nullable");
+    assertThat(codeContents).contains("@androidx.annotation.NonNull");
   }
 }

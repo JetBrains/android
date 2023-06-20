@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "google.dynamicfeatureapplication"
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
     useLibrary 'org.apache.http.legacy'

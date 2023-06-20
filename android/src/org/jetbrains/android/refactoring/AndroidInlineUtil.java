@@ -1,4 +1,3 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.refactoring;
 
 import com.intellij.codeInsight.PsiEquivalenceUtil;
@@ -30,7 +29,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class AndroidInlineUtil {
+class AndroidInlineUtil {
   private AndroidInlineUtil() {
   }
 

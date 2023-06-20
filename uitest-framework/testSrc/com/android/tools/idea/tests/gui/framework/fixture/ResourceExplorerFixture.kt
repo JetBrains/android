@@ -23,6 +23,7 @@ import com.android.tools.idea.ui.resourcemanager.widget.OverflowingTabbedPaneWra
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.SearchTextField
+import com.intellij.ui.components.labels.LinkLabel
 import org.fest.swing.core.Robot
 import org.fest.swing.core.TypeMatcher
 import org.fest.swing.exception.LocationUnavailableException
@@ -145,7 +146,11 @@ class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) 
     return this
   }
 
-  private fun findResource(resourceName: String): JListItemFixture {
+  /**
+   * Selects assert by name in the resource manager
+   *
+   */
+  fun findResource(resourceName: String): JListItemFixture {
     @Suppress("UNCHECKED_CAST")
     val listViews = robot().finder().findAll(target(), TypeMatcher(AssetListView::class.java)) as Collection<AssetListView>
     listViews.forEach {
@@ -157,5 +162,16 @@ class ResourceExplorerFixture private constructor(robot: Robot, target: JPanel) 
       }
     }
     throw Exception("Could not find resource: ${resourceName}")
+  }
+
+
+  fun findLinklabelByTextContains(text: String) : LinkLabelFixture{
+    val listLinkLabels = robot().finder().findAll(target(), Matchers.byType(LinkLabel::class.java)) as Collection<LinkLabel<*>>
+    listLinkLabels.forEach{
+      if(it.text !== null && it.text.contains(text)){
+        return LinkLabelFixture(robot(), it)
+      }
+    }
+    throw Exception("Unable to find link with  $text")
   }
 }

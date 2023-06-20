@@ -16,20 +16,16 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.util.LaunchStatus;
-import com.intellij.execution.Executor;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class LaunchContext {
-  private final Project project;
-  private final Executor executor;
+  private final ExecutionEnvironment env;
   private final IDevice device;
-  private final LaunchStatus launchStatus;
-  private final ConsolePrinter consolePrinter;
+  private final ConsoleView consolePrinter;
 
   private final ProcessHandler processHandler;
   private final ProgressIndicator progressIndicator;
@@ -37,40 +33,21 @@ public class LaunchContext {
   private boolean launchApp = true;
 
   /**
-   * @param project        current project this launch is executing under
-   * @param executor       a metadata of the executor of this task. Note that this is not a
-   *                       {@code java.util.concurrent.Executor}
+   * @param env
    * @param device         an Android device to perform this task against
-   * @param launchStatus   a current status of this launch operation. An implementor of this method
-   *                       should check the status periodically and cancel ongoing operations if it is
-   *                       being terminated.
    * @param consolePrinter use this printer to output arbitrary messages
    * @param processHandler new {@link ProcessHandler} that the launch will be associated with
    */
-  public LaunchContext(@NotNull Project project,
-                       @NotNull Executor executor,
+  public LaunchContext(@NotNull ExecutionEnvironment env,
                        @NotNull IDevice device,
-                       @NotNull LaunchStatus launchStatus,
-                       @NotNull ConsolePrinter consolePrinter,
+                       @NotNull ConsoleView consoleView,
                        @NotNull ProcessHandler processHandler,
                        @NotNull ProgressIndicator progressIndicator) {
-    this.project = project;
-    this.executor = executor;
+    this.env = env;
     this.device = device;
-    this.launchStatus = launchStatus;
-    this.consolePrinter = consolePrinter;
+    this.consolePrinter = consoleView;
     this.processHandler = processHandler;
     this.progressIndicator = progressIndicator;
-  }
-
-  @NotNull
-  public Project getProject() {
-    return project;
-  }
-
-  @NotNull
-  public Executor getExecutor() {
-    return executor;
   }
 
   @NotNull
@@ -79,12 +56,7 @@ public class LaunchContext {
   }
 
   @NotNull
-  public LaunchStatus getLaunchStatus() {
-    return launchStatus;
-  }
-
-  @NotNull
-  public ConsolePrinter getConsolePrinter() {
+  public ConsoleView getConsoleView() {
     return consolePrinter;
   }
 
@@ -111,5 +83,9 @@ public class LaunchContext {
 
   public boolean getLaunchApp() {
     return launchApp;
+  }
+
+  public ExecutionEnvironment getEnv() {
+    return env;
   }
 }

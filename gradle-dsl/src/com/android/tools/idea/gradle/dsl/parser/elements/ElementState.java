@@ -42,4 +42,8 @@ public enum ElementState {
   public boolean isSemanticallyRelevant() {
     return !Arrays.asList(TO_BE_REMOVED, HIDDEN).contains(this);
   }
+  public boolean isNotHidden() {
+    return !Arrays.asList(HIDDEN).contains(this);
+  }
+
 }

@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
-import static com.google.common.truth.Truth.assertThat;
-
-import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.Test;
+
+import java.io.File;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class PackageValueTest {
   @Test

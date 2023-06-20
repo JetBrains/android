@@ -21,16 +21,17 @@ import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 
 final class PairingTableModel extends AbstractTableModel {
-  static final int DEVICE_MODEL_COLUMN_INDEX = 0;
-  static final int STATUS_MODEL_COLUMN_INDEX = 1;
+  static final int DEVICE_ICON_MODEL_COLUMN_INDEX = 0;
+  static final int DEVICE_MODEL_COLUMN_INDEX = 1;
+  static final int STATUS_MODEL_COLUMN_INDEX = 2;
 
-  private @NotNull List<@NotNull Pairing> myPairings = Collections.emptyList();
+  private @NotNull List<Pairing> myPairings = Collections.emptyList();
 
-  @NotNull List<@NotNull Pairing> getPairings() {
+  @NotNull List<Pairing> getPairings() {
     return myPairings;
   }
 
-  void setPairings(@NotNull List<@NotNull Pairing> pairings) {
+  void setPairings(@NotNull List<Pairing> pairings) {
     myPairings = pairings;
     fireTableDataChanged();
   }
@@ -42,12 +43,14 @@ final class PairingTableModel extends AbstractTableModel {
 
   @Override
   public int getColumnCount() {
-    return 2;
+    return 3;
   }
 
   @Override
   public @NotNull String getColumnName(int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        return "";
       case DEVICE_MODEL_COLUMN_INDEX:
         return "Device";
       case STATUS_MODEL_COLUMN_INDEX:
@@ -60,10 +63,12 @@ final class PairingTableModel extends AbstractTableModel {
   @Override
   public @NotNull Class<?> getColumnClass(int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        return DeviceType.class;
       case DEVICE_MODEL_COLUMN_INDEX:
         return Device.class;
       case STATUS_MODEL_COLUMN_INDEX:
-        return Object.class;
+        return Status.class;
       default:
         throw new AssertionError(modelColumnIndex);
     }
@@ -72,10 +77,12 @@ final class PairingTableModel extends AbstractTableModel {
   @Override
   public @NotNull Object getValueAt(int modelRowIndex, int modelColumnIndex) {
     switch (modelColumnIndex) {
+      case DEVICE_ICON_MODEL_COLUMN_INDEX:
+        return myPairings.get(modelRowIndex).getOtherDevice().getType();
       case DEVICE_MODEL_COLUMN_INDEX:
         return myPairings.get(modelRowIndex).getOtherDevice();
       case STATUS_MODEL_COLUMN_INDEX:
-        return myPairings.get(modelRowIndex).getStatus();
+        return myPairings.get(modelRowIndex).getOtherDevice().getStatus();
       default:
         throw new AssertionError(modelColumnIndex);
     }

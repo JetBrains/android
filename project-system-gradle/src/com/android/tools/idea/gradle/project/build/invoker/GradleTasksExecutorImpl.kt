@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.build.invoker
 
 import com.android.builder.model.PROPERTY_ATTRIBUTION_FILE_LOCATION
 import com.android.builder.model.PROPERTY_INVOKED_FROM_IDE
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
@@ -30,9 +30,7 @@ import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionM
 import com.android.tools.idea.gradle.project.build.attribution.getAgpAttributionFileDir
 import com.android.tools.idea.gradle.project.build.attribution.isBuildAttributionEnabledForProject
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
-import com.android.tools.idea.gradle.project.common.addAndroidSupportVersionArg
 import com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleBuilds
@@ -48,15 +46,14 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.compiler.CompilerConfiguration
 import com.intellij.compiler.CompilerManagerImpl
+import com.intellij.ide.SaveAndSyncHandler
 import com.intellij.notification.Notification
-import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.compiler.CompilerManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationEvent
@@ -65,6 +62,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -94,7 +92,6 @@ import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.model.build.BuildEnvironment
-import org.jetbrains.annotations.NonNls
 import org.jetbrains.plugins.gradle.service.GradleFileModificationTracker
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
@@ -158,6 +155,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     override fun run(indicator: ProgressIndicator) {
       try {
         myProgressIndicator = indicator
+        indicator.text = this.title
         val projectManager = ProjectManager.getInstance()
         val project = myRequest.project
         val closeListener: CloseListener = CloseListener()
@@ -186,6 +184,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             if (acquired) {
               semaphore.release()
             }
+            SaveAndSyncHandler.getInstance().scheduleRefresh()
           }
         }
       } catch (t: Throwable) {
@@ -250,9 +249,8 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
             commandLineArguments.add(GradleBuilds.PARALLEL_BUILD_OPTION)
           }
           commandLineArguments.add(AndroidGradleSettings.createProjectProperty(PROPERTY_INVOKED_FROM_IDE, true))
-          addAndroidSupportVersionArg(commandLineArguments)
           if (enableBuildAttribution) {
-            val attributionFileDir = getAgpAttributionFileDir(myRequest)
+            val attributionFileDir = getAgpAttributionFileDir(myRequest.data)
             commandLineArguments.add(
               AndroidGradleSettings.createProjectProperty(
                 PROPERTY_ATTRIBUTION_FILE_LOCATION,
@@ -353,30 +351,32 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           buildError = e
           handleTaskExecutionError(e)
         } finally {
-          val application = ApplicationManager.getApplication()
-          if (buildError != null) {
-            buildAttributionManager?.onBuildFailure(myRequest)
-            if (wasBuildCanceled(buildError)) {
-              buildState.buildFinished(BuildStatus.CANCELED)
-              taskListener.onCancel(id)
-            } else {
-              buildState.buildFinished(BuildStatus.FAILED)
+          executeWithoutProcessCanceledException {
+            val application = ApplicationManager.getApplication()
+            if (buildError != null) {
+              buildAttributionManager?.onBuildFailure(myRequest)
+              if (wasBuildCanceled(buildError)) {
+                buildState.buildFinished(BuildStatus.CANCELED)
+                taskListener.onCancel(id)
+              } else {
+                buildState.buildFinished(BuildStatus.FAILED)
               val buildEnvironment: BuildEnvironment? = GradleExecutionHelper.getBuildEnvironment(connection, id, taskListener,
                                                                                                  cancellationTokenSource, executionSettings)
-              val projectResolverChain = GradleProjectResolver.createProjectResolverChain()
+                val projectResolverChain = GradleProjectResolver.createProjectResolverChain()
               val userFriendlyError = projectResolverChain.getUserFriendlyError(buildEnvironment, buildError, gradleRootProjectPath, null)
-              taskListener.onFailure(id, userFriendlyError)
+                taskListener.onFailure(id, userFriendlyError)
+              }
             }
-          }
-          taskListener.onEnd(id)
-          myBuildStopper.remove(id)
-          if (GuiTestingService.getInstance().isGuiTestingMode) {
-            val testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY)
-            if (StringUtil.isNotEmpty(testOutput)) {
-              application.putUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null)
+            taskListener.onEnd(id)
+            myBuildStopper.remove(id)
+            if (GuiTestingService.getInstance().isGuiTestingMode) {
+              val testOutput = application.getUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY)
+              if (StringUtil.isNotEmpty(testOutput)) {
+                application.putUserData(GuiTestingService.GRADLE_BUILD_OUTPUT_IN_GUI_TEST_KEY, null)
+              }
             }
+            application.invokeLater { notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(TimeUnit.MILLISECONDS)) }
           }
-          application.invokeLater { notifyGradleInvocationCompleted(buildState, stopwatch.elapsed(TimeUnit.MILLISECONDS)) }
           if (!getProject().isDisposed) {
             return@Function GradleInvocationResult(myRequest.rootProjectPath, myRequest.gradleTasks, buildError, model.get())
           }
@@ -410,11 +410,8 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     private fun reportAgpVersionMismatch(project: Project, buildInfo: BasicBuildAttributionInfo) {
       val syncedAgpVersions = ProjectStructure.getInstance(project).androidPluginVersions.allVersions
       if (!syncedAgpVersions.contains(buildInfo.agpVersion)) {
-        val incompatibilityMessage = String.format("Project was built with Android Gradle Plugin (AGP) %s but it is synced with %s.",
-                                                   buildInfo.agpVersion,
-                                                   syncedAgpVersions.joinToString(", ") { obj: GradleVersion? -> obj.toString() }
-        )
-        logger.error(incompatibilityMessage)
+        val incompatibilityMessage = getAgpIncompatibilityMessage(buildInfo.agpVersion, syncedAgpVersions)
+        logger.warn(incompatibilityMessage)
         val quickFix = SyncProjectWithExtraCommandLineOptionsHyperlink("Sync project", "")
         NotificationGroupManager.getInstance()
           .getNotificationGroup("Android Gradle Sync Issues")
@@ -437,6 +434,14 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
         throw ProcessCanceledException()
       }
     }
+
+    private fun getAgpIncompatibilityMessage(builtAgpVersion: AgpVersion?, syncedAgpVersions: List<AgpVersion>) =
+      if (builtAgpVersion == null || syncedAgpVersions.isEmpty()) {
+        "Unable to determine project Android Gradle Plugin (AGP) version."
+      } else {
+        String.format("Project was built with Android Gradle Plugin (AGP) %s but it is synced with %s.",
+                      builtAgpVersion, syncedAgpVersions.joinToString(", ") { it.toString() })
+      }
 
     private fun handleTaskExecutionError(e: Throwable) {
       if (myProgressIndicator.isCanceled) {
@@ -571,9 +576,9 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
 
     companion object {
       private const val ONE_MINUTE_MS = 60L /*sec*/ * 1000L /*millisec*/
-      val LOGGING_NOTIFICATION = NotificationGroup.logOnlyGroup("Gradle Build (Logging)", PluginId.getId("org.jetbrains.android"))
-      val BALLOON_NOTIFICATION = NotificationGroup.balloonGroup("Gradle Build (Balloon)", PluginId.getId("org.jetbrains.android"))
-      private val APP_ICON_ID: @NonNls String? = "compiler"
+      val LOGGING_NOTIFICATION = NotificationGroupManager.getInstance().getNotificationGroup("Gradle Build (Logging)")!!
+      val BALLOON_NOTIFICATION = NotificationGroupManager.getInstance().getNotificationGroup("Gradle Build (Balloon)")!!
+      private val APP_ICON_ID: String? = "compiler"
       private const val GRADLE_RUNNING_MSG_TITLE = "Gradle Running"
       private const val PASSWORD_KEY_SUFFIX = ".password="
       private fun wasBuildCanceled(buildError: Throwable): Boolean {
@@ -599,3 +604,11 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     }
   }
 }
+
+private inline fun <T> executeWithoutProcessCanceledException(crossinline action: () -> T): T {
+  var result: T? = null
+  ProgressManager.getInstance().executeNonCancelableSection { result = action() }
+  @Suppress("UNCHECKED_CAST")
+  return result as T
+}
+

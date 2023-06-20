@@ -9,6 +9,12 @@ SYNC_PERFGATE_TAGS = [
     "perfgate",
 ]
 
+SYNC_SMOKE_TAGS = [
+    "block-network",
+    "no_test_mac",
+    "no_test_windows",
+]
+
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.sync-perf-tests",
@@ -18,46 +24,31 @@ iml_module(
         "AverageSmoke": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.AverageSmokeTest",
             "timeout": "long",
-            "tags": [
-                "no_test_mac",
-                "no_test_windows",
-            ],
+            "tags": SYNC_SMOKE_TAGS,
         },
         "Base100Smoke": {
             "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100SmokeTest",
             "timeout": "long",
-            "tags": [
-                "no_test_mac",
-                "no_test_windows",
-            ],
+            "tags": SYNC_SMOKE_TAGS,
         },
         "Base100KotlinSmoke": {
             "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinSmokeTest",
             "timeout": "long",
-            "tags": [
-                "no_test_mac",
-                "no_test_windows",
-            ],
+            "tags": SYNC_SMOKE_TAGS,
         },
         "DolphinSmoke": {
             "data": ["//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinSmokeTest",
             "timeout": "long",
-            "tags": [
-                "no_test_mac",
-                "no_test_windows",
-            ],
+            "tags": SYNC_SMOKE_TAGS,
         },
         "SantaTrackerSmoke": {
             "data": ["//prebuilts/studio/buildbenchmarks:SantaTracker_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.SantaTrackerSmokeTest",
             "timeout": "long",
-            "tags": [
-                "no_test_mac",
-                "no_test_windows",
-            ],
+            "tags": SYNC_SMOKE_TAGS,
         },
         # Perfgate tests
         # We split the V1 and V2 tests in different shards so that project loading from one
@@ -80,14 +71,6 @@ iml_module(
         "Base100KotlinV2": {
             "data": ["//prebuilts/studio/buildbenchmarks:Base100_project"],
             "test_filter": "com.android.tools.idea.gradle.project.sync.perf.Base100KotlinPerfTestV2",
-            "tags": SYNC_PERFGATE_TAGS,
-        },
-        "DolphinV1": {
-            "data": [
-                "//prebuilts/studio/buildbenchmarks/dolphin.3627ef8a",
-                "//prebuilts/studio/sdk:ndk-21",
-            ],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.perf.DolphinPerfTestV1",
             "tags": SYNC_PERFGATE_TAGS,
         },
         "DolphinV2": {
@@ -127,9 +110,10 @@ iml_module(
     test_class = "com.android.tools.idea.SyncPerfTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
         "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/android-32",  # Used for model v1 tests that needs AGP 7.1 (which needs compile sdk 32)
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//tools/adt/idea/android/annotations",
@@ -162,6 +146,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
     ],
 )
 
@@ -179,6 +164,7 @@ maven_repository(
         "@maven//:com.google.guava.guava_19.0",
         "@maven//:com.jakewharton.auto.value.auto-value-annotations_1.2-update1",
         "@maven//:io.opentracing.opentracing-impl_0.13.0",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
     ],
     visibility = ["//visibility:public"],
 )

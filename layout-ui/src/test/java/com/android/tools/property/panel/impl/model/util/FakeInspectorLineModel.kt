@@ -57,7 +57,7 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
   }
 
   override fun refresh() {
-    listeners.toTypedArray().forEach { it.valueChanged() }
+    fireValueChanged()
   }
 
   override fun addValueChangedListener(listener: ValueChangedListener) {
@@ -66,6 +66,10 @@ open class FakeInspectorLineModel(val type: FakeLineType) : InspectorLineModel {
 
   override fun removeValueChangedListener(listener: ValueChangedListener) {
     listeners.remove(listener)
+  }
+
+  protected fun fireValueChanged() {
+    listeners.toTypedArray().forEach { it.valueChanged() }
   }
 }
 

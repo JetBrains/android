@@ -58,6 +58,22 @@ interface CpuSystemTraceData {
   val memoryCounters: Map<String, List<SeriesData<Long>>>
 
   /**
+   * The power rail counters for the process selected for this capture.
+   *
+   * For each power rail counter (those that starts with "power.rails.", like "power.rails.modem") present in the system.
+   * The returned map will contain the corresponding data series for that counter.
+   */
+  val powerRailCounters: Map<String, List<SeriesData<Long>>>
+
+  /**
+   * The battery drain counters for the process selected for this capture.
+   *
+   * For each battery drain counter (those that starts with "batt.", like "batt.charge") present in the system.
+   * The returned map will contain the corresponding data series for that counter.
+   */
+  val batteryDrainCounters: Map<String, List<SeriesData<Long>>>
+
+  /**
    * The CPU counters by CPU core.
    *
    * Each element of the list is a map of counter name to counter values for one CPU core.

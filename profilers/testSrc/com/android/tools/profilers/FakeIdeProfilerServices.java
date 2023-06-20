@@ -18,7 +18,7 @@ package com.android.tools.profilers;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.FakeNavSource;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
@@ -48,6 +48,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 
 public class FakeIdeProfilerServices implements IdeProfilerServices {
 
@@ -109,11 +110,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   private boolean myShouldProceedYesNoDialog = false;
 
   /**
-   * Whether the new pipeline is used or the old one for devices / processes / sessions.
-   */
-  private boolean myEventsPipelineEnabled = false;
-
-  /**
    * Whether custom event visualization should be visible
    */
   private boolean myCustomEventVisualizationEnabled = false;
@@ -121,7 +117,21 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
   /**
    * Whether we support profileable builds.
    */
-  private boolean myProfileablsBuildsEnabled = false;
+  private boolean myProfileablsBuildsEnabled = true;
+
+  /**
+   * Whether power and battery data tracks should be visible in system trace and if shown,
+   * which graph display style will be used for the power and battery tracks.
+   * Value of HIDE -> Hide both power + battery tracks.
+   * Value of MINMAX -> Show power rails is min-max view and battery counters in zero-based view.
+   * Value of DELTA -> Show power rails in delta view and battery counters in zero-based view.
+   */
+  private PowerProfilerDisplayMode mySystemTracePowerProfilerDisplayMode = PowerProfilerDisplayMode.HIDE;
+
+  /**
+   * Whether we support navigate-to-source action for Compose Tracing
+   */
+  private boolean myComposeTracingNavigateToSourceEnabled = true;
 
   /**
    * List of custom CPU profiling configurations.
@@ -242,13 +252,28 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isVerboseLoggingEnabled() {
+        return false;
+      }
+
+      @Override
+      public PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode() {
+        return mySystemTracePowerProfilerDisplayMode;
+      }
+
+      @Override
       public boolean isCustomEventVisualizationEnabled() {
         return myCustomEventVisualizationEnabled;
       }
 
       @Override
-      public boolean isUnifiedPipelineEnabled() {
-        return myEventsPipelineEnabled;
+      public boolean isComposeTracingNavigateToSourceEnabled() {
+        return myComposeTracingNavigateToSourceEnabled;
+      }
+
+      @Override
+      public boolean isTaskBasedUxEnabled() {
+        return false;
       }
     };
   }
@@ -313,18 +338,18 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     myShouldProceedYesNoDialog = shouldProceedYesNoDialog;
   }
 
-  public void addCustomProfilingConfiguration(String name, Cpu.CpuTraceType type) {
+  public void addCustomProfilingConfiguration(String name, TraceType type) {
     ProfilingConfiguration config;
-    if (type == Cpu.CpuTraceType.ART) {
+    if (type == TraceType.ART) {
       config = new ArtSampledConfiguration(name);
     }
-    else if (type == Cpu.CpuTraceType.SIMPLEPERF) {
+    else if (type == TraceType.SIMPLEPERF) {
       config = new SimpleperfConfiguration(name);
     }
-    else if (type == Cpu.CpuTraceType.PERFETTO) {
+    else if (type == TraceType.PERFETTO) {
       config = new PerfettoConfiguration(name);
     }
-    else if (type == Cpu.CpuTraceType.ATRACE) {
+    else if (type == TraceType.ATRACE) {
       config = new AtraceConfiguration(name);
     }
     else {
@@ -375,10 +400,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     return myTraceProcessorService;
   }
 
-  public void setTraceProcessorService(@NotNull TraceProcessorService service) {
-    myTraceProcessorService = service;
-  }
-
   @Nullable
   public Notification getNotification() {
     return myNotification;
@@ -396,13 +417,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     myIsJankDetectionUiEnabled = enabled;
   }
 
-  public void enableEventsPipeline(boolean enabled) {
-    myEventsPipelineEnabled = enabled;
-  }
-
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
 
-  public void enableProfileableBuilds(boolean enabled) {
-    myProfileablsBuildsEnabled = enabled;
+  public void setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode mode) {
+    mySystemTracePowerProfilerDisplayMode = mode;
   }
 }

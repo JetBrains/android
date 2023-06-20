@@ -23,10 +23,13 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.settings.DependencyResolutionManagementModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginManagementModel;
+import com.android.tools.idea.gradle.dsl.api.settings.PluginsBlockModel;
 import com.android.tools.idea.gradle.dsl.api.settings.PluginsModel;
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
 import com.google.common.collect.ImmutableSet;
@@ -467,6 +470,34 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testParsePluginsBlockInSettings() throws IOException {
+    writeToSettingsFile(TestFile.PARSE_PLUGINS_BLOCK);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    PluginsModel pluginsModel = settingsModel.plugins();
+    assertEquals("com.android.settings", pluginsModel.plugins().get(0).name().forceString());
+    assertEquals("7.4.0", pluginsModel.plugins().get(0).version().forceString());
+  }
+
+  @Test
+  public void testAddPluginsBlock() throws IOException {
+    writeToSettingsFile(TestFile.PARSE_DEPENDENCY_RESOLUTION_MANAGEMENT);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    settingsModel.plugins().applyPlugin("com.android.settings", "7.4.0");
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.ADD_PLUGINS_BLOCK_EXPECTED);
+
+  }
+
+  @Test
+  public void testAddPluginsBlockWithPluginManagement() throws IOException {
+    writeToSettingsFile(TestFile.EDIT_AND_APPLY_PLUGIN_MANAGEMENT);
+    GradleSettingsModel settingsModel = getGradleSettingsModel();
+    settingsModel.plugins().applyPlugin("com.android.settings", "7.4.0");
+    applyChanges(settingsModel);
+    verifyFileContents(mySettingsFile, TestFile.ADD_PLUGINS_BLOCK_WITH_PLUGIN_MANAGEMENT_EXPECTED);
+  }
+
+  @Test
   public void testParseVersionCatalogs() throws IOException {
     writeToSettingsFile(TestFile.PARSE_VERSION_CATALOGS);
     GradleSettingsModel settingsModel = getGradleSettingsModel();
@@ -526,9 +557,23 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     verifyFileContents(mySettingsFile, TestFile.EDIT_VERSION_CATALOGS_EXPECTED);
   }
 
-  private void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
-    runWriteCommandAction(myProject, () -> settingsModel.applyChanges());
-    assertFalse(settingsModel.isModified());
+  @Test
+  public void testAddAndApplyPluginsByReference() throws IOException {
+    writeToSettingsFile(TestFile.ADD_AND_APPLY_PLUGIN_MANAGEMENT);
+    writeToVersionCatalogFile(TestFile.VERSION_CATALOG);
+    ProjectBuildModel projectModel = getProjectBuildModel();
+    GradleSettingsModel settingsModel = projectModel.getProjectSettingsModel();
+    GradlePropertyModel foo = projectModel.getVersionCatalogsModel().plugins("libs").findProperty("foo");
+    GradlePropertyModel bar = projectModel.getVersionCatalogsModel().plugins("libs").findProperty("bar");
+    PluginsBlockModel pmpModel = settingsModel.pluginManagement().plugins();
+    pmpModel.applyPlugin(new ReferenceTo(foo, pmpModel), null);
+    pmpModel.applyPlugin(new ReferenceTo(bar, pmpModel), true);
+    PluginsBlockModel pModel = settingsModel.plugins();
+    pModel.applyPlugin(new ReferenceTo(foo, pmpModel), false);
+    pModel.applyPlugin(new ReferenceTo(bar, pmpModel), null);
+
+    applyChanges(projectModel);
+    verifyFileContents(mySettingsFile, TestFile.ADD_AND_APPLY_PLUGINS_BY_REFERENCE_EXPECTED);
   }
 
   enum TestFile implements TestFileName {
@@ -571,15 +616,20 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     ADD_AND_APPLY_PLUGIN_MANAGEMENT("addAndApplyPluginManagement"),
     ADD_AND_APPLY_PLUGIN_MANAGEMENT_EXPECTED("addAndApplyPluginManagementExpected"),
     ADD_AND_APPLY_PLUGIN_MANAGEMENT_THREE_ARGUMENTS_EXPECTED("addAndApplyPluginManagementThreeArgumentsExpected"),
+    ADD_AND_APPLY_PLUGINS_BY_REFERENCE_EXPECTED("addAndApplyPluginsByReferenceExpected"),
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT("editAndApplyPluginManagement"),
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT_EXPECTED("editAndApplyPluginManagementExpected"),
     EDIT_AND_APPLY_PLUGIN_MANAGEMENT_THREE_ARGUMENTS_EXPECTED("editAndApplyPluginManagementThreeArgumentsExpected"),
+    PARSE_PLUGINS_BLOCK("parsePluginsBlock"),
+    ADD_PLUGINS_BLOCK_EXPECTED("addPluginsBlockExpected"),
+    ADD_PLUGINS_BLOCK_WITH_PLUGIN_MANAGEMENT_EXPECTED("addPluginsBlockWithPluginManagementExpected"),
     PARSE_VERSION_CATALOGS("parseVersionCatalogs"),
     ADD_VERSION_CATALOGS("addVersionCatalogs"),
     ADD_VERSION_CATALOGS_EXPECTED("addVersionCatalogsExpected"),
     EDIT_VERSION_CATALOGS("editVersionCatalogs"),
     EDIT_VERSION_CATALOGS_EXPECTED("editVersionCatalogsExpected"),
     REMOVE_VERSION_CATALOGS("removeVersionCatalogs"),
+    VERSION_CATALOG("versionCatalog.toml"),
 
     ;
     @NotNull private @SystemDependent String path;

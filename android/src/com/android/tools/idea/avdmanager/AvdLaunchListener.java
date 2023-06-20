@@ -33,7 +33,16 @@ public interface AvdLaunchListener {
    *
    * @param avd the AVD that was launched
    * @param commandLine the command line used to start the emulator
+   * @param requestType the type of user action that triggered the launch
    * @param project the project on behalf of which the AVD was launched, or null if not applicable
    */
-  void avdLaunched(@NotNull AvdInfo avd, @NotNull GeneralCommandLine commandLine, @Nullable Project project);
+  void avdLaunched(
+      @NotNull AvdInfo avd, @NotNull GeneralCommandLine commandLine, @NotNull RequestType requestType, @Nullable Project project);
+
+  enum RequestType {
+    /** AVD started by a direct user action in Device Manager. */
+    DIRECT,
+    /** AVD started as a side effect of some other action, e.g., launching an app or a test. */
+    INDIRECT,
+  }
 }

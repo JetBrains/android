@@ -19,15 +19,17 @@ import com.android.tools.adtui.LegendComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -35,20 +37,27 @@ import java.util.concurrent.TimeUnit
 
 class CustomEventMonitorViewTest {
 
-  private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer, true)
   private lateinit var monitorView: CustomEventMonitorView
 
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, false)
+
+  @get:Rule
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CustomEventMonitorViewTest", transportService)
+
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient("CustomEventMonitorViewTestChannel"), FakeIdeProfilerServices(), timer)
+    val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices(), timer)
     transportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
 
-    val profilerView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilerView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     monitorView = CustomEventMonitorView(profilerView, CustomEventMonitor(profilers))
   }
 

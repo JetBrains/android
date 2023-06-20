@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 
 /**
  * Return true if Gradle plugin version supports side-by-side NDK
  */
-fun supportsSideBySideNdk(gradleModelNumber : GradleVersion) : Boolean {
+fun supportsSideBySideNdk(gradleModelNumber : AgpVersion) : Boolean {
   return gradleModelNumber.major >= 5 ||
          (gradleModelNumber.major == 4 && gradleModelNumber.minor > 0)
 }

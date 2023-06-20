@@ -12,10 +12,11 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module]",
-        "//tools/adt/idea/emulator:intellij.android.emulator[module]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module]",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
     ],
 )
 
@@ -33,12 +34,13 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
-        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
-        "//tools/adt/idea/emulator:intellij.android.emulator.tests[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-test-retention:intellij.android.testRetention[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
     ],
 )

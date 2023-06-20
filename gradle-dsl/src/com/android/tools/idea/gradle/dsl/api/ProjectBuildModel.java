@@ -125,7 +125,7 @@ public interface ProjectBuildModel {
   /**
    * This method should never be called on the UI thread.
    */
-  @Nullable GradleVersionCatalogModel getVersionCatalogModel();
+  @NotNull GradleVersionCatalogsModel getVersionCatalogsModel();
 
   /**
    * Applies changes to all {@link GradleBuildModel}s and the {@link GradleSettingsModel} that have been created by this model.
@@ -165,5 +165,5 @@ public interface ProjectBuildModel {
    * @return a list of all build models that can be created from Gradle build files.
    */
   @NotNull
-  List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<@NotNull Integer, @Nullable Integer> func);
+  List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<Integer, Integer> func);
 }

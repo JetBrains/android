@@ -35,6 +35,7 @@ data class BuilderInfo(val date: Date, val builder: AndroidStudioEvent.Builder)
  */
 class MetricsLogFileProvider(private val pathProvider: PathProvider,
                              private val size: Int = DEFAULT_SIZE) : DiagnosticsSummaryFileProvider {
+  override val name: String = "Metrics"
   private val builders = arrayOfNulls<BuilderInfo>(size)
   private var index = 0
 

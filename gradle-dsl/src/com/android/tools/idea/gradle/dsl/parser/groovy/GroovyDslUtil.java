@@ -41,6 +41,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -97,6 +99,7 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.params.GrParameterLi
 import org.jetbrains.plugins.groovy.lang.psi.util.GrStringUtil;
 
 public final class GroovyDslUtil {
+  private static final Logger LOG = Logger.getInstance(GroovyDslUtil.class);
   @Nullable
   static GroovyPsiElement ensureGroovyPsi(@Nullable PsiElement element) {
     if (element == null) {
@@ -105,7 +108,8 @@ public final class GroovyDslUtil {
     if (element instanceof GroovyPsiElement) {
       return (GroovyPsiElement)element;
     }
-    throw new IllegalArgumentException("Wrong PsiElement type for writer! Must be of type GroovyPsiElement");
+    LOG.warn(new IllegalArgumentException("Wrong PsiElement type for writer! Must be of type GroovyPsiElement"));
+    return null;
   }
 
   @Nullable
@@ -323,12 +327,11 @@ public final class GroovyDslUtil {
    * @param applyContext the context used to create a GrPsiElementFactory
    * @param unsavedValue the value for the new expression
    * @return created PsiElement
-   * @throws IncorrectOperationException if creation of the expression fails
    */
   @Nullable
   static PsiElement createLiteral(@NotNull GradleDslSimpleExpression context,
                                   @NotNull GradleDslFile applyContext,
-                                  @NotNull Object unsavedValue) throws IncorrectOperationException {
+                                  @NotNull Object unsavedValue) {
     CharSequence unsavedValueText = null;
     if (unsavedValue instanceof String) {
       String stringValue = (String)unsavedValue;
@@ -410,16 +413,27 @@ public final class GroovyDslUtil {
       currentParent = currentParent.getParent();
     }
 
+    if (currentParent instanceof GradleVersionCatalogFile && context.getDslFile() instanceof GradleScriptFile) {
+      externalName.append(((GradleVersionCatalogFile)currentParent).getCatalogName()).append(".");
+      if (resolutionElements.size() > 0 && "libraries".equals(resolutionElements.get(0).getName())) {
+        resolutionElements.remove(0);
+      }
+    }
+
     for (GradleDslElement currentElement : resolutionElements) {
       List<String> elementExternalNameParts =
         applyContext.getParser().externalNameForParent(currentElement.getName(), currentElement.getParent()).externalNameParts;
-      if (currentElement.getParent() instanceof GradleDslExpressionList && currentElement instanceof GradleDslSimpleExpression) {
+      if (currentElement.getDslFile() instanceof GradleVersionCatalogFile) {
+        externalName.append(String.join(".", elementExternalNameParts.get(0).split("[_.-]")));
+      }
+      else if (currentElement.getParent() instanceof GradleDslExpressionList && currentElement instanceof GradleDslSimpleExpression) {
         GradleDslExpressionList parent = (GradleDslExpressionList)currentElement.getParent();
         int i = parent.getSimpleExpressions().indexOf(currentElement);
         externalName.append(i + "]");
       }
-      else if (currentElement instanceof ExtDslElement || currentElement instanceof BuildScriptDslElement) {
-        // do nothing
+      else if (currentElement instanceof ExtDslElement || currentElement instanceof BuildScriptDslElement){
+        // don't need to add ext.variableName or parentProject variable name for Groovy as it smart enough to
+        // fall back to ext and to root in case it cannot find variable during runtime
       }
       else {
         externalName.append(quotePartIfNecessary(elementExternalNameParts.get(0)));
@@ -543,24 +557,31 @@ public final class GroovyDslUtil {
     GrExpression emptyMap = factory.createExpressionFromText("[:]");
     GrNamedArgument namedArgument = factory.createNamedArgument(expressionMap.getName(), emptyMap);
     PsiElement addedElement = addToMap((GrListOrMap)parentPsiElement, namedArgument);
-    assert addedElement instanceof GrNamedArgument;
-
-    PsiElement added = ((GrNamedArgument)addedElement).getExpression();
-    expressionMap.setPsiElement(added);
-    return added;
+    if (addedElement instanceof GrNamedArgument) {
+      PsiElement added = ((GrNamedArgument)addedElement).getExpression();
+      expressionMap.setPsiElement(added);
+      return added;
+    }
+    else {
+      LOG.warn("Unexpected result of addToMap: " + addedElement);
+      return null;
+    }
   }
 
   /**
    * This method is used in order to add elements to the back of a map,
    * it is derived from {@link ASTDelegatePsiElement#addInternal(ASTNode, ASTNode, ASTNode, Boolean)}.
    */
-  private static PsiElement realAddBefore(@NotNull GrListOrMap element, @NotNull PsiElement newElement, @NotNull PsiElement anchor) {
+  private static @Nullable PsiElement realAddBefore(@NotNull GrListOrMap element,
+                                                    @NotNull PsiElement newElement,
+                                                    @NotNull PsiElement anchor) {
     CheckUtil.checkWritable(element);
     TreeElement elementCopy = ChangeUtil.copyToElement(newElement);
     ASTNode anchorNode = getAnchorNode(element, anchor.getNode(), true);
     ASTNode newNode = CodeEditUtil.addChildren(element.getNode(), elementCopy, elementCopy, anchorNode);
     if (newNode == null) {
-      throw new IncorrectOperationException("Element cannot be added");
+      LOG.warn(new IncorrectOperationException("Element cannot be added"));
+      return null;
     }
     if (newNode instanceof TreeElement) {
       return ChangeUtil.decodeInformation((TreeElement)newNode).getPsi();
@@ -588,7 +609,7 @@ public final class GroovyDslUtil {
     return anchorBefore;
   }
 
-  static PsiElement addToMap(@NotNull GrListOrMap map, @NotNull GrNamedArgument newValue) {
+  static @Nullable PsiElement addToMap(@NotNull GrListOrMap map, @NotNull GrNamedArgument newValue) {
     final ASTNode astNode = map.getNode();
     if (map.getNamedArguments().length != 0) {
       astNode.addLeaf(mCOMMA, ",", map.getRBrack().getNode());
@@ -675,7 +696,8 @@ public final class GroovyDslUtil {
       }
     }
     else {
-      throw new IllegalStateException("Unexpected element type added to Mpa: " + added);
+      LOG.warn(new IllegalStateException("Unexpected element type added to map: " + added));
+      return null;
     }
   }
 
@@ -1043,8 +1065,7 @@ public final class GroovyDslUtil {
       @NotNull Set<ExternalToModelMap.Entry> modelEntries = parent.getExternalToModelMap(writer).getEntrySet();
       for (ExternalToModelMap.Entry entry : modelEntries) {
         if (entry.modelEffectDescription.property.name.equals(nameElement.getOriginalName())) {
-          Logger.getInstance(GroovyDslWriter.class)
-            .warn(new UnsupportedOperationException("trying to update a property: " + nameElement.getOriginalName()));
+          LOG.warn(new UnsupportedOperationException("trying to update a property: " + nameElement.getOriginalName()));
           return;
         }
       }

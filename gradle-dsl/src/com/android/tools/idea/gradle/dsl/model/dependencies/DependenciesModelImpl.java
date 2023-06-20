@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ModuleDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
@@ -36,6 +37,8 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile.GradleBundleRefLiteral;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
@@ -55,6 +58,8 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   public DependenciesModelImpl(@NotNull DependenciesDslElement dslElement) {
     super(dslElement);
   }
+
+  public static final Logger LOG = Logger.getInstance(DependenciesModelImpl.class);
 
   /**
    * A strategy object to find and get specific DependencyModel objects from a GradleDslElement.
@@ -104,23 +109,24 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
           return;
         }
       }
-
-      if (resolved instanceof GradleDslExpressionMap) {
-        ArtifactDependencyModel mapNotation = ArtifactDependencyModelImpl.MapNotation.create(
-            configurationName, (GradleDslExpressionMap)resolved, configurationElement, maintainer, methodName);
-        if (mapNotation != null) {
-          dest.add(mapNotation);
-        }
-      }
-      else if (element instanceof GradleDslSimpleExpression) {
-        ArtifactDependencyModel compactNotation = ArtifactDependencyModelImpl.CompactNotation.create(
-          configurationName, (GradleDslSimpleExpression)element, configurationElement, maintainer, methodName);
-        if (compactNotation != null) {
-          dest.add(compactNotation);
+      if (element instanceof GradleDslSimpleExpression || resolved instanceof GradleDslExpressionMap) {
+        ArtifactDependencyModel notation = ArtifactDependencyModelImpl.DynamicNotation.create(
+            configurationName, (GradleDslExpression)element, configurationElement, maintainer, methodName);
+        if (notation != null) {
+          dest.add(notation);
+          // cannot do extract variables for version catalog dependencies for now
+          if(isInVersionCatalogFile(resolved)) {
+            notation.markAsVersionCatalogDependency();
+            notation.enableSetThrough();
+          }
         }
       }
     }
   };
+
+  private static boolean isInVersionCatalogFile(GradleDslElement element){
+    return element.getDslFile() instanceof GradleVersionCatalogFile;
+  }
 
   private final static Fetcher<ModuleDependencyModel> ourModuleFetcher = new Fetcher<ModuleDependencyModel>() {
     @Override
@@ -210,14 +216,13 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
      * <p>implementation "group:artifact:version", [group: "group", name: "artifact": version: someVersion]
      */
     EXPRESSION_LIST_MAINTAINER {
-      @NotNull
+      @Nullable
       @Override
       public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
         GradleDslElement dslElement = dependencyModel.getDslElement();
         GradleDslExpressionList parentList = (GradleDslExpressionList)(dslElement.getParent());
         List<GradleDslExpression> expressions = parentList.getExpressions();
         GradleDslElement nameHolder = parentList;
-        GradleNameElement nameElement = nameHolder.getNameElement();
 
         if (expressions.size() == 1) {
           renameSingleElementConfiguration(nameHolder, newConfigurationName);
@@ -228,8 +233,10 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
         int index = dependenciesElement.getAllElements().indexOf(nameHolder);
 
         if (expressions.get(0) == dslElement && expressions.get(1) instanceof GradleDslExpressionMap) {
-          throw new UnsupportedOperationException(
+          Throwable t = new UnsupportedOperationException(
             "Changing the configuration name of a multi-entry dependency declaration containing map-notations is not supported.");
+          LOG.warn(t);
+          return null;
         }
 
         GradleDslElement copiedElement;
@@ -254,7 +261,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
      * <p>with an optional closure that may follow a single item.
      */
     ARGUMENT_LIST_MAINTAINER {
-      @NotNull
+      @Nullable
       @Override
       public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
         GradleDslElement dslElement = dependencyModel.getDslElement();
@@ -290,7 +297,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
      * <p>with an optional closure that follows.
      */
     SINGLE_ITEM_MAINTAINER {
-      @NotNull
+      @Nullable
       @Override
       public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
         GradleDslElement dslElement = dependencyModel.getDslElement();
@@ -305,7 +312,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
      * <p>implementation files("a"), files("b", "c")
      */
     DEEP_EXPRESSION_LIST_MAINTAINER {
-      @NotNull
+      @Nullable
       @Override
       public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
         GradleDslElement dslElement = dependencyModel.getDslElement();
@@ -354,7 +361,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
      * <p>implementation(files("a"), files("b", "c"))
      */
     DEEP_ARGUMENT_LIST_MAINTAINER {
-      @NotNull
+      @Nullable
       @Override
       public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
         GradleDslElement dslElement = dependencyModel.getDslElement();
@@ -405,7 +412,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
      * <p>implementation files("a", "b")
      */
     DEEP_SINGLE_ITEM_MAINTAINER {
-      @NotNull
+      @Nullable
       @Override
       public DependencyModelImpl.Maintainer setConfigurationName(DependencyModelImpl dependencyModel, String newConfigurationName) {
         GradleDslElement dslElement = dependencyModel.getDslElement();
@@ -488,9 +495,15 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
     ArtifactDependencySpec dependency = ArtifactDependencySpecImpl.create(compactNotation);
     if (dependency == null) {
       String msg = String.format("'%1$s' is not a valid artifact dependency", compactNotation);
-      throw new IllegalArgumentException(msg);
+      LOG.warn(msg);
+      return;
     }
     addArtifact(configurationName, dependency);
+  }
+
+  @Override
+  public void addArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference) {
+    ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, reference, Collections.emptyList());
   }
 
   @Override
@@ -503,6 +516,27 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
                           @NotNull ArtifactDependencySpec dependency,
                           @NotNull List<ArtifactDependencySpec> excludes) {
     ArtifactDependencyModelImpl.createNew(myDslElement, configurationName, dependency, excludes);
+  }
+
+  @Override
+  public void addPlatformArtifact(@NotNull String configurationName, @NotNull String compactNotation, boolean enforced) {
+    ArtifactDependencySpec dependency = ArtifactDependencySpecImpl.create(compactNotation);
+    if (dependency == null) {
+      String msg = String.format("'%1$s' is not a valid artifact dependency", compactNotation);
+      LOG.warn(msg);
+      return;
+    }
+    addPlatformArtifact(configurationName, dependency, enforced);
+  }
+
+  @Override
+  public void addPlatformArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference, boolean enforced) {
+    PlatformArtifactDependencyModelImpl.createNew(myDslElement, configurationName, reference, enforced);
+  }
+
+  @Override
+  public void addPlatformArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency, boolean enforced) {
+    PlatformArtifactDependencyModelImpl.createNew(myDslElement, configurationName, dependency, enforced);
   }
 
   @Override
@@ -568,8 +602,7 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   @Override
   public void remove(@NotNull DependencyModel dependency) {
     if (!(dependency instanceof DependencyModelImpl)) {
-      Logger.getInstance(DependenciesModelImpl.class)
-        .warn("Tried to remove an unknown dependency type!");
+      LOG.warn("Tried to remove an unknown dependency type: " + dependency);
       return;
     }
     GradleDslElement dependencyElement = ((DependencyModelImpl)dependency).getDslElement();

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.build.compiler;
 
 import static com.google.common.base.Strings.nullToEmpty;
 
+import com.android.tools.idea.AndroidGradleBundle;
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.openapi.options.Configurable;
@@ -50,10 +51,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private HyperlinkLabel myCommandLineOptionsDocHyperlinkLabel;
   private JCheckBox myContinueBuildWithErrors;
 
-  private final String myDisplayName;
-
-  public GradleCompilerSettingsConfigurable(@NotNull Project project, @NotNull String displayName) {
-    myDisplayName = displayName;
+  public GradleCompilerSettingsConfigurable(@NotNull Project project) {
     myCompilerConfiguration = CompilerConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
   }
@@ -67,7 +65,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   @Override
   @Nls
   public String getDisplayName() {
-    return myDisplayName;
+    return AndroidGradleBundle.message("android.configurable.GradleCompilerConfigurable.displayName");
   }
 
   @Override

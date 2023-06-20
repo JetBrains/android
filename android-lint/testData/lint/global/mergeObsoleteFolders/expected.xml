@@ -4,18 +4,24 @@
     <file>layout-v11</file>
     <problem_class>Obsolete SDK_INT Version Check</problem_class>
     <hints />
-    <description>&lt;html&gt;This folder configuration (&lt;code&gt;v11&lt;/code&gt;) is unnecessary; &lt;code&gt;minSdkVersion&lt;/code&gt; is 14. Merge all the resources in this folder into &lt;code&gt;layout&lt;/code&gt;.&lt;/html&gt;</description>
+    <description>&lt;html&gt;This folder configuration (&lt;code&gt;v11&lt;/code&gt;) is unnecessary; &lt;code&gt;minSdkVersion&lt;/code&gt; is 26. Merge all the resources in this folder into &lt;code&gt;layout&lt;/code&gt;.&lt;/html&gt;</description>
   </problem>
   <problem>
     <file>values-v10</file>
     <problem_class>Obsolete SDK_INT Version Check</problem_class>
     <hints />
-    <description>&lt;html&gt;This folder configuration (&lt;code&gt;v10&lt;/code&gt;) is unnecessary; &lt;code&gt;minSdkVersion&lt;/code&gt; is 14. Merge all the resources in this folder into &lt;code&gt;values&lt;/code&gt;.&lt;/html&gt;</description>
+    <description>&lt;html&gt;This folder configuration (&lt;code&gt;v10&lt;/code&gt;) is unnecessary; &lt;code&gt;minSdkVersion&lt;/code&gt; is 26. Merge all the resources in this folder into &lt;code&gt;values&lt;/code&gt;.&lt;/html&gt;</description>
   </problem>
   <problem>
     <file>values-v8</file>
     <problem_class>Obsolete SDK_INT Version Check</problem_class>
     <hints />
-    <description>&lt;html&gt;This folder configuration (&lt;code&gt;v8&lt;/code&gt;) is unnecessary; &lt;code&gt;minSdkVersion&lt;/code&gt; is 14. Merge all the resources in this folder into &lt;code&gt;values&lt;/code&gt;.&lt;/html&gt;</description>
+    <description>&lt;html&gt;This folder configuration (&lt;code&gt;v8&lt;/code&gt;) is unnecessary; &lt;code&gt;minSdkVersion&lt;/code&gt; is 26. Merge all the resources in this folder into &lt;code&gt;values&lt;/code&gt;.&lt;/html&gt;</description>
+  </problem>
+  <problem>
+    <file>mipmap-anydpi-v26</file>
+    <problem_class>Obsolete SDK_INT Version Check</problem_class>
+    <hints />
+    <description>&lt;html&gt;This folder configuration (&lt;code&gt;v26&lt;/code&gt;) is unnecessary; &lt;code&gt;minSdkVersion&lt;/code&gt; is 26. Merge all the resources in this folder into &lt;code&gt;mipmap-anydpi&lt;/code&gt;.&lt;/html&gt;</description>
   </problem>
 </problems>

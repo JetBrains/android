@@ -39,8 +39,10 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
   }
 
   override fun begin(event: InteractionEvent) {
-    if (event is MousePressedEvent) {
-      begin(event.eventObject.x, event.eventObject.y, event.eventObject.modifiersEx)
+    when (event) {
+      is MousePressedEvent -> begin(event.eventObject.x, event.eventObject.y, event.eventObject.modifiersEx)
+      is KeyPressedEvent -> (sceneView.sceneManager as? LayoutlibSceneManager)?.triggerKeyEventAsync(event.eventObject)
+      else -> {}
     }
   }
 
@@ -65,11 +67,16 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
   override fun getCursor(): Cursor? = sceneView.scene.mouseCursor
 
   override fun update(event: InteractionEvent) {
-    if (event is MouseDraggedEvent) {
-      val mouseX = event.eventObject.x
-      val mouseY = event.eventObject.y
-      sceneView.context.setMouseLocation(mouseX, mouseY)
-      update(mouseX, mouseY, event.eventObject.modifiersEx)
+    when (event) {
+      is MouseDraggedEvent -> {
+        val mouseX = event.eventObject.x
+        val mouseY = event.eventObject.y
+        sceneView.context.setMouseLocation(mouseX, mouseY)
+        update(mouseX, mouseY, event.eventObject.modifiersEx)
+      }
+      is KeyPressedEvent -> (sceneView.sceneManager as? LayoutlibSceneManager)?.triggerKeyEventAsync(event.eventObject)
+      is KeyReleasedEvent -> (sceneView.sceneManager as? LayoutlibSceneManager)?.triggerKeyEventAsync(event.eventObject)
+      else -> {}
     }
   }
 

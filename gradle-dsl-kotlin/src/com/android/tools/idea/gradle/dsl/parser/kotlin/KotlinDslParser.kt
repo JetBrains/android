@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElem
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.getPropertiesElement
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
+import com.android.tools.idea.gradle.dsl.parser.setMaybeIndirectedElement
 import com.google.common.collect.Lists
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -54,8 +55,6 @@ import com.intellij.util.IncorrectOperationException
 import com.intellij.util.text.LiteralFormatUtil
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.parsing.parseBoolean
-import org.jetbrains.kotlin.parsing.parseNumericLiteral
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
@@ -79,6 +78,9 @@ import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
+import org.jetbrains.kotlin.parsing.parseBoolean
+import org.jetbrains.kotlin.parsing.parseNumericLiteral
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import java.math.BigDecimal
 
 /**
@@ -96,11 +98,11 @@ class KotlinDslParser(
   //
   override fun parse() {
     ApplicationManager.getApplication().assertReadAccessAllowed()
-    psiFile.script?.blockExpression?.statements?.map {
-      if (it is KtScriptInitializer) it.body else it
-    }?.requireNoNulls()?.forEach {
-      it.accept(this, dslFile)
-    }
+    psiFile.script?.blockExpression?.statements
+      ?.map { if (it is KtScriptInitializer) it.body else it }
+      ?.map { if (it is KtAnnotatedExpression) it.baseExpression else it }
+      ?.requireNoNulls()
+      ?.forEach { it.accept(this, dslFile) }
   }
 
   override fun convertToPsiElement(context: GradleDslSimpleExpression, literal: Any): PsiElement? {
@@ -173,7 +175,7 @@ class KotlinDslParser(
             try {
               return BigDecimal(LiteralFormatUtil.removeUnderscores(literal.text).trimEnd('f', 'F'))
             } catch (e: NumberFormatException) {
-              Logger.getInstance(KotlinDslParser::class.java).error(e)
+              Logger.getInstance(KotlinDslParser::class.java).warn(e)
               return null
             }
           }
@@ -315,7 +317,7 @@ class KotlinDslParser(
 
   override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression, parent: GradlePropertiesDslElement) {
 
-    fun parentBlockFromReceiver(receiver: KtExpression): GradlePropertiesDslElement {
+    fun parentBlockFromReceiver(receiver: KtExpression): GradlePropertiesDslElement? {
       var current = parent
       receiver.accept(object : KtTreeVisitorVoid() {
         override fun visitReferenceExpression(expression: KtReferenceExpression) {
@@ -338,6 +340,10 @@ class KotlinDslParser(
     when (val selector = expression.selectorExpression) {
       is KtCallExpression -> {
         val parentBlock = parentBlockFromReceiver(receiver)
+        if (parentBlock == null) {
+          super.visitDotQualifiedExpression(expression, parent)
+          return
+        }
         visitCallExpression(selector, parentBlock)
       }
       else -> super.visitDotQualifiedExpression(expression, parent)
@@ -349,7 +355,7 @@ class KotlinDslParser(
     psiElement: PsiElement,
     name: GradleNameElement,
     expression: KtDotQualifiedExpression
-  ) : GradleDslExpression {
+  ) : GradleDslExpression? {
     val receiver = expression.receiverExpression
     when (val selector = expression.selectorExpression) {
       is KtCallExpression -> {
@@ -427,7 +433,7 @@ class KotlinDslParser(
           val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
           propertyElement.elementType = DERIVED
 
-          parentBlock.setParsedElement(propertyElement)
+          parentBlock.setMaybeIndirectedElement(propertyElement, dslFile)
         }
         else -> return
       }
@@ -437,7 +443,7 @@ class KotlinDslParser(
       propertyElement.externalSyntax = ASSIGNMENT
       propertyElement.elementType = REGULAR
 
-      parentBlock.setParsedElement(propertyElement)
+      parentBlock.setMaybeIndirectedElement(propertyElement, dslFile)
     }
   }
 
@@ -721,7 +727,7 @@ class KotlinDslParser(
   private fun getClosureBlock(
     parentElement: GradleDslElement, closableBlock : KtBlockExpression, propertyName: GradleNameElement) : GradleDslClosure {
     val closureElement = GradleDslClosure(parentElement, closableBlock, propertyName)
-    closableBlock.statements.requireNoNulls().forEach {
+    closableBlock.statements?.requireNoNulls()?.forEach {
       it.accept(this, closureElement)
     }
     return closureElement

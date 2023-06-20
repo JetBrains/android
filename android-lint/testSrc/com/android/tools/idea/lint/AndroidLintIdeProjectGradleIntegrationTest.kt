@@ -15,54 +15,54 @@
  */
 package com.android.tools.idea.lint
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.idea.lint.common.LintIgnoredResult
 import com.android.tools.idea.lint.common.LintResult
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 @RunsInEdt
-class AndroidLintIdeProjectGradleIntegrationTest : GradleIntegrationTest {
+class AndroidLintIdeProjectGradleIntegrationTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule =
+    AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  var expect = Expect.createAndEnableStackTrace()
+  @get:Rule var expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun test() {
     val result: LintResult = LintIgnoredResult()
-    val root = prepareGradleProject(TestProjectPaths.TRANSITIVE_DEPENDENCIES, "p")
-    openPreparedProject("p") { ideProject ->
+    val preparedProject =
+      projectRule.prepareTestProject(AndroidCoreTestProject.TRANSITIVE_DEPENDENCIES)
+    preparedProject.open { ideProject ->
+      val root = preparedProject.root
       val client: LintIdeClient = AndroidLintIdeClient(ideProject, result)
-      val projects = AndroidLintIdeProject.create(client, null, *ModuleManager.getInstance(ideProject).modules)
+      val projects =
+        AndroidLintIdeProject.create(client, null, *ModuleManager.getInstance(ideProject).modules)
       assertThat(
-        projects
-          .map { lintProject ->
-            flattenDag(
-              lintProject,
-              getId = { it.dir },
-              getChildren = {
-                it.directLibraries.filter { dependency -> dependency.buildModule != null }
-              }
-            )
-          }
-          .flatten() // Modules may be repeated here if a dependency is shared between roots.
-          .map { it.dir }
-          .distinct()
-      )
+          projects
+            .map { lintProject ->
+              flattenDag(
+                lintProject,
+                getId = { it.dir },
+                getChildren = {
+                  it.directLibraries.filter { dependency -> dependency.buildModule != null }
+                }
+              )
+            }
+            .flatten() // Modules may be repeated here if a dependency is shared between roots.
+            .map { it.dir }
+            .distinct()
+        )
         .containsExactly(
           root,
           root.resolve("app"),
@@ -73,23 +73,23 @@ class AndroidLintIdeProjectGradleIntegrationTest : GradleIntegrationTest {
         )
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }
 
-private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {
-  val seen = HashSet<Any>()
-  val queue = ArrayDeque(listOf(root))
+private fun <T : Any> flattenDag(
+  root: T,
+  getId: (T) -> Any = { it },
+  getChildren: (T) -> List<T>
+): List<T> =
+  sequence {
+      val seen = HashSet<Any>()
+      val queue = ArrayDeque(listOf(root))
 
-  while (queue.isNotEmpty()) {
-    val item = queue.removeFirst()
-    if (seen.add(getId(item))) {
-      queue.addAll(getChildren(item))
-      yield(item)
+      while (queue.isNotEmpty()) {
+        val item = queue.removeFirst()
+        if (seen.add(getId(item))) {
+          queue.addAll(getChildren(item))
+          yield(item)
+        }
+      }
     }
-  }
-}
-  .toList()
-
+    .toList()

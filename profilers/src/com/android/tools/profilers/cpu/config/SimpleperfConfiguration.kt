@@ -17,7 +17,8 @@ package com.android.tools.profilers.cpu.config
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.options.OptionsProperty
-import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profiler.proto.Trace
+import com.android.tools.profiler.proto.Trace.SimpleperfOptions
 
 /**
  * Simple perf configuration
@@ -29,14 +30,28 @@ class SimpleperfConfiguration(name: String) : ProfilingConfiguration(name) {
   @OptionsProperty(name = "Sample interval: ", group = TRACE_CONFIG_GROUP, order = 100, unit = "Us (Microseconds)")
   var profilingSamplingIntervalUs = DEFAULT_SAMPLING_INTERVAL_US
 
-  override fun buildUserOptions(): Cpu.CpuTraceConfiguration.UserOptions.Builder {
-    return Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-      .setTraceMode(Cpu.CpuTraceMode.SAMPLED)
+  override fun getOptions(): SimpleperfOptions {
+    return SimpleperfOptions.newBuilder()
       .setSamplingIntervalUs(profilingSamplingIntervalUs)
+      .build()
   }
 
-  override fun getTraceType(): Cpu.CpuTraceType {
-    return Cpu.CpuTraceType.SIMPLEPERF
+  private fun setSymbolDirs(configBuilder: SimpleperfOptions.Builder, symbolDirs: Iterable<String>) {
+    configBuilder.clearSymbolDirs()
+    configBuilder.addAllSymbolDirs(symbolDirs)
+  }
+
+  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder, additionalOptions: Map<AdditionalOptions, Any>) {
+    val simpleperfOptionsBuilder = options.toBuilder()
+
+    val symbolDirs = additionalOptions.getOrDefault(AdditionalOptions.SYMBOL_DIRS, null) as Iterable<String>?
+    symbolDirs?.let { setSymbolDirs(simpleperfOptionsBuilder, it) }
+
+    configBuilder.simpleperfOptions = simpleperfOptionsBuilder.build()
+  }
+
+  override fun getTraceType(): TraceType {
+    return TraceType.SIMPLEPERF
   }
 
   override fun getRequiredDeviceLevel(): Int {

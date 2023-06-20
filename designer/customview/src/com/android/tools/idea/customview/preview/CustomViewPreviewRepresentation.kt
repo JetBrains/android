@@ -20,22 +20,15 @@ import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.editor.ActionsToolbar
-import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
-import com.android.tools.idea.concurrency.runInSmartReadAction
-import com.android.tools.idea.concurrency.runReadAction
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.setupChangeListener
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.gradle.project.build.GradleBuildState
@@ -45,15 +38,16 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
@@ -69,17 +63,15 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import java.awt.BorderLayout
 import java.util.function.BiFunction
 import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.OverlayLayout
 
 private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
 
 private fun layoutType(wrapContent: Boolean) = if (wrapContent) "wrap_content" else "match_parent"
 
-private fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeight: Boolean): String {
+@VisibleForTesting
+fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeight: Boolean): String {
   return """
 <$qualifiedName
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -114,7 +106,7 @@ class CustomViewPreviewRepresentation(
     private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
   }
   private val project = psiFile.project
-  private val psiFilePointer = com.intellij.openapi.application.runReadAction { SmartPointerManager.createPointer(psiFile) }
+  private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
 
@@ -180,52 +172,27 @@ class CustomViewPreviewRepresentation(
   override val notificationsState: CustomViewPreviewManager.NotificationsState
     get() = stateTracker.notificationsState
 
-  private val notificationsPanel = NotificationPanel(
-    ExtensionPointName.create("com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
-
-  private val surface = NlDesignSurface.builder(project, this)
-    .setSceneManagerProvider { surface, model ->
-      NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
-        setShrinkRendering(true)
-      }
-    }.setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
-    .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false)
-    .build().apply {
-      name = "Custom View"
-    }
-
-  private val actionsToolbar = invokeAndWaitIfNeeded {
-    ActionsToolbar(this@CustomViewPreviewRepresentation, surface)
+  private val view = invokeAndWaitIfNeeded {
+    CustomViewPreviewView(
+      NlDesignSurface.builder(project, this)
+        .setSceneManagerProvider { surface, model ->
+          NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+            setShrinkRendering(true)
+          }
+        }.setSupportedActions(CUSTOM_VIEW_SUPPORTED_ACTIONS)
+        .setScreenViewProvider(NlScreenViewProvider.RESIZABLE_PREVIEW, false),
+      this,
+      project,
+      psiFile
+    )
   }
 
-  private val editorPanel = JPanel(BorderLayout()).apply {
-    add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
-
-    val overlayPanel = object : JPanel() {
-      // Since the overlay panel is transparent, we can not use optimized drawing or it will produce rendering artifacts.
-      override fun isOptimizedDrawingEnabled(): Boolean = false
-    }
-
-    overlayPanel.apply {
-      layout = OverlayLayout(this)
-
-      add(notificationsPanel)
-      add(surface)
-    }
-
-    add(overlayPanel, BorderLayout.CENTER)
-  }
+  private val surface = view.surface
 
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  private val workbench: WorkBench<DesignSurface<*>> =
-    object : WorkBench<DesignSurface<*>>(project, "Main Preview", null, this), DataProvider {
-      override fun getData(dataId: String): Any? = if (DESIGN_SURFACE.`is`(dataId)) surface else null
-    }.apply {
-      val issuePanelSplitter = IssuePanelSplitter(psiFile.virtualFile, surface, editorPanel)
-      init(issuePanelSplitter, surface, listOf(), false)
-    }
+  private val workbench = view.workbench
 
   @Volatile
   private var lastBuildStartedNanos = 0L
@@ -323,7 +290,7 @@ class CustomViewPreviewRepresentation(
 
     stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.RENDERING)
     scope.launch {
-      runInSmartReadAction(project) {
+      smartReadAction(project) {
         val calculatedClasses = (AndroidPsiUtils.getPsiFileSafely(project, psiFile.virtualFile) as PsiClassOwner).classes
           .filter { it.name != null && it.extendsView() }
           .mapNotNull { it.qualifiedName }
@@ -332,7 +299,7 @@ class CustomViewPreviewRepresentation(
           classes = calculatedClasses
           // This may happen if custom view classes got removed from the file
           if (classes.isEmpty()) {
-            return@runInSmartReadAction
+            return@smartReadAction
           }
         }
         updateModel()
@@ -347,7 +314,7 @@ class CustomViewPreviewRepresentation(
   }
 
   private fun updateModelAsync() = scope.launch {
-    val psiFile = runReadAction { psiFilePointer.element } ?: run {
+    val psiFile = readAction { psiFilePointer.element } ?: run {
       LOG.warn("updateModelSync with invalid PsiFile")
       return@launch
     }
@@ -359,7 +326,7 @@ class CustomViewPreviewRepresentation(
       LOG.warn("No facet for PsiFile $psiFile")
       return@launch
     }
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val className = fqcn2name(selectedClass)
 
     val model = if (surface.models.isEmpty()) {
@@ -367,15 +334,14 @@ class CustomViewPreviewRepresentation(
       val config = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
       NlModel.builder(facet, customPreviewXml, config)
         .withParentDisposable(this@CustomViewPreviewRepresentation)
-        .withModelDisplayName(className)
         .withXmlProvider(BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
         .withComponentRegistrar(NlComponentRegistrar)
-        .build()
+        .build().apply { modelDisplayName = className }
     } else {
       // We want to deactivate the surface so that configuration changes do not trigger scene repaint.
       surface.deactivate()
       surface.models.first().let { model ->
-        (surface.getSceneManager(model) as LayoutlibSceneManager).forceReinflate()
+        surface.getSceneManager(model)!!.forceReinflate()
         model.updateFileContentBlocking(fileContent)
       }
     }
@@ -400,7 +366,7 @@ class CustomViewPreviewRepresentation(
 
     // Persist the current dimensions
     surface.models.firstOrNull()?.configuration?.let { configuration ->
-      val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView } ?: return
+      val selectedClass = synchronized(classesLock) { classes.firstOrNull { fqcn2name(it) == currentView } } ?: return
       val className = fqcn2name(selectedClass)
       val screen = configuration.device!!.defaultHardware.screen
       persistenceManager.setList(
@@ -414,7 +380,7 @@ class CustomViewPreviewRepresentation(
       return
     }
 
-    notificationsPanel.updateNotifications(psiFile.virtualFile, parentEditor, project)
+    view.notificationsPanel.updateNotifications(psiFile.virtualFile, parentEditor, project)
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {

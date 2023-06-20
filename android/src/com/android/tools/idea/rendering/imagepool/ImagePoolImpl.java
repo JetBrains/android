@@ -197,11 +197,12 @@ class ImagePoolImpl implements ImagePool {
     }
 
     BufferedImage image;
-    SoftReference<BufferedImage> imageRef;
+    Bucket.Element element;
     try {
-      imageRef = bucket.remove();
-      while ((image = imageRef.get()) == null) {
-        imageRef = bucket.remove();
+      element = bucket.remove();
+      while ((image = element.get()) == null) {
+        myTotalAllocatedBytes.add(-element.getImageEstimatedSize());
+        element = bucket.remove();
       }
 
       long totalSize = image.getWidth() * image.getHeight();
@@ -215,7 +216,7 @@ class ImagePoolImpl implements ImagePool {
                                 image.getWidth(), image.getHeight(),
                                 (int)((wasted / totalSize) * 100)));
       }
-      myTotalInUseBytes.add(totalSize * 4);
+      myTotalInUseBytes.add(element.getImageEstimatedSize());
       // Clear the image
       if (image.getRaster().getDataBuffer().getDataType() == java.awt.image.DataBuffer.TYPE_INT) {
         Arrays.fill(((DataBufferInt)image.getRaster().getDataBuffer()).getData(), 0);
@@ -255,7 +256,8 @@ class ImagePoolImpl implements ImagePool {
       public void finalizeReferent() {
         // This method might be called twice if the user has manually called the free() method. The second call will have no effect.
         if (myReferences.remove(this)) {
-          boolean accepted = bucket.offer(new SoftReference<>(imagePointer));
+          Bucket.Element element = new Bucket.Element(imagePointer);
+          boolean accepted = bucket.offer(element);
           if (bucketStats != null) {
             if (accepted) {
               bucketStats.returnedImageAccepted();
@@ -270,13 +272,10 @@ class ImagePoolImpl implements ImagePool {
                                     w, h, type, bucket.myMinWidth, bucket.myMinHeight));
           }
 
-          long estimatedSize = imagePointer.getWidth() * imagePointer.getHeight() * 4;
           if (!accepted) {
-            myTotalAllocatedBytes.add(-estimatedSize);
+            myTotalAllocatedBytes.add(-element.getImageEstimatedSize());
           }
-          else {
-            myTotalInUseBytes.add(-estimatedSize);
-          }
+          myTotalInUseBytes.add(-element.getImageEstimatedSize());
           if (freedCallback != null) {
             freedCallback.accept(imagePointer);
           }
@@ -360,8 +359,34 @@ class ImagePoolImpl implements ImagePool {
     }
   }
 
-  private static class Bucket extends ForwardingQueue<SoftReference<BufferedImage>> {
-    private final Queue<SoftReference<BufferedImage>> myDelegate;
+  private static class Bucket extends ForwardingQueue<Bucket.Element> {
+    /**
+     * A wrapper for a soft-referenced {@link BufferedImage}.
+     */
+    private static class Element {
+      private final long myImageEstimatedSize;
+      private final SoftReference<BufferedImage> myReference;
+
+      private Element(@NotNull BufferedImage image) {
+        myImageEstimatedSize = image.getWidth() * image.getHeight() * 4;
+        myReference = new SoftReference<>(image);
+      }
+
+      @Nullable
+      private BufferedImage get() {
+        return myReference.get();
+      }
+
+      /**
+       * Returns the estimated image size referenced by this element. This is just
+       * for stats purposes.
+       */
+      private long getImageEstimatedSize() {
+        return myImageEstimatedSize;
+      }
+    }
+
+    private final Queue<Element> myDelegate;
     private final int myMinWidth;
     private final int myMinHeight;
     private final int myMaxSize;
@@ -382,7 +407,7 @@ class ImagePoolImpl implements ImagePool {
     }
 
     @Override
-    protected Queue<SoftReference<BufferedImage>> delegate() {
+    protected Queue<Element> delegate() {
       return myDelegate;
     }
 

@@ -10,8 +10,6 @@ MODULE: project.app
                 file://./app/src/main
             ManifestDirectories:
                 file://./app/src/main
-            AidlDirectoryUrls:
-                file://./app/src/main/aidl
             AssetsDirectoryUrls:
                 file://./app/src/main/assets
             JavaDirectoryUrls:
@@ -25,8 +23,6 @@ MODULE: project.app
                 file://./app/src/main/java
             JniLibsDirectoryUrls:
                 file://./app/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./app/src/main/rs
             ResDirectoryUrls:
                 file://./app/src/main/res
             ResDirectories:
@@ -39,8 +35,6 @@ MODULE: project.app
         main
             Manifest:
                 ./app/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./app/src/main/aidl
             AssetsDirectories:
                 ./app/src/main/assets
             JavaDirectories:
@@ -50,20 +44,18 @@ MODULE: project.app
                 ./app/src/main/kotlin
             JniLibsDirectories:
                 ./app/src/main/jniLibs
-            RenderscriptDirectories:
-                ./app/src/main/rs
             ResDirectories:
                 ./app/src/main/res
             ResourcesDirectories:
                 ./app/src/main/resources
             ShadersDirectories:
                 ./app/src/main/shaders
+            BaselineProfileDirectories:
+                ./app/src/main/baselineProfiles
         Active:
             main
                 Manifest:
                     ./app/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
                 JavaDirectories:
@@ -73,19 +65,17 @@ MODULE: project.app
                     ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/main/rs
                 ResDirectories:
                     ./app/src/main/res
                 ResourcesDirectories:
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
@@ -95,20 +85,18 @@ MODULE: project.app
                     ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/debug/rs
                 ResDirectories:
                     ./app/src/debug/res
                 ResourcesDirectories:
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/debug/baselineProfiles
         All:
             main
                 Manifest:
                     ./app/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/main/aidl
                 AssetsDirectories:
                     ./app/src/main/assets
                 JavaDirectories:
@@ -118,19 +106,17 @@ MODULE: project.app
                     ./app/src/main/kotlin
                 JniLibsDirectories:
                     ./app/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/main/rs
                 ResDirectories:
                     ./app/src/main/res
                 ResourcesDirectories:
                     ./app/src/main/resources
                 ShadersDirectories:
                     ./app/src/main/shaders
+                BaselineProfileDirectories:
+                    ./app/src/main/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/debug/aidl
                 AssetsDirectories:
                     ./app/src/debug/assets
                 JavaDirectories:
@@ -140,19 +126,17 @@ MODULE: project.app
                     ./app/src/debug/kotlin
                 JniLibsDirectories:
                     ./app/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/debug/rs
                 ResDirectories:
                     ./app/src/debug/res
                 ResourcesDirectories:
                     ./app/src/debug/resources
                 ShadersDirectories:
                     ./app/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/debug/baselineProfiles
             release
                 Manifest:
                     ./app/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/release/aidl
                 AssetsDirectories:
                     ./app/src/release/assets
                 JavaDirectories:
@@ -162,20 +146,18 @@ MODULE: project.app
                     ./app/src/release/kotlin
                 JniLibsDirectories:
                     ./app/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/release/rs
                 ResDirectories:
                     ./app/src/release/res
                 ResourcesDirectories:
                     ./app/src/release/resources
                 ShadersDirectories:
                     ./app/src/release/shaders
+                BaselineProfileDirectories:
+                    ./app/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
                     ./app/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/test/aidl
                 AssetsDirectories:
                     ./app/src/test/assets
                 JavaDirectories:
@@ -185,19 +167,17 @@ MODULE: project.app
                     ./app/src/test/kotlin
                 JniLibsDirectories:
                     ./app/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/test/rs
                 ResDirectories:
                     ./app/src/test/res
                 ResourcesDirectories:
                     ./app/src/test/resources
                 ShadersDirectories:
                     ./app/src/test/shaders
+                BaselineProfileDirectories:
+                    ./app/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/testDebug/aidl
                 AssetsDirectories:
                     ./app/src/testDebug/assets
                 JavaDirectories:
@@ -207,20 +187,18 @@ MODULE: project.app
                     ./app/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/testDebug/rs
                 ResDirectories:
                     ./app/src/testDebug/res
                 ResourcesDirectories:
                     ./app/src/testDebug/resources
                 ShadersDirectories:
                     ./app/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
                     ./app/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTest/aidl
                 AssetsDirectories:
                     ./app/src/androidTest/assets
                 JavaDirectories:
@@ -230,19 +208,17 @@ MODULE: project.app
                     ./app/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTest/rs
                 ResDirectories:
                     ./app/src/androidTest/res
                 ResourcesDirectories:
                     ./app/src/androidTest/resources
                 ShadersDirectories:
                     ./app/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./app/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./app/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./app/src/androidTestDebug/assets
                 JavaDirectories:
@@ -252,14 +228,14 @@ MODULE: project.app
                     ./app/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestDebug/rs
                 ResDirectories:
                     ./app/src/androidTestDebug/res
                 ResourcesDirectories:
                     ./app/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./app/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./app/src/androidTestDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -277,9 +253,6 @@ MODULE: project.app
                     file://./app/src/debug
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                     file://./app/src/debug/assets
@@ -298,9 +271,6 @@ MODULE: project.app
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
                     file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
-                    file://./app/src/debug/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                     file://./app/src/debug/res
@@ -323,9 +293,6 @@ MODULE: project.app
                     file://./app/src/testDebug
                 ManifestDirectories:
                     file://./app/src/test
-                AidlDirectoryUrls:
-                    file://./app/src/test/aidl
-                    file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/test/assets
                     file://./app/src/testDebug/assets
@@ -344,9 +311,6 @@ MODULE: project.app
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
                     file://./app/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/test/rs
-                    file://./app/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/test/res
                     file://./app/src/testDebug/res
@@ -367,9 +331,6 @@ MODULE: project.app
                     file://./app/src/androidTestDebug
                 ManifestDirectories:
                     file://./app/src/androidTest
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
-                    file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                     file://./app/src/androidTestDebug/assets
@@ -388,9 +349,6 @@ MODULE: project.app
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
                     file://./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTest/rs
-                    file://./app/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTest/res
                     file://./app/src/androidTestDebug/res
@@ -408,11 +366,7 @@ MODULE: project.app
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debug/out
-                    file://./app/build/generated/aidl_source_output_dir/debug/out
-                    file://./app/build/generated/source/buildConfig/debug
-                    file://./app/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./app/build/generated/res/rs/debug
                     file://./app/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -424,11 +378,7 @@ MODULE: project.app
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./app/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./app/build/generated/aidl_source_output_dir/debugAndroidTest/out
-                    file://./app/build/generated/source/buildConfig/androidTest/debug
-                    file://./app/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./app/build/generated/res/rs/androidTest/debug
                     file://./app/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -444,8 +394,6 @@ MODULE: project.app
                     file://./app/src/main
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                 JavaDirectoryUrls:
@@ -459,8 +407,6 @@ MODULE: project.app
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                 ResDirectories:
@@ -475,8 +421,6 @@ MODULE: project.app
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
@@ -486,8 +430,6 @@ MODULE: project.app
                     file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/debug/rs
                 ResDirectoryUrls:
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
@@ -500,8 +442,6 @@ MODULE: project.app
                     file://./app/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/release
-                AidlDirectoryUrls:
-                    file://./app/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/release/assets
                 JavaDirectoryUrls:
@@ -511,8 +451,6 @@ MODULE: project.app
                     file://./app/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/release/rs
                 ResDirectoryUrls:
                     file://./app/src/release/res
                 ResourcesDirectoryUrls:
@@ -530,8 +468,6 @@ MODULE: project.app
                     file://./app/src/main
                 ManifestDirectories:
                     file://./app/src/main
-                AidlDirectoryUrls:
-                    file://./app/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/main/assets
                 JavaDirectoryUrls:
@@ -545,8 +481,6 @@ MODULE: project.app
                     file://./app/src/main/java
                 JniLibsDirectoryUrls:
                     file://./app/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/main/rs
                 ResDirectoryUrls:
                     file://./app/src/main/res
                 ResDirectories:
@@ -561,8 +495,6 @@ MODULE: project.app
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/debug
-                AidlDirectoryUrls:
-                    file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/debug/assets
                 JavaDirectoryUrls:
@@ -572,8 +504,6 @@ MODULE: project.app
                     file://./app/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/debug/rs
                 ResDirectoryUrls:
                     file://./app/src/debug/res
                 ResourcesDirectoryUrls:
@@ -589,8 +519,6 @@ MODULE: project.app
                     file://./app/src/test
                 ManifestDirectories:
                     file://./app/src/test
-                AidlDirectoryUrls:
-                    file://./app/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/test/assets
                 JavaDirectoryUrls:
@@ -604,8 +532,6 @@ MODULE: project.app
                     file://./app/src/test/java
                 JniLibsDirectoryUrls:
                     file://./app/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/test/rs
                 ResDirectoryUrls:
                     file://./app/src/test/res
                 ResourcesDirectoryUrls:
@@ -618,8 +544,6 @@ MODULE: project.app
                     file://./app/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/testDebug
-                AidlDirectoryUrls:
-                    file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -629,8 +553,6 @@ MODULE: project.app
                     file://./app/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -646,8 +568,6 @@ MODULE: project.app
                     file://./app/src/androidTest
                 ManifestDirectories:
                     file://./app/src/androidTest
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -661,8 +581,6 @@ MODULE: project.app
                     file://./app/src/androidTest/java
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -675,8 +593,6 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./app/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./app/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -686,8 +602,6 @@ MODULE: project.app
                     file://./app/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./app/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -707,8 +621,6 @@ MODULE: project.lib
                 file://./lib/src/main
             ManifestDirectories:
                 file://./lib/src/main
-            AidlDirectoryUrls:
-                file://./lib/src/main/aidl
             AssetsDirectoryUrls:
                 file://./lib/src/main/assets
             JavaDirectoryUrls:
@@ -722,8 +634,6 @@ MODULE: project.lib
                 file://./lib/src/main/java
             JniLibsDirectoryUrls:
                 file://./lib/src/main/jniLibs
-            RenderscriptDirectoryUrls:
-                file://./lib/src/main/rs
             ResDirectoryUrls:
                 file://./lib/src/main/res
             ResDirectories:
@@ -736,8 +646,6 @@ MODULE: project.lib
         main
             Manifest:
                 ./lib/src/main/AndroidManifest.xml
-            AidlDirectories:
-                ./lib/src/main/aidl
             AssetsDirectories:
                 ./lib/src/main/assets
             JavaDirectories:
@@ -747,20 +655,18 @@ MODULE: project.lib
                 ./lib/src/main/kotlin
             JniLibsDirectories:
                 ./lib/src/main/jniLibs
-            RenderscriptDirectories:
-                ./lib/src/main/rs
             ResDirectories:
                 ./lib/src/main/res
             ResourcesDirectories:
                 ./lib/src/main/resources
             ShadersDirectories:
                 ./lib/src/main/shaders
+            BaselineProfileDirectories:
+                ./lib/src/main/baselineProfiles
         Active:
             main
                 Manifest:
                     ./lib/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/main/aidl
                 AssetsDirectories:
                     ./lib/src/main/assets
                 JavaDirectories:
@@ -770,19 +676,17 @@ MODULE: project.lib
                     ./lib/src/main/kotlin
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/main/rs
                 ResDirectories:
                     ./lib/src/main/res
                 ResourcesDirectories:
                     ./lib/src/main/resources
                 ShadersDirectories:
                     ./lib/src/main/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/main/baselineProfiles
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/debug/aidl
                 AssetsDirectories:
                     ./lib/src/debug/assets
                 JavaDirectories:
@@ -792,20 +696,18 @@ MODULE: project.lib
                     ./lib/src/debug/kotlin
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/debug/rs
                 ResDirectories:
                     ./lib/src/debug/res
                 ResourcesDirectories:
                     ./lib/src/debug/resources
                 ShadersDirectories:
                     ./lib/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/debug/baselineProfiles
         All:
             main
                 Manifest:
                     ./lib/src/main/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/main/aidl
                 AssetsDirectories:
                     ./lib/src/main/assets
                 JavaDirectories:
@@ -815,19 +717,17 @@ MODULE: project.lib
                     ./lib/src/main/kotlin
                 JniLibsDirectories:
                     ./lib/src/main/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/main/rs
                 ResDirectories:
                     ./lib/src/main/res
                 ResourcesDirectories:
                     ./lib/src/main/resources
                 ShadersDirectories:
                     ./lib/src/main/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/main/baselineProfiles
             debug
                 Manifest:
                     ./lib/src/debug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/debug/aidl
                 AssetsDirectories:
                     ./lib/src/debug/assets
                 JavaDirectories:
@@ -837,19 +737,17 @@ MODULE: project.lib
                     ./lib/src/debug/kotlin
                 JniLibsDirectories:
                     ./lib/src/debug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/debug/rs
                 ResDirectories:
                     ./lib/src/debug/res
                 ResourcesDirectories:
                     ./lib/src/debug/resources
                 ShadersDirectories:
                     ./lib/src/debug/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/debug/baselineProfiles
             release
                 Manifest:
                     ./lib/src/release/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/release/aidl
                 AssetsDirectories:
                     ./lib/src/release/assets
                 JavaDirectories:
@@ -859,20 +757,18 @@ MODULE: project.lib
                     ./lib/src/release/kotlin
                 JniLibsDirectories:
                     ./lib/src/release/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/release/rs
                 ResDirectories:
                     ./lib/src/release/res
                 ResourcesDirectories:
                     ./lib/src/release/resources
                 ShadersDirectories:
                     ./lib/src/release/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/release/baselineProfiles
         UnitTest:
             test
                 Manifest:
                     ./lib/src/test/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/test/aidl
                 AssetsDirectories:
                     ./lib/src/test/assets
                 JavaDirectories:
@@ -882,19 +778,17 @@ MODULE: project.lib
                     ./lib/src/test/kotlin
                 JniLibsDirectories:
                     ./lib/src/test/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/test/rs
                 ResDirectories:
                     ./lib/src/test/res
                 ResourcesDirectories:
                     ./lib/src/test/resources
                 ShadersDirectories:
                     ./lib/src/test/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/test/baselineProfiles
             testDebug
                 Manifest:
                     ./lib/src/testDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/testDebug/aidl
                 AssetsDirectories:
                     ./lib/src/testDebug/assets
                 JavaDirectories:
@@ -904,20 +798,18 @@ MODULE: project.lib
                     ./lib/src/testDebug/kotlin
                 JniLibsDirectories:
                     ./lib/src/testDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/testDebug/rs
                 ResDirectories:
                     ./lib/src/testDebug/res
                 ResourcesDirectories:
                     ./lib/src/testDebug/resources
                 ShadersDirectories:
                     ./lib/src/testDebug/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/testDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
                     ./lib/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/androidTest/aidl
                 AssetsDirectories:
                     ./lib/src/androidTest/assets
                 JavaDirectories:
@@ -927,19 +819,17 @@ MODULE: project.lib
                     ./lib/src/androidTest/kotlin
                 JniLibsDirectories:
                     ./lib/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/androidTest/rs
                 ResDirectories:
                     ./lib/src/androidTest/res
                 ResourcesDirectories:
                     ./lib/src/androidTest/resources
                 ShadersDirectories:
                     ./lib/src/androidTest/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/androidTest/baselineProfiles
             androidTestDebug
                 Manifest:
                     ./lib/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/androidTestDebug/aidl
                 AssetsDirectories:
                     ./lib/src/androidTestDebug/assets
                 JavaDirectories:
@@ -949,20 +839,18 @@ MODULE: project.lib
                     ./lib/src/androidTestDebug/kotlin
                 JniLibsDirectories:
                     ./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/androidTestDebug/rs
                 ResDirectories:
                     ./lib/src/androidTestDebug/res
                 ResourcesDirectories:
                     ./lib/src/androidTestDebug/resources
                 ShadersDirectories:
                     ./lib/src/androidTestDebug/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/androidTestDebug/baselineProfiles
         TestFixtures:
             testFixtures
                 Manifest:
                     ./lib/src/testFixtures/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/testFixtures/aidl
                 AssetsDirectories:
                     ./lib/src/testFixtures/assets
                 JavaDirectories:
@@ -972,19 +860,17 @@ MODULE: project.lib
                     ./lib/src/testFixtures/kotlin
                 JniLibsDirectories:
                     ./lib/src/testFixtures/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/testFixtures/rs
                 ResDirectories:
                     ./lib/src/testFixtures/res
                 ResourcesDirectories:
                     ./lib/src/testFixtures/resources
                 ShadersDirectories:
                     ./lib/src/testFixtures/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/testFixtures/baselineProfiles
             testFixturesDebug
                 Manifest:
                     ./lib/src/testFixturesDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/testFixturesDebug/aidl
                 AssetsDirectories:
                     ./lib/src/testFixturesDebug/assets
                 JavaDirectories:
@@ -994,14 +880,14 @@ MODULE: project.lib
                     ./lib/src/testFixturesDebug/kotlin
                 JniLibsDirectories:
                     ./lib/src/testFixturesDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/testFixturesDebug/rs
                 ResDirectories:
                     ./lib/src/testFixturesDebug/res
                 ResourcesDirectories:
                     ./lib/src/testFixturesDebug/resources
                 ShadersDirectories:
                     ./lib/src/testFixturesDebug/shaders
+                BaselineProfileDirectories:
+                    ./lib/src/testFixturesDebug/baselineProfiles
     by IdeaSourceProviders:
         Manifests:
             file://./lib/src/main/AndroidManifest.xml
@@ -1018,9 +904,6 @@ MODULE: project.lib
                     file://./lib/src/debug
                 ManifestDirectories:
                     file://./lib/src/main
-                AidlDirectoryUrls:
-                    file://./lib/src/main/aidl
-                    file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/main/assets
                     file://./lib/src/debug/assets
@@ -1039,9 +922,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                     file://./lib/src/debug/res
@@ -1064,9 +944,6 @@ MODULE: project.lib
                     file://./lib/src/testDebug
                 ManifestDirectories:
                     file://./lib/src/test
-                AidlDirectoryUrls:
-                    file://./lib/src/test/aidl
-                    file://./lib/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/test/assets
                     file://./lib/src/testDebug/assets
@@ -1085,9 +962,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
                     file://./lib/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/test/rs
-                    file://./lib/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/test/res
                     file://./lib/src/testDebug/res
@@ -1106,9 +980,6 @@ MODULE: project.lib
                 ManifestDirectoryUrls:
                     file://./lib/src/androidTest
                     file://./lib/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./lib/src/androidTest/aidl
-                    file://./lib/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/androidTest/assets
                     file://./lib/src/androidTestDebug/assets
@@ -1123,9 +994,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
                     file://./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTest/rs
-                    file://./lib/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTest/res
                     file://./lib/src/androidTestDebug/res
@@ -1146,9 +1014,6 @@ MODULE: project.lib
                     file://./lib/src/testFixturesDebug
                 ManifestDirectories:
                     file://./lib/src/testFixtures
-                AidlDirectoryUrls:
-                    file://./lib/src/testFixtures/aidl
-                    file://./lib/src/testFixturesDebug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/testFixtures/assets
                     file://./lib/src/testFixturesDebug/assets
@@ -1167,9 +1032,6 @@ MODULE: project.lib
                 JniLibsDirectoryUrls:
                     file://./lib/src/testFixtures/jniLibs
                     file://./lib/src/testFixturesDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testFixtures/rs
-                    file://./lib/src/testFixturesDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/testFixtures/res
                     file://./lib/src/testFixturesDebug/res
@@ -1186,11 +1048,7 @@ MODULE: project.lib
                 ScopeType: MAIN
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debug/out
-                    file://./lib/build/generated/aidl_source_output_dir/debug/out
-                    file://./lib/build/generated/source/buildConfig/debug
-                    file://./lib/build/generated/renderscript_source_output_dir/debug/out
                 ResDirectoryUrls:
-                    file://./lib/build/generated/res/rs/debug
                     file://./lib/build/generated/res/resValues/debug
         GeneratedUnitTestSources:
             GeneratedUnitTestSources (IDEA)
@@ -1202,11 +1060,7 @@ MODULE: project.lib
                 ScopeType: ANDROID_TEST
                 JavaDirectoryUrls:
                     file://./lib/build/generated/ap_generated_sources/debugAndroidTest/out
-                    file://./lib/build/generated/aidl_source_output_dir/debugAndroidTest/out
-                    file://./lib/build/generated/source/buildConfig/androidTest/debug
-                    file://./lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out
                 ResDirectoryUrls:
-                    file://./lib/build/generated/res/rs/androidTest/debug
                     file://./lib/build/generated/res/resValues/androidTest/debug
         GeneratedTestFixturesSources:
             GeneratedTestFixturesSources (IDEA)
@@ -1226,8 +1080,6 @@ MODULE: project.lib
                     file://./lib/src/main
                 ManifestDirectories:
                     file://./lib/src/main
-                AidlDirectoryUrls:
-                    file://./lib/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/main/assets
                 JavaDirectoryUrls:
@@ -1241,8 +1093,6 @@ MODULE: project.lib
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                 ResDirectories:
@@ -1257,8 +1107,6 @@ MODULE: project.lib
                     file://./lib/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/debug
-                AidlDirectoryUrls:
-                    file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/debug/assets
                 JavaDirectoryUrls:
@@ -1268,8 +1116,6 @@ MODULE: project.lib
                     file://./lib/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
@@ -1282,8 +1128,6 @@ MODULE: project.lib
                     file://./lib/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/release
-                AidlDirectoryUrls:
-                    file://./lib/src/release/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/release/assets
                 JavaDirectoryUrls:
@@ -1293,8 +1137,6 @@ MODULE: project.lib
                     file://./lib/src/release/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/release/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/release/rs
                 ResDirectoryUrls:
                     file://./lib/src/release/res
                 ResourcesDirectoryUrls:
@@ -1312,8 +1154,6 @@ MODULE: project.lib
                     file://./lib/src/main
                 ManifestDirectories:
                     file://./lib/src/main
-                AidlDirectoryUrls:
-                    file://./lib/src/main/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/main/assets
                 JavaDirectoryUrls:
@@ -1327,8 +1167,6 @@ MODULE: project.lib
                     file://./lib/src/main/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/main/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/main/rs
                 ResDirectoryUrls:
                     file://./lib/src/main/res
                 ResDirectories:
@@ -1343,8 +1181,6 @@ MODULE: project.lib
                     file://./lib/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/debug
-                AidlDirectoryUrls:
-                    file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/debug/assets
                 JavaDirectoryUrls:
@@ -1354,8 +1190,6 @@ MODULE: project.lib
                     file://./lib/src/debug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/debug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/debug/rs
                 ResDirectoryUrls:
                     file://./lib/src/debug/res
                 ResourcesDirectoryUrls:
@@ -1371,8 +1205,6 @@ MODULE: project.lib
                     file://./lib/src/test
                 ManifestDirectories:
                     file://./lib/src/test
-                AidlDirectoryUrls:
-                    file://./lib/src/test/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/test/assets
                 JavaDirectoryUrls:
@@ -1386,8 +1218,6 @@ MODULE: project.lib
                     file://./lib/src/test/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/test/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/test/rs
                 ResDirectoryUrls:
                     file://./lib/src/test/res
                 ResourcesDirectoryUrls:
@@ -1400,8 +1230,6 @@ MODULE: project.lib
                     file://./lib/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/testDebug
-                AidlDirectoryUrls:
-                    file://./lib/src/testDebug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/testDebug/assets
                 JavaDirectoryUrls:
@@ -1411,8 +1239,6 @@ MODULE: project.lib
                     file://./lib/src/testDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/testDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/testDebug/res
                 ResourcesDirectoryUrls:
@@ -1426,8 +1252,6 @@ MODULE: project.lib
                     file://./lib/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/androidTest
-                AidlDirectoryUrls:
-                    file://./lib/src/androidTest/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/androidTest/assets
                 JavaDirectoryUrls:
@@ -1437,8 +1261,6 @@ MODULE: project.lib
                     file://./lib/src/androidTest/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTest/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTest/res
                 ResourcesDirectoryUrls:
@@ -1451,8 +1273,6 @@ MODULE: project.lib
                     file://./lib/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/androidTestDebug
-                AidlDirectoryUrls:
-                    file://./lib/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/androidTestDebug/assets
                 JavaDirectoryUrls:
@@ -1462,8 +1282,6 @@ MODULE: project.lib
                     file://./lib/src/androidTestDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTestDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/androidTestDebug/res
                 ResourcesDirectoryUrls:
@@ -1479,8 +1297,6 @@ MODULE: project.lib
                     file://./lib/src/testFixtures
                 ManifestDirectories:
                     file://./lib/src/testFixtures
-                AidlDirectoryUrls:
-                    file://./lib/src/testFixtures/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/testFixtures/assets
                 JavaDirectoryUrls:
@@ -1494,8 +1310,6 @@ MODULE: project.lib
                     file://./lib/src/testFixtures/java
                 JniLibsDirectoryUrls:
                     file://./lib/src/testFixtures/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testFixtures/rs
                 ResDirectoryUrls:
                     file://./lib/src/testFixtures/res
                 ResDirectories:
@@ -1510,8 +1324,6 @@ MODULE: project.lib
                     file://./lib/src/testFixturesDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
                     file://./lib/src/testFixturesDebug
-                AidlDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/aidl
                 AssetsDirectoryUrls:
                     file://./lib/src/testFixturesDebug/assets
                 JavaDirectoryUrls:
@@ -1521,8 +1333,6 @@ MODULE: project.lib
                     file://./lib/src/testFixturesDebug/kotlin
                 JniLibsDirectoryUrls:
                     file://./lib/src/testFixturesDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/testFixturesDebug/rs
                 ResDirectoryUrls:
                     file://./lib/src/testFixturesDebug/res
                 ResourcesDirectoryUrls:

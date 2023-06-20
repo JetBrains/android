@@ -17,16 +17,17 @@ package com.android.tools.idea.diagnostics.hprof.visitors
 
 import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
 import com.android.tools.idea.diagnostics.hprof.parser.RecordType
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap
+import gnu.trove.TLongObjectHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
-class CollectStringValuesVisitor(val output: Long2ObjectMap<String>) : HProfVisitor() {
+class CollectStringValuesVisitor(val output: Long2ObjectOpenHashMap<String>) : HProfVisitor() {
   override fun preVisit() {
     disableAll()
     enable(RecordType.StringInUTF8)
   }
 
   override fun visitStringInUTF8(id: Long, s: String) {
-    assert(output.get(id) == null)
+    assert(output[id] == null)
     output.put(id, s)
   }
 }

@@ -17,12 +17,15 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.List;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
-import java.util.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Model class that represents each row in the memory allocation table view.
@@ -80,7 +83,8 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
     return Collections.enumeration(myChildren);
   }
 
-  public @NotNull List<MemoryObjectTreeNode<T>> getChildren() {
+  @NotNull
+  public List<MemoryObjectTreeNode<T>> getChildren() {
     ensureOrder();
     return List.copyOf(myChildren);
   }

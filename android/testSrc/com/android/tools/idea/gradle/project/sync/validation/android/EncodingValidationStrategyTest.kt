@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.InternedModels
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
+import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.google.common.truth.Truth
@@ -55,7 +55,7 @@ class EncodingValidationStrategyTest : AndroidGradleTestCase() {
   fun testValidate() {
     val modelEncoding = "UTF-8"
     val androidModel = mock(GradleAndroidModel::class.java)
-    whenever(androidModel.agpVersion).thenReturn(GradleVersion.parse("1.2.0"))
+    whenever(androidModel.agpVersion).thenReturn(AgpVersion.parse("1.2.0"))
     val ideAndroidProject = AndroidProjectBuilder()
       .build()
       .invoke(
@@ -78,23 +78,23 @@ class EncodingValidationStrategyTest : AndroidGradleTestCase() {
   }
 
   fun testFixAndReportFoundIssues() {
-    val syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
+    val syncMessages = GradleSyncMessages.getInstance(project)
     val mismatchingEncoding = "UTF-8"
     myStrategy!!.mismatchingEncoding = mismatchingEncoding
     myStrategy!!.fixAndReportFoundIssues()
-    val message = syncMessages.firstReportedMessage
+    val message = syncMessages.reportedMessages.firstOrNull()
     assertNotNull(message)
     val text = message!!.text
-    Truth.assertThat(text).hasLength(2)
-    Truth.assertThat(text[0]).startsWith("The project encoding (ISO-8859-1) has been reset")
+    Truth.assertThat(text.split('\n')).hasSize(2)
+    Truth.assertThat(text).startsWith("The project encoding (ISO-8859-1) has been reset")
     verify(myEncodings, times(1))?.let { it.defaultCharsetName = mismatchingEncoding }
   }
 
   fun testFixAndReportFoundIssuesWithNoMismatch() {
-    val syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
+    val syncMessages = GradleSyncMessages.getInstance(project)
     myStrategy!!.mismatchingEncoding = null
     myStrategy!!.fixAndReportFoundIssues()
-    val message = syncMessages.firstReportedMessage
+    val message = syncMessages.reportedMessages.firstOrNull()
     assertNull(message)
     verify(myEncodings, never())?.let { it.defaultCharsetName = ArgumentMatchers.anyString() }
   }

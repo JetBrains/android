@@ -67,16 +67,14 @@ class ScreenshotAction : DumbAwareAction(
           val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
           val defaultFrame =
               if (framingOptions.isNotEmpty()) screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage) else 0
-          val viewer: ScreenshotViewer = object : ScreenshotViewer(
-            project,
-            screenshotImage,
-            backingFile,
-            screenshotSupplier,
-            screenshotPostprocessor,
-            framingOptions,
-            defaultFrame,
-            screenshotOptions.screenshotViewerOptions) {
-
+          val viewer: ScreenshotViewer = object : ScreenshotViewer(project,
+                                                                   screenshotImage,
+                                                                   backingFile,
+                                                                   screenshotSupplier,
+                                                                   screenshotPostprocessor,
+                                                                   framingOptions,
+                                                                   defaultFrame,
+                                                                   screenshotOptions.screenshotViewerOptions) {
             override fun doOKAction() {
               super.doOKAction()
               screenshot?.let {
@@ -115,11 +113,10 @@ class ScreenshotAction : DumbAwareAction(
 
   interface ScreenshotOptions {
     val serialNumber: String
-    val apiLevel: Int
     val screenshotViewerOptions: Set<ScreenshotViewer.Option>
     val screenshotPostprocessor: ScreenshotPostprocessor
 
-    fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean): ScreenshotImage
+    fun createScreenshotImage(image: BufferedImage, displayInfo: String, deviceType: DeviceType): ScreenshotImage
 
     /** Returns the list of available framing options for the given image. */
     fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption>

@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.GuiTestingService;
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
@@ -53,7 +54,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

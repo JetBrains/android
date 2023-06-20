@@ -18,9 +18,9 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 import com.android.testutils.TestUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.rendering.NoSecurityManagerRenderService
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTestUtil
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
@@ -40,6 +40,8 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
 class VisualLintServiceTest {
@@ -51,7 +53,7 @@ class VisualLintServiceTest {
   fun setup() {
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
-    RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
+    StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     DesignerTypeRegistrar.register(LayoutFileType)
     val visualLintInspections = arrayOf(BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
                                         TextFieldSizeAnalyzerInspection, OverlapAnalyzerInspection, LongTextAnalyzerInspection,
@@ -64,13 +66,12 @@ class VisualLintServiceTest {
     ApplicationManager.getApplication().invokeAndWait {
       RenderTestUtil.afterRenderTestCase()
     }
-    RenderService.setForTesting(projectRule.project, null)
+    StudioRenderService.setForTesting(projectRule.project, null)
   }
 
   @Test
   fun runVisualLintAnalysis() {
     projectRule.load("projects/visualLintApplication")
-    projectRule.requestSyncAndWait()
 
     val visualLintService = VisualLintService.getInstance(projectRule.project)
     val visualLintIssueModel = visualLintService.issueModel
@@ -78,8 +79,12 @@ class VisualLintServiceTest {
     val module = projectRule.getModule("app")
     val facet = AndroidFacet.getInstance(module)!!
     val dashboardLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/fragment_dashboard.xml")!!
-    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, dashboardLayout)
-    visualLintService.runVisualLintAnalysis(listOf(nlModel), MoreExecutors.newDirectExecutorService())
+    val nlModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, dashboardLayout)
+    val visualLintExecutorService = MoreExecutors.newDirectExecutorService()
+    visualLintService.runVisualLintAnalysis(projectRule.fixture.testRootDisposable,
+                                            VisualLintIssueProvider(projectRule.fixture.testRootDisposable), listOf(nlModel),
+                                            visualLintExecutorService)
+    visualLintExecutorService.waitForTasksToComplete()
 
     val issues = visualLintIssueModel.issues
     assertEquals(2, issues.size)
@@ -88,9 +93,11 @@ class VisualLintServiceTest {
     }
 
     val atfLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/atf_layout.xml")!!
-    val atfModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, atfLayout)
+    val atfModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, atfLayout)
     VisualLintService.getInstance(projectRule.project)
-      .runVisualLintAnalysis(listOf(atfModel), MoreExecutors.newDirectExecutorService())
+      .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+                             listOf(atfModel), visualLintExecutorService)
+    visualLintExecutorService.waitForTasksToComplete()
 
     val atfIssues = visualLintIssueModel.issues
     assertEquals(2, atfIssues.size)
@@ -103,9 +110,11 @@ class VisualLintServiceTest {
 
     val wearLayout = projectRule.project.baseDir.findFileByRelativePath("app/src/main/res/layout/wear_layout.xml")!!
     val wearConfiguration = RenderTestUtil.getConfiguration(module, wearLayout, "wearos_small_round")
-    val wearModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, null, facet, wearLayout, wearConfiguration)
+    val wearModel = SyncNlModel.create(projectRule.project, NlComponentRegistrar, null, facet, wearLayout, wearConfiguration)
     VisualLintService.getInstance(projectRule.project)
-      .runVisualLintAnalysis(listOf(wearModel), MoreExecutors.newDirectExecutorService())
+      .runVisualLintAnalysis(projectRule.fixture.testRootDisposable, VisualLintIssueProvider(projectRule.fixture.testRootDisposable),
+                             listOf(wearModel), visualLintExecutorService)
+    visualLintExecutorService.waitForTasksToComplete()
 
     val wearIssues = visualLintIssueModel.issues
     assertEquals(13, wearIssues.size)
@@ -116,4 +125,8 @@ class VisualLintServiceTest {
       .filter { it.type == VisualLintErrorType.WEAR_MARGIN }
     assertEquals(5, wearMarginIssues.size)
   }
+}
+
+private fun ExecutorService.waitForTasksToComplete() {
+  submit {}?.get(30, TimeUnit.SECONDS)
 }

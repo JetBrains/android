@@ -28,7 +28,6 @@ import com.android.tools.idea.gradle.structure.model.android.PsFlavorDimension
 import com.android.tools.idea.gradle.structure.model.android.PsProductFlavor
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.intellij.openapi.application.ApplicationManager
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 
 fun analyzeModuleDependencies(androidModule: PsAndroidModule, pathRenderer: PsPathRenderer): Sequence<PsIssue> =
   androidModule.dependencies.modules.asSequence().flatMap { analyzeModuleDependency(it, pathRenderer) }
@@ -136,7 +135,7 @@ data class PsMissingBuildTypeQuickFix(val moduleGradlePath: String, val buildTyp
   override val text: String get() = "Add Build Type"
 
   override fun execute(context: PsContext) {
-    val targetModule = context.project.findModuleByGradlePath(moduleGradlePath).cast<PsAndroidModule>()
+    val targetModule = context.project.findModuleByGradlePath(moduleGradlePath) as PsAndroidModule
     val newBuildType = targetModule.addNewBuildType(buildTypeName)
     ApplicationManager.getApplication().invokeLater {
       context
@@ -152,7 +151,7 @@ data class PsMissingBuildTypeFallbackQuickFix(val moduleGradlePath: String, val 
   override val text: String get() = "Add Fallback"
 
   override fun execute(context: PsContext) {
-    val sourceModule = context.project.findModuleByGradlePath(moduleGradlePath).cast<PsAndroidModule>()
+    val sourceModule = context.project.findModuleByGradlePath(moduleGradlePath) as PsAndroidModule
     val buildType = sourceModule.findBuildType(buildTypeName) ?: return
     ApplicationManager.getApplication().invokeLater {
       context
@@ -169,7 +168,7 @@ data class PsMissingFlavorDimensionQuickFix(val moduleGradlePath: String, val ne
   override val text: String get() = "Add Flavor Dimension"
 
   override fun execute(context: PsContext) {
-    val targetModule = context.project.findModuleByGradlePath(moduleGradlePath).cast<PsAndroidModule>()
+    val targetModule = context.project.findModuleByGradlePath(moduleGradlePath) as PsAndroidModule
     val newFlavorDimension = targetModule.addNewFlavorDimension(newDimensionName)
     ApplicationManager.getApplication().invokeLater {
       context
@@ -186,7 +185,7 @@ data class PsMissingProductFlavorQuickFix(val moduleGradlePath: String, val dime
   override val text: String get() = "Add Product Flavor"
 
   override fun execute(context: PsContext) {
-    val targetModule = context.project.findModuleByGradlePath(moduleGradlePath).cast<PsAndroidModule>()
+    val targetModule = context.project.findModuleByGradlePath(moduleGradlePath) as PsAndroidModule
     val newProductFlavor = targetModule.addNewProductFlavor(dimension, productFlavorName)
     ApplicationManager.getApplication().invokeLater {
       context
@@ -207,7 +206,7 @@ data class PsMissingProductFlavorFallbackQuickFix(
   override val text: String get() = "Add Fallback"
 
   override fun execute(context: PsContext) {
-    val sourceModule = context.project.findModuleByGradlePath(moduleGradlePath).cast<PsAndroidModule>()
+    val sourceModule = context.project.findModuleByGradlePath(moduleGradlePath) as PsAndroidModule
     val productFlavor = sourceModule.findProductFlavor(dimension, productFlavorName) ?: return
     ApplicationManager.getApplication().invokeLater {
       context

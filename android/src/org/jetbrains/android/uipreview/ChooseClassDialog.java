@@ -21,7 +21,7 @@ import static com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX;
 import static com.android.SdkConstants.GOOGLE_SUPPORT_ARTIFACT_PREFIX;
 import static com.android.tools.lint.checks.AnnotationDetectorKt.RESTRICT_TO_ANNOTATION;
 
-import com.intellij.ide.util.DefaultPsiElementCellRenderer;
+import com.intellij.ide.util.PsiClassListCellRenderer;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
@@ -38,9 +38,8 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.ListSpeedSearch;
-import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBList;
-import java.awt.Dimension;
+import com.intellij.ui.components.JBScrollPane;
 import java.awt.event.MouseEvent;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -48,12 +47,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JList;
-import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
@@ -61,17 +62,16 @@ import org.jetbrains.annotations.Nullable;
 
 public class ChooseClassDialog extends DialogWrapper implements ListSelectionListener {
   private final JList<PsiClass> myList = new JBList<>();
-  private final JScrollPane myComponent = ScrollPaneFactory.createScrollPane(myList);
-  private final Predicate<PsiClass> myFilter;
+  private final JComponent myComponent =
+    new JBScrollPane(myList, JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
   private String myResultClassName;
 
-  private ChooseClassDialog(Module module, String title, boolean includeAll, @Nullable Predicate<PsiClass> filter, String... classes) {
+  private ChooseClassDialog(Module module, String title, @NotNull Collection<PsiClass> classes) {
     super(module.getProject());
-    myFilter = filter;
 
     new DoubleClickListener() {
       @Override
-      protected boolean onDoubleClick(@NotNull MouseEvent e) {
+      public boolean onDoubleClick(@NotNull MouseEvent e) {
         if (myList.getSelectedValue() != null) {
           close(OK_EXIT_CODE);
           return true;
@@ -81,10 +81,29 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
     }.installOn(myList);
 
     DefaultListModel<PsiClass> model = new DefaultListModel<>();
-    findClasses(module, includeAll, model, classes);
+    model.addAll(classes);
+    // Add a listener to the model to detect content changes. Even though the content itself never changes (it's always "classes"),\
+    // the UI elements are calculated in a background thread. When the final UI is ready, the contentChanged listener will be called.
+    // When that happens, we call repack to ensure the full UI is visible.
+    model.addListDataListener(new ListDataListener() {
+      @Override
+      public void intervalAdded(ListDataEvent e) { }
+
+      @Override
+      public void intervalRemoved(ListDataEvent e) { }
+
+      @Override
+      public void contentsChanged(ListDataEvent e) {
+        remeasureDialog();
+      }
+
+      private void remeasureDialog() {
+        model.removeListDataListener(this);
+        if (isVisible()) pack();
+      }
+    });
     myList.setModel(model);
-    //noinspection unchecked
-    myList.setCellRenderer(new DefaultPsiElementCellRenderer());
+    myList.setCellRenderer(new PsiClassListCellRenderer());
 
     ListSelectionModel selectionModel = myList.getSelectionModel();
     selectionModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -104,10 +123,6 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
     setOKActionEnabled(false);
 
     init();
-
-    Dimension size = myComponent.getPreferredSize();
-    size.height = myList.getPreferredSize().height + 20;
-    myComponent.setPreferredSize(size);
   }
 
   private void setSelectedClass(@NotNull String className) {
@@ -120,12 +135,16 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
     }
   }
 
-  protected void findClasses(Module module, boolean includeAll, DefaultListModel model, String[] classes) {
+  @NotNull
+  protected static Collection<PsiClass> findClasses(@NotNull Module module,
+                                                    boolean includeAll,
+                                                    @NotNull Predicate<PsiClass> filter,
+                                                    @NotNull String[] classes) {
     Collection<PsiClass> collection = new ArrayList<>(classes.length);
 
     for (String className : classes) {
       for (PsiClass psiClass : findInheritors(module, className, includeAll)) {
-        if (myFilter != null && !myFilter.test(psiClass)) {
+        if (!filter.test(psiClass)) {
           continue;
         }
 
@@ -135,13 +154,10 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
 
     Collator collator = Collator.getInstance(Locale.US);
 
-    collection.stream()
+    return collection.stream()
       .sorted((psiClass1, psiClass2) -> collator.compare(SymbolPresentationUtil.getSymbolPresentableText(psiClass1),
                                                          SymbolPresentationUtil.getSymbolPresentableText(psiClass2)))
-      .forEach(psiClass -> {
-        // noinspection Convert2MethodRef, unchecked
-        model.addElement(psiClass);
-      });
+      .collect(Collectors.toUnmodifiableList());
   }
 
   private static Collection<PsiClass> findInheritors(Module module, String name, boolean includeAll) {
@@ -197,7 +213,8 @@ public class ChooseClassDialog extends DialogWrapper implements ListSelectionLis
       return null;
     }
 
-    ChooseClassDialog dialog = new ChooseClassDialog(module, title, true, filter, classes);
+    Collection<PsiClass> filteredClasses = findClasses(module, true, filter != null ? filter : aClass -> true, classes);
+    ChooseClassDialog dialog = new ChooseClassDialog(module, title, filteredClasses);
     if (currentValue != null) {
       dialog.setSelectedClass(currentValue);
     }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.cpp
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleSyncState.Companion.getInstance
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
@@ -42,7 +42,7 @@ class AddCppToModuleActionTest {
   val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
 
   @get:Rule
-  val restoreNpwNativeModuleFlagRule = RestoreFlagRule(StudioFlags.NPW_NEW_NATIVE_MODULE)
+  val restoreNpwNativeModuleFlagRule = FlagRule(StudioFlags.NPW_NEW_NATIVE_MODULE)
 
   @Before
   fun setup() {
@@ -103,8 +103,8 @@ class AddCppToModuleActionTest {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
 
-    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("../cpp/CMakeLists.txt")
-    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("version '$DEFAULT_CMAKE_VERSION'")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle.kts").readText()).contains("../cpp/CMakeLists.txt")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle.kts").readText()).contains("version = \"$DEFAULT_CMAKE_VERSION\"")
   }
 
   @Test
@@ -139,7 +139,7 @@ class AddCppToModuleActionTest {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
 
-    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("../cpp/Android.mk")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle.kts").readText()).contains("../cpp/Android.mk")
   }
 
   @Test
@@ -164,8 +164,8 @@ class AddCppToModuleActionTest {
       // selection does not exist
       enabledTextField.setText("/blah")
       Truth.assertThat(okButton.isEnabled).isFalse()
-      // selection exists but it's not a CMakeLists.txt or *.mk file
-      enabledTextField.setText(projectRoot.resolve("build.gradle").absolutePath)
+      // selection exists, but it's not a CMakeLists.txt or *.mk file
+      enabledTextField.setText(projectRoot.resolve("build.gradle.kts").absolutePath)
       Truth.assertThat(okButton.isEnabled).isFalse()
       // selection is valid
       enabledTextField.setText(cmakeListsFile.absolutePath)

@@ -43,26 +43,41 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
     super(BuildContentManager.TOOL_WINDOW_ID, project, robot);
   }
 
+  public Content getSyncContent() {
+    return getContent("Sync");
+  }
+
   /**
    * @return the console view in Sync tab of Build tool window.
    */
   @NotNull
   public ConsoleViewImpl getGradleSyncConsoleView() {
-    Content syncContent = getContent("Sync");
+    Content syncContent = getSyncContent();
     return myRobot.finder().findByType(syncContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
   }
 
   @NotNull
   public JTreeFixture getGradleSyncEventTree() {
-    Content syncContent = getContent("Sync");
+    Content syncContent = getSyncContent();
     JTree tree = myRobot.finder().findByType(syncContent.getComponent(), JTree.class, true /* showing */);
     return new JTreeFixture(myRobot, tree);
   }
 
+  public Content getBuildContent() {
+    return getContent("Build Output");
+  }
+
   @NotNull
   public ConsoleViewImpl getGradleBuildConsoleView() {
-    Content buildContent = getContent("Build Output");
+    Content buildContent = getBuildContent();
     return myRobot.finder().findByType(buildContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
+  }
+
+  @NotNull
+  public JTreeFixture getGradleBuildEventTree() {
+    Content syncContent = getBuildContent();
+    JTree tree = myRobot.finder().findByType(syncContent.getComponent(), JTree.class, true /* showing */);
+    return new JTreeFixture(myRobot, tree);
   }
 
   /**

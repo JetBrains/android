@@ -18,14 +18,15 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 import com.android.tools.idea.navigator.nodes.ndk.includes.RealWorldExamples;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
-import java.io.File;
 import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 
-public final class ResolverTests {
+public class ResolverTests {
   static final String PATH_TO_NDK = "/path/to/ndk-bundle";
   static final String PATH_TO_SIDE_BY_SIDE_NDK = "/path/to/ndk/19.0.5232133";
   static final File ROOT_OF_RELATIVE_INCLUDE_PATHS = new File("/a/b/c/d/e/f/g/h/i");

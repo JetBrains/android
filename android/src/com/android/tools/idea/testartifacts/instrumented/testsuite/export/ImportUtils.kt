@@ -30,11 +30,14 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
+import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.configurations.RunnerSettings
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
+import com.intellij.execution.runners.GenericProgramRunner
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.testframework.HistoryTestRunnableState
 import com.intellij.execution.testframework.sm.SmRunnerBundle
@@ -77,10 +80,11 @@ fun importAndroidTestMatrixResultXmlFile(project: Project, xmlFile: VirtualFile,
                    ?: return false
     val builder = ExecutionEnvironmentBuilder.create(project, executor, runProfile)
     runProfile.target?.let { builder.target(it) }
-    runProfile.initialConfiguration?.let {
-      ProgramRunner.getRunner(executor.id, it)
-    }?.let { builder.runner(it) }
-
+    val runner = ProgramRunner.getRunner(executor.id, runProfile) ?: object : GenericProgramRunner<RunnerSettings>() {
+      override fun canRun(executorId: String, profile: RunProfile) = true
+      override fun getRunnerId() = "AndroidTestMatrixResultXmlFileRunner"
+    }
+    builder.runner(runner)
     val env = builder.build()
     env.runner.execute(env)
     onExecutionStarted(env)
@@ -121,7 +125,7 @@ private class ImportAndroidTestMatrixRunProfileState(
   private val importRunProfile: ImportAndroidTestMatrixRunProfile,
   private val historyXmlFile: File)
   : RunProfileState, HistoryTestRunnableState {
-  override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult {
+  override fun execute(executor: Executor, runner: ProgramRunner<*>): ExecutionResult? {
     val handler = object: ProcessHandler() {
       override fun destroyProcessImpl() {}
       override fun detachProcessImpl() { notifyProcessTerminated(0) }

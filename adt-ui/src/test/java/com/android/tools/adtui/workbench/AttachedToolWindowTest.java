@@ -18,11 +18,11 @@ package com.android.tools.adtui.workbench;
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_TOOLBAR_PLACE;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,6 +46,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
+import com.intellij.openapi.actionSystem.impl.PresentationFactory;
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
@@ -64,6 +65,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Objects;
+import java.util.function.Function;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -95,10 +97,13 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     registerApplicationService(ActionManager.class, myActionManager);
     registerApplicationService(PropertiesComponent.class, new PropertiesComponentMock());
     doAnswer(invocation -> new SomeAction(invocation.getArgument(0))).when(myActionManager).getAction(anyString());
+    when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class), any(PresentationFactory.class))).thenReturn(myActionPopupMenu);
     when(myActionManager.createActionPopupMenu(anyString(), any(ActionGroup.class))).thenReturn(myActionPopupMenu);
     when(myActionManager.getRegistrationOrderComparator()).thenReturn(String.CASE_INSENSITIVE_ORDER);
     when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean())).thenCallRealMethod();
+    when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean(), anyBoolean())).thenCallRealMethod();
     when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean(), anyBoolean(), anyBoolean())).thenCallRealMethod();
+    when(myActionManager.createActionToolbar(anyString(), any(ActionGroup.class), anyBoolean(), any(Function.class))).thenCallRealMethod();
     when(myActionPopupMenu.getComponent()).thenReturn(myPopupMenu);
     when(myModel.getProject()).thenReturn(getProject());
     myPropertiesComponent = PropertiesComponent.getInstance();
@@ -107,7 +112,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     when(myWorkBench.getContext()).thenReturn("");
 
     myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
-    Disposer.register(getTestRootDisposable(), myToolWindow);
+    Disposer.register(getTestRootDisposable(), myWorkBench);
 
     KeyboardFocusManager.setCurrentKeyboardFocusManager(myKeyboardFocusManager);
   }

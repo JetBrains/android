@@ -7,13 +7,12 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.idea.transport.faketransport.commands.MemoryAllocTracking
 import com.android.tools.profiler.proto.Commands
+import com.android.tools.profiler.proto.Memory
+import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
-import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.google.common.truth.Truth.assertThat
@@ -27,11 +26,9 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
   override val timer = FakeTimer()
-  private val service = FakeMemoryService()
   private val transportService = FakeTransportService(timer)
   @Rule @JvmField
-  val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", service, transportService,
-                                    FakeProfilerService(timer), FakeCpuService(), FakeEventService())
+  val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", transportService)
   private lateinit var profilers: StudioProfilers
   private lateinit var stage: AllocationStage
   private lateinit var mockLoader: FakeCaptureObjectLoader
@@ -43,7 +40,6 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-    ideProfilerServices.enableEventsPipeline(true)
     mockLoader = FakeCaptureObjectLoader()
     stage = if (isLive) AllocationStage.makeLiveStage(profilers, mockLoader)
             else AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = 1.0, maxTrackingTimeUs = 5.0)
@@ -75,6 +71,16 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     assertThat(stage.liveAllocationSamplingMode).isEqualTo(SAMPLED)  // Stop command doesn't change sampling mode
     assertThat(handler.lastCommand.type).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
     assertThat(handler.lastCommand.commandId).isNotEqualTo(prevCommand.commandId)
+  }
+
+  @Test
+  fun `implicit selection of allocation artifact proto is made post recording`() {
+    // Capture a Java/Kotlin Allocation Trace
+    MemoryProfilerTestUtils.startTrackingHelper(stage.parentStage, transportService, timer, 0, Memory.TrackStatus.Status.SUCCESS, false)
+    MemoryProfilerTestUtils.stopTrackingHelper(stage.parentStage, transportService, timer, 0, Memory.TrackStatus.Status.SUCCESS, false)
+
+    // Make sure the resulting artifact's proto is of AllocationsInfo type
+    assertThat(profilers.sessionsManager.selectedArtifactProto).isInstanceOf(AllocationsInfo::class.java)
   }
 
   @Test

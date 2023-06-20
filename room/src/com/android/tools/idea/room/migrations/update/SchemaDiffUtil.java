@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Utility class which offers the possibility to compare the structure of fields or entities.
  */
-public final class SchemaDiffUtil {
+public class SchemaDiffUtil {
   /**
    * Checks whether two versions of the same field have the same attributes (i.e. affinity, not null property, default value).
    */

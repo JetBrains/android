@@ -25,16 +25,18 @@ import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.analytics.CommonMetricsData;
 import com.android.tools.analytics.UsageTracker;
+import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
+import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.stats.AnonymizerUtil;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Energy;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.energy.EnergyDuration;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
@@ -65,6 +67,7 @@ import com.google.wireless.android.sdk.stats.FilterMetadata;
 import com.google.wireless.android.sdk.stats.MemoryInstanceFilterMetadata;
 import com.google.wireless.android.sdk.stats.ProfilerSessionCreationMetaData;
 import com.google.wireless.android.sdk.stats.ProfilerSessionSelectionMetaData;
+import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonManagerStats;
 import com.google.wireless.android.sdk.stats.TraceProcessorDaemonQueryStats;
 import com.google.wireless.android.sdk.stats.TransportFailureMetadata;
@@ -206,19 +209,14 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackProfilerInitializationFailed() {
-    track(AndroidProfilerEvent.Type.PROFILER_INITIALIZATION_FAILED);
-  }
-
-  @Override
   public void trackEnterStage(AndroidProfilerEvent.Stage stageType) {
     myCurrStage = stageType;
     track(AndroidProfilerEvent.Type.STAGE_ENTERED);
   }
 
   @Override
-  public void trackRunWithProfiling() {
-    track(AndroidProfilerEvent.Type.RUN_WITH_PROFILING);
+  public void trackRunWithProfiling(@NotNull RunWithProfilingMetadata metadata) {
+    newTracker(AndroidProfilerEvent.Type.RUN_WITH_PROFILING).setRunWithProfilingMetadata(metadata).track();
   }
 
   @Override
@@ -352,25 +350,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackImportTrace(@NotNull Cpu.CpuTraceType profilerType, boolean success) {
-    CpuImportTraceMetadata.Builder metadata = CpuImportTraceMetadata.newBuilder();
-    metadata.setImportStatus(success ? CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_SUCCESS
-                                     : CpuImportTraceMetadata.ImportStatus.IMPORT_TRACE_FAILURE);
-    switch (profilerType) {
-      case ART:
-        metadata.setTechnology(CpuImportTraceMetadata.Technology.ART_TECHNOLOGY);
-        break;
-      case SIMPLEPERF:
-        metadata.setTechnology(CpuImportTraceMetadata.Technology.SIMPLEPERF_TECHNOLOGY);
-        break;
-      case ATRACE:
-        metadata.setTechnology(CpuImportTraceMetadata.Technology.ATRACE_TECHNOLOGY);
-        break;
-      default:
-        metadata.setTechnology(CpuImportTraceMetadata.Technology.UNKNOWN_TECHNOLOGY);
-        break;
-    }
-    newTracker(AndroidProfilerEvent.Type.CPU_IMPORT_TRACE).setDevice(myActiveDevice).setCpuImportTraceMetadata(metadata.build()).track();
+  public void trackImportTrace(@NotNull CpuImportTraceMetadata metadata) {
+    newTracker(AndroidProfilerEvent.Type.CPU_IMPORT_TRACE).setDevice(myActiveDevice).setCpuImportTraceMetadata(metadata).track();
   }
 
   @Override
@@ -558,7 +539,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorLoadTrace(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs, long traceSizeBytes) {
     TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
       .setQueryStatus(queryStatus)
       .setMethodDurationMs(methodTimeMs)
@@ -571,7 +552,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorProcessMetadata(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
       .setQueryStatus(queryStatus)
       .setMethodDurationMs(methodTimeMs)
@@ -583,7 +564,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorCpuData(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
       .setQueryStatus(queryStatus)
       .setMethodDurationMs(methodTimeMs)
@@ -595,7 +576,7 @@ public final class StudioFeatureTracker implements FeatureTracker {
 
   @Override
   public void trackTraceProcessorMemoryData(
-      @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
+    @NotNull TraceProcessorDaemonQueryStats.QueryReturnStatus queryStatus, long methodTimeMs, long queryTimeMs) {
     TraceProcessorDaemonQueryStats stats = TraceProcessorDaemonQueryStats.newBuilder()
       .setQueryStatus(queryStatus)
       .setMethodDurationMs(methodTimeMs)
@@ -723,6 +704,8 @@ public final class StudioFeatureTracker implements FeatureTracker {
     private int myEventCount = 0;
     @Nullable private AndroidProfilerEvent.Loading myLoading;
 
+    @Nullable private RunWithProfilingMetadata myRunWithProfilingMetadata;
+
     private AndroidProfilerEvent.MemoryHeap myMemoryHeap = AndroidProfilerEvent.MemoryHeap.UNKNOWN_HEAP;
 
     public Tracker(@NotNull Project trackingProject,
@@ -847,6 +830,12 @@ public final class StudioFeatureTracker implements FeatureTracker {
       return this;
     }
 
+    @NotNull
+    private Tracker setRunWithProfilingMetadata(@NotNull RunWithProfilingMetadata metadata) {
+      myRunWithProfilingMetadata = metadata;
+      return this;
+    }
+
     public void track() {
       AndroidProfilerEvent.Builder profilerEvent = AndroidProfilerEvent.newBuilder().setStage(myCurrStage).setType(myEventType);
 
@@ -907,6 +896,9 @@ public final class StudioFeatureTracker implements FeatureTracker {
           break;
         case LOADING:
           profilerEvent.setLoading(myLoading);
+          break;
+        case RUN_WITH_PROFILING:
+          profilerEvent.setRunWithProfilingMetadata(myRunWithProfilingMetadata);
           break;
         default:
           break;
@@ -1041,8 +1033,11 @@ public final class StudioFeatureTracker implements FeatureTracker {
           .setCaptureStatus(
             CPU_CAPTURE_STATUS_MAP.getOrDefault(myCpuCaptureMetadata.getStatus(), CpuCaptureMetadata.CaptureStatus.SUCCESS));
 
+        Boolean hasComposeTracingNodes = myCpuCaptureMetadata.getHasComposeTracingNodes();
+        if (hasComposeTracingNodes != null) captureMetadata.setHasComposeTracingNodes(hasComposeTracingNodes);
+
         captureMetadata.setProfilingConfig(toStatsCpuProfilingConfig(myCpuCaptureMetadata.getProfilingConfiguration()));
-        if (myCpuCaptureMetadata.getProfilingConfiguration().getTraceType() == Cpu.CpuTraceType.ART) {
+        if (myCpuCaptureMetadata.getProfilingConfiguration().getTraceType() == TraceType.ART) {
           captureMetadata.setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC);
         }
         profilerEvent.setCpuCaptureMetadata(captureMetadata);
@@ -1055,30 +1050,30 @@ public final class StudioFeatureTracker implements FeatureTracker {
     @NotNull
     private static CpuProfilingConfig toStatsCpuProfilingConfig(@NotNull ProfilingConfiguration config) {
       CpuProfilingConfig.Builder cpuConfigInfo = CpuProfilingConfig.newBuilder();
-      Cpu.CpuTraceConfiguration.UserOptions options = config.toProto();
+      CpuProfilerConfig cpuProfilerConfig = CpuProfilerConfigConverter.fromProfilingConfiguration(config);
+
       switch (config.getTraceType()) {
         case ART:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ART);
           cpuConfigInfo.setMode(config instanceof ArtSampledConfiguration
                                 ? CpuProfilingConfig.Mode.SAMPLED
                                 : CpuProfilingConfig.Mode.INSTRUMENTED);
-          cpuConfigInfo.setSampleInterval(options.getSamplingIntervalUs());
+          cpuConfigInfo.setSampleInterval(cpuProfilerConfig.getSamplingIntervalUs());
           break;
         case SIMPLEPERF:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.SIMPLE_PERF);
           cpuConfigInfo.setMode(CpuProfilingConfig.Mode.SAMPLED);
-          cpuConfigInfo.setSampleInterval(options.getSamplingIntervalUs());
+          cpuConfigInfo.setSampleInterval(cpuProfilerConfig.getSamplingIntervalUs());
           break;
         case ATRACE:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.ATRACE);
-          cpuConfigInfo.setSizeLimit(options.getBufferSizeInMb());
+          cpuConfigInfo.setSizeLimit(cpuProfilerConfig.getBufferSizeMb());
           break;
         case PERFETTO:
           cpuConfigInfo.setType(CpuProfilingConfig.Type.PERFETTO);
-          cpuConfigInfo.setSizeLimit(options.getBufferSizeInMb());
+          cpuConfigInfo.setSizeLimit(cpuProfilerConfig.getBufferSizeMb());
           break;
-        case UNSPECIFIED_TYPE:
-        case UNRECOGNIZED:
+        case UNSPECIFIED:
           break;
       }
       return cpuConfigInfo.build();

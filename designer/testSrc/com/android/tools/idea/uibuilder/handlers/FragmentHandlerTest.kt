@@ -29,7 +29,9 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.XmlElementFactory
 import org.jetbrains.android.AndroidTestCase
-import org.mockito.Mockito.eq
+import org.junit.Ignore
+import org.junit.Test
+import org.mockito.ArgumentMatchers.eq
 import java.util.EnumSet
 
 class FragmentHandlerTest : LayoutTestCase() {

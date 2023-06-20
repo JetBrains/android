@@ -24,20 +24,20 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.PathUtil
 import java.io.File
 
-/**
- * Represents an item intended for a SourceSet ComboBox.
- */
+/** Represents an item intended for a SourceSet ComboBox. */
 class SourceSetItem(
   val sourceSetName: String,
   val resDirUrl: String,
   val displayableResDir: String
 ) {
   companion object {
-    /**
-     * Helper function to safely create a [SourceSetItem] instance.
-     */
+    /** Helper function to safely create a [SourceSetItem] instance. */
     @JvmStatic
-    fun create(sourceProvider: NamedIdeaSourceProvider, module: Module, resDirUrl: String): SourceSetItem? =
+    fun create(
+      sourceProvider: NamedIdeaSourceProvider,
+      module: Module,
+      resDirUrl: String
+    ): SourceSetItem? =
       create(sourceProvider.name, AndroidProjectRootUtil.getModuleDirPath(module), resDirUrl)
 
     @JvmStatic
@@ -53,13 +53,16 @@ class SourceSetItem(
       val resDirPath = FileUtil.toSystemIndependentName(PathUtil.toPresentableUrl(resDirUrl))
       val relativeResourceUrl =
         modulePath?.let {
-          FileUtil.getRelativePath(modulePath, resDirPath, '/')?.replaceFirst("(\\.\\./)+".toRegex(), "")
+          val modulePathSystemIndependent = FileUtil.toSystemIndependentName(it)
+          FileUtil.getRelativePath(modulePathSystemIndependent, resDirPath, '/')?.replaceFirst("(\\.\\./)+".toRegex(), "")
         }
-      val displayableResDir = StringUtil.last(
-        relativeResourceUrl ?: resDirPath,
-        30,
-        true).toString()
-      return SourceSetItem(sourceSetName = name, resDirUrl = resDirUrl, displayableResDir = displayableResDir)
+      val displayableResDir =
+        StringUtil.last(relativeResourceUrl ?: resDirPath, 30, true).toString()
+      return SourceSetItem(
+        sourceSetName = name,
+        resDirUrl = resDirUrl,
+        displayableResDir = displayableResDir
+      )
     }
   }
 

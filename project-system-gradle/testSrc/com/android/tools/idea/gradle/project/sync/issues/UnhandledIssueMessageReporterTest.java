@@ -17,39 +17,31 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
+import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl;
+import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.List;
+import com.intellij.pom.NonNavigatable;
 
 /**
  * Tests for {@link UnhandledIssuesReporter}.
  */
 public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
-  private IdeSyncIssue mySyncIssue;
-  private GradleSyncMessagesStub mySyncMessagesStub;
   private UnhandledIssuesReporter myReporter;
-  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncIssue = mock(IdeSyncIssue.class);
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myReporter = new UnhandledIssuesReporter();
-    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -58,25 +50,28 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
   public void testReportWithBuildFile() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
 
     String text = "Hello World!";
     String expectedText =
       text + "\nAffected Modules:";
-    when(mySyncIssue.getMessage()).thenReturn(text);
-    when(mySyncIssue.getSeverity()).thenReturn(IdeSyncIssue.SEVERITY_ERROR);
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_ERROR,
+      SyncIssue.TYPE_GENERIC,
+      null,
+      text,
+      null
+    );
 
     VirtualFile buildFile = getGradleBuildFile(appModule);
-    myReporter.report(mySyncIssue, appModule, buildFile, myUsageReporter);
+    final var messages = myReporter.report(syncIssue, appModule, buildFile);
 
-    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
 
-    NotificationData message = messages.get(0);
-    assertEquals(WARNING, message.getNotificationCategory());
-    assertThat(message.getMessage()).contains(expectedText);
+    final var message = messages.get(0);
+    assertEquals(MessageType.WARNING, message.getType());
+    assertThat(String.join("", message.getMessage())).contains(expectedText);
 
     assertThat(message.getNavigatable()).isInstanceOf(OpenFileDescriptor.class);
     OpenFileDescriptor navigatable = (OpenFileDescriptor)message.getNavigatable();
@@ -87,36 +82,41 @@ public class UnhandledIssueMessageReporterTest extends AndroidGradleTestCase {
 
     assertEquals(
       ImmutableList.of(
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE).build()),
-      myUsageReporter.getCollectedIssue());
+        GradleSyncIssue.newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK)
+          .build()),
+      SyncIssueUsageReporter.createGradleSyncIssues(0, messages));
   }
 
   public void testReportWithoutBuildFile() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = TestModuleUtil.findAppModule(getProject());
 
     String text = "Hello World!";
     String expectedText = text + "\nAffected Modules: app";
-    when(mySyncIssue.getMessage()).thenReturn(text);
-    when(mySyncIssue.getSeverity()).thenReturn(IdeSyncIssue.SEVERITY_ERROR);
+    final var syncIssue = new IdeSyncIssueImpl(
+      IdeSyncIssue.SEVERITY_ERROR,
+      SyncIssue.TYPE_GENERIC,
+      null,
+      text,
+      null
+    );
 
-    myReporter.report(mySyncIssue, appModule, null, myUsageReporter);
+    final var messages = myReporter.report(syncIssue, appModule, null);
 
-
-    List<NotificationData> messages = mySyncMessagesStub.getNotifications();
     assertSize(1, messages);
 
-    NotificationData message = messages.get(0);
-    assertEquals(WARNING, message.getNotificationCategory());
+    final var message = messages.get(0);
+    assertEquals(MessageType.WARNING, message.getType());
     assertEquals(expectedText, message.getMessage());
 
-    assertNull(message.getNavigatable());
+    assertEquals(NonNavigatable.INSTANCE, message.getNavigatable());
 
     assertEquals(
       ImmutableList.of(
         GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.UNKNOWN_GRADLE_SYNC_ISSUE_TYPE).build()),
-      myUsageReporter.getCollectedIssue());
+      SyncIssueUsageReporter.createGradleSyncIssues(0, messages));
   }
 }

@@ -15,17 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.ext.transforms;
 
-import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
-
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBasicExpression;
 
 /**
  * This transform is used to convert from the single argument form, to one with uses a map.
@@ -35,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
  * represent "include" and "exclude".
  */
 public class SingleArgToMapTransform extends PropertyTransform {
+  private static final Logger LOG = Logger.getInstance(SingleArgToMapTransform.class);
+
   @NotNull
   private final String mySingleArgName;
   @NotNull
@@ -87,7 +84,7 @@ public class SingleArgToMapTransform extends PropertyTransform {
   }
 
   @Override
-  @NotNull
+  @Nullable
   public GradleDslExpression replace(@NotNull GradleDslElement holder,
                                      @Nullable GradleDslElement oldElement,
                                      @NotNull GradleDslExpression newElement,
@@ -113,7 +110,7 @@ public class SingleArgToMapTransform extends PropertyTransform {
 
       return methodCall;
     }
-
-    throw new IllegalStateException("Can't replace an element that isn't a GradleDslMethodCall");
+    LOG.warn(new IllegalStateException("Can't replace an element that isn't a GradleDslMethodCall: " + oldElement));
+    return null;
   }
 }

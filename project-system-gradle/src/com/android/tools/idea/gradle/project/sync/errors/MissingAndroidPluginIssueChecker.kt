@@ -83,7 +83,7 @@ class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {
         .inSmartMode(project)
         .coalesceBy(project, this)
         .finishOnUiThread(ModalityState.defaultModalityState()) { pluginInfo ->
-          pluginInfo?.let { addGoogleMavenRepoPreview(it, project) }
+          addGoogleMavenRepoPreview(pluginInfo, project)
           future.complete(null)
         }.submit(AppExecutorUtil.getAppExecutorService())
     }
@@ -91,9 +91,11 @@ class AddGoogleMavenRepositoryQuickFix : BuildIssueQuickFix {
     return future
   }
 
-  private fun addGoogleMavenRepoPreview(pluginInfo: AndroidPluginInfo, project: Project) {
+  private fun addGoogleMavenRepoPreview(pluginInfo: AndroidPluginInfo?, project: Project) {
     val projectBuildModel: ProjectBuildModel = ProjectBuildModel.getOrLog(project) ?: return
-    val buildFile: VirtualFile = pluginInfo.pluginBuildFile ?: getGradleBuildFile(getBaseDirPath(project)) ?: return
+    val buildFile: VirtualFile = pluginInfo?.pluginBuildFile
+                                 ?: getGradleBuildFile(getBaseDirPath(project))
+                                 ?: return
 
     val gradleBuildModel: GradleBuildModel = projectBuildModel.getModuleBuildModel(buildFile)
     // Only add the google Maven repository if it doesn't already exist.

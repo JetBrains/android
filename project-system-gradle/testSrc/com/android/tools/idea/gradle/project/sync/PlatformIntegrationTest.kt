@@ -17,17 +17,16 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
-import com.android.tools.idea.gradle.project.sync.snapshots.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
+import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.OpenPreparedProjectOptions
-import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
@@ -63,7 +62,7 @@ import java.util.concurrent.TimeUnit
 class PlatformIntegrationTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
@@ -71,7 +70,10 @@ class PlatformIntegrationTest {
   @Test
   fun testModelBuildServiceInCompositeBuilds() {
     val compositeBuild = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD, "project")
-    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(projectRule.fixture.testRootDisposable)
+    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
+      CapturePlatformModelsProjectResolverExtension.TestGradleModels(),
+      projectRule.testRootDisposable
+    )
     compositeBuild.open { project ->
       for (module in ModuleManager.getInstance(project).modules) {
         if (ExternalSystemApiUtil.getExternalModuleType(module) == "sourceSet") continue
@@ -266,7 +268,9 @@ class PlatformIntegrationTest {
       (ApplicationManager.getApplication().extensionArea as ExtensionsAreaImpl)
         .getExtensionPoint(ProjectDataService.EP_NAME)
         .registerExtension(FailingService(), projectRule.testRootDisposable)
-      project.requestSyncAndWait()
+      AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+        // Do not check status.
+      }
 
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isTrue()
       expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.FAILURE)
@@ -331,7 +335,9 @@ class PlatformIntegrationTest {
     }) { project ->
 
       root.resolve("settings.gradle").writeText("Thread.sleep(200); println('waiting!'); Thread.sleep(30_000)")
-      project.requestSyncAndWait()
+      AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+        // Do not check status.
+      }
 
       // Cancelling sync does not change the current state.
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
@@ -407,7 +413,9 @@ class PlatformIntegrationTest {
         .getExtensionPoint(ProjectDataService.EP_NAME)
         .registerExtension(CancellingService(), projectRule.testRootDisposable)
 
-      project.requestSyncAndWait()
+      AndroidGradleTests.syncProject(project, GradleSyncInvoker.Request.testRequest()) {
+        // Do not check status.
+      }
 
       // Cancelling sync does not change the current state.
       expect.that(GradleSyncState.getInstance(project).lastSyncFailed()).isFalse()
@@ -457,6 +465,58 @@ class PlatformIntegrationTest {
       """.trimMargin())
   }
 
+  @Test
+  fun testSimpleApplicationReopened() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    run {
+      val log = preparedProject.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SUCCESS)
+      }
+
+      expect.that(log).isEqualTo(
+        """
+      |started(.)
+      |succeeded(.)
+      |ended: SUCCESS
+      """.trimMargin()
+      )
+    }
+
+    run {
+      val log = preparedProject.openProjectWithEventLogging { project ->
+        expect.that(project.getProjectSystem().getSyncManager().getLastSyncResult()).isEqualTo(SyncResult.SKIPPED)
+      }
+
+      expect.that(log).isEqualTo(
+        """
+      |skipped
+      |ended: SKIPPED
+      """.trimMargin()
+      )
+    }
+  }
+
+  @Test
+  fun `exceptions can be deserialized`() {
+    val preparedProject =
+      projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    CapturePlatformModelsProjectResolverExtension.registerTestHelperProjectResolver(
+      CapturePlatformModelsProjectResolverExtension.TestExceptionModels(),
+      projectRule.testRootDisposable
+    )
+    preparedProject.open { project ->
+      for (module in ModuleManager.getInstance(project).modules) {
+        if (ExternalSystemApiUtil.getExternalModuleType(module) == "sourceSet") continue
+
+        val exceptionModel: TestExceptionModel? = CapturePlatformModelsProjectResolverExtension.getTestExceptionModel(module)
+        expect.that(exceptionModel).isNotNull()
+        expect.that(exceptionModel?.exception as? IllegalStateException).isNotNull()
+        expect.that((exceptionModel?.exception as? IllegalStateException)?.message).isEqualTo("expected error")
+        expect.that((exceptionModel?.exception as? IllegalStateException)?.stackTrace).isNotEmpty()
+      }
+    }
+  }
+
   private fun PreparedTestProject.openProjectWithEventLogging(
     outputHandler: (Project.(String) -> Unit)? = null,
     body: (Project) -> Unit = {}
@@ -468,38 +528,41 @@ class PlatformIntegrationTest {
     val completedChanged = CountDownLatch(1)
     val log = buildString {
       open(
-        options = OpenPreparedProjectOptions(
-          verifyOpened = { /* do nothing */ },
-          outputHandler = outputHandler,
-          subscribe = {
-            it.subscribe(GRADLE_SYNC_TOPIC, object : GradleSyncListenerWithRoot {
-              override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
-                appendLine("started(${rootProjectPath.toLocalPath()})")
-              }
+        updateOptions = {
+          it.copy(
+            verifyOpened = { /* do nothing */ },
+            outputHandler = outputHandler,
+            subscribe = {
+              it.subscribe(GRADLE_SYNC_TOPIC, object : GradleSyncListenerWithRoot {
+                override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
+                  appendLine("started(${rootProjectPath.toLocalPath()})")
+                }
 
-              override fun syncFailed(project: Project, errorMessage: String, rootProjectPath: @SystemIndependent String) {
-                appendLine("failed(${rootProjectPath.toLocalPath()}): $errorMessage")
-              }
+                override fun syncFailed(project: Project, errorMessage: String, rootProjectPath: @SystemIndependent String) {
+                  appendLine("failed(${rootProjectPath.toLocalPath()}): $errorMessage")
+                }
 
-              override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
-                appendLine("succeeded(${rootProjectPath.toLocalPath()})")
-              }
+                override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
+                  appendLine("succeeded(${rootProjectPath.toLocalPath()})")
+                }
 
-              override fun syncSkipped(project: Project) {
-                appendLine("skipped")
-              }
+                override fun syncSkipped(project: Project) {
+                  appendLine("skipped")
+                }
 
-              override fun syncCancelled(project: Project, rootProjectPath: @SystemIndependent String) {
-                appendLine("cancelled(${rootProjectPath.toLocalPath()})")
-              }
-            })
-            it.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object: ProjectSystemSyncManager.SyncResultListener {
-              override fun syncEnded(result: SyncResult) {
-                appendLine("ended: $result")
-                completedChanged.countDown()
-              }
-            })
-          })
+                override fun syncCancelled(project: Project, rootProjectPath: @SystemIndependent String) {
+                  appendLine("cancelled(${rootProjectPath.toLocalPath()})")
+                }
+              })
+              it.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
+                override fun syncEnded(result: SyncResult) {
+                  appendLine("ended: $result")
+                  completedChanged.countDown()
+                }
+              })
+            }
+          )
+        }
       ) { project ->
         // When sync is cancelled, and it is detected by handling `FinishBuildEvent` with `SuccessResult` the `syncCancelled` event might be
         // delivered after we reach this point.

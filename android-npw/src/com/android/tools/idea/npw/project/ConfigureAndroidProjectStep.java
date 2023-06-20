@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.npw.project;
 
-import static com.android.sdklib.AndroidVersion.VersionCodes.Q;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
@@ -23,10 +22,9 @@ import static com.android.tools.idea.npw.FormFactorUtilKt.toWizardFormFactor;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.module.AndroidApiLevelComboBoxKt.ensureDefaultApiLevelAtLeastRecommended;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
+import static com.android.tools.idea.wizard.template.TemplateDataKt.KOTLIN_DSL_LINK;
 import static com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
-import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.computeCommentInsets;
-import static com.intellij.openapi.ui.panel.ComponentPanelBuilder.createCommentComponent;
 import static java.lang.String.format;
 import static org.jetbrains.android.util.AndroidBundle.message;
 
@@ -50,7 +48,6 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
-import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.wizard.InstallSelectedPackagesStep;
@@ -59,6 +56,7 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.android.tools.idea.wizard.template.Category;
 import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
@@ -66,16 +64,15 @@ import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.HelpTooltip;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.ui.JBEmptyBorder;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -86,9 +83,10 @@ import java.util.List;
 import java.util.Locale;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,18 +111,15 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
   private JBLabel myProjectLanguageLabel;
-  private JPanel myAppCompatPanel;
-  private JBCheckBox myAppCompatCheck;
   private JBCheckBox myWearCheck;
   private JBCheckBox myTvCheck;
-  private JBLabel myAppCompatHelp;
   private JBLabel myTemplateTitle;
   private JBLabel myTemplateDetail;
   private HyperlinkLabel myDocumentationLink;
   private JPanel myFormFactorSdkControlsPanel;
-  private JBCheckBox myGradleKtsCheck;
-  private JLabel myAppCompatComment;
   private JComboBox myMinSdkCombo;
+  private JComboBox<BuildConfigurationLanguageForNewProject> myBuildConfigurationLanguageCombo;
+  private ContextHelpLabel myBuildConfigurationLanguageLabel;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -133,13 +128,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myProjectModel = projectModel;
     myValidatorPanel = new ValidatorPanel(this, myPanel);
     myRootPanel = wrapWithVScroll(myValidatorPanel);
-
-    myAppCompatHelp.setIcon(AllIcons.General.ContextHelp);
-    HelpTooltip helpTooltip = new HelpTooltip()
-      .setDescription(message("android.wizard.project.help.appcompat"));
-    helpTooltip.installOn(myAppCompatCheck);
-    helpTooltip.installOn(myAppCompatHelp);
-    myAppCompatComment.setBorder(new JBEmptyBorder(computeCommentInsets(myAppCompatCheck, true)));
 
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
@@ -184,12 +172,14 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
-    myBindings.bindTwoWay(myProjectModel.getUseAppCompat(), new SelectedProperty(myAppCompatCheck));
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
-      myBindings.bindTwoWay(myProjectModel.getUseGradleKts(), new SelectedProperty(myGradleKtsCheck));
-    }
-    else {
-      myGradleKtsCheck.setVisible(false);
+
+    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
+      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
+      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS_VERSION_CATALOG);
+      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
+    } else {
+      myBuildConfigurationLanguageLabel.setVisible(false);
+      myBuildConfigurationLanguageCombo.setVisible(false);
     }
 
     myValidatorPanel.registerValidator(myProjectModel.getApplicationName(), new ProjectNameValidator());
@@ -222,8 +212,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       myWearCheck.setVisible(formFactor == FormFactor.Wear);
       myTvCheck.setVisible(formFactor == FormFactor.Tv);
     });
-
-    myListeners.listen(androidSdkInfo, this::updateAppCompatCheckBox);
   }
 
   @Override
@@ -243,7 +231,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     if (isKotlinOnly) {
       myProjectModel.getLanguage().setValue(Language.Kotlin);
     }
-    updateAppCompatCheckBox();
   }
 
   @Override
@@ -253,7 +240,13 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
       getModel().formFactor.get() == FormFactor.Automotive // Automotive projects include a mobile module for Android Auto by default
     );
-
+    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get() && myBuildConfigurationLanguageCombo.getSelectedItem() != null) {
+      BuildConfigurationLanguageForNewProject selected = (BuildConfigurationLanguageForNewProject) myBuildConfigurationLanguageCombo.getSelectedItem();
+      myProjectModel.getUseGradleKts()
+        .set(selected.getUseKts());
+      myProjectModel.getUseVersionCatalog()
+        .set(selected.getUseVersionCatalog());
+    }
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();
 
@@ -312,25 +305,6 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myDocumentationLink.setVisible(documentationUrl != null);
   }
 
-  private void updateAppCompatCheckBox() {
-    VersionItem androidVersion = getModel().androidSdkInfo().getValueOrNull();
-    Template template = getModel().newRenderTemplate.getValueOrNull();
-
-    boolean isAndroidxApi = androidVersion != null && androidVersion.getMinApiLevel() >= Q; // No more app-compat after Q
-    boolean hasAndroidxConstraint = template != null && template.getConstraints().contains(TemplateConstraint.AndroidX);
-
-    if (isAndroidxApi || hasAndroidxConstraint) {
-      myAppCompatCheck.setSelected(false);
-      myAppCompatCheck.setEnabled(false);
-    }
-    else {
-      myAppCompatCheck.setEnabled(true);
-    }
-
-    boolean isKotlin = template != null && template.getConstraints().contains(TemplateConstraint.Kotlin);
-    myAppCompatPanel.setVisible(!isKotlin);
-  }
-
   private static boolean hasValidSdkComposeVersion(VersionItem skdItem, @Nullable Template renderTemplate) {
     return renderTemplate == null ||
            renderTemplate.getCategory() != Category.Compose ||
@@ -342,6 +316,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls = new FormFactorSdkControls();
     myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();
     myMinSdkCombo = myFormFactorSdkControls.getMinSdkComboBox();
-    myAppCompatComment = createCommentComponent(message("android.wizard.validate.select.appcompat"), true);
+    myBuildConfigurationLanguageLabel = ContextHelpLabel.createWithLink(
+      null,
+      AndroidBundle.message("android.wizard.project.help.buildconfigurationlanguage.description"),
+      "Learn more",
+      () -> BrowserUtil.browse(KOTLIN_DSL_LINK));
+    myBuildConfigurationLanguageLabel.setHorizontalTextPosition(SwingConstants.LEFT);
   }
 }

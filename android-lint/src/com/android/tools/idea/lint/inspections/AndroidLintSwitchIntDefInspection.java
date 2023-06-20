@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lint.inspections;
 
+import static com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite;
+
 import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
@@ -23,7 +25,6 @@ import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.AnnotationDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.TextFormat;
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiCodeBlock;
@@ -36,7 +37,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.core.ShortenReferences;
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility;
 import org.jetbrains.kotlin.psi.KtPsiFactory;
 import org.jetbrains.kotlin.psi.KtWhenEntry;
 import org.jetbrains.kotlin.psi.KtWhenExpression;
@@ -60,7 +61,7 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
                           @NotNull AndroidQuickfixContexts.Context context) {
-          if (!FileModificationService.getInstance().preparePsiElementForWrite(startElement)) {
+          if (!prepareElementForWrite(startElement)) {
             return;
           }
           if (startElement.getParent() instanceof PsiSwitchStatement) {
@@ -97,7 +98,7 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
                 constant = TextFormat.RAW.convertTo(constant, TextFormat.TEXT);
                 KtWhenEntry caseStatement = factory.createWhenEntry(constant + "-> { TODO() }");
                 ((PsiElement)when).addBefore(caseStatement, anchor);
-                ShortenReferences.DEFAULT.process(when);
+                ShortenReferencesFacility.Companion.getInstance().shorten(when);
               }
             }
           }

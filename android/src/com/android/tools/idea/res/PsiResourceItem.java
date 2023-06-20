@@ -320,7 +320,7 @@ public final class PsiResourceItem implements ResourceItem {
           // Allow the user to specify a specific element to use via tools:index
           @Override
           protected int getDefaultIndex() {
-            String index = tag.getAttributeValue(ATTR_INDEX, TOOLS_URI);
+            String index = ReadAction.compute(() -> tag.getAttributeValue(ATTR_INDEX, TOOLS_URI));
             if (index != null) {
               return Integer.parseInt(index);
             }
@@ -333,7 +333,7 @@ public final class PsiResourceItem implements ResourceItem {
           // Allow the user to specify a specific quantity to use via tools:quantity
           @Override
           public String getValue() {
-            String quantity = tag.getAttributeValue(ATTR_QUANTITY, TOOLS_URI);
+            String quantity = ReadAction.compute(() -> tag.getAttributeValue(ATTR_QUANTITY, TOOLS_URI));
             if (quantity != null) {
               String value = getValue(quantity);
               if (value != null) {

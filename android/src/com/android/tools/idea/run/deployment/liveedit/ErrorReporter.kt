@@ -17,19 +17,24 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.psi.PsiFile
 
 /**
  * Centralized place to handle errors reporting and metrics.
  */
 
-private val log = Logger.getInstance(AndroidLiveEditDeployMonitor::class.java)
+private val log = Logger.getInstance(LiveEditProjectMonitor::class.java)
 
 fun reportLiveEditError(exception: LiveEditUpdateException) {
   // TODO: Temp solution. These probably need to go somewhere when we have a UI.
   report("E: Live Edit " + errorMessage(exception))
 }
 
+fun leErrorMessage(type: LiveEditUpdateException.Error, source : String?) = "${type.message} ${source?.let {" in ${it}"}}. Live Edit is temporarily paused until all build errors are fixed."
+
 fun errorMessage(exception: LiveEditUpdateException) : String {
+  val source: PsiFile? = exception.source ?: return "${exception.error.message}: \n ${exception.details} \n"
+
   when (exception.error) {
     LiveEditUpdateException.Error.COMPILATION_ERROR -> {
       return "Compilation Error${exception.source?.let {" in ${it.name}"}}. Live Edit is temporary paused until all errors are fixed."

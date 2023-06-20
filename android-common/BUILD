@@ -4,6 +4,7 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.common",
     srcs = ["src"],
+    generate_k2_tests = True,
     iml_files = ["intellij.android.common.iml"],
     lint_baseline = "lint_baseline.xml",
     tags = ["no_test_windows"],
@@ -33,5 +34,6 @@ iml_module(
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )

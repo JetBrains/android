@@ -26,6 +26,7 @@ import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.build.attribution.ui.model.WarningsFilter
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.details.JetifierWarningDetailsView
+import com.android.buildanalyzer.common.TaskCategory
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.ui.awt.RelativePoint
 import java.util.function.Supplier
@@ -43,8 +44,9 @@ interface ViewActionHandlers {
   /**
    * Called when navigation link clicked targeting to show tasks.
    * Used in Overview and view empty states.
+   * If [targetGrouping] is null, current default is used.
    */
-  fun changeViewToTasksLinkClicked(targetGrouping: TasksDataPageModel.Grouping)
+  fun changeViewToTasksLinkClicked(targetGrouping: TasksDataPageModel.Grouping?)
 
   /**
    * Called when navigation link clicked targeting to show warnings.
@@ -91,9 +93,13 @@ interface ViewActionHandlers {
   fun openConfigurationCacheWarnings()
   fun runAgpUpgrade()
   fun runTestConfigurationCachingBuild()
-  fun turnConfigurationCachingOnInProperties()
+  fun turnConfigurationCachingOnInProperties(isFeatureConsideredStable: Boolean)
   fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning)
   fun runCheckJetifierTask()
   fun turnJetifierOffInProperties(sourceRelativePointSupplier: Supplier<RelativePoint>)
   fun createFindSelectedLibVersionDeclarationAction(selectionSupplier: Supplier<JetifierWarningDetailsView.DirectDependencyDescriptor?>): AnAction
+
+  fun migrateToNonTransitiveRClass()
+
+  fun redirectToTaskCategoryWarningsPage(taskCategory: TaskCategory)
 }

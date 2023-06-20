@@ -198,7 +198,7 @@ public class ChooseSystemImagePanel extends JPanel
 
     if (tag.equals(SystemImage.WEAR_TAG)) {
       // For Wear, recommend based on API level (all Wear have Google APIs)
-      return (apiLevel >= MIN_RECOMMENDED_WEAR_API && (isArm64HostOs || abi == Abi.X86))
+      return (apiLevel >= MIN_RECOMMENDED_WEAR_API && (isArm64HostOs || isAvdIntel))
              ? SystemImageClassification.RECOMMENDED
              : SystemImageClassification.PERFORMANT;
     }
@@ -275,7 +275,8 @@ public class ChooseSystemImagePanel extends JPanel
       // system images (see issue #78947), we instead deliberately skip the other form factor images
       return !imageTag.equals(SystemImage.ANDROID_TV_TAG) && !imageTag.equals(SystemImage.GOOGLE_TV_TAG) &&
              !imageTag.equals(SystemImage.WEAR_TAG) && !imageTag.equals(SystemImage.DESKTOP_TAG) &&
-             !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG);
+             !imageTag.equals(SystemImage.CHROMEOS_TAG) && !imageTag.equals(SystemImage.AUTOMOTIVE_TAG) &&
+             !imageTag.equals(SystemImage.AUTOMOTIVE_PLAY_STORE_TAG);
     }
 
     // 4K TV requires at least S (API 31)

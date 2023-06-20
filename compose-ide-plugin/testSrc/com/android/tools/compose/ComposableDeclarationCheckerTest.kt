@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 import org.jetbrains.android.compose.stubComposeRuntime
 import org.jetbrains.android.compose.stubKotlinStdlib
@@ -125,10 +124,10 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
       """
       import androidx.compose.runtime.Composable
 
-      @Composable suspend fun <error descr="[COMPOSABLE_SUSPEND_FUN] Suspend functions cannot be made Composable">Foo</error>() {}
+      @Composable suspend fun <error descr="[COMPOSABLE_SUSPEND_FUN] Composable function cannot be annotated as suspend">Foo</error>() {}
 
       fun acceptSuspend(fn: suspend () -> Unit) { print(fn) }
-      fun acceptComposableSuspend(fn: <error descr="[COMPOSABLE_SUSPEND_FUN] Suspend functions cannot be made Composable">@Composable suspend () -> Unit</error>) { print(fn.hashCode()) }
+      fun acceptComposableSuspend(fn: <error descr="[COMPOSABLE_SUSPEND_FUN] Composable function cannot be annotated as suspend">@Composable suspend () -> Unit</error>) { print(fn.hashCode()) }
 
       val foo: suspend () -> Unit = <error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable suspend () -> Unit but suspend () -> Unit was expected">@Composable {}</error>
       val bar: suspend () -> Unit = {}
@@ -254,16 +253,6 @@ class ComposableDeclarationCheckerTest : JavaCodeInsightFixtureTestCase() {
 
     configureFromExistingVirtualFile(file.virtualFile)
     checkHighlighting()
-  }
-
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    super.tearDown()
   }
 
 }

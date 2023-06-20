@@ -27,21 +27,22 @@ import com.intellij.openapi.ui.LabeledComponent
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.components.JBTextField
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
 /**
- * Represents the UI for editing and creating instances of [ComposePreviewRunConfiguration] in the run configurations edit panel.
+ * Represents the UI for editing and creating instances of [ComposePreviewRunConfiguration] in the
+ * run configurations edit panel.
  */
-class ComposePreviewSettingsEditor(private val project: Project, private val config: ComposePreviewRunConfiguration)
-  : SettingsEditor<ComposePreviewRunConfiguration>() {
+class ComposePreviewSettingsEditor(
+  private val project: Project,
+  private val config: ComposePreviewRunConfiguration
+) : SettingsEditor<ComposePreviewRunConfiguration>() {
   private val panel: JPanel
   private val debuggerTab: AndroidDebuggerPanel?
   private val modulesComboBox = ModulesComboBox()
-  private val composableField = JBTextField().apply {
-    emptyText.text = message("run.configuration.composable.empty.text")
-  }
+  private val composableField =
+    JBTextField().apply { emptyText.text = message("run.configuration.composable.empty.text") }
 
   init {
     Disposer.register(project, this)
@@ -49,9 +50,7 @@ class ComposePreviewSettingsEditor(private val project: Project, private val con
     val tabbedPane = JBTabbedPane()
     tabbedPane.add(message("run.configuration.general.tab"), createGeneralTab())
     debuggerTab = createDebuggerTab()
-    debuggerTab?.component?.let {
-      tabbedPane.add(message("run.configuration.debugger.tab"), it)
-    }
+    debuggerTab?.component?.let { tabbedPane.add(message("run.configuration.debugger.tab"), it) }
 
     panel.add(tabbedPane, TabularLayout.Constraint(0, 0))
   }
@@ -59,32 +58,41 @@ class ComposePreviewSettingsEditor(private val project: Project, private val con
   private fun createGeneralTab(): JPanel {
     val tab = JPanel(TabularLayout("Fit,*", "Fit,Fit"))
     modulesComboBox.allowEmptySelection(message("run.configuration.no.module.selected"))
-    tab.add(LabeledComponent.create(modulesComboBox, message("run.configuration.module.label"), BorderLayout.WEST),
-            TabularLayout.Constraint(0, 0))
-    tab.add(LabeledComponent.create(composableField, message("run.configuration.composable.label"), BorderLayout.WEST),
-            TabularLayout.Constraint(1, 0, 2))
+    tab.add(
+      LabeledComponent.create(
+        modulesComboBox,
+        message("run.configuration.module.label"),
+        BorderLayout.WEST
+      ),
+      TabularLayout.Constraint(0, 0)
+    )
+    tab.add(
+      LabeledComponent.create(
+        composableField,
+        message("run.configuration.composable.label"),
+        BorderLayout.WEST
+      ),
+      TabularLayout.Constraint(1, 0, 2)
+    )
     return tab
   }
 
   private fun createDebuggerTab(): AndroidDebuggerPanel? {
     val debuggerContext = config.androidDebuggerContext
-    return if (debuggerContext.androidDebuggers.size > 1) AndroidDebuggerPanel(config, debuggerContext) else null
+    return if (debuggerContext.androidDebuggers.size > 1)
+      AndroidDebuggerPanel(config, debuggerContext)
+    else null
   }
 
   private fun resetComboBoxModules() {
-    modulesComboBox.setModules(project.getAndroidModulesForDisplay {
-      AndroidFacet.getInstance(it)?.let { facet ->
-        return@getAndroidModulesForDisplay !facet.configuration.isLibraryProject
-      }
-      return@getAndroidModulesForDisplay false
-    })
+    modulesComboBox.setModules(project.getAndroidModulesForDisplay())
   }
 
   override fun resetEditorFrom(runConfiguration: ComposePreviewRunConfiguration) {
     resetComboBoxModules()
-    runConfiguration.modules.takeUnless { it.isEmpty() }?.let {
-      modulesComboBox.selectedModule = it[0]
-    }
+    runConfiguration.modules
+      .takeUnless { it.isEmpty() }
+      ?.let { modulesComboBox.selectedModule = it[0] }
     composableField.text = runConfiguration.composableMethodFqn
     debuggerTab?.resetFrom(runConfiguration.androidDebuggerContext)
   }

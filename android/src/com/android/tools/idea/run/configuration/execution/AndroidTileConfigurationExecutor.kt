@@ -26,17 +26,16 @@ import com.android.tools.deployer.model.component.ComponentType
 import com.android.tools.deployer.model.component.Tile
 import com.android.tools.deployer.model.component.Tile.ShellCommand.SHOW_TILE_COMMAND
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver
+import com.android.tools.idea.execution.common.AppRunSettings
+import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.configuration.AppRunSettings
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.WearBaseClasses
-import com.android.tools.idea.run.configuration.WearSurfaceLaunchOptions
-import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.android.util.AndroidBundle
 import java.time.Duration
@@ -45,10 +44,10 @@ private const val TILE_MIN_DEBUG_SURFACE_VERSION = 2
 private const val TILE_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
 open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
-                                            deployTarget: DeployTarget,
+                                            deviceFutures: DeviceFutures,
                                             appRunSettings: AppRunSettings,
                                             applicationIdProvider: ApplicationIdProvider,
-                                            apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
+                                            apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deviceFutures,
                                                                                                          appRunSettings,
                                                                                                          applicationIdProvider,
                                                                                                          apkProvider) {
@@ -59,17 +58,16 @@ open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
   }
 
   @WorkerThread
-  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean) {
+  override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator) {
     ProgressManager.checkCanceled()
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-    val indicator = ProgressIndicatorProvider.getGlobalProgressIndicator()
 
-    val version = device.getWearDebugSurfaceVersion()
+    val version = device.getWearDebugSurfaceVersion(indicator)
     if (version < TILE_MIN_DEBUG_SURFACE_VERSION) {
       throw SurfaceVersionException(TILE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
     if (version < TILE_RECOMMENDED_DEBUG_SURFACE_VERSION) {
-      console.printError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
+      console.printlnError(AndroidBundle.message("android.run.configuration.debug.surface.warn"))
     }
 
     // TODO(b/226550406): Only add this sleep for older versions where the race condition exists.
@@ -77,7 +75,7 @@ open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
     val tileIndex = setWatchTile(app, mode, indicator, console)
     val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
     val showTileReceiver = CommandResultReceiver()
-    device.executeShellCommand(showTileCommand, console, showTileReceiver)
+    device.executeShellCommand(showTileCommand, console, showTileReceiver, indicator = indicator)
     verifyResponse(showTileReceiver, console)
   }
 
@@ -101,7 +99,7 @@ open class AndroidTileConfigurationExecutor(environment: ExecutionEnvironment,
 
   private fun verifyResponse(receiver: CommandResultReceiver, console: ConsoleView) {
     if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-      console.printError("Warning: Launch was successful, but you may need to bring up the tile manually.")
+      console.printlnError("Warning: Launch was successful, but you may need to bring up the tile manually.")
     }
   }
 }
@@ -133,9 +131,9 @@ class TileLaunchOptions : WearSurfaceLaunchOptions {
 private fun getStopTileCallback(tileName: String, console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit = { device: IDevice ->
   val receiver = CommandResultReceiver()
   val removeTileCommand = Tile.ShellCommand.UNSET_TILE + tileName
-  device.executeShellCommand(removeTileCommand, console, receiver)
+  device.executeShellCommand(removeTileCommand, console, receiver, indicator = null)
   if (receiver.resultCode != CommandResultReceiver.SUCCESS_CODE) {
-    console.printError("Warning: Tile was not stopped.")
+    console.printlnError("Warning: Tile was not stopped.")
   }
   if (isDebug) {
     stopDebugApp(device)

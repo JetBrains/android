@@ -20,10 +20,12 @@ import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface.SceneViewAlignment
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.icons.copyIcon
 import com.intellij.util.ui.JBUI
 
 /**
@@ -54,18 +56,31 @@ data class SurfaceLayoutManagerOption(val displayName: String,
  * [DropDownAction] that allows switching the layout manager in the surface.
  */
 class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: LayoutManagerSwitcher,
-                                       private val layoutManagers: List<SurfaceLayoutManagerOption>,
-                                       private val isActionEnabled: (AnActionEvent) -> Boolean = { true }
+                                       layoutManagers: List<SurfaceLayoutManagerOption>,
+                                       private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
+                                       private val onLayoutSelected: (SurfaceLayoutManagerOption) -> Unit
 ) : DropDownAction(
   "Switch Layout",
   "Changes the layout of the preview elements.",
-  AllIcons.Debugger.RestoreLayout) {
+  null) {
 
+  /**
+   * When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a multi-choice group, even
+   * [Presentation.setMultiChoice] sets to false. We clone the icon here so we can control the multi-choice state of this action ourselves.
+   *
+   * @see com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup
+   */
+  private val enabledIcon = copyIcon(AllIcons.Debugger.RestoreLayout, null, true)
   private val disabledIcon = IconLoader.getDisabledIcon(AllIcons.Debugger.RestoreLayout)
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) : ToggleAction(option.displayName) {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       layoutManagerSwitcher.setLayoutManager(option.layoutManager, option.sceneViewAlignment)
+      if (state) {
+        onLayoutSelected(option)
+      }
     }
 
     override fun isSelected(e: AnActionEvent): Boolean = layoutManagerSwitcher.isLayoutManagerSelected(option.layoutManager)
@@ -73,11 +88,14 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
 
   init {
     templatePresentation.isHideGroupIfEmpty = true
+
     // We will only add the actions and be visible if there are more than one option
     if (layoutManagers.size > 1) {
       layoutManagers.forEach { add(SetSurfaceLayoutManagerAction(it)) }
     }
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
     ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
@@ -90,6 +108,6 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
     // button the icon will be disabled (and gets re-enabled when releasing the mouse), since the action itself is disabled and not popup
     // will show up. Since we want users to know immediately that this action is disabled, we explicitly set the icon style when the
     // action is disabled.
-    e.presentation.icon = if (shouldEnableAction) AllIcons.Debugger.RestoreLayout else disabledIcon
+    e.presentation.icon = if (shouldEnableAction) enabledIcon else disabledIcon
   }
 }

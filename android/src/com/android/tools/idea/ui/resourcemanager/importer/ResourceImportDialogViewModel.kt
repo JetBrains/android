@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.res.IdeResourceNameValidator
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.designAssets
@@ -39,10 +39,11 @@ const val MAX_IMPORT_FILES = 400
 /**
  * ViewModel for [ResourceImportDialogViewModel]
  */
-class ResourceImportDialogViewModel(val facet: AndroidFacet,
-                                    assets: Sequence<DesignAsset>,
-                                    designAssetImporter: DesignAssetImporter = DesignAssetImporter(),
-                                    private val importersProvider: ImportersProvider = ImportersProvider()
+class ResourceImportDialogViewModel(
+  val facet: AndroidFacet,
+  assets: Sequence<DesignAsset>,
+  designAssetImporter: DesignAssetImporter = DesignAssetImporter(),
+  private val importersProvider: ImportersProvider = ImportersProvider()
 ) {
 
   /**
@@ -81,7 +82,7 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
   private val resourceDuplicateValidator = IdeResourceNameValidator.forFilename(
     ResourceFolderType.DRAWABLE,
     null,
-    ResourceRepositoryManager.getAppResources(facet))
+    StudioResourceRepositoryManager.getAppResources(facet))
 
   /**
    * This validator only check for the name
@@ -151,9 +152,11 @@ class ResourceImportDialogViewModel(val facet: AndroidFacet,
    * This is used to avoid iterating through the whole [assetSetsToImport] set to try find
    * a [ResourceAssetSet] with the same name.
    */
-  private fun addAssetSet(existingAssets: Map<String, ResourceAssetSet>,
-                          assetSet: ResourceAssetSet,
-                          assetAddedCallback: (ResourceAssetSet, List<DesignAsset>) -> Unit) {
+  private fun addAssetSet(
+    existingAssets: Map<String, ResourceAssetSet>,
+    assetSet: ResourceAssetSet,
+    assetAddedCallback: (ResourceAssetSet, List<DesignAsset>) -> Unit
+  ) {
     val existingAssetSet = existingAssets[assetSet.name]
     if (existingAssetSet != null) {
       val existingPaths = existingAssetSet.designAssets.map { designAsset -> designAsset.file.path }.toSet()

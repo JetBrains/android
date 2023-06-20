@@ -20,8 +20,8 @@ import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOG
 import static com.android.tools.lint.checks.GooglePlaySdkIndex.GOOGLE_PLAY_SDK_INDEX_KEY;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -41,11 +41,11 @@ import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndexKt;
 import com.android.tools.idea.res.FileResourceReader;
-import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.client.api.PlatformLookup;
 import com.android.tools.lint.client.api.ResourceRepositoryScope;
@@ -54,6 +54,8 @@ import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
+import com.android.tools.res.FrameworkResourceRepositoryManager;
+import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.Pair;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -81,8 +83,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
-import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.sdk.StudioAndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -106,8 +107,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
 
   @Nullable
   @Override
-  public GradleVersion getHighestKnownVersion(@NonNull GradleCoordinate coordinate,
-                                              @Nullable Predicate<GradleVersion> filter) {
+  public Version getHighestKnownVersion(@NonNull GradleCoordinate coordinate, @Nullable Predicate<Version> filter) {
     AndroidSdkHandler sdkHandler = getSdk();
     if (sdkHandler == null) {
       return null;
@@ -117,7 +117,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
     if (sdkPackage != null) {
       GradleCoordinate found = SdkMavenRepository.getCoordinateFromSdkPath(sdkPackage.getPath());
       if (found != null) {
-        return found.getVersion();
+        return found.getLowerBoundVersion();
       }
     }
 
@@ -224,7 +224,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
     if (module != null) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        AndroidSdkData sdkData = AndroidSdkData.getSdkData(facet);
+        AndroidSdkData sdkData = StudioAndroidSdkData.getSdkData(facet);
         if (sdkData != null) {
           return sdkData.getSdkHandler();
         }
@@ -433,13 +433,13 @@ public class AndroidLintIdeClient extends LintIdeClient {
             return super.getResources(project, scope); // can't find framework: empty repository
           }
         } else if (scope.includesLibraries()) {
-          return ResourceRepositoryManager.getAppResources(facet);
+          return StudioResourceRepositoryManager.getAppResources(facet);
         }
         else if (scope.includesDependencies()) {
-          return ResourceRepositoryManager.getProjectResources(facet);
+          return StudioResourceRepositoryManager.getProjectResources(facet);
         }
         else {
-          return ResourceRepositoryManager.getModuleResources(facet);
+          return StudioResourceRepositoryManager.getModuleResources(facet);
         }
       }
     }

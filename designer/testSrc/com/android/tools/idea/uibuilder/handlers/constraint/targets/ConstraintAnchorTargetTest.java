@@ -247,7 +247,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     assertTrue(leftAnchor.isMouseHovered());
 
     // Move mouse out to SceneView. Should not have any hovered Target.
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), -1, -1, 0);
+    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), -2, -2, 0);
     myScene.getSceneComponents().stream()
       .flatMap(component -> component.getTargets().stream())
       .forEach(target -> assertFalse(target.isMouseHovered()));

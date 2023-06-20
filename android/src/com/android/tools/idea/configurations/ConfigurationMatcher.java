@@ -34,7 +34,6 @@ import com.android.ide.common.resources.configuration.ScreenOrientationQualifier
 import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
 import com.android.ide.common.resources.configuration.UiModeQualifier;
 import com.android.ide.common.resources.configuration.VersionQualifier;
-import com.android.io.IAbstractFile;
 import com.android.resources.Density;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.NightMode;
@@ -47,10 +46,9 @@ import com.android.resources.UiMode;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
-import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.ResourceFilesUtil;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.ImmutableList;
@@ -62,10 +60,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -75,7 +70,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jetbrains.android.uipreview.VirtualFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,7 +86,7 @@ public class ConfigurationMatcher {
 
   @NotNull private final Configuration myConfiguration;
   @NotNull private final ConfigurationManager myManager;
-  @Nullable private final LocalResourceRepository myResources;
+  @Nullable private final ResourceRepository myResources;
   @Nullable private final ResourceNamespace myNamespace;
   @Nullable private final VirtualFile myFile;
 
@@ -101,7 +95,7 @@ public class ConfigurationMatcher {
     myFile = file;
 
     myManager = myConfiguration.getConfigurationManager();
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myManager.getModule());
+    ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null) {
       myResources = null;
       myNamespace = null;
@@ -195,7 +189,7 @@ public class ConfigurationMatcher {
     if (parent != null) {
       String parentName = parent.getName();
       if (!parentName.startsWith(FD_RES_LAYOUT)) {
-        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+        ResourceFolderType folderType = ResourceFilesUtil.getFolderType(file);
         if (folderType != null) {
           List<ResourceType> related = FolderTypeRelationship.getRelatedResourceTypes(folderType);
           if (!related.isEmpty()) {
@@ -205,20 +199,6 @@ public class ConfigurationMatcher {
       }
     }
     return type;
-  }
-
-  @Nullable
-  public static VirtualFile getVirtualFile(@NotNull IAbstractFile file) {
-    if (file instanceof VirtualFileWrapper) {
-      return ((VirtualFileWrapper)file).getFile();
-    } else if (file instanceof BufferingFileWrapper) {
-      BufferingFileWrapper wrapper = (BufferingFileWrapper)file;
-      File ioFile = wrapper.getFile();
-      return LocalFileSystem.getInstance().findFileByIoFile(ioFile);
-    } else {
-      LOG.warn("Unexpected type of match file: " + file.getClass().getName());
-    }
-    return null;
   }
 
   /**
@@ -331,7 +311,7 @@ public class ConfigurationMatcher {
     boolean currentConfigIsCompatible = false;
     State selectedState = myConfiguration.getDeviceState();
     FolderConfiguration editedConfig = myConfiguration.getEditedConfig();
-    Module module = myConfiguration.getModule();
+    ConfigurationModelModule module = myConfiguration.getConfigModule();
     if (selectedState != null) {
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, myConfiguration.getLocale(),
                                                                         myConfiguration.getTarget());
@@ -458,7 +438,7 @@ public class ConfigurationMatcher {
 
     Locale currentLocale = myConfiguration.getLocale();
     IAndroidTarget currentTarget = myConfiguration.getTarget();
-    Module module = myConfiguration.getModule();
+    ConfigurationModelModule module = myConfiguration.getConfigModule();
 
     for (Device device : deviceList) {
       for (State state : device.getAllStates()) {
@@ -634,7 +614,7 @@ public class ConfigurationMatcher {
     }
 
     Comparator<ConfigMatch> comparator = null;
-    if (DeviceUtils.isUseWearDeviceAsDefault(myConfiguration.getModule())) {
+    if (DeviceUtils.isUseWearDeviceAsDefault(myConfiguration)) {
       comparator = new WearConfigComparator(myConfiguration.getConfigurationManager(), idRank);
     }
     else {
@@ -675,7 +655,7 @@ public class ConfigurationMatcher {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
         if (file != null && !file.equals(myFile) && FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE)
-            && IdeResourcesUtil.getFolderType(myFile) == IdeResourcesUtil.getFolderType(file)) {
+            && ResourceFilesUtil.getFolderType(myFile) == ResourceFilesUtil.getFolderType(file)) {
           Configuration configuration = myManager.getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();
           for (ConfigMatch match : matches) {
@@ -700,8 +680,8 @@ public class ConfigurationMatcher {
   public static VirtualFile getBetterMatch(@NotNull Configuration configuration, @Nullable Device device, @Nullable String stateName,
                                            @Nullable Locale locale, @Nullable IAndroidTarget target) {
     VirtualFile file = configuration.getFile();
-    Module module = configuration.getModule();
-    if (file != null && module != null) {
+    ConfigurationModelModule module = configuration.getConfigModule();
+    if (file != null) {
       if (device == null) {
         device = configuration.getCachedDevice();
       }
@@ -721,10 +701,10 @@ public class ConfigurationMatcher {
       }
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, locale, target);
       if (currentConfig != null) {
-        ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
+        ResourceRepositoryManager repositoryManager = configuration.getConfigModule().getResourceRepositoryManager();
         if (repositoryManager != null) {
-          LocalResourceRepository resources = repositoryManager.getAppResources();
-          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+          ResourceRepository resources = repositoryManager.getAppResources();
+          ResourceFolderType folderType = ResourceFilesUtil.getFolderType(file);
           if (folderType != null) {
             List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
             if (!types.isEmpty()) {

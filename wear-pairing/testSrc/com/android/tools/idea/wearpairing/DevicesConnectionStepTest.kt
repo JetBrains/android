@@ -17,9 +17,11 @@ package com.android.tools.idea.wearpairing
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
+import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.analytics.LoggedUsage
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -59,6 +61,8 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   )
 
   override fun setUp() {
+    // Studio Icons must be of type CachedImageIcon for image asset
+    IconLoaderRule.enableIconLoading()
     super.setUp()
 
     model.selectedPhoneDevice.value = phoneDevice
@@ -105,9 +109,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
     assertThat(model.removePairingOnCancel.get()).isTrue()
   }
 
-  @Test
-  fun stepShouldAskToInstallWearOSCompanionApp() {
-    val iDevice = createTestDevice(companionAppVersion = "") // Simulate no Companion App
+  private fun shouldPromptToInstallCompanionApp(iDevice: IDevice) {
     phoneDevice.launch = { Futures.immediateFuture(iDevice) }
     wearDevice.launch = phoneDevice.launch
 
@@ -119,8 +121,20 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   }
 
   @Test
-  fun shouldWarnAboutWear3CompanionApp_ifNotInstalled() {
-    val iDevice = createTestDevice(companionAppVersion = "", Int.MAX_VALUE, "some.unknown.companion.app")
+  fun shouldPromptToInstallPixelCompanionApp_ifPixelCompanionAppIdSet() {
+    val iDevice = createTestDevice(companionAppId = "com.google.android.apps.wear.companion")
+    shouldPromptToInstallCompanionApp(iDevice)
+  }
+
+  @Test
+  fun shouldPromptToInstallLegacyCompanionApp_ifCompanionAppIdNotSpecified() {
+    val iDevice = createTestDevice(companionAppId = null)
+    shouldPromptToInstallCompanionApp(iDevice)
+  }
+
+  @Test
+  fun shouldWarnAboutUnknownCompanionApp() {
+    val iDevice = createTestDevice(companionAppId = "some.unknown.companion.app")
     phoneDevice.launch = { Futures.immediateFuture(iDevice) }
     wearDevice.launch = phoneDevice.launch
 
@@ -298,7 +312,7 @@ class DevicesConnectionStepTest : LightPlatform4TestCase() {
   private fun getWearPairingTrackingEvents(): List<LoggedUsage> =
     usageTracker.usages.filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.WEAR_PAIRING}
 
-  private fun createTestDevice(companionAppVersion: String,
+  private fun createTestDevice(companionAppVersion: String = "",
                                gmscoreVersion: Int = Int.MAX_VALUE,
                                companionAppId: String? = null,
                                additionalReplies: (request: String) -> String? = { null }): IDevice {

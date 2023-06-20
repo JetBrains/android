@@ -19,6 +19,7 @@ package com.android.tools.idea.testing
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.navigator.AndroidProjectViewPane
 import com.android.tools.idea.sdk.IdeSdks
+import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.GroupByTypeComparator

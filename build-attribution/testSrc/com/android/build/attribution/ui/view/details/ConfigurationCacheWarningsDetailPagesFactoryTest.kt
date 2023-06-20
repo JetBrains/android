@@ -27,7 +27,8 @@ import com.android.build.attribution.ui.model.ConfigurationCachingRootNodeDescri
 import com.android.build.attribution.ui.model.ConfigurationCachingWarningNodeDescriptor
 import com.android.build.attribution.ui.model.WarningsDataPageModel
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.TreeWalker
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ApplicationRule
@@ -62,7 +63,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
   fun testConfigurationCacheAGPUpgradeRequiredPage() {
     val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
-      AGPUpdateRequired(currentVersion = GradleVersion.parse("4.2.0"), listOf(appPlugin)),
+      AGPUpdateRequired(currentVersion = AgpVersion.parse("4.2.0"), listOf(appPlugin)),
       TimeWithPercentage(100, 1000)
     )
     val page = factory.createDetailsPage(nodeDescriptor)
@@ -85,18 +86,18 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       name = "Compatible Plugin A",
       pluginClasses = listOf(pluginA.idName),
       pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "pluginA-jar"),
-      configurationCachingCompatibleFrom = GradleVersion.parse("0.2.0")
+      configurationCachingCompatibleFrom = Version.parse("0.2.0")
     )
     val compatiblePluginB = GradlePluginsData.PluginInfo(
       name = "Compatible Plugin B",
       pluginClasses = listOf(pluginB.idName),
       pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "pluginB-jar"),
-      configurationCachingCompatibleFrom = GradleVersion.parse("1.2.0")
+      configurationCachingCompatibleFrom = Version.parse("1.2.0")
     )
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
       IncompatiblePluginsDetected(emptyList(), listOf(
-        IncompatiblePluginWarning(pluginA, GradleVersion.parse("0.1.0"), compatiblePluginA),
-        IncompatiblePluginWarning(pluginB, GradleVersion.parse("1.1.0"), compatiblePluginB)
+        IncompatiblePluginWarning(pluginA, Version.parse("0.1.0"), compatiblePluginA),
+        IncompatiblePluginWarning(pluginB, Version.parse("1.1.0"), compatiblePluginB)
       )),
       TimeWithPercentage(100, 1000)
     )
@@ -126,8 +127,8 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     )
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
       IncompatiblePluginsDetected(listOf(
-        IncompatiblePluginWarning(pluginA, GradleVersion.parse("0.1.0"), incompatiblePluginA),
-        IncompatiblePluginWarning(pluginB, GradleVersion.parse("1.1.0"), incompatiblePluginB)
+        IncompatiblePluginWarning(pluginA, Version.parse("0.1.0"), incompatiblePluginA),
+        IncompatiblePluginWarning(pluginB, Version.parse("1.1.0"), incompatiblePluginB)
       ), emptyList()),
       TimeWithPercentage(100, 1000)
     )
@@ -149,7 +150,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       name = "Compatible Plugin",
       pluginClasses = listOf(pluginA.idName),
       pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "pluginA-jar"),
-      configurationCachingCompatibleFrom = GradleVersion.parse("0.2.0")
+      configurationCachingCompatibleFrom = Version.parse("0.2.0")
     )
     val incompatiblePluginB = GradlePluginsData.PluginInfo(
       name = "Incompatible Plugin",
@@ -158,9 +159,9 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
     )
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
       IncompatiblePluginsDetected(listOf(
-        IncompatiblePluginWarning(pluginA, GradleVersion.parse("0.1.0"), compatiblePluginA)
+        IncompatiblePluginWarning(pluginA, Version.parse("0.1.0"), compatiblePluginA)
       ), listOf(
-        IncompatiblePluginWarning(pluginB, GradleVersion.parse("1.1.0"), incompatiblePluginB)
+        IncompatiblePluginWarning(pluginB, Version.parse("1.1.0"), incompatiblePluginB)
       )),
       TimeWithPercentage(100, 1000)
     )
@@ -176,10 +177,10 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
   }
 
   @Test
-  fun testConfigurationCacheNoIncompatiblePluginsPage() {
+  fun testConfigurationCacheNoIncompatiblePluginsPage_IncubatingFeature() {
     val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
-      NoIncompatiblePlugins(listOf(pluginA)),
+      NoIncompatiblePlugins(listOf(pluginA), false),
       TimeWithPercentage(100, 1000)
     )
     val page = factory.createDetailsPage(nodeDescriptor)
@@ -205,10 +206,39 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
   }
 
   @Test
+  fun testConfigurationCacheNoIncompatiblePluginsPage_StableFeature() {
+    val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
+    val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
+      NoIncompatiblePlugins(listOf(pluginA), true),
+      TimeWithPercentage(100, 1000)
+    )
+    val page = factory.createDetailsPage(nodeDescriptor)
+    TreeWalker(page).descendants().filterIsInstance<JEditorPane>().let { htmlPanes ->
+      Truth.assertThat(htmlPanes).hasSize(3)
+      htmlPanes[0].text.clearHtml().let { pageHtml ->
+        Truth.assertThat(pageHtml).contains("Try to turn Configuration cache on")
+        Truth.assertThat(pageHtml).contains("You could save about 0.1s by")
+        Truth.assertThat(pageHtml).contains("The known plugins applied in this build are compatible with Configuration cache.")
+      }
+      htmlPanes[1].text.clearHtml().let { pageHtml ->
+        Truth.assertThat(pageHtml).contains("Note: There could be unknown plugins that aren't compatible and are discovered after\n" +
+                                            "you build with Configuration cache turned on.")
+      }
+      htmlPanes[2].text.clearHtml().let { pageHtml ->
+        Truth.assertThat(pageHtml).contains("<b>List of applied plugins we were not able to recognise:</b>")
+        Truth.assertThat(pageHtml).contains("my.org.gradle.PluginA")
+      }
+    }
+    TreeWalker(page).descendants().filterIsInstance<JButton>().single().let { button ->
+      Truth.assertThat(button.text).isEqualTo("Try Configuration cache in a build")
+    }
+  }
+
+  @Test
   fun testConfigurationCacheAfterTrialBuildPage() {
     val factory = WarningsViewDetailPagesFactory(mockModel, mockHandlers, disposableRule.disposable)
     val nodeDescriptor = ConfigurationCachingRootNodeDescriptor(
-      ConfigurationCacheCompatibilityTestFlow,
+      ConfigurationCacheCompatibilityTestFlow(false),
       TimeWithPercentage(100, 1000)
     )
     val page = factory.createDetailsPage(nodeDescriptor)
@@ -232,10 +262,10 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       name = "Compatible Plugin",
       pluginClasses = listOf(pluginA.idName),
       pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "pluginA-jar"),
-      configurationCachingCompatibleFrom = GradleVersion.parse("0.2.0")
+      configurationCachingCompatibleFrom = Version.parse("0.2.0")
     )
     val nodeDescriptor = ConfigurationCachingWarningNodeDescriptor(
-      IncompatiblePluginWarning(pluginA, GradleVersion.parse("0.1.0"), compatiblePluginA),
+      IncompatiblePluginWarning(pluginA, Version.parse("0.1.0"), compatiblePluginA),
       TimeWithPercentage(100, 1000)
     )
     val page = factory.createDetailsPage(nodeDescriptor)
@@ -260,7 +290,7 @@ class ConfigurationCacheWarningsDetailPagesFactoryTest {
       pluginArtifact = GradlePluginsData.DependencyCoordinates("my.org", "pluginA-jar"),
     )
     val nodeDescriptor = ConfigurationCachingWarningNodeDescriptor(
-      IncompatiblePluginWarning(pluginA, GradleVersion.parse("0.1.0"), incompatiblePluginA),
+      IncompatiblePluginWarning(pluginA, Version.parse("0.1.0"), incompatiblePluginA),
       TimeWithPercentage(100, 1000)
     )
     val page = factory.createDetailsPage(nodeDescriptor)

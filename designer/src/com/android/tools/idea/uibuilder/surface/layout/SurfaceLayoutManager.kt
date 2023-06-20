@@ -17,8 +17,11 @@ package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.common.model.scaleBy
+import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
 import java.awt.Insets
+import java.awt.Point
 
 /**
  * Sorts the [Collection<PositionableContent>] by its x and y coordinates.
@@ -28,37 +31,61 @@ internal fun Collection<PositionableContent>.sortByPosition() = sortedWith(compa
 /**
  * Class that provides an interface for content that can be positioned on the [com.android.tools.idea.common.surface.DesignSurface]
  */
-abstract class PositionableContent {
+interface PositionableContent {
+
+  val groupId: String?
+
+  /**
+   * The current scale value of this [PositionableContent].
+   */
+  @SurfaceScale
+  val scale: Double
+
   val contentSize: Dimension
     @AndroidDpCoordinate get() = getContentSize(Dimension())
 
   @get:SwingCoordinate
-  abstract val x: Int
+  val x: Int
 
   @get:SwingCoordinate
-  abstract val y: Int
-  
-  val scaledContentSize: Dimension
-    @SwingCoordinate get() = getScaledContentSize(Dimension())
-  abstract val margin: Insets
+  val y: Int
 
-  abstract val isVisible: Boolean
-
-  @AndroidDpCoordinate
-  abstract fun getContentSize(dimension: Dimension?): Dimension
+  val isVisible: Boolean
 
   /**
-   * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
-   * current zoom level
-   *
-   * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
-   *                  returned.
+   * Returns the current size of the view content, excluding margins. This doesn't account the current [scale].
    */
-  @SwingCoordinate
-  abstract fun getScaledContentSize(dimension: Dimension?): Dimension
-  abstract fun setLocation(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
+  @AndroidDpCoordinate
+  fun getContentSize(dimension: Dimension?): Dimension
+
+  fun setLocation(@SwingCoordinate x: Int, @SwingCoordinate y: Int)
+
+  /**
+   * Get the margin value with the given scale.
+   */
+  fun getMargin(scale: Double): Insets
 }
 
+/**
+ * Get the margin with the current [PositionableContent.scale] value.
+ */
+val PositionableContent.margin: Insets
+  get() = getMargin(scale)
+
+val PositionableContent.scaledContentSize: Dimension
+  @SwingCoordinate get() = getScaledContentSize(Dimension())
+
+/**
+ * Returns the current size of the view content, excluding margins. This is the same as {@link #getContentSize()} but accounts for the
+ * current [PositionableContent.scale].
+ *
+ * This function is implemented as an extension because it should not be overridden.
+ *
+ * @param dimension optional existing {@link Dimension} instance to be reused. If not null, the values will be set and this instance
+ *                  returned.
+ */
+@SwingCoordinate
+fun PositionableContent.getScaledContentSize(dimension: Dimension?): Dimension = getContentSize(dimension).scaleBy(scale)
 
 /**
  * Interface used to layout and measure the size of [PositionableContent]s in [com.android.tools.idea.common.surface.DesignSurface].
@@ -99,8 +126,17 @@ interface SurfaceLayoutManager {
                       @SwingCoordinate dimension: Dimension?): Dimension
 
   /**
-   * Place the given [PositionableContent]s in the proper positions by using [PositionableContent.setLocation]
-   * Note that it only changes the locations of [PositionableContent]s but doesn't change their sizes.
+   * Get the fit into scale value which can display all the [PositionableContent] in the given [availableWidth] x [availableHeight] range.
+   */
+  @SurfaceScale
+  fun getFitIntoScale(content: Collection<PositionableContent>,
+                      @SwingCoordinate availableWidth: Int,
+                      @SwingCoordinate availableHeight: Int): Double
+
+  /**
+   * Measure the given [PositionableContent]s in the proper positions by using [PositionableContent.setLocation].
+   * Note that it doesn't change the locations of [PositionableContent]s, it returns a map of [PositionableContent] to the measured
+   * positions.
    *
    * @param content all [PositionableContent]s to be laid out.
    * @param availableWidth the width of current visible area, which doesn't include the hidden part in the scroll view.
@@ -108,8 +144,28 @@ interface SurfaceLayoutManager {
    * @param keepPreviousPadding true if all padding values should be the same as current one. This happens when resizing
    * the [PositionableContent].
    */
-  fun layout(content: Collection<PositionableContent>,
-             @SwingCoordinate availableWidth: Int,
-             @SwingCoordinate availableHeight: Int,
-             keepPreviousPadding: Boolean = false)
+  fun measure(content: Collection<PositionableContent>,
+              @SwingCoordinate availableWidth: Int,
+              @SwingCoordinate availableHeight: Int,
+              keepPreviousPadding: Boolean = false): Map<PositionableContent, Point>
+}
+
+/**
+ * Place the given [PositionableContent]s in the proper positions by using [PositionableContent.setLocation]
+ * Note that it only changes the locations of [PositionableContent]s but doesn't change their sizes.
+ *
+ * @param content all [PositionableContent]s to be laid out.
+ * @param availableWidth the width of current visible area, which doesn't include the hidden part in the scroll view.
+ * @param availableHeight the height of current visible area, which doesn't include the hidden part in the scroll view.
+ * @param keepPreviousPadding true if all padding values should be the same as current one. This happens when resizing
+ * the [PositionableContent].
+ */
+fun SurfaceLayoutManager.layout(content: Collection<PositionableContent>,
+                                @SwingCoordinate availableWidth: Int,
+                                @SwingCoordinate availableHeight: Int,
+                                keepPreviousPadding: Boolean = false) {
+  val contentToPositionMap = measure(content, availableWidth, availableHeight, keepPreviousPadding)
+  for ((positionableContent, position) in contentToPositionMap) {
+    positionableContent.setLocation(position.x, position.y)
+  }
 }

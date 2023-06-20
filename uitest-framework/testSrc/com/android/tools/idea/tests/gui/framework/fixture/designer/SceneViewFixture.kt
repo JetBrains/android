@@ -247,6 +247,8 @@ class SceneViewFixture(private val robot: Robot,
     get() = Point((sceneView.x + sceneView.x + sceneView.scaledContentSize.width) / 2,
                   (sceneView.y + sceneView.y + sceneView.scaledContentSize.height) / 2)
 
+  val topLeft: Point
+    get() = Point(sceneView.x, sceneView.y)
 
   fun findSceneComponentByTagName(tagName: String): SceneComponentFixture =
     SceneComponentFixture(robot, componentDriver, sceneView.scene.sceneComponents.single { tagName == it.nlComponent.tagName })

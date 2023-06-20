@@ -16,6 +16,10 @@
 package com.android.tools.idea.serverflags
 
 import com.google.common.io.ByteStreams
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.StartupActivity
 import java.io.File
 import java.io.IOException
 import java.net.URL
@@ -28,9 +32,19 @@ private const val DEFAULT_BASE_URL = "https://dl.google.com/android/studio/serve
  * ServerFlagDownloader downloads the protobuf file for the current version of Android Studio.
  * If it succeeds it will save the file to a local path.
  */
+@Service
 class ServerFlagDownloader {
+  init {
+    ApplicationManager.getApplication().executeOnPooledThread {
+      downloadServerFlagList()
+    }
+  }
+
   companion object {
-    @JvmStatic
+    fun getInstance() : ServerFlagDownloader {
+      return ApplicationManager.getApplication().getService(ServerFlagDownloader::class.java)
+    }
+
     fun downloadServerFlagList() {
       val baseUrl = System.getProperty(BASE_URL_OVERRIDE_KEY, DEFAULT_BASE_URL)
       downloadServerFlagList(baseUrl, localCacheDirectory, flagsVersion) { createTempFile() }
@@ -82,6 +96,13 @@ class ServerFlagDownloader {
       }
       catch (e: IOException) {
       }
+    }
+  }
+
+  private class Initializer : StartupActivity.Background {
+    override fun runActivity(project: Project) {
+      // Trigger initialization of ServerFlagDownloader
+      getInstance();
     }
   }
 }

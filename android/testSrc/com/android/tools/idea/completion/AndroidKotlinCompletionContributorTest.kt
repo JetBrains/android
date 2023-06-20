@@ -32,7 +32,7 @@ class AndroidKotlinCompletionContributorTest : AndroidGradleTestCase() {
 
     myFixture.moveCaret("setContentView(R.layout.|activity_main)")
 
-    myFixture.complete(CompletionType.BASIC)
+    myFixture.complete(CompletionType.SMART)
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")
     assertThat(myFixture.lookupElementStrings).contains("activity_main")
   }
@@ -44,7 +44,7 @@ class AndroidKotlinCompletionContributorTest : AndroidGradleTestCase() {
     myFixture.openFileInEditor(file!!)
 
     myFixture.moveCaret("assertEquals(\"com.example.android.kotlin\", appContext.packageName)|")
-    myFixture.type("\nR.layout.")
+    myFixture.type("\ncom.example.android.kotlin.R.layout.")
 
     myFixture.complete(CompletionType.BASIC)
     assertThat(myFixture.lookupElementStrings).doesNotContain("abc_action_mode_bar")

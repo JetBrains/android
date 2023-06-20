@@ -30,6 +30,7 @@ import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
@@ -46,15 +47,16 @@ import javax.swing.JCheckBox
 @RunsInEdt
 class LogcatFormatCustomViewActionTest {
   private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, EdtRule(), disposableRule)
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
 
   @Before
   fun setUp() {
-    enableHeadlessDialogs(projectRule.project)
+    enableHeadlessDialogs(disposableRule.disposable)
   }
 
   @Test

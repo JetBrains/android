@@ -39,15 +39,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class SdksCleanupUtil {
+public class SdksCleanupUtil {
   // If the sdk is outdated, then all of its roots will be recreated.
   // An Sdk is considered outdated if any of the roots are different from expected roots.
   public static void updateSdkIfNeeded(@NotNull Sdk sdk, @NotNull AndroidSdks androidSdks) {
-    IAndroidTarget target = getTarget(sdk, androidSdks);
+    IAndroidTarget target = getTarget(sdk);
     if (target != null) {
       updateSdkIfNeeded(sdk, androidSdks, target);
     }
@@ -72,8 +72,8 @@ public final class SdksCleanupUtil {
   }
 
   @Nullable
-  private static IAndroidTarget getTarget(@NotNull Sdk sdk, @NotNull AndroidSdks androidSdks) {
-    AndroidSdkAdditionalData additionalData = androidSdks.getAndroidSdkAdditionalData(sdk);
+  private static IAndroidTarget getTarget(@NotNull Sdk sdk) {
+    AndroidSdkAdditionalData additionalData = AndroidSdkAdditionalData.from(sdk);
     AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
     if (additionalData == null || sdkData == null) {
       return null;

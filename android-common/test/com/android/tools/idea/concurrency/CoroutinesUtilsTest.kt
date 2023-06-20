@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.concurrency
 
+import com.android.tools.concurrency.AndroidIoManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.registerServiceInstance
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -29,6 +32,7 @@ import kotlinx.coroutines.test.runBlockingTest
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.yield
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
@@ -44,6 +48,11 @@ class CoroutinesUtilsTest {
   @JvmField
   @Rule
   var exceptionRule: ExpectedException = ExpectedException.none()
+
+  @Before
+  fun setUp() {
+    ApplicationManager.getApplication().registerServiceInstance(AndroidIoManager::class.java, StudioIoManager())
+  }
 
   @Test
   fun androidCoroutineScopeIsCancelledOnDispose() {
@@ -143,26 +152,26 @@ class CoroutinesUtilsTest {
 
   @Test
   fun childScopeIsNotDisposedOnCancel() {
-    runBlockingTest {
-      // Prepare
-      val disposable = Disposer.newCheckedDisposable()
-      val scope = this.createChildScope(parentDisposable = disposable)
-      scope.launch {
-        while (isActive) {
-          delay(1_000)
-          yield()
+    val disposable = Disposer.newCheckedDisposable()
+    try {
+      runBlockingTest {
+        // Prepare
+        val scope = this.createChildScope(parentDisposable = disposable)
+        scope.launch {
+          while (isActive) {
+            delay(1_000)
+            yield()
+          }
         }
-      }
 
-      // Act
-      scope.cancel()
+        // Act
+        scope.cancel()
 
-      // Assert
-      try {
+        // Assert
         Assert.assertFalse(disposable.isDisposed)
-      } finally {
-        Disposer.dispose(disposable)
       }
+    } finally {
+      Disposer.dispose(disposable)
     }
   }
 }

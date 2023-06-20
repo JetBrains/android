@@ -23,17 +23,20 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 
-/**
- * Checks if project uses Dagger (any module depends on Dagger)
- */
+/** Checks if project uses Dagger (any module depends on Dagger) */
 @Service
 class DaggerDependencyChecker(private val project: Project) {
 
-  fun isDaggerPresent(): Boolean = CachedValuesManager.getManager(project).getCachedValue(project) {
-    CachedValueProvider.Result(calculateIsDaggerPresent(), ProjectRootModificationTracker.getInstance(project))
-  }
+  fun isDaggerPresent(): Boolean =
+    CachedValuesManager.getManager(project).getCachedValue(project) {
+      CachedValueProvider.Result(
+        calculateIsDaggerPresent(),
+        ProjectRootModificationTracker.getInstance(project)
+      )
+    }
 
   private fun calculateIsDaggerPresent(): Boolean {
-    return JavaPsiFacade.getInstance(project).findClass(DAGGER_MODULE_ANNOTATION, GlobalSearchScope.allScope(project)) != null
+    return JavaPsiFacade.getInstance(project)
+      .findClass(DAGGER_MODULE_ANNOTATION, GlobalSearchScope.allScope(project)) != null
   }
 }

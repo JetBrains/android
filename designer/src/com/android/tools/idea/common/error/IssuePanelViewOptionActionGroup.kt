@@ -56,8 +56,9 @@ class SeverityFilterAction(val project: Project, @Nls name: String, val severity
   override fun isSelected(event: AnActionEvent) = !ProblemsViewState.getInstance(project).hideBySeverity.contains(severity)
   override fun setSelected(event: AnActionEvent, selected: Boolean) {
     val state = ProblemsViewState.getInstance(project)
-    val changed = with(state) { if (selected) removeSeverity(severity) else addSeverity(severity) }
+    val changed = with(state.hideBySeverity) { if (selected) remove(severity) else add(severity) }
     if (changed) {
+      state.intIncrementModificationCount()
       updateIssuePanelFilter(project)
     }
   }

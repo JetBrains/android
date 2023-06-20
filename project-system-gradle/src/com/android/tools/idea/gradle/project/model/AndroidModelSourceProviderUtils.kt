@@ -26,9 +26,8 @@ import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.model.IdeApiVersion
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
-import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
-import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.project.model.ArtifactSelector.ANDROID_TEST
@@ -51,10 +50,9 @@ private enum class ArtifactSelector(val selector: IdeVariantCore.() -> IdeBaseAr
   TEST_FIXTURES({ testFixturesArtifact }, ARTIFACT_NAME_TEST_FIXTURES);
 
   fun IdeVariantCore.selectArtifact(): IdeBaseArtifactCore? = selector()
-  fun IdeBuildTypeContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
-  fun IdeProductFlavorContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
+  fun IdeSourceProviderContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
 
-  private fun <T> T.providerBy(main: T.() -> IdeSourceProvider?, extra: T.() -> Collection<IdeSourceProviderContainer>) =
+  private fun <T> T.providerBy(main: T.() -> IdeSourceProvider?, extra: T.() -> Collection<IdeExtraSourceProvider>) =
     when (artifactName) {
       ARTIFACT_NAME_MAIN -> main()
       else -> extra().singleOrNull { it.artifactName == artifactName }?.sourceProvider
@@ -76,11 +74,11 @@ private fun GradleAndroidModelData.collectAllAndroidTestSourceProviders(): List<
 private fun GradleAndroidModelData.collectAllTestFixturesSourceProviders(): List<IdeSourceProvider> = collectAllProvidersFor(TEST_FIXTURES)
 
 private fun GradleAndroidModelData.collectCurrentProvidersFor(variant: IdeVariantCore, artifactSelector: ArtifactSelector): List<IdeSourceProvider> {
-  val productFlavors = this.androidProject.productFlavors.associateBy { it.productFlavor.name }
-  val buildTypes = this.androidProject.buildTypes.associateBy { it.buildType.name }
+  val productFlavors = this.androidProject.multiVariantData?.productFlavors.orEmpty().associateBy { it.productFlavor.name }
+  val buildTypes = this.androidProject.multiVariantData?.buildTypes.orEmpty().associateBy { it.buildType.name }
   return mutableListOf<IdeSourceProvider>().apply {
     with(artifactSelector) {
-      addIfNotNull(androidProject.defaultConfig.selectProvider())
+      addIfNotNull(androidProject.defaultSourceProvider.selectProvider())
       val artifact = variant.selectArtifact()
       // TODO(solodkyy): Reverse order as the correct application order is from the last dimension to the first.
       addAll(variant.productFlavors.mapNotNull { productFlavors[it]?.selectProvider() })
@@ -95,10 +93,10 @@ private fun GradleAndroidModelData.collectAllProvidersFor(artifactSelector: Arti
   val variants = variants
   return mutableListOf<IdeSourceProvider>().apply {
     with(artifactSelector) {
-      addIfNotNull(androidProject.defaultConfig.selectProvider())
-      addAll(androidProject.productFlavors.mapNotNull { it.selectProvider() })
+      addIfNotNull(androidProject.defaultSourceProvider.selectProvider())
+      addAll(androidProject.multiVariantData?.productFlavors.orEmpty().mapNotNull { it.selectProvider() })
       addAll(variants.mapNotNull { it.selectArtifact()?.multiFlavorSourceProvider })
-      addAll(androidProject.buildTypes.mapNotNull { it.selectProvider() })
+      addAll(androidProject.multiVariantData?.buildTypes.orEmpty().mapNotNull { it.selectProvider() })
       addAll(variants.mapNotNull { it.selectArtifact()?.variantSourceProvider })
     }
   }

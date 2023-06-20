@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.lint.common;
 
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiEditorUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.inspections.IntentionBasedInspectionKt;
 
 public class AndroidQuickfixContexts {
   public static abstract class Context {
@@ -29,6 +36,20 @@ public class AndroidQuickfixContexts {
     @NotNull
     public ContextType getType() {
       return myType;
+    }
+
+    @Nullable
+    public Editor getEditor(@NotNull PsiFile file) {
+      Editor editor = IntentionBasedInspectionKt.findExistingEditor(file);
+      if (editor != null) {
+        return editor;
+      }
+      return PsiEditorUtil.findEditor(file);
+    }
+
+    @Nullable
+    public Document getDocument(@NotNull PsiFile file) {
+      return PsiDocumentManager.getInstance(file.getProject()).getDocument(file);
     }
   }
 
@@ -54,10 +75,17 @@ public class AndroidQuickfixContexts {
   public static class EditorContext extends Context {
     public static final ContextType TYPE = new ContextType();
     private final Editor myEditor;
+    private final PsiFile myFile;
 
-    private EditorContext(@NotNull Editor editor) {
+    private EditorContext(@NotNull Editor editor, @Nullable PsiFile file) {
       super(TYPE);
       myEditor = editor;
+      myFile = file;
+    }
+
+    @Nullable
+    public PsiFile getFile() {
+      return myFile;
     }
 
     @NotNull
@@ -65,9 +93,37 @@ public class AndroidQuickfixContexts {
       return myEditor;
     }
 
+    @Override
+    public @Nullable Editor getEditor(@NotNull PsiFile file) {
+      if (isPreviewFile(file)) {
+        return myEditor;
+      }
+      return super.getEditor(file);
+    }
+
+    @Override
+    @Nullable
+    public Document getDocument(@NotNull PsiFile file) {
+      if (isPreviewFile(file)) {
+        return myEditor.getDocument();
+      }
+      return super.getDocument(file);
+    }
+
+    private boolean isPreviewFile(@NotNull PsiFile file) {
+      return file == myFile ||
+             myFile != null && IntentionPreviewUtils.isIntentionPreviewActive() && file.getName().equals(myFile.getName());
+    }
+
     @NotNull
-    public static EditorContext getInstance(@NotNull Editor editor) {
-      return new EditorContext(editor);
+    public static EditorContext getInstance(@NotNull Editor editor, @Nullable PsiFile file) {
+      return new EditorContext(editor, file);
+    }
+  }
+
+  public static class EditorPreviewContext extends EditorContext {
+    public EditorPreviewContext(@NotNull Editor editor, @Nullable PsiFile file) {
+      super(editor, file);
     }
   }
 

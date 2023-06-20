@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
-import com.android.tools.idea.databinding.util.DataBindingUtil;
+import com.android.utils.DataBindingUtils;
+import com.android.tools.rendering.parsers.RenderXmlAttribute;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.collect.Lists;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlTag;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * A snapshot of an attribute value pulled from PSI. Used in conjunction with {@link TagSnapshot}.
@@ -45,14 +46,14 @@ public class AttributeSnapshot {
    * NOTE: Returns null if the attribute should not be passed to LayoutLib.
    */
   @Nullable
-  public static AttributeSnapshot createAttributeSnapshot(@NotNull XmlAttribute psiAttribute) {
-    String localName = psiAttribute.getLocalName();
-    String namespace = psiAttribute.getNamespace();
-    String prefix = psiAttribute.getNamespacePrefix();
-    String value = psiAttribute.getValue();
-    if (value != null && DataBindingUtil.isBindingExpression(value)) {
+  public static AttributeSnapshot createAttributeSnapshot(@NotNull RenderXmlAttribute attribute) {
+    String localName = attribute.getLocalName();
+    String namespace = attribute.getNamespace();
+    String prefix = attribute.getNamespacePrefix();
+    String value = attribute.getValue();
+    if (value != null && DataBindingUtils.isBindingExpression(value)) {
       // if this is a binding expression, get the default value.
-      value = DataBindingUtil.getBindingExprDefault(psiAttribute);
+      value = attribute.getBindingExprDefault();
       if (value == null) {
         // If no default value, strip the attribute completely.
         return null;
@@ -63,17 +64,17 @@ public class AttributeSnapshot {
 
   /** Creates a list of attribute snapshots corresponding to the attributes of the given tag */
   @NotNull
-  public static List<AttributeSnapshot> createAttributesForTag(@NotNull XmlTag tag) {
+  public static List<AttributeSnapshot> createAttributesForTag(@NotNull RenderXmlTag tag) {
     // Attributes
-    XmlAttribute[] psiAttributes = tag.getAttributes();
-    List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(psiAttributes.length);
-    for (XmlAttribute psiAttribute : psiAttributes) {
-      if (psiAttribute.isNamespaceDeclaration()) {
+    List<RenderXmlAttribute> renderAttributes = tag.getAttributes();
+    List<AttributeSnapshot> attributes = Lists.newArrayListWithExpectedSize(renderAttributes.size());
+    for (RenderXmlAttribute renderAttribute : renderAttributes) {
+      if (renderAttribute.isNamespaceDeclaration()) {
         // Do not snapshot namespace declaration
         continue;
       }
 
-      AttributeSnapshot attribute = createAttributeSnapshot(psiAttribute);
+      AttributeSnapshot attribute = createAttributeSnapshot(renderAttribute);
       if (attribute != null) {
         attributes.add(attribute);
       }

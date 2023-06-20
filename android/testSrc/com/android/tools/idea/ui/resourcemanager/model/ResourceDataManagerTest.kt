@@ -20,7 +20,7 @@ import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceMergerItem
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
@@ -38,6 +38,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.testFramework.runInEdtAndGet
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
 import org.junit.Before
@@ -85,23 +86,26 @@ class ResourceDataManagerTest {
   @Test
   fun getColorPsiElement() {
     rule.fixture.copyFileToProject("res/values/colors.xml", "res/values/colors.xml")
-    val colorItem = ResourceRepositoryManager.getInstance(rule.module.androidFacet!!)
+    val colorItem = StudioResourceRepositoryManager.getInstance(rule.module.androidFacet!!)
       .appResources
       .getResources(ResourceNamespace.RES_AUTO, ResourceType.COLOR, "colorPrimary")
       .first()
     val colorAsset = Asset.fromResourceItem(colorItem)
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
-    val bgtDataProvider = runInEdtAndGet { dataManager
-      .getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name, listOf(colorAsset)) as DataProvider
+    val psiArray = runInEdtAndGet {
+      val slowDataProvider = dataManager.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name, listOf(colorAsset)) as DataProvider
+      slowDataProvider.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name) as Array<PsiElement>
     }
-    val psiArray = runInEdtAndGet { bgtDataProvider.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name) as Array<PsiElement> }
     assertEquals("colorPrimary", runInEdtAndGet { (psiArray[0] as XmlAttributeValue).value })
 
     val copyProvider = dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(colorAsset)) as CopyProvider
     assertTrue { copyProvider.isCopyEnabled(DataContext.EMPTY_CONTEXT) }
 
-    val usageTargetKey = runInEdtAndGet { bgtDataProvider.getData(UsageView.USAGE_TARGETS_KEY.name) as Array<UsageTarget?> }
+    val usageTargetKey = runInEdtAndGet {
+      val slowDataProvider = dataManager.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name, listOf(colorAsset)) as DataProvider
+      slowDataProvider.getData(UsageView.USAGE_TARGETS_KEY.name) as Array<UsageTarget?>
+    }
     assertTrue { usageTargetKey.isNotEmpty() }
 
     dataManager.performCopy(DataContext.EMPTY_CONTEXT)
@@ -114,16 +118,19 @@ class ResourceDataManagerTest {
     val colorAsset = Asset.fromResourceItem(pngItem)
 
     val dataManager = ResourceDataManager(rule.module.androidFacet!!)
-    val bgtDataProvider = runInEdtAndGet { dataManager
-      .getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name, listOf(colorAsset)) as DataProvider
+    val psiArray = runInEdtAndGet {
+      val slowDataProvider = dataManager.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name, listOf(colorAsset)) as DataProvider
+      slowDataProvider.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name) as Array<PsiElement>
     }
-    val psiArray: Array<PsiElement> = runInEdtAndGet { bgtDataProvider.getData(LangDataKeys.PSI_ELEMENT_ARRAY.name) as Array<PsiElement> }
-    assertEquals(pngItem.getSourceAsVirtualFile(), runInEdtAndGet { PsiUtil.getVirtualFile(psiArray?.first()!!.containingFile)!! })
+    assertEquals(pngItem.getSourceAsVirtualFile(), runInEdtAndGet { PsiUtil.getVirtualFile(psiArray[0].containingFile)!! })
 
     val copyProvider = dataManager.getData(PlatformDataKeys.COPY_PROVIDER.name, listOf(colorAsset)) as CopyProvider
     assertTrue { copyProvider.isCopyEnabled(DataContext.EMPTY_CONTEXT) }
 
-    val usageTargetKey = runInEdtAndGet { bgtDataProvider.getData(UsageView.USAGE_TARGETS_KEY.name) as Array<UsageTarget?> }
+    val usageTargetKey = runInEdtAndGet {
+      val slowDataProvider = dataManager.getData(PlatformCoreDataKeys.BGT_DATA_PROVIDER.name, listOf(colorAsset)) as DataProvider
+      slowDataProvider.getData(UsageView.USAGE_TARGETS_KEY.name) as Array<UsageTarget?>
+    }
     assertTrue { usageTargetKey.isNotEmpty() }
   }
 }

@@ -74,8 +74,7 @@ import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFile
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
@@ -98,7 +97,6 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -342,7 +340,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     // For all non library modules in our project
     for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(myProject)) {
       if (facet != null && facet.getConfiguration().isAppProject()) {
-        int minSdk = AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel();
+        int minSdk = StudioAndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel();
 
         if (myProperties.generateV17resourcesOption) {
           // First get all the "res" directories
@@ -352,9 +350,6 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
           final List<VirtualFile> allLayoutDir = new ArrayList<>();
 
           for (VirtualFile oneRes : allRes) {
-            if (isLibraryResourceRoot(oneRes)) {
-              continue;
-            }
             final VirtualFile[] children = oneRes.getChildren();
             // Check every children if they are a layout dir but not a "-v17" one
             for (VirtualFile oneChild : children) {
@@ -388,13 +383,8 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
         }
         else {
           LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-          Collection<PsiFile> files = resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT);
-          for (PsiFile psiFile : files) {
-            if (isLibraryResourceFile(psiFile.getVirtualFile())) {
-              continue;
-            }
-            list.addAll(getLayoutRefactoringForFile(psiFile, false /* do not create the v17 version */, minSdk));
-          }
+          resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT, null, true, false)
+            .forEach(psiFile -> list.addAll(getLayoutRefactoringForFile(psiFile, false /* do not create the v17 version */, minSdk)));
         }
       }
     }
@@ -618,49 +608,6 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   @Override
   protected String getCommandName() {
     return getRefactoringName();
-  }
-
-  /**
-   * Returns true if the given resource file (such as a given layout XML file) is an extracted library (AAR) resource file
-   *
-   * @param file the file to check
-   * @return true if the file is a library resource file
-   */
-  private static boolean isLibraryResourceFile(@Nullable VirtualFile file) {
-    if (file != null) {
-      VirtualFile folder = file.getParent();
-      if (folder != null) {
-        return isLibraryResourceRoot(folder.getParent());
-      }
-
-      return false;
-    }
-
-    return false;
-  }
-
-  /**
-   * Returns true if the given resource folder (such as a given "res" folder, a parent of say a layout folder) is an extracted
-   * library (AAR) resource folder
-   *
-   * @param res the folder to check
-   * @return true if the folder is a library resource folder
-   */
-  private static boolean isLibraryResourceRoot(@Nullable VirtualFile res) {
-    if (res != null) {
-      VirtualFile aar = res.getParent();
-      if (aar != null) {
-        VirtualFile exploded = aar.getParent();
-        if (exploded != null) {
-          String name = exploded.getName();
-          if (name.equals(FilenameConstants.EXPLODED_AAR)) {
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
   }
 
   private static String getRefactoringName() {

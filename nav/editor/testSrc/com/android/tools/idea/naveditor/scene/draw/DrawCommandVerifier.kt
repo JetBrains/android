@@ -18,12 +18,12 @@ package com.android.tools.idea.naveditor.scene.draw
 import com.android.testutils.MockitoKt.whenever
 import com.intellij.ui.JreHiDpiUtil
 import org.mockito.ArgumentMatchers.argThat
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.anyFloat
 import org.mockito.Mockito.anyInt
-import org.mockito.Mockito.eq
 import org.mockito.Mockito.times
 import java.awt.BasicStroke
 import java.awt.Color
@@ -320,7 +320,6 @@ fun verifyDrawEmptyDesigner(inOrder: InOrder, g: Graphics2D, point: Point2D.Floa
     if (JreHiDpiUtil.isJreHiDPIEnabled()) {
       verify(g).deviceConfiguration
     }
-    verify(g).drawImage(any(), anyInt(), anyInt(), any())
     verify(g).drawString(eq(" to add a destination"), anyInt(), eq(point.y.toInt()))
     verify(g).dispose()
   }

@@ -1,0 +1,14 @@
+buildscript {
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+  }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:3.2.0-dev' // This will be replaced by AndroidGradleTestCase
+  }
+}
+
+allprojects {
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+  }
+}

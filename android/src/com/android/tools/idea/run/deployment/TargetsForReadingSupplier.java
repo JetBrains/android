@@ -30,20 +30,20 @@ import org.jetbrains.annotations.Nullable;
  * device is stopped
  */
 final class TargetsForReadingSupplier {
-  private final @NotNull Collection<@NotNull Device> myDevices;
+  private final @NotNull Collection<Device> myDevices;
 
-  private final @NotNull Set<@NotNull Target> myTargets;
-  private final @NotNull Set<@NotNull RunningDeviceTarget> myRunningDeviceTargetsToRemove;
+  private final @NotNull Set<Target> myTargets;
+  private final @NotNull Set<RunningDeviceTarget> myRunningDeviceTargetsToRemove;
 
-  TargetsForReadingSupplier(@NotNull Collection<@NotNull Device> devices,
+  TargetsForReadingSupplier(@NotNull Collection<Device> devices,
                             @Nullable RunningDeviceTarget runningDeviceTarget,
                             @Nullable Target target) {
     this(devices, DeploymentCollections.toList(runningDeviceTarget), DeploymentCollections.toList(target));
   }
 
-  TargetsForReadingSupplier(@NotNull Collection<@NotNull Device> devices,
-                            @NotNull Collection<@NotNull RunningDeviceTarget> runningDeviceTargets,
-                            @NotNull Collection<@NotNull Target> targets) {
+  TargetsForReadingSupplier(@NotNull Collection<Device> devices,
+                            @NotNull Collection<RunningDeviceTarget> runningDeviceTargets,
+                            @NotNull Collection<Target> targets) {
     myDevices = devices;
 
     int size = devices.size();
@@ -81,19 +81,19 @@ final class TargetsForReadingSupplier {
       .anyMatch(key::equals);
   }
 
-  @NotNull Optional<@NotNull Target> getDropDownTarget() {
+  @NotNull Optional<Target> getDropDownTarget() {
     return DeploymentCollections.toOptional(myTargets);
   }
 
-  @NotNull Optional<@NotNull RunningDeviceTarget> getDropDownRunningDeviceTargetToRemove() {
+  @NotNull Optional<RunningDeviceTarget> getDropDownRunningDeviceTargetToRemove() {
     return DeploymentCollections.toOptional(myRunningDeviceTargetsToRemove);
   }
 
-  @NotNull Set<@NotNull Target> getDialogTargets() {
+  @NotNull Set<Target> getDialogTargets() {
     return myTargets;
   }
 
-  @NotNull Set<@NotNull RunningDeviceTarget> getDialogRunningDeviceTargetsToRemove() {
+  @NotNull Set<RunningDeviceTarget> getDialogRunningDeviceTargetsToRemove() {
     return myRunningDeviceTargetsToRemove;
   }
 }

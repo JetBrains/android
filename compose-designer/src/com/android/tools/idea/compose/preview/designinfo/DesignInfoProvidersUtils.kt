@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.designinfo
 
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.getLastSyncTimestamp
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
@@ -24,10 +25,7 @@ import com.intellij.openapi.util.Key
 
 private val PROVIDERS_STATUS_KEY: Key<ProviderStatus> = Key.create(ProviderStatus::class.java.name)
 
-private data class ProviderStatus(
-  val hasProviders: Boolean,
-  val syncTimeStamp: Long
-)
+private data class ProviderStatus(val hasProviders: Boolean, val syncTimeStamp: Long)
 
 /**
  * For the given module, determine if there's any library that can provide a DesignInfo object.
@@ -40,8 +38,7 @@ fun hasDesignInfoProviders(module: Module): Boolean {
 
   return if (providerStatus != null && lastSync == providerStatus.syncTimeStamp) {
     providerStatus.hasProviders
-  }
-  else {
+  } else {
     findDesignInfoProviders(module).also {
       module.putUserData(PROVIDERS_STATUS_KEY, ProviderStatus(it, lastSync))
     }
@@ -51,9 +48,15 @@ fun hasDesignInfoProviders(module: Module): Boolean {
 private fun findDesignInfoProviders(moduleToSearch: Module): Boolean {
   if (!StudioFlags.COMPOSE_CONSTRAINT_VISUALIZATION.get()) return false
 
-  val gradleCoordinate = moduleToSearch.getModuleSystem().getResolvedDependency(
-    GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT_COMPOSE.getCoordinate("+"))?.version ?: return false
+  val gradleCoordinate =
+    moduleToSearch
+      .getModuleSystem()
+      .getResolvedDependency(
+        GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT_COMPOSE.getCoordinate("+")
+      )
+      ?.lowerBoundVersion
+      ?: return false
 
   // Support for DesignInfo was added in 'constraintlayout-compose:1.0.0-alpha06'
-  return gradleCoordinate.isAtLeast(1, 0, 0, "alpha", 6, false)
+  return gradleCoordinate >= Version.parse("1.0.0-alpha06")
 }

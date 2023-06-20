@@ -16,15 +16,15 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_11;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
 import static com.intellij.openapi.projectRoots.JdkUtil.isModularRuntime;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
@@ -38,6 +38,8 @@ import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.sdk.extensions.SdkExtensions;
+import com.android.tools.sdk.AndroidSdkPath;
 import com.android.utils.FileUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -51,7 +53,9 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.externalSystem.util.environment.Environment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectEx;
@@ -59,15 +63,11 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.serviceContainer.NonInjectable;
-import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.io.IOException;
@@ -76,7 +76,6 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -84,10 +83,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
+import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -119,12 +117,12 @@ import org.jetbrains.annotations.TestOnly;
  * JDKs for different purposes.
  */
 public class IdeSdks {
-  @NonNls public static final String MAC_JDK_CONTENT_PATH = "Contents/Home";
-  @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = JDK_11;
-  @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
-  @NotNull public static final String ANDROID_STUDIO_DEFAULT_JDK_NAME = "Android Studio default JDK";
-  @NotNull private static final Logger LOG = Logger.getInstance(IdeSdks.class);
   private static final JavaSdkVersion MIN_JDK_VERSION = JDK_1_8;
+  private static final JavaSdkVersion MAX_JDK_VERSION = JDK_17;
+  @NonNls public static final String MAC_JDK_CONTENT_PATH = "Contents/Home";
+  @NotNull public static final JavaSdkVersion DEFAULT_JDK_VERSION = MAX_JDK_VERSION;
+  @NotNull public static final String JDK_LOCATION_ENV_VARIABLE_NAME = "STUDIO_GRADLE_JDK";
+  @NotNull private static final Logger LOG = Logger.getInstance(IdeSdks.class);
 
   @NotNull private final AndroidSdks myAndroidSdks;
   @NotNull private final Jdks myJdks;
@@ -164,7 +162,7 @@ public class IdeSdks {
     Path sdkPath = path != null ? Paths.get(path) : null;
     if (sdkPath != null) {
       File candidate = sdkPath.toFile();
-      if (isValidAndroidSdkPath(candidate)) {
+      if (AndroidSdkPath.isValid(candidate)) {
         return candidate;
       }
     }
@@ -354,12 +352,11 @@ public class IdeSdks {
 
       if (chosenJdk == null) {
         if (Files.isDirectory(canonicalPath)) {
-          chosenJdk = getOrCreateJdk(canonicalPath);
+          chosenJdk = createJdk(canonicalPath);
           if (chosenJdk == null) {
             // Unlikely to happen
             throw new IllegalStateException("Failed to create IDEA JDK from '" + path + "'");
           }
-          setJdkOfAndroidSdks(chosenJdk);
         }
         else {
           throw new IllegalStateException("The resolved path '" + canonicalPath + "' was not found");
@@ -386,27 +383,6 @@ public class IdeSdks {
   }
 
   /**
-   * Iterates through all Android SDKs and makes them point to the given JDK.
-   */
-  private void setJdkOfAndroidSdks(@NotNull Sdk jdk) {
-    for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {
-      AndroidSdkAdditionalData oldData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
-      if (oldData == null) {
-        continue;
-      }
-      oldData.setJavaSdk(jdk);
-      SdkModificator modificator = sdk.getSdkModificator();
-      modificator.setSdkAdditionalData(oldData);
-      modificator.commitChanges();
-    }
-  }
-
-  @NotNull
-  public List<Sdk> setAndroidSdkPath(@NotNull File path, @Nullable Project currentProject) {
-    return setAndroidSdkPath(path, null, currentProject);
-  }
-
-  /**
    * Sets the path of Android Studio's Android SDK. This method should be called in a write action. It is assumed that the given path has
    * been validated by {@link #isValidAndroidSdkPath(File)}. This method will fail silently if the given path is not valid.
    *
@@ -414,8 +390,8 @@ public class IdeSdks {
    * @see com.intellij.openapi.application.Application#runWriteAction(Runnable)
    */
   @NotNull
-  public List<Sdk> setAndroidSdkPath(@NotNull File path, @Nullable Sdk javaSdk, @Nullable Project currentProject) {
-    if (isValidAndroidSdkPath(path)) {
+  public List<Sdk> setAndroidSdkPath(@NotNull File path) {
+    if (AndroidSdkPath.isValid(path)) {
       ApplicationManager.getApplication().assertWriteAccessAllowed();
 
       // Store default sdk path for the application as well in order to be able to re-use it for other ide projects if necessary.
@@ -444,7 +420,7 @@ public class IdeSdks {
       }
 
       // If there are any API targets that we haven't created IntelliJ SDKs for yet, fill those in.
-      List<Sdk> sdks = createAndroidSdkPerAndroidTarget(resolved.toFile(), javaSdk);
+      List<Sdk> sdks = createAndroidSdkPerAndroidTarget(resolved.toFile());
 
       afterAndroidSdkPathUpdate(resolved.toFile());
 
@@ -475,20 +451,6 @@ public class IdeSdks {
     }
   }
 
-  /**
-   * Returns true if the given Android SDK path points to a valid Android SDK.
-   */
-  public boolean isValidAndroidSdkPath(@NotNull File path) {
-    return validateAndroidSdk(path, false).success;
-  }
-
-  @NotNull
-  public List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath) {
-    List<Sdk> sdks = createAndroidSdkPerAndroidTarget(androidSdkPath, null);
-    updateWelcomeRunAndroidSdkAction();
-    return sdks;
-  }
-
   public static void updateWelcomeRunAndroidSdkAction() {
     ActionManager actionManager = ApplicationManager.getApplication().getServiceIfCreated(ActionManager.class);
     if (actionManager == null) {
@@ -506,7 +468,7 @@ public class IdeSdks {
    * default naming convention and each individual build target do not already exist. If IntelliJ SDKs do exist, they are not updated.
    */
   @NotNull
-  private List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath, @Nullable Sdk javaSdk) {
+  public List<Sdk> createAndroidSdkPerAndroidTarget(@NotNull File androidSdkPath) {
     AndroidSdkData sdkData = getSdkData(androidSdkPath);
     if (sdkData == null) {
       return Collections.emptyList();
@@ -516,19 +478,21 @@ public class IdeSdks {
       return Collections.emptyList();
     }
     List<Sdk> sdks = new ArrayList<>();
-    Sdk ideJdk = javaSdk != null ? javaSdk : getJdk();
-    if (ideJdk != null) {
-      for (IAndroidTarget target : targets) {
-        if (target.isPlatform() && !doesIdeAndroidSdkExist(target)) {
-          String name = myAndroidSdks.chooseNameForNewLibrary(target);
-          Sdk sdk = myAndroidSdks.create(target, sdkData.getLocationFile(), name, ideJdk, true);
-          if (sdk != null) {
-            sdks.add(sdk);
-          }
+    for (IAndroidTarget target : targets) {
+      if (target.isPlatform() && !doesIdeAndroidSdkExist(target)) {
+        String name = myAndroidSdks.chooseNameForNewLibrary(target);
+        Sdk sdk = myAndroidSdks.create(target, sdkData.getLocationFile(), name, true);
+        if (sdk != null) {
+          sdks.add(sdk);
         }
       }
     }
+    updateWelcomeRunAndroidSdkAction();
     return sdks;
+  }
+
+  public boolean isValidAndroidSdkPath(@NotNull File path) {
+    return validateAndroidSdk(path, false).success;
   }
 
   /**
@@ -548,7 +512,7 @@ public class IdeSdks {
 
   @NotNull
   private static IAndroidTarget getTarget(@NotNull Sdk sdk) {
-    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(sdk);
+    AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(sdk);
     assert androidPlatform != null;
     return androidPlatform.getTarget();
   }
@@ -575,8 +539,7 @@ public class IdeSdks {
       return false;
     }
     Path jdkPath = doGetJdkPath(false);
-    Path embeddedJdkPath = getEmbeddedJdkPath();
-    return jdkPath != null && embeddedJdkPath != null && FileUtil.pathsEqual(jdkPath.toString(), embeddedJdkPath.toString());
+    return jdkPath != null && FileUtil.pathsEqual(jdkPath.toString(), getEmbeddedJdkPath().toString());
   }
 
   /**
@@ -584,15 +547,11 @@ public class IdeSdks {
    */
   public void setUseEmbeddedJdk() {
     checkState(myIdeInfo.isAndroidStudio(), "This method is for use in Android Studio only.");
-    Path embeddedJdkPath = getEmbeddedJdkPath();
-    setJdkPath(embeddedJdkPath);
+    setJdkPath(getEmbeddedJdkPath());
   }
 
-  @Nullable
+  @NotNull
   public Path getEmbeddedJdkPath() {
-    if (!myIdeInfo.isAndroidStudio()) {
-      return null;
-    }
     return myEmbeddedDistributionPaths.getEmbeddedJdkPath();
   }
 
@@ -628,21 +587,14 @@ public class IdeSdks {
   }
 
   /**
-   * Get JDK path based on the value of JAVA_HOME environment variable. If this variable is not defined or does not correspond to a valid
-   * JDK folder then look into java.home system property. This method will try to get the environment from a terminal when possible and if
-   * not, use the current environment.
+   * Get JDK path from the JAVA_HOME environment variable if defined, otherwise try to obtain it from the java.home system property
    *
    * @return null if no JDK can be found, or the path where the JDK is located.
    */
   @Nullable
   public static String getJdkFromJavaHome() {
-    // Try terminal environment first
-    String terminalValue = doGetJdkFromPathOrParent(EnvironmentUtil.getValue("JAVA_HOME"));
-    if (!isNullOrEmpty(terminalValue)) {
-      return terminalValue;
-    }
     // Now try with current environment
-    String envVariableValue = doGetJdkFromPathOrParent(System.getenv("JAVA_HOME"));
+    String envVariableValue = doGetJdkFromPathOrParent(ExternalSystemJdkUtil.getJavaHome());
     if (!isNullOrEmpty(envVariableValue)) {
       return envVariableValue;
     }
@@ -706,13 +658,7 @@ public class IdeSdks {
     if (myEnvVariableSettings.isUseJdkEnvVariable()) {
       return myEnvVariableSettings.getSdk();
     }
-    if (myIdeInfo.isAndroidStudio() || myIdeInfo.isGameTools()) {
-      // Try to get default JDK
-      Sdk jdk = ProjectJdkTable.getInstance().findJdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JavaSdk.getInstance().getName());
-      if (jdk != null) {
-        return jdk;
-      }
-    }
+
     JavaSdkVersion preferredVersion = DEFAULT_JDK_VERSION;
     Sdk existingJdk = getExistingJdk(preferredVersion);
     if (existingJdk != null) return existingJdk;
@@ -724,18 +670,7 @@ public class IdeSdks {
 
   @Nullable
   private Sdk getExistingJdk(@Nullable JavaSdkVersion preferredVersion) {
-    List<Sdk> androidSdks = getEligibleAndroidSdks();
-    if (!androidSdks.isEmpty()) {
-      Sdk androidSdk = androidSdks.get(0);
-      AndroidSdkAdditionalData data = myAndroidSdks.getAndroidSdkAdditionalData(androidSdk);
-      assert data != null;
-      Sdk jdk = data.getJavaSdk();
-      if (isJdkCompatible(jdk, preferredVersion)) {
-        return jdk;
-      }
-    }
     JavaSdk javaSdk = JavaSdk.getInstance();
-
     List<Sdk> jdks = ProjectJdkTable.getInstance().getSdksOfType(javaSdk);
     if (!jdks.isEmpty()) {
       for (Sdk jdk : jdks) {
@@ -773,7 +708,7 @@ public class IdeSdks {
       }
 
       if (checkForJdk(jdkPath.toPath())) {
-        Sdk jdk = getOrCreateJdk(jdkPath.toPath()); // TODO-ank: this adds JDK to the project even if the JDK is not compatibile and will be skipped
+        Sdk jdk = createJdk(jdkPath.toPath()); // TODO-ank: this adds JDK to the project even if the JDK is not compatibile and will be skipped
         if (isJdkCompatible(jdk, preferredVersion) ) {
           return jdk;
         }
@@ -841,7 +776,17 @@ public class IdeSdks {
     //if (StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get()) {
     //  return true;
     //}
-    return JavaSdk.getInstance().isOfVersionOrHigher(jdk, preferredVersion);
+    JavaSdkVersion jdkVersion = JavaSdk.getInstance().getVersion(jdk);
+    if (jdkVersion == null) {
+      return false;
+    }
+
+    return isJdkVersionCompatible(preferredVersion, jdkVersion);
+  }
+
+  @VisibleForTesting
+  boolean isJdkVersionCompatible(@NotNull JavaSdkVersion preferredVersion, @NotNull JavaSdkVersion jdkVersion) {
+    return jdkVersion.compareTo(preferredVersion) >= 0 && jdkVersion.compareTo(MAX_JDK_VERSION) <= 0;
   }
 
   /**
@@ -852,7 +797,7 @@ public class IdeSdks {
   public List<Sdk> getEligibleAndroidSdks() {
     List<Sdk> sdks = new ArrayList<>();
     for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {
-      if (sdk.getName().startsWith(SDK_NAME_PREFIX) && AndroidPlatform.getInstance(sdk) != null) {
+      if (sdk.getName().startsWith(SDK_NAME_PREFIX) && AndroidPlatforms.getInstance(sdk) != null) {
         sdks.add(sdk);
       }
     }
@@ -867,9 +812,9 @@ public class IdeSdks {
    * Looks for an IntelliJ SDK for the JDK at the given location, if it does not exist then tries to create it and returns it, or
    * {@code null} if it could not be created successfully.
    */
-  @Nullable
   @VisibleForTesting
-  public Sdk getOrCreateJdk(@NotNull Path homeDirectory) {
+  @Nullable
+  public Sdk createJdk(@NotNull Path homeDirectory) {
     ProjectJdkTable projectJdkTable = ProjectJdkTable.getInstance();
     for (Sdk jdk : projectJdkTable.getSdksOfType(JavaSdk.getInstance())) {
       if (FileUtil.pathsEqual(jdk.getHomePath(), homeDirectory.toString())) {
@@ -1111,17 +1056,12 @@ public class IdeSdks {
 
     if (jdkInTable != null) {
       // Try to update only if there are differences
-      boolean shouldUpdate = true;
-      if ((jdkInTable instanceof ProjectJdkImpl) && (updatedJdk instanceof ProjectJdkImpl)) {
-        shouldUpdate = jdksWithDifferentSettings((ProjectJdkImpl)jdkInTable, (ProjectJdkImpl)updatedJdk);
-      }
+      boolean shouldUpdate = !SdkExtensions.isEqualTo(jdkInTable, updatedJdk);
       if (shouldUpdate) {
         ProjectJdkTable.getInstance().updateJdk(jdkInTable, updatedJdk);
-      } else {
-        Disposer.dispose((ProjectJdkImpl)updatedJdk);
       }
-    }
-    else {
+      Disposer.dispose((ProjectJdkImpl)updatedJdk);
+    } else {
       // Could not find JDK in JDK table, add as new entry
       jdkTable.addJdk(updatedJdk);
     }
@@ -1133,25 +1073,6 @@ public class IdeSdks {
       return JavaSdk.getInstance().createJdk(jdkName, jdkPath, false);
     }
     return null;
-  }
-
-  @VisibleForTesting
-  boolean jdksWithDifferentSettings(@NotNull ProjectJdkImpl jdkA, @NotNull ProjectJdkImpl jdkB) {
-    if (!StringUtils.equals(jdkA.getName(), jdkB.getName())) return true;
-    if (!StringUtils.equals(jdkA.getHomePath(), jdkB.getHomePath())) return true;
-    if (!StringUtils.equals(jdkA.getVersionString(), jdkB.getVersionString())) return true;
-    if (jdkA.getSdkAdditionalData() != jdkB.getSdkAdditionalData()) return true;
-    if (differentRootsOfType(OrderRootType.CLASSES, jdkA, jdkB)) return true;
-    if (differentRootsOfType(OrderRootType.SOURCES, jdkA, jdkB)) return true;
-    return differentRootsOfType(OrderRootType.DOCUMENTATION, jdkA, jdkB);
-  }
-
-  private boolean differentRootsOfType(@NotNull OrderRootType orderRootType, @NotNull ProjectJdkImpl jdkA, @NotNull ProjectJdkImpl jdkB) {
-    return differentRoots(jdkA.getRoots(orderRootType), jdkB.getRoots(orderRootType));
-  }
-
-  private boolean differentRoots(VirtualFile[] rootsA, VirtualFile[] rootsB) {
-    return !Arrays.equals(rootsA, rootsB);
   }
 
   private class EnvVariableSettings {
@@ -1182,7 +1103,7 @@ public class IdeSdks {
           return;
         }
       }
-      initialize(System.getenv(JDK_LOCATION_ENV_VARIABLE_NAME));
+      initialize(Environment.getVariable(JDK_LOCATION_ENV_VARIABLE_NAME));
     }
 
     private void initialize(@Nullable String value) {
@@ -1211,7 +1132,7 @@ public class IdeSdks {
           // Check initialization again (another thread could have called this already when waiting for EDT)
           if (!myInitialized) {
             try {
-              @Nullable Sdk jdk = getOrCreateJdk(finalEnvVariableJdkPath);
+              @Nullable Sdk jdk = createJdk(finalEnvVariableJdkPath);
               if (jdk != null) {
                 setInitialization(value, FilePaths.stringToFile(finalEnvVariableJdkPath.toString()), jdk);
                 LOG.info("Using Gradle JDK from " + JDK_LOCATION_ENV_VARIABLE_NAME + "=" + value);

@@ -21,6 +21,7 @@ import static com.android.SdkConstants.DOT_PNG;
 import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.android.tools.idea.util.NonBlockingReadActionUtilKt.waitInterruptibly;
 import static com.android.utils.SdkUtils.hasImageExtension;
@@ -52,18 +53,23 @@ import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.ShowFixFactory;
+import com.android.tools.idea.rendering.StudioHtmlLinkManager;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
+import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
 import com.android.utils.HtmlBuilder;
@@ -105,12 +111,12 @@ import java.util.concurrent.ExecutionException;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class AndroidJavaDocRenderer {
+public class AndroidJavaDocRenderer {
 
   /** Renders the Javadoc for a resource of given type and name. */
   @Nullable
@@ -327,7 +333,7 @@ public final class AndroidJavaDocRenderer {
 
       if (resources != null) {
         // Go through all the binary libraries and look for additional resources there
-        for (AarResourceRepository dependency : ResourceRepositoryManager.getInstance(facet).getLibraryResources()) {
+        for (AarResourceRepository dependency : StudioResourceRepositoryManager.getInstance(facet).getLibraryResources()) {
           addItemsFromRepository(dependency.getDisplayName(), MASK_NORMAL, rank++, dependency, false, type, resourceName, results);
         }
       }
@@ -501,7 +507,7 @@ public final class AndroidJavaDocRenderer {
     @Override
     @Nullable
     public ResourceRepository getFrameworkResources() {
-      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
+      StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myModule);
       return repositoryManager == null ? null : repositoryManager.getFrameworkResources(ImmutableSet.of());
     }
 
@@ -509,7 +515,7 @@ public final class AndroidJavaDocRenderer {
     @Nullable
     public LocalResourceRepository getAppResources() {
       if (myAppResources == null) {
-        myAppResources = ResourceRepositoryManager.getAppResources(myModule);
+        myAppResources = StudioResourceRepositoryManager.getAppResources(myModule);
       }
 
       return myAppResources;
@@ -648,7 +654,7 @@ public final class AndroidJavaDocRenderer {
               builder.newline();
             }
           } else if (value.endsWith(DOT_PNG)) {
-            if (IdeResourcesUtil.isFileResource(value)) {
+            if (ResourceFilesUtil.isFileResource(value)) {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule, myConfiguration);
               assert renderer != null;
@@ -987,7 +993,7 @@ public final class AndroidJavaDocRenderer {
 
     private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull String result, @NotNull Density density,
                                       @NotNull ResourceValue resolvedValue) {
-      if (IdeResourcesUtil.isFileResource(result)) {
+      if (ResourceFilesUtil.isFileResource(result)) {
         VirtualFile file = toVirtualFile(ResourcesUtil.toFileResourcePathString(result));
         if (file == null) {
           renderError(builder, result);
@@ -1049,11 +1055,10 @@ public final class AndroidJavaDocRenderer {
         if (myConfiguration != null) {
           AndroidFacet facet = AndroidFacet.getInstance(myModule);
           assert facet != null;
-          final RenderService service = RenderService.getInstance(myModule.getProject());
-          RenderLogger logger = new RenderLogger("AndroidJavaDocRendererLogger", null);
-          CompletableFuture<RenderTask> renderTaskFuture = service.taskBuilder(facet, myConfiguration)
-            .withLogger(logger)
-            .build();
+          final RenderService service = StudioRenderService.getInstance(myModule.getProject());
+          RenderLogger logger =
+            new RenderLogger(null, null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE, StudioHtmlLinkManager::new);
+          CompletableFuture<RenderTask> renderTaskFuture = taskBuilder(service, facet, myConfiguration, logger).build();
           CompletableFuture<BufferedImage> future = renderTaskFuture.thenCompose(renderTask -> {
             if (renderTask == null) {
               return CompletableFuture.completedFuture(null);

@@ -16,7 +16,7 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.SdkVersionInfo;
+import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
 import org.jetbrains.annotations.NotNull;
@@ -32,15 +32,7 @@ public final class Targets {
   public static @NotNull String toString(@NotNull AndroidVersion version, @NotNull IdDisplay tag) {
     StringBuilder builder = new StringBuilder();
 
-    builder
-      .append("Android ")
-      .append(SdkVersionInfo.getVersionStringSanitized(version.getFeatureLevel()));
-
-    if (!version.isBaseExtension() && version.getExtensionLevel() != null) {
-      builder
-        .append(" Extension Level ")
-        .append(version.getExtensionLevel());
-    }
+    builder.append(AndroidVersionUtils.getFullReleaseName(version, false, false));
 
     if (tag.equals(SystemImage.DEFAULT_TAG)) {
       return builder.toString();

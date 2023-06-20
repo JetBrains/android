@@ -19,6 +19,7 @@ import static com.android.tools.idea.instantapp.InstantApps.findFeatureModules;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.instantapp.InstantAppUrlFinder;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -39,7 +40,6 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

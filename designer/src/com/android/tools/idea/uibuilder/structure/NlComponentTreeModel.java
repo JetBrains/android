@@ -54,7 +54,7 @@ final class NlComponentTreeModel implements TreeModel {
     }
     NlComponent component = (NlComponent)parent;
 
-    ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component);
+    ViewGroupHandler handler = NlComponentHelperKt.getLayoutHandler(component);
     int count = handler == null ? ((NlComponent)parent).getChildCount() : handler.getComponentTreeChildCount(component);
     if (i < 0 || i >= count) {
       Logger.getInstance(NlComponentTreeModel.class).error(
@@ -73,7 +73,7 @@ final class NlComponentTreeModel implements TreeModel {
   public int getChildCount(@NotNull Object parent) {
     if (parent instanceof NlComponent) {
       NlComponent component = (NlComponent)parent;
-      ViewGroupHandler handler = NlComponentHelperKt.getViewGroupHandler(component);
+      ViewGroupHandler handler = NlComponentHelperKt.getLayoutHandler(component);
       if (handler != null) {
         return handler.getComponentTreeChildCount(component);
       }

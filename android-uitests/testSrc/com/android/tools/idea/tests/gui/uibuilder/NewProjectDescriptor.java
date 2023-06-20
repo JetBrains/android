@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import static com.android.tools.idea.wizard.template.Language.Java;
-
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import org.jetbrains.annotations.NotNull;
 
 class NewProjectDescriptor {
@@ -27,6 +26,9 @@ class NewProjectDescriptor {
   private int myMinSdkApi = SdkVersionInfo.LOWEST_ACTIVE_API;
   private String myName = "TestProject";
   // TODO(qumeric): consider adding "save location"
+  private String myActivity = "Empty Views Activity";
+
+  private BuildConfigurationLanguageForNewProject myBuildConfigurationLanguage = BuildConfigurationLanguageForNewProject.KTS;
 
   protected NewProjectDescriptor(@NotNull String name) {
     withName(name);
@@ -57,10 +59,32 @@ class NewProjectDescriptor {
   }
 
   /**
+   * Sets the activity template to use when creating the project.
+   */
+  NewProjectDescriptor withActivity(String activity) {
+    myActivity = activity;
+    return this;
+  }
+
+  /**
+   * Sets the activity template to use when creating the project.
+   */
+  NewProjectDescriptor withDefaultComposeActivity() {
+    myActivity = "Empty Activity";
+    myMinSdkApi = 21;
+    return this;
+  }
+
+  /**
    * Picks brief names in order to make the test execute faster (less slow typing in name text fields)
    */
   NewProjectDescriptor withBriefNames() {
     withName("P").withPackageName("a.b");
+    return this;
+  }
+
+  NewProjectDescriptor withBuildConfigurationLanguage(BuildConfigurationLanguageForNewProject buildConfigurationLanguage) {
+    myBuildConfigurationLanguage = buildConfigurationLanguage;
     return this;
   }
 
@@ -72,12 +96,16 @@ class NewProjectDescriptor {
     guiTest
       .welcomeFrame()
       .createNewProject()
+      .getChooseAndroidProjectStep()
+      .chooseActivity(myActivity)
+      .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .enterName(myName)
-      .setSourceLanguage(Java)
+      .setSourceLanguage(null)
       .enterPackageName(myPkg)
       .selectMinimumSdkApi(myMinSdkApi)
+      .selectBuildConfigurationLanguage(myBuildConfigurationLanguage)
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
       // Hide Gradle tool window if needed, as it takes too much space at the right of the editors and might grab the focus (b/138841171)

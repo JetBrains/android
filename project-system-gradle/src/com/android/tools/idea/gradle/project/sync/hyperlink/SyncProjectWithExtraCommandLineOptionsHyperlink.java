@@ -30,7 +30,7 @@ public class SyncProjectWithExtraCommandLineOptionsHyperlink extends SyncIssueNo
   @NotNull private final String[] myExtraOptions;
 
   @NotNull
-  public static NotificationHyperlink syncProjectRefreshingDependencies() {
+  public static SyncIssueNotificationHyperlink syncProjectRefreshingDependencies() {
     return new SyncProjectWithExtraCommandLineOptionsHyperlink("Re-download dependencies and sync project (requires network)",
                                                                "--refresh-dependencies");
   }

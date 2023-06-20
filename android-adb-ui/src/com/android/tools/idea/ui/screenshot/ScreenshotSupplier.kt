@@ -21,7 +21,7 @@ import com.android.annotations.concurrency.Slow
 /**
  * Used in conjunction with [ScreenshotViewer].
  */
-internal interface ScreenshotSupplier {
+interface ScreenshotSupplier {
   /**
    * Captures and returns a new screenshot. Throws a [RuntimeException] in case of an error.
    */

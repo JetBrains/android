@@ -20,6 +20,8 @@ import static com.android.tools.idea.testartifacts.TestConfigurationTesting.crea
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromFile;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromMethod;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createConfigurationFromPsiElement;
+import static com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration.TEST_CLASS;
+import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM;
 import static com.android.tools.idea.testing.TestProjectPaths.TEST_ONLY_MODULE;
@@ -66,6 +68,8 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "google.simpleapplication.ApplicationTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
+    assertEquals(runConfig.CLASS_NAME, "google.simpleapplication.ApplicationTest");
+    assertEquals(runConfig.TESTING_TYPE, TEST_CLASS);
   }
 
   public void testCannotCreateAndroidTestConfigurationFromJUnitTestClass() throws Exception {
@@ -201,6 +205,19 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.android.app.ExampleTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(mainTestFacet));
+    assertEquals(runConfig.CLASS_NAME, "com.example.android.app.ExampleTest");
+    assertEquals(runConfig.TESTING_TYPE, TEST_CLASS);
+  }
+
+  public void testCanCreateAndroidTestConfigurationFromFromDynamicFeatureModule() throws Exception {
+    loadProject(DYNAMIC_APP);
+    AndroidFacet mainTestFacet = AndroidFacet.getInstance(ModuleSystemUtil.getMainModule(getModule("feature1")));
+    assertNotNull(mainTestFacet);
+    AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromClass(getProject(), "com.example.feature1.ExampleInstrumentedTest");
+    assertNotNull(runConfig);
+    assertEmpty(runConfig.checkConfiguration(mainTestFacet));
+    assertEquals(runConfig.CLASS_NAME, "com.example.feature1.ExampleInstrumentedTest");
+    assertEquals(runConfig.TESTING_TYPE, TEST_CLASS);
   }
 
   public void testCanCreateAndroidTestConfigurationWhenOriginalConfigExists() throws Exception {
@@ -296,7 +313,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
       getProject(), "ExampleInstrumentedTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
-    assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_CLASS);
+    assertThat(runConfig.TESTING_TYPE).isEqualTo(TEST_CLASS);
     assertThat(runConfig.INSTRUMENTATION_RUNNER_CLASS).isEmpty();
     assertThat(runConfig.PACKAGE_NAME).isEmpty();
     assertThat(runConfig.CLASS_NAME).isEqualTo("ExampleInstrumentedTest");

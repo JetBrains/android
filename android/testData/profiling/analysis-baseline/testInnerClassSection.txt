@@ -1,21 +1,21 @@
 === INNER CLASSES THAT RETAIN OBJECTS VIA THIS$0 ==
 Histogram. Top 30 by instance count:
-    1: [   13/  275B] com.android.tools.idea.diagnostics.hprof.HeapAnalysisTest$testInnerClassSection$scenario$1$A$B
-Total - Inner class culprits:    13   275B 1 classes (Total instances: 13)
+    1: [   13/  280B] com.android.tools.idea.diagnostics.hprof.HeapAnalysisTest$testInnerClassSection$scenario$1$A$B
+Total - Inner class culprits:    13   280B 1 classes (Total instances: 13)
 
 Top 10 by bytes count:
-    1: [   13/  275B] com.android.tools.idea.diagnostics.hprof.HeapAnalysisTest$testInnerClassSection$scenario$1$A$B
+    1: [   13/  280B] com.android.tools.idea.diagnostics.hprof.HeapAnalysisTest$testInnerClassSection$scenario$1$A$B
 
 Histogram. Top 30 by instance count:
-    1: [    5/  105B] java.lang.String
+    1: [    5/  110B] java.lang.String
     2: [    5/   86B] byte[]
     3: [    1/   16B] com.android.tools.idea.diagnostics.hprof.HeapAnalysisTest$testInnerClassSection$scenario$1$A
     4: [    1/   16B] java.util.Arrays$ArrayList
     5: [    1/   52B] java.lang.String[]
-Total - Objects retained by enclosing instance references:    13   275B 5 classes (Total instances: 13)
+Total - Objects retained by enclosing instance references:    13   280B 5 classes (Total instances: 13)
 
 Top 10 by bytes count:
-    1: [    5/  105B] java.lang.String
+    1: [    5/  110B] java.lang.String
     2: [    5/   86B] byte[]
     3: [    1/   52B] java.lang.String[]
     4: [    1/   16B] com.android.tools.idea.diagnostics.hprof.HeapAnalysisTest$testInnerClassSection$scenario$1$A

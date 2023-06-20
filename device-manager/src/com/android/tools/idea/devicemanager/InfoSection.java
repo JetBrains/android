@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
@@ -22,7 +23,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Streams;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.util.ui.JBUI.CurrentTheme.Label;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,8 +40,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class InfoSection extends JBPanel<InfoSection> {
   private final @NotNull JLabel myHeadingLabel;
-  private final @NotNull List<@NotNull JLabel> myNameLabels;
-  private final @NotNull List<@NotNull JLabel> myValueLabels;
+  private final @NotNull List<JLabel> myNameLabels;
+  private final @NotNull List<JLabel> myValueLabels;
 
   public InfoSection(@NotNull String heading) {
     super(null);
@@ -55,7 +55,7 @@ public class InfoSection extends JBPanel<InfoSection> {
 
   public final @NotNull JLabel addNameAndValueLabels(@NotNull String name) {
     JLabel nameLabel = new JBLabel(name);
-    nameLabel.setForeground(Label.disabledForeground());
+    nameLabel.setForeground(StandardColors.TEXT_COLOR);
 
     myNameLabels.add(nameLabel);
 
@@ -90,7 +90,7 @@ public class InfoSection extends JBPanel<InfoSection> {
     setLayout(layout);
   }
 
-  public static @NotNull Optional<@NotNull InfoSection> newPairedDeviceSection(@NotNull Device device,
+  public static @NotNull Optional<InfoSection> newPairedDeviceSection(@NotNull Device device,
                                                                                @NotNull WearPairingManager manager) {
     if (StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()) {
       return Optional.empty();
@@ -136,7 +136,7 @@ public class InfoSection extends JBPanel<InfoSection> {
     label.setText(value.toString());
   }
 
-  public static void setText(@NotNull JLabel label, @NotNull Iterable<@NotNull String> values) {
+  public static void setText(@NotNull JLabel label, @NotNull Iterable<String> values) {
     label.setText(String.join(", ", values));
   }
 
@@ -151,7 +151,7 @@ public class InfoSection extends JBPanel<InfoSection> {
   }
 
   @VisibleForTesting
-  private static @NotNull Object getText(@NotNull Collection<@NotNull JLabel> labels) {
+  private static @NotNull Object getText(@NotNull Collection<JLabel> labels) {
     return labels.stream()
       .map(JLabel::getText)
       .collect(Collectors.toList());

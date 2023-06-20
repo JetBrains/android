@@ -15,12 +15,7 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.java;
 
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-
-import com.android.tools.idea.apk.debugging.ApkClass;
-import com.android.tools.idea.apk.debugging.ApkPackage;
-import com.android.tools.idea.apk.debugging.DexSourceFiles;
+import com.android.tools.idea.apk.debugging.*;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -30,11 +25,15 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.PlatformIcons;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 class PackageNode extends ProjectViewNode<ApkPackage> {
   @NotNull private final ApkPackage myPackage;

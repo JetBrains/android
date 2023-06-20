@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 public interface IRenderLogger extends ILayoutLog {
   /** Empty logger producing no side effects. */
   IRenderLogger NULL_LOGGER = new IRenderLogger() {
-    private final HtmlLinkManager myLinkManager = new HtmlLinkManager();
+    private final HtmlLinkManager myLinkManager = HtmlLinkManager.NOOP_LINK_MANAGER;
 
     @Override
     public void addMessage(@NotNull RenderProblem message) {

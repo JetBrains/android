@@ -1,9 +1,9 @@
 ==================== HISTOGRAM ====================
 Histogram. Top 2147483647 by instance count [All-objects] [Only-strong-ref]:
-    1: [    6/  696B] [    6/  696B] java.lang.Class
+    1: [    6/  648B] [    6/  648B] java.lang.Class
     2: [    1/    8B] [    1/    8B] C1
-Total -        All:     7   704B 2 classes (Total instances: 7)
-Total - Strong-ref:     7   704B 2 classes (Total instances: 7)
+Total -        All:     7   656B 2 classes (Total instances: 7)
+Total - Strong-ref:     7   656B 2 classes (Total instances: 7)
 Unreachable objects:     0      0B
 =================== HEAP SUMMARY ==================
 Class count: 6

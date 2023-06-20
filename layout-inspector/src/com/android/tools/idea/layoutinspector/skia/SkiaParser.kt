@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.skia
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.layoutinspector.proto.SkiaParser.RequestedNodeInfo
 import com.android.tools.layoutinspector.InvalidPictureException
@@ -53,6 +54,9 @@ class SkiaParserImpl(
   private val connectionFactory: SkiaParserServerConnectionFactory = SkiaParserServerConnectionFactoryImpl
 ) : SkiaParser {
 
+  private val connectionSync = Any()
+
+  @GuardedBy("connectionSync")
   private var connection: SkiaParserServerConnection? = null
 
   @Slow
@@ -64,10 +68,12 @@ class SkiaParserImpl(
     isInterrupted: () -> Boolean
   ): SkiaViewNode {
     try {
-      if (connection == null) {
-        connection = connectionFactory.createConnection(data)
+      val (root, images) = synchronized (connectionSync) {
+        if (connection == null) {
+          connection = connectionFactory.createConnection(data)
+        }
+        connection?.getViewTree(data, requestedNodes, scale) ?: throw Exception("connection can't be null here")
       }
-      val (root, images) = connection?.getViewTree(data, requestedNodes, scale) ?: throw Exception("connection can't be null here")
       return buildTree(root, images, isInterrupted, requestedNodes.associateBy { req -> req.id }) ?: throw ParsingFailedException()
     }
     catch (e: Exception) {
@@ -78,7 +84,9 @@ class SkiaParserImpl(
 
   @Slow
   override fun shutdown() {
-    connection?.shutdown()
-    connection = null
+    synchronized (connectionSync) {
+      connection?.shutdown()
+      connection = null
+    }
   }
 }

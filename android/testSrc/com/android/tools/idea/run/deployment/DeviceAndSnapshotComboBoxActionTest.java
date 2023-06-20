@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import static com.google.common.truth.Truth.assertThat;
-import static icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.android.ddmlib.IDevice;
 import com.android.testutils.ImageDiffUtil;
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
 import com.android.tools.idea.testing.AndroidProjectRule;
@@ -42,6 +42,7 @@ import com.intellij.ui.IconManager;
 import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
+import icons.StudioIcons.DeviceExplorer;
 import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -52,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -113,7 +113,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @After
-  public void deactivateIconLoader()  {
+  public void deactivateIconLoader() {
     IconManager.Companion.deactivate();
     IconLoader.deactivate();
     IconLoader.clearCacheInTests();
@@ -147,7 +147,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     // Assert
     Collection<Target> targets = Collections.singleton(target);
 
-    assertEquals(targets, action.getSelectedTargets(project));
+    assertEquals(Optional.of(targets), action.getSelectedTargets(project));
     Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(targets, myDevicesGetter));
   }
 
@@ -233,11 +233,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .build();
 
-    myPresentation.setIcon(VIRTUAL_DEVICE_PHONE);
+    myPresentation.setIcon(DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
     // noinspection DialogTitleCapitalization
     myPresentation.setText(
-      "Pixel 2 API 29 (Failed to parse properties from /usr/local/google/home/juancnuno/.android/avd/Pixel_2_API_29.avd/config.ini)",
+      "Pixel 2 API 29 (Failed to parse properties from /usr/local/google/home/user/.android/avd/Pixel_2_API_29.avd/config.ini)",
       false);
 
     // Act
@@ -364,8 +364,9 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     assertEquals(Collections.singletonList(device), target.getRunningDevices());
     assertEquals("Pixel 4 API 30", target.getDisplayName());
 
-    BufferedImage expectedIcon =
-      ImageUtil.toBufferedImage(IconUtil.toImage(ExecutionUtil.getLiveIndicator(VIRTUAL_DEVICE_PHONE), ScaleContext.createIdentity()));
+    var expectedIcon = ImageUtil.toBufferedImage(
+      IconUtil.toImage(ExecutionUtil.getLiveIndicator(DeviceExplorer.VIRTUAL_DEVICE_PHONE), ScaleContext.createIdentity()));
+
     BufferedImage actualIcon = ImageUtil.toBufferedImage(IconUtil.toImage(target.getIcon(), ScaleContext.createIdentity()));
     ImageDiffUtil.assertImageSimilar("icon", expectedIcon, actualIcon, 0);
   }
@@ -407,8 +408,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.selectMultipleDevices(project);
 
     // Assert
-    assertThat(action.isMultipleTargetsSelectedInComboBox(project)).isTrue();
-    assertThat(action.getNumberOfSelectedDevices(project)).isEqualTo(1);
+    assertTrue(action.isMultipleTargetsSelectedInComboBox(project));
+    assertEquals(1, action.getNumberOfSelectedDevices(project));
   }
 
   @Test
@@ -434,12 +435,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(devices));
 
-    Set<Target> targets = new HashSet<>();
-    targets.add(new QuickBootTarget(key1));
-    targets.add(new QuickBootTarget(key2));
-
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    Mockito.when(service.getTargetsSelectedWithDialog(devices)).thenReturn(targets);
+    Mockito.when(service.getTargetsSelectedWithDialog(devices)).thenReturn(Set.of(new QuickBootTarget(key1), new QuickBootTarget(key2)));
     Mockito.when(service.isMultipleDevicesSelectedInComboBox()).thenReturn(true);
 
     DialogWrapper dialog = Mockito.mock(DialogWrapper.class);
@@ -458,7 +455,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.selectMultipleDevices(project);
 
     // Assert
-    assertThat(action.isMultipleTargetsSelectedInComboBox(project)).isTrue();
-    assertThat(action.getNumberOfSelectedDevices(project)).isEqualTo(2);
+    assertTrue(action.isMultipleTargetsSelectedInComboBox(project));
+    assertEquals(2, action.getNumberOfSelectedDevices(project));
   }
 }

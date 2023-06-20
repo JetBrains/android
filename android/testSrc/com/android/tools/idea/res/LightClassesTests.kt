@@ -30,8 +30,8 @@ import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.updatePrimaryManifest
+import com.android.utils.executeWithRetries
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
@@ -58,6 +58,8 @@ import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for the whole setup of light, in-memory R classes.
@@ -67,10 +69,18 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 sealed class LightClassesTestBase : AndroidTestCase() {
 
-  protected fun resolveReferenceUnderCaret(): PsiElement? {
-    // We cannot use myFixture.elementAtCaret or TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED because JavaTargetElementEvaluator doesn't
-    // consider synthetic PSI elements as "acceptable" and just returns null instead, so it wouldn't test much.
-    return TargetElementUtil.findReference(myFixture.editor)!!.resolve()
+  protected fun resolveReferenceUnderCaret(): PsiElement {
+    // This method is occasionally throwing, causing test flakiness. Nothing in the logs indicates any errors; there's just no element under
+    // the caret. It's unclear whether this is because something's gone wrong with reference resolution, or whether we just needed to wait.
+    // This is clearly a sub-optimal solution, but will help distinguish between the two cases. If it does turn out that we need to wait,
+    // we can investigate further if there's a better trigger to wait for than just looping and retrying.
+    return executeWithRetries<AssertionError, PsiElement>(duration = 2.seconds, sleepBetweenRetries = 100.milliseconds) {
+      myFixture.elementAtCaret
+    }
+  }
+
+  protected fun assertNoElementAtCaret() {
+    assertThrows(AssertionError::class.java) { myFixture.elementAtCaret }
   }
 
   companion object {
@@ -390,7 +400,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         """.trimIndent()
       )
 
-      assertThat(resolveReferenceUnderCaret()).isNull()
+      assertNoElementAtCaret()
 
       runWriteCommandAction(project) {
         Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
@@ -420,7 +430,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         """.trimIndent()
       )
 
-      assertThat(resolveReferenceUnderCaret()).isNull()
+      assertNoElementAtCaret()
 
       runWriteCommandAction(project) {
         Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
@@ -505,7 +515,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       // Regression test for b/144585792. Caches in ResourceRepositoryManager can be dropped for various reasons, we need to make sure we
       // keep track of changes even after new repository instances are created.
-      ResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
+      StudioResourceRepositoryManager.getInstance(myFacet).resetAllCaches()
       runWriteAction { barXml.delete() }
       waitForResourceRepositoryUpdates()
       assertThat(myFixture.doHighlighting(ERROR)).hasSize(1)
@@ -557,11 +567,11 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.moveCaret("|R.string.appString")
-      UsageInfo(resolveReferenceUnderCaret()!!)
+      UsageInfo(resolveReferenceUnderCaret())
       myFixture.moveCaret("R.|string.appString")
-      UsageInfo(resolveReferenceUnderCaret()!!)
+      UsageInfo(resolveReferenceUnderCaret())
       myFixture.moveCaret("R.string.|appString")
-      UsageInfo(resolveReferenceUnderCaret()!!)
+      UsageInfo(resolveReferenceUnderCaret())
     }
 
     fun testInvalidManifest() {
@@ -645,7 +655,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       runWriteCommandAction(project) {
         libModule
           .let(AndroidFacet::getInstance)!!
-          .let { Manifest.getMainManifest(it)!!}
+          .let { Manifest.getMainManifest(it)!! }
           .`package`!!
           .value = "com.example.mylib"
       }
@@ -1126,14 +1136,14 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.checkHighlighting()
 
-      with (myFixture.elementAtCaret) {
+      with(myFixture.elementAtCaret) {
         assertThat(this).isInstanceOf(ResourceLightField::class.java)
         assertThat((this as ResourceLightField).resourceName).isEqualTo("basicID")
         assertThat((this as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)).isTrue()
       }
 
       myFixture.moveCaret("case R.string.app|String")
-      with (myFixture.elementAtCaret) {
+      with(myFixture.elementAtCaret) {
         assertThat(this).isInstanceOf(ResourceLightField::class.java)
         assertThat((this as ResourceLightField).resourceName).isEqualTo("appString")
         assertThat((this as PsiModifierListOwner).modifierList!!.hasExplicitModifier(PsiModifier.FINAL)).isTrue()
@@ -1256,7 +1266,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
 
-      assertThat(resolveReferenceUnderCaret()).isNull()
+      assertNoElementAtCaret()
 
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).isEmpty()
@@ -1385,11 +1395,11 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.moveCaret("|R.string.my_aar_string")
-      UsageInfo(resolveReferenceUnderCaret()!!)
+      UsageInfo(resolveReferenceUnderCaret())
       myFixture.moveCaret("R.|string.my_aar_string")
-      UsageInfo(resolveReferenceUnderCaret()!!)
+      UsageInfo(resolveReferenceUnderCaret())
       myFixture.moveCaret("R.string.|my_aar_string")
-      UsageInfo(resolveReferenceUnderCaret()!!)
+      UsageInfo(resolveReferenceUnderCaret())
     }
   }
 
@@ -1498,11 +1508,11 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
       myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.moveCaret("|R.string.my_aar_string")
-      UsageInfo(resolveReferenceUnderCaret()!!)
+      UsageInfo(resolveReferenceUnderCaret())
       myFixture.moveCaret("R.|string.my_aar_string")
-      UsageInfo(resolveReferenceUnderCaret()!!)
+      UsageInfo(resolveReferenceUnderCaret())
       myFixture.moveCaret("R.string.|my_aar_string")
-      UsageInfo(resolveReferenceUnderCaret()!!)
+      UsageInfo(resolveReferenceUnderCaret())
     }
 
     fun testResourceNames_styleable() {

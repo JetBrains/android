@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +35,8 @@ public class CreateNewMobileProjectTest {
   // We need to increase timeout to 7 minutes, since 5 minutes will have a flake rate of ~0.5%, timing out on indexing.
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
+
+  private static final String KOTLIN_FILE = "MainActivity.kt";
 
   /**
    * Verify creating a new project from default template.
@@ -55,15 +58,89 @@ public class CreateNewMobileProjectTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void createNewMobileProject() {
-    IdeFrameFixture ideFrame = newProject("Test Application").create(guiTest);
+    IdeFrameFixture ideFrame = newProject("Test Application")
+      .withDefaultComposeActivity()
+      .create(guiTest);
     assertThat(ideFrame.getModuleNames()).containsExactly("Test_Application", "Test_Application.app", "Test_Application.app.main",
                                                           "Test_Application.app.unitTest", "Test_Application.app.androidTest");
+
+    IdeFrameFixture ideFrameFixture = guiTest
+      .ideFrame();
+    assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
+    assertThat(ideFrameFixture.getEditor().getCurrentFileContents())
+      .contains("@Composable");
+
+    assertThat(guiTest.getProjectFileText("app/build.gradle.kts"))
+      .contains("implementation(\"androidx.compose.material3:material3\")");
+
+    // Make sure that the activity registration uses the relative syntax
+    // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
+    String androidManifestContents = ideFrame.getEditor()
+      .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
+      .getCurrentFileContents();
+    assertThat(androidManifestContents).contains("\".MainActivity\"");
+  }
+
+  /**
+   * Verify creating a new project from default template.
+   * This follows the same steps as the {@link #createNewMobileProject()} except for the
+   * Build configuration language being KTS + version catalogs.
+   */
+  @RunIn(TestGroup.SANITY_BAZEL)
+  @Test
+  public void createNewMobileProjectWithVersionCatalog() {
+    IdeFrameFixture ideFrame = newProject("Test Application")
+      .withDefaultComposeActivity()
+      .withBuildConfigurationLanguage(BuildConfigurationLanguageForNewProject.KTS_VERSION_CATALOG)
+      .create(guiTest);
+    assertThat(ideFrame.getModuleNames()).containsExactly("Test_Application", "Test_Application.app", "Test_Application.app.main",
+                                                          "Test_Application.app.unitTest", "Test_Application.app.androidTest");
+
+    IdeFrameFixture ideFrameFixture = guiTest
+      .ideFrame();
+    assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
+    assertThat(ideFrameFixture.getEditor().getCurrentFileContents())
+      .contains("@Composable");
+
+    assertThat(guiTest.getProjectFileText("app/build.gradle.kts"))
+      .contains("implementation(libs.material3");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
     String androidManifestContents = ideFrame.getEditor()
                                              .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
                                              .getCurrentFileContents();
+    assertThat(androidManifestContents).contains("\".MainActivity\"");
+  }
+
+  /**
+   * Verify creating a new project from default template.
+   * This follows the same steps as the {@link #createNewMobileProject()} except for the
+   * Build configuration language being Groovy.
+   */
+  @RunIn(TestGroup.SANITY_BAZEL)
+  @Test
+  public void createNewMobileProjectWithGroovyBuildScript() {
+    IdeFrameFixture ideFrame = newProject("Test Application")
+      .withDefaultComposeActivity()
+      .withBuildConfigurationLanguage(BuildConfigurationLanguageForNewProject.Groovy)
+      .create(guiTest);
+    assertThat(ideFrame.getModuleNames()).containsExactly("Test_Application", "Test_Application.app", "Test_Application.app.main",
+                                                          "Test_Application.app.unitTest", "Test_Application.app.androidTest");
+
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+    assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
+    assertThat(ideFrameFixture.getEditor().getCurrentFileContents())
+      .contains("@Composable");
+
+    assertThat(guiTest.getProjectFileText("app/build.gradle"))
+      .contains("implementation 'androidx.compose.material3:material3'");
+
+    // Make sure that the activity registration uses the relative syntax
+    // (regression test for https://code.google.com/p/android/issues/detail?id=76716)
+    String androidManifestContents = ideFrame.getEditor()
+      .open("app/src/main/AndroidManifest.xml", EditorFixture.Tab.EDITOR)
+      .getCurrentFileContents();
     assertThat(androidManifestContents).contains("\".MainActivity\"");
   }
 

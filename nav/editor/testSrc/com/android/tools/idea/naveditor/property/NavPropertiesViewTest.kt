@@ -105,12 +105,14 @@ class NavPropertiesViewTest : NavTestCase() {
     checkEditor(panel, 3, AUTO_URI, ATTR_START_DESTINATION)
     checkTitle(panel, 4, "Argument Default Values")
     checkPanel(panel, 5)
-    checkTitle(panel, 6, "Global Actions")
+    checkTitle(panel, 6, "Arguments")
     checkPanel(panel, 7)
-    checkTitle(panel, 8, "Deep Links")
+    checkTitle(panel, 8, "Global Actions")
     checkPanel(panel, 9)
+    checkTitle(panel, 10, "Deep Links")
+    checkPanel(panel, 11)
 
-    assertEquals(10, panel.lines.size)
+    assertEquals(12, panel.lines.size)
   }
 
   fun testInclude() {

@@ -1,4 +1,4 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.testutils;
 
 import com.intellij.openapi.util.SystemInfo;
@@ -9,8 +9,8 @@ import org.jetbrains.intellij.build.dependencies.BuildDependenciesConstants;
 import org.jetbrains.intellij.build.dependencies.BuildDependenciesDownloader;
 import org.jetbrains.intellij.build.dependencies.BuildDependenciesManualRunOnly;
 
-public final class AndroidSdkDownloader {
-  private static final String ANDROID_SDK_VERSION = "30.2.0.0";
+public class AndroidSdkDownloader {
+  private static final String ANDROID_SDK_VERSION = "30.3.0.0";
 
   public static Path downloadSdk(BuildDependenciesCommunityRoot communityRoot) {
     Path androidSdkRoot = communityRoot.communityRoot.resolve("build/dependencies/build/android-sdk");

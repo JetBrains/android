@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * File-related methods dependent on the IntelliJ Platform.
  */
-public final class IdeFileUtils {
+public class IdeFileUtils {
   /**
    * Returns the Desktop directory for the current user, or {@code null} if it doesn't exist.
    * Copied from {@link com.intellij.openapi.fileChooser.actions.GotoDesktopDirAction} with minor changes.

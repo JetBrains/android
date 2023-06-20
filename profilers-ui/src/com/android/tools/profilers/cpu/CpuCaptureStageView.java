@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.AxisComponent;
-import com.android.tools.adtui.ComboCheckBox;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.AdtUiCursorType;
@@ -31,26 +30,26 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.trackgroup.Track;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
-import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profilers.DropDownButton;
+import com.android.tools.adtui.ComboCheckBox;
+import com.android.tools.profilers.StringUtils;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
-import com.android.tools.profilers.StringUtils;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltipView;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameEventTooltip;
 import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineEvent;
-import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
 import com.android.tools.profilers.cpu.systemtrace.BufferQueueTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuFrequencyTooltip;
 import com.android.tools.profilers.cpu.systemtrace.CpuKernelTooltip;
+import com.android.tools.profilers.cpu.systemtrace.AndroidFrameTimelineTooltip;
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
 import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip;
@@ -58,6 +57,7 @@ import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
+import com.android.tools.profilers.DropDownButton;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBCheckBox;
@@ -93,7 +93,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * This class represents the view of a capture taken from within the {@link CpuProfilerStageView}.
- * all captures of type {@link Cpu.CpuTraceType} are supported.
+ * all captures of type {@link ProfilingConfiguration.TraceType} are supported.
  */
 public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   /**
@@ -170,6 +170,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     myTrackGroupList.getTooltipBinder().bind(VsyncTooltip.class, VsyncTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(BufferQueueTooltip.class, BufferQueueTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(RssMemoryTooltip.class, RssMemoryTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(PowerRailTooltip.class, PowerRailTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(BatteryDrainTooltip.class, BatteryDrainTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(CpuFrequencyTooltip.class, CpuFrequencyTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(AndroidFrameEventTooltip.class, AndroidFrameEventTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(AndroidFrameTimelineTooltip.class, AndroidFrameTimelineTooltipView::new);
@@ -395,7 +397,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     JPanel axisPanel = new JPanel(new TabularLayout(Track.COL_SIZES));
     axisPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     AxisComponent timeAxis = new AxisComponent(new ResizingAxisComponentModel.Builder(range, TimeAxisFormatter.DEFAULT).build(),
-                                               AxisComponent.AxisOrientation.BOTTOM);
+                                               AxisComponent.AxisOrientation.BOTTOM, true);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
     // Align with track content.

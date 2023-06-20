@@ -19,23 +19,24 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.AdbServiceRule
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
-import com.android.tools.idea.layoutinspector.metrics.MetricsTrackerRule
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.metrics.MetricsTrackerRule
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.Futures.immediateFuture
-import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
@@ -44,6 +45,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.nio.file.Path
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class InspectorClientLauncherTest {
@@ -65,8 +67,14 @@ class InspectorClientLauncherTest {
   @Test
   fun initialInspectorLauncherStartsWithDisconnectedClient() {
     val processes = ProcessesModel(TestProcessDiscovery())
-    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           executor = MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(
+      processes,
+      listOf(),
+      projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
+      disposableRule.disposable,
+      executor = MoreExecutors.directExecutor()
+    )
 
     assertThat(launcher.activeClient).isInstanceOf(DisconnectedClient::class.java)
   }
@@ -74,8 +82,14 @@ class InspectorClientLauncherTest {
   @Test
   fun emptyInspectorLauncherIgnoresProcessChanges() {
     val processes = ProcessesModel(TestProcessDiscovery())
-    val launcher = InspectorClientLauncher(processes, listOf(), projectRule.project, disposableRule.disposable,
-                                           executor = MoreExecutors.directExecutor())
+    val launcher = InspectorClientLauncher(
+      processes,
+      listOf(),
+      projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
+      disposableRule.disposable,
+      executor = MoreExecutors.directExecutor()
+    )
 
     var clientChangedCount = 0
     launcher.addClientChangedListener { clientChangedCount++ }
@@ -93,10 +107,11 @@ class InspectorClientLauncherTest {
       processes,
       listOf { params ->
         if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel) FakeInspectorClient(
-          "Modern client", params.process, disposableRule.disposable)
+          "Modern client", projectRule.project, params.process, disposableRule.disposable)
         else null
       },
       projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
 
@@ -117,14 +132,21 @@ class InspectorClientLauncherTest {
 
     val launcherDisposable = Disposer.newDisposable()
     var clientWasDisconnected = false
+    val disconnectLatch = CountDownLatch(1)
     val launcher = InspectorClientLauncher(
       processes,
       listOf { params ->
-        val client = FakeInspectorClient("Client", params.process, disposableRule.disposable)
-        client.registerStateCallback { state -> if (state == InspectorClient.State.DISCONNECTED) clientWasDisconnected = true }
+        val client = FakeInspectorClient("Client", projectRule.project, params.process, disposableRule.disposable)
+        client.registerStateCallback { state ->
+          if (state == InspectorClient.State.DISCONNECTED) {
+            clientWasDisconnected = true
+            disconnectLatch.countDown()
+          }
+        }
         client
       },
       projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
       launcherDisposable,
       executor = MoreExecutors.directExecutor())
 
@@ -133,6 +155,7 @@ class InspectorClientLauncherTest {
 
     assertThat(clientWasDisconnected).isFalse()
     Disposer.dispose(launcherDisposable)
+    disconnectLatch.await(10, TimeUnit.SECONDS)
     assertThat(clientWasDisconnected).isTrue()
     assertThat(launcher.activeClient.isConnected).isFalse()
   }
@@ -151,21 +174,22 @@ class InspectorClientLauncherTest {
         { params ->
           creatorCount1++
           if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel)
-            FakeInspectorClient("Modern client", params.process, disposableRule.disposable)
+            FakeInspectorClient("Modern client", projectRule.project, params.process, disposableRule.disposable)
           else null
         },
         { params ->
           creatorCount2++
           if (params.process.device.apiLevel == LEGACY_DEVICE.apiLevel)
-            FakeInspectorClient("Legacy client", params.process, disposableRule.disposable)
+            FakeInspectorClient("Legacy client", projectRule.project, params.process, disposableRule.disposable)
           else null
         },
         { params ->
           creatorCount3++
-          FakeInspectorClient("Fallback client", params.process, disposableRule.disposable)
+          FakeInspectorClient("Fallback client", projectRule.project, params.process, disposableRule.disposable)
         }
       ),
       projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
 
@@ -202,20 +226,21 @@ class InspectorClientLauncherTest {
       processes,
       listOf(
         { params ->
-          object : FakeInspectorClient("Exploding client #1", params.process, disposableRule.disposable) {
-            override fun doConnect() = throw IllegalStateException()
+          object : FakeInspectorClient("Exploding client #1", projectRule.project, params.process, disposableRule.disposable) {
+            override suspend fun doConnect() = throw IllegalStateException()
           }
         },
         { params ->
-          object : FakeInspectorClient("Exploding client #2", params.process, disposableRule.disposable) {
-            override fun doConnect() = throw IllegalStateException()
+          object : FakeInspectorClient("Exploding client #2", projectRule.project, params.process, disposableRule.disposable) {
+            override suspend fun doConnect() = throw IllegalStateException()
           }
         },
         { params ->
-          FakeInspectorClient("Fallback client", params.process, disposableRule.disposable)
+          FakeInspectorClient("Fallback client", projectRule.project, params.process, disposableRule.disposable)
         }
       ),
       projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
 
@@ -234,18 +259,18 @@ class InspectorClientLauncherTest {
       processes,
       listOf(
         { params ->
-          object : FakeInspectorClient("Exploding client #1", params.process, disposableRule.disposable) {
-            override fun doConnect() = throw IllegalStateException()
+          object : FakeInspectorClient("Exploding client #1", projectRule.project, params.process, disposableRule.disposable) {
+            override suspend fun doConnect() = throw IllegalStateException()
           }
         },
         { params ->
-          object : FakeInspectorClient("Exploding client #2", params.process, disposableRule.disposable) {
-            override fun doConnect() = throw IllegalStateException()
+          object : FakeInspectorClient("Exploding client #2", projectRule.project, params.process, disposableRule.disposable) {
+            override suspend fun doConnect() = throw IllegalStateException()
           }
         },
         { params ->
           if (params.process.device.apiLevel >= MODERN_DEVICE.apiLevel) {
-            FakeInspectorClient("Modern client", params.process, disposableRule.disposable)
+            FakeInspectorClient("Modern client", projectRule.project, params.process, disposableRule.disposable)
           }
           else {
             null
@@ -253,6 +278,7 @@ class InspectorClientLauncherTest {
         }
       ),
       projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
 
@@ -278,8 +304,9 @@ class InspectorClientLauncherTest {
     val processes = ProcessesModel(notifier) { it.name == process1.name } // Note: This covers all processes as they have the same name
     val launcher = InspectorClientLauncher(
       processes,
-      listOf { params -> FakeInspectorClient("Unused", params.process, disposableRule.disposable) },
+      listOf { params -> FakeInspectorClient("Unused", projectRule.project, params.process, disposableRule.disposable) },
       projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor())
 
@@ -338,8 +365,8 @@ class InspectorClientLauncherTest {
       processes,
       listOf(
         { params ->
-          object : FakeInspectorClient("Initial failing client", params.process, disposableRule.disposable) {
-            override fun doConnect(): ListenableFuture<Nothing> {
+          object : FakeInspectorClient("Initial failing client", projectRule.project, params.process, disposableRule.disposable) {
+            override suspend fun doConnect() {
               if (process == process1) {
                 firstClientStarted.countDown()
                 secondClientStarted.await(2, TimeUnit.SECONDS)
@@ -354,8 +381,8 @@ class InspectorClientLauncherTest {
           }
         },
         { params ->
-          object : FakeInspectorClient("Only connect to process 2", params.process, disposableRule.disposable) {
-            override fun doConnect(): ListenableFuture<Nothing> {
+          object : FakeInspectorClient("Only connect to process 2", projectRule.project, params.process, disposableRule.disposable) {
+            override suspend fun doConnect() {
               if (process == process1) {
                 failureMessage = "First connection shouldn't get to second creator"
                 throw IllegalStateException()
@@ -363,7 +390,6 @@ class InspectorClientLauncherTest {
               else {
                 successfulClient = this
                 successfulClientStarted.countDown()
-                return immediateFuture(null)
               }
             }
 
@@ -372,7 +398,9 @@ class InspectorClientLauncherTest {
         }
       ),
       projectRule.project,
-      disposableRule.disposable)
+      AndroidCoroutineScope(disposableRule.disposable),
+      disposableRule.disposable
+    )
 
 
     processes.selectedProcess = process1
@@ -409,50 +437,63 @@ class InspectorClientLauncherMetricsTest {
   @Test
   fun attachRequestOnlyLoggedOnce() {
     val processes = ProcessesModel(TestProcessDiscovery())
-    val metrics = LayoutInspectorMetrics(projectRule.project)
+    val metrics = LayoutInspectorSessionMetrics(projectRule.project)
     val launcher = InspectorClientLauncher(
       processes,
       listOf(
         { params ->
-          object : FakeInspectorClient("Exploding client #1", params.process, disposableRule.disposable) {
-            override fun doConnect(): ListenableFuture<Nothing> {
+          object : FakeInspectorClient("Exploding client #1", projectRule.project, params.process, disposableRule.disposable) {
+            override suspend fun doConnect() {
               metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST, stats)
               throw IllegalStateException()
             }
           }
         },
         { params ->
-          object : FakeInspectorClient("Exploding client #2", params.process, disposableRule.disposable) {
-            override fun doConnect(): ListenableFuture<Nothing> {
+          object : FakeInspectorClient("Exploding client #2", projectRule.project, params.process, disposableRule.disposable) {
+            override suspend fun doConnect() {
               metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, stats)
               throw IllegalStateException()
             }
           }
         },
         { params ->
-          object : FakeInspectorClient("Fallback client", params.process, disposableRule.disposable) {
-            override fun doConnect(): ListenableFuture<Nothing> {
+          object : FakeInspectorClient("Fallback client", projectRule.project, params.process, disposableRule.disposable) {
+            override suspend fun doConnect() {
               metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_REQUEST, stats)
               metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS, stats)
-              return immediateFuture(null)
             }
           }
         }
       ),
       projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       metrics,
       MoreExecutors.directExecutor())
 
     processes.selectedProcess = MODERN_DEVICE.createProcess()
     waitForCondition(1, TimeUnit.SECONDS) { launcher.activeClient.isConnected }
-    val usages = usageTrackerRule.testTracker.usages
-      .filter { it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT }
-    assertThat(usages).hasSize(2)
+    val usages = usageTrackerRule.testTracker.usages.filter {
+      it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
+    }
+
+    assertThat(usages).hasSize(4)
+    // ATTACH_REQUEST should be logged only once
     assertThat(usages[0].studioEvent.dynamicLayoutInspectorEvent.type).isEqualTo(
-      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST)
+      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST
+    )
+    // ATTACH_ERROR for first client
     assertThat(usages[1].studioEvent.dynamicLayoutInspectorEvent.type).isEqualTo(
-      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
+      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR
+    )
+    // ATTACH_ERROR for second client
+    assertThat(usages[2].studioEvent.dynamicLayoutInspectorEvent.type).isEqualTo(
+      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR
+    )
+    assertThat(usages[3].studioEvent.dynamicLayoutInspectorEvent.type).isEqualTo(
+      DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS
+    )
   }
 
 
@@ -461,24 +502,24 @@ class InspectorClientLauncherMetricsTest {
     val process1 = MODERN_DEVICE.createProcess()
     val process2 = MODERN_DEVICE.createProcess(pid = 2)
     val processes = ProcessesModel(TestProcessDiscovery())
-    val metrics = LayoutInspectorMetrics(projectRule.project)
+    val metrics = LayoutInspectorSessionMetrics(projectRule.project)
     val changedProcessLatch = ReportingCountDownLatch(1)
     val startedWaitingLatch = ReportingCountDownLatch(1)
     InspectorClientLauncher(
       processes,
       listOf { params ->
-        object : FakeInspectorClient("Hangs on initial connect", params.process, disposableRule.disposable) {
-          override fun doConnect(): ListenableFuture<Nothing> {
+        object : FakeInspectorClient("Hangs on initial connect", projectRule.project, params.process, disposableRule.disposable) {
+          override suspend fun doConnect() {
             metrics.logEvent(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST, stats)
             if (params.process == process1) {
               startedWaitingLatch.countDown()
               changedProcessLatch.await(1, TimeUnit.SECONDS)
             }
-            return immediateFuture(null)
           }
         }
       },
       projectRule.project,
+      AndroidCoroutineScope(disposableRule.disposable),
       disposableRule.disposable,
       metrics)
 
@@ -503,16 +544,24 @@ class InspectorClientLauncherMetricsTest {
 }
 
 private open class FakeInspectorClient(
-  val name: String, process: ProcessDescriptor, parentDisposable: Disposable
-) : AbstractInspectorClient(process, isInstantlyAutoConnected = false, DisconnectedClient.stats, parentDisposable) {
+  val name: String, project: Project, process: ProcessDescriptor, parentDisposable: Disposable
+) : AbstractInspectorClient(
+  ClientType.UNKNOWN_CLIENT_TYPE,
+  project,
+  process,
+  isInstantlyAutoConnected = false,
+  DisconnectedClient.stats,
+  AndroidCoroutineScope(parentDisposable),
+  parentDisposable
+) {
 
-  override fun startFetching() = throw NotImplementedError()
-  override fun stopFetching() = throw NotImplementedError()
+  override suspend fun startFetching() = throw NotImplementedError()
+  override suspend fun stopFetching() = throw NotImplementedError()
   override fun refresh() = throw NotImplementedError()
   override fun saveSnapshot(path: Path) = throw NotImplementedError()
 
-  override fun doConnect(): ListenableFuture<Nothing> = immediateFuture(null)
-  override fun doDisconnect(): ListenableFuture<Nothing> = immediateFuture(null)
+  override suspend fun doConnect() { }
+  override suspend fun doDisconnect() { }
 
   override val capabilities
     get() = throw NotImplementedError()

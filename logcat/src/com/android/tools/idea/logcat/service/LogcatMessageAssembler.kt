@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.service
 
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
+import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.folding.StackTraceExpander
@@ -23,7 +23,6 @@ import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatHeaderParser
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,23 +53,19 @@ private const val SYSTEM_LINE_PREFIX = "--------- beginning of "
  * This class is derived from [com.android.tools.idea.logcat.AndroidLogcatReceiver]
  */
 internal class LogcatMessageAssembler(
-  disposableParent: Disposable,
   private val serialNumber: String,
   logcatFormat: LogcatHeaderParser.LogcatFormat,
   private val channel: SendChannel<List<LogcatMessage>>,
   processNameMonitor: ProcessNameMonitor,
   coroutineContext: CoroutineContext,
   private val lastMessageDelayMs: Long,
+  private val cutoffTimeSeconds: Long? = null,
 ) : Disposable {
   private val coroutineScope = AndroidCoroutineScope(this, coroutineContext)
 
   private val previousState = AtomicPendingMessage()
 
   private val headerParser = LogcatHeaderParser(logcatFormat, processNameMonitor)
-
-  init {
-    Disposer.register(disposableParent, this)
-  }
 
   /**
    * Parse a batch of new lines.
@@ -102,7 +97,11 @@ internal class LogcatMessageAssembler(
     // Parse new lines and send log messages
     val batch: Batch = parseNewLines(state, newLines)
     if (batch.messages.isNotEmpty()) {
-      channel.send(batch.messages)
+      // Use the timestamp of the last message in the batch. We might end up sending a few older messages but not by much. There's no
+      // need to be super precise.
+      if (cutoffTimeSeconds == null || batch.messages.last().header.timestamp.epochSecond >= cutoffTimeSeconds) {
+        channel.send(batch.messages)
+      }
     }
 
     // Save the last header/lines to handle in the next batch or in the delayed job
@@ -116,7 +115,9 @@ internal class LogcatMessageAssembler(
         delay(lastMessageDelayMs)
         val message = getAndResetPendingMessage(partialMessage)
         if (message != null) {
-          channel.send(listOf(message))
+          if (cutoffTimeSeconds == null || message.header.timestamp.epochSecond >= cutoffTimeSeconds) {
+            channel.send(listOf(message))
+          }
         }
       }
     }
@@ -125,8 +126,6 @@ internal class LogcatMessageAssembler(
   fun getAndResetLastMessage(): LogcatMessage? = previousState.getAndReset()?.toLogcatMessage()
 
   private fun getAndResetPendingMessage(expected: PartialMessage): LogcatMessage? = previousState.getAndResetIf(expected)?.toLogcatMessage()
-
-  override fun dispose() {}
 
   private fun parseNewLines(
     state: PartialMessage?, newLines: List<String>): Batch {
@@ -184,6 +183,8 @@ internal class LogcatMessageAssembler(
       data.set(value)
     }
   }
+
+  override fun dispose() {}
 }
 
 private fun String.isSystemLine(): Boolean {

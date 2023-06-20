@@ -75,7 +75,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
 
   @Volatile
   private var isLoadingError = false
-  private var hasNativeAllocations = false
+  var hasNativeAllocations = false
     private set
   private val activityFragmentLeakFilter = ActivityFragmentLeakInstanceFilter(classDb)
   private val supportedInstanceFilters: Set<CaptureObjectInstanceFilter> = setOf(activityFragmentLeakFilter,
@@ -126,7 +126,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
       .flatMap { h -> h.classes.stream().filter { ClassDb.JAVA_LANG_CLASS == it.className } }
       .map { createClassObjectInstance(null, it) }
       .findAny().orElse(null)
-    val heapSetMappings = snapshot.heaps.map { it to HeapSet(this, it.name, it.id) }.toMap()
+    val heapSetMappings = snapshot.heaps.associateWith { HeapSet(this, it.name, it.id) }
     val addInstanceToRightHeap: (HeapSet, Long, InstanceObject) -> Unit =
       AllHeapSet(this, heapSetMappings.values.toTypedArray()).let { superHeap ->
         superHeap.clearClassifierSets() // forces sub-classifier creation
@@ -172,7 +172,7 @@ open class HeapDumpCaptureObject(private val client: ProfilerClient,
     else listOf(InstanceAttribute.LABEL, InstanceAttribute.DEPTH, InstanceAttribute.SHALLOW_SIZE, InstanceAttribute.RETAINED_SIZE)
   open fun findInstanceObject(instance: Instance) = if (hasLoaded) instanceIndex.get(instance.id) else null
 
-  private fun createClassObjectInstance(javaLangClass: InstanceObject?, classObj: ClassObj): InstanceObject {
+  fun createClassObjectInstance(javaLangClass: InstanceObject?, classObj: ClassObj): InstanceObject {
     val classEntry = classObj.makeEntry(if (javaLangClass == null) ClassDb.JAVA_LANG_CLASS else classObj.className)
     // Handle java.lang.Class which is a special case. All its instances are other classes, so wee need to create an InstanceObject for it
     // first for all classes to reference.

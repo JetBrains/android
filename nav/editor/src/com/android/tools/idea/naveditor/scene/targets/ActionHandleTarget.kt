@@ -205,7 +205,7 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
   private fun calculateState(): HandleState {
     return when {
       isDragging -> HandleState.SMALL
-      myComponent.scene.designSurface.interactionManager.isInteractionInProgress -> HandleState.INVISIBLE
+      myComponent.scene.designSurface.guiInputHandler.isInteractionInProgress -> HandleState.INVISIBLE
       mIsOver -> HandleState.LARGE
       component.drawState == SceneComponent.DrawState.HOVER -> HandleState.SMALL
       component.isSelected && myComponent.scene.selection.size == 1 -> HandleState.SMALL

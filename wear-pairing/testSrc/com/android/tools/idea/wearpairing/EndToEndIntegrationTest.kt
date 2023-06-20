@@ -25,6 +25,7 @@ import com.android.sdklib.internal.avd.AvdManager
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.analytics.LoggedUsage
@@ -42,6 +43,7 @@ import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import org.junit.Test
 import org.mockito.Mockito
+import java.io.File
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
@@ -51,8 +53,9 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
   private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
 
   override fun setUp() {
+    // Studio Icons must be of type CachedImageIcon for image asset
+    IconLoaderRule.enableIconLoading()
     super.setUp()
-
     BatchInvoker.setOverrideStrategy(invokeStrategy)
     UsageTracker.setWriterForTest(usageTracker)
     enableHeadlessDialogs(testRootDisposable)
@@ -102,7 +105,10 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
       whenever(serialNumber).thenReturn("serialNumber")
       whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
       whenever(version).thenReturn(AndroidVersion(28, null))
-      whenever(avdData).thenReturn(Futures.immediateFuture(AvdData(avdWearInfo.name, avdWearInfo.dataFolderPath.toString())))
+      whenever(avdData).thenReturn(Futures.immediateFuture(
+        AvdData(avdWearInfo.name,
+                // The path is formatted in this way as a regression test for b/275128556
+                "${avdWearInfo.dataFolderPath}${File.separator}..${File.separator}${avdWearInfo.dataFolderPath}")))
       whenever(getProperty("dev.bootcomplete")).thenReturn("1")
       whenever(getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture(""))
       addExecuteShellCommandReply { request ->
@@ -117,8 +123,8 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
       }
     }
 
-    WearPairingManager.setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
-    assertThat(WearPairingManager.getPairsForDevice(wearIDevice.name)).isEmpty()
+    WearPairingManager.getInstance().setDataProviders({ listOf(avdWearInfo) }, { listOf(phoneIDevice, wearIDevice) })
+    assertThat(WearPairingManager.getInstance().getPairsForDevice(wearIDevice.name)).isEmpty()
 
     createModalDialogAndInteractWithIt({ WearDevicePairingWizard().show(null, null) }) {
       FakeUi(it.contentPane).apply {
@@ -133,7 +139,7 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
     val usages = getWearPairingTrackingEvents()
     assertThat(usages[0].studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_ASSISTANT_FULL_SELECTION)
     assertThat(usages[1].studioEvent.wearPairingEvent.kind).isEqualTo(WearPairingEvent.EventKind.SHOW_SUCCESSFUL_PAIRING)
-    val phoneWearPair = WearPairingManager.getPairsForDevice(avdWearInfo.id)
+    val phoneWearPair = WearPairingManager.getInstance().getPairsForDevice(avdWearInfo.id)
     assertThat(phoneWearPair).isNotEmpty()
     assertThat(phoneWearPair[0].pairingStatus).isEqualTo(WearPairingManager.PairingState.CONNECTED)
     assertThat(phoneWearPair[0].getPeerDevice(avdWearInfo.id).displayName).isEqualTo(phoneIDevice.name)

@@ -15,151 +15,145 @@
  */
 package com.android.tools.idea.run.tasks
 
-import com.android.ddmlib.Client
-import com.android.ddmlib.ClientData
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.fakeadbserver.DeviceState
 import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.run.AndroidSessionInfo
-import com.android.tools.idea.run.ApkProvisionException
-import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ConsoleProvider
-import com.android.tools.idea.run.LaunchInfo
-import com.android.tools.idea.run.ProcessHandlerConsolePrinter
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
+import com.android.tools.idea.run.AndroidRunConfigurationType
+import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultDebugExecutor
-import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
-import com.intellij.execution.runners.ProgramRunner
-import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.openapi.project.Project
-import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
-import com.intellij.testFramework.replaceService
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.registerServiceInstance
+import com.intellij.xdebugger.XDebuggerManager
+import org.junit.After
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mock
-import org.mockito.Mockito.mock
-import org.mockito.MockitoAnnotations
+import org.mockito.Mockito
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 
-private const val TEST_APP_PACKAGE_NAME = "my.example.application.test"
 
 /**
  * Unit tests for [ReattachingConnectDebuggerTask].
  */
-class ReattachingConnectDebuggerTaskTest : AndroidTestCase() {
+class ReattachingConnectDebuggerTaskTest {
 
-  lateinit var mockLaunchInfo: LaunchInfo
+  private val APP_ID = FakeAdbTestRule.CLIENT_PACKAGE_NAME
+  private val MASTER_PROCESS_NAME = "com.master.test"
 
-  @Mock
-  lateinit var mockDevice: IDevice
+  @get:Rule
+  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
 
-  @Mock
-  lateinit var mockStatus: ProcessHandlerLaunchStatus
+  @get:Rule
+  val projectRule = ProjectRule()
 
-  @Mock
-  lateinit var mockProcessHandler: ProcessHandler
+  val project
+    get() = projectRule.project
 
-  @Mock
-  lateinit var mockAndroidSessionInfo: AndroidSessionInfo
+  private lateinit var executionEnvironment: ExecutionEnvironment
+  private lateinit var device: IDevice
+  private lateinit var deviceState: DeviceState
 
-  @Mock
-  lateinit var mockClient: Client
+  @Before
+  fun setUp() {
+    deviceState = fakeAdbRule.connectAndWaitForDevice()
+    device = AndroidDebugBridge.getBridge()!!.devices.single()
+    val configSettings = RunManager.getInstance(project).createConfiguration(
+      "app", AndroidRunConfigurationType().configurationFactories.single())
+    executionEnvironment = ExecutionEnvironment(DefaultDebugExecutor.getDebugExecutorInstance(), DefaultStudioProgramRunner(),
+                                                configSettings, project)
+  }
 
-  @Mock
-  lateinit var mockClientData: ClientData
-
-  @Mock
-  lateinit var mockApplicationIdProvider: ApplicationIdProvider
-
-  lateinit var baseConnector: TestConnectDebuggerTask
-  lateinit var printer: ProcessHandlerConsolePrinter
-
-  override fun setUp() {
-    super.setUp()
-
-    MockitoAnnotations.initMocks(this)
-    whenever(mockApplicationIdProvider.packageName).thenReturn(TEST_APP_PACKAGE_NAME)
-    whenever(mockApplicationIdProvider.testPackageName).thenThrow(ApkProvisionException("no test package"))
-    baseConnector = TestConnectDebuggerTask(project, mockApplicationIdProvider)
-    printer = ProcessHandlerConsolePrinter(mockProcessHandler)
-
-    whenever(mockStatus.processHandler).thenReturn(mockProcessHandler)
-    whenever(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockAndroidSessionInfo)
-    whenever(mockClient.clientData).thenReturn(mockClientData)
-    whenever(mockClientData.clientDescription).thenReturn(TEST_APP_PACKAGE_NAME)
-    whenever(mockClientData.debuggerConnectionStatus).thenReturn(ClientData.DebuggerStatus.WAITING)
-
-    mockLaunchInfo = LaunchInfo(
-      DefaultDebugExecutor.getDebugExecutorInstance(),
-      mock(ProgramRunner::class.java),
-      mock(ExecutionEnvironment::class.java),
-      mock(ConsoleProvider::class.java)
-    )
+  @After
+  fun tearDown() {
+    XDebuggerManager.getInstance(project).debugSessions.forEach {
+      it.stop()
+      it.debugProcess.processHandler.waitFor()
+    }
   }
 
   @Test
   fun testPerform() {
-    val mockRunContentManager = mock(RunContentManager::class.java)
-    whenever(mockRunContentManager.findContentDescriptor(any(), any())).thenReturn(mock(RunContentDescriptor::class.java))
-    project.replaceService(RunContentManager::class.java, mockRunContentManager, testRootDisposable)
+    val ADDITIONAL_CLIENTS = 2
+    // RunContentManagerImpl.showRunContent content does nothing on showRunContent in Unit tests, we want to check it was invoked.
+    val runContentManagerImplMock = Mockito.mock(RunContentManager::class.java)
 
-    val listener = TestListener()
-    val debugger = ReattachingConnectDebuggerTask(baseConnector, masterAndroidProcessName = "", listener)
+    project.registerServiceInstance(RunContentManager::class.java, runContentManagerImplMock)
 
-    // Verify that the base connector is not launched yet.
-    assertThat(baseConnector.launchInvocations).isEqualTo(0)
+    FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1111, MASTER_PROCESS_NAME, false)
 
-    // Start debug connector task.
-    debugger.perform(mockLaunchInfo, mockDevice, mockStatus, printer)
+    var pid = Random.nextInt()
+    FakeAdbTestRule.launchAndWaitForProcess(deviceState, pid, FakeAdbTestRule.CLIENT_PACKAGE_NAME, true)
 
-    // Make sure callback methods are invoked.
-    assertThat(listener.isStarted).isTrue()
-    assertThat(listener.launchInfo).isEqualTo(mockLaunchInfo)
-    assertThat(listener.device).isEqualTo(mockDevice)
-    assertThat(debugger.getReattachingListenerForTesting()).isNotNull()
+    val reattachingDebuggerTask = ReattachingConnectDebuggerTask(
+      AndroidJavaDebugger(),
+      AndroidDebuggerState(),
+      MASTER_PROCESS_NAME, 15)
 
-    // When the test application is ready for debugger, the callback will be
-    // invoked by ddmlib. Here, we call the callback manually for testing.
-    debugger.getReattachingListenerForTesting()!!.clientChanged(mockClient, Client.CHANGE_DEBUGGER_STATUS)
-    dispatchAllEventsInIdeEventQueue()
+    val firstStartDebugLatch = CountDownLatch(1)
+    whenever(runContentManagerImplMock.showRunContent(any(), any())).thenAnswer {
+      firstStartDebugLatch.countDown()
+    }
+    val builder = TextConsoleBuilderFactory.getInstance().createBuilder(project)
+    val console = builder.console
 
-    assertThat(baseConnector.launchInvocations).isEqualTo(1)
+    val sessionImpl = reattachingDebuggerTask.perform(device, APP_ID, executionEnvironment, EmptyProgressIndicator(), console)
+    sessionImpl.showSessionTab()
 
-    // Stop the reattaching task from the listener.
-    listener.controller.stop()
+    if (!firstStartDebugLatch.await(20, TimeUnit.SECONDS)) {
+      Assert.fail("First session tab wasn't open")
+    }
 
-    assertThat(debugger.getReattachingListenerForTesting()).isNull()
+    val tabsOpened = AtomicInteger(0)
+
+    repeat(ADDITIONAL_CLIENTS) {
+      waitForProcessToStop(pid)
+      val latchStartDebug = CountDownLatch(1)
+      pid = Random.nextInt()
+      FakeAdbTestRule.launchAndWaitForProcess(deviceState, pid, FakeAdbTestRule.CLIENT_PACKAGE_NAME, true)
+      whenever(runContentManagerImplMock.showRunContent(any(), any())).thenAnswer {
+        tabsOpened.incrementAndGet()
+        latchStartDebug.countDown()
+      }
+      if (!latchStartDebug.await(1, TimeUnit.MINUTES)) {
+        Assert.fail("Session tab wasn't open for additional process")
+      }
+    }
+
+    assertThat(tabsOpened.get()).isEqualTo(ADDITIONAL_CLIENTS)
+    sessionImpl.debugProcess.processHandler.detachProcess()
+    sessionImpl.debugProcess.processHandler.waitFor()
   }
-}
 
-class TestConnectDebuggerTask(project: Project, applicationIdProvider: ApplicationIdProvider)
-  : ConnectDebuggerTaskBase(applicationIdProvider, project, false) {
-  var launchInvocations = 0
+  private fun waitForProcessToStop(pid: Int) {
+    val latch = CountDownLatch(1)
 
-  override fun launchDebugger(currentLaunchInfo: LaunchInfo,
-                              client: Client,
-                              state: ProcessHandlerLaunchStatus,
-                              printer: ProcessHandlerConsolePrinter) {
-    launchInvocations++
-  }
-}
-
-/**
- * A [ReattachingConnectDebuggerTaskListener] implementation for testing.
- */
-class TestListener : ReattachingConnectDebuggerTaskListener {
-  var isStarted = false
-  lateinit var launchInfo: LaunchInfo
-  lateinit var device: IDevice
-  lateinit var controller: ReattachingConnectDebuggerController
-
-  override fun onStart(launchInfo: LaunchInfo, device: IDevice, controller: ReattachingConnectDebuggerController) {
-    isStarted = true
-    this.launchInfo = launchInfo
-    this.device = device
-    this.controller = controller
+    val deviceListener: AndroidDebugBridge.IDeviceChangeListener = object : AndroidDebugBridge.IDeviceChangeListener {
+      override fun deviceConnected(device: IDevice) {}
+      override fun deviceDisconnected(device: IDevice) {}
+      override fun deviceChanged(changedDevice: IDevice, changeMask: Int) {
+        if (changeMask and IDevice.CHANGE_CLIENT_LIST == IDevice.CHANGE_CLIENT_LIST) {
+          latch.countDown()
+        }
+      }
+    }
+    AndroidDebugBridge.addDeviceChangeListener(deviceListener)
+    deviceState.stopClient(pid)
+    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue()
+    AndroidDebugBridge.removeDeviceChangeListener(deviceListener)
   }
 }

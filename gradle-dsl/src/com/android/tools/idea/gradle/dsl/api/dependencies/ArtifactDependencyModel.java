@@ -45,7 +45,7 @@ public interface ArtifactDependencyModel extends DependencyModel {
   /**
    * @return the model representing this entire dependency, this will be either a MAP_TYPE model for map form dependencies. Or
    * a STRING_TYPE model for compact notation.
-   * Note: In teh case where this is of STRING_TYPE, the return value of {@link GradlePropertyModel#isModified()} will be shared between
+   * Note: In the case where this is of STRING_TYPE, the return value of {@link GradlePropertyModel#isModified()} will be shared between
    * all models returned by this class. I.e if you modify the version, this model along will models for name, group, classifier and
    * extension will all be modified. Note: this model will contain the exact string that is in the build file and if parts of it contain
    * references then they will not be resolved.
@@ -67,4 +67,11 @@ public interface ArtifactDependencyModel extends DependencyModel {
    * Makes any change to this model through name/group/version/classifier/extension work on the property even if this overwrites variables.
    */
   void disableSetThrough();
+
+  /**
+   * Temporary property to indicate version catalog dependency vs build file dependency.
+   */
+  boolean isVersionCatalogDependency();
+
+  void markAsVersionCatalogDependency();
 }

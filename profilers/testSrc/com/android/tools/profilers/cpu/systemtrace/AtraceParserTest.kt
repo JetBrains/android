@@ -162,6 +162,6 @@ class AtraceParserTest {
     private val TEST_PID = 2652
     private val THREAD_ID = 2659
     private val THREAD_STATE_SERIES_SIZE = 20
-    private val THREAD_STATE_SIZE = 1316
+    private val THREAD_STATE_SIZE = 1317
   }
 }

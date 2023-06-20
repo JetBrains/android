@@ -31,6 +31,7 @@ import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.FutureCallback;
@@ -64,6 +65,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.LoadingNode;
+import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -99,7 +101,6 @@ import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
 
 public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorComponent, FileEditor {
   private final Disposable myDisposable;
@@ -582,8 +583,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     private final DexViewFilters myDexViewFilters;
 
     public ShowFieldsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
-      super("Show fields", "Toggle between show/hide fields",
-            IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Field));
+      super("Show fields", "Toggle between show/hide fields", IconManager.getInstance().getPlatformIcon(PlatformIcons.Field));
       myTree = tree;
       myDexViewFilters = options;
     }
@@ -605,8 +605,7 @@ public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorCo
     private final DexViewFilters myDexViewFilters;
 
     public ShowMethodsAction(@NotNull Tree tree, @NotNull DexViewFilters options) {
-      super("Show methods", "Toggle between show/hide methods",
-            IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Method));
+      super("Show methods", "Toggle between show/hide methods", IconManager.getInstance().getPlatformIcon(PlatformIcons.Method));
       myTree = tree;
       myDexViewFilters = options;
     }

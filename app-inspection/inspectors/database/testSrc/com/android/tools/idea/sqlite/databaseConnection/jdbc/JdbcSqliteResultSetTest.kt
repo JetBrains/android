@@ -34,7 +34,8 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    sqliteUtil = SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
+    sqliteUtil =
+      SqliteTestUtil(IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture())
     sqliteUtil.setUp()
   }
 
@@ -45,30 +46,38 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
       }
 
       sqliteUtil.tearDown()
-    }
-    finally {
+    } finally {
       super.tearDown()
     }
   }
 
   fun `test CreateResultSet ThenAddColumnToTable ResultSetReturnsCorrectListOfColumns`() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (c1 INT)",
-      insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
-    )
-    customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (c1 INT)",
+        insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+      )
+    customConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
+    val resultSet =
+      pumpEventsAndWaitForFuture(
+        customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      )
     val columnsBeforeAlterTable = pumpEventsAndWaitForFuture(resultSet.columns)
 
     pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD COLUMN c2 INT"))
+      customConnection!!.execute(
+        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD COLUMN c2 INT")
+      )
     )
     val columnsAfterAlterTable = pumpEventsAndWaitForFuture(resultSet.columns)
 
@@ -82,22 +91,31 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
 
   fun `test CreateResultSet ThenAddRowToTable ResultSetReturnsCorrectNumberOfRows`() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (c1 INT)",
-      insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
-    )
-    customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (c1 INT)",
+        insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+      )
+    customConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
+    val resultSet =
+      pumpEventsAndWaitForFuture(
+        customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      )
     val rowCountBeforeInsert = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
     pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement(SqliteStatementType.INSERT, "INSERT INTO t1 (c1) VALUES (2)"))
+      customConnection!!.execute(
+        SqliteStatement(SqliteStatementType.INSERT, "INSERT INTO t1 (c1) VALUES (2)")
+      )
     )
     val rowCountAfterInsert = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
@@ -108,22 +126,33 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
 
   fun `test CreateResultSetFromExplain ThenAddColumn ResultSetReturnsOneMoreRow`() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (c1 INT)",
-      insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
-    )
-    customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (c1 INT)",
+        insertStatement = "INSERT INTO t1 (c1) VALUES (1)"
+      )
+    customConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      customConnection!!.query(SqliteStatement(SqliteStatementType.EXPLAIN, "EXPLAIN SELECT * FROM t1"))
-    )
+    val resultSet =
+      pumpEventsAndWaitForFuture(
+        customConnection!!.query(
+          SqliteStatement(SqliteStatementType.EXPLAIN, "EXPLAIN SELECT * FROM t1")
+        )
+      )
     val rowCountBefore = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
     pumpEventsAndWaitForFuture(
-      customConnection!!.execute(SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD COLUMN c2 text"))
+      customConnection!!.execute(
+        SqliteStatement(SqliteStatementType.UNKNOWN, "ALTER TABLE t1 ADD COLUMN c2 text")
+      )
     )
     val rowCountAfter = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
@@ -134,54 +163,75 @@ class JdbcSqliteResultSetTest : LightPlatformTestCase() {
 
   fun testDisposeCancelsGetColumns() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (c1 INT)",
-      insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
-    )
-    customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (c1 INT)",
+        insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+      )
+    customConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
+    val resultSet =
+      pumpEventsAndWaitForFuture(
+        customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      )
     Disposer.dispose(customConnection!!)
     pumpEventsAndWaitForFutureCancellation(resultSet.columns)
   }
 
   fun testDisposeCancelsGetRowCount() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (c1 INT)",
-      insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
-    )
-    customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (c1 INT)",
+        insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+      )
+    customConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
+    val resultSet =
+      pumpEventsAndWaitForFuture(
+        customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      )
     Disposer.dispose(customConnection!!)
     pumpEventsAndWaitForFutureCancellation(resultSet.totalRowCount)
   }
 
   fun testDisposeCancelsGetRowBatch() {
     // Prepare
-    val customSqliteFile = sqliteUtil.createAdHocSqliteDatabase(
-      createStatement = "CREATE TABLE t1 (c1 INT)",
-      insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
-    )
-    customConnection = pumpEventsAndWaitForFuture(
-      getJdbcDatabaseConnection(testRootDisposable, customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
-    )
+    val customSqliteFile =
+      sqliteUtil.createAdHocSqliteDatabase(
+        createStatement = "CREATE TABLE t1 (c1 INT)",
+        insertStatement = "INSERT INTO t1 (c1) VALUES (42)"
+      )
+    customConnection =
+      pumpEventsAndWaitForFuture(
+        getJdbcDatabaseConnection(
+          testRootDisposable,
+          customSqliteFile,
+          FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
+        )
+      )
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(
-      customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
-    )
+    val resultSet =
+      pumpEventsAndWaitForFuture(
+        customConnection!!.query(SqliteStatement(SqliteStatementType.SELECT, "SELECT * FROM t1"))
+      )
     Disposer.dispose(customConnection!!)
     pumpEventsAndWaitForFutureCancellation(resultSet.getRowBatch(0, 10))
   }

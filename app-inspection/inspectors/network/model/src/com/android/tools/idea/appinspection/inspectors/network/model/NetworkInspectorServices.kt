@@ -48,16 +48,16 @@ class NetworkInspectorServicesImpl(
   override val updater = Updater(timer)
 }
 
-/**
- * For tests only.
- */
+/** For tests only. */
 class TestNetworkInspectorServices(
   override val navigationProvider: CodeNavigationProvider,
   timer: StopwatchTimer,
-  override val client: NetworkInspectorClient = object : NetworkInspectorClient {
-    override suspend fun getStartTimeStampNs() = 0L
-    override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) = Unit
-  },
+  override val client: NetworkInspectorClient =
+    object : NetworkInspectorClient {
+      override suspend fun getStartTimeStampNs() = 0L
+      override suspend fun interceptResponse(command: NetworkInspectorProtocol.InterceptCommand) =
+        Unit
+    },
   override val usageTracker: NetworkInspectorTracker = StubNetworkInspectorTracker()
 ) : NetworkInspectorServices {
   override val updater = Updater(timer)

@@ -17,13 +17,15 @@ package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.devicemanager.ConnectionType;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.Key;
 import com.android.tools.idea.devicemanager.SerialNumber;
 import org.jetbrains.annotations.NotNull;
 
 public final class TestPhysicalDevices {
-  static final @NotNull PhysicalDevice ONLINE_COMPAL_FALSTER = new PhysicalDevice.Builder()
+  public static final @NotNull PhysicalDevice ONLINE_COMPAL_FALSTER = new PhysicalDevice.Builder()
     .setKey(Ipv4Address.parse("192.168.1.123:5555").orElseThrow())
+    .setType(DeviceType.WEAR_OS)
     .setName("Compal Falster")
     .setTarget("Android 11.0")
     .setAndroidVersion(new AndroidVersion(30))

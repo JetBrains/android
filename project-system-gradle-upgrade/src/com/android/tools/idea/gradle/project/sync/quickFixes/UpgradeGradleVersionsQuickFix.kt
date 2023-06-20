@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.quickFixes
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
@@ -30,9 +30,10 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import java.util.concurrent.CompletableFuture
+import org.gradle.util.GradleVersion
 
 class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
-                                    val agpVersion: GradleVersion,
+                                    val agpVersion: AgpVersion,
                                     suffix: String): DescribedBuildIssueQuickFix {
   override val description: String = "Change to $suffix versions (plugin $agpVersion, Gradle $gradleVersion) and sync project"
   override val id: String = "upgrade.version.$suffix"
@@ -49,7 +50,7 @@ class UpgradeGradleVersionsQuickFix(val gradleVersion: GradleVersion,
    *
    * @return A [CompletableFuture] that will be a [Boolean], indicating whether the changes were applied or not.
    */
-  override fun runQuickFix(project: Project, dataProvider: DataContext): CompletableFuture<*> {
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val future = CompletableFuture<Any>()
     val runnable = Runnable {
       AndroidExecutors.getInstance().diskIoThreadExecutor.execute {

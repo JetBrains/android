@@ -16,9 +16,10 @@
 package com.android.tools.idea.gradle.dsl.api.android.packagingOptions;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
-public interface DexModel {
+public interface DexModel extends GradleBlockModel {
   @NotNull
   ResolvedPropertyModel useLegacyPackaging();
 }

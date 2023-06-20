@@ -15,36 +15,46 @@
  */
 package com.android.tools.idea.run.tasks
 
+import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.ConsolePrinter
+import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.run.activity.StartActivityFlagsProvider
-import com.android.tools.idea.run.tasks.ActivityLaunchTask.UNKNOWN_ACTIVITY_LAUNCH_TASK_ERROR
-import com.android.tools.idea.run.util.LaunchStatus
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
-import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 
 
 @RunWith(JUnit4::class)
 class ActivityLaunchTaskTest {
   @Mock lateinit var project: Project
   @Mock lateinit var device: IDevice
-  @Mock lateinit var executor: Executor
-  @Mock lateinit var launchStatus: LaunchStatus
-  @Mock lateinit var printer: ConsolePrinter
-  @Mock lateinit var handler: ProcessHandler
-  @Mock lateinit var indicator: ProgressIndicator
+  @Mock
+  lateinit var executor: Executor
+  @Mock
+  lateinit var console: ConsoleView
+  @Mock
+  lateinit var handler: ProcessHandler
+  @Mock
+  lateinit var indicator: ProgressIndicator
+  @Mock
+  lateinit var env: ExecutionEnvironment
 
   init {
     MockitoAnnotations.initMocks(this)
+    Mockito.`when`(env.project).thenReturn(project)
+    Mockito.`when`(env.executor).thenReturn(executor)
   }
 
   @Test
@@ -53,12 +63,8 @@ class ActivityLaunchTaskTest {
       applicationId = "com.app.debug",
       activity = "com.app.Activity",
       description = "test launching activity"
-    ) { true }
-    val result = launchTask.run(LaunchContext(project, executor, device, launchStatus, printer, handler, indicator))
-    assertThat(result.result).isEqualTo(LaunchResult.Result.SUCCESS)
-    assertThat(result.errorId).isEmpty()
-    assertThat(result.message).isEmpty()
-    assertThat(result.consoleMessage).isEmpty()
+    ) { }
+    launchTask.run(LaunchContext(env, device, console, handler, indicator))
   }
 
   @Test
@@ -67,12 +73,15 @@ class ActivityLaunchTaskTest {
       applicationId = "com.app.debug",
       activity = null,
       description = "test launching activity"
-    ) { false }
-    val result = launchTask.run(LaunchContext(project, executor, device, launchStatus, printer, handler, indicator))
-    assertThat(result.result).isEqualTo(LaunchResult.Result.ERROR)
-    assertThat(result.errorId).isEqualTo(ActivityLaunchTask.UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY)
-    assertThat(result.message).isEqualTo("Error test launching activity")
-    assertThat(result.consoleMessage).isEqualTo("Error while test launching activity")
+    ) { }
+    try {
+      launchTask.run(LaunchContext(env, device, console, handler, indicator))
+      fail("Run should fail")
+    }
+    catch (e: AndroidExecutionException) {
+      assertThat(e.errorId).isEqualTo(ActivityLaunchTask.UNABLE_TO_DETERMINE_LAUNCH_ACTIVITY)
+      assertThat(e.message).isEqualTo("Unable to determine activity name")
+    }
   }
 
   @Test
@@ -81,15 +90,18 @@ class ActivityLaunchTaskTest {
       applicationId = "com.app.debug",
       activity = "com.app.Version2Activity",
       description = "test launching activity"
-    ) { printer ->
-      printer.stderr("Activity class {com.app.debug/com.app.Version2Activity} does not exist.")
-      false
+    ) {
+      val output = "Activity class {com.app.debug/com.app.Version2Activity} does not exist. Other output".toByteArray(Charsets.UTF_8)
+      it.addOutput(output, 0, output.size)
     }
-    val result = launchTask.run(LaunchContext(project, executor, device, launchStatus, printer, handler, indicator))
-    assertThat(result.result).isEqualTo(LaunchResult.Result.ERROR)
-    assertThat(result.errorId).isEqualTo(ActivityLaunchTask.ACTIVITY_DOES_NOT_EXIST)
-    assertThat(result.message).isEqualTo("Error test launching activity")
-    assertThat(result.consoleMessage).isEqualTo("Error while test launching activity")
+    try {
+      launchTask.run(LaunchContext(env, device, console, handler, indicator))
+      fail("Run should fail")
+    }
+    catch (e: AndroidExecutionException) {
+      assertThat(e.errorId).isEqualTo(ActivityLaunchTask.ACTIVITY_DOES_NOT_EXIST)
+      assertThat(e.message).isEqualTo("Activity class {com.app.debug/com.app.Version2Activity} does not exist")
+    }
   }
 
   @Test
@@ -98,15 +110,14 @@ class ActivityLaunchTaskTest {
       applicationId = "com.app.debug",
       activity = "com.app.Version2Activity",
       description = "test launching activity"
-    ) { printer ->
-      printer.stderr("Something bad happened while launching Activity class {com.app.debug/com.app.Version2Activity}.")
-      false
+    ) { throw ExecutionException("Something bad happened while launching Activity class {com.app.debug/com.app.Version2Activity}.") }
+    try {
+      launchTask.run(LaunchContext(env, device, console, handler, indicator))
+      fail("Run should fail")
     }
-    val result = launchTask.run(LaunchContext(project, executor, device, launchStatus, printer, handler, indicator))
-    assertThat(result.result).isEqualTo(LaunchResult.Result.ERROR)
-    assertThat(result.errorId).isEqualTo(UNKNOWN_ACTIVITY_LAUNCH_TASK_ERROR)
-    assertThat(result.message).isEqualTo("Error test launching activity")
-    assertThat(result.consoleMessage).isEqualTo("Error while test launching activity")
+    catch (e: ExecutionException) {
+      assertThat(e.message).isEqualTo("Something bad happened while launching Activity class {com.app.debug/com.app.Version2Activity}.")
+    }
   }
 }
 
@@ -118,17 +129,17 @@ class TestActivityLaunchTask(
   applicationId: String,
   private val activity: String?,
   private val description: String,
-  private val executeShellCommand: (printer: ConsolePrinter) -> Boolean
+  private val testExecuteShellCommand: (collectingOutputReceiver: CollectingOutputReceiver) -> Unit
 ) : ActivityLaunchTask(applicationId, StubStartActivityFlagsProvider) {
-  override fun getQualifiedActivityName(device: IDevice, printer: ConsolePrinter) = activity
+  override fun getQualifiedActivityName(device: IDevice, consoleView: ConsoleView) = activity
   override fun getId() = "TEST_LAUNCH"
   override fun getDescription() = description
-  override fun executeShellCommand(command: String,
-                                   device: IDevice,
-                                   launchStatus: LaunchStatus,
-                                   printer: ConsolePrinter,
-                                   timeout: Long,
-                                   timeoutUnit: TimeUnit): Boolean {
-    return executeShellCommand(printer)
+
+  override fun executeShellCommand(launchContext: LaunchContext,
+                                   printer: ConsoleView?,
+                                   device: IDevice?,
+                                   command: String?,
+                                   collectingOutputReceiver: CollectingOutputReceiver) {
+    testExecuteShellCommand(collectingOutputReceiver)
   }
 }

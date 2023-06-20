@@ -75,7 +75,15 @@ class VariantNameResolutionTest {
         },
         androidProject = {
           buildAndroidProjectStub()
-            .let { if (reorderFlavors) it.copy(productFlavors = it.productFlavors.reversed()) else it }
+            .let {
+              if (reorderFlavors) {
+                it.copy(
+                  multiVariantData = it.multiVariantData?.copy(
+                    productFlavors = it.multiVariantData?.productFlavors.orEmpty().reversed()
+                  )
+                )
+              } else it
+            }
         }
       )
         .build()

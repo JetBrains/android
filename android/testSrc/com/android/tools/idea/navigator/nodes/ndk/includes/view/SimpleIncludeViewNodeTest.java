@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.List;
 import org.junit.ClassRule;
 
+@org.junit.Ignore("b/256628803")
 public class SimpleIncludeViewNodeTest extends PlatformTestCase {
   @ClassRule
   public static LeakCheckerRule checker = new LeakCheckerRule();

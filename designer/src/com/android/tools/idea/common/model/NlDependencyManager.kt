@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.model
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -93,11 +93,11 @@ class NlDependencyManager private constructor() {
   fun isModuleDependency(artifact: GoogleMavenArtifactId, facet: AndroidFacet): Boolean = facet.module.dependsOn(artifact)
 
   /**
-   * Returns the [GradleVersion] of the library with specified [artifactId] that the current module depends on.
+   * Returns the [Version] of the library with specified [artifactId] that the current module depends on.
    * @return the revision or null if the module does not depend on the specified library or the maven version is unknown.
    */
-  fun getModuleDependencyVersion(artifactId: GoogleMavenArtifactId, facet: AndroidFacet): GradleVersion? =
-      facet.module.getModuleSystem().getResolvedDependency(artifactId.getCoordinate("+"))?.version
+  fun getModuleDependencyVersion(artifactId: GoogleMavenArtifactId, facet: AndroidFacet): Version? =
+      facet.module.getModuleSystem().getResolvedDependency(artifactId.getCoordinate("+"))?.lowerBoundVersion
 
   /**
    * Checks if there is any missing dependencies and ask the user only if they are some.

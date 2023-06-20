@@ -96,8 +96,9 @@ interface PTable {
                rendererProvider: PTableCellRendererProvider = DefaultPTableCellRendererProvider(),
                editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider(),
                customToolTipHook: (MouseEvent) -> String? = { null },
-               updatingUI: () -> Unit = { }): PTable {
-      return PTableImpl(tableModel, context, rendererProvider, editorProvider, customToolTipHook, updatingUI)
+               updatingUI: () -> Unit = { },
+               nameColumnFraction: ColumnFraction = ColumnFraction()): PTable {
+      return PTableImpl(tableModel, context, rendererProvider, editorProvider, customToolTipHook, updatingUI, nameColumnFraction)
     }
   }
 }

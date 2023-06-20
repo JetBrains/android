@@ -24,18 +24,23 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
  * Attachment information for the current session.
  */
 class AttachStatistics(
-  private val clientType: ClientType
+  private val clientType: ClientType,
+  private val multipleProjectsOpen: () -> Boolean,
+  private val isAutoConnectEnabled: () -> Boolean
 ) {
   private var success = false
   private var error = false
-  private var errorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
+  private var debugging = false
+  private var pausedDuringAttach = false
   private var errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
+  private var composeErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
 
   fun start() {
     success = false
     error = false
-    errorState = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
     errorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
+    composeErrorCode = AttachErrorCode.UNKNOWN_ERROR_CODE
+    currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
   }
 
   fun save(dataSupplier: () -> DynamicLayoutInspectorAttachToProcess.Builder) {
@@ -44,18 +49,37 @@ class AttachStatistics(
       it.success = success && !error
       it.errorInfoBuilder.let { error ->
         error.attachErrorCode = errorCode
-        error.attachErrorState = errorState
+        error.attachErrorState = currentProgress
       }
+      it.composeErrorCode = composeErrorCode
+      it.multipleProjectsOpen = multipleProjectsOpen.invoke()
+      it.debuggerAttached = debugging
+      it.debuggerPausedDuringAttach = pausedDuringAttach
+      it.autoConnectEnabled = isAutoConnectEnabled()
     }
   }
+
+  /**
+   * The current progress from the launch monitor.
+   * TODO: Consider renaming the proto field.
+   */
+  var currentProgress = AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
 
   fun attachSuccess() {
     success = true
   }
 
-  fun attachError(errorState: AttachErrorState?, errorCode: AttachErrorCode) {
+  fun attachError(errorCode: AttachErrorCode) {
     error = true
-    this.errorState = errorState ?: AttachErrorState.UNKNOWN_ATTACH_ERROR_STATE
     this.errorCode = errorCode
+  }
+
+  fun composeAttachError(errorCode: AttachErrorCode) {
+    composeErrorCode = errorCode
+  }
+
+  fun debuggerInUse(isPaused: Boolean) {
+    debugging = true
+    pausedDuringAttach = pausedDuringAttach || isPaused
   }
 }

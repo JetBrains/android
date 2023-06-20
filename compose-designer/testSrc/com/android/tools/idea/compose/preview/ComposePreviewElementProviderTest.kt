@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.preview.FilteredPreviewElementProvider
 import com.android.tools.idea.preview.StaticPreviewProvider
 import kotlinx.coroutines.runBlocking
@@ -26,24 +24,33 @@ import org.junit.Test
 class ComposePreviewElementProviderTest {
   @Test
   fun testFilteredProvider() = runBlocking {
-    val staticPreviewProvider = StaticPreviewProvider<ComposePreviewElementInstance>(listOf(
-      SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
-      SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
-      SingleComposePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
-    ))
+    val staticPreviewProvider =
+      StaticPreviewProvider<ComposePreviewElementInstance>(
+        listOf(
+          SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod1"),
+          SingleComposePreviewElementInstance.forTesting("com.sample.TestClass.PreviewMethod2"),
+          SingleComposePreviewElementInstance.forTesting("internal.com.sample.TestClass.AMethod")
+        )
+      )
 
     var filterWord = "internal"
-    val filtered = FilteredPreviewElementProvider(staticPreviewProvider) {
-      !it.composableMethodFqn.contains(filterWord)
-    }
+    val filtered =
+      FilteredPreviewElementProvider(staticPreviewProvider) {
+        !it.composableMethodFqn.contains(filterWord)
+      }
 
     assertEquals(3, staticPreviewProvider.previewElements().count())
     // The filtered provider contains all elements without the word internal
-    assertEquals(listOf("com.sample.TestClass.PreviewMethod1", "com.sample.TestClass.PreviewMethod2"),
-                 filtered.previewElements().map { it.composableMethodFqn }.toList())
+    assertEquals(
+      listOf("com.sample.TestClass.PreviewMethod1", "com.sample.TestClass.PreviewMethod2"),
+      filtered.previewElements().map { it.composableMethodFqn }.toList()
+    )
 
     // Now remove all elements with the word Preview
     filterWord = "Preview"
-    assertEquals("internal.com.sample.TestClass.AMethod", filtered.previewElements().single().composableMethodFqn)
+    assertEquals(
+      "internal.com.sample.TestClass.AMethod",
+      filtered.previewElements().single().composableMethodFqn
+    )
   }
 }

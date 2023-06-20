@@ -111,8 +111,13 @@ internal fun getApplicationId(facet: AndroidFacet): String? {
   return try {
     facet.getModuleSystem().getApplicationIdProvider().packageName
   }
+  catch (e: IllegalStateException) {
+    // If the project has not synced yet, there will not be app id available
+    Logger.getInstance(CommonUsageTracker::class.java).debug(e)
+    AndroidModel.get(facet)?.applicationId
+  }
   catch (e: ApkProvisionException) {
-    Logger.getInstance(CommonUsageTracker.javaClass).warn(e)
+    Logger.getInstance(CommonUsageTracker::class.java).warn(e)
     AndroidModel.get(facet)?.applicationId
   }
 }

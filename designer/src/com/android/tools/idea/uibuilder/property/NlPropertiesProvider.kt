@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_SUPPORT_PKG_PREFIX
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
+import com.android.SdkConstants.ATTR_INPUT_TYPE
 import com.android.SdkConstants.ATTR_PADDING_END
 import com.android.SdkConstants.ATTR_PADDING_START
 import com.android.SdkConstants.ATTR_POPUP_BACKGROUND
@@ -34,7 +35,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.lint.common.LintIdeClient
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.property.support.TypeResolver
@@ -53,8 +54,8 @@ import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor
 import com.intellij.xml.XmlAttributeDescriptor
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import org.jetbrains.android.dom.AttributeProcessingUtil
-import org.jetbrains.android.dom.attrs.AttributeDefinition
-import org.jetbrains.android.dom.attrs.AttributeDefinitions
+import com.android.tools.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.EventQueue
@@ -114,10 +115,11 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
                                     private val model: NlPropertiesModel,
                                     private val components: List<NlComponent>,
                                     private val localAttrDefs: AttributeDefinitions,
-                                    private val systemAttrDefs: AttributeDefinitions) {
+                                    private val systemAttrDefs: AttributeDefinitions
+  ) {
     private val project = facet.module.project
     private val apiLookup = LintIdeClient.getApiLookup(project)
-    private val minApi = AndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel
+    private val minApi = StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel
     private val psiFacade = JavaPsiFacade.getInstance(project)
     private val classLookup = NlPsiLookup(facet)
     private val descriptorProvider = AndroidDomElementDescriptorProvider()
@@ -187,7 +189,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
         val namespaceUri = getNamespace(desc, tag)
         // Exclude the framework attributes that were added after the current min API level.
         if (ANDROID_URI == namespaceUri && apiLookup != null &&
-            apiLookup.getFieldVersion("android/R\$attr", name) > minApi) {
+            apiLookup.getFieldVersions("android/R\$attr", name).min() > minApi) {
           continue
         }
         val attrDefs = if (ANDROID_URI == namespaceUri) systemAttrDefs else localAttrDefs
@@ -269,7 +271,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
       val property = createProperty(namespace, attribute.name, attribute, componentClass, psiClass.qualifiedName ?: "", model, components)
                      ?: return
       if (ANDROID_URI == namespace && apiLookup != null &&
-          apiLookup.getFieldVersion("android/R\$attr", attribute.name) > minApi) {
+          apiLookup.getFieldVersions("android/R\$attr", attribute.name).min() > minApi) {
         // Exclude the framework attributes that were added after the current min API level.
         return
       }
@@ -298,7 +300,11 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
         return NlIdPropertyItem(model, attr, componentName, components)
       }
       if (attr != null && attr.formats.contains(AttributeFormat.FLAGS) && attr.values.isNotEmpty()) {
-        return NlFlagsPropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
+        return if (name == ATTR_INPUT_TYPE) {
+          InputTypePropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
+        } else {
+          NlFlagsPropertyGroupItem(namespace, name, type, attr, componentName, libraryName, model, components)
+        }
       }
       return NlPropertyItem(namespace, name, type, attr, componentName, libraryName, model, components)
     }

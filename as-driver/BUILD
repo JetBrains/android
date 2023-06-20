@@ -1,4 +1,4 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 
 java_binary(
     name = "as_driver",
@@ -76,6 +76,7 @@ iml_module(
         "//tools/adt/idea/as-driver:asdriver_proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/perf-logger:studio.perf-logger[module, test]",
     ],
 )
 
@@ -86,4 +87,36 @@ jvm_import(
     name = "asdriver_proto",
     jars = ["//tools/adt/idea/as-driver/proto:asdriver_proto.jar"],
     visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "as-driver.integration",
+    enable_tests = False,
+    iml_files = ["integration/as-driver.integration.iml"],
+    test_srcs = ["integration/testSrc"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/tools/common/m2:junit-4.12",
+        "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+    ],
+)
+
+iml_test(
+    name = "ThreadingCheckerTest",
+    data = select({
+        "@platforms//os:linux": [
+            "//tools/adt/idea/studio:android-studio.linux.zip",
+        ],
+        "@platforms//os:macos": [
+            "//tools/adt/idea/studio:android-studio.mac.zip",
+        ],
+        "@platforms//os:windows": [
+            "//tools/adt/idea/studio:android-studio.win.zip",
+        ],
+    }),
+    module = ":as-driver.integration",
+    test_class = "com.android.tools.asdriver.tests.integration.ThreadingCheckerTest",
 )

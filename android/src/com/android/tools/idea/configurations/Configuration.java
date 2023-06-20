@@ -59,12 +59,16 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.layoutlib.RenderingException;
+import com.android.tools.idea.rendering.EnvironmentContext;
+import com.android.tools.idea.rendering.InsufficientDataException;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.ResourceFilesUtil;
+import com.android.tools.idea.res.ResourceUtils;
+import com.android.tools.res.ResourceRepositoryManager;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.intellij.openapi.Disposable;
@@ -84,7 +88,6 @@ import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -226,6 +229,8 @@ public class Configuration implements Disposable, ModificationTracker {
   private float myFontScale = 1f;
   private int myUiModeFlagValue;
   @NotNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
+  private boolean myUseThemedIcon = false;
+  private String myWallpaperPath = null;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -336,6 +341,8 @@ public class Configuration implements Disposable, ModificationTracker {
     copy.myFontScale = original.myFontScale;
     copy.myUiModeFlagValue = original.myUiModeFlagValue;
     copy.myAdaptiveShape = original.myAdaptiveShape;
+    copy.myUseThemedIcon = original.myUseThemedIcon;
+    copy.myWallpaperPath = original.myWallpaperPath;
 
     return copy;
   }
@@ -346,7 +353,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   public void save() {
-    ConfigurationStateManager stateManager = ConfigurationStateManager.get(myManager.getModule().getProject());
+    ConfigurationStateManager stateManager = myManager.getConfigModule().getConfigurationStateManager();
 
     if (myFile != null) {
       ConfigurationFileState fileState = new ConfigurationFileState();
@@ -458,19 +465,16 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   @Nullable
-  public static FolderConfiguration getFolderConfig(@NotNull Module module, @NotNull State state, @NotNull Locale locale,
+  public static FolderConfiguration getFolderConfig(@NotNull ConfigurationModelModule module, @NotNull State state, @NotNull Locale locale,
                                                     @Nullable IAndroidTarget target) {
     FolderConfiguration currentConfig = DeviceConfigHelper.getFolderConfig(state);
     if (currentConfig != null) {
       if (locale.hasLanguage()) {
         currentConfig.setLocaleQualifier(locale.qualifier);
-
-        if (locale.hasLanguage()) {
-          LayoutLibrary layoutLib = RenderService.getLayoutLibrary(module, target);
-          if (layoutLib != null) {
-            if (layoutLib.isRtl(locale.toLocaleId())) {
-              currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
-            }
+        LayoutLibrary layoutLib = getLayoutLibrary(target, module.getAndroidPlatform(), module.getEnvironmentContext());
+        if (layoutLib != null) {
+          if (layoutLib.isRtl(locale.toLocaleId())) {
+            currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
           }
         }
       }
@@ -479,22 +483,30 @@ public class Configuration implements Disposable, ModificationTracker {
     return currentConfig;
   }
 
+  private static LayoutLibrary getLayoutLibrary(IAndroidTarget target, AndroidPlatform platform, EnvironmentContext context) {
+    try {
+      return RenderService.getLayoutLibrary(target, platform, context);
+    } catch (RenderingException | InsufficientDataException ignored) {
+      return null;
+    }
+  }
+
   @Slow
   @Nullable
   private Device computeBestDevice() {
-    for (Device device : myManager.getRecentDevices()) {
+    for (Device device : myManager.getRecentDevices(DeviceUtils.getAvdDevices(this))) {
       String stateName = myStateName;
       if (stateName == null) {
         stateName = device.getDefaultState().getName();
       }
       State selectedState = ConfigurationFileState.getState(device, stateName);
-      Module module = myManager.getModule();
-      FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
+      Module module = getModule();
+      FolderConfiguration currentConfig = getFolderConfig(myManager.getConfigModule(), selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
-          LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(module);
-          if (resources != null && myFile != null) {
-            ResourceFolderType folderType = IdeResourcesUtil.getFolderType(myFile);
+          ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
+          if (repositoryManager != null && myFile != null) {
+            ResourceFolderType folderType = ResourceFilesUtil.getFolderType(myFile);
             if (folderType != null) {
               if (ResourceFolderType.VALUES.equals(folderType)) {
                 // If it's a file in the values folder, ResourceRepository.getMatchingFiles won't work.
@@ -516,6 +528,7 @@ public class Configuration implements Disposable, ModificationTracker {
                 List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
                 if (!types.isEmpty()) {
                   ResourceType type = types.get(0);
+                  ResourceRepository resources = repositoryManager.getAppResources();
                   List<VirtualFile> matches =
                       ConfigurationMatcher.getMatchingFiles(resources, myFile, ResourceNamespace.TODO(), type, currentConfig);
                   if (matches.contains(myFile)) {
@@ -632,12 +645,11 @@ public class Configuration implements Disposable, ModificationTracker {
 
     if (target instanceof CompatibilityRenderTarget) {
       CompatibilityRenderTarget compatTarget = (CompatibilityRenderTarget)target;
-      if (compatTarget.getRealTarget() != null) {
-        return compatTarget.getRealTarget();
-      }
+      return compatTarget.getRealTarget();
     }
-
-    return target;
+    else {
+      return target;
+    }
   }
 
   /**
@@ -1039,6 +1051,35 @@ public class Configuration implements Disposable, ModificationTracker {
     return myAdaptiveShape;
   }
 
+  public void setWallpaperPath(@Nullable String wallpaperPath) {
+    if (!Objects.equal(myWallpaperPath, wallpaperPath)) {
+      myWallpaperPath = wallpaperPath;
+      updated(CFG_THEME);
+    }
+  }
+
+  /**
+   * Returns the wallpaper resource path to use when rendering
+   */
+  @Nullable
+  public String getWallpaperPath() {
+    return myWallpaperPath;
+  }
+
+  public void setUseThemedIcon(boolean useThemedIcon) {
+    if (myUseThemedIcon != useThemedIcon) {
+      myUseThemedIcon = useThemedIcon;
+      updated(CFG_THEME);
+    }
+  }
+
+  /**
+   * Returns whether to use the themed version of adaptive icons
+   */
+  public boolean getUseThemedIcon() {
+    return myUseThemedIcon;
+  }
+
   /**
    * Updates the folder configuration such that it reflects changes in
    * configuration state such as the device orientation, the UI mode, the
@@ -1055,7 +1096,7 @@ public class Configuration implements Disposable, ModificationTracker {
     if (deviceState == null) {
       deviceState = device.getDefaultState();
     }
-    FolderConfiguration config = getFolderConfig(getModule(), deviceState, getLocale(), getTarget());
+    FolderConfiguration config = getFolderConfig(myManager.getConfigModule(), deviceState, getLocale(), getTarget());
 
     // replace the config with the one from the device
     myFullConfig.set(config);
@@ -1070,7 +1111,8 @@ public class Configuration implements Disposable, ModificationTracker {
       // Avoid getting the layout library if the locale doesn't have any language.
       myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
     } else {
-      LayoutLibrary layoutLib = RenderService.getLayoutLibrary(getModule(), getTarget());
+      ConfigurationModelModule configModule = myManager.getConfigModule();
+      LayoutLibrary layoutLib = getLayoutLibrary(getTarget(), configModule.getAndroidPlatform(), configModule.getEnvironmentContext());
       if (layoutLib != null) {
         if (layoutLib.isRtl(locale.toLocaleId())) {
           myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
@@ -1139,7 +1181,7 @@ public class Configuration implements Disposable, ModificationTracker {
         return;
       }
 
-      myTheme = ResolutionUtils.getStyleResourceUrl(myTheme);
+      myTheme = ResourceUtils.getStyleResourceUrl(myTheme);
     }
   }
 
@@ -1306,20 +1348,26 @@ public class Configuration implements Disposable, ModificationTracker {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this.getClass())
-      .add("display", getDisplayName())
-      .add("theme", getTheme())
-      .add("activity", getActivity())
-      .add("device", getDevice())
-      .add("state", getDeviceState())
-      .add("locale", getLocale())
-      .add("target", getTarget())
-      .add("uimode", getUiMode())
-      .add("nightmode", getNightMode())
+      .add("display", myDisplayName)
+      .add("theme", myTheme)
+      .add("activity", myActivity)
+      .add("device", myDevice)
+      .add("state", myState)
+      .add("locale", myLocale)
+      .add("target", myTarget)
+      .add("uimode", myUiMode)
+      .add("nightmode", myNightMode)
       .toString();
   }
 
+  @NotNull
   public Module getModule() {
     return myManager.getModule();
+  }
+
+  @NotNull
+  public ConfigurationModelModule getConfigModule() {
+    return myManager.getConfigModule();
   }
 
   @Override

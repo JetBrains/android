@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.rendering.classloading;
 
+import static com.android.tools.idea.rendering.classloading.Build.VERSION.SDK_INT;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Typeface;
@@ -22,6 +24,7 @@ import android.os.Handler;
 import android.util.TypedValue;
 
 public final class ResourcesCompat {
+  public static int sdkVersion = SDK_INT;
 
   public static Typeface loadFont(Context context,
                                    Resources wrapper,
@@ -38,6 +41,10 @@ public final class ResourcesCompat {
     }
 
     return null;
+  }
+
+  public static int getSdkVersion() {
+    return SDK_INT;
   }
 
   public ResourcesCompat() { }

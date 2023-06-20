@@ -19,20 +19,18 @@ import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.isComposableAnnotation
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.idea.core.ShortenReferences
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * Adds a @Preview annotation when a full @Composable is selected or cursor at @Composable annotation.
@@ -46,7 +44,6 @@ class ComposeCreatePreviewAction : IntentionAction {
 
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
     return when {
-      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> false
       file == null || editor == null -> false
       !file.isWritable || file !is KtFile -> false
       else -> getComposableAnnotationEntry(editor, file) != null
@@ -62,7 +59,7 @@ class ComposeCreatePreviewAction : IntentionAction {
       else {
         // Case when user selected few extra blank lines before @Composable annotation.
         val elementAtCaretAfterSpace = file.findElementAt(editor.selectionModel.selectionStart)?.getNextSiblingIgnoringWhitespace()
-        return elementAtCaretAfterSpace.safeAs<KtFunction>()?.annotationEntries?.find { it.fqNameMatches(COMPOSABLE_FQ_NAMES) }
+        return (elementAtCaretAfterSpace as? KtFunction)?.annotationEntries?.find { it.fqNameMatches(COMPOSABLE_FQ_NAMES) }
       }
     }
     else {
@@ -76,6 +73,6 @@ class ComposeCreatePreviewAction : IntentionAction {
     val composableFunction = composableAnnotationEntry.parentOfType<KtFunction>() ?: return
     val previewAnnotationEntry = KtPsiFactory(project).createAnnotationEntry("@${COMPOSE_PREVIEW_ANNOTATION_FQN}")
 
-    ShortenReferences.DEFAULT.process(composableFunction.addAnnotationEntry(previewAnnotationEntry))
+    ShortenReferencesFacility.getInstance().shorten(composableFunction.addAnnotationEntry(previewAnnotationEntry))
   }
 }

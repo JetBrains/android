@@ -43,7 +43,7 @@ class AllocationDurationData<T: CaptureObject>(duration: Long, captureEntry: Cap
     private fun makeDurationData(dataRange: Range,
                                  allocSeries: DataSeries<CaptureDurationData<out CaptureObject>>,
                                  samplingSeries: DataSeries<AllocationSamplingRateDurationData>) =
-      DataSeries { _ ->
+      DataSeries.using { _ ->
         samplingSeries.getDataForRange(dataRange).consecutiveAllocRanges().mapNotNull {
           val startTime = it.min.toLong()
           val durationUs = it.max.toLong() - startTime
@@ -60,7 +60,7 @@ class AllocationDurationData<T: CaptureObject>(duration: Long, captureEntry: Cap
     /**
      * Each group of consecutive sampling rates of `FULL` or `SAMPLED` makes an allocation session
      */
-    private fun List<SeriesData<AllocationSamplingRateDurationData>>.consecutiveAllocRanges() = mutableListOf<Range>().also { ranges ->
+    internal fun List<SeriesData<AllocationSamplingRateDurationData>>.consecutiveAllocRanges() = mutableListOf<Range>().also { ranges ->
       var lo = Double.NaN
       forEach {
         when (getModeFromFrequency(it.value.currentRate.samplingNumInterval)) {

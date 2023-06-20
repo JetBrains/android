@@ -22,6 +22,7 @@ import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.FastPreviewRule
 import com.android.tools.idea.editors.fast.ManualDisabledReason
+import com.android.tools.idea.editors.fast.simulateProjectSystemBuild
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeAndSave
@@ -38,6 +39,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -55,23 +57,6 @@ class ProjectBuildStatusManagerTest {
     .outerRule(projectRule)
     .around(FastPreviewRule())
 
-  /**
-   * [PsiFileSnapshotFilter] that allows changing the filter on the fly. Alter the [filter] is updated or when the filter changes behaviour,
-   * [incModificationCount] should be called.
-   */
-  class TestFilter : PsiFileSnapshotFilter, SimpleModificationTracker() {
-    var filter: (PsiElement) -> Boolean = { true }
-
-    override fun accepts(element: PsiElement): Boolean = filter(element)
-  }
-
-  private fun ProjectBuildStatusManagerForTests.simulateProjectSystemBuild(buildMode: ProjectSystemBuildManager.BuildMode = ProjectSystemBuildManager.BuildMode.COMPILE,
-                                                                           buildStatus: ProjectSystemBuildManager.BuildStatus) {
-    getBuildListenerForTest().buildStarted(buildMode)
-    getBuildListenerForTest().buildCompleted(
-      ProjectSystemBuildManager.BuildResult(buildMode, buildStatus, 1L))
-  }
-
   @Test
   fun testFastPreviewTriggersCompileState() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
@@ -82,11 +67,9 @@ class ProjectBuildStatusManagerTest {
     }
     projectRule.replaceProjectService(FastPreviewManager::class.java, fastPreviewManager)
 
-    val fileFilter = TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
-      fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     runBlocking {
@@ -117,11 +100,9 @@ class ProjectBuildStatusManagerTest {
   fun testFastPreviewEnableLeavesFileAsUpToDateForSuccessfulGradleBuild() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val fileFilter = TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
-      fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     try {
@@ -146,11 +127,9 @@ class ProjectBuildStatusManagerTest {
   fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedGradleBuild() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val fileFilter = TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
-      fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     try {
@@ -175,11 +154,9 @@ class ProjectBuildStatusManagerTest {
   fun testFastPreviewEnableLeavesFileAsOutOfDateForFailedFastPreviewCompilation() {
     val psiFile = projectRule.fixture.addFileToProject("src/a/Test.kt", "fun a() {}")
 
-    val fileFilter = TestFilter()
     val statusManager = ProjectBuildStatusManager.create(
       projectRule.fixture.testRootDisposable,
       psiFile,
-      fileFilter,
       scope = CoroutineScope(Executor { command -> command.run() }.asCoroutineDispatcher()))
 
     try {
@@ -204,7 +181,7 @@ class ProjectBuildStatusManagerTest {
 
       // Disabling Live Edit will bring the out of date state
       FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
-      assertEquals(ProjectStatus.OutOfDate, statusManager.status)
+      Assert.assertThat(statusManager.status, CoreMatchers.instanceOf(ProjectStatus.OutOfDate::class.java))
     }
     finally {
       FastPreviewConfiguration.getInstance().resetDefault()

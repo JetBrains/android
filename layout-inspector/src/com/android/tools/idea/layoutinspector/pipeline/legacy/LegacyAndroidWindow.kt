@@ -36,7 +36,14 @@ class LegacyAndroidWindow(
   override fun refreshImages(scale: Double) {
     val image = client.latestScreenshots[windowName]?.let { pngBytes ->
       ImageIO.read(ByteArrayInputStream(pngBytes))?.let {
-        it.getScaledInstance((it.width * scale).toInt(), (it.height * scale).toInt(), Image.SCALE_DEFAULT)
+        val scaledWidth = (it.width * scale).toInt()
+        val scaledHeight = (it.height * scale).toInt()
+        if (scaledWidth > 0 && scaledHeight > 0) {
+          it.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_DEFAULT)
+        }
+        else {
+          null
+        }
       }
     }
     ViewNode.writeAccess {

@@ -16,7 +16,6 @@
 package org.jetbrains.android
 
 import com.android.tools.idea.findDependenciesWithResources
-import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.projectsystem.getMainModule
@@ -24,7 +23,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.ModuleRClass
 import com.android.tools.idea.res.ModuleRClass.SourceSet
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.ResourceRepositoryRClass
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.NON_TRANSITIVE
@@ -32,6 +31,7 @@ import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.TRANSITI
 import com.android.tools.idea.res.SmallAarRClass
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.res.ResourceNamespacing
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -42,7 +42,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.TestSourcesFilter
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiClass
 import com.intellij.psi.ResolveScopeEnlarger
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.light.LightElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
@@ -75,6 +77,8 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
     @JvmField
     val LIGHT_CLASS_KEY: Key<Class<out LightElement>> = Key.create(::LIGHT_CLASS_KEY.qualifiedName)
     @JvmField
+    val BACKING_CLASS: Key<SmartPsiElementPointer<PsiClass>> = Key.create(::BACKING_CLASS.qualifiedName)
+    @JvmField
     val MODULE_POINTER_KEY: Key<ModulePointer> = Key.create(::MODULE_POINTER_KEY.qualifiedName)
     val AAR_ADDRESS_KEY: Key<String> = Key.create(::AAR_ADDRESS_KEY.qualifiedName)
     val FILE_SOURCE_SET_KEY: Key<SourceSet> = Key.create(::FILE_SOURCE_SET_KEY.qualifiedName)
@@ -102,7 +106,7 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
     ): GlobalSearchScope(module.project) {
 
       private val dependentAarAddresses = findDependenciesWithResources(module).keys
-      private val namespacing = ResourceRepositoryManager.getInstance(module)?.namespacing
+      private val namespacing = StudioResourceRepositoryManager.getInstance(module)?.namespacing
 
       fun isLightVirtualFileFromAccessibleModule(file: LightVirtualFile): Boolean {
         val modulePointer = file.getUserData(MODULE_POINTER_KEY) ?: return false
@@ -141,8 +145,8 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
         return when (file.getUserData(LIGHT_CLASS_KEY)) {
           ModuleRClass::class.java -> isModuleRVirtualFileAccessible(file)
           ManifestClass::class.java -> isLightVirtualFileFromAccessibleModule(file)
-          SmallAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == Namespacing.REQUIRED
-          TransitiveAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == Namespacing.DISABLED
+          SmallAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == ResourceNamespacing.REQUIRED
+          TransitiveAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == ResourceNamespacing.DISABLED
           ResourceRepositoryRClass::class.java -> {
             // For BlazeRClass which does not take into account test scope or transitivity
             isLightVirtualFileFromAccessibleModule(file)

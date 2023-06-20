@@ -16,18 +16,18 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
-import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.requestBuild
+import com.intellij.openapi.components.service
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
@@ -43,11 +43,14 @@ import java.util.function.Function
 import javax.swing.JComponent
 
 /**
- * [EditorNotificationProvider] that displays the notification when a Kotlin file adds the preview import. The notification will close
- * the current editor and open one with the preview.
+ * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview
+ * import. The notification will close the current editor and open one with the preview.
  */
 internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
   private val filePreviewElementProvider: () -> FilePreviewElementFinder) : EditorNotificationProvider {
+
+    private val COMPONENT_KEY =
+      Key.create<EditorNotificationPanel>("android.tools.compose.preview.new.notification")
 
   constructor() : this(::defaultFilePreviewElementFinder)
 
@@ -60,36 +63,38 @@ internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
       StudioFlags.NELE_SOURCE_CODE_EDITOR.get() -> null
       // Not a Kotlin file or already a Compose Preview Editor
       !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
-      filePreviewElementProvider().hasPreviewMethods(project, file) -> EditorNotificationPanel(fileEditor,
-                                                                                               EditorNotificationPanel.Status.Info).apply {
-        setText(message("notification.new.preview"))
-        createActionLabel(message("notification.new.preview.action")) {
-          if (fileEditor.isValid) {
-            FileEditorManager.getInstance(project).closeFile(file)
-            FileEditorManager.getInstance(project).openFile(file, true)
-            project.requestBuild(file)
+      filePreviewElementProvider().hasPreviewMethods(project, file) ->
+        EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
+          setText(message("notification.new.preview"))
+          createActionLabel(message("notification.new.preview.action")) {
+            if (fileEditor.isValid) {
+              FileEditorManager.getInstance(project).closeFile(file)
+              FileEditorManager.getInstance(project).openFile(file, true)
+              project.requestBuild(file)
+            }
           }
         }
-      }
       else -> null
     }
 }
 
 /**
- * [ProjectComponent] that listens for Kotlin file additions or removals and triggers a notification update
+ * Component that listens for Kotlin file additions or removals and triggers a notification
+ * update
  */
 @Service(Service.Level.PROJECT)
-internal class ComposeNewPreviewNotificationManager : Disposable {
+internal class ComposeNewPreviewNotificationManager(project: Project) : Disposable {
   companion object {
     private val LOG = logger<ComposeNewPreviewNotificationManager>()
   }
 
   private val updateNotificationQueue: MergingUpdateQueue by lazy {
-    MergingUpdateQueue("Update notifications",
-                       TimeUnit.SECONDS.toMillis(2).toInt(),
-                       true,
-                       null,
-                       this)
+    MergingUpdateQueue(
+      "Update notifications",
+      TimeUnit.SECONDS.toMillis(2).toInt(),
+      true,
+      null,
+      this)
   }
 
   override fun dispose() {
@@ -104,37 +109,41 @@ internal class ComposeNewPreviewNotificationManager : Disposable {
   private fun projectOpened(project: Project) {
     LOG.debug("projectOpened")
 
-    PsiManager.getInstance(project).addPsiTreeChangeListener(object : PsiTreeChangeAdapter() {
-      private fun onEvent(event: PsiTreeChangeEvent) {
-        val file = event.file?.virtualFile ?: return
-        if (!file.isKotlinFileType()) return
-        updateNotificationQueue.queue(object : Update(file) {
-          override fun run() {
-            if (project.isDisposed || !file.isValid) {
-              return
-            }
+    PsiManager.getInstance(project)
+      .addPsiTreeChangeListener(
+        object : PsiTreeChangeAdapter() {
+          private fun onEvent(event: PsiTreeChangeEvent) {
+            val file = event.file?.virtualFile ?: return
+            if (!file.isKotlinFileType()) return
+            updateNotificationQueue.queue(
+              object : Update(file) {
+                override fun run() {
+                  if (project.isDisposed || !file.isValid) {
+                    return
+                  }
 
-            if (LOG.isDebugEnabled) {
-              LOG.debug("updateNotifications for ${file.name}")
-            }
+                  if (LOG.isDebugEnabled) {
+                    LOG.debug("updateNotifications for ${file.name}")
+                  }
 
-            if (FileEditorManager.getInstance(project).getEditors(file).isEmpty()) {
-              LOG.debug("No editor found")
-              return
-            }
+                  if (FileEditorManager.getInstance(project).getEditors(file).isEmpty()) {
+                    LOG.debug("No editor found")
+                    return
+                  }
 
-            EditorNotifications.getInstance(project).updateNotifications(file)
+                  EditorNotifications.getInstance(project).updateNotifications(file)
+                }
+              }
+            )
           }
-        })
-      }
 
-      override fun childAdded(event: PsiTreeChangeEvent) {
-        onEvent(event)
-      }
+          override fun childAdded(event: PsiTreeChangeEvent) {
+            onEvent(event)
+          }
 
-      override fun childRemoved(event: PsiTreeChangeEvent) {
-        onEvent(event)
-      }
-    }, this)
+          override fun childRemoved(event: PsiTreeChangeEvent) {
+            onEvent(event)
+          }
+        }, this)
   }
 }

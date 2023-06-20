@@ -22,7 +22,8 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.common.surface.InteractionManager;
+import com.android.tools.idea.common.surface.GuiInputHandler;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.google.common.collect.ImmutableList;
 import java.awt.datatransfer.Transferable;
@@ -60,9 +61,14 @@ public class LinearDragHandlerTest extends LayoutTestCase {
     surface.getSelectionModel().setSelection(ImmutableList.of(button));
     surface.setModel(model);
     Transferable transferable = surface.getSelectionAsTransferable();
-    InteractionManager manager = surface.getInteractionManager();
+    GuiInputHandler manager = surface.getGuiInputHandler();
     manager.startListening();
-    LayoutTestUtilities.dragDrop(manager, 0, 0, 13, 0, transferable, DnDConstants.ACTION_MOVE);
+    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      LayoutTestUtilities.dragDrop(manager, 0, 0, 7, 0, transferable, DnDConstants.ACTION_MOVE);
+    }
+    else {
+      LayoutTestUtilities.dragDrop(manager, 0, 0, 13, 0, transferable, DnDConstants.ACTION_MOVE);
+    }
     assertEquals(3, model.find("inner").getChildCount());
     assertEquals("button", model.find("inner").getChild(1).getId());
     assertEquals(1, model.find("outer").getChildCount());

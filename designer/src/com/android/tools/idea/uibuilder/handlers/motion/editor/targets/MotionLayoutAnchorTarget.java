@@ -1133,7 +1133,6 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
       Scout.connect(list, myType, false, true);
       NlDesignSurface designSurface = (NlDesignSurface)mySrc.getScene().getDesignSurface();
       designSurface.forceLayersPaint(true);
-      designSurface.repaint();
     }
 
 

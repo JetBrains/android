@@ -195,6 +195,19 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     toTestCompletion("overlay.xml", "overlay_after.xml");
   }
 
+  public void testOverlayAttributeTagCompletion() throws Throwable {
+    VirtualFile file = myFixture.addFileToProject(
+      "AndroidManifest.xml",
+      "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"p1.a\">\n" +
+      "    <overlay android:tar<caret>\n" +
+      "</manifest>").getVirtualFile();
+
+    myFixture.configureFromExistingVirtualFile(file);
+    myFixture.completeBasic();
+
+    assertThat(myFixture.getLookupElementStrings()).containsExactly("targetName", "targetPackage");
+  }
+
   public void testOverlayHighlighting() {
     // Asserting that using overlay tag, and attributes does not produce a warning from AndroidDomInspection.
     // Attribute values do not need to resolve to anything.

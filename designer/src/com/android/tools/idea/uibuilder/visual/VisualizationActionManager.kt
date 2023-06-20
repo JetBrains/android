@@ -78,7 +78,7 @@ class VisualizationActionManager(surface: NlDesignSurface,
   }
 
   override fun getSceneViewRightBar(sceneView: SceneView): JComponent {
-    return object: JBLabel(ColoredIconGenerator.generateColoredIcon(StudioIcons.Common.WARNING, JBColor.background())) {
+    return object: JBLabel(ColoredIconGenerator.generateColoredIcon(StudioIcons.Common.WARNING_INLINE, JBColor.background())) {
       init {
         isOpaque = true
         background = Color.ORANGE

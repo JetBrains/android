@@ -49,7 +49,6 @@ import com.intellij.util.EventDispatcher
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.MergingUpdateQueue.ANY_COMPONENT
 import com.intellij.util.ui.update.Update
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.io.File
 import java.util.EventListener
 
@@ -140,11 +139,13 @@ class PsAnalyzerDaemon(
   /**
    * Runs validation-essential analysis (must be invoked on EDT).
    */
+  @Suppress("UNCHECKED_CAST")
   fun validate(model: PsModel): Sequence<PsIssue> =
-    modelAnalyzers[model.javaClass]?.cast<PsModelAnalyzer<PsModel>>()?.analyze(model) ?: sequenceOf()
+    (modelAnalyzers[model.javaClass] as? PsModelAnalyzer<PsModel>)?.analyze(model) ?: sequenceOf()
 
   private fun doAnalyzeStructure(model: PsModel) {
-    val analyzer = modelAnalyzers[model.javaClass]?.cast<PsModelAnalyzer<PsModel>>()
+    @Suppress("UNCHECKED_CAST")
+    val analyzer = modelAnalyzers[model.javaClass] as? PsModelAnalyzer<PsModel>
     if (analyzer == null) {
       LOG.info("Failed to find analyzer for model of type " + model.javaClass.name)
       return

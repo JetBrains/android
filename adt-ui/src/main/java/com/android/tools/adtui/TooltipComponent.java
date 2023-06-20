@@ -47,7 +47,7 @@ public final class TooltipComponent extends AnimatedComponent {
   private final JComponent myOwner;
 
   @NotNull
-  private final JLayeredPane myParent;
+  private final JComponent myParent;
 
   @NotNull
   private final Supplier<Boolean> myIsOwnerDisplayable;
@@ -268,7 +268,7 @@ public final class TooltipComponent extends AnimatedComponent {
   public static class Builder {
     @NotNull private final JComponent myTooltipContent;
     @NotNull private final JComponent myOwner;
-    @NotNull private final JLayeredPane myParent;
+    @NotNull private final JComponent myParent;
     @NotNull private Supplier<Boolean> myIsOwnerDisplayable;
     @Nullable private Supplier<Boolean> myDefaultVisibilityOverride;
     private boolean myEnableAntiFlap;
@@ -283,7 +283,7 @@ public final class TooltipComponent extends AnimatedComponent {
      *                       tree from this owner searching for a proper place to add itself.
      * @param parent         The top-most layered pane this tooltip will paint over.
      */
-    public Builder(@NotNull JComponent tooltipContent, @NotNull JComponent owner, @NotNull JLayeredPane parent) {
+    public Builder(@NotNull JComponent tooltipContent, @NotNull JComponent owner, @NotNull JComponent parent) {
       myTooltipContent = tooltipContent;
       myOwner = owner;
       myParent = parent;

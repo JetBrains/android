@@ -88,6 +88,9 @@ class FindSelectedLibVersionDeclarationAction(
       override fun findingUsagesFinished(usageView: UsageView?) = analytics.findLibraryVersionDeclarationActionUsed(watch.elapsed())
     }
     val target = object : UsageTarget {
+      override fun navigate(requestFocus: Boolean) = Unit
+      override fun canNavigate(): Boolean = false
+      override fun canNavigateToSource(): Boolean = false
       override fun getName(): String = fullNameWithoutVersion
       override fun getPresentation(): ItemPresentation = object : ItemPresentation {
         override fun getPresentableText(): String = fullNameWithoutVersion

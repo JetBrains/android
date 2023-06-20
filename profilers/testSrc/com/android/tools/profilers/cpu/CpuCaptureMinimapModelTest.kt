@@ -21,11 +21,10 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -37,7 +36,7 @@ class CpuCaptureMinimapModelTest {
   private val timer = FakeTimer()
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCaptureMinimapModelTest", FakeCpuService(), FakeProfilerService(timer), FakeTransportService(timer))
+  var grpcChannel = FakeGrpcChannel("CpuCaptureMinimapModelTest", FakeTransportService(timer))
 
   private lateinit var profilers: StudioProfilers
   @Before
@@ -49,7 +48,7 @@ class CpuCaptureMinimapModelTest {
   fun selectionRangeIsBoundByCaptureRange() {
     val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
     whenever(mockCapture.range).thenReturn(Range(1.0, 10.0))
-    whenever(mockCapture.type).thenReturn(Cpu.CpuTraceType.ATRACE)
+    whenever(mockCapture.type).thenReturn(TraceType.ATRACE)
     whenever(mockCapture.timeline).thenReturn(DefaultTimeline())
 
     val minimapModel = CpuCaptureMinimapModel(profilers, mockCapture, Range())
@@ -64,7 +63,7 @@ class CpuCaptureMinimapModelTest {
     timeline.viewRange.set(1.0,5.0)
     val mockCapture = Mockito.mock(SystemTraceCpuCapture::class.java)
     whenever(mockCapture.range).thenReturn(Range(1.0, 10.0))
-    whenever(mockCapture.type).thenReturn(Cpu.CpuTraceType.PERFETTO)
+    whenever(mockCapture.type).thenReturn(TraceType.PERFETTO)
     whenever(mockCapture.timeline).thenReturn(timeline)
 
     val minimapModel = CpuCaptureMinimapModel(profilers, mockCapture, Range())

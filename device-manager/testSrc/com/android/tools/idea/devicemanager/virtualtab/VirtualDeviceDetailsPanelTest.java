@@ -19,13 +19,14 @@ import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.AvdInfo.AvdStatus;
+import com.android.tools.idea.device.Resolution;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.InfoSection;
-import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.StorageDevice;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceDetailsPanel.SummarySection;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import java.nio.file.Paths;
@@ -41,6 +42,7 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class VirtualDeviceDetailsPanelTest {
   private final @NotNull AvdInfo myAvd = Mockito.mock(AvdInfo.class);
+  private final @NotNull WearPairingManager myManager = Mockito.mock(WearPairingManager.class);
 
   @Test
   public void initSummarySection() throws Exception {
@@ -49,7 +51,7 @@ public final class VirtualDeviceDetailsPanelTest {
     VirtualDevice virtualDevice = TestVirtualDevices.onlinePixel5Api31(myAvd);
 
     Device device = new VirtualDevice.Builder()
-      .setKey(TestVirtualDevices.newKey("Pixel_5_API_31"))
+      .setKey(TestVirtualDevices.PIXEL_5_API_31_KEY)
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
@@ -66,7 +68,8 @@ public final class VirtualDeviceDetailsPanelTest {
     // Act
     VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
                                                                     builder,
-                                                                    section -> newSummarySectionCallback(section, latch));
+                                                                    section -> newSummarySectionCallback(section, latch),
+                                                                    myManager);
 
     // Assert
     CountDownLatchAssert.await(latch);
@@ -80,8 +83,43 @@ public final class VirtualDeviceDetailsPanelTest {
     assertEquals("5,333 MB", section.myAvailableStorageLabel.getText());
   }
 
-  private static @NotNull FutureCallback<@NotNull Device> newSummarySectionCallback(@NotNull SummarySection section,
-                                                                                    @NotNull CountDownLatch latch) {
+  @Test
+  public void initSummarySectionWithSdkExtension() throws Exception {
+    // Arrange
+    Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.OK);
+    VirtualDevice virtualDevice = TestVirtualDevices.onlinePixel5Api33ext4(myAvd);
+
+    Device device = new VirtualDevice.Builder()
+      .setKey(TestVirtualDevices.PIXEL_5_API_33_EXT_4_KEY)
+      .setName("Pixel 5 API 33 ext 4")
+      .setTarget("Android 12.0 Google APIs")
+      .setCpuArchitecture("x86_64")
+      .setResolution(new Resolution(1080, 2340))
+      .setDensity(440)
+      .addAllAbis(List.of("x86_64", "arm64-v8a"))
+      .setStorageDevice(new StorageDevice(5_333))
+      .setAvdInfo(myAvd)
+      .build();
+
+    AsyncVirtualDeviceDetailsBuilder builder = mock(device);
+    CountDownLatch latch = new CountDownLatch(1);
+
+    // Act
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
+                                                                    builder,
+                                                                    section -> newSummarySectionCallback(section, latch),
+                                                                    myManager);
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+
+    SummarySection section = panel.getSummarySection();
+
+    assertEquals("33-ext4", section.myApiLevelLabel.getText());
+  }
+
+  @NotNull
+  private static FutureCallback<Device> newSummarySectionCallback(@NotNull SummarySection section, @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(VirtualDeviceDetailsPanel.newSummarySectionCallback(section), latch);
   }
 
@@ -99,7 +137,8 @@ public final class VirtualDeviceDetailsPanelTest {
     // Act
     VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
                                                                     builder,
-                                                                    VirtualDeviceDetailsPanel::newSummarySectionCallback);
+                                                                    VirtualDeviceDetailsPanel::newSummarySectionCallback,
+                                                                    myManager);
 
     // Assert
     assert panel.getSummarySection().myErrorLabel != null;
@@ -121,13 +160,14 @@ public final class VirtualDeviceDetailsPanelTest {
     // Act
     VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
                                                                     builder,
-                                                                    VirtualDeviceDetailsPanel::newSummarySectionCallback);
+                                                                    VirtualDeviceDetailsPanel::newSummarySectionCallback,
+                                                                    myManager);
 
     // Assert
     InfoSection section = panel.getPropertiesSection();
 
-    assertEquals(List.of("fastboot.chosenSnapshotFile", "runtime.network.speed", "hw.accelerometer"), section.getNames());
-    assertEquals(List.of("", "full", "yes"), section.getValues());
+    assertEquals(List.of("fastboot.chosenSnapshotFile", "hw.accelerometer", "runtime.network.speed"), section.getNames());
+    assertEquals(List.of("", "yes", "full"), section.getValues());
   }
 
   private static @NotNull AsyncVirtualDeviceDetailsBuilder mock(@NotNull Device device) {

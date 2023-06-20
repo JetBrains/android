@@ -23,11 +23,12 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.TransportProxy
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Transport
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.intellij.openapi.diagnostic.Logger
 import com.android.tools.idea.io.grpc.StatusRuntimeException
+import com.android.tools.profiler.proto.Trace
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import java.util.concurrent.BlockingDeque
 import java.util.concurrent.TimeUnit
 
@@ -60,11 +61,11 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     // We only handle ART traces in the proxy layer. ATraces are handled via the device daemon and all other trace options are unsupported
     // in pre-O devices.
     return when (command.type) {
-      Commands.Command.CommandType.START_CPU_TRACE -> {
-        command.startCpuTrace.configuration.userOptions.traceType == Cpu.CpuTraceType.ART
+      Commands.Command.CommandType.START_TRACE -> {
+        TraceType.from(command.startTrace.configuration) == TraceType.ART
       }
-      Commands.Command.CommandType.STOP_CPU_TRACE -> {
-        command.stopCpuTrace.configuration.userOptions.traceType == Cpu.CpuTraceType.ART
+      Commands.Command.CommandType.STOP_TRACE -> {
+        TraceType.from(command.stopTrace.configuration) == TraceType.ART
       }
       else -> false
     }
@@ -72,8 +73,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
 
   override fun execute(command: Commands.Command): Transport.ExecuteResponse {
     when (command.type) {
-      Commands.Command.CommandType.START_CPU_TRACE -> startTrace(command)
-      Commands.Command.CommandType.STOP_CPU_TRACE -> stopTrace(command)
+      Commands.Command.CommandType.START_TRACE -> startTrace(command)
+      Commands.Command.CommandType.STOP_TRACE -> stopTrace(command)
       else -> { }
     }
 
@@ -81,25 +82,25 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   }
 
   private fun startTrace(command: Commands.Command) {
-    val traceConfiguration = command.startCpuTrace.configuration
-    val userOptions = traceConfiguration.userOptions
-    assert(userOptions.traceType == Cpu.CpuTraceType.ART)
+    val traceConfiguration = command.startTrace.configuration
+    assert(traceConfiguration.hasArtOptions())
+    val artOptions = traceConfiguration.artOptions
 
     val pid = command.pid
     val appPkgName = device.getClientName(pid)
     val client = if (appPkgName != null) device.getClient(appPkgName) else null
 
     if (client == null) {
-      val status = Cpu.TraceStartStatus.newBuilder().apply {
-        status = Cpu.TraceStartStatus.Status.FAILURE
+      val status = Trace.TraceStartStatus.newBuilder().apply {
+        status = Trace.TraceStartStatus.Status.FAILURE
         errorMessage = "App is not running"
       }.build()
       sendStartStatusEvent(command, status)
     }
     else {
       if (!LegacyCpuTraceRecord.isMethodProfilingStatusOff(legacyProfilingRecord.get(pid), client)) {
-        val status = Cpu.TraceStartStatus.newBuilder().apply {
-          status = Cpu.TraceStartStatus.Status.FAILURE
+        val status = Trace.TraceStartStatus.newBuilder().apply {
+          status = Trace.TraceStartStatus.Status.FAILURE
           errorMessage = "Start request ignored. The app has an on-going profiling session."
         }.build()
         sendStartStatusEvent(command, status)
@@ -108,14 +109,14 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
         // com.android.ddmlib.HandleProfiling.sendSPSS(..) has buffer size as a parameter, but we cannot call it
         // because the class is not public. To set buffer size, we modify DdmPreferences which will be read by
         // client.startSamplingProfiler(..) and client.startMethodTracer().
-        DdmPreferences.setProfilerBufferSizeMb(userOptions.bufferSizeInMb)
+        DdmPreferences.setProfilerBufferSizeMb(artOptions.bufferSizeInMb)
 
         val requestTimeNs = transportStub.getCurrentTime(Transport.TimeRequest.getDefaultInstance()).timestampNs
         val record = LegacyCpuTraceRecord()
         legacyProfilingRecord.put(pid, record)
         try {
-          if (userOptions.traceMode == Cpu.CpuTraceMode.SAMPLED) {
-            client.startSamplingProfiler(userOptions.samplingIntervalUs, TimeUnit.MICROSECONDS)
+          if (artOptions.traceMode == Trace.TraceMode.SAMPLED) {
+            client.startSamplingProfiler(artOptions.samplingIntervalUs, TimeUnit.MICROSECONDS)
           }
           else {
             client.startMethodTracer()
@@ -130,21 +131,21 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
           // so we countDown here to indicate that we are done processing the start callback.
           record.startLatch.countDown()
           if (record.isStartFailed) {
-            val status = Cpu.TraceStartStatus.newBuilder().apply {
-              status = Cpu.TraceStartStatus.Status.FAILURE
+            val status = Trace.TraceStartStatus.newBuilder().apply {
+              status = Trace.TraceStartStatus.Status.FAILURE
               errorMessage = "Failed to start profiling: " + record.startFailureMessage
             }.build()
             legacyProfilingRecord.remove(pid)
             sendStartStatusEvent(command, status)
           }
           else {
-            val status = Cpu.TraceStartStatus.newBuilder().apply {
-              status = Cpu.TraceStartStatus.Status.SUCCESS
+            val status = Trace.TraceStartStatus.newBuilder().apply {
+              status = Trace.TraceStartStatus.Status.SUCCESS
             }.build()
             sendStartStatusEvent(command, status)
 
             // Create a corresponding CpuTraceInfo for the trace start event.
-            val traceInfo = Cpu.CpuTraceInfo.newBuilder().apply {
+            val traceInfo = Trace.TraceInfo.newBuilder().apply {
               traceId = requestTimeNs
               configuration = traceConfiguration
               fromTimestamp = requestTimeNs
@@ -156,8 +157,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
           }
         }
         catch (e: Exception) {
-          val status = Cpu.TraceStartStatus.newBuilder().apply {
-            status = Cpu.TraceStartStatus.Status.FAILURE
+          val status = Trace.TraceStartStatus.newBuilder().apply {
+            status = Trace.TraceStartStatus.Status.FAILURE
             errorMessage = "Failed: $e"
           }.build()
           legacyProfilingRecord.remove(pid)
@@ -169,16 +170,16 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
   }
 
   private fun stopTrace(command: Commands.Command) {
-    val traceConfiguration = command.stopCpuTrace.configuration
-    val userOptions = traceConfiguration.userOptions
-    assert(userOptions.traceType == Cpu.CpuTraceType.ART)
+    val traceConfiguration = command.stopTrace.configuration
+    assert(traceConfiguration.hasArtOptions())
+    val artOptions = traceConfiguration.artOptions
 
     val pid = command.pid
     val appPkgName = device.getClientName(pid)
     val client = if (appPkgName != null) device.getClient(appPkgName) else null
     if (client == null) {
-      val status = Cpu.TraceStopStatus.newBuilder().apply {
-        status = Cpu.TraceStopStatus.Status.APP_PROCESS_DIED
+      val status = Trace.TraceStopStatus.newBuilder().apply {
+        status = Trace.TraceStopStatus.Status.APP_PROCESS_DIED
         errorMessage = "App is not running"
       }.build()
       sendStopStatusEvent(command, status)
@@ -192,15 +193,15 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     else {
       val record = legacyProfilingRecord.get(pid)
       if (LegacyCpuTraceRecord.isMethodProfilingStatusOff(record, client)) {
-        val status = Cpu.TraceStopStatus.newBuilder().apply {
-          status = Cpu.TraceStopStatus.Status.NO_ONGOING_PROFILING
+        val status = Trace.TraceStopStatus.newBuilder().apply {
+          status = Trace.TraceStopStatus.Status.NO_ONGOING_PROFILING
           errorMessage = "The app is not being profiled."
         }.build()
         sendStopStatusEvent(command, status)
       }
       else {
         try {
-          if (userOptions.getTraceMode() == Cpu.CpuTraceMode.SAMPLED) {
+          if (artOptions.traceMode == Trace.TraceMode.SAMPLED) {
             client.stopSamplingProfiler()
           }
           else {
@@ -213,8 +214,8 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
           sendStopTraceEvent(command, record.traceInfo!!.setToTimestamp(endTimeNs).build())
         }
         catch (e: Exception) {
-          val status = Cpu.TraceStopStatus.newBuilder().apply {
-            status = Cpu.TraceStopStatus.Status.STOP_COMMAND_FAILED
+          val status = Trace.TraceStopStatus.newBuilder().apply {
+            status = Trace.TraceStopStatus.Status.STOP_COMMAND_FAILED
             errorMessage = "Failed: $e"
           }.build()
           sendStopStatusEvent(command, status)
@@ -239,46 +240,46 @@ class LegacyCpuTraceCommandHandler(val device: IDevice,
     return endTimeNs
   }
 
-  private fun sendStartStatusEvent(command: Commands.Command, startStatus: Cpu.TraceStartStatus) {
+  private fun sendStartStatusEvent(command: Commands.Command, startStatus: Trace.TraceStartStatus) {
     val statusEvent = Common.Event.newBuilder().apply {
       pid = command.pid
-      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      kind = Common.Event.Kind.TRACE_STATUS
       commandId = command.commandId
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().setTraceStartStatus(startStatus).build()
+      traceStatus = Trace.TraceStatusData.newBuilder().setTraceStartStatus(startStatus).build()
     }.build()
     eventQueue.offer(statusEvent)
   }
 
-  private fun sendStartTraceEvent(command: Commands.Command, traceInfo: Cpu.CpuTraceInfo) {
+  private fun sendStartTraceEvent(command: Commands.Command, traceInfo: Trace.TraceInfo) {
     val traceStartEvent = Common.Event.newBuilder().apply {
       pid = command.pid
       kind = Common.Event.Kind.CPU_TRACE
       timestamp = traceInfo.fromTimestamp
       groupId = traceInfo.traceId
-      cpuTrace = Cpu.CpuTraceData.newBuilder()
-        .setTraceStarted(Cpu.CpuTraceData.TraceStarted.newBuilder().setTraceInfo(traceInfo)).build()
+      traceData = Trace.TraceData.newBuilder()
+        .setTraceStarted(Trace.TraceData.TraceStarted.newBuilder().setTraceInfo(traceInfo)).build()
     }.build()
     eventQueue.offer(traceStartEvent)
   }
 
-  private fun sendStopStatusEvent(command: Commands.Command, startStatus: Cpu.TraceStopStatus) {
+  private fun sendStopStatusEvent(command: Commands.Command, startStatus: Trace.TraceStopStatus) {
     val statusEvent = Common.Event.newBuilder().apply {
       pid = command.pid
-      kind = Common.Event.Kind.CPU_TRACE_STATUS
+      kind = Common.Event.Kind.TRACE_STATUS
       commandId = command.commandId
-      cpuTraceStatus = Cpu.CpuTraceStatusData.newBuilder().setTraceStopStatus(startStatus).build()
+      traceStatus = Trace.TraceStatusData.newBuilder().setTraceStopStatus(startStatus).build()
     }.build()
     eventQueue.offer(statusEvent)
   }
 
-  private fun sendStopTraceEvent(command: Commands.Command, traceInfo: Cpu.CpuTraceInfo) {
+  private fun sendStopTraceEvent(command: Commands.Command, traceInfo: Trace.TraceInfo) {
     val traceStartEvent = Common.Event.newBuilder().apply {
       pid = command.pid
       kind = Common.Event.Kind.CPU_TRACE
       timestamp = traceInfo.toTimestamp
       groupId = traceInfo.traceId
-      cpuTrace = Cpu.CpuTraceData.newBuilder()
-        .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo)).build()
+      traceData = Trace.TraceData.newBuilder()
+        .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo)).build()
     }.build()
     eventQueue.offer(traceStartEvent)
   }

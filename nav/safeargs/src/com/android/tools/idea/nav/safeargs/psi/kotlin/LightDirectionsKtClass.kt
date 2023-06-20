@@ -16,7 +16,7 @@
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.index.NavActionData
 import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
@@ -32,6 +32,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
 import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -54,6 +55,7 @@ import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.storage.StorageManager
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.utils.Printer
 
 /**
@@ -98,7 +100,7 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  */
 class LightDirectionsKtClass(
-  private val navigationVersion: GradleVersion,
+  private val navigationVersion: Version,
   name: Name,
   private val destination: NavDestinationData,
   private val navResourceData: NavXmlData,
@@ -112,6 +114,8 @@ class LightDirectionsKtClass(
   private val scope = storageManager.createLazyValue { DirectionsClassScope() }
 
   override fun getUnsubstitutedMemberScope(): MemberScope = scope()
+  override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
+
   override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
   override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
   override fun getCompanionObjectDescriptor() = _companionObject()
@@ -132,6 +136,7 @@ class LightDirectionsKtClass(
       override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? = null
       override fun getConstructors(): Collection<ClassConstructorDescriptor> = emptyList()
       override fun getUnsubstitutedMemberScope() = companionScope()
+      override fun getUnsubstitutedMemberScope(kotlinTypeRefiner: KotlinTypeRefiner): MemberScope = unsubstitutedMemberScope
 
       private inner class CompanionObjectScope : MemberScopeImpl() {
         private val companionMethods = storageManager.createLazyValue {
@@ -164,7 +169,7 @@ class LightDirectionsKtClass(
                                               XmlSourceElement(
                                                 SafeArgsXmlTag(
                                                   it as XmlTagImpl,
-                                                  IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Function),
+                                                  IconManager.getInstance().getPlatformIcon(PlatformIcons.Function),
                                                   methodName,
                                                   companionObject.fqNameSafe.asString()
                                                 )

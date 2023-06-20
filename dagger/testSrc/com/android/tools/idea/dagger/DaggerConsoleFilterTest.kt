@@ -30,7 +30,6 @@ import com.intellij.testFramework.registerServiceInstance
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-
 class DaggerConsoleFilterTest : DaggerTestCase() {
   private fun navigateToResultInLine(filter: Filter, line: String, resultNum: Int = 0) {
     val result = filter.applyFilter(line, line.length)
@@ -43,26 +42,34 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
     filter.applyFilter(ERROR_PREFIX, ERROR_PREFIX.length)
 
     val classText = "a.b"
-    var result = filter.applyFilter(classText, ERROR_PREFIX.length + classText.length)!!.resultItems.first()!!
+    var result =
+      filter.applyFilter(classText, ERROR_PREFIX.length + classText.length)!!.resultItems.first()!!
     assertThat(result.highlightStartOffset).isEqualTo(ERROR_PREFIX.length)
     assertThat(result.highlightEndOffset).isEqualTo(ERROR_PREFIX.length + 3)
 
     val methodText = "a.b()"
-    result = filter.applyFilter(methodText, ERROR_PREFIX.length + classText.length + methodText.length)!!.resultItems.first()!!
+    result =
+      filter
+        .applyFilter(methodText, ERROR_PREFIX.length + classText.length + methodText.length)!!
+        .resultItems
+        .first()!!
     assertThat(result.highlightStartOffset).isEqualTo(ERROR_PREFIX.length + classText.length)
     assertThat(result.highlightEndOffset).isEqualTo(ERROR_PREFIX.length + classText.length + 3)
   }
 
   fun testClassNames() {
-    val clazz = myFixture.addClass(
-      //language=JAVA
-      """
+    val clazz =
+      myFixture.addClass(
+        // language=JAVA
+        """
       package example;
       
       class MyClass {
         class Inner {}
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     val innerClass = clazz.findInnerClassByName("Inner", false)!!
 
@@ -94,9 +101,11 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
   }
 
   fun testMethod() {
-    val method = myFixture.addClass(
-      //language=JAVA
-      """
+    val method =
+      myFixture
+        .addClass(
+          // language=JAVA
+          """
       package example;
       
       class MyClass {
@@ -106,7 +115,11 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
           Inner() {}
         }
       }
-    """.trimIndent()).findMethodsByName("myMethod", true).first()!!
+    """
+            .trimIndent()
+        )
+        .findMethodsByName("myMethod", true)
+        .first()!!
 
     myFixture.configureFromExistingVirtualFile(method.containingFile.virtualFile)
 
@@ -124,7 +137,11 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
 
     myFixture.moveCaret("examp|le")
 
-    navigateToResultInLine(filter, "example.NotExistingClass some text example.MyClass.myMethod()", 1)
+    navigateToResultInLine(
+      filter,
+      "example.NotExistingClass some text example.MyClass.myMethod()",
+      1
+    )
     elementAtCaret = myFixture.elementAtCaret as? PsiMethod
     assertThat(elementAtCaret!!.name).isEqualTo(method.name)
 
@@ -132,15 +149,18 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
 
     navigateToResultInLine(filter, "example.MyClass.Inner()")
     elementAtCaret = myFixture.elementAtCaret as? PsiMethod
-    val innerClassConstructor = JavaPsiFacade.getInstance(project)
-      .findClass("example.MyClass.Inner", GlobalSearchScope.allScope(project))!!.constructors.first()
+    val innerClassConstructor =
+      JavaPsiFacade.getInstance(project)
+        .findClass("example.MyClass.Inner", GlobalSearchScope.allScope(project))!!
+        .constructors
+        .first()
     assertThat(elementAtCaret).isEqualTo(innerClassConstructor)
   }
 
   fun testNavigateToKotlin() {
     myFixture.loadNewFile(
       "example/MyClass.kt",
-      //language=kotlin
+      // language=kotlin
       """
         package example
         
@@ -148,7 +168,8 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
           fun myMethod() {}
           class Inner {}
         }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val filter = DaggerConsoleFilter()
@@ -182,5 +203,4 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
     assertThat(trackerService.calledMethods).hasSize(1)
     assertThat(trackerService.calledMethods.last()).isEqualTo("trackOpenLinkFromError")
   }
-
 }

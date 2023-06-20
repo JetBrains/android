@@ -103,12 +103,12 @@ public abstract class MemorySessionArtifact<T extends GeneratedMessageV3> implem
   }
 
   @Override
-  public boolean canExport() {
+  public boolean getCanExport() {
     return !isOngoing();
   }
 
   @Override
-  public void onSelect() {
+  public void doSelect() {
     // If the capture selected is not part of the currently selected session, we need to select the session containing the capture.
     boolean needsToChangeSession = mySession != myProfilers.getSession();
     if (needsToChangeSession) {

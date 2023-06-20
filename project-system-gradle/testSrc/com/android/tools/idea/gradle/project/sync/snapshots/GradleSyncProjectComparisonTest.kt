@@ -17,29 +17,25 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_32
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.ModuleModelBuilder
 import com.android.tools.idea.testing.SnapshotComparisonTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths.LIGHT_SYNC_REFERENCE
+import com.android.tools.idea.testing.SnapshotContext
 import com.android.tools.idea.testing.assertIsEqualToSnapshot
 import com.android.tools.idea.testing.getAndMaybeUpdateSnapshot
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.saveAndDump
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.annotations.SystemIndependent
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.junit.rules.TestName
 import java.io.File
 
@@ -60,13 +56,13 @@ data class ProjectStructureSnapshotTestDef(
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AGP_CURRENT,
   private val roots: Map<String, File> = emptyMap(),
   private val compatibleWith: Set<AgpVersionSoftwareEnvironmentDescriptor> = setOf(AGP_CURRENT)
-) : SyncedProjectTest.TestDef {
+) : SyncedProjectTestDef {
 
   override val name: String = testProject.projectName
 
   override fun toString(): String = testProject.projectName
 
-  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTest.TestDef {
+  override fun withAgpVersion(agpVersion: AgpVersionSoftwareEnvironmentDescriptor): SyncedProjectTestDef {
     return copy(agpVersion = agpVersion)
   }
 
@@ -81,12 +77,13 @@ data class ProjectStructureSnapshotTestDef(
 
   companion object {
     val tests: List<ProjectStructureSnapshotTestDef> = listOf(
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION, compatibleWith = setOf(AGP_32, AGP_CURRENT)),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK, compatibleWith = setOf(AGP_32, AGP_CURRENT)),
-      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK, compatibleWith = setOf(AGP_32, AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_VIA_SYMLINK, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK, compatibleWith = setOf(AGP_33, AGP_CURRENT)),
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_NOT_AT_ROOT),
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_MULTIPLE_ROOTS),
       ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_UNNAMED_DIMENSION),
+      ProjectStructureSnapshotTestDef(TestProject.SIMPLE_APPLICATION_WITH_ANDROID_CAR),
       ProjectStructureSnapshotTestDef(TestProject.PURE_JAVA_PROJECT),
       ProjectStructureSnapshotTestDef(TestProject.MAIN_IN_ROOT),
       ProjectStructureSnapshotTestDef(TestProject.NESTED_MODULE),
@@ -127,20 +124,15 @@ data class ProjectStructureSnapshotTestDef(
       ),
       ProjectStructureSnapshotTestDef(TestProject.BUILDSRC_WITH_COMPOSITE, compatibleWith = setOf(AGP_42, AGP_CURRENT)),
       ProjectStructureSnapshotTestDef(TestProject.PRIVACY_SANDBOX_SDK),
+      ProjectStructureSnapshotTestDef(TestProject.APP_WITH_BUILD_FEATURES_ENABLED),
+      ProjectStructureSnapshotTestDef(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME, compatibleWith = setOf(AGP_CURRENT))
     )
   }
 }
 
-@RunsInEdt
-class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
-  @get:Rule
-  var testName = TestName()
-
-  val projectRule = AndroidProjectRule.withAndroidModels(
-    prepareProjectSources = fun(root: File) {
-      prepareGradleProject(resolveTestDataPath(LIGHT_SYNC_REFERENCE), root, {})
-      root.resolve(".gradle").mkdir()
-    },
+private object LightGradleSyncReferenceTestProject: LightGradleSyncTestProject {
+  override val templateProject: TemplateBasedTestProject = TestProject.LIGHT_SYNC_REFERENCE
+  override val modelBuilders: List<ModuleModelBuilder> = listOf(
     JavaModuleModelBuilder.rootModuleBuilder.copy(
       groupId = "",
       version = "unspecified",
@@ -150,14 +142,17 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
       groupId = "reference",
       version = "unspecified",
       selectedBuildVariant = "debug",
-      projectBuilder = AndroidProjectBuilder(androidModuleDependencyList = {
-        listOf(
-          AndroidModuleDependency(
-            ":androidlibrary",
-            "debug"
+      projectBuilder = AndroidProjectBuilder(
+        androidModuleDependencyList = {
+          listOf(
+            AndroidModuleDependency(
+              ":androidlibrary",
+              "debug"
+            )
           )
-        )
-      }).build(),
+        },
+        namespace = { "com.example.skeleton" }
+      ).build(),
     ),
     AndroidModuleModelBuilder(
       gradlePath = ":androidlibrary",
@@ -166,7 +161,8 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
       selectedBuildVariant = "debug",
       projectBuilder = AndroidProjectBuilder(
         projectType = { IdeAndroidProjectType.PROJECT_TYPE_LIBRARY },
-        androidModuleDependencyList = { listOf(AndroidModuleDependency(":javalib", null)) }
+        androidModuleDependencyList = { listOf(AndroidModuleDependency(":javalib", null)) },
+        namespace = { "com.example.androidlibrary" }
       ).build()
     ),
     JavaModuleModelBuilder(
@@ -174,16 +170,19 @@ class LightSyncReferenceTest : SnapshotComparisonTest, GradleIntegrationTest {
       groupId = "reference",
       version = "unspecified",
     )
-  ).named("reference")
+  )
+}
+
+@RunsInEdt
+class LightSyncReferenceTest : SnapshotComparisonTest {
+  @get:Rule
+  var testName = TestName()
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+  val projectRule = AndroidProjectRule.testProject(LightGradleSyncReferenceTestProject).named("reference")
 
   override fun getName(): String = testName.methodName
   override val snapshotDirectoryWorkspaceRelativePath: String = PROJECT_STRUCTURE_SNAPSHOT_DIR
-  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos(): Collection<File> = emptyList()
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
 
   @Test
   fun testLightSyncActual() {

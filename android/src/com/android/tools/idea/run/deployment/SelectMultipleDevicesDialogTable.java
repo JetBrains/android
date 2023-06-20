@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.JBUI;
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,11 +44,11 @@ final class SelectMultipleDevicesDialogTable extends JBTable {
     setRowSelectionAllowed(false);
   }
 
-  @NotNull Set<@NotNull Target> getSelectedTargets() {
+  @NotNull Set<Target> getSelectedTargets() {
     return ((SelectMultipleDevicesDialogTableModel)dataModel).getSelectedTargets();
   }
 
-  void setSelectedTargets(@NotNull Set<@NotNull Target> selectedTargets) {
+  void setSelectedTargets(@NotNull Set<Target> selectedTargets) {
     ((SelectMultipleDevicesDialogTableModel)dataModel).setSelectedTargets(selectedTargets);
   }
 

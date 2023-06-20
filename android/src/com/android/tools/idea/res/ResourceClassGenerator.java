@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.res;
 
-import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.android.tools.idea.LogAnonymizerUtil.isPublicClass;
+import static com.android.tools.idea.log.LogAnonymizerUtil.anonymizeClassName;
+import static com.android.tools.idea.log.LogAnonymizerUtil.isPublicClass;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_FINAL;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_STATIC;
@@ -89,7 +89,7 @@ import org.jetbrains.org.objectweb.asm.Type;
 public class ResourceClassGenerator {
   private static final Logger LOG = Logger.getInstance(ResourceClassGenerator.class);
 
-  interface NumericIdProvider {
+  public interface NumericIdProvider {
     /**
      * Counter that tracks when the provider has been reset. This counter will be increased in every reset.
      * If the ids returned by {@link #getOrGenerateId(ResourceReference)} are being cached, they must be invalidated when

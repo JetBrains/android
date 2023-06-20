@@ -22,29 +22,28 @@ import com.android.tools.idea.appinspection.ide.model.AppInspectionBundle
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.UserDataHolderBase
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTabbedPane
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 /**
- * All relevant data needed to add a tab into a tabbed pane including a placeholder panel that can be set during runtime.
+ * All relevant data needed to add a tab into a tabbed pane including a placeholder panel that can
+ * be set during runtime.
  *
  * This class allows us to collect information up front before adding all tabs into the tab pane,
  * instead of just adding tabs as threads return them. This ensures we can keep a consistent
  * ordering across inspector launches.
  */
-class AppInspectorTabShell(
-  val tabJarTargets: InspectorTabJarTargets
-) : Comparable<AppInspectorTabShell>, UserDataHolderBase(), Disposable {
+class AppInspectorTabShell(val tabJarTargets: InspectorTabJarTargets) :
+  Comparable<AppInspectorTabShell>, UserDataHolderBase(), Disposable {
   val provider = tabJarTargets.provider
 
-  @VisibleForTesting
-  val containerPanel = JPanel(BorderLayout())
+  @VisibleForTesting val containerPanel = JPanel(BorderLayout())
 
   private val contentChangedDeferred = CompletableDeferred<JComponent>()
 
@@ -53,9 +52,8 @@ class AppInspectorTabShell(
   /**
    * A flow that fires whenever content is set in the tab shell. For testing only.
    *
-   * Note, this flow might miss the first component set event depending on the timing
-   * of the collection. [waitForContent] is the preferred way to suspend and wait for
-   * the first component.
+   * Note, this flow might miss the first component set event depending on the timing of the
+   * collection. [waitForContent] is the preferred way to suspend and wait for the first component.
    */
   @VisibleForTesting
   val componentUpdates: Flow<JComponent> = callbackFlow {
@@ -63,14 +61,14 @@ class AppInspectorTabShell(
     awaitClose { componentListener = null }
   }
 
-  /**
-   * Will be false until [setComponent] is called
-   */
+  /** Will be false until [setComponent] is called */
   val isComponentSet: Boolean
     get() = contentChangedDeferred.isCompleted
 
   init {
-    containerPanel.add(EmptyStatePanel(AppInspectionBundle.message("inspector.loading", provider.displayName)))
+    containerPanel.add(
+      EmptyStatePanel(AppInspectionBundle.message("inspector.loading", provider.displayName))
+    )
   }
 
   /**
@@ -91,16 +89,14 @@ class AppInspectorTabShell(
     tabbedPane.addTab(provider.displayName, provider.icon, containerPanel)
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
   /**
    * Suspends until content is added to the containerPanel.
    *
    * For testing only.
    */
-  @VisibleForTesting
-  suspend fun waitForContent() = contentChangedDeferred.await()
+  @VisibleForTesting suspend fun waitForContent() = contentChangedDeferred.await()
 
   override fun compareTo(other: AppInspectorTabShell): Int = provider.compareTo(other.provider)
 }

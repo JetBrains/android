@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.projectView.actions.MarkLibraryRootAction;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -113,6 +114,11 @@ public class CreateLibraryFromFilesAction extends AnAction {
 
     Presentation presentation = e.getPresentation();
     presentation.setEnabledAndVisible(visible);
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @NotNull

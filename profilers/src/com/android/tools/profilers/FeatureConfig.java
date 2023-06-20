@@ -15,20 +15,24 @@
  */
 package com.android.tools.profilers;
 
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
+
 /**
  * A collection of values that configure various features inside the profiler. This is often a way
  * to allow the IDE to communicate to the profilers that a feature should be on or off.
  */
 public interface FeatureConfig {
+  boolean isComposeTracingNavigateToSourceEnabled();
   boolean isCustomEventVisualizationEnabled();
   boolean isEnergyProfilerEnabled();
   boolean isJankDetectionUiEnabled();
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();
-
   boolean isProfileableBuildsEnabled();
+  boolean isVerboseLoggingEnabled();
+  boolean isTaskBasedUxEnabled();
 
-  boolean isUnifiedPipelineEnabled();
+  PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,83 +16,77 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
-import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
-import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.model.catalog.GradleVersionCatalogLibrariesImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
-import com.android.tools.idea.gradle.dsl.model.ext.transforms.DefaultTransform;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
-import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile.GradleDslVersionLiteral;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implements GradleVersionCatalogModel {
-
-  GradleVersionCatalogModelImpl(@NotNull GradleVersionCatalogFile versionCatalogFile) {
-    super(versionCatalogFile);
+  private final String catalogName;
+  private final GradleVersionCatalogFile catalogFile;
+  public GradleVersionCatalogModelImpl(@NotNull GradleVersionCatalogFile file){
+    super(file);
+    catalogName = file.getCatalogName();
+    catalogFile = file;
   }
 
-  @Override
-  public @NotNull ExtModel libraries() {
-    GradleDslExpressionMap librariesDslElement = myGradleDslFile.ensurePropertyElement(
-      new PropertiesElementDescription<>("libraries", GradleDslExpressionMap.class, GradleDslExpressionMap::new)
+  private GradleDslExpressionMap ensureMap(String sectionName){
+   return  catalogFile.ensurePropertyElement(
+      new PropertiesElementDescription<>(sectionName, GradleDslExpressionMap.class, GradleDslExpressionMap::new)
     );
-    return new ExtModelImpl(librariesDslElement, GradleVersionCatalogPropertyModel::new, GradleVersionCatalogPropertyModel::new);
+  }
+
+  private ExtModel extractByName(String sectionName) {
+    GradleDslExpressionMap librariesDslElement = ensureMap(sectionName);
+    return new ExtModelImpl(librariesDslElement,
+                            GradleVersionCatalogPropertyModel::new,
+                            GradleVersionCatalogPropertyModel::new);
+  }
+
+  @NotNull
+  @Override
+  public ExtModel libraries() {
+    return extractByName("libraries");
+  }
+
+  @NotNull
+  @Override
+  public GradleVersionCatalogLibraries libraryDeclarations(){
+    GradleDslExpressionMap librariesDslElement = ensureMap("libraries");
+    return new GradleVersionCatalogLibrariesImpl(librariesDslElement);
+  }
+
+  @NotNull
+  @Override
+  public ExtModel plugins() {
+    return extractByName("plugins");
+  }
+
+  @NotNull
+  @Override
+  public ExtModel versions() {
+    return extractByName("versions");
+  }
+
+  @NotNull
+  @Override
+  public ExtModel bundles() {
+    return extractByName("bundles");
+  }
+
+  @NotNull
+  @Override
+  public String catalogName() {
+    return catalogName;
   }
 
   @Override
-  public @NotNull ExtModel plugins() {
-    GradleDslExpressionMap pluginsDslElement = myGradleDslFile.ensurePropertyElement(
-      new PropertiesElementDescription<>("plugins", GradleDslExpressionMap.class, GradleDslExpressionMap::new)
-    );
-    return new ExtModelImpl(pluginsDslElement, GradleVersionCatalogPropertyModel::new, GradleVersionCatalogPropertyModel::new);
-  }
-
-  @Override
-  public @NotNull ExtModel versions() {
-    GradleDslExpressionMap versionsDslElement = myGradleDslFile.ensurePropertyElementAt(
-      new PropertiesElementDescription<>("versions", GradleDslExpressionMap.class, GradleDslExpressionMap::new), 0);
-    return new ExtModelImpl(versionsDslElement);
-  }
-
-  class GradleVersionCatalogPropertyModel extends GradlePropertyModelImpl {
-    public GradleVersionCatalogPropertyModel(@NotNull GradleDslElement element) {
-      super(element);
-    }
-
-    public GradleVersionCatalogPropertyModel(@NotNull GradleDslElement holder, @NotNull PropertyType type, @NotNull String name) {
-      super(holder, type, name);
-    }
-
-    @Override
-    public @NotNull GradlePropertyModel getMapValue(@NotNull String key) {
-      if (!"version".equals(key)) {
-        return super.getMapValue(key);
-      }
-      GradlePropertyModelImpl model = (GradlePropertyModelImpl)super.getMapValue(key);
-      model.addTransform(new VersionTransform());
-      return model;
-    }
-  }
-
-  static class VersionTransform extends DefaultTransform {
-    @Override
-    public @NotNull GradleDslExpression bind(@NotNull GradleDslElement holder,
-                                             @Nullable GradleDslElement oldElement,
-                                             @NotNull Object value,
-                                             @NotNull String name) {
-      if (oldElement == null) {
-        GradleDslVersionLiteral literal = new GradleDslVersionLiteral(holder, GradleNameElement.fake(name), value);
-        literal.setValue(value);
-        return literal;
-      }
-      return super.bind(holder, oldElement, value, name);
-    }
+  public boolean isDefault() {
+    return VersionCatalogModel.DEFAULT_CATALOG_NAME.equals(catalogName);
   }
 }

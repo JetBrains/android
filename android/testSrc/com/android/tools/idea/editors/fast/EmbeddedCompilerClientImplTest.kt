@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.editors.fast
 
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
+import com.android.tools.idea.run.deployment.liveedit.loadComposeRuntimeInClassPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
@@ -25,6 +27,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
@@ -35,6 +38,11 @@ internal class EmbeddedCompilerClientImplTest {
   private val compiler: EmbeddedCompilerClientImpl by lazy {
     EmbeddedCompilerClientImpl(project = projectRule.project,
                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java))
+  }
+
+  @Before
+  fun setUp() {
+    projectRule.module.loadComposeRuntimeInClassPath()
   }
 
   @Test
@@ -131,7 +139,7 @@ internal class EmbeddedCompilerClientImplTest {
         assertTrue(result.toString(), result is CompilationResult.RequestException)
         assertEquals(
           "Unable to update function that references an inline function from another source file: public final fun inlineMethod (): kotlin.Unit [inline] declared in <root>.InlineKt",
-          (result as CompilationResult.RequestException).e?.message?.substringAfter(':')?.trim())
+          (result as CompilationResult.RequestException).e?.message?.trim())
       }
     }
 
@@ -205,6 +213,57 @@ internal class EmbeddedCompilerClientImplTest {
     runBlocking {
       val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
       assertTrue((result as CompilationResult.CompilationError).e is LiveEditUpdateException)
+    }
+  }
+
+  /**
+   * Verifies that the compileRequest fails correctly when a failure could have been caused by the embedded plugin not being used.
+   */
+  @Test
+  fun `check compilation error with non-embedded plugin`() {
+    val file = projectRule.fixture.addFileToProject(
+      "src/com/test/Source.kt",
+      """
+        object Test {
+          fun method() {}
+        }
+
+        fun testMethod() {
+          Test.
+        }
+      """.trimIndent())
+
+    run {
+      val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
+                                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
+                                                useInlineAnalysis = LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis,
+                                                isKotlinPluginBundled = false,
+                                                { throw IllegalStateException("Message") })
+      val outputDirectory = Files.createTempDirectory("out")
+      runBlocking {
+        val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
+        assertTrue(result.toString(), result is CompilationResult.RequestException)
+        assertEquals(
+          "Fast Preview does not support running with this Kotlin Plugin version and will only work with the bundled Kotlin Plugin.",
+          (result as CompilationResult.RequestException).e?.message?.trim())
+      }
+    }
+
+    // Retry simulating that we are using the embedded compiler. We should get the original exception.
+    run {
+      val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
+                                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
+                                                useInlineAnalysis = LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis,
+                                                isKotlinPluginBundled = true,
+                                                { throw IllegalStateException("Message") })
+      val outputDirectory = Files.createTempDirectory("out")
+      runBlocking {
+        val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
+        assertTrue(result.toString(), result is CompilationResult.RequestException)
+        assertEquals(
+          "Message",
+          (result as CompilationResult.RequestException).e?.message?.trim())
+      }
     }
   }
 }

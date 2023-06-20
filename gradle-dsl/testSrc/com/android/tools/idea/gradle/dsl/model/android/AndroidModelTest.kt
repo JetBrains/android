@@ -50,7 +50,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     // Make sure adding to the list works.
-    android.flavorDimensions().addListValue().setValue("strawberry")
+    android.flavorDimensions().addListValue()!!.setValue("strawberry")
 
     applyChangesAndReparse(buildModel)
     // Check that we can get the new parsed value
@@ -172,7 +172,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
-    android.flavorDimensions().addListValue().setValue("strawberry")
+    android.flavorDimensions().addListValue()!!.setValue("strawberry")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED)
@@ -191,7 +191,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
-    android.flavorDimensions().addListValue().setValue("strawberry")
+    android.flavorDimensions().addListValue()!!.setValue("strawberry")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_WITH_NO_DIMENSIONS_EXPECTED_400)
@@ -208,8 +208,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     val flavorDimensionsModel = buildModel.android().flavorDimensions()
     assertEquals("flavorDimensions", listOf("salt", "sugar"), flavorDimensionsModel)
     flavorDimensionsModel.delete()
-    flavorDimensionsModel.addListValue().setValue("salt")
-    flavorDimensionsModel.addListValue().setValue("sugar")
+    flavorDimensionsModel.addListValue()!!.setValue("salt")
+    flavorDimensionsModel.addListValue()!!.setValue("sugar")
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.ANDROID_BLOCK_DELETE_AND_RECREATE_DIMENSIONS_EXPECTED)
@@ -307,7 +307,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-J", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
@@ -315,7 +315,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.publishNonDefault().setValue(true)
@@ -323,7 +323,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.targetProjectPath().setValue(":tpp2")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
@@ -333,14 +333,14 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.resetState()
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-J", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
     assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
-    // Test the fields that also accept an integer value along with the String valye.
+    // Test the fields that also accept an integer value along with the String value.
     android.buildToolsVersion().setValue(22)
     android.compileSdkVersion().setValue(21)
 
@@ -350,7 +350,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.resetState()
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-J", android.compileSdkVersion())
   }
 
   @Test
@@ -369,7 +369,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("targetProjectPath", android.targetProjectPath())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.publishNonDefault().setValue(true)
@@ -377,7 +377,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.targetProjectPath().setValue(":tpp")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
@@ -447,10 +447,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
-    android.aidlPackagedList().addListValue().setValue("src/main/aidl/a.aidl")
-    android.assetPacks().addListValue().setValue(":a")
-    android.flavorDimensions().addListValue().setValue("xyz")
-    android.dynamicFeatures().addListValue().setValue(":f")
+    android.aidlPackagedList().addListValue()!!.setValue("src/main/aidl/a.aidl")
+    android.assetPacks().addListValue()!!.setValue(":a")
+    android.flavorDimensions().addListValue()!!.setValue("xyz")
+    android.dynamicFeatures().addListValue()!!.setValue(":f")
     assertEquals("aidlPackagedList", listOf("src/main/aidl/a.aidl"), android.aidlPackagedList())
     assertEquals("assetPacks", listOf(":a"), android.assetPacks())
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
@@ -472,7 +472,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
-    android.flavorDimensions().addListValue().setValue("version")
+    android.flavorDimensions().addListValue()!!.setValue("version")
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     buildModel.resetState()
@@ -489,10 +489,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
-    android.dynamicFeatures().addListValue().setValue(":f")
+    android.dynamicFeatures().addListValue()!!.setValue(":f")
     assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
 
-    android.flavorDimensions().addListValue().setValue("xyz")
+    android.flavorDimensions().addListValue()!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     buildModel.resetState()
@@ -1251,7 +1251,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-J", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1261,7 +1261,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("testNamespace", "com.my.namespace.test", android.testNamespace())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.namespace().setValue("com.my.namespace2")
@@ -1271,7 +1271,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.testNamespace().setValue("com.my.namespace2.test")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1284,7 +1284,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1298,7 +1298,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1317,7 +1317,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-J", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1327,7 +1327,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("testNamespace", "com.my.namespace.test", android.testNamespace())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.namespace().setValue("com.my.namespace2")
@@ -1337,7 +1337,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.testNamespace().setValue("com.my.namespace2.test")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1350,7 +1350,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED_400)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1364,7 +1364,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1445,7 +1445,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("testNamespace", android.testNamespace())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.namespace().setValue("com.my.namespace")
@@ -1455,7 +1455,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.testNamespace().setValue("com.my.namespace.test")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1468,7 +1468,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1482,7 +1482,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1511,7 +1511,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("testNamespace", android.testNamespace())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.namespace().setValue("com.my.namespace")
@@ -1521,7 +1521,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.testNamespace().setValue("com.my.namespace.test")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1534,7 +1534,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED_400)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1548,7 +1548,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1610,10 +1610,39 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
-  fun setCompileSdkVersionToReference() {
+  fun testAddAndApplyStringSdkElements() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    android.compileSdkVersion().setValue("android-S")
+    assertEquals("compileSdkVersion", "android-S", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED);
+  }
+
+  @Test
+  fun testAddAndApplyStringSdkElements400() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    android.compileSdkVersion().setValue("android-S")
+    assertEquals("compileSdkVersion", "android-S", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED_400);
+  }
+
+  @Test
+  fun testSetCompileSdkVersionToReference() {
     writeToBuildFile(TestFile.SET_COMPILE_SDK_VERSION_TO_REFERENCE)
     val buildModel = gradleBuildModel
-    var android = buildModel.android()
+    val android = buildModel.android()
     assertNotNull(android)
 
     assertEquals("compileSdkVersion", 29, android.compileSdkVersion())
@@ -1621,6 +1650,21 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.compileSdkVersion().setValue(ReferenceTo(buildModel.ext().findProperty("sdkVersion")))
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.SET_COMPILE_SDK_VERSION_TO_REFERENCE_EXPECTED)
+  }
+
+  @Test
+  fun testSetCompileSdkVersionToAddOnString() {
+    writeToBuildFile(TestFile.SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertEquals("compileSdkVersion", "android-S", android.compileSdkVersion())
+
+    android.compileSdkVersion().setValue("Google Inc.:Google APIs:24")
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING_EXPECTED)
+
   }
 
   @Test
@@ -1674,16 +1718,16 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
-    android.aidlPackagedList().addListValue().setValue("src/main/aidl/foo.aidl")
+    android.aidlPackagedList().addListValue()!!.setValue("src/main/aidl/foo.aidl")
     assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl"), android.aidlPackagedList())
 
-    android.assetPacks().addListValue().setValue(":a1")
+    android.assetPacks().addListValue()!!.setValue(":a1")
     assertEquals("assetPacks", listOf(":a1"), android.assetPacks())
 
-    android.dynamicFeatures().addListValue().setValue(":f")
+    android.dynamicFeatures().addListValue()!!.setValue(":f")
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
 
-    android.flavorDimensions().addListValue().setValue("xyz")
+    android.flavorDimensions().addListValue()!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
@@ -1715,16 +1759,16 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("dynamicFeatures", android.dynamicFeatures())
     assertMissingProperty("flavorDimensions", android.flavorDimensions())
 
-    android.aidlPackagedList().addListValue().setValue("src/main/aidl/foo.aidl")
+    android.aidlPackagedList().addListValue()!!.setValue("src/main/aidl/foo.aidl")
     assertEquals("aidlPackagedList", listOf("src/main/aidl/foo.aidl"), android.aidlPackagedList())
 
-    android.assetPacks().addListValue().setValue(":a1")
+    android.assetPacks().addListValue()!!.setValue(":a1")
     assertEquals("assetPacks", listOf(":a1"), android.assetPacks())
 
-    android.dynamicFeatures().addListValue().setValue(":f")
+    android.dynamicFeatures().addListValue()!!.setValue(":f")
     assertEquals("dynamicFeatures", listOf(":f"), android.dynamicFeatures())
 
-    android.flavorDimensions().addListValue().setValue("xyz")
+    android.flavorDimensions().addListValue()!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
@@ -1753,7 +1797,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
     assertEquals("flavorDimensions", listOf("abi"), android.flavorDimensions())
 
-    android.flavorDimensions().addListValue().setValue("version")
+    android.flavorDimensions().addListValue()!!.setValue("version")
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
     applyChanges(buildModel)
@@ -1777,10 +1821,10 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("dynamicFeatures", listOf(":f1", ":f2"), android.dynamicFeatures())
     assertEquals("flavorDimensions", listOf("abi", "version"), android.flavorDimensions())
 
-    android.dynamicFeatures().addListValue().setValue(":f")
+    android.dynamicFeatures().addListValue()!!.setValue(":f")
     assertEquals("dynamicFeatures", listOf(":f1", ":f2", ":f"), android.dynamicFeatures())
 
-    android.flavorDimensions().addListValue().setValue("xyz")
+    android.flavorDimensions().addListValue()!!.setValue("xyz")
     assertEquals("flavorDimensions", listOf("abi", "version", "xyz"), android.flavorDimensions())
 
     applyChanges(buildModel)
@@ -1906,15 +1950,15 @@ class AndroidModelTest : GradleFileModelTestCase() {
       val baz = buildModel.ext().findProperty("baz")
       val quux = buildModel.ext().findProperty("quux")
       convertToEmptyList()
-      addListValue().setValue(ReferenceTo(quux))
-      addListValue().setValue(ReferenceTo(baz))
+      addListValue()!!.setValue(ReferenceTo(quux))
+      addListValue()!!.setValue(ReferenceTo(baz))
     }
     buildModel.android().defaultConfig().proguardFiles().run {
       val foo = buildModel.ext().findProperty("foo")
       val bar = buildModel.ext().findProperty("bar")
       convertToEmptyList()
-      addListValue().setValue(ReferenceTo(bar))
-      addListValue().setValue(ReferenceTo(foo))
+      addListValue()!!.setValue(ReferenceTo(bar))
+      addListValue()!!.setValue(ReferenceTo(foo))
     }
 
     buildModel.run {
@@ -1929,7 +1973,51 @@ class AndroidModelTest : GradleFileModelTestCase() {
     }
   }
 
-  enum class TestFile(val path: @SystemDependent String): TestFileName {
+  @Test
+  fun testAddBuildTypeWithInitWith() {
+    writeToBuildFile(TestFile.ADD_BUILD_TYPE_SET_INIT_WITH)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    var buildTypes = android.buildTypes()
+    assertThat(buildTypes).hasSize(3)
+
+    val fooBuildType = buildTypes.first { it.name() == "foo" }
+    assertTrue(fooBuildType.minifyEnabled().toBoolean()!!)
+
+    val newBuildType = android.addBuildType("bar", fooBuildType)
+
+    buildTypes = android.buildTypes()
+    assertThat(buildTypes).hasSize(4)
+
+    assertTrue(newBuildType.minifyEnabled().toBoolean()!!)
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_BUILD_TYPE_SET_INIT_WITH_EXPECTED)
+  }
+
+  @Test
+  fun testAddProductFlavorWithInitWith() {
+    writeToBuildFile(TestFile.ADD_PRODUCT_FLAVOR_SET_INIT_WITH)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    val dependentFlavor = android.addProductFlavor("dependent")
+    var flavors = android.productFlavors()
+
+    assertThat(flavors).hasSize(1)
+    assertEquals(".dependent", dependentFlavor.applicationIdSuffix().valueAsString())
+
+    val newFlavor = android.addProductFlavor("demo", dependentFlavor)
+
+    flavors = android.productFlavors()
+    assertThat(flavors).hasSize(2)
+
+    assertEquals(".dependent", newFlavor.applicationIdSuffix().valueAsString())
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED)
+  }
+
+  enum class TestFile(val path: @SystemDependent String) : TestFileName {
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS("androidBlockWithApplicationStatements"),
     ANDROID_BLOCK_WITH_APPLICATION_STATEMENTS_WITH_PARENTHESES("androidBlockWithApplicationStatementsWithParentheses"),
     ANDROID_BLOCK_WITH_ASSIGNMENT_STATEMENTS("androidBlockWithAssignmentStatements"),
@@ -2006,6 +2094,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS("addAndApplyIntegerLiteralElements"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED("addAndApplyIntegerLiteralElementsExpected"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400("addAndApplyIntegerLiteralElementsExpected400"),
+    ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED("addAndApplyStringSdkElementsExpected"),
+    ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED_400("addAndApplyStringSdkElementsExpected400"),
     REPLACE_AND_APPLY_LIST_ELEMENTS("replaceAndApplyListElements"),
     REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED("replaceAndApplyListElementsExpected"),
     ADD_AND_APPLY_LIST_ELEMENTS("addAndApplyListElements"),
@@ -2020,12 +2110,18 @@ class AndroidModelTest : GradleFileModelTestCase() {
     PARSE_NO_RESCONFIGS_PROPERTY("parseNoResConfigsProperty"),
     DEFAULT_CONFIG_BLOCK_AND_STATEMENT("defaultConfigBlockAndStatement"),
     DEFAULT_CONFIG_STATEMENT_AND_BLOCK("defaultConfigStatementAndBlock"),
+    SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING("setCompileSdkVersionToAddOnString"),
+    SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING_EXPECTED("setCompileSdkVersionToAddOnStringExpected"),
     SET_COMPILE_SDK_VERSION_TO_REFERENCE("setCompileSdkVersionToReference"),
     SET_COMPILE_SDK_VERSION_TO_REFERENCE_EXPECTED("setCompileSdkVersionToReferenceExpected"),
     SET_PROGUARD_FILES_TO_REFERENCE("setProguardFilesToReference"),
     SET_PROGUARD_FILES_TO_REFERENCE_EXPECTED("setProguardFilesToReferenceExpected"),
     SET_PROGUARD_FILES_TO_LIST("setProguardFilesToList"),
     SET_PROGUARD_FILES_TO_LIST_EXPECTED("setProguardFilesToListExpected"),
+    ADD_BUILD_TYPE_SET_INIT_WITH("addBuildTypeSetInitWith"),
+    ADD_BUILD_TYPE_SET_INIT_WITH_EXPECTED("addBuildTypeSetInitWithExpected"),
+    ADD_PRODUCT_FLAVOR_SET_INIT_WITH("addProductFlavorSetInitWith"),
+    ADD_PRODUCT_FLAVOR_SET_INIT_WITH_EXPECTED("addProductFlavorSetInitWithExpected"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

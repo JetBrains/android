@@ -1,0 +1,12 @@
+pluginManagement {
+  plugins {
+    id 'com.android.application' version '7.4.1'
+    id 'com.android.library' version '7.4.1'
+    id 'com.android.dynamic-feature' version '7.4.1'
+  }
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+  }
+}
+include ':app'
+include ':app:dynamicfeature'

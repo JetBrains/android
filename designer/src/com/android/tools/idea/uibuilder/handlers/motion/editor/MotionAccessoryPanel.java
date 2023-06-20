@@ -17,21 +17,19 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.gradle.Version;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlDependencyManager;
+import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
-import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
@@ -42,10 +40,12 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import com.android.tools.idea.uibuilder.io.PsiFileUtil;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileChooser.FileSaverDescriptor;
@@ -61,7 +61,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import javax.swing.JPanel;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -301,7 +300,10 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myMotionScene = motionScene;
 
     myMotionSceneFile = (motionScene == null) ? null : motionScene.mVirtualFile;
-    mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, "", "", getSetupError());
+    final VirtualFile sceneFile = myMotionSceneFile;
+    String sceneFileName = (sceneFile == null) ? "" : sceneFile.getName();
+    String layoutFileName = getLayoutFileName(surface);
+    mMotionEditor.setMTag(myMotionScene, myMotionLayoutTag, layoutFileName, sceneFileName, getSetupError());
     if (myMotionScene == null) {
       return;
     }
@@ -322,10 +324,19 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   }
 
   @NotNull
+  private static String getLayoutFileName(@NotNull NlDesignSurface surface) {
+    NlModel model = surface.getModel();
+    if (model == null) {
+      return "";
+    }
+    return model.getVirtualFile().getName().replace(SdkConstants.DOT_XML, "");
+  }
+
+  @NotNull
   private ResourceNotificationManager.ResourceChangeListener createResourceChangeListener() {
     return new ResourceNotificationManager.ResourceChangeListener() {
       @Override
-      public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
+      public void resourcesChanged(@NotNull ImmutableSet<ResourceNotificationManager.Reason> reason) {
         // When a motion editor item is selected: the MTags of the MotionEditor must be updated (they are now stale).
         // When a layout view is selected: Ignore this notification. The properties panel is reading from XmlTags directly there is
         // no need to update the MTags of the MotionEditor. A selection change may have side effects for the Nele property panel if
@@ -350,7 +361,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         }
         fireSelectionChanged(Collections.singletonList(mySelection));
         if (motionScene != null) {
-          LayoutPullParsers.saveFileIfNecessary(motionScene.mXmlFile);
+          PsiFileUtil.saveFileIfNecessary(motionScene.mXmlFile);
         }
       }
     };
@@ -367,6 +378,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myUpdatingSelectionInLayoutEditor = true;
     try {
       myDesignSurface.getSelectionModel().setSelection(selected);
+      myDesignSurface.repaint();
     }
     finally {
       myUpdatingSelectionInLayoutEditor = false;
@@ -390,30 +402,12 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (myMotionLayout == null) return null;
     if (myMotionLayout.getModel() == null) return null;
 
-    GradleVersion v = dep.getModuleDependencyVersion(artifact, myMotionLayout.getModel().getFacet());
+    Version v = dep.getModuleDependencyVersion(artifact, myMotionLayout.getModel().getFacet());
     NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, myMotionLayout.getModel().getFacet());
     String error = "Version ConstraintLayout library must be version 2.0.0 beta3 or later";
-    if (v == null) { // if you could not get the version assume it is the ok
-      return null;
-    }
-    if (v.getMajor() < 2) {
-      return error;
-    }
-    if (v.getMinor() == 0 && v.getMicro() == 0) {
-      if ("alpha".equals(v.getPreviewType())) {
-        return error;
-      }
-      if ("beta".equals(v.getPreviewType()) && v.getPreview() < 3) {
-        return error;
-      }
-    }
-
+    if (v == null) return null;
+    if (v.compareTo(Version.Companion.parse("2.0.0-beta03")) < 0) return error;
     return null;
-  }
-
-  @NotNull
-  private static NlAnalyticsManager getAnalyticsManager(@NotNull ViewEditor editor) {
-    return ((NlDesignSurface)editor.getScene().getDesignSurface()).getAnalyticsManager();
   }
 
   private void selectOnDesignSurface(MTag[] tag) {
@@ -484,7 +478,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     // let's open the file
     AndroidFacet facet = motionLayout.getModel().getFacet();
 
-    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, StudioResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
     if (resourcesXML.isEmpty()) {
       return null;
@@ -680,7 +674,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       return null;
     }
     AndroidFacet facet = component.getModel().getFacet();
-    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, StudioResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
     if (resourcesXML.isEmpty()) {
       return null;

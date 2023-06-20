@@ -30,7 +30,8 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 fun RecipeExecutor.generatePureLibrary(
   moduleData: ModuleTemplateData,
   className: String,
-  useGradleKts: Boolean
+  useGradleKts: Boolean,
+  useVersionCatalog: Boolean = false
 ) {
   val (projectData, srcOut) = moduleData
   val moduleOut = moduleData.rootDir
@@ -40,7 +41,7 @@ fun RecipeExecutor.generatePureLibrary(
   addIncludeToSettings(moduleData.name)
 
   val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
-  save(buildGradle(), moduleOut.resolve(buildFile))
+  save(buildGradle(isKts = useGradleKts, useVersionCatalog = useVersionCatalog), moduleOut.resolve(buildFile))
   applyPlugin("java-library", null)
   save(
     if (language == Language.Kotlin) placeholderKt(packageName, className) else placeholderJava(packageName, className),

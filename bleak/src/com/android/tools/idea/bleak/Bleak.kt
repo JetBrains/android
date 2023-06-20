@@ -25,6 +25,7 @@ import com.android.tools.idea.bleak.expander.ElidingExpander
 import com.android.tools.idea.bleak.expander.Expander
 import com.android.tools.idea.bleak.expander.ExpanderChooser
 import com.android.tools.idea.bleak.expander.RootExpander
+import java.time.Duration
 import java.util.function.Supplier
 
 /**
@@ -57,11 +58,12 @@ fun runWithBleak(options: BleakOptions, scenario: () -> Unit) {
 class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
                      knownIssues: IgnoreList<LeakInfo> = IgnoreList(),
                      customExpanderSupplier: Supplier<List<Expander>>,
-                     private val forbiddenObjects: List<Any> = listOf()):
+                     private val forbiddenObjects: List<Any> = listOf(),
+                     private val dominatorTimeout: Duration = Duration.ofSeconds(60)):
   BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, ignoreList, knownIssues) {
-  private lateinit var g1: HeapGraph
-  private lateinit var g2: HeapGraph
-  private var leaks: List<LeakInfo> = listOf()
+  lateinit var g1: HeapGraph
+  lateinit var g2: HeapGraph
+  var leaks: List<LeakInfo> = listOf()
 
   private fun buildGraph(firstRun: Boolean = false) = HeapGraph(options(), forbiddenObjects).expandWholeGraph(firstRun)
 
@@ -78,7 +80,7 @@ class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
   override fun lastIterationFinished() {
     g2 = buildGraph()
     g1.propagateGrowing(g2)
-    leaks = g2.getLeaks(g1)
+    leaks = g2.getLeaks(g1, dominatorTimeout)
   }
 
   override fun getResults() = leaks

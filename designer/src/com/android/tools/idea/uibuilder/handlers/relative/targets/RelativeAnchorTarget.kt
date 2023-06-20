@@ -153,7 +153,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     }
   }
 
-  private fun getPreferredFilterType() = when (type) {
+  fun getPreferredFilterType() = when (type) {
     Type.LEFT, Type.RIGHT -> Scene.FilterType.HORIZONTAL_ANCHOR
     Type.TOP, Type.BOTTOM -> Scene.FilterType.VERTICAL_ANCHOR
     Type.BASELINE -> Scene.FilterType.BASELINE_ANCHOR

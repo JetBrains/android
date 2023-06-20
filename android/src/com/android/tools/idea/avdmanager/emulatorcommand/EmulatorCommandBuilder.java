@@ -17,10 +17,15 @@ package com.android.tools.idea.avdmanager.emulatorcommand;
 
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdWizardUtils;
+import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +48,7 @@ public class EmulatorCommandBuilder {
   private @Nullable Path myStudioParams;
   private boolean myLaunchInToolWindow;
 
-  private final @NotNull List<@NotNull String> myStudioEmuParams;
+  private final @NotNull List<String> myStudioEmuParams;
 
   public EmulatorCommandBuilder(@NotNull Path emulator, @NotNull AvdInfo avd) {
     myEmulator = emulator;
@@ -72,7 +77,7 @@ public class EmulatorCommandBuilder {
     return this;
   }
 
-  public final @NotNull EmulatorCommandBuilder addAllStudioEmuParams(@NotNull Collection<@NotNull String> studioEmuParams) {
+  public final @NotNull EmulatorCommandBuilder addAllStudioEmuParams(@NotNull Collection<String> studioEmuParams) {
     myStudioEmuParams.addAll(studioEmuParams);
     return this;
   }
@@ -103,6 +108,10 @@ public class EmulatorCommandBuilder {
     }
 
     command.addParameters(myStudioEmuParams);
+    if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
+      String avdCommandLineOptions = myAvd.getProperty(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY);
+      command.addParameters(sanitizeCommandLineOptions(avdCommandLineOptions));
+    }
     return command;
   }
 
@@ -117,5 +126,14 @@ public class EmulatorCommandBuilder {
   }
 
   void addSnapshotParameters(@NotNull GeneralCommandLine command) {
+  }
+
+  private List<String> sanitizeCommandLineOptions(@Nullable String raw) {
+    String trimmed = Strings.nullToEmpty(raw).trim();
+    if (Strings.isNullOrEmpty(trimmed)) {
+      return Collections.emptyList();
+    }
+    String withoutReturnLines = trimmed.replaceAll("\\n", " ");
+    return Arrays.asList(withoutReturnLines.split("\\s+"));
   }
 }

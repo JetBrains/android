@@ -18,7 +18,7 @@ public final class StudioIllustrations {
   public static final class Common {
     /** 171x97 */ public static final @NotNull Icon DISCONNECT_PROFILER = load("studio/illustrations/common/disconnect-profiler.svg", 123552894, 2);
     /** 171x97 */ public static final @NotNull Icon DISCONNECT = load("studio/illustrations/common/disconnect.svg", 379535377, 2);
-    /** 64x64 */ public static final @NotNull Icon PRODUCT_ICON = load("studio/illustrations/common/product-icon.svg", 845675505, 0);
+    /** 64x64 */ public static final @NotNull Icon PRODUCT_ICON = load("studio/illustrations/common/product-icon.svg", 1448110297, 0);
   }
 
   public static final class FormFactors {

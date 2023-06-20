@@ -18,6 +18,7 @@ package org.jetbrains.android.actions;
 
 import com.intellij.ide.IdeView;
 import com.intellij.ide.actions.ElementCreator;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -105,6 +106,11 @@ public abstract class CreateResourceActionBase extends AnAction {
   }
 
   @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
+  @Override
   public boolean isDumbAware() {
     return false;
   }
@@ -141,8 +147,9 @@ public abstract class CreateResourceActionBase extends AnAction {
       return true;
     }
 
+    @NotNull
     @Override
-    public PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
+    public PsiElement [] create(@NotNull String newName) throws Exception {
       return CreateResourceActionBase.this.create(newName, myDirectory);
     }
 

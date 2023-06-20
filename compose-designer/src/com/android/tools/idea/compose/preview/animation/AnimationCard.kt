@@ -18,8 +18,10 @@ package com.android.tools.idea.compose.preview.animation
 import com.android.tools.adtui.TabularLayout
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
+import com.android.tools.idea.compose.preview.animation.actions.FreezeAction
 import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
 import com.intellij.ui.DoubleClickListener
@@ -29,15 +31,16 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.awt.event.MouseEvent
-import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.MatteBorder
 
-class AnimationCard(previewState: AnimationPreviewState,
-                    val surface: DesignSurface<*>,
-                    override val state: ElementState,
-                    private val tracker: ComposeAnimationEventTracker)
-  : JPanel(TabularLayout("*", "30px,30px")), Card {
+class AnimationCard(
+  previewState: AnimationPreviewState,
+  val surface: DesignSurface<*>,
+  override val state: ElementState,
+  extraActions: List<AnAction> = emptyList(),
+  private val tracker: ComposeAnimationEventTracker
+) : JPanel(TabularLayout("*", "30px,30px")), Card {
 
   // Collapsed view:
   //   Expand button
@@ -45,53 +48,48 @@ class AnimationCard(previewState: AnimationPreviewState,
   //   |   |                            Duration of the transition
   //   ↓   ↓                            ↓
   // ⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽
-  //⎹  ▶  transitionName                  100ms ⎹ ⬅ component
-  //⎹     ❄️  ↔️  [Start State]  to  [End State]⎹
+  // ⎹  ▶  transitionName                  100ms ⎹ ⬅ component
+  // ⎹     ❄️  [extra actions]                   ⎹
   //  ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅
-  //      ↑    ↑
-  //      |    StateComboBox - AnimatedVisibilityComboBox or StartEndComboBox.
+  //      ↑
+  //      |
   //     Freeze / unfreeze toggle.
   //
   //
   // Expanded view:
   // ⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽⎽
-  //⎹  ▼  transitionName                  100ms ⎹
-  //⎹     ❄️  ↔️  [Start State]  to  [End State]⎹
-  //⎹                                           ⎹
-  //⎹                                           ⎹
-  //⎹                                           ⎹
-  //⎹                                           ⎹
+  // ⎹  ▼  transitionName                  100ms ⎹
+  // ⎹     ❄️  [extra actions]                   ⎹
+  // ⎹                                           ⎹
+  // ⎹                                           ⎹
+  // ⎹                                           ⎹
+  // ⎹                                           ⎹
   //  ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅̅̅ ̅ ̅̅ ̅ ̅ ̅̅̅
 
   override val component: JPanel = this
   var openInTabListeners: MutableList<() -> Unit> = mutableListOf()
   override var expandedSize = InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
-  private val firstRow = JPanel(TabularLayout("30px,*,Fit","30px")).apply {
-    border = JBUI.Borders.empty(0, 0, 0, 8)
-  }
+  private val firstRow =
+    JPanel(TabularLayout("30px,*,Fit", "30px")).apply { border = JBUI.Borders.empty(0, 0, 0, 8) }
 
-  private val secondRow = JPanel(TabularLayout("30px,Fit,*", "30px")).apply {
-    border = JBUI.Borders.empty(0, 25, 0, 8)
-  }
+  private val secondRow =
+    JPanel(TabularLayout("Fit,Fit,*", "30px")).apply { border = JBUI.Borders.empty(0, 25, 0, 8) }
 
   override fun getCurrentHeight() =
     if (state.expanded) expandedSize else InspectorLayout.TIMELINE_LINE_ROW_HEIGHT
 
-  private var durationLabel: Component? = null
+  var durationLabel: Component? = null
   override fun setDuration(durationMillis: Int?) {
     durationLabel?.let { firstRow.remove(it) }
-    durationLabel = JBLabel("${durationMillis ?: "_"}ms").apply { foreground = UIUtil.getContextHelpForeground() }.also {
-      firstRow.add(it, TabularLayout.Constraint(0, 2))
-    }
+    durationLabel =
+      JBLabel("${durationMillis ?: "_"}ms")
+        .apply { foreground = UIUtil.getContextHelpForeground() }
+        .also { firstRow.add(it, TabularLayout.Constraint(0, 2)) }
   }
 
   fun addOpenInTabListener(listener: () -> Unit) {
     openInTabListeners.add(listener)
-  }
-
-  fun addStateComponent(component: JComponent) {
-    secondRow.add(component, TabularLayout.Constraint(0, 1))
   }
 
   init {
@@ -99,8 +97,13 @@ class AnimationCard(previewState: AnimationPreviewState,
     firstRow.add(expandButton, TabularLayout.Constraint(0, 0))
     firstRow.add(JBLabel(state.title ?: "_"), TabularLayout.Constraint(0, 1))
 
-    val freezeToolbar = SingleButtonToolbar(surface, "FreezeAnimationCard", FreezeAction(previewState, state, tracker))
-    secondRow.add(freezeToolbar, TabularLayout.Constraint(0, 0))
+    val secondRowToolbar =
+      DefaultToolbarImpl(
+        surface,
+        "AnimationCard",
+        listOf(FreezeAction(previewState, state, tracker)) + extraActions
+      )
+    secondRow.add(secondRowToolbar.component, TabularLayout.Constraint(0, 0))
     add(firstRow, TabularLayout.Constraint(0, 0))
     add(secondRow, TabularLayout.Constraint(1, 0))
     OpenInNewTab().installOn(this)
@@ -114,16 +117,17 @@ class AnimationCard(previewState: AnimationPreviewState,
     }
   }
 
-  private inner class ExpandAction()
-    : AnActionButton(message("animation.inspector.action.expand"), UIUtil.getTreeCollapsedIcon()) {
+  private inner class ExpandAction() :
+    AnActionButton(message("animation.inspector.action.expand"), UIUtil.getTreeCollapsedIcon()) {
 
     override fun actionPerformed(e: AnActionEvent) {
       state.expanded = !state.expanded
       if (state.expanded) {
         tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.EXPAND_ANIMATION_CARD)
-      }
-      else {
-        tracker(ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.COLLAPSE_ANIMATION_CARD)
+      } else {
+        tracker(
+          ComposeAnimationToolingEvent.ComposeAnimationToolingEventType.COLLAPSE_ANIMATION_CARD
+        )
       }
     }
 
@@ -134,8 +138,7 @@ class AnimationCard(previewState: AnimationPreviewState,
         if (state.expanded) {
           icon = UIUtil.getTreeExpandedIcon()
           text = message("animation.inspector.action.collapse")
-        }
-        else {
+        } else {
           icon = UIUtil.getTreeCollapsedIcon()
           text = message("animation.inspector.action.expand")
         }

@@ -31,18 +31,17 @@ import com.android.tools.idea.tests.gui.framework.fixture.InferNullityDialogFixt
 import com.android.tools.idea.tests.gui.framework.fixture.InspectCodeDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.intellij.notification.Notification;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.LanguageLevelUtil;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.roots.LanguageLevelModuleExtensionImpl;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import com.intellij.util.messages.MessageBusConnection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
@@ -62,7 +61,7 @@ public class NewProjectTest {
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   private MessageBusConnection notificationsBusConnection;
-  private final List<String> balloonsDisplayed = Lists.newArrayList();
+  private final List<String> balloonsDisplayed = new ArrayList<>();
 
   @Before
   public void setup() {
@@ -103,9 +102,9 @@ public class NewProjectTest {
       .actAndWaitForGradleProjectSyncToFinish(
         it ->
           it.getEditor()
-            .open("app/build.gradle", EditorFixture.Tab.EDITOR)
+            .open("app/build.gradle.kts", EditorFixture.Tab.EDITOR)
             .moveBetween("", "applicationId")
-            .enterText("resValue \"string\", \"foo\", \"Typpo Here\"\n")
+            .enterText("resValue(\"string, \", \"foo, \", \"Typpo Here\")\n")
             .awaitNotification(
               "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
             .performAction("Sync Now")
@@ -122,11 +121,11 @@ public class NewProjectTest {
       "        Lint",
       "            Performance",
       "                Unused resources",
-      "                    build.gradle",
+      "                    build.gradle.kts",
       "                        The resource 'R.string.foo' appears to be unused",
       "            Correctness",
       "                Obsolete Gradle Dependency",
-      "                    build.gradle",
+      "                    build.gradle.kts",
       "                        A newer version of .*",
       // This warning is unfortunate. We may want to get rid of it.
       "            Security",
@@ -178,7 +177,7 @@ public class NewProjectTest {
 
     // Remove "compileOptions { ... }" block, to force gradle "defaults"
     guiTest.ideFrame().getEditor()
-      .open("app/build.gradle")
+      .open("app/build.gradle.kts")
       .select("(compileOptions.*\n.*\n.*\n.*})")
       .typeText(" ")
       .getIdeFrame()
@@ -189,7 +188,7 @@ public class NewProjectTest {
     AndroidVersion version = AndroidModel.get(appModule).getMinSdkVersion();
 
     assertThat(version.getApiString()).named("minSdkVersion API").isEqualTo("21");
-    assertThat(LanguageLevelModuleExtensionImpl.getInstance(appModule).getLanguageLevel()).named("Java language level").isAtLeast(LanguageLevel.JDK_1_7);
+    assertThat(LanguageLevelUtil.getCustomLanguageLevel(appModule).getPreviewLevel()).named("Java language level").isAtLeast(LanguageLevel.JDK_1_7);
     LanguageLevelProjectExtension projectExt = LanguageLevelProjectExtension.getInstance(guiTest.ideFrame().getProject());
     assertThat(projectExt.getLanguageLevel()).named("Project Java language level").isSameAs(LanguageLevel.JDK_1_8);
     assertThat(LanguageLevelUtil.getCustomLanguageLevel(appModule)).named("Gradle Java language level in module " + appModule.getName())
@@ -216,7 +215,7 @@ public class NewProjectTest {
    *   1. Create a new project with empty activity with min SDK 26
    *   2. Drag and Drop RecyclerView (Verify)
    *   Verify:
-   *   Dependency should be added to build.gradle with latest version from maven
+   *   Dependency should be added to build.gradle.kts with latest version from maven
    *   </pre>
    */
   @RunIn(TestGroup.QA)
@@ -233,10 +232,10 @@ public class NewProjectTest {
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
 
     String contents = ideFrameFixture.getEditor()
-      .open("app/build.gradle")
+      .open("app/build.gradle.kts")
       .getCurrentFileContents();
 
-    assertThat(contents).contains("implementation 'androidx.recyclerview:recyclerview:");
+    assertThat(contents).contains("implementation(libs.recyclerview");
   }
 
   @Test

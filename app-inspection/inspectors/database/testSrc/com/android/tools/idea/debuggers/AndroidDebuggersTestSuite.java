@@ -17,8 +17,6 @@ package com.android.tools.idea.debuggers;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
@@ -26,6 +24,5 @@ import org.junit.runner.RunWith;
   com.android.tools.idea.debuggers.AndroidDebuggersTestSuite.class  // a suite mustn't contain itself
 })
 public class AndroidDebuggersTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
 }
 

@@ -33,7 +33,8 @@ public class IntellijUiMessageHandler implements UiMessageHandler {
   }
 
   @Override
-  public boolean displayOkCancelMessage(@NotNull String title,
+  public boolean displayOkCancelMessage(
+                                     @NotNull String title,
                                      @NotNull String message,
                                      @NotNull String okText,
                                      @NotNull String cancelText,

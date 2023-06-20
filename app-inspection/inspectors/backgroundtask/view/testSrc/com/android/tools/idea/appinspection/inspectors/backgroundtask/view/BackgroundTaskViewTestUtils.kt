@@ -22,8 +22,6 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Back
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getJobsCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getWakeLocksCategoryNode
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.BackgroundTaskInspectorTestUtils.getWorksCategoryNode
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.emptyFlow
 import java.awt.Component
 import java.awt.Container
 import java.util.stream.Stream
@@ -31,11 +29,11 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.emptyFlow
 
 object BackgroundTaskViewTestUtils {
-  class FakeAppInspectorMessenger(
-    override val scope: CoroutineScope
-  ) : AppInspectorMessenger {
+  class FakeAppInspectorMessenger(override val scope: CoroutineScope) : AppInspectorMessenger {
     var rawDataSent: ByteArray = ByteArray(0)
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
       rawDataSent = rawData
@@ -68,7 +66,8 @@ object BackgroundTaskViewTestUtils {
 
   fun JComponent.getValueComponent(key: String): Component = getCategoryPanel(key).getComponent(1)
 
-  fun JComponent.getCategoryPanel(key: String): Container = findLabels(key).findFirst().get().parent.parent
+  fun JComponent.getCategoryPanel(key: String): Container =
+    findLabels(key).findFirst().get().parent.parent
 
   fun JComponent.findLabels(text: String): Stream<Component> =
     TreeWalker(this).descendantStream().filter { (it as? JLabel)?.text == text }

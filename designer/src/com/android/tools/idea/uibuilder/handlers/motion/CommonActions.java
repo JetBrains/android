@@ -60,7 +60,6 @@ import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
 import com.android.tools.idea.uibuilder.actions.ToggleAllLiveRenderingAction;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
-import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.actions.DirectViewAction;
 import com.android.tools.idea.uibuilder.api.actions.NestedViewActionMenu;
@@ -108,7 +107,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -128,7 +126,7 @@ import org.jetbrains.annotations.Nullable;
  * Class support actions that may be common across sub classes of ConstraintLayout
  * Actions are used in Toolbars and right click menus
  */
-public final class CommonActions {
+public class CommonActions {
   private static final String PREFERENCE_KEY_PREFIX = "ConstraintLayoutPreference";
 
   public static final String SHOW_CONSTRAINTS_PREF_KEY = PREFERENCE_KEY_PREFIX + "ShowAllConstraints";
@@ -379,7 +377,7 @@ public final class CommonActions {
       presentation.setLabel(myToolTip);
     }
   }
-  private static final class ConstraintViewActions {
+  private static class ConstraintViewActions {
     private static final ImmutableList<ViewAction> ALIGN_HORIZONTALLY_ACTIONS = ImmutableList.of(
       new AlignAction(Scout.Arrange.AlignHorizontallyLeft,
                       LEFT_ALIGNED,
@@ -748,7 +746,6 @@ public final class CommonActions {
   private static void ensureLayersAreShown(@NotNull ViewEditor editor, int duration) {
     NlDesignSurface designSurface = (NlDesignSurface)editor.getScene().getDesignSurface();
     designSurface.forceLayersPaint(true);
-    designSurface.repaint();
     Timer timer = new Timer(duration, actionEvent -> designSurface.forceLayersPaint(false));
     timer.setRepeats(false);
     timer.start();
@@ -1003,7 +1000,7 @@ public final class CommonActions {
                                    @InputEventMask int modifiersEx) {
       boolean show = true;
       if (myType == VERTICAL_BARRIER || myType == HORIZONTAL_BARRIER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.0");
         if (show) {
           int barriers = 0;
           int other = 0;
@@ -1024,13 +1021,13 @@ public final class CommonActions {
         }
       }
       if (myType == GROUP) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 0);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.0");
       }
       if (myType == CONSTRAINT_SET) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
       }
       if (myType == LAYER) {
-        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, "1.9");
       }
 
       presentation.setVisible(show);
@@ -1090,7 +1087,7 @@ public final class CommonActions {
       }
 
       private void resolveResValue(String resourceRef) {
-        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myComponent.getModel().getFacet());
+        ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myComponent.getModel().getModule());
         XmlTag tag = myComponent.getBackend().getTag();
         assert tag != null;
         ResourceResolver resolver = configurationManager.getConfiguration(tag.getContainingFile().getVirtualFile()).getResourceResolver();
@@ -1341,37 +1338,6 @@ public final class CommonActions {
     @Override
     public int getIconHeight() {
       return myIcon.getIconHeight();
-    }
-  }
-
-
-  private static class ClearConstraintsAction extends DirectViewAction {
-
-    private static final String MESSAGE_DELETE_CONSTRAINT = "Delete all the constraints in the current layout?";
-
-    private ClearConstraintsAction() {
-      super(StudioIcons.LayoutEditor.Toolbar.CLEAR_CONSTRAINTS, "Clear All Constraints");
-    }
-
-    @Override
-    @Nullable
-    public String getConfirmationMessage() {
-      return MESSAGE_DELETE_CONSTRAINT;
-    }
-
-    @Override
-    public void perform(@NotNull ViewEditor editor,
-                        @NotNull ViewHandler handler,
-                        @NotNull NlComponent component,
-                        @NotNull List<NlComponent> selectedChildren,
-                        @InputEventMask int modifiers) {
-      getAnalyticsManager(editor).trackClearAllConstraints();
-
-      ViewGroupHandler constraintHandler = (ViewGroupHandler) handler;
-      constraintHandler.clearAttributes(component.getChildren());
-      // Clear selection.
-      editor.getScene().select(Collections.emptyList());
-      ensureLayersAreShown(editor, 1000);
     }
   }
 

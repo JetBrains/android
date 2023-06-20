@@ -30,7 +30,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   // - If live tracking session hasn't finished yet, `maxTrackingTimeUs` is +∞
   var minTrackingTimeUs = initMinUs
     private set
-  private var maxTrackingTimeUs = initMaxUs
+  var maxTrackingTimeUs = initMaxUs
     private set
   private val hasStartedTracking get() = minTrackingTimeUs > NEGATIVE_INFINITY
   val hasEndedTracking get() = maxTrackingTimeUs < POSITIVE_INFINITY
@@ -85,6 +85,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   }
 
   override fun enter() {
+    logEnterStage()
     super.enter()
     if (isStatic) {
       timeline.viewRange.set(minTrackingTimeUs, maxTrackingTimeUs)

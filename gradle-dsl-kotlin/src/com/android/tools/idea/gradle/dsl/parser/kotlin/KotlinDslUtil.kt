@@ -27,6 +27,8 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElem
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
@@ -43,6 +45,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.files.GradleScriptFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.removePsiIfInvalid
@@ -95,6 +98,8 @@ import org.jetbrains.kotlin.psi.psiUtil.getContentRange
 import java.math.BigDecimal
 import java.util.regex.Pattern
 import kotlin.reflect.KClass
+
+private val LOG = Logger.getInstance("KotlinDslUtil")
 
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
@@ -151,7 +156,7 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
   }
 
   // Now we Reached the dslFile level.
-  // We only need to add a prefix if we are applying the reference from a parent dslFile context.
+  // We need to add a prefix if we are applying the reference from a parent dslFile context.
   if (currentParent is GradleScriptFile && ((context.dslFile) as? GradleScriptFile)?.transitivelyApplies(currentParent) != true) {
     // If we are applying a property from rootProject => we only need rootProjectPrefix.
     if (currentParent.name == ":") {
@@ -168,7 +173,14 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
         while (currentContextParent != currentParent)
       }
     }
-  } else {
+  }
+  // We also need to add a prefix if we are referring to a Version Catalog entity from a build script.  (And if we're referring
+  // to something under [libraries], we should elide the `libraries` from the external text).
+  else if (currentParent is GradleVersionCatalogFile && context.dslFile is GradleScriptFile) {
+    externalName.append(currentParent.catalogName).append(".")
+    if (resolutionElements[0].name == "libraries") resolutionElements.removeAt(0)
+  }
+  else {
     // This is specific for extra properties: If we are trying to use the reference from a scope that has a dedicated extra block, we need
     // to use a "project" prefix so that we look for the property in the build file extra scope instead of the current one.
     // TODO(karimai): this is dangerous as we parse properties declared within a different scope that the build script,
@@ -184,22 +196,27 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
   for (currentElement in resolutionElements) {
     // Get the external name for the resolve reference.
     val elementExternalName = applyContext.parser.externalNameForParent(currentElement.name, currentElement.parent!!).externalNameParts.joinToString(".")
-    when (parentElement) {
-      is GradleDslExpressionMap -> externalName.append("[\"")
-      is GradleDslExpressionList -> externalName.append("[")
-      is ExtDslElement -> {
+    when {
+      parentElement == null -> Unit
+      currentElement.dslFile is GradleVersionCatalogFile -> externalName.append(".")
+      parentElement is GradleDslExpressionMap -> externalName.append("[\"")
+      parentElement is GradleDslExpressionList -> externalName.append("[")
+      parentElement is ExtDslElement -> {
         if (extraArraySyntax) externalName.append("[\"")
       }
-      null, is BuildScriptDslElement -> Unit
+      parentElement is BuildScriptDslElement -> Unit
       // TODO(xof): this conditional (on isNotEmpty) should be unconditional, but we sometimes have spurious parents in resolutionElements
       //  (see the note by the declaration of resolutionElements above)
       else -> if (externalName.isNotEmpty()) externalName.append(".")
     }
-    when (currentElement) {
-      is ExtDslElement -> if (extraArraySyntax) {
+    when {
+      currentElement.dslFile is GradleVersionCatalogFile -> {
+        externalName.append(elementExternalName.split('_', '-', '.').joinToString("."))
+      }
+      currentElement is ExtDslElement -> if (extraArraySyntax) {
         externalName.append("extra")
       }
-      is GradleDslExpressionMap -> {
+      currentElement is GradleDslExpressionMap -> {
         externalName.append(elementExternalName)
         fun maybeCast(close: String) {
           externalName.append(close)
@@ -214,7 +231,7 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
           }
         }
       }
-      is GradleDslExpressionList -> {
+      currentElement is GradleDslExpressionList -> {
         externalName.append(elementExternalName)
         fun maybeCast(close: String) {
           externalName.append(close)
@@ -229,11 +246,12 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
           }
         }
       }
-      is GradleDslLiteral -> {
-        val useTypeCast = !forInjection && currentParent != context.dslFile && className != null
+      currentElement is GradleDslLiteral -> {
+        val useTypeCast = !forInjection && currentParent !is GradleVersionCatalogFile && currentParent != context.dslFile && className != null
         when (parentElement) {
           is GradleDslExpressionMap -> {
-            externalName.append("$elementExternalName\"]")
+            externalName.append(elementExternalName)
+            if (currentParent !is GradleVersionCatalogFile) externalName.append("\"]")
             if (useTypeCast) externalName.append(" as $className")
           }
           is GradleDslExpressionList -> {
@@ -266,8 +284,8 @@ internal fun convertToExternalTextValue(dslReference: GradleDslElement,
           }
         }
       }
-      is GradleDslNamedDomainContainer -> externalName.append(elementExternalName)
-      is GradleDslNamedDomainElement -> externalName.append("getByName(\"$elementExternalName\")")
+      currentElement is GradleDslNamedDomainContainer -> externalName.append(elementExternalName)
+      currentElement is GradleDslNamedDomainElement -> externalName.append("getByName(\"$elementExternalName\")")
       else -> {
         // if we have a model property with a transform (so not directly a GradleDslLiteral)
         if (currentElement.modelEffect?.property != null) {
@@ -334,7 +352,7 @@ internal fun getParentPsi(dslElement : GradleDslElement) : PsiElement? {
 internal fun GradleDslElement.getBlockParent() : GradleDslElement? {
   when (val parent = this.parent ?: return null) {
     is ExtDslElement -> return parent.getBlockParent()
-    is GradleDslBlockElement, is GradleDslFile -> return parent
+    is GradleDslElementList, is GradleDslElementMap, is GradleDslBlockElement, is GradleDslFile -> return parent
     else -> return parent.getBlockParent()
   }
 }
@@ -402,9 +420,8 @@ internal fun getOriginalName(methodName : String?, blockName : String): String {
   return if (methodName != null) "$methodName(\"$blockName\")" else "maybeCreate(\"$blockName\")"
 }
 
-@Throws(IncorrectOperationException::class)
 internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : GradleDslFile, value : Any) : PsiElement? {
-   when (value) {
+  when (value) {
     is String ->  {
       var valueText : String?
       if (StringUtil.isQuotedString(value)) {
@@ -433,11 +450,14 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
           val externalText = convertToExternalTextValue(interpolation.referenceItem!!.referredElement!!, context, applyContext, true)
           builder.append(externalText ?: interpolation.referenceItem!!.referredElement!!.fullName)
         }
-    }
+      }
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(builder.toString().addQuotes(true))
-   }
-   is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
-   else -> error("Expression '${value}' not supported.")
+    }
+    is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
+    else -> {
+      LOG.warn("Expression '${value}' not supported.")
+      return null
+    }
   }
 }
 
@@ -878,8 +898,8 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
   if (modelEntries != null) {
     for (entry in modelEntries) {
       if (entry.modelEffectDescription.property.name == nameElement.originalName) {
-        Logger.getInstance(KotlinDslWriter::class.java)
-          .error(UnsupportedOperationException( "trying to updateName a property: ${nameElement.originalName}"))
+        LOG.warn(UnsupportedOperationException( "trying to updateName a property: ${nameElement.originalName}"))
+        return
       }
     }
   }
@@ -977,14 +997,20 @@ internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDsl
  * Create the PsiElement for a list that is an argument of a map. In kotlin each map argument is a KtBinaryExpression.
  */
 internal fun createBinaryExpression(expressionList : GradleDslExpressionList) : PsiElement? {
-  val parent = expressionList.parent as? GradleDslExpressionMap ?:
-               error("Can't create expression for parent not being GradleDslExpressionMap")
+  val parent = expressionList.parent as? GradleDslExpressionMap
+  if (parent == null) {
+    LOG.warn("Can't create expression for parent not being GradleDslExpressionMap")
+    return null
+  }
 
   val parentPsiElement = parent.create() ?: return null
 
   val psiFactory = KtPsiFactory(parentPsiElement.project)
   val listName = expressionList.name
-  if (listName.isEmpty()) error("The list Name can't be empty.")
+  if (listName.isEmpty()) {
+    LOG.warn("The list Name can't be empty.")
+    return null
+  }
 
   val expression = psiFactory.createExpression("\"$listName\" to listOf()") as? KtBinaryExpression ?: return null
   val added : PsiElement?

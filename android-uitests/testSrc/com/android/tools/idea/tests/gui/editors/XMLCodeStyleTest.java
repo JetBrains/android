@@ -78,7 +78,6 @@ public class XMLCodeStyleTest {
    *   </pre>
    * <p>
    */
-  @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testXMlCodeStyleReformatting() throws IOException, InterruptedException {
     EditorFixture editorFixture = guiTest.ideFrame().getEditor();

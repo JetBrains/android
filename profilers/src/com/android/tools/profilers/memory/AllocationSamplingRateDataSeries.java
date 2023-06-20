@@ -19,8 +19,6 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.ProfilerClient;
 import java.util.ArrayList;
@@ -31,22 +29,16 @@ import org.jetbrains.annotations.NotNull;
 public final class AllocationSamplingRateDataSeries implements DataSeries<AllocationSamplingRateDurationData> {
   @NotNull private final ProfilerClient myClient;
   @NotNull private final Common.Session mySession;
-  private final boolean myNewPipeline;
 
-  public AllocationSamplingRateDataSeries(@NotNull ProfilerClient client, @NotNull Common.Session session, @NotNull boolean newPipeline) {
+  public AllocationSamplingRateDataSeries(@NotNull ProfilerClient client, @NotNull Common.Session session) {
     myClient = client;
     mySession = session;
-    myNewPipeline = newPipeline;
   }
 
   @Override
   public List<SeriesData<AllocationSamplingRateDurationData>> getDataForRange(Range range) {
     long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)range.getMin());
     long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)range.getMax());
-
-    if (!myNewPipeline) {
-      return getLegacyData(rangeMin, rangeMax);
-    }
 
     Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
       .setStreamId(mySession.getStreamId())
@@ -85,46 +77,6 @@ public final class AllocationSamplingRateDataSeries implements DataSeries<Alloca
                                                                                : null,
                                                                                currEvent.getMemoryAllocSampling())));
       }
-    }
-
-    return seriesData;
-  }
-
-  private List<SeriesData<AllocationSamplingRateDurationData>> getLegacyData(long rangeMinNs, long rangeMaxNs) {
-    // TODO(b/113703171): Query only sampling rate events needed to construct range data.
-    MemoryRequest.Builder dataRequestBuilder = MemoryRequest
-      .newBuilder()
-      .setSession(mySession)
-      .setStartTime(0)
-      .setEndTime(Long.MAX_VALUE);
-    List<AllocationSamplingRateEvent> events =
-      myClient.getMemoryClient().getJvmtiData(dataRequestBuilder.build()).getAllocSamplingRateEventsList();
-
-    // MemoryService returns all sampling rate events despite the start/end parameters. We need to filter out those out of range and
-    // construct duration data from point data.
-    List<SeriesData<AllocationSamplingRateDurationData>> seriesData = new ArrayList<>();
-    AllocationSamplingRateEvent prevEvent = null;
-    for (int i = 0; i < events.size(); i++) {
-      AllocationSamplingRateEvent currEvent = events.get(i);
-      // Event is after our request window so skip the rest.
-      if (currEvent.getTimestamp() > rangeMaxNs) {
-        break;
-      }
-
-      // If this is the last event. Set the duration to be Long.MAX_VALUE, otherwise it will be the timestamp difference between the
-      // next and current events.
-      AllocationSamplingRateEvent nextRateEvent = i == events.size() - 1 ? null : events.get(i + 1);
-      long durationUs = nextRateEvent == null ? Long.MAX_VALUE :
-                        TimeUnit.NANOSECONDS.toMicros(nextRateEvent.getTimestamp() - currEvent.getTimestamp());
-
-      // Only add events that fall within the query range.
-      if (nextRateEvent == null || nextRateEvent.getTimestamp() > rangeMinNs) {
-        seriesData.add(new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(currEvent.getTimestamp()),
-                                        new AllocationSamplingRateDurationData(durationUs,
-                                                                               prevEvent != null ? prevEvent.getSamplingRate() : null,
-                                                                               currEvent.getSamplingRate())));
-      }
-      prevEvent = currEvent;
     }
 
     return seriesData;

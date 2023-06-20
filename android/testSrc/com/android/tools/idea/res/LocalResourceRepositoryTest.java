@@ -35,7 +35,7 @@ public class LocalResourceRepositoryTest extends AndroidTestCase {
     myFixture.copyFileToProject(TEST_FILE, "res/layout/layout2.xml");
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf");
 
-    LocalResourceRepository resources = ResourceRepositoryManager.getModuleResources(myModule);
+    LocalResourceRepository resources = StudioResourceRepositoryManager.getModuleResources(myModule);
     assertNotNull(resources);
 
     Collection<String> layouts = resources.getResources(ResourceNamespace.TODO(), ResourceType.LAYOUT).keySet();

@@ -29,6 +29,6 @@ object AndroidFacetProjectDescriptor : DefaultLightProjectDescriptor() {
 
   override fun configureModule(module: Module, model: ModifiableRootModel, contentEntry: ContentEntry) {
     super.configureModule(module, model, contentEntry)
-    AndroidTestCase.addAndroidFacet(module, false)
+    AndroidTestCase.addAndroidFacetAndSdk(module, false)
   }
 }

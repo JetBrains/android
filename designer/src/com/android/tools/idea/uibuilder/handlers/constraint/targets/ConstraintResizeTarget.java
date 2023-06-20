@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint.targets;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
+import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.Target;
@@ -85,10 +86,11 @@ public class ConstraintResizeTarget extends ResizeBaseTarget {
 
   @Override
   protected void updateAttributes(@NotNull NlAttributesHolder attributes, @AndroidDpCoordinate int x, @AndroidDpCoordinate int y) {
+    SceneComponent parent = myComponent.getParent();
     switch (myType) {
       case RIGHT_TOP: {
         updateWidth(attributes, x - myStartX1);
-        updatePositionY(attributes, y - myComponent.getParent().getDrawY());
+        updatePositionY(attributes, y - (parent != null ? parent.getDrawY() : 0));
         updateHeight(attributes, myStartY2 - y);
       } break;
       case RIGHT_BOTTOM: {
@@ -96,22 +98,22 @@ public class ConstraintResizeTarget extends ResizeBaseTarget {
         updateHeight(attributes, y - myStartY1);
       } break;
       case LEFT_TOP: {
-        updatePositionX(attributes, x - myComponent.getParent().getDrawX());
+        updatePositionX(attributes, x - (parent != null ? parent.getDrawX() : 0));
         updateWidth(attributes, myStartX2 - x);
         updatePositionY(attributes, y - myComponent.getParent().getDrawY());
         updateHeight(attributes, myStartY2 - y);
       } break;
       case LEFT_BOTTOM: {
-        updatePositionX(attributes, x - myComponent.getParent().getDrawX());
+        updatePositionX(attributes, x - (parent != null ? parent.getDrawX() : 0));
         updateWidth(attributes, myStartX2 - x);
         updateHeight(attributes, y - myStartY1);
       } break;
       case LEFT:
-        updatePositionX(attributes, x - myComponent.getParent().getDrawX());
+        updatePositionX(attributes, x - (parent != null ? parent.getDrawX() : 0));
         updateWidth(attributes, myStartX2 - x);
         break;
       case TOP:
-        updatePositionY(attributes, y - myComponent.getParent().getDrawY());
+        updatePositionY(attributes, y - (parent != null ? parent.getDrawY() : 0));
         updateHeight(attributes, myStartY2 - y);
         break;
       case BOTTOM:

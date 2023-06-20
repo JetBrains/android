@@ -26,6 +26,8 @@ import static com.intellij.util.ThreeState.YES;
 
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.actions.HideAndroidBannerAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
@@ -71,6 +73,7 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final GradleVersionCatalogDetector myVersionCatalogDetector;
+  private static final long HIDE_ACTION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(30);
 
   @SuppressWarnings("unused") // Invoked by IDEA
   public ProjectSyncStatusNotificationProvider(@NotNull Project project) {
@@ -95,19 +98,12 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
     };
   }
 
-  @NotNull
-  private NotificationPanel.Type notificationPanelType(@NotNull Project project) {
-    if (IdeInfo.getInstance().isAndroidStudio() || isAndroidProject(project)) {
-      return notificationPanelType();
-    } else {
-      return NotificationPanel.Type.NONE;
-    }
-  }
-
   @VisibleForTesting
   @NotNull
-  NotificationPanel.Type notificationPanelType() {
-    if (!myProjectInfo.isBuildWithGradle()) {
+  NotificationPanel.Type notificationPanelType(@NotNull Project project) {
+    if ((!IdeInfo.getInstance().isAndroidStudio() && !isAndroidProject(project))
+        || !myProjectInfo.isBuildWithGradle()
+        || shouldHideBanner()) {
       return NotificationPanel.Type.NONE;
     }
     if (mySyncState.isSyncInProgress()) {
@@ -123,11 +119,26 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
     }
 
     if (myVersionCatalogDetector.isVersionCatalogProject()) {
-      return NotificationPanel.Type.COMPLICATED_PROJECT;
+      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
+        return NotificationPanel.Type.VERSION_CATALOG_PROJECT;
+      }
     }
 
     return NotificationPanel.Type.PROJECT_STRUCTURE;
   }
+
+  /**
+   * This method checks if the action to hide notification was triggered recently in {@link HideAndroidBannerAction}.
+   * For multiple banners open in split windows, this method helps check the hidden timestamp so that all
+   * banners are dismissed when `updateAllNotifications` is called.
+   */
+  static boolean shouldHideBanner() {
+      long now = System.currentTimeMillis();
+      String lastHiddenValue =
+        PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_HIDE_ACTION_TIMESTAMP", "0");
+      long lastHidden = Long.parseLong(lastHiddenValue);
+      return (now - lastHidden) < HIDE_ACTION_TIMEOUT_MS;
+    }
 
   @VisibleForTesting
   static class NotificationPanel extends EditorNotificationPanel {
@@ -138,16 +149,16 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
           return null;
         }
       },
-      COMPLICATED_PROJECT() {
+      VERSION_CATALOG_PROJECT() {
         @Override
         @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           if (!IdeInfo.getInstance().isAndroidStudio()) return null;
-          if (ComplicatedProjectNotificationPanel.userAllowsShow(project)) {
+          if (VersionCatalogProjectNotificationPanel.userAllowsShow(project)) {
             File ioFile = virtualToIoFile(file);
             if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile) && !ioFile.getName().endsWith("versions.toml")) {
               return null;
             }
-            return new ComplicatedProjectNotificationPanel(project, this);
+            return new VersionCatalogProjectNotificationPanel(project, this);
           }
           return PROJECT_STRUCTURE.create(project, file, projectInfo);
         }
@@ -196,6 +207,7 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
         @Override
         @NotNull
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+          if (!IdeInfo.getInstance().isAndroidStudio()) return null;
           boolean buildFilesModified = GradleFiles.getInstance(project).areExternalBuildFilesModified();
           String text = (buildFilesModified ? "External build files" : "Gradle files") +
                         " have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
@@ -259,10 +271,10 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
   }
 
   @VisibleForTesting
-  static class ComplicatedProjectNotificationPanel extends NotificationPanel {
+  static class VersionCatalogProjectNotificationPanel extends NotificationPanel {
     private static final String TEXT = "Project uses Gradle Version Catalogs: some editor tools may not work as expected";
 
-    ComplicatedProjectNotificationPanel(@NotNull Project project, @NotNull Type type) {
+    VersionCatalogProjectNotificationPanel(@NotNull Project project, @NotNull Type type) {
       super(type, TEXT);
       createActionLabel("Hide notification", () -> {
         String version = ApplicationInfo.getInstance().getShortVersion();

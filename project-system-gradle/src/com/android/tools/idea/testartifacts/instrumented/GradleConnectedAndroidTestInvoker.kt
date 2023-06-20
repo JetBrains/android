@@ -18,33 +18,37 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.builder.model.PROPERTY_BUILD_ABI
 import com.android.builder.model.PROPERTY_BUILD_API
 import com.android.builder.model.PROPERTY_BUILD_API_CODENAME
-import com.android.builder.model.PROPERTY_BUILD_DENSITY
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.Projects
+import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.run.createSpec
 import com.android.tools.idea.gradle.task.ANDROID_GRADLE_TASK_MANAGER_DO_NOT_SHOW_BUILD_OUTPUT_ON_FAILURE
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager
 import com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty
 import com.android.tools.idea.gradle.util.GradleUtil
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.configuration.execution.println
+import com.android.tools.idea.run.configuration.execution.printlnError
 import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
 import com.android.tools.idea.testartifacts.instrumented.testsuite.adapter.GradleTestResultAdapter
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.utp.GradleAndroidProjectResolverExtension
 import com.android.tools.utp.TaskOutputLineProcessor
 import com.android.tools.utp.TaskOutputProcessor
 import com.android.utils.usLocaleCapitalize
 import com.google.common.base.Joiner
 import com.intellij.build.BuildContentManager
+import com.intellij.execution.ExecutionListener
+import com.intellij.execution.ExecutionManager
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
@@ -53,6 +57,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
@@ -64,11 +69,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Gradle task invoker to run ConnectedAndroidTask for selected devices at once.
- *
- * @param selectedDevices number of total selected devices to run instrumentation tests
  */
 class GradleConnectedAndroidTestInvoker(
-  private val selectedDevices: Int,
   private val executionEnvironment: ExecutionEnvironment,
   private val moduleData: ModuleData,
   private val uninstallIncompatibleApks: Boolean = false,
@@ -87,50 +89,14 @@ class GradleConnectedAndroidTestInvoker(
     const val UNINSTALL_INCOMPATIBLE_APKS_PROPERTY = "android.experimental.testOptions.uninstallIncompatibleApks"
   }
 
-  private val scheduledDeviceList: MutableList<IDevice> = mutableListOf()
-
-  /**
-   * Schedules a given device. Once the number of scheduled devices matches to [selectedDevices],
-   * it invokes "connectedAndroidTest" Gradle task.
-   */
-  fun schedule(project: Project,
-               taskId: String,
-               processHandler: ProcessHandler,
-               consolePrinter: ConsolePrinter,
-               androidModuleModel: GradleAndroidModel,
-               waitForDebugger: Boolean,
-               testPackageName: String,
-               testClassName: String,
-               testMethodName: String,
-               testRegex: String,
-               device: IDevice,
-               retentionConfiguration: RetentionConfiguration,
-               extraInstrumentationOptions: String) {
-    scheduledDeviceList.add(device)
-    if (scheduledDeviceList.size == selectedDevices) {
-      runGradleTask(project,
-                    taskId,
-                    processHandler,
-                    consolePrinter,
-                    androidModuleModel,
-                    waitForDebugger,
-                    testPackageName,
-                    testClassName,
-                    testMethodName,
-                    testRegex,
-                    retentionConfiguration,
-                    extraInstrumentationOptions)
-    }
-  }
-
   /**
    * Runs connectedAndroidTest Gradle task asynchronously.
    */
-  private fun runGradleTask(
+  fun runGradleTask(
     project: Project,
+    devices: List<IDevice>,
     taskId: String,
-    processHandler: ProcessHandler,
-    consolePrinter: ConsolePrinter,
+    androidTestSuiteView: AndroidTestSuiteView,
     androidModuleModel: GradleAndroidModel,
     waitForDebugger: Boolean,
     testPackageName: String,
@@ -140,11 +106,10 @@ class GradleConnectedAndroidTestInvoker(
     retentionConfiguration: RetentionConfiguration,
     extraInstrumentationOptions: String
   ) {
-    consolePrinter.stdout("Running tests\n")
+    androidTestSuiteView.println("Running tests")
 
-    val androidTestResultListener = processHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)
-    val adapters = scheduledDeviceList.associate {
-      val adapter = gradleTestResultAdapterFactory(it, taskId, androidModuleModel.getArtifactForAndroidTest(), androidTestResultListener)
+    val adapters = devices.associate {
+      val adapter = gradleTestResultAdapterFactory(it, taskId, androidModuleModel.getArtifactForAndroidTest(), androidTestSuiteView)
       adapter.device.id to adapter
     }
 
@@ -153,12 +118,13 @@ class GradleConnectedAndroidTestInvoker(
     val externalTaskId: ExternalSystemTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID,
                                                                            ExternalSystemTaskType.EXECUTE_TASK, project)
     val taskOutputProcessor = TaskOutputProcessor(adapters)
+    val executionId = executionEnvironment.executionId
     val listener: ExternalSystemTaskNotificationListenerAdapter = object : ExternalSystemTaskNotificationListenerAdapter() {
-      val outputLineProcessor = TaskOutputLineProcessor(object: TaskOutputLineProcessor.LineProcessor {
+      val outputLineProcessor = TaskOutputLineProcessor(object : TaskOutputLineProcessor.LineProcessor {
         override fun processLine(line: String) {
           val processedText = taskOutputProcessor.process(line)
           if (!(processedText.isBlank() && line != processedText)) {
-            consolePrinter.stdout(processedText)
+            androidTestSuiteView.println(processedText)
           }
         }
       })
@@ -175,8 +141,9 @@ class GradleConnectedAndroidTestInvoker(
         super.onTaskOutput(id, text, stdOut)
         if (stdOut) {
           outputLineProcessor.append(text)
-        } else {
-          processHandler.notifyTextAvailable(text, ProcessOutputTypes.STDERR)
+        }
+        else {
+          androidTestSuiteView.printlnError(text)
         }
       }
 
@@ -207,7 +174,6 @@ class GradleConnectedAndroidTestInvoker(
         if (isRerunRequested) {
           // rerunInvoker will call detachProcess().
           val rerunInvoker = GradleConnectedAndroidTestInvoker(
-            rerunDevices.size,
             executionEnvironment,
             moduleData,
             uninstallIncompatibleApks = true,
@@ -216,50 +182,71 @@ class GradleConnectedAndroidTestInvoker(
             gradleTestResultAdapterFactory,
           )
           rerunDevices.forEach {
-            androidTestResultListener.onRerunScheduled(it.device)
-            rerunInvoker.schedule(
-              project,
-              taskId,
-              processHandler,
-              consolePrinter,
-              androidModuleModel,
-              waitForDebugger,
-              testPackageName,
-              testClassName,
-              testMethodName,
-              testRegex,
-              it.iDevice,
-              retentionConfiguration,
-              extraInstrumentationOptions
-            )
+            androidTestSuiteView.onRerunScheduled(it.device)
           }
-        } else {
+          rerunInvoker.runGradleTask(
+            project,
+            rerunDevices.map { it.iDevice }.toList(),
+            taskId,
+            androidTestSuiteView,
+            androidModuleModel,
+            waitForDebugger,
+            testPackageName,
+            testClassName,
+            testMethodName,
+            testRegex,
+            retentionConfiguration,
+            extraInstrumentationOptions
+          )
+        }
+        else {
           // If Gradle task run finished before the test suite starts, show error
           // in the Build output tool window.
-          if(!testSuiteStartedOnAnyDevice && !testRunIsCancelled.get()) {
+          if (!testSuiteStartedOnAnyDevice && !testRunIsCancelled.get()) {
             ApplicationManager.getApplication().invokeLater({
-              val toolWindow = buildToolWindowProvider(project)
-              if (toolWindow.isAvailable && !toolWindow.isVisible) {
-                toolWindow.show()
-              }
-            }, ModalityState.nonModal(), project.disposed)
+                                                              val toolWindow = buildToolWindowProvider(project)
+                                                              if (toolWindow.isAvailable && !toolWindow.isVisible) {
+                                                                toolWindow.show()
+                                                              }
+                                                            }, ModalityState.nonModal(), project.disposed)
           }
 
-          processHandler.detachProcess()
+          RunContentManager.getInstance(project).allDescriptors.find {
+            it.executionId == executionEnvironment.executionId
+          }?.let {
+            it.processHandler?.detachProcess()
+          }
         }
       }
     }
 
-    processHandler.addProcessListener(object: ProcessAdapter() {
-      override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-        if (willBeDestroyed) {
-          AndroidGradleTaskManager().cancelTask(externalTaskId, listener)
+    val disposable = Disposer.newDisposable()
+    Disposer.register(project, disposable)
+    project.messageBus.connect(disposable).subscribe(ExecutionManager.EXECUTION_TOPIC, object : ExecutionListener {
+      override fun processNotStarted(executorId: String, env: ExecutionEnvironment) {
+        if (env.executionId != executionId) {
+          return
         }
+        Disposer.dispose(disposable)
+      }
+
+      override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
+        if (env.executionId != executionId) {
+          return
+        }
+        Disposer.dispose(disposable)
+        handler.addProcessListener(object : ProcessAdapter() {
+          override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+            if (willBeDestroyed) {
+              AndroidGradleTaskManager().cancelTask(externalTaskId, listener)
+            }
+          }
+        })
       }
     })
 
     val gradleExecutionSettings = getGradleExecutionSettings(
-      project, waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
+      project, devices, waitForDebugger, testPackageName, testClassName, testMethodName, testRegex,
       retentionConfiguration, extraInstrumentationOptions)
 
     backgroundTaskExecutor {
@@ -271,13 +258,15 @@ class GradleConnectedAndroidTestInvoker(
           gradleExecutionSettings,
           null,
           listener)
-      } catch (e: ExternalSystemException) {
+      }
+      catch (e: ExternalSystemException) {
         // No-op.
         // If there is a failing test case, the test task finished in failed state
         // that ends up with ExternalSystemException to be thrown on Windows.
         // On Linux and Mac OS, GradleTaskManager doesn't throw ExternalSystemException
         // for failed task and it calls listener.onFailure() callback instead.
-      } finally {
+      }
+      finally {
         // When a Gradle task fails, GradleTaskManager.executeTasks method may throw
         // an ExternalSystemException without calling onEnd() or onFailure() callback.
         // This often happens on Windows.
@@ -288,6 +277,7 @@ class GradleConnectedAndroidTestInvoker(
 
   private fun getGradleExecutionSettings(
     project: Project,
+    devices: List<IDevice>,
     waitForDebugger: Boolean,
     testPackageName: String,
     testClassName: String,
@@ -298,7 +288,7 @@ class GradleConnectedAndroidTestInvoker(
   ): GradleExecutionSettings {
     return GradleUtil.getOrCreateGradleExecutionSettings(project).apply {
       // Add an environmental variable to filter connected devices for selected devices.
-      val deviceSerials = scheduledDeviceList.joinToString(",") { device ->
+      val deviceSerials = devices.joinToString(",") { device ->
         device.serialNumber
       }
       withEnvironmentVariables(mapOf(("ANDROID_SERIAL" to deviceSerials)))
@@ -311,18 +301,21 @@ class GradleConnectedAndroidTestInvoker(
       if (retentionConfiguration.enabled == EnableRetention.YES) {
         withArgument("-P$RETENTION_ENABLE_PROPERTY=${retentionConfiguration.maxSnapshots}")
         withArgument("-P$RETENTION_COMPRESS_SNAPSHOT_PROPERTY=${retentionConfiguration.compressSnapshots}")
-      } else if (retentionConfiguration.enabled == EnableRetention.NO) {
+      }
+      else if (retentionConfiguration.enabled == EnableRetention.NO) {
         withArgument("-P$RETENTION_ENABLE_PROPERTY=0")
       }
 
       // Add a test filter.
       if (testRegex.isNotBlank()) {
         withArgument("-Pandroid.testInstrumentationRunnerArguments.tests_regex=$testRegex")
-      } else if (testPackageName != "" || testClassName != "") {
+      }
+      else if (testPackageName != "" || testClassName != "") {
         var testTypeArgs = "-Pandroid.testInstrumentationRunnerArguments"
         if (testPackageName != "") {
           testTypeArgs += ".package=$testPackageName"
-        } else {
+        }
+        else {
           testTypeArgs += ".class=$testClassName"
           if (testMethodName != "") {
             testTypeArgs += "#$testMethodName"
@@ -371,14 +364,13 @@ class GradleConnectedAndroidTestInvoker(
 
     val deviceSpecificArguments = mutableListOf<String>()
     deviceSpec.commonVersion?.let { version ->
-      deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
-      version.codename?.let { codename ->
-        deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, codename))
+      val deviceApiOptimization = API_OPTIMIZATION_ENABLE.get() && GradleExperimentalSettings.getInstance().ENABLE_GRADLE_API_OPTIMIZATION
+      if (deviceApiOptimization) {
+        deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
+        version.codename?.let { codename ->
+          deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_API_CODENAME, codename))
+        }
       }
-    }
-
-    deviceSpec.density?.let { density ->
-      deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_DENSITY, density.resourceValue))
     }
     if (deviceSpec.abis.isNotEmpty()) {
       deviceSpecificArguments.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.abis)))

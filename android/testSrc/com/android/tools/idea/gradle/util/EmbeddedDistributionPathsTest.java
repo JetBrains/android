@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.doFindAndroidStudioLocalMavenRepoPaths;
+import static com.android.tools.idea.gradle.util.EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot;
+import static com.android.tools.idea.util.StudioPathManager.getSourcesRoot;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.util.StudioPathManager;
@@ -26,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.Test;
 
 /**
@@ -47,5 +50,22 @@ public class EmbeddedDistributionPathsTest {
     List<Path> paths = doFindAndroidStudioLocalMavenRepoPaths().stream().map(File::toPath).collect(Collectors.toList());
     assertThat(paths).hasSize(expectedRepo.size());
     assertThat(paths).containsExactlyElementsIn(expectedRepo);
+  }
+
+  @Test
+  public void testGetJdkRootPathFromSourcesRoot() {
+    @SuppressWarnings("deprecation") String root = getSourcesRoot();
+    List<Path> jdk8Paths = Stream.of("win64", "linux", "mac/Contents/Home")
+      .map((x) -> Path.of(root + "/prebuilts/studio/jdk/" + x))
+      .collect(Collectors.toList());
+    assertThat(jdk8Paths).contains(getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk"));
+    List<Path> jdk11Paths = Stream.of("win", "linux", "mac/Contents/Home")
+      .map((x) -> Path.of(root + "/prebuilts/studio/jdk/jdk11/" + x))
+      .collect(Collectors.toList());
+    assertThat(jdk11Paths).contains(getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk11"));
+    List<Path> jdk17Paths = Stream.of("win", "linux", "mac/Contents/Home")
+      .map((x) -> Path.of(root + "/prebuilts/studio/jdk/jdk17/" + x))
+      .collect(Collectors.toList());
+    assertThat(jdk17Paths).contains(getJdkRootPathFromSourcesRoot("prebuilts/studio/jdk/jdk17"));
   }
 }

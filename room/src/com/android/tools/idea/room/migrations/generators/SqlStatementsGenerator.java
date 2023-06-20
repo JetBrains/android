@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Responsible for generating SQLite statements which perform updates between two versions of a database schema.
  */
-public final class SqlStatementsGenerator {
+public class SqlStatementsGenerator {
   private static final String TMP_TABLE_NAME_TEMPLATE = "%s_data$android_studio_tmp";
 
   /**

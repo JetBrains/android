@@ -17,13 +17,20 @@ apply plugin: 'android'
 
 android {
   compileSdkVersion 19
-  buildToolsVersion '19.1.0'
 
   defaultConfig {
     minSdkVersion 15
     targetSdkVersion 19
 
     applicationId 'com.example.android.app'
+  }
+
+  buildTypes {
+    benchmark {
+      signingConfig signingConfigs.debug
+      matchingFallbacks = ['release']
+      debuggable false
+    }
   }
 
   publishNonDefault true

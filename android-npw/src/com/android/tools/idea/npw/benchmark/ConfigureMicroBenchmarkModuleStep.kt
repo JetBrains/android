@@ -20,9 +20,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.ConfigureModuleStep
+import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.AlignX
-import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
@@ -52,10 +52,8 @@ class ConfigureMicroBenchmarkModuleStep(
       cell(apiLevelCombo).align(AlignX.FILL)
     }
 
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
-      row {
-        cell(gradleKtsCheck)
-      }.topGap(TopGap.SMALL)
+    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get() || model.useGradleKts.get()) {
+      generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
     }
   }.withBorder(empty(6))
 

@@ -15,16 +15,12 @@
  */
 package org.jetbrains.android.refactoring;
 
-import static com.android.tools.idea.testing.TestProjectPaths.ANDROIDX_SIMPLE;
-import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COMPAT;
-
-import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.adtimport.GradleImport;
-import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestModuleUtil;
@@ -36,9 +32,13 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.PlatformTestUtil;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Set;
 import java.util.function.BiFunction;
-import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.testing.TestProjectPaths.ANDROIDX_SIMPLE;
+import static com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_APP_COMPAT;
 
 /**
  * This class tests Migration to AppCompat for a Gradle project.
@@ -55,13 +55,13 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
     });
     assertFalse(ref.get().isAndroidxLibrary());
 
-    GradleVersion version = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(getProject());
+    AgpVersion version = GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(getProject());
     String configName = GradleUtil.mapConfigurationName("implementation", version, false);
     assertEquals("apply plugin: 'com.android.application'\n" +
                  "\n" +
                  "android {\n" +
                  "    compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
-                 "    buildToolsVersion \"" + SdkConstants.CURRENT_BUILD_TOOLS_VERSION + "\"\n" +
+                 "    namespace \"com.example.google.migrate2appcompat\"\n" +
                  "    defaultConfig {\n" +
                  "        applicationId \"com.example.google.migrate2appcompat\"\n" +
                  "        minSdkVersion 23\n" +
@@ -83,7 +83,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
                  "\n" +
                  "android {\n" +
                  "    compileSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
-                 "    buildToolsVersion \"" + SdkConstants.CURRENT_BUILD_TOOLS_VERSION + "\"\n" +
+                 "    namespace \"com.example.appandmodules.mylibarybase\"\n" +
                  "    defaultConfig {\n" +
                  "        minSdkVersion 23\n" +
                  "        targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
@@ -117,8 +117,7 @@ public class MigrateToAppCompatGradleTest extends AndroidGradleTestCase {
 
     assertEquals("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                  "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
-                 "          xmlns:tools=\"http://schemas.android.com/tools\"\n" +
-                 "          package=\"com.example.google.migrate2appcompat\">\n" +
+                 "          xmlns:tools=\"http://schemas.android.com/tools\">\n" +
                  "\n" +
                  "    <application\n" +
                  "        android:allowBackup=\"true\"\n" +

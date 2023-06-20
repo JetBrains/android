@@ -28,6 +28,7 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.SceneMouseInteraction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.SceneTest
 
 class RelativeLayoutDecoratorTest: SceneTest() {
@@ -135,7 +136,7 @@ DrawComponentBackground,225,225,50,50,1
 DrawProgressBar,225,225,50,50
 DrawNlComponentFrame,225,225,50,50,1,100,100
 DrawComponentBackground,225,245,50,10,1
-DrawButton,225,245,50,10,0,8,1.0,28,"this is a test"
+DrawButton,225,245,50,10,0,8,1.0,28,"Button"
 DrawNlComponentFrame,225,245,50,10,1,20,20
 VerticalZigZagLineCommand - (250, 0, 225)
 VerticalZigZagLineCommand - (250, 275, 500)
@@ -188,7 +189,7 @@ DrawComponentBackground,225,265,30,10,1
 DrawImageView,225,265,30,10
 DrawNlComponentFrame,225,265,30,10,1,20,20
 DrawComponentBackground,460,480,30,10,1
-DrawTextRegion,460,480,30,10,0,8,false,false,5,5,28,1.0,""
+DrawTextRegion,460,480,30,10,0,8,false,false,4,5,28,1.0,"TextView"
 DrawNlComponentFrame,460,480,30,10,1,20,20
 DrawVerticalArrowCommand - (240, 265, 0)
 DrawHorizontalArrowCommand - (225, 270, 270)
@@ -347,7 +348,24 @@ UNClip
                           )
     )
 
-    val expectedDrawCommand =
+    val expectedDrawCommand = if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+      """Clip,0,0,500,500
+DrawNlComponentFrame,195,275,30,10,3,20,20
+DrawResize,191,271,8,8,0
+DrawResize,191,281,8,8,0
+DrawResize,221,271,8,8,0
+DrawResize,221,281,8,8,0
+DrawAnchor,189,274,12,12,0
+DrawAnchor,204,250,12,12,0
+DrawAnchor,219,274,12,12,0
+DrawAnchor,204,298,12,12,0
+DrawVerticalArrowCommand - (210, 275, 275)
+DrawHorizontalDashedLineCommand: (195, 275) - (275, 275)
+DrawHorizontalArrowCommand - (225, 280, 280)
+DrawVerticalDashedLineCommand: (225, 225) - (225, 285)
+UNClip
+"""
+    } else {
       """Clip,0,0,500,500
 DrawNlComponentFrame,195,275,30,10,3,20,20
 DrawResize,191,271,8,8,0
@@ -364,6 +382,7 @@ DrawHorizontalArrowCommand - (225, 280, 280)
 DrawVerticalDashedLineCommand: (225, 225) - (225, 285)
 UNClip
 """
+    }
     val model = builder.build()
     SceneContext.get().setShowOnlySelection(true)
     model.surface.selectionModel.setSelection(listOf(model.find("h")!!))

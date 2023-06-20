@@ -18,6 +18,16 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+# This would normally be a dependency of kotlin-gradle-plugin above. However, there is a defect
+# in the POM file for kotlin-gradle-plugin 1.8.0 in which kotlin-gradle-plugin-api is listed
+# multiple times, sometimes as an optional dependency. As a result, we must include
+# kotlin-gradle-plugin-api manually.
+alias(
+    name = "kotlin-gradle-plugin-api-for-ide-plugin",
+    actual = "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KOTLIN_IDE_VERSION,
+    visibility = ["//visibility:public"],
+)
+
 alias(
     name = "kotlin-reflect-for-ide-plugin",
     actual = "@maven//:org.jetbrains.kotlin.kotlin-reflect_" + KOTLIN_IDE_VERSION,
@@ -39,12 +49,13 @@ alias(
 # managed by go/iml_to_build
 iml_module(
     name = "kotlin-integration-tests",
+    generate_k2_tests = True,
     iml_files = ["kotlin-integration-tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -97,6 +108,6 @@ maven_repository(
         "@maven//:org.hamcrest.hamcrest-integration_1.3",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.intellij.deps.trove4j_1.0.20181211",
-        "@maven//:org.mockito.mockito-core_3.12.4",
+        "@maven//:org.mockito.mockito-core_4.8.0",
     ],
 )

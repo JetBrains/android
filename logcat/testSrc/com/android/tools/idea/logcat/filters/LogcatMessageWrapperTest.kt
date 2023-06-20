@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogLevel.WARN
+import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import java.time.Instant

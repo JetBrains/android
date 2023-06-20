@@ -15,14 +15,21 @@
  */
 package com.android.build.attribution
 
+import com.android.build.attribution.ui.view.ClearBuildResultsAction
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
+import com.intellij.openapi.observable.properties.AbstractObservableClearableProperty
+import com.intellij.openapi.observable.properties.AtomicMutableProperty
+import com.intellij.openapi.observable.properties.AtomicProperty
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.openapi.util.text.Formats
+import com.intellij.ui.dsl.builder.bindIntText
+import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 
 @State(name = "BuildAnalyzerSettings")
@@ -37,7 +44,10 @@ class BuildAnalyzerSettings : PersistentStateComponent<BuildAnalyzerSettings.Sta
   }
 
   data class State(
-    var notifyAboutWarnings: Boolean = true
+    @Deprecated("NotificationsConfiguration used instead. Only read value for migration and only set to it default.")
+    var notifyAboutWarnings: String = "deprecated",
+    var maxNumberOfBuildsStored: Int = 15,
+    var maxStorageSpaceKilobytes: Int = 1000,
   )
 
   override fun getState(): State = settingsState
@@ -60,14 +70,67 @@ class BuildAnalyzerConfigurableProvider(val project: Project) : ConfigurableProv
 private class BuildAnalyzerConfigurable(val project: Project) : BoundSearchableConfigurable(
   displayName = BuildAnalyzerConfigurableProvider.DISPLAY_NAME,
   helpTopic = "build.analyzer"
-){
+) {
   private val buildAnalyzerSettings = BuildAnalyzerSettings.getInstance(project)
 
+  private val fileSizeFormatted = AtomicFileSize(
+    BuildAnalyzerStorageManager.getInstance(project).getStorageDescriptor().currentBuildHistoryDataSize)
+
+  override fun apply() {
+    super.apply()
+    BuildAnalyzerStorageManager.getInstance(project).onSettingsChange()
+  }
+
   override fun createPanel(): DialogPanel = panel {
-    row {
-      checkBox("Notify about new warning types").bindSelected(
-        buildAnalyzerSettings.settingsState::notifyAboutWarnings
-      )
+    if (StudioFlags.BUILD_ANALYZER_HISTORY.get()) {
+      row {
+        text("").bindIntText(BuildAnalyzerStorageManager.getInstance(project).getStorageDescriptor().numberOfBuildResultsStored)
+          .label("Number of build results stored: ")
+
+        text("").bindText(fileSizeFormatted)
+          .label("File size taken up by stored build results: ")
+      }
+
+      row {
+        text("Maximum number of build results stored")
+        intTextField(IntRange(0, 100)).bindIntText(
+          getter = { buildAnalyzerSettings.settingsState.maxNumberOfBuildsStored },
+          setter = { buildAnalyzerSettings.settingsState.maxNumberOfBuildsStored = it }
+        )
+      }
+
+      row {
+        text("Maximum storage capacity in kilobytes")
+        intTextField(IntRange(0, 100000)).bindIntText(
+          getter = { buildAnalyzerSettings.settingsState.maxStorageSpaceKilobytes },
+          setter = { buildAnalyzerSettings.settingsState.maxStorageSpaceKilobytes = it }
+        )
+      }
+
+      row {
+        button("Clear Build Results Data", ClearBuildResultsAction(::reset))
+      }
     }
+  }
+}
+
+class AtomicFileSize(private val reference: AtomicProperty<Long>) : AbstractObservableClearableProperty<String>(), AtomicMutableProperty<String> {
+  private var representation = Formats.formatFileSize(reference.get())
+
+  init {
+    reference.afterChange {
+      set(Formats.formatFileSize(reference.get()))
+    }
+  }
+
+  override fun get() = representation
+
+  override fun set(value: String) {
+    representation = value
+    fireChangeEvent(value)
+  }
+
+  override fun updateAndGet(update: (String) -> String): String {
+    throw UnsupportedOperationException("AtomicFileSize is not mutable")
   }
 }

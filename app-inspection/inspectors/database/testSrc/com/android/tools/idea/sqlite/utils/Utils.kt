@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.replaceService
 import java.sql.DriverManager
 
 internal fun List<Any?>.toSqliteValues() = this.map { SqliteValue.fromAny(it) }
@@ -42,9 +43,13 @@ internal fun getJdbcDatabaseConnection(
   }
 }
 
-/** Sets `adb` location in the project (needed when using `adb` in e.g. [com.intellij.testFramework.LightPlatformTestCase]) */
+/**
+ * Sets `adb` location in the project (needed when using `adb` in e.g.
+ * [com.intellij.testFramework.LightPlatformTestCase])
+ */
 internal fun initAdbFileProvider(project: Project) {
-  AdbFileProvider {
+  val adbFileProvider = AdbFileProvider {
     TestUtils.getSdk().resolve("platform-tools").resolve(SdkConstants.FN_ADB).toFile()
-  }.storeInProject(project)
+  }
+  project.replaceService(AdbFileProvider::class.java, adbFileProvider, project)
 }

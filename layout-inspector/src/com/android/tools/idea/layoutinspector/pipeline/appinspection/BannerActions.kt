@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
 import com.google.common.annotations.VisibleForTesting
@@ -94,7 +94,7 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
   val doNotShowAgainAction = object : AnAction(LayoutInspectorBundle.message("do.not.show.again")) {
     override fun actionPerformed(event: AnActionEvent) {
       PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
-      val banner = InspectorBannerService.getInstance(project)
+      val banner = InspectorBannerService.getInstance(project) ?: return
       banner.DISMISS_ACTION.actionPerformed(event)
     }
   }
@@ -108,18 +108,18 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
     moduleFromCurrentProjectBeingInspected(project, process)
   }
 
-  val banner = InspectorBannerService.getInstance(project)
+  val banner = InspectorBannerService.getInstance(project) ?: return
   val config = module?.let { getConfiguration(module) }
   val showEnableAction = config?.INSPECTION_WITHOUT_ACTIVITY_RESTART == false
   val actions = mutableListOf(doNotShowAgainAction, banner.DISMISS_ACTION)
   if (showEnableAction) {
     actions.add(0, enableInRunConfigAction)
   }
-  banner.setNotification(LayoutInspectorBundle.message("activity.restart"), actions)
+  banner.addNotification(LayoutInspectorBundle.message("activity.restart"), actions)
 }
 
 private fun moduleFromCurrentProjectBeingInspected(project: Project, process: ProcessDescriptor): Module? =
-  project.allModules().firstOrNull { process.name == AndroidModuleInfo.getInstance(it)?.`package` }
+  project.allModules().firstOrNull { process.name == StudioAndroidModuleInfo.getInstance(it)?.packageName }
 
 /**
  * Get the [AndroidRunConfiguration] for the specified [module].

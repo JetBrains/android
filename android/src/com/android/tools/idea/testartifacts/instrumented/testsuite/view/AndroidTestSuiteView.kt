@@ -22,11 +22,19 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ExportAndroidTestResultsAction
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestGroup
 import com.android.tools.idea.testartifacts.instrumented.testsuite.actions.ImportTestsFromFileAction
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.*
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultsTreeNode
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.isRootAggregationResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.AndroidTestResultsXmlFormatter
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.*
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuiteResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkLinkListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.benchmark.BenchmarkOutput
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
@@ -50,10 +58,17 @@ import com.intellij.largeFilesEditor.GuiUtils
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionButtonLook
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.PerformInBackgroundOption
 import com.intellij.openapi.progress.ProgressIndicator
@@ -62,6 +77,7 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.ColorProgressBar
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindowManager
@@ -85,9 +101,16 @@ import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.time.Clock
 import java.time.Duration
-import java.util.*
+import java.util.Date
+import java.util.Locale
 import java.util.function.Supplier
-import javax.swing.*
+import javax.swing.Box
+import javax.swing.BoxLayout
+import javax.swing.Icon
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.JProgressBar
+import javax.swing.LayoutFocusTraversalPolicy
 import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXTransformerFactory
@@ -283,7 +306,7 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     }
 
     myComponentsSplitter.firstComponent = contentPanel
-    myDetailsView = AndroidTestSuiteDetailsView(parentDisposable, this, this, myProject, myLogger).apply {
+    myDetailsView = AndroidTestSuiteDetailsView(this, this, this, myProject, myLogger).apply {
       isDeviceSelectorListVisible = false
       rootPanel.isVisible = false
       rootPanel.minimumSize = Dimension()
@@ -534,7 +557,6 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
       }
     }
 
-  @UiThread
   private fun saveHistory() {
     val runConfiguration = runConfiguration ?: return
     ProgressManager.getInstance().run(
@@ -562,12 +584,15 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
             }
             setResult(StreamResult(FileWriter(outputFile)))
           }
+          val rootResultsNode = Ref.create<AndroidTestResultsTreeNode>()
+          ApplicationManager.getApplication().invokeAndWait { rootResultsNode.set(myResultsTableView.rootResultsNode) }
           AndroidTestResultsXmlFormatter(
             Duration.ofMillis(myTestFinishedTimeMillis - myTestStartTimeMillis),
-            myResultsTableView.rootResultsNode,
+            rootResultsNode.get(),
             myScheduledDevices.toList(),
             runConfiguration,
             transformerHandler).execute()
+
           myResultFile = outputFile
         }
 
@@ -649,6 +674,9 @@ class AndroidTestSuiteView @UiThread @JvmOverloads constructor(
     // Put this test suite view to the process handler as AndroidTestResultListener so the view
     // is notified the test results and to be updated.
     processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, this)
+    Disposer.register(this) {
+      processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, null)
+    }
     myDetailsView.rawTestLogConsoleView.attachToProcess(processHandler)
   }
 

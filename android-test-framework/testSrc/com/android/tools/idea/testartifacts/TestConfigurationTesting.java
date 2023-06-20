@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Collection of utility methods for testing {@link AndroidTestRunConfiguration}s.
  */
-public final class TestConfigurationTesting {
+public class TestConfigurationTesting {
   @Nullable
   public static AndroidTestRunConfiguration createAndroidTestConfigurationFromMethod(
     @NotNull Project project, @NotNull String qualifiedName, @NotNull String methodName) {

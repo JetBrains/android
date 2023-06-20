@@ -1,0 +1,12 @@
+android {
+  productFlavors {
+    free {
+      applicationIdSuffix = ".free"
+      buildConfigField "abcd", "efgh", "ijkl"
+    }
+    paid {
+      initWith free
+      applicationIdSuffix = ".paid"
+    }
+  }
+}

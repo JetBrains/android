@@ -10,7 +10,11 @@ iml_module(
     ],
     iml_files = ["intellij.android.profilers.atrace.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+    ],
 )

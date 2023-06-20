@@ -14,13 +14,16 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <depends>org.jetbrains.plugins.gradle</depends>
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceInterface="com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager"
                     serviceImplementation="com.android.build.attribution.BuildAttributionManagerImpl"/>
     <projectService serviceImplementation="com.android.build.attribution.BuildAttributionWarningsFilter"/>
     <projectService serviceImplementation="com.android.build.attribution.BuildAnalyzerSettings"/>
-    <projectConfigurable groupId="build" id="build.analyzer" displayName="Build Analyzer"
-                         provider="com.android.build.attribution.BuildAnalyzerConfigurableProvider"/>
+<!--    Remove BA Settings page for now as it ends up empty with notification setting removal.-->
+<!--    <projectConfigurable groupId="build" id="build.analyzer" displayName="Build Analyzer"-->
+<!--                         provider="com.android.build.attribution.BuildAnalyzerConfigurableProvider"/>-->
+    <projectService serviceImplementation="com.android.build.attribution.BuildDescriptorStorageService"/>
     <projectService serviceInterface="com.android.build.attribution.ui.BuildAttributionUiManager"
                     serviceImplementation="com.android.build.attribution.ui.BuildAttributionUiManagerImpl"/>
     <projectService serviceImplementation="com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner"/>
@@ -28,11 +31,25 @@
                         serviceImplementation="com.android.build.attribution.LocalKnownGradlePluginsServiceImpl"/>
     <projectService  serviceInterface = "com.android.build.attribution.BuildAnalyzerStorageManager"
         serviceImplementation="com.android.build.attribution.BuildAnalyzerStorageManagerImpl"/>
+
+    <projectService serviceInterface="com.android.tools.idea.gradle.project.sync.SyncAnalyzerManager"
+                    serviceImplementation="com.android.sync.analyzer.SyncAnalyzerManagerImpl"/>
+
+    <fileEditorProvider implementation="com.android.build.attribution.ui.BuildReportEditorProvider"/>
+    <notificationGroup id="Build Analyzer" displayType="TOOL_WINDOW" toolWindowId="Build"/>
+  </extensions>
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+    <operationHelperExtension implementation="com.android.sync.analyzer.SyncAnalyzerOperationHelperExtension"/>
   </extensions>
   <actions>
     <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerAction"
             class="com.android.build.attribution.ui.OpenBuildAnalyzerAction"
-            description = "Opens Build Analyzer (requires successful build to show report).">
+            description = "Open Build Analyzer (requires successful build to show report).">
+      <add-to-group group-id="BuildMenu" anchor="last"/>
+    </action>
+    <action id = "com.android.build.attribution.ui.OpenBuildAnalyzerResultsAction"
+            class="com.android.build.attribution.ui.OpenBuildAnalyzerResultsAction"
+            description = "Open Build Analyzer on a past build's results">
       <add-to-group group-id="BuildMenu" anchor="last"/>
     </action>
   </actions>

@@ -18,10 +18,6 @@ package com.android.tools.idea.editors.theme;
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX_LEN;
 import static com.android.SdkConstants.PREFIX_ANDROID;
-import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
-import static com.android.SdkConstants.PREFIX_THEME_REF;
-import static com.android.SdkConstants.TAG_ATTR;
-import static com.android.SdkConstants.TAG_STYLE;
 
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -42,53 +38,32 @@ import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyl
 import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.lint.checks.ApiLookup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import com.android.tools.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.sdk.AndroidTargetData;
+import org.jetbrains.android.sdk.AndroidPlatforms;
+import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods for style resolution.
  */
-public final class ResolutionUtils {
+public class ResolutionUtils {
   private static final Logger LOG = Logger.getInstance(ResolutionUtils.class);
 
   // Utility methods class isn't meant to be constructed, all methods are static.
   private ResolutionUtils() { }
-
-  /**
-   * @return ResourceUrl representation of a style from qualifiedName
-   * e.g. for "android:Theme" returns "@android:style/Theme" or for "AppTheme" returns "@style/AppTheme"
-   */
-  @NotNull
-  public static String getStyleResourceUrl(@NotNull String qualifiedName) {
-    return getResourceUrlFromQualifiedName(qualifiedName, TAG_STYLE);
-  }
-
-  public static String getResourceUrlFromQualifiedName(@NotNull String qualifiedName, @NotNull String type) {
-    String startChar = TAG_ATTR.equals(type) ? PREFIX_THEME_REF : PREFIX_RESOURCE_REF;
-    int colonIndex = qualifiedName.indexOf(':');
-    if (colonIndex != -1) {
-      // The theme name contains a namespace, change the format to be "@namespace:style/ThemeName".
-      String namespace = qualifiedName.substring(0, colonIndex + 1); // Namespace plus + colon
-      String themeNameWithoutNamespace = StringUtil.trimStart(qualifiedName, namespace);
-      return startChar + namespace + type + "/" + themeNameWithoutNamespace;
-    }
-    return startChar + type + "/" + qualifiedName;
-  }
 
   /**
    * @deprecated Avoid qualified style and theme names and use {@link ResourceReference}s instead.
@@ -153,13 +128,6 @@ public final class ResolutionUtils {
   }
 
   @Nullable
-  public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration,
-                                                           @NotNull StyleItemResourceValue itemResValue) {
-    ResourceReference attr = itemResValue.getAttr();
-    return attr == null ? null : getAttributeDefinition(configuration.getModule(), attr);
-  }
-
-  @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @NotNull ResourceReference attr) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null : String.format("Module %s is not an Android module", module.getName());
@@ -189,10 +157,10 @@ public final class ResolutionUtils {
       }
       assert target != null;
 
-      AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, module);
+      AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(module));
       assert androidTargetData != null;
 
-      definitions = androidTargetData.getAllAttrDefs(module.getProject());
+      definitions = androidTargetData.getAllAttrDefs();
     }
     else {
       AndroidFacet facet = AndroidFacet.getInstance(module);
@@ -227,13 +195,13 @@ public final class ResolutionUtils {
         // not an android attribute
         return -1;
       }
-      return apiLookup.getFieldVersion("android/R$attr", name.substring(ANDROID_NS_NAME_PREFIX_LEN));
+      return apiLookup.getFieldVersions("android/R$attr", name.substring(ANDROID_NS_NAME_PREFIX_LEN)).min();
     } else {
       if (!resUrl.isFramework()) {
         // not an android value
         return -1;
       }
-      return apiLookup.getFieldVersion("android/R$" + resUrl.type, IdeResourcesUtil.getFieldNameByResourceName(resUrl.name));
+      return apiLookup.getFieldVersions("android/R$" + resUrl.type, IdeResourcesUtil.getFieldNameByResourceName(resUrl.name)).min();
     }
   }
 
@@ -303,7 +271,7 @@ public final class ResolutionUtils {
           resourceRepository.getResources(ResourceNamespace.ANDROID, resolvedValue.getResourceType(), resolvedValue.getName());
     }
     else {
-      LocalResourceRepository LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet);
+      LocalResourceRepository LocalResourceRepository = StudioResourceRepositoryManager.getAppResources(facet);
       configurables =
           LocalResourceRepository.getResources(ResourceNamespace.TODO(), resolvedValue.getResourceType(), resolvedValue.getName());
     }

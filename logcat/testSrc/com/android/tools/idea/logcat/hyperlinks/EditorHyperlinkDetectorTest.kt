@@ -15,17 +15,20 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.filters.CompositeFilter
+import com.intellij.execution.filters.Filter
+import com.intellij.execution.filters.Filter.Result
+import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
-import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,16 +38,13 @@ import org.junit.Test
 @RunsInEdt
 class EditorHyperlinkDetectorTest {
   private val projectRule = ProjectRule()
+  private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
 
-  private val editor by lazy { createLogcatEditor(projectRule.project) }
-
-  @After
-  fun tearDown() {
-    EditorFactory.getInstance().releaseEditor(editor)
-  }
+  private val project get() = projectRule.project
+  private val editor get() = logcatEditorRule.editor
 
   /**
    * Tests that we are using the correct filter as provided by ConsoleViewUtil.computeConsoleFilters(). This is a CompositeFilter that
@@ -53,11 +53,12 @@ class EditorHyperlinkDetectorTest {
   @Test
   fun usesCorrectFilters() {
     val expectedFilters =
-      ConsoleViewUtil.computeConsoleFilters(projectRule.project, /* consoleView= */ null, GlobalSearchScope.allScope(projectRule.project))
+      ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project))
 
-    val hyperlinkDetector = EditorHyperlinkDetector(projectRule.project, editor)
+    val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
 
-    assertThat(hyperlinkDetector.hyperlinkFilters.filters.map { it::class }).containsExactlyElementsIn(expectedFilters.map { it::class })
+    val filter = hyperlinkDetector.filter.delegate as CompositeFilter
+    assertThat(filter.filters.map { it::class }).containsExactlyElementsIn(expectedFilters.map { it::class })
   }
 
   /**
@@ -70,11 +71,52 @@ class EditorHyperlinkDetectorTest {
     editor.document.setText("http://www.google.com")
     val hyperlinkSupport = EditorHyperlinkSupport.get(editor)
 
-    EditorHyperlinkDetector(projectRule.project, editor).detectHyperlinks(0, editor.document.lineCount - 1)
+    EditorHyperlinkDetector(project, editor).detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
 
     hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
     assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map {
       editor.document.text.substring(it.startOffset, it.endOffset)
     }).containsExactly("http://www.google.com")
+  }
+
+  @Test
+  fun detectHyperlinks_usesAllFilters() {
+    editor.document.setText("Foo Bar")
+    val hyperlinkSupport = EditorHyperlinkSupport.get(editor)
+    val editorHyperlinkDetector = EditorHyperlinkDetector(project, editor)
+    val filters = (editorHyperlinkDetector.filter.delegate as CompositeFilter)
+    filters.addFilter(TestFilter("Foo"))
+    filters.addFilter(TestFilter("Bar"))
+
+    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
+
+    hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
+    assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map {
+      editor.document.text.substring(it.startOffset, it.endOffset)
+    }).containsExactly("Foo", "Bar")
+  }
+
+  @Test
+  fun detectHyperlinks_passesSdk() {
+    val editorHyperlinkDetector = EditorHyperlinkDetector(project, editor)
+
+    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = 23)
+
+    assertThat(editorHyperlinkDetector.filter.apiLevel).isEqualTo(23)
+  }
+
+  private class TestFilter(private val text: String) : Filter {
+    override fun applyFilter(line: String, entireLength: Int): Result? {
+      val start = line.indexOf(text)
+      if (start < 0) {
+        return null
+      }
+
+      return Result(start, start + text.length, Info())
+    }
+
+    private class Info : HyperlinkInfo {
+      override fun navigate(project: Project) {}
+    }
   }
 }

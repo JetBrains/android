@@ -28,7 +28,8 @@ fun buildGradle(
   isKts: Boolean,
   isLibraryProject: Boolean,
   isDynamicFeature: Boolean,
-  packageName: String,
+  /** The application ID; also used for the namespace. */
+  applicationId: String,
   buildApiString: String,
   minApi: String,
   targetApi: String,
@@ -40,7 +41,8 @@ fun buildGradle(
   hasTests: Boolean = true,
   addLintOptions: Boolean = false,
   enableCpp: Boolean = false,
-  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
+  useVersionCatalog: Boolean
 ): String {
   val androidConfigBlock = androidConfig(
     gradlePluginVersion = gradlePluginVersion,
@@ -51,7 +53,7 @@ fun buildGradle(
     isLibraryProject = isLibraryProject,
     isDynamicFeature = isDynamicFeature,
     explicitApplicationId = !isLibraryProject,
-    applicationId = packageName,
+    applicationId = applicationId,
     hasTests = hasTests,
     canUseProguard = true,
     addLintOptions = addLintOptions,
@@ -86,7 +88,7 @@ dependencies {
 
   val allBlocks =
     """
-    ${emptyPluginsBlock()}
+    ${emptyPluginsBlock(isKts = isKts, useVersionCatalog = useVersionCatalog)}
     $androidConfigBlock
     $dependenciesBlock
     """

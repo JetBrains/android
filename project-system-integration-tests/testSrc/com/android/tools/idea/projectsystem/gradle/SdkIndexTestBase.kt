@@ -20,6 +20,7 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidStudio
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
+import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
 import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
@@ -43,6 +44,10 @@ open class SdkIndexTestBase {
   @Rule
   val system: AndroidSystem = AndroidSystem.standard()
 
+  @JvmField
+  @Rule
+  var watcher = MemoryDashboardNameProviderWatcher()
+
   fun verifySdkIndexIsInitializedAndUsedWhen(showFunction: ((studio: AndroidStudio, project: AndroidProject) -> Unit)?,
                                              beforeClose: (() -> Unit)?,
                                              expectedIssues: Set<String>) {
@@ -55,7 +60,7 @@ open class SdkIndexTestBase {
     val snapshotFolder = TestUtils.resolveWorkspacePath(localSnapshotFolder).toUri().toURL()
     system.setEnv(GooglePlaySdkIndex.SDK_INDEX_SNAPSHOT_TEST_BASE_URL_ENV_VAR, snapshotFolder.toString())
 
-    system.runStudio(project) { studio ->
+    system.runStudio(project, watcher.dashboardName) { studio ->
       studio.waitForSync()
       studio.waitForIndex()
       // Check that the snapshot is not yet present
@@ -70,7 +75,7 @@ open class SdkIndexTestBase {
       // Check lint caused SDK Index to look for issues
       for (issue in expectedIssues) {
         val escapedIssue = ".*${Pattern.quote(issue)}.*"
-        system.installation.ideaLog.waitForMatchingLine(escapedIssue, true, snapshotTimeoutSeconds, TimeUnit.SECONDS)
+        system.installation.ideaLog.waitForMatchingLine(escapedIssue, null, true, snapshotTimeoutSeconds, TimeUnit.SECONDS)
       }
       // Now check that only expected issues were present
       val foundIssues: MutableSet<String> = mutableSetOf()
@@ -116,7 +121,7 @@ open class SdkIndexTestBase {
       try {
         // Wait for summary to appear
         val summaryRegex = ".*PsAnalyzerDaemon - Issues recreated: (.*)$"
-        system.installation.ideaLog.waitForMatchingLine(summaryRegex, true, timeoutPsdShowSeconds, TimeUnit.SECONDS)
+        system.installation.ideaLog.waitForMatchingLine(summaryRegex, null,true, timeoutPsdShowSeconds, TimeUnit.SECONDS)
       }
       finally {
         // Close PSD even if summary could not be found so executeAction("ShowProjectStructureSettings") is finished

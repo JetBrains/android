@@ -44,7 +44,7 @@ public class ElevatedCommandLine extends GeneralCommandLine {
   private static final int INFINITE = -1;
   private String myTempFilePrefix;
 
-  public ElevatedCommandLine(@NotNull String @NotNull ... command) {
+  public ElevatedCommandLine(@NotNull String ... command) {
     super(command);
     myTempFilePrefix = "temp";
   }

@@ -15,23 +15,21 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.tools.apk.analyzer.dex.tree.DexClassNode;
-import com.android.tools.apk.analyzer.dex.tree.DexElementNode;
-import com.android.tools.apk.analyzer.dex.tree.DexFieldNode;
-import com.android.tools.apk.analyzer.dex.tree.DexMethodNode;
-import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
+import com.android.tools.apk.analyzer.dex.tree.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.IconManager;
-import javax.swing.Icon;
+import com.intellij.ui.PlatformIcons;
 
-public final class DexNodeIcons {
+import javax.swing.*;
+
+public class DexNodeIcons {
   public static Icon forNode(DexElementNode node){
     if (node instanceof DexClassNode){
-      return IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Class);
+      return IconManager.getInstance().getPlatformIcon(PlatformIcons.Class);
     } else if (node instanceof DexFieldNode){
-      return IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Field);
+      return IconManager.getInstance().getPlatformIcon(PlatformIcons.Field);
     } else if (node instanceof DexMethodNode){
-      return IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Method);
+      return IconManager.getInstance().getPlatformIcon(PlatformIcons.Method);
     } else if (node instanceof DexPackageNode){
       return AllIcons.Nodes.Package;
     } else {

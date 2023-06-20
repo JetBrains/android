@@ -24,7 +24,7 @@ object BootstrapClassloaderPlaceholder
  * null in [Class.getClassLoader], but every Node must correspond to a non-null object.
  * [BootstrapClassloaderPlaceholder] serves as a placeholder for the bootstrap class loader for this purpose.
  */
-class ClassLoaderExpander(private val bleakHelper: BleakHelper): Expander() {
+class ClassLoaderExpander(val bleakHelper: BleakHelper): Expander() {
   private val labelToNodeMap: MutableMap<Node, MutableMap<Label, Node>> = mutableMapOf()
 
   override fun canExpand(obj: Any): Boolean = obj is ClassLoader || obj === BootstrapClassloaderPlaceholder
@@ -34,22 +34,11 @@ class ClassLoaderExpander(private val bleakHelper: BleakHelper): Expander() {
   override fun expand(n: Node) {
     val map = mutableMapOf<Label, Node>()
     labelToNodeMap[n] = map
-    if (n.obj === BootstrapClassloaderPlaceholder) {
-      bleakHelper.allLoadedClasses().filter{ (it as Class<*>).classLoader == null }.forEach {
-        val label = ObjectLabel(it)
-        val childNode = n.addEdgeTo(it, label)
-        if (childNode != null) map[label] = childNode
-      }
-    } else {
-      val cl = n.obj as ClassLoader
-      val classesField = ClassLoader::class.java.getDeclaredField("classes")
-      classesField.isAccessible = true
-      val classes = (classesField.get(cl) as Vector<Class<*>>).toTypedArray<Class<*>>()
-      for (c in classes.filterNot { it.isArray }) {
-        val label = ObjectLabel(c)
-        val childNode = n.addEdgeTo(c, label)
-        if (childNode != null) map[label] = childNode
-      }
+    val cl = if (n.obj === BootstrapClassloaderPlaceholder) null else n.obj as ClassLoader
+    bleakHelper.classesFor(cl)?.filterNot { it.isArray }?.forEach {
+      val label = ObjectLabel(it)
+      val childNode = n.addEdgeTo(it, label)
+      if (childNode != null) map[label] = childNode
     }
   }
 

@@ -17,38 +17,51 @@ package com.android.tools.idea.compose.gradle.preview
 
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
+import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.compose.preview.ComposePreviewView
 import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.CompletableDeferred
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlinx.coroutines.CompletableDeferred
 
 internal val SceneViewPeerPanel.displayName: String
   get() = sceneView.sceneManager.model.modelDisplayName ?: ""
 
-internal class TestComposePreviewView(parentDisposable: Disposable, project: Project) : ComposePreviewView, JPanel() {
-  override val surfaces: List<NlDesignSurface> = listOf(NlDesignSurface.builder(project, parentDisposable)
-    .setNavigationHandler(ComposePreviewNavigationHandler())
-    .build())
-  override val mainSurface: NlDesignSurface = createMainDesignSurfaceBuilder(
-    project,
-    ComposePreviewNavigationHandler(),
-    DelegateInteractionHandler(),
-    { null },
-    parentDisposable,
-    ComposeSceneComponentProvider()
-  ).build()
+internal class TestComposePreviewView(
+  parentDisposable: Disposable,
+  project: Project,
+  navigationHandler: NavigationHandler = ComposePreviewNavigationHandler()
+) : ComposePreviewView, JPanel() {
+  var interactionPaneProvider: () -> JComponent? = { null }
+  val delegateInteractionHandler = DelegateInteractionHandler()
+
+  override val mainSurface: NlDesignSurface =
+    createMainDesignSurfaceBuilder(
+        project,
+        navigationHandler,
+        delegateInteractionHandler,
+        { null },
+        parentDisposable,
+        ComposeSceneComponentProvider()
+      )
+      .setInteractableProvider {
+        object : SurfaceInteractable(it) {
+          override val interactionPane: JComponent
+            get() = interactionPaneProvider() ?: super.interactionPane
+        }
+      }
+      .build()
   override val component: JComponent
     get() = this
   override var bottomPanel: JComponent? = null
-  override var showPinToolbar: Boolean = true
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = false
   override var hasRendered: Boolean = false
@@ -61,35 +74,32 @@ internal class TestComposePreviewView(parentDisposable: Disposable, project: Pro
     add(mainSurface, BorderLayout.CENTER)
   }
 
+  override fun updateNotifications(parentEditor: FileEditor) {}
 
-  override fun updateNotifications(parentEditor: FileEditor) {
-  }
+  override fun updateVisibilityAndNotifications() {}
 
-  override fun updateVisibilityAndNotifications() {
-  }
+  override fun updateProgress(message: String) {}
 
-  override fun updateProgress(message: String) {
-  }
-
-  override fun setPinnedSurfaceVisibility(visible: Boolean) {
-  }
-
-  override fun onRefreshCancelledByTheUser() {
-  }
+  override fun onRefreshCancelledByTheUser() {}
 
   override fun onRefreshCompleted() {
     synchronized(nextRefreshLock) {
-      val current = nextRefreshListener
-      nextRefreshListener = null
-      current
-    }?.complete(Unit)
+        val current = nextRefreshListener
+        nextRefreshListener = null
+        current
+      }
+      ?.complete(Unit)
   }
 
   /**
-   * Returns a [CompletableDeferred] that completes when the next (or current if it's running) refresh finishes.
+   * Returns a [CompletableDeferred] that completes when the next (or current if it's running)
+   * refresh finishes.
    */
-  fun getOnRefreshCompletable() = synchronized(nextRefreshLock) {
-    if (nextRefreshListener == null) nextRefreshListener = CompletableDeferred()
-    nextRefreshListener!!
-  }
+  fun getOnRefreshCompletable() =
+    synchronized(nextRefreshLock) {
+      if (nextRefreshListener == null) nextRefreshListener = CompletableDeferred()
+      nextRefreshListener!!
+    }
+
+  override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
 }

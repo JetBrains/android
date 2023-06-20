@@ -40,14 +40,14 @@ class VariablesConfigurable(private val project: Project, private val context: P
   override fun getDisplayName(): String = "Variables"
   override val leftConfigurable = PSDEvent.PSDLeftConfigurable.PROJECT_STRUCTURE_DIALOG_LEFT_CONFIGURABLE_VARIABLES
 
-  override fun createComponent(): JComponent {
+  override fun createComponent(): JComponent? {
     val panel = JPanel(BorderLayout())
     panel.border = BorderFactory.createEmptyBorder(20, 10, 20, 10)
     val table = VariablesTable(project, context, context.project, this)
     panel.add(
       ToolbarDecorator
         .createDecorator(table)
-        .setAddAction { createAddAction(it, table) }
+        .setAddAction { executeAfterAddAction(it, table) }
         .setAddActionUpdater { table.addVariableAvailable() }
         .setRemoveAction { table.deleteSelectedVariables() }
         .setRemoveActionUpdater { table.removeVariableAvailable() }
@@ -56,9 +56,9 @@ class VariablesConfigurable(private val project: Project, private val context: P
     return panel
   }
 
-  private fun createAddAction(button: AnActionButton, table: VariablesTable) {
-    val popup = table.createChooseVariableTypePopup()
-    popup.show(button.preferredPopupPoint!!)
+  private fun executeAfterAddAction(button: AnActionButton, table: VariablesTable) {
+    //next action could be creating a popup or start editing for version catalog
+    table.runToolbarAddAction(button.preferredPopupPoint!!)
   }
 
   override fun apply() = context.applyChanges()

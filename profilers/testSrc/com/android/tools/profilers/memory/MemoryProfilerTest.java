@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory;
 
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
-import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_DETACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNATTACHABLE_RESPONSE;
 import static org.junit.Assert.assertArrayEquals;
 
 import com.android.sdklib.AndroidVersion;
@@ -32,19 +32,16 @@ import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.FakeCpuService;
-import com.android.tools.profilers.event.FakeEventService;
 import com.google.common.truth.Truth;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -58,21 +55,13 @@ public final class MemoryProfilerTest {
 
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer, false);
-  private final FakeMemoryService myMemoryService = new FakeMemoryService();
-  @Rule public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryProfilerTest", myMemoryService, myTransportService, new FakeProfilerService(myTimer), new FakeEventService(),
-                        new FakeCpuService());
-
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryProfilerTest", myTransportService);
   private StudioProfilers myStudioProfiler;
-  private FakeIdeProfilerServices myIdeProfilerServices;
-  private Common.Device myDevice;
-  private Common.Process myProcess;
 
   @Before
   public void setUp() {
-    myIdeProfilerServices = new FakeIdeProfilerServices();
-    myIdeProfilerServices.enableEventsPipeline(true);
-    myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
+    FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
+    myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), ideProfilerServices, myTimer);
   }
 
   @Test
@@ -90,13 +79,11 @@ public final class MemoryProfilerTest {
   @Test
   public void testLiveAllocationTrackingStoppedAndNotStartedOnAgentAttach() {
     setupODeviceAndProcess();
-
     // Verify start and stop allocation tracking commands are handled by the same handler.
     MemoryAllocTracking allocTrackingHandler =
       (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
     Truth.assertThat(allocTrackingHandler).isEqualTo(
-      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING));
-
+      myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING));
     Truth.assertThat(myStudioProfiler.isAgentAttached()).isFalse();
     Truth.assertThat(allocTrackingHandler.getLastInfo()).isEqualTo(Memory.AllocationsInfo.getDefaultInstance());
 
@@ -126,8 +113,7 @@ public final class MemoryProfilerTest {
     MemoryAllocTracking allocTrackingHandler =
       (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.START_ALLOC_TRACKING);
     Truth.assertThat(allocTrackingHandler).isEqualTo(
-      (MemoryAllocTracking)myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING));
-
+      myTransportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING));
     // We call stop tracking after agent is attached when the session starts.
     Memory.AllocationsInfo lastInfo = allocTrackingHandler.getLastInfo();
     Truth.assertThat(lastInfo.getEndTime()).isEqualTo(1);
@@ -138,7 +124,7 @@ public final class MemoryProfilerTest {
     myTransportService.addEventToStream(myStudioProfiler.getSession().getStreamId(), Common.Event.newBuilder()
       .setPid(myStudioProfiler.getSession().getPid())
       .setKind(Common.Event.Kind.AGENT)
-      .setAgentData(DEFAULT_AGENT_DETACHED_RESPONSE)
+      .setAgentData(DEFAULT_AGENT_UNATTACHABLE_RESPONSE)
       .build());
 
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
@@ -150,19 +136,19 @@ public final class MemoryProfilerTest {
   @Test
   public void testGetNativeHeapSamplesForSession() {
     long nativeHeapTimestamp = 30L;
-    Memory.MemoryNativeSampleData nativeHeapInfo =
-      Memory.MemoryNativeSampleData.newBuilder().setStartTime(nativeHeapTimestamp).setEndTime(nativeHeapTimestamp + 1).build();
+    Trace.TraceData nativeHeapInfo = Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(
+      Trace.TraceInfo.newBuilder().setFromTimestamp(nativeHeapTimestamp).setToTimestamp(
+        nativeHeapTimestamp + 1))).build();
     Common.Event nativeHeapData =
-      ProfilersTestData.generateMemoryNativeSampleData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
+      ProfilersTestData.generateMemoryTraceData(nativeHeapTimestamp, nativeHeapTimestamp + 1, nativeHeapInfo)
         .setPid(ProfilersTestData.SESSION_DATA.getPid()).build();
     myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(), nativeHeapData);
-    List<Memory.MemoryNativeSampleData> samples = MemoryProfiler
+    List<Trace.TraceInfo> samples = MemoryProfiler
       .getNativeHeapSamplesForSession(myStudioProfiler.getClient(), ProfilersTestData.SESSION_DATA,
                                       new Range(Long.MIN_VALUE, Long.MAX_VALUE));
-    Truth.assertThat(samples).containsExactly(nativeHeapInfo);
+    Truth.assertThat(samples).containsExactly(nativeHeapInfo.getTraceEnded().getTraceInfo());
   }
 
-  @Ignore("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().")
   @Test
   public void testSaveHeapDumpToFile() {
     long startTimeNs = 3;
@@ -185,7 +171,7 @@ public final class MemoryProfilerTest {
   @Test
   public void testSaveHeapProfdSampleToFile() {
     long startTimeNs = 3;
-    Memory.MemoryNativeSampleData data = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).build();
+    Trace.TraceInfo data = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).build();
     byte[] buffer = data.toByteArray();
     myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -206,8 +192,8 @@ public final class MemoryProfilerTest {
 
     List<Memory.AllocationsInfo> infos = MemoryProfiler.getAllocationInfosForSession(myStudioProfiler.getClient(),
                                                                                      session,
-                                                                                     new Range(0, 10),
-                                                                                     myStudioProfiler.getIdeServices());
+                                                                                     new Range(0, 10)
+    );
     Truth.assertThat(infos).containsExactly(info1);
 
     // Insert a not yet completed info followed up by a generic end event.
@@ -224,19 +210,19 @@ public final class MemoryProfilerTest {
         .setPid(session.getPid()).setIsEnded(true).build());
     infos = MemoryProfiler.getAllocationInfosForSession(myStudioProfiler.getClient(),
                                                         session,
-                                                        new Range(0, 10),
-                                                        myStudioProfiler.getIdeServices());
+                                                        new Range(0, 10)
+    );
     Truth.assertThat(infos).containsExactly(info1, info2.toBuilder().setEndTime(session.getEndTimestamp()).setSuccess(false).build());
   }
 
   private void setupODeviceAndProcess() {
-    myDevice = Common.Device.newBuilder()
+    Common.Device device = Common.Device.newBuilder()
       .setDeviceId(FAKE_DEVICE_ID)
       .setSerial("FakeDevice")
       .setState(Common.Device.State.ONLINE)
       .setFeatureLevel(AndroidVersion.VersionCodes.O)
       .build();
-    myProcess = Common.Process.newBuilder()
+    Common.Process process = Common.Process.newBuilder()
       .setPid(20)
       .setDeviceId(FAKE_DEVICE_ID)
       .setState(Common.Process.State.ALIVE)
@@ -244,10 +230,10 @@ public final class MemoryProfilerTest {
       .setStartTimestampNs(DEVICE_STARTTIME_NS)
       .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
       .build();
-    myTransportService.addDevice(myDevice);
-    myTransportService.addProcess(myDevice, myProcess);
+    myTransportService.addDevice(device);
+    myTransportService.addProcess(device, process);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myStudioProfiler.setProcess(myDevice, myProcess);
+    myStudioProfiler.setProcess(device, process);
   }
 
   private boolean getIsUsingLiveAllocation() {

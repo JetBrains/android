@@ -19,13 +19,12 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Memory
+import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -35,15 +34,12 @@ import org.junit.Test
 class NativeAllocationSampleCaptureObjectTest {
 
   private val timer = FakeTimer()
-  private val service = FakeMemoryService()
-  private val transportService = FakeTransportService(
-    timer)
-
+  private val transportService = FakeTransportService(timer)
   private val ideProfilerServices = FakeIdeProfilerServices()
 
   @Rule
   @JvmField
-  var grpcChannel = FakeGrpcChannel("NativeAllocationSampleCaptureObjectTest", transportService, service)
+  var grpcChannel = FakeGrpcChannel("NativeAllocationSampleCaptureObjectTest", transportService)
 
   private var stage: MainMemoryProfilerStage? = null
 
@@ -59,9 +55,9 @@ class NativeAllocationSampleCaptureObjectTest {
   fun testAccessors() {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
-    val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
+    val info = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
     val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
-    // Verify values associated with the MemoryNativeSampleData object.
+    // Verify values associated with the TraceInfo object.
     assertThat(startTimeNs).isEqualTo(capture.startTimeNs)
     assertThat(endTimeNs).isEqualTo(capture.endTimeNs)
     assertThat(capture.isDoneLoading).isFalse()
@@ -73,7 +69,7 @@ class NativeAllocationSampleCaptureObjectTest {
   fun testDefaultShows() {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
-    val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
+    val info = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
     val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
     transportService.addFile(startTimeNs.toString(), ByteString.copyFrom("TODO".toByteArray()))
     assertThat(capture.load(null, null)).isTrue()
@@ -86,7 +82,7 @@ class NativeAllocationSampleCaptureObjectTest {
   fun noContentFailsToLoad() {
     val startTimeNs: Long = 3
     val endTimeNs: Long = 8
-    val info = Memory.MemoryNativeSampleData.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build()
+    val info = Trace.TraceInfo.newBuilder().setFromTimestamp(startTimeNs).setToTimestamp(endTimeNs).build()
     val capture = NativeAllocationSampleCaptureObject(ProfilerClient(grpcChannel.channel), ProfilersTestData.SESSION_DATA, info, stage!!)
     assertThat(capture.load(null, null)).isFalse()
     assertThat(capture.isError).isTrue()

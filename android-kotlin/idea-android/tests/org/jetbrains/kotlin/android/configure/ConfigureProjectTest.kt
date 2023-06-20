@@ -16,16 +16,19 @@
 package org.jetbrains.kotlin.android.configure
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.buildAgpProjectFlagsStub
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.util.io.FileUtilRt.loadFile
 import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.jetbrains.kotlin.android.InTextDirectivesUtils.findStringWithPrefixes
 import org.jetbrains.kotlin.android.KotlinTestUtils.assertEqualsToFile
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
@@ -42,21 +45,27 @@ import java.io.File
 
 @Ignore
 @RunWith(JUnit4::class)
-abstract class ConfigureProjectTest {
+abstract class ConfigureProjectTest(useAndroidX: Boolean) {
 
-    protected val projectRule = withSdk() //onDisk()
+    protected val projectRule = AndroidProjectRule.withAndroidModel(
+      AndroidProjectBuilder()
+        .withAgpProjectFlags {
+            buildAgpProjectFlagsStub().copy(useAndroidX = useAndroidX)
+        }
+    )
     @get:Rule
     val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())
 
     protected lateinit var buildFile: VirtualFile
 
   companion object {
-    private const val DEFAULT_VERSION = "default_version"
+    // Note: this default version was chosen arbitrarily based on current test expectations.
+    private const val DEFAULT_VERSION = "1.1.0"
     private const val GRADLE_DIR = "idea-android/testData/configuration/android-gradle"
     private const val GSK_DIR = "idea-android/testData/configuration/android-gsk"
   }
 
-  fun doTest(path: String, extension: String, useAndroidX: Boolean = false) {
+  fun doTest(path: String, extension: String) {
     runWriteAction {
       buildFile = projectRule.fixture.tempDirFixture.createFile("build.${extension}")
       Assert.assertTrue(buildFile.isWritable)
@@ -69,40 +78,31 @@ abstract class ConfigureProjectTest {
     }
 
     val versionFromFile = findStringWithPrefixes(fileText, "// VERSION:")
-    val version = versionFromFile ?: DEFAULT_VERSION
+    val rawVersion = versionFromFile ?: DEFAULT_VERSION
+    val version = IdeKotlinVersion.get(rawVersion)
 
     val project = projectRule.project
     val collector = NotificationMessageCollector.create(project)
 
-    if (useAndroidX) {
-      // Enable AndroidX
-      WriteCommandAction.runWriteCommandAction(project) {
-        project.setAndroidxProperties()
-      }
-    }
-
     val configurator = KotlinAndroidGradleModuleConfigurator()
-    configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, true, IdeKotlinVersion.get(version), collector, mutableListOf())
-    configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, false, IdeKotlinVersion.get(version), collector, mutableListOf())
+    configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, true, version, collector, mutableListOf())
+    configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, false, version, collector, mutableListOf())
 
     collector.showNotification()
 
     val afterFile = File(testRoot, "${path}_after.$extension")
-    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(version, "\$VERSION$"))
+    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(rawVersion, "\$VERSION$"))
 
-    if (useAndroidX) {
-      // Disable AndroidX
-      WriteCommandAction.runWriteCommandAction(project) {
-        project.setAndroidxProperties("false")
-      }
+    // Clear JDK table
+    ProjectJdkTable.getInstance().allJdks.forEach {
+      SdkConfigurationUtil.removeSdk(it)
     }
   }
 
   @RunsInEdt
-  class AndroidGradle : ConfigureProjectTest() {
+  class AndroidGradle : ConfigureProjectTest(useAndroidX = false) {
     @Test fun testAndroidStudioDefault()                 = doTest("$GRADLE_DIR/androidStudioDefault", "gradle")
     @Test fun testAndroidStudioDefaultShapshot()         = doTest("$GRADLE_DIR/androidStudioDefaultShapshot", "gradle")
-    @Test fun testAndroidStudioDefaultWithAndroidX()     = doTest("$GRADLE_DIR/androidStudioDefaultWithAndroidX", "gradle", true)
     @Test fun testBuildConfigs()                         = doTest("$GRADLE_DIR/buildConfigs", "gradle")
     @Test fun testEmptyDependencyList()                  = doTest("$GRADLE_DIR/emptyDependencyList", "gradle")
     @Test fun testEmptyFile()                            = doTest("$GRADLE_DIR/emptyFile", "gradle")
@@ -115,7 +115,12 @@ abstract class ConfigureProjectTest {
   }
 
   @RunsInEdt
-  class GradleExamples : ConfigureProjectTest() {
+  class AndroidGradleAndroidX: ConfigureProjectTest(true) {
+    @Test fun testAndroidStudioDefaultWithAndroidX()     = doTest("$GRADLE_DIR/androidStudioDefaultWithAndroidX", "gradle")
+  }
+
+  @RunsInEdt
+  class GradleExamples : ConfigureProjectTest(useAndroidX = false) {
     @Test fun testGradleExample0()  = doTest("$GRADLE_DIR/gradleExamples/gradleExample0", "gradle")
     @Test fun testGradleExample18() = doTest("$GRADLE_DIR/gradleExamples/gradleExample18", "gradle")
     @Test fun testGradleExample22() = doTest("$GRADLE_DIR/gradleExamples/gradleExample22", "gradle")
@@ -128,7 +133,7 @@ abstract class ConfigureProjectTest {
   }
 
   @RunsInEdt
-  class AndroidGsk : ConfigureProjectTest() {
+  class AndroidGsk : ConfigureProjectTest(useAndroidX = false) {
     @Test fun testEmptyFile()  = doTest("$GSK_DIR/emptyFile", "gradle.kts")
     @Test fun testHelloWorld() = doTest("$GSK_DIR/helloWorld", "gradle.kts")
   }

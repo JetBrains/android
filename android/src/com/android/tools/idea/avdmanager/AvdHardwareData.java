@@ -16,17 +16,11 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.resources.Keyboard;
-import com.android.sdklib.devices.Abi;
-import com.android.sdklib.devices.ButtonType;
-import com.android.sdklib.devices.Camera;
-import com.android.sdklib.devices.CameraLocation;
-import com.android.sdklib.devices.Hardware;
-import com.android.sdklib.devices.Network;
-import com.android.sdklib.devices.PowerType;
-import com.android.sdklib.devices.Sensor;
-import com.android.sdklib.devices.Storage;
-import java.util.EnumSet;
+import com.android.resources.ScreenRound;
+import com.android.sdklib.devices.*;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.EnumSet;
 
 /**
  * Contains all methods needed to build a {@link Hardware} instance.
@@ -110,7 +104,11 @@ public final class AvdHardwareData {
 
     hardware.setRam(myDeviceData.ramStorage().get());
 
-    hardware.setScreen(new AvdScreenData(myDeviceData).createScreen());
+    Screen screen = new AvdScreenData(myDeviceData).createScreen();
+    if (myDeviceData.isScreenRound().get()) {
+      screen.setScreenRound(ScreenRound.ROUND);
+    }
+    hardware.setScreen(screen);
 
     return hardware;
   }

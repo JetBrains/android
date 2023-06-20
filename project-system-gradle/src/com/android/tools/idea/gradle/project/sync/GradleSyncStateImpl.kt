@@ -18,7 +18,6 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.annotations.concurrency.UiThread
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.AndroidStudioGradleInstallationManager
@@ -27,7 +26,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.DoNotShowJdkHomeWarn
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
-import com.android.tools.idea.gradle.ui.SdkUiStrings.JDK_LOCATION_WARNING_URL
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
@@ -68,6 +66,7 @@ import com.intellij.util.PathUtil.toSystemIndependentName
 import com.intellij.util.ThreeState
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
+import org.gradle.util.GradleVersion
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
@@ -208,6 +207,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     GradleFiles.getInstance(project).maybeProcessSyncStarted()
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED, rootProjectPath)
+    project.getService(SyncAnalyzerManager::class.java)?.onSyncStarted(externalSystemTaskId)
     syncPublisher { syncStarted(project, rootProjectPath) }
     return true
   }
@@ -238,7 +238,6 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     LOG.info(message)
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED, rootProjectPath)
-
     syncFinished(LastSyncState.SUCCEEDED)
     syncPublisher { syncSucceeded(project, rootProjectPath) }
   }
@@ -270,7 +269,6 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     }
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE, rootProjectPath)
-
     syncFinished(LastSyncState.FAILED)
     syncPublisher { syncFailed(project, causeMessage, rootProjectPath) }
   }
@@ -283,13 +281,13 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     addToEventLog(SYNC_NOTIFICATION_GROUP, resultMessage, MessageType.INFO, null)
     LOG.info(resultMessage)
 
-    // TODO(b/239800883): logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED)
 
     // If the initial sync has been cancelled we do not have any models, but we cannot stay in the unknown state forever as it blocks
     // various UI features.
     val newStateAfterCancellation =
       state.get { stateBeforeSyncStarted.takeUnless { it == LastSyncState.UNKNOWN } ?: LastSyncState.FAILED }
 
+    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_CANCELLED, rootProjectPath)
     syncFinished(newStateAfterCancellation)
     syncPublisher { syncCancelled(project, rootProjectPath) }
   }
@@ -298,6 +296,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
    * Triggered when a sync have been skipped, this happens when the project is setup by models from the cache.
    */
   fun syncSkipped(listener: GradleSyncListener?) {
+    logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_SKIPPED, rootProjectPath = null)
     syncFinished(LastSyncState.SKIPPED)
     listener?.syncSkipped(project)
     syncPublisher { syncSkipped(project) }
@@ -305,7 +304,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
   fun isSyncNeeded(): ThreeState {
     return when {
-      PropertiesComponent.getInstance().getBoolean(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME) -> ThreeState.YES
+      PropertiesComponent.getInstance(project).getBoolean(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME) -> ThreeState.YES
       GradleFiles.getInstance(project).areGradleFilesModified() -> ThreeState.YES
       else -> ThreeState.NO
     }
@@ -315,12 +314,13 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
    * Common code to (re)set state once the sync has completed, all successful/failed/skipped syncs should run through this method.
    */
   private fun syncFinished(newState: LastSyncState) {
+    project.getService(SyncAnalyzerManager::class.java)?.onSyncFinished(externalSystemTaskId)
 
     state.set {
       copy(state = newState, externalSystemTaskId = null, lastSyncFinishedTimeStamp = System.currentTimeMillis())
     }
 
-    PropertiesComponent.getInstance().setValue(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME, !newState.isSuccessful)
+    PropertiesComponent.getInstance(project).setValue(ANDROID_GRADLE_SYNC_NEEDED_PROPERTY_NAME, !newState.isSuccessful)
 
     // TODO: Move out of GradleSyncState, create a ProjectCleanupTask to show this warning?
     if (newState != LastSyncState.SKIPPED) {
@@ -347,12 +347,13 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
     if (gradleInstallation.isUsingJavaHomeJdk(project)) {
       return
     }
-    val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(JDK_LOCATION_WARNING_URL, "More info..."))
+    val hyperlinkUrl = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.url")
+    val quickFixes = mutableListOf<NotificationHyperlink>(OpenUrlHyperlink(hyperlinkUrl, "More info..."))
     val selectJdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project)
     if (selectJdkHyperlink != null) quickFixes += selectJdkHyperlink
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
-    val message = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons",
+    val message = AndroidBundle.message("project.sync.warning.multiple.gradle.daemons.message",
       project.name,
       gradleInstallation.getGradleJvmPath(project, project.basePath.orEmpty()) ?: "Undefined",
       IdeSdks.getJdkFromJavaHome() ?: "Undefined"
@@ -369,12 +370,14 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
   /**
    * Logs a sync event using [UsageTracker]
    */
-  private fun logSyncEvent(kind: AndroidStudioEvent.EventKind, rootProjectPath: @SystemIndependent String) {
+  private fun logSyncEvent(kind: AndroidStudioEvent.EventKind, rootProjectPath: @SystemIndependent String?) {
     // Do not log an event if the project has been closed, working out the sync type for a disposed project results in
     // an error.
     if (project.isDisposed) return
 
-    val event = eventLogger.generateSyncEvent(project, rootProjectPath, kind)
+    val event = eventLogger.generateSyncEvent(project, rootProjectPath, kind) {
+      project.getService(SyncAnalyzerManager::class.java)?.updateSyncStatsData(externalSystemTaskId, this)
+    }
 
     UsageTracker.log(event)
   }

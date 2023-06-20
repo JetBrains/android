@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import java.awt.event.InputEvent
 
@@ -45,6 +46,26 @@ fun prettyPrintActions(
 private fun prettyPrintActions(
   action: AnAction, sb: StringBuilder, depth: Int, filter: (action: AnAction) -> Boolean, presentationFactory: PresentationFactory?
 ) {
+  appendActionText(sb, action, presentationFactory, depth)
+  (action as? DefaultActionGroup)?.let { group ->
+    if (!group.isPopup) {
+      // If it is not a popup, the actions in the group would be flatted.
+      for (child in group.getChildren(null)) {
+        appendActionText(sb, child, presentationFactory, depth)
+      }
+    }
+    else {
+      for (child in group.childActionsOrStubs) {
+        if (!filter(child)) {
+          continue
+        }
+        prettyPrintActions(child, sb, depth + 1, filter, presentationFactory)
+      }
+    }
+  }
+}
+
+private fun appendActionText(sb: StringBuilder, action: AnAction, presentationFactory: PresentationFactory?, depth: Int) {
   val text = action.toText(presentationFactory)
   if (text != null) {
     for (i in 0 until depth) {
@@ -52,27 +73,7 @@ private fun prettyPrintActions(
     }
     sb.append(text).append("\n")
   }
-  val group = if (action is DefaultActionGroup) action else null
-  if (group != null) {
-    // for skipping the Separator of AVD section.
-    var skipNext = false
-
-    for (child in group.childActionsOrStubs) {
-      if (!filter(child)) {
-        // Skip AVD items in tests - these tend to vary from build environment to build environment
-        skipNext = true
-        continue
-      }
-      if (skipNext) {
-        skipNext = false
-        continue
-      }
-      assert(!skipNext)
-      prettyPrintActions(child, sb, depth + 1, filter, presentationFactory)
-    }
-  }
 }
-
 
 private fun AnAction.toText(presentationFactory: PresentationFactory?): String? {
   if (this is Separator) {
@@ -80,7 +81,8 @@ private fun AnAction.toText(presentationFactory: PresentationFactory?): String? 
   }
   val event = createTestActionEvent(this, presentationFactory = presentationFactory)
   update(event)
-  return event.presentation.text
+  // Add a visual representation to selected actions.
+  return "${if (Toggleable.isSelected(event.presentation)) "✔ " else ""}${event.presentation.text}"
 }
 
 /**

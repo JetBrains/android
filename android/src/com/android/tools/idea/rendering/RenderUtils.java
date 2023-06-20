@@ -20,17 +20,18 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.ImmutableCollection;
 import com.intellij.openapi.module.Module;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
+import org.jetbrains.android.sdk.AndroidPlatforms;
+import com.android.tools.sdk.AndroidTargetData;
+import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.annotations.NotNull;
 
-public final class RenderUtils {
+public class RenderUtils {
   public static void clearCache(@NotNull ImmutableCollection<Configuration> configurations) {
     configurations
       .forEach(configuration -> {
@@ -38,11 +39,11 @@ public final class RenderUtils {
         IAndroidTarget target = configuration.getTarget();
         Module module = configuration.getModule();
         if (module != null) {
-          ModuleClassLoaderManager.get().clearCache(module);
+          StudioModuleClassLoaderManager.get().clearCache(module);
           ResourceIdManager.get(module).resetDynamicIds();
           ResourceClassRegistry.get(module.getProject()).clearCache();
           if (target != null) {
-            AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
+            AndroidTargetData targetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(module));
             if (targetData != null) {
               targetData.clearAllCaches(module);
             }
@@ -52,7 +53,7 @@ public final class RenderUtils {
           AndroidFacet facet = AndroidFacet.getInstance(module);
           Stream.concat(AndroidDependenciesCache.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
             .filter(Objects::nonNull)
-            .forEach(f -> ResourceRepositoryManager.getInstance(f).resetAllCaches());
+            .forEach(f -> StudioResourceRepositoryManager.getInstance(f).resetAllCaches());
         }
       });
   }

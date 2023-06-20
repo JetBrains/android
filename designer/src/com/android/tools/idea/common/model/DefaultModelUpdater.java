@@ -19,6 +19,8 @@ package com.android.tools.idea.common.model;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 
+import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
@@ -87,7 +89,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
    */
   @VisibleForTesting
   @Override
-  public void update(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots) {
+  public void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots) {
     ModelUpdaterData data = new ModelUpdaterData();
 
     data.myModel = model;
@@ -140,6 +142,9 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
       updateHierarchy(root, data);
     }
   }
+
+  @Override
+  public void updateFromViewInfo(@NotNull NlModel model, @NotNull List<ViewInfo> viewInfos) { }
 
   private void mapOldToNew(
       @NotNull XmlTag newRootTag,
@@ -300,8 +305,8 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
 
   private static void gatherTagsAndSnapshots(@NotNull NlModel.TagSnapshotTreeNode node, @NotNull Map<XmlTag, TagSnapshot> map) {
     TagSnapshot snapshot = node.getTagSnapshot();
-    if (snapshot != null) {
-      map.put(snapshot.tag, snapshot);
+    if (snapshot != null && snapshot.tag instanceof PsiXmlTag xmlTag) {
+      map.put(xmlTag.getPsiXmlTag(), snapshot);
     }
 
     for (NlModel.TagSnapshotTreeNode child : node.getChildren()) {
@@ -354,18 +359,19 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
   }
 
   private void updateHierarchy(@NotNull NlModel.TagSnapshotTreeNode node, ModelUpdaterData data) {
-    TagSnapshot snapshot = node.getTagSnapshot();
+    TagSnapshot snapshot = ApplicationManager.getApplication().runReadAction((Computable<? extends TagSnapshot>)node::getTagSnapshot);
     NlComponent component;
     if (snapshot != null) {
       component = data.mySnapshotToComponent.get(snapshot);
       if (component == null) {
-        component = data.myTagToComponentMap.get(snapshot.tag);
+        PsiXmlTag psiXmlTag = (PsiXmlTag)snapshot.tag;
+        component = data.myTagToComponentMap.get(psiXmlTag != null ? psiXmlTag.getPsiXmlTag() : null);
       }
 
       if (component != null) {
         component.setSnapshot(snapshot);
         assert snapshot.tag != null;
-        component.setTag(snapshot.tag);
+        component.setTag(((PsiXmlTag)snapshot.tag).getPsiXmlTag());
       }
     }
     for (NlModel.TagSnapshotTreeNode child : node.getChildren()) {

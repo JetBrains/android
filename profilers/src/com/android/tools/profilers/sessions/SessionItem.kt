@@ -30,13 +30,15 @@ import java.util.concurrent.TimeUnit
  * A model corresponding to a [Common.Session].
  */
 class SessionItem(
-  private val profilers: StudioProfilers,
-  private var session: Common.Session,
-  private val sessionMetaData: SessionMetaData
-) : AspectModel<SessionItem.Aspect>(), SessionArtifact<Common.Session?> {
+  override val profilers: StudioProfilers,
+  initialSession: Common.Session,
+  override val sessionMetaData: SessionMetaData
+) : AspectModel<SessionItem.Aspect>(), SessionArtifact<Common.Session> {
   enum class Aspect {
     MODEL
   }
+
+  private var activeSession: Common.Session = initialSession
 
   private var durationNs: Long = 0
   private var waitingForAgent = false
@@ -46,68 +48,41 @@ class SessionItem(
    */
   private val childArtifacts = mutableListOf<SessionArtifact<*>>()
 
+  override val name = parseName(sessionMetaData)
+
   init {
-    if (!SessionsManager.isSessionAlive(session)) {
-      durationNs = session.endTimestamp - session.startTimestamp
+    if (!SessionsManager.isSessionAlive(activeSession)) {
+      durationNs = activeSession.endTimestamp - activeSession.startTimestamp
     }
     profilers.addDependency(this).onChange(ProfilerAspect.AGENT) { agentStatusChanged() }
     agentStatusChanged()
   }
 
-  override fun getArtifactProto(): Common.Session {
-    return session
-  }
+  override val session
+    get() = activeSession
 
-  override fun getProfilers(): StudioProfilers {
-    return profilers
-  }
+  override val artifactProto
+    get() = activeSession
 
-  override fun getSession(): Common.Session {
-    return session
-  }
+  override val timestampNs = 0L
 
-  override fun getSessionMetaData(): SessionMetaData {
-    return sessionMetaData
-  }
+  override val isOngoing
+    get() = SessionsManager.isSessionAlive(activeSession)
 
-  override fun getName(): String {
-    val name = sessionMetaData.sessionName
-    if (sessionMetaData.type != SessionMetaData.SessionType.FULL) {
-      return name
-    }
-
-    // Everything before the first space is the app's name (the format is {APP_NAME (DEVICE_NAME)})
-    val firstSpace = name.indexOf(' ')
-    assert(firstSpace != -1)
-    var appName = name.substring(0, firstSpace)
-    val lastDot = appName.lastIndexOf('.')
-    if (lastDot != -1) {
-      // Strips the packages from the application name
-      appName = appName.substring(lastDot + 1)
-    }
-    return appName + name.substring(firstSpace)
-  }
-
-  override fun getTimestampNs(): Long {
-    return 0
-  }
-
-  override fun isOngoing(): Boolean {
-    return SessionsManager.isSessionAlive(session)
-  }
+  override val canExport = false
 
   /**
    * Update the [Common.Session] object. Note that while the content within the session can change, the new session instance should
    * correspond to the same one as identified by the session's id.
    */
   fun setSession(session: Common.Session) {
-    assert(this.session.sessionId == session.sessionId)
-    this.session = session
+    assert(activeSession.sessionId == session.sessionId)
+    activeSession = session
   }
 
-  override fun onSelect() {
+  override fun doSelect() {
     // Navigate to the new session
-    profilers.sessionsManager.setSession(session)
+    profilers.sessionsManager.setSession(activeSession)
     if (sessionMetaData.type == SessionMetaData.SessionType.FULL &&
         profilers.stageClass != StudioMonitorStage::class.java
     ) {
@@ -117,7 +92,7 @@ class SessionItem(
   }
 
   override fun update(elapsedNs: Long) {
-    if (SessionsManager.isSessionAlive(session)) {
+    if (SessionsManager.isSessionAlive(activeSession)) {
       durationNs += elapsedNs
       changed(Aspect.MODEL)
     }
@@ -125,7 +100,7 @@ class SessionItem(
 
   private fun agentStatusChanged() {
     val oldValue = waitingForAgent
-    waitingForAgent = if (SessionsManager.isSessionAlive(session) && session == profilers.sessionsManager.selectedSession) {
+    waitingForAgent = if (SessionsManager.isSessionAlive(activeSession) && activeSession == profilers.sessionsManager.selectedSession) {
       val agentData = profilers.agentData
       agentData.status == AgentData.Status.UNSPECIFIED
     } else {
@@ -137,7 +112,7 @@ class SessionItem(
   }
 
   fun deleteSession() {
-    profilers.sessionsManager.deleteSession(session)
+    profilers.sessionsManager.deleteSession(activeSession)
   }
 
   fun getSubtitle(): String {
@@ -158,7 +133,6 @@ class SessionItem(
     }
   }
 
-  @VisibleForTesting
   fun getChildArtifacts(): List<SessionArtifact<*>> {
     return childArtifacts.toList()
   }
@@ -175,5 +149,23 @@ class SessionItem(
 
     @VisibleForTesting
     const val SESSION_LOADING = "Loading..."
+
+    private fun parseName(metaData: SessionMetaData): String {
+      val nameRegex = "(?<package>.+) \\((?<device>.+)\\)".toRegex()
+
+      if (metaData.type != SessionMetaData.SessionType.FULL) {
+        return metaData.sessionName
+      }
+
+      val match = nameRegex.matchEntire(metaData.sessionName)
+
+      if (match != null) {
+        val appName = match.groups["package"]!!.value.split('.').last()
+        val deviceName = match.groups["device"]!!.value
+        return "$appName ($deviceName)"
+      }
+
+      return metaData.sessionName
+    }
   }
 }

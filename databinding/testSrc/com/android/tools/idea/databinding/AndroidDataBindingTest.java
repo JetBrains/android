@@ -92,7 +92,7 @@ public class AndroidDataBindingTest {
    * to type.
    */
   private JavaCodeInsightTestFixture getFixture() {
-    return ((JavaCodeInsightTestFixture)myProjectRule.fixture);
+    return ((JavaCodeInsightTestFixture)myProjectRule.getFixture());
   }
 
   private void copyLayout(String name) {

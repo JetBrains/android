@@ -1,4 +1,3 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.dom.layout;
 
 import static com.android.SdkConstants.CLASS_VIEW;
@@ -15,7 +14,7 @@ import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-public final class AndroidLayoutUtil {
+public class AndroidLayoutUtil {
   private AndroidLayoutUtil() {
   }
 

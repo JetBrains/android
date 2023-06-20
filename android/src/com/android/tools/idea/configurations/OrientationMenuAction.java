@@ -23,33 +23,33 @@ import com.android.resources.UiMode;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Toggleable;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class OrientationMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
-  private final EditorDesignSurface mySurface;
+  private final boolean myIncludeUiMode;
 
   /**
    * Create a Menu to switch the orientation and UI mode of the preview.
    *
    * @param renderContext The render context to get the configuration
-   * @param surface       The current {@link EditorDesignSurface} where this action is display
-   *                      used to create the variation.
    */
   // TODO The surface is probably no needed, createVariationAction should be able to use the renderContext configuration
-  public OrientationMenuAction(@NotNull ConfigurationHolder renderContext, @Nullable EditorDesignSurface surface) {
+  public OrientationMenuAction(@NotNull ConfigurationHolder renderContext, boolean includeUiMode) {
     super("Orientation for Preview", "Orientation for Preview", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
     myRenderContext = renderContext;
-    mySurface = surface;
+    myIncludeUiMode = includeUiMode;
+  }
+
+  public void updateActionsImmediately() {
+    updateActions(DataContext.EMPTY_CONTEXT);
   }
 
   @Override
@@ -63,8 +63,7 @@ public class OrientationMenuAction extends DropDownAction {
 
         // Do not allow to change the orientation of the wear devices.
         //noinspection SimplifiableConditionalExpression
-        boolean showSetOrientationOptions = StudioFlags.NELE_WEAR_DEVICE_FIXED_ORIENTATION.get() ? !HardwareConfigHelper.isWear(device)
-                                                                                                 : true;
+        boolean showSetOrientationOptions = !HardwareConfigHelper.isWear(device);
 
         if (showSetOrientationOptions) {
           List<State> states = device.getAllStates();
@@ -83,15 +82,17 @@ public class OrientationMenuAction extends DropDownAction {
         }
       }
 
-      addSeparator();
-      DefaultActionGroup uiModeGroup = DefaultActionGroup.createPopupGroup(() -> "_UI Mode");
-      UiMode currentUiMode = configuration.getUiMode();
-      for (UiMode uiMode : UiMode.values()) {
-        String title = uiMode.getShortDisplayValue();
-        boolean checked = uiMode == currentUiMode;
-        uiModeGroup.add(new SetUiModeAction(myRenderContext, title, uiMode, checked));
+      if (myIncludeUiMode) {
+        addSeparator();
+        DefaultActionGroup uiModeGroup = createSubMenuGroup(() -> "_UI Mode");
+        UiMode currentUiMode = configuration.getUiMode();
+        for (UiMode uiMode : UiMode.values()) {
+          String title = uiMode.getShortDisplayValue();
+          boolean checked = uiMode == currentUiMode;
+          uiModeGroup.add(new SetUiModeAction(myRenderContext, title, uiMode, checked));
+        }
+        add(uiModeGroup);
       }
-      add(uiModeGroup);
     }
     return true;
   }
@@ -121,7 +122,7 @@ public class OrientationMenuAction extends DropDownAction {
                                  boolean isCurrentState) {
       super(renderContext, title);
       myState = state;
-      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, isCurrentState);
+      Toggleable.setSelected(getTemplatePresentation(), isCurrentState);
     }
 
     @Override
@@ -130,7 +131,7 @@ public class OrientationMenuAction extends DropDownAction {
       if (!HardwareConfigHelper.isWear(configuration.getDevice())) {
         // Save the last orientation if device is not a wear device.
         ConfigurationProjectState projectState = configuration.getConfigurationManager().getStateManager().getProjectState();
-        projectState.setNonWearDeviceLastStateName(myState.getName());
+        projectState.setNonWearDeviceLastSelectedStateName(myState.getName(), myState.isDefaultState());
       }
     }
   }
@@ -141,7 +142,7 @@ public class OrientationMenuAction extends DropDownAction {
     private SetUiModeAction(@NotNull ConfigurationHolder renderContext, @NotNull String title, @NotNull UiMode uiMode, boolean checked) {
       super(renderContext, title);
       myUiMode = uiMode;
-      getTemplatePresentation().putClientProperty(SELECTED_PROPERTY, checked);
+      Toggleable.setSelected(getTemplatePresentation(), checked);
     }
 
     @Override

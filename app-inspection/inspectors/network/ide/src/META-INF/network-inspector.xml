@@ -18,4 +18,9 @@
   <extensions defaultExtensionNs="com.android.tools.idea.appinspection">
     <inspector.ide.appInspectorTabProvider implementation="com.android.tools.idea.appinspection.inspectors.network.ide.NetworkInspectorTabProvider" />
   </extensions>
+  <extensions defaultExtensionNs="com.intellij">
+    <project.converterProvider
+        id="rules-persistent-state-converter"
+        implementation="com.android.tools.idea.appinspection.inspectors.network.model.rules.RulesPersistentStateConverterProvider" />
+  </extensions>
 </idea-plugin>

@@ -110,7 +110,7 @@ public class SdksCleanupStep extends ProjectCleanupStep {
     List<String> missingPlatforms = new ArrayList<>();
 
     for (Sdk sdk : invalidSdks) {
-      AndroidSdkAdditionalData additionalData = myAndroidSdks.getAndroidSdkAdditionalData(sdk);
+      AndroidSdkAdditionalData additionalData = AndroidSdkAdditionalData.from(sdk);
       if (additionalData != null) {
         String platform = additionalData.getBuildTargetHashString();
         if (platform != null) {

@@ -21,6 +21,14 @@ PluginInfo = provider(
     },
 )
 
+IntellijInfo = provider(
+    doc = "Info about the IntelliJ SDK provided by the intellij_platform rule",
+    fields = {
+        "major_version": "The major IntelliJ version.",
+        "minor_version": "The minor IntelliJ version.",
+    },
+)
+
 # Valid types (and their corresponding channels) which can be specified
 # by the android_studio rule.
 type_channel_mappings = {
@@ -247,7 +255,7 @@ def _studio_plugin_impl(ctx):
 
 _studio_plugin = rule(
     attrs = {
-        "modules": attr.label_list(providers = [ImlModuleInfo], allow_empty = False),
+        "modules": attr.label_list(providers = [ImlModuleInfo], allow_empty = True),
         "libs": attr.label_list(allow_files = True),
         "licenses": attr.label_list(allow_files = True),
         "jars": attr.string_list(),
@@ -467,14 +475,30 @@ def _get_channel_info(version_type):
     return channel, is_eap
 
 def _form_version_full(ctx):
-    """Forms version_full based on code name, channel, and release number"""
+    """Forms version_full based on code name, version type, and release number"""
     (channel, _) = _get_channel_info(ctx.attr.version_type)
-    return (ctx.attr.version_code_name +
-            " | " +
-            "{0}.{1}.{2} " +
-            channel +
+
+    code_name_and_patch_components = (ctx.attr.version_code_name +
+                                      " | " +
+                                      "{0}.{1}.{2}")
+
+    if channel == "Stable":
+        if ctx.attr.version_release_number <= 1:
+            return code_name_and_patch_components
+
+        return code_name_and_patch_components + " Patch " + str(ctx.attr.version_release_number - 1)
+
+    return (code_name_and_patch_components +
+            " " +
+            ctx.attr.version_type +
             " " +
             str(ctx.attr.version_release_number))
+
+def _full_display_version(ctx):
+    """Returns the output of _form_version_full with versions applied."""
+    intellij_info = ctx.attr.platform[IntellijInfo]
+    (micro, _) = _split_version(ctx.attr.version_micro_patch)
+    return _form_version_full(ctx).format(intellij_info.major_version, intellij_info.minor_version, micro)
 
 def _stamp(ctx, platform, zip, extra, srcs, out):
     args = ["--platform", zip.path]
@@ -525,9 +549,18 @@ def _produce_manifest(ctx, platform):
     )
 
 def _produce_update_message_html(ctx):
-    ctx.actions.write(
+    if not ctx.file.update_message_template:
+        ctx.actions.write(output = ctx.outputs.update_message, content = "")
+        return
+
+    channel, _ = _get_channel_info(ctx.attr.version_type)
+    ctx.actions.expand_template(
+        template = ctx.file.update_message_template,
         output = ctx.outputs.update_message,
-        content = ctx.attr.version_update_message,
+        substitutions = {
+            "{full_version}": _full_display_version(ctx),
+            "{channel}": channel,
+        },
     )
 
 def _stamp_platform(ctx, platform, zip, out):
@@ -556,19 +589,9 @@ def _zip_merger(ctx, zips, overrides, out):
         mnemonic = "zipmerger",
     )
 
-def _codesign(ctx, filelist_template, entitlements, prefix, out):
-    filelist = ctx.actions.declare_file(ctx.attr.name + ".codesign.filelist")
-    ctx.actions.expand_template(
-        template = filelist_template,
-        output = filelist,
-        substitutions = {
-            "%prefix%": prefix,
-        },
-    )
-
+def _codesign(ctx, entitlements, prefix, out):
     ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
     files = [
-        ("_codesign/filelist", filelist),
         ("_codesign/entitlements.xml", entitlements),
     ]
 
@@ -621,6 +644,18 @@ def _android_studio_os(ctx, platform, out):
     ctx.actions.write(dev01, "")
     files += [(platform.base_path + "license/dev01_license.txt", dev01)]
 
+    # Add safe mode batch file based on the current platform
+    source_map = {
+        LINUX: ctx.attr.files_linux,
+        MAC: ctx.attr.files_mac,
+        MAC_ARM: ctx.attr.files_mac_arm,
+        WIN: ctx.attr.files_win,
+    }[platform]
+
+    if source_map != None:
+        for key in source_map:
+            files += [(platform.base_path + source_map[key], key.files.to_list()[0])]
+
     so_jars = [("%s%s" % (platform.base_path, jar), f) for (jar, f) in ctx.attr.searchable_options.searchable_options]
     so_extras = ctx.actions.declare_file(ctx.attr.name + ".so.%s.zip" % platform.name)
     _zipper(ctx, "%s searchable options" % platform.name, so_jars, so_extras)
@@ -646,7 +681,7 @@ def _android_studio_os(ctx, platform, out):
 
     if platform == MAC or platform == MAC_ARM:
         codesign = ctx.actions.declare_file(ctx.attr.name + ".codesign.zip")
-        _codesign(ctx, ctx.file.codesign_filelist, ctx.file.codesign_entitlements, platform_prefix, codesign)
+        _codesign(ctx, ctx.file.codesign_entitlements, platform_prefix, codesign)
         zips += [("", codesign)]
 
     _zip_merger(ctx, zips, overrides, out)
@@ -697,17 +732,20 @@ def _android_studio_impl(ctx):
 _android_studio = rule(
     attrs = {
         "codesign_entitlements": attr.label(allow_single_file = True),
-        "codesign_filelist": attr.label(allow_single_file = True),
         "compress": attr.bool(),
+        "files_linux": attr.label_keyed_string_dict(allow_files = True, default = {}),
+        "files_mac": attr.label_keyed_string_dict(allow_files = True, default = {}),
+        "files_mac_arm": attr.label_keyed_string_dict(allow_files = True, default = {}),
+        "files_win": attr.label_keyed_string_dict(allow_files = True, default = {}),
         "jre": attr.label(),
-        "platform": attr.label(),
+        "platform": attr.label(providers = [IntellijInfo]),
         "plugins": attr.label_list(providers = [PluginInfo]),
         "searchable_options": attr.label(),
         "version_code_name": attr.string(),
         "version_micro_patch": attr.string(),
         "version_release_number": attr.int(),
         "version_type": attr.string(),
-        "version_update_message": attr.string(),
+        "update_message_template": attr.label(allow_single_file = True),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
@@ -759,6 +797,43 @@ _android_studio = rule(
 #       plugins: A list of plugins to be bundled
 #       modules: A dictionary (see studio_plugin) with modules bundled at top level
 #       resources: A dictionary (see studio_plugin) with resources bundled at top level
+#       update_message_template: A file to use for the update message. The following
+#                                substitutions are available to message templates:
+#                                 {full_version} - See _form_version_full below.
+#                                 {channel} - The channel derived from version_type.
+#
+# Regarding versioning information:
+# - The "version_*" parameters (like "version_micro_path" and
+#   "version_type") are used both for Android Studio itself and for
+#   metadata produced by this rule (e.g. the build manifest and the
+#   update message).
+# - The full version string is produced by "_form_version_full"
+#   following these rules:
+#   - If the version_type is "Stable", then the first release will not
+#     have a patch number, then every subsequent release will have a
+#     patch number starting at 1. In addition, the word "Stable" will
+#     never appear in the full version string.
+#   - If the version_type is anything other than "Stable", then the
+#     version_type will appear in the full version string, and
+#     version_release_number will be appended directly after.
+# Examples:
+# - Input: version_type = "Stable", version_release_number = 1
+# - Output: "Dolphin | 2022.1.1"
+# - Input: version_type = "Stable", version_release_number = 2
+# - Output: "Dolphin | 2022.1.1 Patch 1"
+# - Input: version_type = "Stable", version_release_number = 3
+# - Output: "Dolphin | 2022.1.1 Patch 2"
+# - Input: version_type = "Canary", version_release_number = 1
+# - Output: "Dolphin | 2022.1.1 Canary 1"
+# - Input: version_type = "Canary", version_release_number = 2
+# - Output: "Dolphin | 2022.1.1 Canary 2"
+# - Input: version_type = "RC", version_release_number = 3
+# - Output: "Dolphin | 2022.1.1 RC 3"
+#
+# version_release_number may or may not match the actual patch number.
+# For example, we may be on patch 12 of a Beta while still calling it
+# "Beta 3", meaning we've shipped 9 Canary releases and 2 Beta releases
+# before patch 12. In such a case, the release_number would be 3.
 def android_studio(
         name,
         **kwargs):
@@ -873,19 +948,24 @@ def _intellij_platform_impl(ctx):
     base_linux, plugins_linux = _intellij_platform_impl_os(ctx, LINUX, ctx.attr.studio_data)
     base_win, plugins_win = _intellij_platform_impl_os(ctx, WIN, ctx.attr.studio_data)
     base_mac, plugins_mac = _intellij_platform_impl_os(ctx, MAC, ctx.attr.studio_data)
+    base_mac_arm, plugins_mac_arm = _intellij_platform_impl_os(ctx, MAC_ARM, ctx.attr.studio_data)
 
     runfiles = ctx.runfiles(files = ctx.files.data)
-    files = depset([base_linux, base_mac, base_win])
+    files = depset([base_linux, base_mac, base_mac_arm, base_win])
     return struct(
         providers = [
             DefaultInfo(files = files, runfiles = runfiles),
             java_common.merge([export[JavaInfo] for export in ctx.attr.exports]),
+            IntellijInfo(
+                major_version = ctx.attr.major_version,
+                minor_version = ctx.attr.minor_version,
+            ),
         ],
         data = struct(
             files = depset([]),
             files_linux = depset([base_linux]),
             files_mac = depset([base_mac]),
-            files_mac_arm = depset([base_mac]),
+            files_mac_arm = depset([base_mac_arm]),
             files_win = depset([base_win]),
             mappings = {},
         ),
@@ -893,7 +973,7 @@ def _intellij_platform_impl(ctx):
             files = depset([]),
             files_linux = depset(plugins_linux),
             files_mac = depset(plugins_mac),
-            files_mac_arm = depset(plugins_mac),
+            files_mac_arm = depset(plugins_mac_arm),
             files_win = depset(plugins_win),
             mappings = {},
         ),
@@ -905,6 +985,8 @@ def _intellij_platform_impl(ctx):
 
 _intellij_platform = rule(
     attrs = {
+        "major_version": attr.string(),
+        "minor_version": attr.string(),
         "exports": attr.label_list(providers = [JavaInfo]),
         "extra_plugins": attr.label_list(providers = [PluginInfo]),
         "data": attr.label_list(allow_files = True),
@@ -917,6 +999,7 @@ _intellij_platform = rule(
             executable = True,
         ),
     },
+    provides = [DefaultInfo, JavaInfo, IntellijInfo],
     implementation = _intellij_platform_impl,
 )
 
@@ -931,12 +1014,15 @@ def intellij_platform(
         jars = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio" + jar for jar in spec.jars + spec.jars_windows],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents" + jar for jar in spec.jars + spec.jars_darwin_aarch64],
             "//conditions:default": [src + "/linux/android-studio" + jar for jar in spec.jars + spec.jars_linux],
         }),
     )
 
     _intellij_platform(
         name = name,
+        major_version = spec.major_version,
+        minor_version = spec.minor_version,
         exports = [":" + name + "_jars"],
         extra_plugins = extra_plugins,
         compress = is_release(),
@@ -954,11 +1040,37 @@ def intellij_platform(
                 include = [src + "/darwin/android-studio/**"],
                 exclude = [src + "/darwin/android-studio/Contents/plugins/textmate/lib/bundles/**"],
             ),
+            "//tools/base/bazel:darwin_arm64": native.glob(
+                include = [src + "/darwin_aarch64/android-studio/**"],
+                exclude = [src + "/darwin_aarch64/android-studio/Contents/plugins/textmate/lib/bundles/**"],
+            ),
             "//conditions:default": native.glob(
                 include = [src + "/linux/android-studio/**"],
                 exclude = [src + "/linux/android-studio/plugins/textmate/lib/bundles/**"],
             ),
         }),
+    )
+
+    resource_jars = {
+        "mac": src + "/darwin/android-studio/Contents/lib/resources.jar",
+        "mac_arm": src + "/darwin_aarch64/android-studio/Contents/lib/resources.jar",
+        "linux": src + "/linux/android-studio/lib/resources.jar",
+        "windows": src + "/windows/android-studio/lib/resources.jar",
+    }
+    native.py_test(
+        name = name + "_version_test",
+        srcs = ["//tools/adt/idea/studio:sdk_version_test.py"],
+        main = "sdk_version_test.py",
+        tags = ["no_test_windows", "no_test_mac"],
+        data = resource_jars.values(),
+        env = {
+            "expected_major_version": spec.major_version,
+            "expected_minor_version": spec.minor_version,
+            "intellij_resource_jars": ",".join(
+                [k + "=" + "$(execpath :" + v + ")" for k, v in resource_jars.items()],
+            ),
+        },
+        deps = ["//tools/adt/idea/studio:intellij"],
     )
 
     # Expose lib/resources.jar as a separate target
@@ -967,6 +1079,7 @@ def intellij_platform(
         jars = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio/lib/resources.jar"],
             "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/lib/resources.jar"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/lib/resources.jar"],
             "//conditions:default": [src + "/linux/android-studio/lib/resources.jar"],
         }),
         visibility = ["//visibility:public"],
@@ -977,8 +1090,33 @@ def intellij_platform(
         name = name + "-build-txt",
         srcs = select({
             "//tools/base/bazel:windows": [src + "/windows/android-studio/build.txt"],
-            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/build.txt"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/Resources/build.txt"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/Resources/build.txt"],
             "//conditions:default": [src + "/linux/android-studio/build.txt"],
+        }),
+        visibility = ["//visibility:public"],
+    )
+
+    # Expose product-info.json.
+    native.filegroup(
+        name = name + "-product-info",
+        srcs = select({
+            "//tools/base/bazel:windows": [src + "/windows/android-studio/product-info.json"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/Resources/product-info.json"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/Resources/product-info.json"],
+            "//conditions:default": [src + "/linux/android-studio/product-info.json"],
+        }),
+        visibility = ["//visibility:public"],
+    )
+
+    # Expose the default VM options file.
+    native.filegroup(
+        name = name + "-vm-options",
+        srcs = select({
+            "//tools/base/bazel:windows": [src + "/windows/android-studio/bin/studio64.exe.vmoptions"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/bin/studio.vmoptions"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/bin/studio.vmoptions"],
+            "//conditions:default": [src + "/linux/android-studio/bin/studio64.vmoptions"],
         }),
         visibility = ["//visibility:public"],
     )
@@ -995,10 +1133,12 @@ def intellij_platform(
         name = name + ".data",
         files_linux = native.glob([src + "/linux/**"]),
         files_mac = native.glob([src + "/darwin/**"]),
+        files_mac_arm = native.glob([src + "/darwin_aarch64/**"]),
         files_win = native.glob([src + "/windows/**"]),
         mappings = {
             "prebuilts/studio/intellij-sdk/%s/linux/android-studio/" % src: "",
             "prebuilts/studio/intellij-sdk/%s/darwin/android-studio/" % src: "",
+            "prebuilts/studio/intellij-sdk/%s/darwin_aarch64/android-studio/" % src: "",
             "prebuilts/studio/intellij-sdk/%s/windows/android-studio/" % src: "",
         },
     )
@@ -1018,12 +1158,26 @@ def intellij_platform(
         visibility = ["//visibility:public"],
     )
 
+    # Expose the IntelliJ test framework separately, for consumption by tests only.
+    jvm_import(
+        name = name + "-test-framework",
+        jars = select({
+            "//tools/base/bazel:windows": [src + "/windows/android-studio/lib/testFramework.jar"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/lib/testFramework.jar"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/lib/testFramework.jar"],
+            "//conditions:default": [src + "/linux/android-studio/lib/testFramework.jar"],
+        }),
+        visibility = ["//visibility:public"],
+    )
+
 def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
     """Generates a jvm_import target for the specified plugin."""
     add_windows = spec.plugin_jars_windows[plugin] if plugin in spec.plugin_jars_windows else []
     jars_windows = [src + "/windows/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_windows]
     add_darwin = spec.plugin_jars_darwin[plugin] if plugin in spec.plugin_jars_darwin else []
     jars_darwin = [src + "/darwin/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin]
+    add_darwin_aarch64 = spec.plugin_jars_darwin_aarch64[plugin] if plugin in spec.plugin_jars_darwin_aarch64 else []
+    jars_darwin_aarch64 = [src + "/darwin_aarch64/android-studio/Contents/plugins/" + plugin + "/lib/" + jar for jar in jars + add_darwin_aarch64]
     add_linux = spec.plugin_jars_linux[plugin] if plugin in spec.plugin_jars_linux else []
     jars_linux = [src + "/linux/android-studio/plugins/" + plugin + "/lib/" + jar for jar in jars + add_linux]
 
@@ -1032,6 +1186,7 @@ def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
         jars = select({
             "//tools/base/bazel:windows": jars_windows,
             "//tools/base/bazel:darwin": jars_darwin,
+            "//tools/base/bazel:darwin_arm64": jars_darwin_aarch64,
             "//conditions:default": jars_linux,
         }),
     )

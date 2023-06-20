@@ -168,14 +168,14 @@ class SystemTraceSurfaceflingerManagerTest {
 
   private class TestModel(private val processes: List<ProcessModel>) : SystemTraceModelAdapter {
     override fun getProcesses(): List<ProcessModel> = processes
-
     override fun getCaptureStartTimestampUs() = throw UnsupportedOperationException("Not Implemented For Test")
     override fun getCaptureEndTimestampUs() = throw UnsupportedOperationException("Not Implemented For Test")
     override fun getProcessById(id: Int) = throw UnsupportedOperationException("Not Implemented For Test")
     override fun getDanglingThread(tid: Int): ThreadModel = throw UnsupportedOperationException("Not Implemented For Test")
     override fun getCpuCores(): List<CpuCoreModel> = throw UnsupportedOperationException("Not Implemented For Test")
-
     override fun getSystemTraceTechnology() = throw UnsupportedOperationException("Not Implemented For Test")
+    override fun getPowerRails(): List<CounterModel> = throw UnsupportedOperationException("Not Implemented For Test")
+    override fun getBatteryDrain(): List<CounterModel> = throw UnsupportedOperationException("Not Implemented For Test")
     override fun isCapturePossibleCorrupted() = throw UnsupportedOperationException("Not Implemented For Test")
     override fun getAndroidFrameLayers() = throw UnsupportedOperationException("Not Implemented For Test")
     override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = throw UnsupportedOperationException(

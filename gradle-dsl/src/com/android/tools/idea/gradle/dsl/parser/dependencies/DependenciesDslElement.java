@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.dependencies;
 
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -32,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
-public class DependenciesDslElement extends GradleDslBlockElement implements DescribedGradlePropertiesDslElement<DependenciesDslElement> {
+public class DependenciesDslElement extends GradleDslElementList implements DescribedGradlePropertiesDslElement<DependenciesDslElement> {
   public static final PropertiesElementDescription<DependenciesDslElement> DEPENDENCIES =
     new PropertiesElementDescription<>("dependencies", DependenciesDslElement.class, DependenciesDslElement::new);
 
@@ -172,8 +173,7 @@ public class DependenciesDslElement extends GradleDslBlockElement implements Des
   }
 
   @Override
-  @NotNull
-  public GradleDslElement setNewElement(@NotNull GradleDslElement newElement) {
+  public void setNewElement(@NotNull GradleDslElement newElement) {
     List<GradleDslElement> es = getCurrentElements();
     int i = 0;
     for (; i < es.size(); i++) {
@@ -182,6 +182,10 @@ public class DependenciesDslElement extends GradleDslBlockElement implements Des
       }
     }
     addNewElementAt(i, newElement);
-    return newElement;
+  }
+
+  @Override
+  public boolean isBlockElement() {
+    return true;
   }
 }

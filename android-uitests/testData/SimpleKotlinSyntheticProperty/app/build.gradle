@@ -6,6 +6,7 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion 30
+    namespace "com.example.simplekotlinsyntheticproperty"
     defaultConfig {
         applicationId "com.example.simplekotlinsyntheticproperty"
         minSdkVersion 15

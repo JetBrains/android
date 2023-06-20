@@ -20,13 +20,16 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.model.shouldShowWarning
-import com.intellij.build.BuildContentManager
-import com.intellij.icons.AllIcons
+import com.android.buildanalyzer.common.TaskCategoryIssue
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
+import com.intellij.notification.NotificationsConfiguration
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
-import com.intellij.openapi.wm.ToolWindowManager
-import javax.swing.event.HyperlinkEvent
+
+const val BUILD_ANALYZER_NOTIFICATION_GROUP_ID = "Build Analyzer"
 
 class BuildAnalyzerNotificationManager(
   private val project: Project,
@@ -34,44 +37,60 @@ class BuildAnalyzerNotificationManager(
 ) {
 
   private val alreadyNotifiedAbout: MutableSet<WarningType> = mutableSetOf()
-  private val buildAnalyzerSettings = BuildAnalyzerSettings.getInstance(project)
 
   fun showToolWindowBalloonIfNeeded(reportUiData: BuildAttributionReportUiData, viewDetailsLinkClickListener: () -> Unit) {
-    if (!buildAnalyzerSettings.settingsState.notifyAboutWarnings) return
+    migrateSetting(project)
     if (reportUiData.isBuildAnalyzerSpecialBuild()) return
     val warningTypesInCurrentBuild = reportUiData.warningTypes().filter { it.triggerNotification }
     if (!alreadyNotifiedAbout.containsAll(warningTypesInCurrentBuild)) {
-      showBalloon(viewDetailsLinkClickListener)
+      showAsNotification(viewDetailsLinkClickListener)
       alreadyNotifiedAbout.addAll(warningTypesInCurrentBuild)
     }
   }
 
-  private fun showBalloon(viewDetailsLinkClickListener: () -> Unit) {
-    val balloonOptions = ToolWindowBalloonShowOptions(
-      toolWindowId = BuildContentManager.TOOL_WINDOW_ID,
-      type = MessageType.WARNING,
-      icon = AllIcons.General.BalloonWarning,
-      htmlBody = """
-            <b>Build Analyzer detected new build performance issues</b>
-            <a href=''>Review to improve build performance</a>
-          """.trimIndent(),
-      listener = { event -> if (event.eventType == HyperlinkEvent.EventType.ACTIVATED) viewDetailsLinkClickListener() }
-    )
-    ToolWindowManager.getInstance(project).notifyByBalloon(balloonOptions)
+  private fun showAsNotification(viewDetailsLinkClickListener: () -> Unit) {
+    NotificationGroupManager.getInstance().getNotificationGroup(BUILD_ANALYZER_NOTIFICATION_GROUP_ID)
+      .createNotification("Build Analyzer detected new build performance issues", NotificationType.WARNING)
+      .addAction(object : AnAction("Review to improve build performance") {
+        override fun actionPerformed(e: AnActionEvent) {
+          viewDetailsLinkClickListener()
+        }
+      }).notify(project)
     uiAnalytics.toolWindowBalloonShown()
   }
 }
 
-private enum class WarningType(val triggerNotification: Boolean){
-  ALWAYS_RUN_TASK(triggerNotification = true),
-  TASK_SETUP_ISSUE(triggerNotification = true),
-  NON_INCREMENTAL_ANNOTATION_PROCESSOR(triggerNotification = true),
-  CONFIGURATION_CACHE(triggerNotification = false),
-  JETIFIER_USAGE(triggerNotification = true)
+/**
+ * Migrates notification setting from old flag on BA Settings page to Notifications system settings.
+ * Only need to convert previously set false flag into [NotificationDisplayType]`.NONE`.
+ * In any case set the old field to a new default `"deprecated"` to mark as migrated.
+ * @see NotificationsConfiguration
+ */
+fun migrateSetting(project: Project) {
+  val buildAnalyzerSettings = BuildAnalyzerSettings.getInstance(project)
+  val defaultSettings = BuildAnalyzerSettings.State()
+  if (buildAnalyzerSettings.settingsState.notifyAboutWarnings == "false") {
+    // Not yet migrated value, user has manually set to no notifications. Migrate that to NotificationsConfiguration.
+    NotificationsConfiguration.getNotificationsConfiguration().changeSettings(
+      BUILD_ANALYZER_NOTIFICATION_GROUP_ID, NotificationDisplayType.NONE, false, false
+    )
+  }
+  buildAnalyzerSettings.settingsState.notifyAboutWarnings = defaultSettings.notifyAboutWarnings
 }
 
+private sealed class WarningType(val triggerNotification: Boolean){
+  object ALWAYS_RUN_TASK : WarningType(triggerNotification = true)
+  object TASK_SETUP_ISSUE : WarningType(triggerNotification = true)
+  object NON_INCREMENTAL_ANNOTATION_PROCESSOR : WarningType(triggerNotification = true)
+  object CONFIGURATION_CACHE : WarningType(triggerNotification = false)
+  object JETIFIER_USAGE : WarningType(triggerNotification = true)
+
+  data class TaskCategoryWarning(val taskCategoryIssue: TaskCategoryIssue) : WarningType(triggerNotification = taskCategoryIssue.severity == TaskCategoryIssue.Severity.WARNING)
+}
+
+
 private fun BuildAttributionReportUiData.isBuildAnalyzerSpecialBuild(): Boolean =
-  confCachingData == ConfigurationCacheCompatibilityTestFlow ||
+  confCachingData is ConfigurationCacheCompatibilityTestFlow ||
   jetifierData.checkJetifierBuild
 
 private fun BuildAttributionReportUiData.warningTypes(): Set<WarningType> {
@@ -83,5 +102,9 @@ private fun BuildAttributionReportUiData.warningTypes(): Set<WarningType> {
   if (this.annotationProcessors.issueCount > 0) issueTypes.add(WarningType.NON_INCREMENTAL_ANNOTATION_PROCESSOR)
   if (this.confCachingData.shouldShowWarning()) issueTypes.add(WarningType.CONFIGURATION_CACHE)
   if (this.jetifierData.shouldShowWarning()) issueTypes.add(WarningType.JETIFIER_USAGE)
+  this.criticalPathTaskCategories?.entries?.flatMap {
+    it.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true)
+  }?.forEach { issueTypes.add(WarningType.TaskCategoryWarning(it.issue)) }
+
   return issueTypes
 }

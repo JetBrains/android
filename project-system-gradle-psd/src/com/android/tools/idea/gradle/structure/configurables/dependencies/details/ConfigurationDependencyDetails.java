@@ -47,6 +47,17 @@ interface ConfigurationDependencyDetails extends DependencyDetails {
       ui.setName("configuration");
       ui.setSelectedItem(dependency.getConfigurationName());
       panel.add(ui);
+      dependency.getParent().add(new PsModule.DependenciesChangeListener() {
+        @Override
+        public void dependencyChanged(@NotNull PsModule.DependencyChangedEvent event) {
+          if (event instanceof PsModule.DependencyModifiedEvent) {
+            PsDeclaredDependency eventDependency = ((PsModule.DependencyModifiedEvent)event).getDependency().getValue();
+            if (dependency.equals(eventDependency)) {
+              ui.setSelectedItem(dependency.getConfigurationName());
+            }
+          }
+        }
+      }, getContext());
       ui.addActionListener(new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {

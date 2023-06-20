@@ -19,9 +19,7 @@ import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.stdui.UrlData
 import com.android.tools.idea.appinspection.inspector.ide.bundle.AppInspectorBundle
 
-/**
- * Convenience constructor that sets up an empty message with a learn more URL (if present).
- */
+/** Convenience constructor that sets up an empty message with a learn more URL (if present). */
 fun EmptyStatePanel(reason: String, learnMoreUrl: String?) =
   EmptyStatePanel(
     reason,

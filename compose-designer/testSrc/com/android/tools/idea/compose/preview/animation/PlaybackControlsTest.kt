@@ -27,17 +27,16 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ToolbarLabelAction
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.runInEdtAndGet
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Dimension
 import javax.swing.JSlider
 import kotlin.test.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
 class PlaybackControlsTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var surface: DesignSurface<*>
 
@@ -48,11 +47,12 @@ class PlaybackControlsTest {
     parentDisposable = projectRule.fixture.testRootDisposable
     val model = runInEdtAndGet {
       NlModelBuilderUtil.model(
-        projectRule,
-        "layout",
-        "layout.xml",
-        ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
-      ).build()
+          projectRule,
+          "layout",
+          "layout.xml",
+          ComponentDescriptor(SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER)
+        )
+        .build()
     }
     surface = NlDesignSurface.builder(projectRule.project, parentDisposable).build()
     surface.addModelWithoutRender(model)
@@ -69,34 +69,38 @@ class PlaybackControlsTest {
 
   @Test
   fun `create toolbar and each component is visible`() = invokeAndWaitIfNeeded {
-    val playbackControl = PlaybackControls(clockControl = SliderClockControl(JSlider()), {}, surface, parentDisposable)
+    val playbackControl =
+      PlaybackControls(clockControl = SliderClockControl(JSlider()), {}, surface, parentDisposable)
     val toolbar = playbackControl.createToolbar().apply { setSize(300, 50) }
-    val ui = FakeUi(toolbar).apply {
-      updateToolbars()
-      layout()
-    }
+    val ui =
+      FakeUi(toolbar).apply {
+        updateToolbars()
+        layout()
+      }
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
     assertEquals(5, toolbar.components.size)
     toolbar.components.forEach { TestUtils.assertBigger(minimumSize, it.size) }
   }
 
   @Test
   fun `create toolbar with extra action and each component is visible`() = invokeAndWaitIfNeeded {
-    val playbackControl = PlaybackControls(clockControl = SliderClockControl(JSlider()), {}, surface, parentDisposable)
-    val toolbar = playbackControl.createToolbar(listOf(TestAction(), TestAction())).apply { setSize(600, 50) }
-    val ui = FakeUi(toolbar).apply {
-      updateToolbars()
-      layout()
-    }
+    val playbackControl =
+      PlaybackControls(clockControl = SliderClockControl(JSlider()), {}, surface, parentDisposable)
+    val toolbar =
+      playbackControl.createToolbar(listOf(TestAction(), TestAction())).apply { setSize(600, 50) }
+    val ui =
+      FakeUi(toolbar).apply {
+        updateToolbars()
+        layout()
+      }
     // Uncomment to preview ui.
-    //ui.render()
+    // ui.render()
     // Two extra actions and one separator.
     assertEquals(8, toolbar.components.size)
     toolbar.components.forEachIndexed { index, it ->
       // Don't check Separator size as it is smaller.
-      if (index != 5)
-        TestUtils.assertBigger(minimumSize, it.size)
+      if (index != 5) TestUtils.assertBigger(minimumSize, it.size)
     }
   }
 }

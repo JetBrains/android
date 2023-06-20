@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.editors.literals
 
+import com.android.tools.idea.editors.literals.internal.LiveLiteralsDeploymentReportService
+import com.android.tools.idea.editors.literals.internal.LiveLiteralsFinder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.deleteText
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.replaceText
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.diagnostic.LogLevel
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -32,12 +37,15 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.hasErrorElementInRange
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFunction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -107,7 +115,26 @@ class LiteralsTest {
   }
 
   private fun LiteralsManager.findLiteralsBlocking(root : PsiElement) = runBlocking {
-    findLiterals(root)
+    var lastResult: LiteralsManager.FindResult = LiteralsManager.FindResult.Unsupported
+    repeat(3) {
+      lastResult = findLiterals(root)
+      if (lastResult is LiteralsManager.FindResult.Snapshot) return@repeat
+      delay(500L * it)
+    }
+
+    return@runBlocking when (lastResult) {
+      is LiteralsManager.FindResult.Snapshot -> (lastResult as LiteralsManager.FindResult.Snapshot).snapshot
+      is LiteralsManager.FindResult.IndexNotReady -> throw IndexNotReadyException.create()
+      is LiteralsManager.FindResult.Unsupported -> throw RuntimeException("Unsupported file type")
+    }
+  }
+
+  @Before
+  fun setup() {
+    Logger.getInstance(LiveLiteralsService::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(LiteralsManager::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(LiveLiteralsFinder::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(LiveLiteralsDeploymentReportService::class.java).setLevel(LogLevel.ALL)
   }
 
   @Test
@@ -515,7 +542,7 @@ class LiteralsTest {
 
     runBlocking {
       val asyncLiterals = files.map {
-        it.name to async { literalsManager.findLiterals(it) }
+        it.name to async { literalsManager.findLiteralsBlocking(it) }
       }
 
       asyncLiterals.forEach { (fileName, async) ->
@@ -552,7 +579,7 @@ class LiteralsTest {
 
     runBlocking {
       val asyncLiterals = files.map {
-        it.name to async { literalsManager.findLiterals(it) }
+        it.name to async { literalsManager.findLiteralsBlocking(it) }
       }
 
       val literals = asyncLiterals.map { it.second.await() }.toList()
@@ -593,8 +620,11 @@ class LiteralsTest {
         (DumbService.getInstance(projectRule.project) as DumbServiceImpl).isDumb = true
       }
 
-      val literals = literalsManager.findLiterals(file)
-      assertTrue(literals.all.isEmpty())
+      try {
+        literalsManager.findLiteralsBlocking(file)
+        fail("findLiterals will throw IndexNotReadyException when called not called in smart mode")
+      } catch (_: IndexNotReadyException) {
+      }
     }
   }
 }

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
+import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.orderTemplates;
+import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
+
 import com.android.resources.Density;
 import com.android.tools.adtui.common.ProposedFileTreeCellRenderer;
 import com.android.tools.adtui.common.ProposedFileTreeModel;
@@ -37,23 +40,25 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.NamedColorUtil;
-import org.jetbrains.android.actions.widgets.SourceSetCellRenderer;
-import org.jetbrains.android.actions.widgets.SourceSetItem;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.orderTemplates;
-import static com.android.tools.idea.npw.assetstudio.IconGenerator.pathToDensity;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.tree.DefaultTreeModel;
+import org.jetbrains.android.actions.widgets.SourceSetCellRenderer;
+import org.jetbrains.android.actions.widgets.SourceSetItem;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This step allows the user to select a build variant and provides a preview of the assets that
@@ -184,7 +189,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         pathToIcon.put(entry.getKey(), new ImageIcon(image));
       }
 
-      myProposedFileTreeModel = new ProposedFileTreeModel(resDirectory.getParentFile(), pathToIcon);
+      myProposedFileTreeModel = new ProposedFileTreeModel(resDirectory, pathToIcon);
 
       myFilesAlreadyExist.set(myProposedFileTreeModel.hasConflicts());
       myOutputPreviewTree.setModel(myProposedFileTreeModel);
@@ -194,6 +199,12 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
         myOutputPreviewTree.expandRow(i);
       }
     });
+  }
+
+  @Nullable
+  @Override
+  protected JComponent getPreferredFocusComponent() {
+    return myPathsComboBox;
   }
 
   @Override

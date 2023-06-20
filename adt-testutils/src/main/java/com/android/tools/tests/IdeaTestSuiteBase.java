@@ -15,22 +15,33 @@
  */
 package com.android.tools.tests;
 
+import static com.android.testutils.TestUtils.resolveWorkspacePath;
+
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.RepoLinker;
 import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
-
+import org.junit.ClassRule;
 
 public class IdeaTestSuiteBase {
   protected static final String TMP_DIR = System.getProperty("java.io.tmpdir");
+
+  // Note: the leak checker can be disabled in an individual test suite by setting leakChecker.enabled = false.
+  @ClassRule public static final LeakCheckerRule leakChecker = new LeakCheckerRule();
 
   static {
     try {
@@ -49,7 +60,7 @@ public class IdeaTestSuiteBase {
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
     System.setProperty("idea.force.use.core.classloader", "true");
     System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
-    System.setProperty("idea.log.config.file", TestUtils.resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.xml").toString());
+    System.setProperty("idea.log.config.file", resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.xml").toString());
     System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
     System.setProperty("user.home", TMP_DIR);
 
@@ -70,10 +81,30 @@ public class IdeaTestSuiteBase {
     // On bazel we pack each directory in a jar, so we have to tell IJ explicitely that we are still "in directory mode"
     System.setProperty("resolve.descriptors.in.resources", "true");
 
+    // Configure JNA and other native libs.
+    Map<String,String>  requiredJvmArgs = readJvmArgsProperties(TestUtils.getBinPath("tools/adt/idea/studio/required_jvm_args.txt"));
+    System.setProperty("jna.noclasspath", "true");
+    System.setProperty("jna.nosys", "true");
+    System.setProperty("jna.boot.library.path",
+                       resolveWorkspacePath(requiredJvmArgs.get("jna.boot.library.path")).toString());
+    System.setProperty("pty4j.preferred.native.folder",
+                       resolveWorkspacePath(requiredJvmArgs.get("pty4j.preferred.native.folder")).toString());
+
     // TODO(b/213385827): Fix Kotlin script classpath calculation during tests
     System.setProperty("kotlin.script.classpath", "");
+  }
 
-    setRealJdkPathForGradle();
+  private static Map<String, String> readJvmArgsProperties(Path path) throws IOException {
+    Map<String, String> result = new HashMap<>();
+    for (String line : Files.readAllLines(path)) {
+      int eqIndex = line.indexOf('=');
+      if (line.startsWith("-D") && eqIndex > 0) {
+        String key = line.substring(2, eqIndex);
+        String value = line.substring(eqIndex + 1);
+        result.put(key, value);
+      }
+    }
+    return result;
   }
 
   private static void setupKotlinPlugin() {
@@ -93,30 +124,11 @@ public class IdeaTestSuiteBase {
   }
 
   /**
-   * Gradle cannot handle a JDK set up with symlinks. It gets confused
-   * and in two consecutive executions it thinks that we are calling it
-   * with two different JDKs. See
-   * https://discuss.gradle.org/t/gradle-daemon-different-context/2146/3
-   */
-  private static void setRealJdkPathForGradle() {
-    try {
-      Path jdk = TestUtils.resolveWorkspacePath("prebuilts/studio/jdk");
-      if (Files.exists(jdk)) {
-        Path file = jdk.resolve("BUILD").toRealPath();
-        System.setProperty("studio.dev.jdk", file.getParent().toString());
-      }
-    }
-    catch (IOException e) {
-      // Ignore if we cannot resolve symlinks.
-    }
-  }
-
-  /**
    * Sets up a project with content of a zip file, optionally applying a collection of git diff files to the unzipped project source code.
    */
   protected static void setUpSourceZip(@NotNull String sourceZip, @NotNull String outputPath, DiffSpec... diffSpecs) {
     File sourceZipFile = getWorkspaceFileAndEnsureExistence(sourceZip);
-    File outDir = TestUtils.resolveWorkspacePath(outputPath).toFile();
+    File outDir = TestUtils.getWorkspaceRoot().resolve(outputPath).toFile();
     if (!outDir.isDirectory() && !outDir.mkdirs()) {
       throw new RuntimeException("Failed to create output directory: " + outDir);
     }
@@ -183,7 +195,7 @@ public class IdeaTestSuiteBase {
 
   @NotNull
   private static File getWorkspaceFileAndEnsureExistence(@NotNull String relativePath) {
-    Path file = TestUtils.resolveWorkspacePath(relativePath);
+    Path file = TestUtils.getWorkspaceRoot().resolve(relativePath);
     if (!Files.exists(file)) {
       throw new IllegalArgumentException(relativePath + " does not exist");
     }

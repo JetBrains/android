@@ -18,6 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.UastImplementationDetector
 
-class AndroidLintUastImplementationInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.uast.implementation"), UastImplementationDetector.ISSUE
-)
+class AndroidLintUastImplementationInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.uast.implementation"),
+    UastImplementationDetector.ISSUE
+  )

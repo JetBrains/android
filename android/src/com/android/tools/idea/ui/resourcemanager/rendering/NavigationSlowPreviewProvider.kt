@@ -50,7 +50,7 @@ class NavigationSlowPreviewProvider(
     val designAsset = (asset as? DesignAsset) ?: return null
     val layoutFileToPreview = resolveLayoutToRender(designAsset)
     val layoutPreview = layoutFileToPreview?.let {
-      val configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(layoutFileToPreview.virtualFile)
+      val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(layoutFileToPreview.virtualFile)
       LayoutRenderer.getInstance(facet).getLayoutRender(layoutFileToPreview, configuration)
     }?.get()
     // TODO(147157808): Provide a different visual when there is nothing to preview. E.g: 'No preview' text

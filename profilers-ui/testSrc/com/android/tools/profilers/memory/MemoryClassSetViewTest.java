@@ -15,31 +15,9 @@
  */
 package com.android.tools.profilers.memory;
 
-import com.android.tools.adtui.common.ColumnTreeTestInfo;
-import com.android.tools.adtui.model.FakeTimer;
-import com.android.tools.adtui.model.formatter.NumberFormatter;
-import com.android.tools.idea.codenavigation.CodeLocation;
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
-import com.android.tools.profiler.proto.Memory.AllocationStack;
-import com.android.tools.profilers.*;
-import com.android.tools.profilers.memory.adapters.*;
-import com.android.tools.profilers.memory.adapters.FakeInstanceObject.Builder;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
-import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
-import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
-import com.intellij.testFramework.ApplicationRule;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.swing.*;
-import javax.swing.tree.TreePath;
-import java.util.*;
-import java.util.function.Supplier;
-
-import static com.android.tools.profilers.memory.ClassGrouping.*;
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CALLSTACK;
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
+import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildWithPredicate;
 import static com.android.tools.profilers.memory.adapters.MemoryObject.INVALID_VALUE;
@@ -47,16 +25,57 @@ import static com.android.tools.profilers.memory.adapters.ValueObject.ValueType.
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertNotNull;
 
+import com.android.tools.adtui.common.ColumnTreeTestInfo;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.formatter.NumberFormatter;
+import com.android.tools.idea.codenavigation.CodeLocation;
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
+import com.android.tools.profilers.FakeIdeProfilerComponents;
+import com.android.tools.profilers.FakeIdeProfilerServices;
+import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.SessionProfilersView;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.memory.adapters.CaptureObject;
+import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
+import com.android.tools.profilers.memory.adapters.FakeFieldObject;
+import com.android.tools.profilers.memory.adapters.FakeInstanceObject;
+import com.android.tools.profilers.memory.adapters.FakeInstanceObject.Builder;
+import com.android.tools.profilers.memory.adapters.FieldObject;
+import com.android.tools.profilers.memory.adapters.InstanceObject;
+import com.android.tools.profilers.memory.adapters.MemoryObject;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
+import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
+import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
+import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.DisposableRule;
+import com.intellij.util.containers.ImmutableList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
 public class MemoryClassSetViewTest {
   private static final long MOCK_CLASS_ID = 1;
   private static final String MOCK_CLASS_NAME = "MockClass";
 
   private final FakeTimer myTimer = new FakeTimer();
-  @NotNull private final FakeMemoryService myMemoryService = new FakeMemoryService();
   @NotNull private final FakeIdeProfilerComponents myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-  @Rule public final FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer), myMemoryService);
+  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer));
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
+  @Rule public final DisposableRule myDisposableRule = new DisposableRule();
 
   private MainMemoryProfilerStage myStage;
 
@@ -74,7 +93,7 @@ public class MemoryClassSetViewTest {
   @Before
   public void before() {
     StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
-    StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents);
+    StudioProfilersView profilersView = new SessionProfilersView(profilers, myFakeIdeProfilerComponents, myDisposableRule.getDisposable());
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
@@ -120,6 +139,7 @@ public class MemoryClassSetViewTest {
   @Test
   public void testSelectClassSetToShowInClassSetView() {
     assertThat(myClassSetRootNode.getChildCount()).isEqualTo(3);
+    //noinspection unchecked
     List<MemoryObjectTreeNode<MemoryObject>> children = myClassSetRootNode.getChildren();
     // Verify the ordering is based on retain size.
     assertThat(children.get(0).getAdapter()).isEqualTo(myInstanceObjects.get(2));
@@ -274,11 +294,6 @@ public class MemoryClassSetViewTest {
     assertThat(codeLocation).isNotNull();
     String codeLocationClassName = codeLocation.getClassName();
     assertThat(codeLocationClassName).isEqualTo(TEST_CLASS_NAME);
-
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().addListener(myStage); // manually add, since we didn't enter stage
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().navigate(codeLocation);
-    myStage.getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(myStage);
-    assertThat(myStage.getProfilerMode()).isEqualTo(ProfilerMode.NORMAL);
   }
 
   @Test

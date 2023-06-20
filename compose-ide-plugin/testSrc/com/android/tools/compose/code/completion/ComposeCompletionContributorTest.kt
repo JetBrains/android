@@ -15,18 +15,23 @@
  */
 package com.android.tools.compose.code.completion
 
-import com.android.tools.compose.ComposeFqNames
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
+import com.android.tools.compose.COMPOSABLE_FQ_NAMES_ROOT
 import com.android.tools.compose.ComposeSettings
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.compose.code.completion.ComposeMaterialIconLookupElement.Companion.resourcePathFromFqName
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,12 +48,8 @@ class ComposeCompletionContributorTest {
 
   @Before
   fun setUp() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
-    StudioFlags.COMPOSE_COMPLETION_PRESENTATION.override(true)
-    StudioFlags.COMPOSE_COMPLETION_INSERT_HANDLER.override(true)
-    StudioFlags.COMPOSE_COMPLETION_WEIGHER.override(true)
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(ComposeFqNames.root)
+    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
   }
 
   @Test
@@ -108,6 +109,7 @@ class ComposeCompletionContributorTest {
     myFixture.completeBasic()
 
     // Then:
+    // Order doesn't matter here, since we're just validating that the elements are displayed with the correct signature text.
     assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
 
     // Given:
@@ -135,6 +137,7 @@ class ComposeCompletionContributorTest {
     myFixture.completeBasic()
 
     // Then:
+    // Order doesn't matter here, since we're just validating that the elements are displayed with the correct signature text.
     assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
   }
 
@@ -519,7 +522,7 @@ class ComposeCompletionContributorTest {
 
       @Composable
       fun HomeScreen() {
-        FoobarOne() {
+        FoobarOne {
 
         }
       }
@@ -744,65 +747,6 @@ class ComposeCompletionContributorTest {
     )
   }
 
-  @Test
-  fun testMaterialThemeComposableIsDemotedInCompletion() {
-    myFixture.addFileToProject(
-      "src/androidx/compose/material/MaterialTheme.kt",
-      // language=kotlin
-      """
-      package androidx.compose.material
-
-      import androidx.compose.runtime.Composable
-
-      // This simulates the Composable function
-      @Composable
-      fun MaterialTheme(children: @Composable() () -> Unit) {}
-
-      // This simulates the MaterialTheme object that should be promoted instead of the MaterialTheme
-      object MaterialTheme
-    """)
-
-
-    // Add a MaterialTheme that is not part of androidx to ensure is not affected by the promotion/demotion
-    myFixture.addFileToProject(
-      "src/com/example/MaterialTheme.kt",
-      // language=kotlin
-      """
-      package com.example
-
-      object MaterialTheme
-    """)
-
-
-    // Given:
-    myFixture.loadNewFile(
-      "src/com/example/Test.kt",
-      // language=kotlin
-      """
-      package com.example
-
-      import androidx.compose.runtime.Composable
-
-      @Composable
-      fun HomeScreen() {
-        Material${caret}
-      }
-      """.trimIndent()
-    )
-
-    // When:
-    myFixture.completeBasic()
-
-    // Then:
-    assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(
-      listOf(
-        "MaterialTheme (androidx.compose.material)",
-        "MaterialTheme {...}",
-        "MaterialTheme (com.example)",
-        )
-    ).inOrder()
-  }
-
   /**
    * Regression test for b/153769933. The Compose insertion handler adds the parameters automatically when completing the name
    * of a Composable. This is incorrect if the insertion point is not a call statement. This ensures that the insertion is not triggered
@@ -917,17 +861,436 @@ class ComposeCompletionContributorTest {
       , true)
   }
 
+  /**
+   * Regression test for b/209060418. Autocomplete should not treat required composable method specially if it's not the final argument (ie,
+   * there are optional arguments specified after it.
+   */
+  @Test
+  fun testSignaturesWithRequiredComposableBeforeOptionalArgs() {
+    myFixture.addFileToProject(
+      "src/com/example/ObjectWithComposables.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      // "Foobar" is a unique prefix that no other lookup elements will match.
+
+      @Composable
+      fun FoobarOne(requiredArg: @Composable () -> Unit, optionalArg: Int = 0) {}
+
+      @Composable
+      fun FoobarTwo(optionalArg: Int = 0) {}
+
+      fun FoobarThree(requiredArg: @Composable () -> Unit, optionalArg: Int = 0) {}
+
+      fun FoobarFour(optionalArg: Int = 0) {}
+
+      @Composable
+      fun FoobarFive(requiredArg: () -> Unit, optionalArg: Int = 0) {}
+
+      @Composable
+      fun FoobarSix(optionalArg: Int = 0) {}
+      """.trimIndent()
+    )
+
+    val expectedLookupItems = listOf(
+      "FoobarOne(requiredArg: () -> Unit, ...)",
+      "FoobarTwo(...)",
+      "FoobarThree(requiredArg: () -> Unit, optionalArg: Int = ...) (com.example) Unit",
+      "FoobarFour(optionalArg: Int = ...) (com.example) Unit",
+      "FoobarFive(requiredArg: () -> Unit, ...)",
+      "FoobarSix(...)",
+    )
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    // Order doesn't matter here, since we're just validating that the elements are displayed with the correct signature text.
+    assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
+  }
+
+  /**
+   * Regression test for b/209060418. Autocomplete should not treat required composable method specially if it's not the final argument (ie,
+   * there are optional arguments specified after it.
+   */
+  @Test
+  fun testInsertHandlerWithRequiredComposableBeforeOptionalArgs() {
+    myFixture.addFileToProject(
+      "src/com/example/ObjectWithComposables.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      // "Foobar" is a unique prefix that no other lookup elements will match.
+
+      @Composable
+      fun FoobarOne(requiredArg: @Composable () -> Unit, optionalArg: Int = 0) {}
+      """.trimIndent()
+    )
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne(requiredArg = { /*TODO*/ })
+      }
+      """.trimIndent()
+      , true)
+  }
+
+  /**
+   * Regression test for b/182564317. Autocomplete should not treat varargs as required.
+   */
+  @Test
+  fun testInsertHandlerWithVarArgs() {
+    myFixture.addFileToProject(
+      "src/com/example/ObjectWithComposables.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      // "Foobar" is a unique prefix that no other lookup elements will match.
+
+      @Composable
+      fun FoobarOne(vararg inputs: Any?, children: @Composable () -> Unit) {}
+      """.trimIndent()
+    )
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne {
+
+        }
+      }
+      """.trimIndent()
+      , true)
+  }
+
+  /**
+   * Regression test for b/182564317. Autocomplete should not treat varargs as required.
+   */
+  @Test
+  fun testInsertHandlerWithVarArgsLambda() {
+    myFixture.addFileToProject(
+      "src/com/example/ObjectWithComposables.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      // "Foobar" is a unique prefix that no other lookup elements will match.
+
+      @Composable
+      fun FoobarOne(vararg children: @Composable () -> Unit) {}
+      """.trimIndent()
+    )
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne()
+      }
+      """.trimIndent()
+      , true)
+  }
+
+  /**
+   * Regression test for b/271675885. Autocomplete changes should apply to function invocations, not function definitions.
+   */
+  @Test
+  fun testInsertHandler_functionDefinition() {
+    // Given:
+    val file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      interface MyComposables {
+          @Composable
+          fun FoobarOne()
+      }
+
+      class MyComposablesImpl : MyComposables {
+          override fun Foo${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      interface MyComposables {
+          @Composable
+          fun FoobarOne()
+      }
+
+      class MyComposablesImpl : MyComposables {
+          override fun FoobarOne() {
+              TODO("Not yet implemented")
+          }
+      }
+      """.trimIndent()
+    )
+  }
+
+  @Test
+  fun composeMaterialIconLookupElement_resourcePathFromFqName() {
+    assertThat("androidx.compose.material.icons.filled.AccountBox".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/account_box/baseline_account_box_24.xml")
+    assertThat("androidx.compose.material.icons.rounded.AllInbox".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialiconsround/all_inbox/round_all_inbox_24.xml")
+    assertThat("androidx.compose.material.icons.sharp.Check".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialiconssharp/check/sharp_check_24.xml")
+    assertThat("androidx.compose.material.icons.twotone.10k".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialiconstwotone/10k/twotone_10k_24.xml")
+    assertThat("androidx.compose.material.icons.outlined.Adb".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialiconsoutlined/adb/outline_adb_24.xml")
+
+    assertThat("androidx.compose.material.icons.unknown.Adb".resourcePathFromFqName()).isNull()
+    assertThat("androidx.compose.material.icons.filled.extrapackage.Adb".resourcePathFromFqName()).isNull()
+
+    // Ensure numbers in camel case are converted as expected.
+    assertThat("androidx.compose.material.icons.filled.Shop2".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/shop_2/baseline_shop_2_24.xml")
+    assertThat("androidx.compose.material.icons.filled._1kPlus".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/1k_plus/baseline_1k_plus_24.xml")
+    assertThat("androidx.compose.material.icons.filled.Battery0Bar".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/battery_0_bar/baseline_battery_0_bar_24.xml")
+  }
+
+  @Test
+  fun composeMaterialIconLookupElement_appliesTo() {
+    myFixture.addFileToProject(
+      "src/androidx/compose/ut/graphics/vector/ImageVector.kt",
+      // language=kotlin
+      """
+      package androidx.compose.ui.graphics.vector
+
+      class ImageVector
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "src/androidx/compose/material/icons/Icons.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material.icons
+
+      object Icons {
+        object Filled
+      }
+      """.trimIndent()
+    )
+
+    myFixture.loadNewFile(
+      "src/androidx/compose/material/icons/filled/AccountBox.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material.icons.filled
+
+      import androidx.compose.ui.graphics.vector.ImageVector
+
+      val androidx.compose.material.icons.Icons.Filled.Accoun<caret>tBox: ImageVector
+        get() = ImageVector()
+
+      """.trimIndent()
+    )
+
+    val accountBox = runReadAction { myFixture.elementAtCaret }
+    assertThat(accountBox).isInstanceOf(KtProperty::class.java)
+
+    val mockLookupElement: LookupElement = mock()
+    whenever(mockLookupElement.psiElement).thenReturn(accountBox)
+
+    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(mockLookupElement) }).isTrue()
+  }
+
+  @Test
+  fun composeMaterialIconLookupElement_appliesToUnknownPackage() {
+    myFixture.addFileToProject(
+      "src/androidx/compose/ut/graphics/vector/ImageVector.kt",
+      // language=kotlin
+      """
+      package androidx.compose.ui.graphics.vector
+
+      class ImageVector
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "src/androidx/compose/material/icons/Icons.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material.icons
+
+      object Icons {
+        object Unknown
+      }
+      """.trimIndent()
+    )
+
+    myFixture.loadNewFile(
+      "src/androidx/compose/material/icons/unknown/AccountBox.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material.icons.unknown
+
+      import androidx.compose.ui.graphics.vector.ImageVector
+
+      val androidx.compose.material.icons.Icons.Unknown.Accoun<caret>tBox: ImageVector
+        get() = ImageVector()
+
+      """.trimIndent()
+    )
+
+    val accountBox = runReadAction { myFixture.elementAtCaret }
+    assertThat(accountBox).isInstanceOf(KtProperty::class.java)
+
+    val mockLookupElement: LookupElement = mock()
+    whenever(mockLookupElement.psiElement).thenReturn(accountBox)
+
+    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(mockLookupElement) }).isFalse()
+  }
+
+  @Test
+  fun composeMaterialIconLookupElement_getIcon() {
+    assertThat(
+      ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.AccountBox"))
+      .isNotNull()
+    assertThat(
+      ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.Unknown"))
+      .isNull()
+  }
+
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
     get() {
-      return lookupElements.orEmpty().map { lookupElement ->
-        val presentation = LookupElementPresentation()
-        lookupElement.renderElement(presentation)
-        buildString {
-          append(presentation.itemText)
-          append(presentation.tailText)
-          if (!presentation.typeText.isNullOrEmpty()) {
-            append(" ")
-            append(presentation.typeText)
+      return runReadAction {
+        lookupElements.orEmpty().map { lookupElement ->
+          val presentation = LookupElementPresentation()
+          lookupElement.renderElement(presentation)
+          buildString {
+            append(presentation.itemText)
+            append(presentation.tailText)
+            if (!presentation.typeText.isNullOrEmpty()) {
+              append(" ")
+              append(presentation.typeText)
+            }
           }
         }
       }

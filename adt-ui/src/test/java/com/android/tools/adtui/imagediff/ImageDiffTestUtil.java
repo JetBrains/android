@@ -59,8 +59,7 @@ public final class ImageDiffTestUtil {
    * They are used for running the tests of {@link com.android.tools.adtui.imagediff} package as well as exporting its baseline images.
    * When a generator is implemented, its entries should be included in this list.
    */
-  public static final List<ImageDiffEntry> IMAGE_DIFF_ENTRIES = Collections.unmodifiableList(new ArrayList<ImageDiffEntry>() {{
-    addAll(new AccordionEntriesRegistrar().getImageDiffEntries());
+  public static final List<ImageDiffEntry> IMAGE_DIFF_ENTRIES = Collections.unmodifiableList(new ArrayList<>() {{
     addAll(new EventEntriesRegistrar().getImageDiffEntries());
     addAll(new HTreeChartEntriesRegistrar().getImageDiffEntries());
     addAll(new LegendComponentRegistrar().getImageDiffEntries());

@@ -40,7 +40,7 @@ class DesignToolsIssueProviderTest {
   fun testProvideIssues() {
     val messageBus = rule.project.messageBus
 
-    val provider = DesignToolsIssueProvider(rule.project, EmptyFilter)
+    val provider = DesignToolsIssueProvider(rule.testRootDisposable, rule.project, EmptyFilter)
     assertTrue(provider.getFilteredIssues().isEmpty())
 
     val source1 = Any()
@@ -62,7 +62,7 @@ class DesignToolsIssueProviderTest {
   fun testViewOptionFilter() {
     val messageBus = rule.project.messageBus
 
-    val provider = DesignToolsIssueProvider(rule.project, EmptyFilter)
+    val provider = DesignToolsIssueProvider(rule.testRootDisposable, rule.project, EmptyFilter)
     assertTrue(provider.getFilteredIssues().isEmpty())
 
     provider.viewOptionFilter = DesignerCommonIssueProvider.Filter { issue -> issue.summary.contains("keyword") }
@@ -93,7 +93,7 @@ class DesignToolsIssueProviderTest {
   @Test
   fun testFileClosed() {
     val messageBus = rule.project.messageBus
-    val provider = DesignToolsIssueProvider(rule.project, SelectedEditorFilter(rule.project))
+    val provider = DesignToolsIssueProvider(rule.testRootDisposable, rule.project, SelectedEditorFilter(rule.project))
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
     val file = runInEdtAndGet {
@@ -113,7 +113,7 @@ class DesignToolsIssueProviderTest {
   @Test
   fun testDoNotShowVisualLintIssueWhenTheirSourceFilesAreNotSelected() {
     val messageBus = rule.project.messageBus
-    val provider = DesignToolsIssueProvider(rule.project, SelectedEditorFilter(rule.project))
+    val provider = DesignToolsIssueProvider(rule.testRootDisposable, rule.project, SelectedEditorFilter(rule.project))
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
     val ktFile = rule.fixture.addFileToProject("src/KtFile.kt", "").virtualFile

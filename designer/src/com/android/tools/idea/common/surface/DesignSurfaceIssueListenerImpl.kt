@@ -35,7 +35,7 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListe
   override fun onIssueSelected(issue: Issue) {
     when (val source = issue.source) {
       is NlComponentIssueSource -> {
-        val component = source.component
+        val component = source.component ?: return
         surface.selectionModel.setSelection(listOf(component))
 
         // Navigate to the selected element if possible
@@ -47,7 +47,7 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListe
       is VisualLintIssueProvider.VisualLintIssueSource -> {
         // Repaint DesignSurface when issue is selected to update visibility of WarningLayer
         surface.repaint()
-        val sceneViews = surface.sceneViews.filter { source.models.contains(it.sceneManager.model) }
+        val sceneViews = surface.sceneManagers.filter { source.models.contains(it.model) }.flatMap { it.sceneViews }
         if (sceneViews.isEmpty()) {
           return
         }
@@ -62,8 +62,9 @@ class DesignSurfaceIssueListenerImpl(val surface: DesignSurface<*>) : IssueListe
           maxY = max(maxY, it.y + it.scaledContentSize.height)
         }
         val currentScale = surface.scale
-        val scale = surface.getFitScale(
-          Dimension(((maxX - minX + 2 * MARGIN) / currentScale).toInt(), ((maxY - minY + 2 * MARGIN) / currentScale).toInt()), false)
+        val size = Dimension(((maxX - minX + 2 * MARGIN) / currentScale).toInt(), ((maxY - minY + 2 * MARGIN) / currentScale).toInt())
+        val scale = surface.getFitContentIntoWindowScale(size)
+
         surface.setScale(scale)
         surface.setScrollPosition(minX - MARGIN, minY - MARGIN)
       }

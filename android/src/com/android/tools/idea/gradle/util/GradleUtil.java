@@ -34,13 +34,16 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.trimLeading;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static java.util.Objects.requireNonNullElseGet;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
+import com.android.ide.common.gradle.Version;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -66,9 +69,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Pattern;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NonNls;
@@ -96,7 +99,6 @@ public final class GradleUtil {
    * we find any other unsupported characters.
    */
   private static final CharMatcher ILLEGAL_GRADLE_PATH_CHARS_MATCHER = CharMatcher.anyOf("\\/");
-  private static final Pattern PLUGIN_VERSION_PATTERN = Pattern.compile("[012]\\..*");
 
   private GradleUtil() {
   }
@@ -123,6 +125,20 @@ public final class GradleUtil {
 
     File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
     return moduleRoot != null ? getGradleBuildFile(moduleRoot) : null;
+  }
+
+  /**
+   * Returns the build.gradle file in the given module.
+   */
+  @Nullable
+  public static File getGradleBuildFilePath(@NotNull Module module) {
+    GradleModuleModel moduleModel = getGradleModuleModel(module);
+    if (moduleModel != null) {
+      return moduleModel.getBuildFilePath();
+    }
+
+    File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(module);
+    return moduleRoot != null ? getGradleBuildFilePath(moduleRoot) : null;
   }
 
   /**
@@ -195,6 +211,15 @@ public final class GradleUtil {
     File gradleBuildFilePath = BuildScriptUtil.findGradleBuildFile(dirPath);
     VirtualFile result = findFileByIoFile(gradleBuildFilePath, false);
     return (result != null && result.isValid()) ? result : null;
+  }
+
+  /**
+   * Returns the build.gradle file that is expected right in the directory at the given path. For example, if the directory path is
+   * '~/myProject/myModule', this method will look for the file '~/myProject/myModule/build.gradle'.
+   */
+  @Nullable
+  public static File getGradleBuildFilePath(@NotNull File dirPath) {
+    return BuildScriptUtil.findGradleBuildFile(dirPath);
   }
 
   @NotNull
@@ -430,15 +455,15 @@ public final class GradleUtil {
    * Gradle plugin version is 3.0 or higher.
    *
    * @param configuration The original configuration name, such as "androidTestCompile"
-   * @param pluginVersion The plugin version number, such as 3.0.0-alpha1. If null, assumed to be current.
+   * @param pluginVersion The plugin version. If null, assumed to be current.
    * @param preferApi     If true, will use "api" instead of "implementation" for new configurations
    * @return the right configuration name to use
    */
   @NotNull
   public static String mapConfigurationName(@NotNull String configuration,
-                                            @Nullable GradleVersion pluginVersion,
+                                            @Nullable AgpVersion pluginVersion,
                                             boolean preferApi) {
-    return mapConfigurationName(configuration, pluginVersion != null ? pluginVersion.toString() : null, preferApi);
+    return mapConfigurationName(configuration, pluginVersion != null && !pluginVersion.isAtLeastIncludingPreviews(3, 0, 0), preferApi);
   }
 
   /**
@@ -454,9 +479,8 @@ public final class GradleUtil {
   public static String mapConfigurationName(@NotNull String configuration,
                                             @Nullable String pluginVersion,
                                             boolean preferApi) {
-
-    boolean compatibilityNames = pluginVersion != null && PLUGIN_VERSION_PATTERN.matcher(pluginVersion).matches();
-    return mapConfigurationName(configuration, compatibilityNames, preferApi);
+    AgpVersion agpVersion = AgpVersion.tryParse(requireNonNullElseGet(pluginVersion, LatestKnownPluginVersionProvider.INSTANCE::get));
+    return mapConfigurationName(configuration, agpVersion, preferApi);
   }
 
   /**
@@ -517,26 +541,22 @@ public final class GradleUtil {
    */
   public static Set<String> projectBuildFilesTypes(@NotNull Project project) {
     HashSet<String> result = new HashSet<>();
-    addBuildFileType(result, getGradleBuildFile(getBaseDirPath(project)));
+    addBuildFileType(result, getGradleBuildFilePath(getBaseDirPath(project)));
     ReadAction.run(() -> {
       for(Module module : ModuleManager.getInstance(project).getModules()) {
-        addBuildFileType(result, getGradleBuildFile(module));
+        addBuildFileType(result, getGradleBuildFilePath(module));
       }
     });
     return result;
   }
 
-  private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable VirtualFile buildFile) {
+  private static void addBuildFileType(@NotNull HashSet<String> result, @Nullable File buildFile) {
     if (buildFile != null) {
-      String buildFileExtension = buildFile.getExtension();
-      if (buildFileExtension == null) {
-        return;
-      }
-      buildFileExtension = "." + buildFileExtension;
-      if (buildFileExtension.equalsIgnoreCase(DOT_GRADLE)) {
+      String buildFileName = buildFile.getName().toLowerCase(Locale.getDefault());
+      if (buildFileName.endsWith(DOT_GRADLE)) {
         result.add(DOT_GRADLE);
       }
-      else if (buildFileExtension.equalsIgnoreCase(DOT_KTS)) {
+      else if (buildFileName.endsWith(DOT_KTS)) {
         result.add(DOT_KTS);
       }
     }
@@ -609,7 +629,7 @@ public final class GradleUtil {
         }
       }
 
-      GradleVersion version = coordinates.getVersion();
+      Version version = coordinates.getLowerBoundVersion();
       if (version != null && !"unspecified".equals(version.toString())) {
         name += ":" + version;
       }

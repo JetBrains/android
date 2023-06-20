@@ -29,8 +29,8 @@ import org.jetbrains.kotlin.psi.KtClass
 
 
 class RedoParcelableAction :
-  SelfTargetingIntention<KtClass>(KtClass::class.java, { AndroidBundle.message("redo.parcelable.intention.text") }),
-  HighPriorityAction {
+        SelfTargetingIntention<KtClass>(KtClass::class.java, { AndroidBundle.message("redo.parcelable.intention.text") }),
+        HighPriorityAction {
     override fun isApplicableTo(element: KtClass, caretOffset: Int): Boolean =
             AndroidFacet.getInstance(element) != null &&
             !element.insideBody(caretOffset) &&

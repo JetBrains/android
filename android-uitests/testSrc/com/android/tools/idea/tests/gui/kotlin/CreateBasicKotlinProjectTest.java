@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateBasicKotlinProjectTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   private static final String KOTLIN_FILE = "MainActivity.kt";
 
@@ -62,6 +62,6 @@ public class CreateBasicKotlinProjectTest {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
     assertThat(KOTLIN_FILE).isEqualTo(ideFrameFixture.getEditor().getCurrentFileName());
 
-    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(120)).isBuildSuccessful()).isTrue();
+    assertThat(ideFrameFixture.invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
   }
 }

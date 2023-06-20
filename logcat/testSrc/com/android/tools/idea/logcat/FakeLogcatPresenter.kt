@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.LogcatFilter
+import com.android.tools.idea.logcat.filters.LogcatMasterFilter
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
@@ -44,17 +45,13 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   val messageBatches = mutableListOf<List<LogcatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
-  val filterMatchesCount = mutableMapOf<String, Int>()
+  val tagSet = mutableSetOf<String>()
+  var showing = true
 
-  @Suppress("UNUSED_PARAMETER")
   override var formattingOptions: FormattingOptions = FormattingOptions()
 
   override fun reloadMessages() {
     reloadedMessages++
-  }
-
-  override fun applyFilter(logcatFilter: LogcatFilter?) {
-    TODO("Not yet implemented")
   }
 
   override fun clearMessageView() {
@@ -78,13 +75,27 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   override fun getConnectedDevice() = attachedDevice
 
+  override fun isShowing() = showing
+
+  override fun getBacklogMessages(): List<LogcatMessage> = messageBatches.flatten()
+
+  override suspend fun enterInvisibleMode() {
+    messageBatches.clear()
+  }
+
+  override fun applyFilter(logcatFilter: LogcatFilter?) {
+    TODO("Not yet implemented")
+  }
+
+  override fun getSelectedDevice(): Device? {
+    TODO("Not yet implemented")
+  }
+
   override fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings) {
     TODO("Not yet implemented")
   }
 
-  override fun getTags(): Set<String> {
-    TODO("Not yet implemented")
-  }
+  override fun getTags(): Set<String> = tagSet
 
   override fun getPackageNames(): Set<String> {
     TODO("Not yet implemented")
@@ -94,9 +105,7 @@ internal class FakeLogcatPresenter : LogcatPresenter {
     TODO("Not yet implemented")
   }
 
-  override fun countFilterMatches(filter: String): Int {
-    return filterMatchesCount[filter] ?: 0
-  }
+  override fun countFilterMatches(filter: LogcatFilter?): Int = LogcatMasterFilter(filter).filter(messageBatches.flatten()).size
 
   override fun foldImmediately() {
     TODO("Not yet implemented")
@@ -124,6 +133,14 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   fun appendMessage(message: String) {
     lineBatches.add(listOf(message))
+  }
+
+  override fun isSoftWrapEnabled(): Boolean {
+    TODO("Not yet implemented")
+  }
+
+  override fun setSoftWrapEnabled(state: Boolean) {
+    TODO("Not yet implemented")
   }
 
   override fun dispose() {}

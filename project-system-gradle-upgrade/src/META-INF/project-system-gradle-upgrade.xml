@@ -14,7 +14,7 @@
                     serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AssistantInvokerImpl"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.upgrade.RefactoringProcessorInstantiator"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.upgrade.ContentManager"
-                    serviceImplementation="com.android.tools.idea.gradle.project.upgrade.ContentManagerImpl"/>
+                    serviceImplementation="com.android.tools.idea.gradle.project.upgrade.ui.ContentManagerImpl"/>
     <projectService serviceInterface="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdater"
                     serviceImplementation="com.android.tools.idea.gradle.project.upgrade.AndroidPluginVersionUpdaterImpl"/>
     <usageGroupingRuleProvider implementation="com.android.tools.idea.gradle.project.upgrade.ComponentGroupingRuleProvider"/>

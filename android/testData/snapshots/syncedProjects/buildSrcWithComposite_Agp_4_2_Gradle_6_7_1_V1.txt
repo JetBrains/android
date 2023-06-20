@@ -1,6 +1,6 @@
 PROJECT                       : BuildSrcWithComposite
-    PROJECT_JDK                   : jbr-<JAVA_VERSION>
-        Version                       : JetBrains Runtime version <JDK_VERSION>
+    PROJECT_JDK                   : <JDK_NAME-11>
+        Version                       : <JDK_VERSION-11>
     MODULE                        : BuildSrcWithComposite
         ExternalModuleGroup           :
         ExternalModuleVersion         : unspecified
@@ -37,8 +37,6 @@ PROJECT                       : BuildSrcWithComposite
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/BuildSrcWithComposite.app.iml [-]
@@ -52,14 +50,8 @@ PROJECT                       : BuildSrcWithComposite
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -71,7 +63,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/app
             EXCLUDE_FOLDER                : file://<PROJECT>/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/app/build [-]
@@ -79,7 +70,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -125,15 +115,35 @@ PROJECT                       : BuildSrcWithComposite
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : BuildSrcWithComposite.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/BuildSrcWithComposite.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -218,7 +228,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : BuildSrcWithComposite.app.main
             Scope                         : Test
@@ -379,7 +388,11 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : java-included.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -425,12 +438,32 @@ PROJECT                       : BuildSrcWithComposite
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/app/BuildSrcWithComposite.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -515,7 +548,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity-ktx:1.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar [=]
@@ -583,6 +615,10 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : java-included.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debug
+            -                             : file://<PROJECT>/app/build/generated/res/rs/debug
+            -                             : file://<PROJECT>/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -627,7 +663,6 @@ PROJECT                       : BuildSrcWithComposite
         LinkedProjectPath             : <PROJECT>/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/app/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -635,7 +670,25 @@ PROJECT                       : BuildSrcWithComposite
             productionModuleName          : BuildSrcWithComposite.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/app/BuildSrcWithComposite.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -705,7 +758,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         ORDER_ENTRY                   : BuildSrcWithComposite.app.main
             Scope                         : Test
@@ -843,6 +895,8 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/app/build/tmp/kotlin-classes/debugUnitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -892,7 +946,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/build
@@ -920,7 +973,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib1
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib1
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib1/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib1/build
@@ -1003,7 +1055,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib2
         CONENT_ENTRY                  : file://<PROJECT>/buildSrc/lib2
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib2/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/buildSrc/lib2/build
@@ -1245,8 +1296,6 @@ PROJECT                       : BuildSrcWithComposite
         LinkedProjectPath             : <PROJECT>/android-included/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/android-included/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/android-included/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/android-included/app/android-included.app.iml [-]
@@ -1260,14 +1309,8 @@ PROJECT                       : BuildSrcWithComposite
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/android-included/app/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/android-included/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/android-included/app/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/android-included/app/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/app/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/app/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 0
@@ -1279,7 +1322,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :app
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/app/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/app/build [-]
@@ -1287,7 +1329,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1333,15 +1374,35 @@ PROJECT                       : BuildSrcWithComposite
         LinkedProjectPath             : <PROJECT>/android-included/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/android-included/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/android-included/app/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/android-included/app/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : android-included.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/android-included/app/android-included.app.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/app/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/app/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/app/build/generated/res/resValues/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1426,7 +1487,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar (1) [=]
             Scope                         : Test
@@ -1497,7 +1557,11 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : android-included.lib.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/android-included/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/android-included/app/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/android-included/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/android-included/app/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : file://<PROJECT>/android-included/app/build/generated/res/rs/androidTest/debug
+            -                             : file://<PROJECT>/android-included/app/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -1543,12 +1607,32 @@ PROJECT                       : BuildSrcWithComposite
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/android-included/app/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/android-included/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/android-included/app/android-included.app.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/android-included/app/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/android-included/app/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/android-included/app/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/android-included/app/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1633,7 +1717,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar (1) [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.0.0@aar [=]
@@ -1670,6 +1753,10 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : android-included.lib.main
         Classes
             -                             : file://<PROJECT>/android-included/app/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/android-included/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/android-included/app/build/tmp/kotlin-classes/debug
+            -                             : file://<PROJECT>/android-included/app/build/generated/res/rs/debug
+            -                             : file://<PROJECT>/android-included/app/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -1714,7 +1801,6 @@ PROJECT                       : BuildSrcWithComposite
         LinkedProjectPath             : <PROJECT>/android-included/app
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/android-included/app/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/android-included/app/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -1722,7 +1808,25 @@ PROJECT                       : BuildSrcWithComposite
             productionModuleName          : android-included.app.main
         ModuleFile                    : <PROJECT>/.idea/modules/android-included/app/android-included.app.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 0
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -1792,7 +1896,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar (1) [=]
             Scope                         : Test
@@ -1864,6 +1967,8 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/android-included/app/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/android-included/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/android-included/app/build/tmp/kotlin-classes/debugUnitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :app:createMockableJar, :app:generateDebugAndroidTestSources, :app:generateDebugSources
@@ -1909,8 +2014,6 @@ PROJECT                       : BuildSrcWithComposite
         LinkedProjectPath             : <PROJECT>/android-included/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/android-included/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/android-included/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/android-included/lib/android-included.lib.iml [-]
@@ -1924,14 +2027,8 @@ PROJECT                       : BuildSrcWithComposite
             GenFolderRelativePathAidl     : /gen
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/android-included/lib/src/main/res
-            - ResFoldersRelativePath      : file://<PROJECT>/android-included/lib/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/android-included/lib/build/generated/res/rs/debug [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/android-included/lib/build/generated/res/resValues/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/lib/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/lib/build/generated/res/rs/androidTest/debug [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/lib/build/generated/res/resValues/androidTest/debug [-]
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             ProjectType                   : 1
@@ -1943,7 +2040,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :lib
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/lib/.gradle [-]
             EXCLUDE_FOLDER                : file://<PROJECT>/android-included/lib/build [-]
@@ -1951,7 +2047,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1989,15 +2084,35 @@ PROJECT                       : BuildSrcWithComposite
         LinkedProjectPath             : <PROJECT>/android-included/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/android-included/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/android-included/lib/build/intermediates/javac/debugUnitTest/classes [-]
+            compilerTestOutputPath        : file://<PROJECT>/android-included/lib/build/intermediates/javac/debugAndroidTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         TEST_MODULE_PROPERTIES
             productionModuleName          : android-included.lib.main
         ModuleFile                    : <PROJECT>/.idea/modules/android-included/lib/android-included.lib.androidTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/lib/src/androidTest/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/lib/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/lib/build/generated/res/rs/androidTest/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/android-included/lib/build/generated/res/resValues/androidTest/debug [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -2082,7 +2197,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -2097,7 +2211,11 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : android-included.lib.main
             Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/android-included/lib/build/intermediates/javac/debugUnitTest/classes
+            -                             : file://<PROJECT>/android-included/lib/build/intermediates/javac/debugAndroidTest/classes
+            -                             : jar://<PROJECT>/android-included/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar!/
+            -                             : file://<PROJECT>/android-included/lib/build/tmp/kotlin-classes/debugAndroidTest
+            -                             : file://<PROJECT>/android-included/lib/build/generated/res/rs/androidTest/debug
+            -                             : file://<PROJECT>/android-included/lib/build/generated/res/resValues/androidTest/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -2135,12 +2253,32 @@ PROJECT                       : BuildSrcWithComposite
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
             compilerSourceOutputPath      : file://<PROJECT>/android-included/lib/build/intermediates/javac/debug/classes [-]
-            compilerTestOutputPath        : file://<PROJECT>/android-included/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/android-included/lib/android-included.lib.main.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/android-included/lib/src/main/res
+            - ResFoldersRelativePath      : file://<PROJECT>/android-included/lib/src/debug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/android-included/lib/build/generated/res/rs/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/android-included/lib/build/generated/res/resValues/debug [-]
+            - TestResFoldersRelativePath  :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -2225,7 +2363,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
@@ -2234,6 +2371,10 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         Classes
             -                             : file://<PROJECT>/android-included/lib/build/intermediates/javac/debug/classes
+            -                             : jar://<PROJECT>/android-included/lib/build/intermediates/compile_r_class_jar/debug/R.jar!/
+            -                             : file://<PROJECT>/android-included/lib/build/tmp/kotlin-classes/debug
+            -                             : file://<PROJECT>/android-included/lib/build/generated/res/rs/debug
+            -                             : file://<PROJECT>/android-included/lib/build/generated/res/resValues/debug
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -2270,7 +2411,6 @@ PROJECT                       : BuildSrcWithComposite
         LinkedProjectPath             : <PROJECT>/android-included/lib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/android-included/lib/build/intermediates/javac/debug/classes [-]
             compilerTestOutputPath        : file://<PROJECT>/android-included/lib/build/intermediates/javac/debugUnitTest/classes [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
@@ -2278,7 +2418,25 @@ PROJECT                       : BuildSrcWithComposite
             productionModuleName          : android-included.lib.main
         ModuleFile                    : <PROJECT>/.idea/modules/android-included/lib/android-included.lib.unitTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
-        HIDDEN FACET                  : Android
+        FACET                         : Android
+            TypeId                        : android
+            ExternalSource                : GRADLE
+            SelectedBuildVariant          : debug
+            AllowUserConfiguration        : false
+            GenFolderRelativePathApt      : /gen
+            GenFolderRelativePathAidl     : /gen
+            ManifestFileRelativePath      : /src/main/AndroidManifest.xml
+            ResFolderRelativePath         : /src/main/res
+            - ResFoldersRelativePath      :  [-]
+            - TestResFoldersRelativePath  :  [-]
+            AssetsFolderRelativePath      : /src/main/assets
+            LibsFolderRelativePath        : /libs
+            ProjectType                   : 1
+            PackTestCode                  : false
+            RunProguard                   : false
+            ProguardLogsFolderRelativePath          : /proguard_logs
+            UseCustomManifestPackage      : false
+            - ProGuardCfgFiles            : file://%MODULE_SDK_HOME%/tools/proguard/proguard-android.txt
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
@@ -2348,7 +2506,6 @@ PROJECT                       : BuildSrcWithComposite
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
-            VersionString                 : JetBrains Runtime version <JDK_VERSION>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -2364,6 +2521,8 @@ PROJECT                       : BuildSrcWithComposite
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/android-included/lib/build/intermediates/javac/debugUnitTest/classes
+            -                             : jar://<PROJECT>/android-included/lib/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar!/
+            -                             : file://<PROJECT>/android-included/lib/build/tmp/kotlin-classes/debugUnitTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 CLEAN                         : :lib:createMockableJar, :lib:generateDebugAndroidTestSources, :lib:generateDebugSources
@@ -2405,7 +2564,6 @@ PROJECT                       : BuildSrcWithComposite
         FACET                         : Android-Gradle
             TypeId                        : android-gradle
             ExternalSource                : GRADLE
-            GradlePath                    : :
         CONENT_ENTRY                  : file://<PROJECT>/java-included
             EXCLUDE_FOLDER                : file://<PROJECT>/java-included/.gradle
             EXCLUDE_FOLDER                : file://<PROJECT>/java-included/build
@@ -2438,6 +2596,7 @@ PROJECT                       : BuildSrcWithComposite
         ORDER_ENTRY                   : <Module source>
         Classes
             -                             : file://<PROJECT>/java-included/build/classes/java/main
+            -                             : file://<PROJECT>/java-included/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
             TEST_COMPILE_MODE             : Android tests

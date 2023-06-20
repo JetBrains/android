@@ -16,7 +16,7 @@
 package com.android.tools.idea.adblib
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.tools.idea.testingutils.FakeAdbServiceRule
+import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking
@@ -47,5 +47,37 @@ class AdbLibServiceTest {
 
     // Assert
     Truth.assertThat(version).isGreaterThan(1)
+  }
+
+  @Test
+  fun adbSessionInstanceShouldBeTheSameAsTheApplicationInstance() {
+    // Act
+    val applicationSession = AdbLibApplicationService.instance.session
+    val projectSession = AdbLibService.getSession(project)
+
+    // Assert
+    Truth.assertThat(projectSession).isSameAs(applicationSession)
+  }
+
+  @Test
+  fun applicationAdbSessionInstanceShouldBeTheSameAsTheProjectInstance() {
+    // Act
+    val projectSession = AdbLibService.getSession(project)
+    val applicationSession = AdbLibApplicationService.instance.session
+
+    // Assert
+    Truth.assertThat(applicationSession).isSameAs(projectSession)
+  }
+
+  @Test
+  fun projectShouldBeRegisteredIfUsingAdbLibService() {
+    // Prepare
+    val applicationService = AdbLibApplicationService.instance
+
+    // Act
+    AdbLibService.getSession(project)
+
+    // Assert
+    Truth.assertThat(applicationService.registerProject(project)).isFalse()
   }
 }

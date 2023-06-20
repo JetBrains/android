@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.tree
 import com.android.SdkConstants
 import com.android.SdkConstants.FQCN_RELATIVE_LAYOUT
 import com.android.SdkConstants.FQCN_TEXT_VIEW
-import com.android.flags.junit.SetFlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.Density
@@ -33,8 +32,8 @@ import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.componenttree.treetable.TreeTableModelImplAdapter
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
@@ -42,6 +41,7 @@ import com.android.tools.idea.layoutinspector.compose
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.COMPOSE2
+import com.android.tools.idea.layoutinspector.model.COMPOSE3
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
@@ -55,6 +55,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW4
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
@@ -77,7 +78,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
@@ -106,18 +106,12 @@ private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 private val PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-class LayoutInspectorTreePanelTreeTest : LayoutInspectorTreePanelTest(useTreeTable = false)
-
-class LayoutInspectorTreePanelTreeTableTest : LayoutInspectorTreePanelTest(useTreeTable = true)
-
-abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
-  private val disposableRule = DisposableRule()
+class LayoutInspectorTreePanelTest {
   private val projectRule = AndroidProjectRule.withSdk()
-  private val appInspectorRule = AppInspectionInspectorRule(disposableRule.disposable)
+  private val appInspectorRule = AppInspectionInspectorRule(projectRule)
   private val inspectorRule = LayoutInspectorRule(listOf(appInspectorRule.createInspectorClientProvider()), projectRule) {
     it.name == PROCESS.name
   }
-  private val treeRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, useTreeTable)
   private val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
   private var lastUpdateSettingsCommand: UpdateSettingsCommand? = null
   private var updateSettingsCommands = 0
@@ -128,9 +122,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     .around(appInspectorRule)
     .around(inspectorRule)
     .around(fileOpenCaptureRule)
-    .around(treeRule)
-    .around(EdtRule())
-    .around(disposableRule)!!
+    .around(EdtRule())!!
 
   @Before
   fun setUp() {
@@ -164,6 +156,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
           ViewString(11, "AppTheme")
           ViewString(12, "http://schemas.android.com/apk/res/myapp")
           ViewString(13, "style")
+          ViewString(14, "Hello World!")
 
           Root {
             id = ROOT
@@ -191,6 +184,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
                   packageName = 5
                   className = 7
                   layoutResource = ViewResource(4, 12, 3)
+                  textValue = 14
                 }
               }
             }
@@ -210,16 +204,24 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
         LayoutInspectorViewProtocol.StartFetchResponse.getDefaultInstance()).build()
     }
 
-    appInspectorRule.composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) { _ ->
+    appInspectorRule.composeInspector.interceptWhen({ it.hasGetComposablesCommand() }) {
       LayoutInspectorComposeProtocol.Response.newBuilder().apply {
         getComposablesResponseBuilder.apply {
           ComposableString(1, "com.example")
           ComposableString(2, "File1.kt")
           ComposableString(3, "Button")
-          ComposableString(3, "Text")
+          ComposableString(4, "Text")
+          ComposableString(5, "Column")
 
           ComposableRoot {
             viewId = VIEW4
+            ComposableNode {
+              id = COMPOSE3
+              packageHash = 1
+              filename = 2
+              name = 5
+              flags = LayoutInspectorComposeProtocol.ComposableNode.Flags.INLINED_VALUE
+            }
             ComposableNode {
               id = COMPOSE1
               packageHash = 1
@@ -550,7 +552,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     UIUtil.dispatchAllInvocationEvents()
     TreeUtil.promiseExpandAll(jTree).blockingGet(5, TimeUnit.SECONDS)
     jTree.addSelectionRow(0)
-    assertThat(jTree.rowCount).isEqualTo(7)
+    assertThat(jTree.rowCount).isEqualTo(8)
     assertThat(jTree.leadSelectionRow).isEqualTo(0)
 
     val ui = FakeUi(jTree)
@@ -611,7 +613,19 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   fun testSystemNodeWithMultipleChildren() {
     val launcher: InspectorClientLauncher = mock()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(launcher, model, FakeTreeSettings(), MoreExecutors.directExecutor ())
+    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val clientSettings = InspectorClientSettings(projectRule.project)
+    val inspector = LayoutInspector(
+      coroutineScope,
+      mock(),
+      mock(),
+      null,
+      clientSettings,
+      launcher,
+      model,
+      FakeTreeSettings(),
+      MoreExecutors.directExecutor()
+    )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     inspector.treeSettings.hideSystemNodes = true
     inspector.treeSettings.composeAsCallstack = true
@@ -647,7 +661,19 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   fun testSemanticTrees() {
     val launcher: InspectorClientLauncher = mock()
     val model = InspectorModel(projectRule.project)
-    val inspector = LayoutInspector(launcher, model, FakeTreeSettings(), MoreExecutors.directExecutor())
+    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val clientSettings = InspectorClientSettings(projectRule.project)
+    val inspector = LayoutInspector(
+      coroutineScope,
+      mock(),
+      mock(),
+      null,
+      clientSettings,
+      launcher,
+      model,
+      FakeTreeSettings(),
+      MoreExecutors.directExecutor()
+    )
     val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val tree = treePanel.tree
     inspector.treeSettings.hideSystemNodes = false
@@ -733,10 +759,6 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
 
   @Test
   fun testNonStructuralModelChanges() {
-    if (!StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
-      // This test is specific to the TreeTable implementation of the component tree
-      return
-    }
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
@@ -754,7 +776,7 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
         treeChangeCount++
       }
     })
-    val model = inspector.layoutInspectorModel
+    val model = inspector.inspectorModel
     model.windows.values.forEach { window -> model.modificationListeners.forEach { it(window, window, false) } }
     assertThat(columnDataChangeCount).isEqualTo(1)
     assertThat(treeChangeCount).isEqualTo(0)
@@ -763,10 +785,6 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
   @RunsInEdt
   @Test
   fun testRecompositionColumnVisibility() {
-    if (!StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
-      // This test is specific to the TreeTable implementation of the component tree
-      return
-    }
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
     inspector.treeSettings.showRecompositions = true
@@ -797,13 +815,9 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
 
   @Test
   fun testResetRecompositionCounts() {
-    if (!StudioFlags.USE_COMPONENT_TREE_TABLE.get()) {
-      // This test is specific to the TreeTable implementation of the component tree
-      return
-    }
     val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
     val inspector = inspectorRule.inspector
-    val model = inspector.layoutInspectorModel
+    val model = inspector.inspectorModel
     val compose1 = model[COMPOSE1] as ComposeViewNode
     val compose2 = model[COMPOSE2] as ComposeViewNode
     var selectionUpdate = 0
@@ -855,11 +869,24 @@ abstract class LayoutInspectorTreePanelTest(useTreeTable: Boolean) {
     assertThat(data.compose.maxRecompositionSkips).isEqualTo(33)
   }
 
+  @Test
+  fun testTextValueOfNodeType() {
+    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val inspector = inspectorRule.inspector
+    val model = inspectorRule.inspectorModel
+    setToolContext(panel, inspector)
+    val nodeType = panel.nodeType
+    assertThat(nodeType.textValueOf(model[VIEW1]!!.treeNode)).isNull()
+    assertThat(nodeType.textValueOf(model[VIEW4]!!.treeNode)).isEqualTo("\"Hello World!\"")
+    assertThat(nodeType.textValueOf(model[COMPOSE1]!!.treeNode)).isNull()
+    assertThat(nodeType.textValueOf(model[COMPOSE3]!!.treeNode)).isEqualTo("(inline)")
+  }
+
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
     tree.setToolContext(inspector)
     // Normally the tree would have received structural changes when the mode was loaded.
     // Mimic that here:
-    val model = inspector.layoutInspectorModel
+    val model = inspector.inspectorModel
     model.windows.values.forEach { window -> model.modificationListeners.forEach { it(window, window, true) } }
   }
 

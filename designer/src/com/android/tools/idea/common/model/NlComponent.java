@@ -25,11 +25,13 @@ import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.LanguageNamesValidation;
@@ -41,6 +43,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.pom.Navigatable;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -88,9 +91,23 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Nullable AttributesTransaction myCurrentTransaction;
 
+  /**
+   * ID from {@link android.view.accessibility.AccessibilityNodeInfo} associated with this NlComponent,
+   * equals to -1 if there are no such AccessibilityNodeInfo.
+   */
+  long myAccessibilityId = -1;
+
+  private Navigatable myNavigatable;
+
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
     myBackend = new NlComponentBackendXml(model.getProject(), tag);
+  }
+
+  public NlComponent(@NotNull NlModel model, long accessibilityId) {
+    myModel = model;
+    myBackend = new NlComponentBackendEmpty();
+    myAccessibilityId = accessibilityId;
   }
 
   @TestOnly
@@ -114,6 +131,26 @@ public class NlComponent implements NlAttributesHolder {
   @Nullable
   public XmlModelComponentMixin getMixin() {
     return myMixin;
+  }
+
+  public void setAccessibilityId(long id) {
+    myAccessibilityId = id;
+  }
+
+  public long getAccessibilityId() {
+    return myAccessibilityId;
+  }
+
+  public void setNavigatable(@NotNull Navigatable navigatable) {
+    myNavigatable = navigatable;
+  }
+
+  @Nullable
+  public Navigatable getNavigatable() {
+    if (myNavigatable != null) {
+      return myNavigatable;
+    }
+    return myBackend.getDefaultNavigatable();
   }
 
   /**
@@ -152,15 +189,6 @@ public class NlComponent implements NlAttributesHolder {
   @Deprecated
   public XmlTag getTagDeprecated() {
     return myBackend.getTagDeprecated();
-  }
-
-  /**
-   * @deprecated Use {@link #getTag()} instead.
-   */
-  @NotNull
-  @Deprecated
-  public SmartPsiElementPointer<XmlTag> getTagPointer() {
-    return myBackend.getTagPointer();
   }
 
   @NotNull
@@ -476,7 +504,7 @@ public class NlComponent implements NlAttributesHolder {
       return snapshot.attributes;
     }
 
-    XmlTag tag = getTagDeprecated();
+    RenderXmlTag tag = new PsiXmlTag(getTagDeprecated());
     if (tag.isValid()) {
       Application application = ApplicationManager.getApplication();
 

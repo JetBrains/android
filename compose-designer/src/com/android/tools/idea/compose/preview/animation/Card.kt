@@ -20,10 +20,7 @@ import com.android.tools.idea.compose.preview.animation.timeline.ElementState
 import com.android.tools.idea.compose.preview.animation.timeline.TimelineElement
 import javax.swing.JPanel
 
-/**
- * Card displayed in [AllTabPanel].
- * Each [ComposeAnimation] represented by one [Card].
- */
+/** Card displayed in [AllTabPanel]. Each [ComposeAnimation] represented by one [Card]. */
 interface Card {
   /** [Card] component what should be added to the layout. */
   val component: JPanel

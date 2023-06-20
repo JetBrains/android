@@ -40,7 +40,7 @@ import org.xmlpull.v1.XmlPullParserException;
 /**
  * Methods for manipulating vector drawables.
  */
-public final class VectorDrawableTransformer {
+public class VectorDrawableTransformer {
   private static final ImmutableSet<String> NAMES_OF_HANDLED_ATTRIBUTES =
       ImmutableSet.of("width", "height", "viewportWidth", "viewportHeight", "tint", "alpha");
   private static final String INDENT = "  ";

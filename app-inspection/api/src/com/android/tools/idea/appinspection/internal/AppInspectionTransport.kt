@@ -25,16 +25,14 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
 import com.google.common.annotations.VisibleForTesting
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import java.util.concurrent.atomic.AtomicInteger
 
-fun Commands.Command.toExecuteRequest(): Transport.ExecuteRequest = Transport.ExecuteRequest.newBuilder().setCommand(this).build()
+fun Commands.Command.toExecuteRequest(): Transport.ExecuteRequest =
+  Transport.ExecuteRequest.newBuilder().setCommand(this).build()
 
-
-/**
- * Small helper class to work with the one exact process and app-inspection events & commands.
- */
+/** Small helper class to work with the one exact process and app-inspection events & commands. */
 class AppInspectionTransport(
   val client: TransportClient,
   val process: ProcessDescriptor,
@@ -45,9 +43,11 @@ class AppInspectionTransport(
     private val commandIdGenerator = AtomicInteger(1)
 
     /**
-     * A method which generates a new unique ID each time, to be assigned to an outgoing inspector command.
+     * A method which generates a new unique ID each time, to be assigned to an outgoing inspector
+     * command.
      *
-     * This ID is used to map events from the agent to the correct handler. This method is thread-safe.
+     * This ID is used to map events from the agent to the correct handler. This method is
+     * thread-safe.
      */
     fun generateNextCommandId() = commandIdGenerator.getAndIncrement()
 
@@ -56,66 +56,72 @@ class AppInspectionTransport(
      *
      * This method is thread-safe.
      */
-    @VisibleForTesting
-    fun lastGeneratedCommandId() = commandIdGenerator.get() - 1
+    @VisibleForTesting fun lastGeneratedCommandId() = commandIdGenerator.get() - 1
   }
 
-  /**
-   * Utility function to create a [StreamEventQuery] based on this pid.
-   */
+  /** Utility function to create a [StreamEventQuery] based on this pid. */
   fun createStreamEventQuery(
     eventKind: Common.Event.Kind,
     filter: (Common.Event) -> Boolean = { true },
     startTimeNs: () -> Long = { Long.MIN_VALUE }
-  ) = StreamEventQuery(
-    eventKind = eventKind,
-    startTime = startTimeNs,
-    filter = filter,
-    processId = { process.pid }
-  )
+  ) =
+    StreamEventQuery(
+      eventKind = eventKind,
+      startTime = startTimeNs,
+      filter = filter,
+      processId = { process.pid }
+    )
 
-  /**
-   * Creates a flow that subscribes to events filtered by the provided filtering criteria.
-   */
-  fun eventFlow(eventKind: Common.Event.Kind,
-                filter: (Common.Event) -> Boolean = { true },
-                startTimeNs: () -> Long = { Long.MIN_VALUE }): Flow<StreamEvent> {
+  /** Creates a flow that subscribes to events filtered by the provided filtering criteria. */
+  fun eventFlow(
+    eventKind: Common.Event.Kind,
+    filter: (Common.Event) -> Boolean = { true },
+    startTimeNs: () -> Long = { Long.MIN_VALUE }
+  ): Flow<StreamEvent> {
     val query = createStreamEventQuery(eventKind, filter, startTimeNs)
     return streamChannel.eventFlow(query)
   }
 
-  private fun AppInspection.AppInspectionCommand.toCommand() = Commands.Command.newBuilder()
-    .setType(Commands.Command.CommandType.APP_INSPECTION)
-    .setStreamId(process.streamId)
-    .setPid(process.pid)
-    .setAppInspectionCommand(this).build()
+  private fun AppInspection.AppInspectionCommand.toCommand() =
+    Commands.Command.newBuilder()
+      .setType(Commands.Command.CommandType.APP_INSPECTION)
+      .setStreamId(process.streamId)
+      .setPid(process.pid)
+      .setAppInspectionCommand(this)
+      .build()
 
   /**
-   * Identical in functionality to [executeCommand] below except it takes an AppInspection [command].
+   * Identical in functionality to [executeCommand] below except it takes an AppInspection [command]
+   * .
    */
-  suspend fun executeCommand(command: AppInspection.AppInspectionCommand,
-                             streamEventQuery: StreamEventQuery): Common.Event {
+  suspend fun executeCommand(
+    command: AppInspection.AppInspectionCommand,
+    streamEventQuery: StreamEventQuery
+  ): Common.Event {
     return executeCommand(command.toCommand().toExecuteRequest(), streamEventQuery)
   }
 
   /**
-   * Executes the provided  [command] and await for a response that satisfies the provided [streamEventQuery].
-   * */
-  suspend fun executeCommand(request: Transport.ExecuteRequest,
-                             streamEventQuery: StreamEventQuery): Common.Event  {
+   * Executes the provided [command] and await for a response that satisfies the provided
+   * [streamEventQuery].
+   */
+  suspend fun executeCommand(
+    request: Transport.ExecuteRequest,
+    streamEventQuery: StreamEventQuery
+  ): Common.Event {
     executeCommand(request)
     return streamChannel.eventFlow(streamEventQuery).first().event
   }
 
-  /**
-   * Sends an app inspection command via the transport pipeline to device.
-   */
+  /** Sends an app inspection command via the transport pipeline to device. */
   fun executeCommand(appInspectionCommand: AppInspection.AppInspectionCommand) {
-    val command = Commands.Command.newBuilder()
-      .setType(Commands.Command.CommandType.APP_INSPECTION)
-      .setStreamId(process.streamId)
-      .setPid(process.pid)
-      .setAppInspectionCommand(appInspectionCommand).build()
+    val command =
+      Commands.Command.newBuilder()
+        .setType(Commands.Command.CommandType.APP_INSPECTION)
+        .setStreamId(process.streamId)
+        .setPid(process.pid)
+        .setAppInspectionCommand(appInspectionCommand)
+        .build()
     executeCommand(command.toExecuteRequest())
   }
 

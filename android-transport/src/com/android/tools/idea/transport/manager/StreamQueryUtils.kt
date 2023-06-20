@@ -113,7 +113,8 @@ class StreamQueryUtils {
      * Helper method to return the event of the highest exposure level for the last process in an EventGroup.
      * Note process events are grouped by PIDs, so this method doesn't look beyond the next to last "is-ended" event.
      */
-    private fun getHighestExposureEventForLastProcess(group: EventGroup): Common.Event? {
+    @JvmStatic
+    fun getHighestExposureEventForLastProcess(group: EventGroup): Common.Event? {
       var hasVisitedEndedEvent = false
       var found: Common.Event? = null
       for (i in group.eventsCount - 1 downTo 0) {

@@ -17,7 +17,11 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.stdui.CommonButton
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.*
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ActionPlaces
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestCaseName
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.getFullTestClassName
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.isRootAggregationResult
 import com.android.tools.idea.testartifacts.instrumented.testsuite.logging.AndroidTestSuiteLogger
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
@@ -112,12 +116,14 @@ class AndroidTestSuiteDetailsView @UiThread constructor(parentDisposable: Dispos
 
   private val myDeviceSelectorListView: DetailsViewDeviceSelectorListView = DetailsViewDeviceSelectorListView(
     object : DetailsViewDeviceSelectorListViewListener {
+      @UiThread
       override fun onDeviceSelected(selectedDevice: AndroidDevice) {
         this@AndroidTestSuiteDetailsView.selectedDevice = selectedDevice
         reloadAndroidTestResults()
         myComponentsSplitter.secondComponent = contentView.rootPanel
       }
 
+      @UiThread
       override fun onRawOutputSelected() {
         myComponentsSplitter.secondComponent = myRawTestLogConsoleViewWithVerticalToolbar
       }

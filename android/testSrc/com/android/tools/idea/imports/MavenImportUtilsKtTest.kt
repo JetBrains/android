@@ -19,6 +19,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.android.tools.idea.testing.getIntentionAction
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
@@ -32,7 +33,6 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection
-import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -44,7 +44,13 @@ import org.junit.rules.RuleChain
  */
 @RunsInEdt
 class MavenImportUtilsKtTest {
-  private val projectRule = AndroidProjectRule.withAndroidModel()
+  private val projectRule = AndroidProjectRule.withAndroidModel(
+    createAndroidProjectBuilderForDefaultTestProjectStructure().let { builder ->
+      builder.copy(agpProjectFlags = {
+        builder.agpProjectFlags.invoke(this).copy(useAndroidX = true)
+      })
+    }
+  )
   private lateinit var tracker: TestUsageTracker
 
   @get:Rule
@@ -59,7 +65,6 @@ class MavenImportUtilsKtTest {
     )
     tracker = TestUsageTracker(VirtualTimeScheduler())
     UsageTracker.setWriterForTest(tracker)
-    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.project.setAndroidxProperties("true") }
   }
 
   @After

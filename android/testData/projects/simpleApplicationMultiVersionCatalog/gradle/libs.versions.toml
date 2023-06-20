@@ -1,0 +1,16 @@
+[versions]
+constraint-layout = "1.0.2"
+guava = "19.0"
+gradlePlugins-agp = "8.0.0-beta01"
+
+[libraries]
+constraint-layout = { module = "com.android.support.constraint:constraint-layout", version.ref = "constraint-layout" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version = "2.5.0" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "gradlePlugins-agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version = "1.7.20" }
+
+[bundles]
+both = ["constraint-layout", "guava"]

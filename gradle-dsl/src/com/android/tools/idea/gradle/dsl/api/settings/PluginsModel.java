@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api.settings;
 
 import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,6 +70,17 @@ public interface PluginsModel {
    */
   @NotNull
   PluginModel applyPlugin(@NotNull String plugin, @NotNull String version, @Nullable Boolean apply);
+
+  /**
+   * Modify the underlying object so that the given reference is used as an alias to apply a plugin with the specified
+   * apply status, and return the model corresponding to the plugin declaration.
+   *
+   * @param reference a reference to a plugin alias
+   * @param apply whether the plugin should be declared as applied in this model
+   * @return the model for the given plugin
+   */
+  @NotNull
+  PluginModel applyPlugin(@NotNull ReferenceTo reference, @Nullable Boolean apply);
 
   /**
    * Modify the underlying object such that the given plugin is no longer declared.

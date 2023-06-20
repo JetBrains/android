@@ -30,7 +30,6 @@ import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JTableFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import org.fest.swing.timing.Wait
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.JDialog
@@ -67,9 +66,9 @@ class AddLibraryDependencyDialogFixture private constructor(
         }
         it.replaceCellReader(object : BasicJTableCellReader() {
           override fun valueAt(table: JTable, row: Int, column: Int): String? =
-            table
+            (table
               .prepareRenderer(table.getCellRenderer(row, column), row, column)
-              .safeAs<SimpleColoredComponent>()
+              as? SimpleColoredComponent)
               ?.toString()
               .orEmpty()
         })

@@ -1,0 +1,8 @@
+android {
+  compileSdk 30
+  packagingOptions {
+    dex {
+      useLegacyPackaging true
+    }
+  }
+}

@@ -16,7 +16,6 @@
 package com.android.tools.compose
 
 import com.android.SdkConstants
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -24,16 +23,13 @@ import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.annotation.Annotation
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -57,7 +53,6 @@ class ComposeColorAnnotatorTest {
 
   @Before
   fun setUp() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.addClass(
       //language=java
@@ -403,19 +398,15 @@ class ComposeColorAnnotatorTest {
   }
 
   private fun setNewColor(window: String, newColor: Color) {
+    val element = runInEdtAndGet { myFixture.moveCaret(window) }
+    val annotations = runReadAction {
+      CodeInsightTestUtil.testAnnotator(ComposeColorAnnotator(), element.parentOfType<KtCallExpression>()!!)
+    }
     runInEdtAndWait {
-      val element = myFixture.moveCaret(window)
-      val annotator = ComposeColorAnnotator()
-      val annotations: List<Annotation> = CodeInsightTestUtil.testAnnotator(annotator, element.parentOfType<KtCallExpression>()!! as PsiElement)
       val iconRenderer = annotations[0].gutterIconRenderer as ColorIconRenderer
       val project = myFixture.project
-
       val setColorTask = iconRenderer.getSetColorTask() ?: return@runInEdtAndWait
-      ApplicationManager.getApplication().invokeLater({
-        WriteCommandAction.runWriteCommandAction(project, "Change Color", null, { setColorTask.invoke(newColor) })
-      }, project.disposed)
-
-      PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+      WriteCommandAction.runWriteCommandAction(project, "Change Color", null, { setColorTask.invoke(newColor) })
     }
   }
 
@@ -451,7 +442,7 @@ class ComposeColorReferenceAnnotatorTest {
   @Before
   fun setUp() {
     (myFixture.module.getModuleSystem() as DefaultModuleSystem).usesCompose = true
-    myFixture.stubComposableAnnotation(ComposeFqNames.root)
+    myFixture.stubComposableAnnotation(COMPOSABLE_FQ_NAMES_ROOT)
     myFixture.testDataPath = getComposePluginTestDataPath()
     myFixture.copyFileToProject("annotator/colors.xml", "res/values/colors.xml")
     myFixture.copyFileToProject("annotator/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML)

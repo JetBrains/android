@@ -58,7 +58,7 @@ import org.jetbrains.annotations.Nullable;
  * Utilities related to image processing.
  */
 @SuppressWarnings("UndesirableClassUsage") // BufferedImage is ok, deliberately not creating Retina images in some cases
-public final class ImageUtils {
+public class ImageUtils {
   public static final double EPSILON = 1e-5;
 
   /**
@@ -77,11 +77,10 @@ public final class ImageUtils {
    * @return the rotated image
    */
   public static @NotNull BufferedImage rotateByQuadrants(@NotNull BufferedImage source, int numQuadrants) {
-    if (numQuadrants % 4 == 0) {
+    numQuadrants = numQuadrants & 0x3;
+    if (numQuadrants == 0) {
       return source;
     }
-
-    numQuadrants = (numQuadrants % 4 + 4) % 4;
 
     int w = source.getWidth();
     int h = source.getHeight();
@@ -144,11 +143,10 @@ public final class ImageUtils {
    */
   public static @NotNull BufferedImage rotateByQuadrantsAndScale(
       @NotNull BufferedImage source, int numQuadrants, int destinationWidth, int destinationHeight) {
-    if (numQuadrants % 4 == 0 && destinationWidth == source.getWidth() && destinationHeight == source.getHeight()) {
+    numQuadrants = numQuadrants & 0x3;
+    if (numQuadrants == 0 && destinationWidth == source.getWidth() && destinationHeight == source.getHeight()) {
       return source;
     }
-
-    numQuadrants = (numQuadrants % 4 + 4) % 4;
 
     int w = source.getWidth();
     int h = source.getHeight();
@@ -763,6 +761,31 @@ public final class ImageUtils {
     applyQualityRenderingHints(g2);
     double diameter = max(image.getWidth(), image.getHeight());
     g2.fill(new Area(new Ellipse2D.Double(0, 0, diameter, diameter)));
+    g2.dispose();
+    BufferedImage shapedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    g2 = shapedImage.createGraphics();
+    applyQualityRenderingHints(g2);
+    g2.drawImage(image, 0, 0, null);
+    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_IN));
+    g2.drawImage(mask, 0, 0, null);
+    if (backgroundColor != null) {
+      g2.setColor(backgroundColor);
+      g2.setComposite(AlphaComposite.getInstance(AlphaComposite.DST_OVER));
+      g2.fillRect(0, 0, image.getWidth(), image.getHeight());
+    }
+    g2.dispose();
+    return shapedImage;
+  }
+
+  /**
+   * Clips the image by the ellipse inscribed into the image. The area outside the ellipse is filled
+   * with backgroundColor, or left transparent if backgroundColor is null.
+   */
+  public static @NotNull BufferedImage ellipticalClip(@NotNull BufferedImage image, @Nullable Color backgroundColor) {
+    BufferedImage mask = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2 = mask.createGraphics();
+    applyQualityRenderingHints(g2);
+    g2.fill(new Area(new Ellipse2D.Double(0, 0, image.getWidth(), image.getHeight())));
     g2.dispose();
     BufferedImage shapedImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
     g2 = shapedImage.createGraphics();

@@ -20,6 +20,7 @@ import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
 import static com.intellij.testFramework.UsefulTestCase.assertSize;
 
 import com.android.testutils.junit4.OldAgpTest;
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor;
 import com.android.tools.idea.testing.AndroidGradleProjectRule;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.EdtRule;
@@ -41,7 +42,7 @@ public class InstantAppUrlFinderIntegTest {
   @Ignore("b/203803107")
   public void testHostIsResolved() throws Exception {
     // Use a plugin with instant app supportp
-    projectRule.loadProject(INSTANT_APP_RESOURCE_HOST, null, "5.5", "3.5.0");
+    projectRule.loadProject(INSTANT_APP_RESOURCE_HOST, null, AgpVersionSoftwareEnvironmentDescriptor.AGP_35);
     Module featureModule = projectRule.getModule("feature");
     Collection<String> urls = new InstantAppUrlFinder(featureModule).getAllUrls();
     assertSize(1, urls);

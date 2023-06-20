@@ -22,10 +22,10 @@ import com.android.resources.Density
 import com.android.resources.NightMode
 import com.android.resources.ResourceType
 import com.android.resources.ScreenOrientation
-import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.Disposable
 import com.intellij.testFramework.LightVirtualFile
@@ -59,7 +59,7 @@ class DesignAssetImporterTest {
 
     val designAssetImporter = DesignAssetImporter()
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
-    val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
+    val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
     val item = moduleResources.allResources.first()!!
     Truth.assertThat(item.name).isEqualTo("set1")
     Truth.assertThat(item.resourceValue?.value).endsWith("drawable-xhdpi/set1.png")
@@ -81,7 +81,7 @@ class DesignAssetImporterTest {
 
     val designAssetImporter = DesignAssetImporter()
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
-    val moduleResources = ResourceRepositoryManager.getInstance(facet).moduleResources
+    val moduleResources = StudioResourceRepositoryManager.getInstance(facet).moduleResources
     val items = moduleResources.allResources.sortedBy { it.resourceValue?.value }
 
     var i = 0
@@ -108,7 +108,7 @@ class DesignAssetImporterTest {
 
     val designAssetImporter = DesignAssetImporter()
     designAssetImporter.importDesignAssets(listOf(designAssetSet), facet)
-    val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
+    val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
     val item = moduleResources.allResources.first()
 
     Truth.assertThat(item.name).isEqualTo("resource")

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.runconfiguration
 
+import com.android.tools.idea.run.composePreviewRunConfigurationId
 import com.intellij.compiler.options.CompileStepBeforeRun
 import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.configurations.SimpleConfigurationType
@@ -24,15 +25,20 @@ import com.intellij.openapi.util.NotNullLazyValue
 import icons.StudioIcons
 
 /** A type for run configurations that launch Compose Previews to a device/emulator. */
-class ComposePreviewRunConfigurationType : SimpleConfigurationType("ComposePreviewRunConfiguration",
-                                                                   "Compose Preview",
-                                                                   "Compose Preview Run Configuration Type",
-                                                                   NotNullLazyValue.lazy {
-                                                                     StudioIcons.Compose.Toolbar.RUN_CONFIGURATION
-                                                                   }) {
-  override fun createTemplateConfiguration(project: Project) = ComposePreviewRunConfiguration(project, this)
+class ComposePreviewRunConfigurationType :
+  SimpleConfigurationType(
+    composePreviewRunConfigurationId,
+    "Compose Preview",
+    "Compose Preview Run Configuration Type",
+    NotNullLazyValue.lazy { StudioIcons.Compose.Toolbar.RUN_CONFIGURATION }
+  ) {
+  override fun createTemplateConfiguration(project: Project) =
+    ComposePreviewRunConfiguration(project, this)
 
-  override fun configureBeforeRunTaskDefaults(providerID: Key<out BeforeRunTask<*>?>, task: BeforeRunTask<*>) {
+  override fun configureBeforeRunTaskDefaults(
+    providerID: Key<out BeforeRunTask<*>?>,
+    task: BeforeRunTask<*>
+  ) {
     // A specific build is executed as part of the ComposePreviewRunConfiguration logic,
     // and then the default build performed as BeforeRunTask should be disabled to avoid
     // executing two builds on each run.

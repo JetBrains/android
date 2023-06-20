@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
@@ -64,7 +64,7 @@ class BottomAppBarHandlerTest {
   fun testOnCreate() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val manager: NlDependencyManager = mock()
-    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, facet)).thenReturn(GradleVersion.parse("1.4.9"))
+    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, facet)).thenReturn(Version.parse("1.4.9"))
     projectRule.replaceService(NlDependencyManager::class.java, manager)
 
     val handler = BottomAppBarHandler()
@@ -89,7 +89,7 @@ class BottomAppBarHandlerTest {
   fun testOnCreateWithMaterial3() {
     val facet = AndroidFacet.getInstance(projectRule.module)!!
     val manager: NlDependencyManager = mock()
-    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, facet)).thenReturn(GradleVersion.parse("1.5.0"))
+    whenever(manager.getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, facet)).thenReturn(Version.parse("1.5.0"))
     projectRule.replaceService(NlDependencyManager::class.java, manager)
 
     val handler = BottomAppBarHandler()

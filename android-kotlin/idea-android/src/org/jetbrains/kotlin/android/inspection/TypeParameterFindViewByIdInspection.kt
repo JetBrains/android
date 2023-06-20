@@ -16,30 +16,26 @@
 
 package org.jetbrains.kotlin.android.inspection
 
-import com.android.tools.idea.model.AndroidModuleInfo
-import com.intellij.codeInspection.CleanupLocalInspectionTool
-import com.intellij.codeInspection.LocalInspectionToolSession
-import com.intellij.codeInspection.LocalQuickFix
-import com.intellij.codeInspection.ProblemDescriptor
-import com.intellij.codeInspection.ProblemsHolder
+import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.intellij.codeInspection.*
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.symbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
-import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
-import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtNullableType
-import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.KtPsiUtil.isUnsafeCast
-import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.psi.KtVisitorVoid
 import org.jetbrains.kotlin.psi.psiUtil.addTypeArgument
 
 class TypeParameterFindViewByIdInspection : AbstractKotlinInspection(), CleanupLocalInspectionTool {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
         val compileSdk = AndroidFacet.getInstance(session.file)
-                ?.let { facet -> AndroidModuleInfo.getInstance(facet) }
+                ?.let { facet -> StudioAndroidModuleInfo.getInstance(facet) }
                 ?.buildSdkVersion
                 ?.apiLevel
 
@@ -56,9 +52,18 @@ class TypeParameterFindViewByIdInspection : AbstractKotlinInspection(), CleanupL
 
                 val parentCast = (expression.parent as? KtBinaryExpressionWithTypeRHS)?.takeIf { isUnsafeCast(it) } ?: return
                 val typeText = parentCast.right?.getTypeTextWithoutQuestionMark() ?: return
-                val callableDescriptor = expression.resolveToCall()?.resultingDescriptor ?: return
-                if (callableDescriptor.name.asString() != "findViewById" || callableDescriptor.typeParameters.size != 1) {
-                    return
+                if (isK2Plugin()) {
+                    analyze(expression) {
+                        val calleeSymbol = expression.resolveCall().singleFunctionCallOrNull()?.symbol as? KtFunctionSymbol ?: return
+                        if (calleeSymbol.name.asString() != "findViewById" || calleeSymbol.typeParameters.size != 1) {
+                            return
+                        }
+                    }
+                } else {
+                    val callableDescriptor = expression.resolveToCall()?.resultingDescriptor ?: return
+                    if (callableDescriptor.name.asString() != "findViewById" || callableDescriptor.typeParameters.size != 1) {
+                        return
+                    }
                 }
 
                 holder.registerProblem(

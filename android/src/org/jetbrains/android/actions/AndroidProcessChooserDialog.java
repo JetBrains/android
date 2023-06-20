@@ -8,11 +8,11 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
+import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.help.AndroidWebHelpProvider;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.run.configuration.RunConfigurationWithDebugger;
-import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider;
+import com.android.tools.idea.run.editor.RunConfigurationWithDebugger;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
 import com.intellij.execution.RunManager;
@@ -704,7 +704,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       myDeviceNamePropertiesFetcher = deviceNamePropertiesFetcher;
     }
 
-    private void setShowSerial(@NotNull List<@NotNull IDevice> devices) {
+    private void setShowSerial(@NotNull List<IDevice> devices) {
       myShowSerial = DeviceRenderer.shouldShowSerialNumbers(devices, myDeviceNamePropertiesFetcher);
     }
 

@@ -21,8 +21,7 @@ import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionReportBuilderTest
 import com.android.build.attribution.ui.data.builder.BuildAttributionReportBuilder
-import com.android.ide.common.repository.GradleVersion
-import com.android.testutils.MockitoKt.mock
+import com.android.ide.common.repository.AgpVersion
 import com.google.common.truth.Truth
 import com.intellij.util.text.DateFormatUtil
 import org.junit.Test
@@ -48,7 +47,11 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
   val taskCmodule1 = TaskData("taskC", ":module1", pluginC, 0, 7300, TaskData.TaskExecutionMode.FULL, emptyList())
     .apply { isOnTheCriticalPath = true }
 
+  // 2019-11-19 17:12:13
+  private val buildFinishedTimestamp = 1574183533000
+  private val buildFinishedTimeString = DateFormatUtil.formatDateTime(buildFinishedTimestamp)
   private val mockAnalysisResult = object : AbstractBuildAttributionReportBuilderTest.MockResultsProvider() {
+    override fun getBuildFinishedTimestamp(): Long = buildFinishedTimestamp
     override fun getTotalBuildTimeMs(): Long = 10000
     override fun getConfigurationPhaseTimeMs(): Long = 1000
     override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(task1androidPlugin, taskBmodule1, taskCmodule1)
@@ -74,15 +77,12 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
     )
   }
 
-  // 2019-11-19 17:12:13
-  private val buildFinishedTimestamp = 1574183533000
-  private val buildFinishedTimeString = DateFormatUtil.formatDateTime(buildFinishedTimestamp)
-  private val buildReportData = BuildAttributionReportBuilder(mockAnalysisResult, buildFinishedTimestamp, mock()).build()
+  private val buildReportData = BuildAttributionReportBuilder(mockAnalysisResult).build()
 
   private val reporter = TaskIssueReportGenerator(
     buildReportData,
     { PLATFORM_INFORMATION_DATA_MOCK },
-    { listOf(GradleVersion.parse("4.0.0-dev")) }
+    { listOf(AgpVersion.parse("4.0.0-dev")) }
   )
 
   @Test
@@ -152,7 +152,7 @@ ${PLATFORM_INFORMATION_DATA_MOCK}
     val reporter = TaskIssueReportGenerator(
       buildReportData,
       { "" },
-      { listOf(GradleVersion.parse("4.0.0-dev"), GradleVersion.parse("4.0.0-dev"), GradleVersion.parse("3.0.0-dev")) }
+      { listOf(AgpVersion.parse("4.0.0-dev"), AgpVersion.parse("4.0.0-dev"), AgpVersion.parse("3.0.0-dev")) }
     )
 
     val task = buildReportData.findTaskUiDataFor(task1androidPlugin)

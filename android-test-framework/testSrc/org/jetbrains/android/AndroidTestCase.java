@@ -7,6 +7,7 @@ import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAct
 
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -33,6 +34,7 @@ import com.intellij.openapi.module.ModuleTypeId;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectType;
 import com.intellij.openapi.project.ProjectTypeService;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -70,6 +72,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetType;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.formatter.AndroidJavaPredefinedCodeStyle;
+import org.jetbrains.android.formatter.AndroidKotlinPredefinedCodeStyle;
 import org.jetbrains.android.formatter.AndroidXmlCodeStyleSettings;
 import org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
@@ -124,13 +127,13 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
-    Path jdkPath = TestUtils.getJava11Jdk();
+    Path jdkPath = TestUtils.getEmbeddedJdk17Path();
     WriteAction.runAndWait(() -> {
       cleanJdkTable();
       VfsRootAccess.allowRootAccess(myFixture.getProjectDisposable(), jdkPath.toAbsolutePath().toString());
       setupJdk(jdkPath);
     });
-    myFacet = addAndroidFacet(myModule);
+    myFacet = addAndroidFacetAndSdk(myModule);
 
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
 
@@ -148,7 +151,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     for (MyAdditionalModuleData data : modules) {
       Module additionalModule = data.myModuleFixtureBuilder.getFixture().getModule();
       myAdditionalModules.add(additionalModule);
-      AndroidFacet facet = addAndroidFacet(additionalModule);
+      AndroidFacet facet = addAndroidFacetAndSdk(additionalModule);
       removeFacetOn(myFixture.getProjectDisposable(), facet);
       facet.getConfiguration().setProjectType(data.myProjectType);
       String rootPath = getAdditionalModulePath(data.myDirName);
@@ -182,7 +185,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myIdeComponents = new IdeComponents(myFixture);
 
     IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
-
     ProjectTypeService.setProjectType(getProject(), new ProjectType("Android"));
   }
 
@@ -340,6 +342,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
   public static void applyAndroidCodeStyleSettings(CodeStyleSettings settings) {
     new AndroidJavaPredefinedCodeStyle().apply(settings);
+    new AndroidKotlinPredefinedCodeStyle().apply(settings);
     new AndroidXmlPredefinedCodeStyle().apply(settings);
   }
 
@@ -366,16 +369,17 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     });
   }
 
-  public static AndroidFacet addAndroidFacet(Module module) {
-    return addAndroidFacet(module, true);
+  public static AndroidFacet addAndroidFacetAndSdk(Module module) {
+    return addAndroidFacetAndSdk(module, true);
   }
 
-  public static AndroidFacet addAndroidFacet(Module module, boolean attachSdk) {
+  public static AndroidFacet addAndroidFacetAndSdk(Module module, boolean attachSdk) {
     AndroidFacetType type = AndroidFacet.getFacetType();
     String facetName = "Android";
     AndroidFacet facet = addFacet(module, type, facetName);
     if (attachSdk) {
-      Sdks.addLatestAndroidSdk(facet, module);
+      Disposable earlyDisposable = ((ProjectEx)module.getProject()).getEarlyDisposable();
+      Sdks.addLatestAndroidSdk(earlyDisposable, module);
     }
     return facet;
   }

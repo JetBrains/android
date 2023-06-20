@@ -23,7 +23,7 @@ import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class SetAttributeFix extends HtmlLinkManager.CommandLink {
+class SetAttributeFix extends StudioHtmlLinkManager.StudioCommandLink {
   private final XmlTag myTag;
   private final String myNamespace;
   private final String myAttribute;

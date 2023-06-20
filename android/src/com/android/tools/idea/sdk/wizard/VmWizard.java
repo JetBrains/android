@@ -24,7 +24,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.install.VmType;
 import com.android.tools.idea.sdk.wizard.legacy.LicenseAgreementStep;
 import com.android.tools.idea.welcome.install.ComponentInstaller;
-import com.android.tools.idea.welcome.install.Gvm;
+import com.android.tools.idea.welcome.install.Aehd;
 import com.android.tools.idea.welcome.install.Haxm;
 import com.android.tools.idea.welcome.install.InstallComponentsOperation;
 import com.android.tools.idea.welcome.install.InstallContext;
@@ -236,7 +236,7 @@ public class VmWizard extends DynamicWizard {
       InstallationIntention vmInstallationIntention =
         VmWizard.this.myInvokedToUninstall ? InstallationIntention.UNINSTALL : InstallationIntention.INSTALL_WITH_UPDATES;
       myVm = myType == VmType.HAXM ? new Haxm(vmInstallationIntention, canShow)
-                                   : new Gvm(vmInstallationIntention, canShow);
+                                   : new Aehd(vmInstallationIntention, canShow);
 
       for (DynamicWizardStep step : myVm.createSteps()) {
         addStep(step);

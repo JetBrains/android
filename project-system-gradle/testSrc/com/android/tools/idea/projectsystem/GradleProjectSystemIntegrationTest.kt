@@ -19,17 +19,18 @@ import com.android.SdkConstants
 import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.testing.AgpIntegrationTestDefinition
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.buildAndWait
 import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.openPreparedProject
 import com.android.tools.idea.testing.outputCurrentlyRunningTest
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.testing.switchVariant
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
@@ -40,12 +41,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
-import java.io.File
 
 /**
  * Integration tests for [GradleProjectSystem]; contains tests that require a working gradle project.
  */
-abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
+abstract class GradleProjectSystemIntegrationTestCase {
 
   @RunWith(Parameterized::class)
   class CurrentAgp : GradleProjectSystemIntegrationTestCase() {
@@ -76,7 +76,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   }
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
@@ -85,17 +85,9 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
   @Parameterized.Parameter(0)
   var testDefinition: TestDefinition? = null
 
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
-
-  override fun getAgpVersionSoftwareEnvironmentDescriptor(): AgpVersionSoftwareEnvironmentDescriptor {
-    return testDefinition?.agpVersion ?: AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-  }
-
   @Test
   fun testGetDependentLibraries() {
-    runTestOn(TestProjectPaths.SIMPLE_APPLICATION) { project ->
+    runTestOn(TestProject.SIMPLE_APPLICATION) { project ->
       val moduleSystem = project
         .getProjectSystem()
         .getModuleSystem(project.gradleModule(":app")!!)
@@ -116,7 +108,7 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
     assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_40)
     // TODO(b/191146142): Remove assumption when fixed.
     assume().that(testDefinition!!.agpVersion).isNotEqualTo(AgpVersionSoftwareEnvironmentDescriptor.AGP_35)
-    runTestOn(TestProjectPaths.SIMPLE_APPLICATION) { project ->
+    runTestOn(TestProject.SIMPLE_APPLICATION) { project ->
       // Invoke assemble task to generate output listing file and apk file.
       project.buildAndWait { invoker -> invoker.assemble(arrayOf(project.gradleModule(":app")!!), TestCompileType.NONE) }
       val defaultApkFile = project
@@ -137,9 +129,10 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
     fun Project.appModuleSystem() = this.appModule().getModuleSystem()
     fun Project.libModuleSystem() = this.libModule().getModuleSystem()
 
-    runTestOn(TestProjectPaths.APPLICATION_ID_SUFFIX) { project ->
+    runTestOn(AndroidCoreTestProject.APPLICATION_ID_SUFFIX) { project ->
       expect.that(project.appModuleSystem().getPackageName()).isEqualTo("one.name")
-      expect.that(project.appModuleSystem().getTestPackageName()).isEqualTo("one.name.test_app")
+      expect.that(project.appModuleSystem().getTestPackageName())
+        .isEqualTo(if (testDefinition!!.agpVersion >= AgpVersionSoftwareEnvironmentDescriptor.AGP_80) "one.name.test" else "one.name.test_app")
       expect.that(project.libModuleSystem().getPackageName()).isEqualTo("one.name.lib")
       expect.that(project.libModuleSystem().getTestPackageName()).isEqualTo("one.name.lib.test")
 
@@ -151,18 +144,15 @@ abstract class GradleProjectSystemIntegrationTestCase : GradleIntegrationTest {
     }
   }
 
-  private fun runTestOn(testProjectPath: String, test: (Project) -> Unit) {
+  private fun runTestOn(testProject: TemplateBasedTestProject, test: (Project) -> Unit) {
     val testDefinition = testDefinition!!
-    outputCurrentlyRunningTest(testDefinition)
+    projectRule.outputCurrentlyRunningTest(testDefinition)
     if (!testDefinition.modelsV2) {
       StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
     }
     try {
-      prepareGradleProject(
-        testProjectPath,
-        "project"
-      )
-      openPreparedProject("project", action = test)
+      val preparedProject = projectRule.prepareTestProject(testProject, agpVersion = testDefinition.agpVersion)
+      preparedProject.open(body = test)
     }
     finally {
       if (!testDefinition.modelsV2) {

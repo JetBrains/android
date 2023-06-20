@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.logcat.service
 
+import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.TestResources
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
-import com.android.tools.idea.adb.processnamemonitor.testing.FakeProcessNameMonitor
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.DEBUG
@@ -26,15 +26,18 @@ import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.toList
-import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,12 +52,12 @@ import kotlin.text.Charsets.UTF_8
 /**
  * Tests for [LogcatMessageAssembler]
  */
-@Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+@Suppress("OPT_IN_USAGE") // runTest is experimental
 class LogcatMessageAssemblerTest {
-  private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule)
+  val rule = RuleChain(ProjectRule(), disposableRule)
 
   private val processNameMonitor = FakeProcessNameMonitor()
 
@@ -69,7 +72,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun singleCompleteLogMessage() = runBlockingTest {
+  fun singleCompleteLogMessage() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device1", channel)
 
     assembler.processNewLines(
@@ -87,7 +90,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun multipleCompleteLogMessage() = runBlockingTest {
+  fun multipleCompleteLogMessage() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device1", channel)
 
     assembler.processNewLines(
@@ -116,7 +119,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun twoBatches_messageSplit() = runBlockingTest {
+  fun twoBatches_messageSplit() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device2", channel)
 
     assembler.processNewLines(
@@ -148,7 +151,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun twoBatches_messageNotSplit() = runBlockingTest {
+  fun twoBatches_messageNotSplit() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device2", channel)
 
     assembler.processNewLines(
@@ -185,7 +188,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun twoBatchesSplitOnUserEmittedEmptyLine() = runBlockingTest {
+  fun twoBatchesSplitOnUserEmittedEmptyLine() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device1", channel)
 
     assembler.processNewLines(
@@ -218,7 +221,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun messageSplitAcrossThreeBatches() = runBlockingTest {
+  fun messageSplitAcrossThreeBatches() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device1", channel)
 
     assembler.processNewLines(
@@ -252,7 +255,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun systemLines() = runBlockingTest {
+  fun systemLines() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device1", channel)
 
     assembler.processNewLines(
@@ -281,7 +284,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun linesWithoutHeader_dropped() = runBlockingTest {
+  fun linesWithoutHeader_dropped() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device1", channel)
 
     assembler.processNewLines(
@@ -307,7 +310,7 @@ class LogcatMessageAssemblerTest {
    * In contrast to the other tests in this file, it asserts the state of the channel after each batch rather than at the end.
    */
   @Test
-  fun multipleBatchesWithIntervals() = runBlockingTest {
+  fun multipleBatchesWithIntervals() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device1", channel)
 
     assembler.processNewLines(
@@ -322,8 +325,7 @@ class LogcatMessageAssemblerTest {
     )
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1"))
     assertThat(channel.isEmpty)
-    testScheduler.advanceTimeBy(100)
-    testScheduler.runCurrent()
+    advanceTimeBy(100)
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2"))
 
     assembler.processNewLines(
@@ -338,8 +340,7 @@ class LogcatMessageAssemblerTest {
     )
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag3", 1619900000L, 123L, "Message 3"))
     assertThat(channel.isEmpty)
-    testScheduler.advanceTimeBy(100)
-    testScheduler.runCurrent()
+    advanceTimeBy(100)
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag4", 1619900000L, 123L, "Message 4"))
 
     assembler.processNewLines(
@@ -354,8 +355,7 @@ class LogcatMessageAssemblerTest {
     )
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag5", 1619900000L, 123L, "Message 5"))
     assertThat(channel.isEmpty)
-    testScheduler.advanceTimeBy(100)
-    testScheduler.runCurrent()
+    advanceTimeBy(100)
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag6", 1619900000L, 123L, "Message 6"))
     channel.close()
     advanceUntilIdle()
@@ -363,7 +363,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun realLogcat_oneBatch() = runBlockingTest {
+  fun realLogcat_oneBatch() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device1", channel)
 
     assembler.processNewLines(TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLines())
@@ -379,7 +379,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun realLogcat_smallBatches() = runBlockingTest {
+  fun realLogcat_smallBatches() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device1", channel)
 
     TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLinesInBatches(50).forEach {
@@ -397,7 +397,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun realLogcat_largeBatches() = runBlockingTest {
+  fun realLogcat_largeBatches() = runTest(dispatchTimeoutMs = 5_000) {
     val assembler = logcatMessageAssembler("device1", channel)
 
     TestResources.getFile("/logcatFiles/real-logcat-from-device.txt").readLinesInBatches(8192).forEach {
@@ -415,7 +415,7 @@ class LogcatMessageAssemblerTest {
   }
 
   @Test
-  fun missingApplicationId_usesProcessName() = runBlockingTest {
+  fun missingApplicationId_usesProcessName() = runTest(dispatchTimeoutMs = 5_000) {
     processNameMonitor.addProcessName("device1", 5, "", "processName")
 
     val assembler = logcatMessageAssembler("device1", channel)
@@ -434,19 +434,21 @@ class LogcatMessageAssemblerTest {
   }
 
 
-  private fun TestCoroutineScope.logcatMessageAssembler(
+  private fun TestScope.logcatMessageAssembler(
     serialNumber: String,
     channel: SendChannel<List<LogcatMessage>>,
     processNameMonitor: ProcessNameMonitor = this@LogcatMessageAssemblerTest.processNameMonitor,
-  ) =
-    LogcatMessageAssembler(
-      projectRule.project,
+  ): LogcatMessageAssembler {
+    val logcatMessageAssembler = LogcatMessageAssembler(
       serialNumber,
       EPOCH_FORMAT,
       channel,
       processNameMonitor,
       coroutineContext,
       lastMessageDelayMs = 100)
+    Disposer.register(disposableRule.disposable, logcatMessageAssembler)
+    return logcatMessageAssembler
+  }
 }
 
 private fun logcatMessage(

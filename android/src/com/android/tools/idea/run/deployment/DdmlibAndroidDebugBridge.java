@@ -40,8 +40,8 @@ import org.jetbrains.annotations.Nullable;
 
 final class DdmlibAndroidDebugBridge implements AndroidDebugBridge {
   private final @NotNull ListeningExecutorService myExecutorService;
-  private final @NotNull Supplier<@Nullable Path> myGetAdb;
-  private final @NotNull AsyncFunction<@Nullable Path, com.android.ddmlib.@Nullable AndroidDebugBridge> myGetDebugBridge;
+  private final @NotNull Supplier<Path> myGetAdb;
+  private final @NotNull AsyncFunction<Path, com.android.ddmlib.AndroidDebugBridge> myGetDebugBridge;
 
   DdmlibAndroidDebugBridge(@NotNull Project project) {
     this(MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()),
@@ -51,8 +51,8 @@ final class DdmlibAndroidDebugBridge implements AndroidDebugBridge {
 
   @VisibleForTesting
   DdmlibAndroidDebugBridge(@NotNull ListeningExecutorService executorService,
-                           @NotNull Supplier<@Nullable Path> getAdb,
-                           @NotNull AsyncFunction<@Nullable Path, com.android.ddmlib.@Nullable AndroidDebugBridge> getDebugBridge) {
+                           @NotNull Supplier<Path> getAdb,
+                           @NotNull AsyncFunction<Path, com.android.ddmlib.AndroidDebugBridge> getDebugBridge) {
     myExecutorService = executorService;
     myGetAdb = getAdb;
     myGetDebugBridge = getDebugBridge;
@@ -64,12 +64,12 @@ final class DdmlibAndroidDebugBridge implements AndroidDebugBridge {
   }
 
   @WorkerThread
-  private static @NotNull ListenableFuture<com.android.ddmlib.@Nullable AndroidDebugBridge> getDebugBridge(@Nullable Path adb) {
+  private static @NotNull ListenableFuture<com.android.ddmlib.AndroidDebugBridge> getDebugBridge(@Nullable Path adb) {
     return adb == null ? Futures.immediateFuture(null) : AdbService.getInstance().getDebugBridge(adb.toFile());
   }
 
   @Override
-  public @NotNull ListenableFuture<@NotNull Collection<@NotNull IDevice>> getConnectedDevices() {
+  public @NotNull ListenableFuture<Collection<IDevice>> getConnectedDevices() {
     // noinspection UnstableApiUsage
     return FluentFuture.from(myExecutorService.submit(myGetAdb::get))
       .transformAsync(myGetDebugBridge, myExecutorService)
@@ -77,7 +77,7 @@ final class DdmlibAndroidDebugBridge implements AndroidDebugBridge {
   }
 
   @WorkerThread
-  private static @NotNull Collection<@NotNull IDevice> getDevices(com.android.ddmlib.@Nullable AndroidDebugBridge bridge) {
+  private static @NotNull Collection<IDevice> getDevices(com.android.ddmlib.AndroidDebugBridge bridge) {
     if (bridge == null) {
       return Collections.emptyList();
     }

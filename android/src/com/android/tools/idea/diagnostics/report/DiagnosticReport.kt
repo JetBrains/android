@@ -16,6 +16,7 @@
 package com.android.tools.idea.diagnostics.report
 
 import com.android.tools.analytics.crash.CrashReport
+import com.android.tools.idea.diagnostics.jfr.reports.typesToFields
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
@@ -65,7 +66,8 @@ constructor(val type: String,
       var sessionId: String? = null
       val properties = HashMap<String, String>()
       while (reader.hasNext()) {
-        when (val name = reader.nextName()) {
+        val name = reader.nextName()
+        when (name) {
           "type" -> type = reader.nextString()
           "formatVersion" -> format = reader.nextLong()
           "uptime" -> uptime = reader.nextLong()
@@ -99,7 +101,9 @@ constructor(val type: String,
           "PerformanceThreadDump" -> PerformanceThreadDumpReport.deserialize(
             baseReportProperties, properties, format)
           "UnanalyzedHeap" -> UnanalyzedHeapReport.deserialize(baseReportProperties, properties, format)
-          else -> null
+          else -> if (type in typesToFields.keys)
+            GenericReport.deserialize(type!!, baseReportProperties, typesToFields[type]!!, properties, format)
+          else null
         }
       }
       catch (ignored: Exception) {

@@ -18,22 +18,16 @@ package com.android.tools.idea.layoutinspector.resource
 import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.psi.PsiElement
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 
-@RunsInEdt
 class LambdaResolverTest {
   // TODO: Investigate why inMemory() fails on Windows...
-  private val projectRule = AndroidProjectRule.onDisk()
-
-  @get:Rule
-  val rules: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val projectRule = AndroidProjectRule.onDisk()
 
   @Before
   fun before() {
@@ -44,7 +38,7 @@ class LambdaResolverTest {
   }
 
   @Test
-  fun testFindLambdaLocation() {
+  fun testFindLambdaLocation() = runReadAction {
     checkLambda("1", 34, 34, 34, "{ 1 }")
     checkLambda("2", 34, 34, 34, "{ 2 }")
     checkLambda("3", 34, 34, 34, "{ f2({ 3 }, { 4 }) }")
@@ -79,7 +73,7 @@ class LambdaResolverTest {
   }
 
   @Test
-  fun testFindLambdaLocationWithinComposable() {
+  fun testFindLambdaLocationWithinComposable() = runReadAction {
     checkLambda("1", 79, 79, 79, "{ it - 1 }")
     checkLambda("lambda-10\$1", 80, 86, 79, """
       {
@@ -114,7 +108,7 @@ class LambdaResolverTest {
   }
 
   @Test
-  fun testFindFunctionReferenceLocation() {
+  fun testFindFunctionReferenceLocation() = runReadAction {
     check("1", "f3", 10, 10, 10, "::f3")
     check("1", "fx", 23, 23, 23, "::fx")
     check("4", "f3", 27, 27, 27, "::f3")
@@ -126,7 +120,7 @@ class LambdaResolverTest {
   }
 
   @Test
-  fun testFindLambdaFromUnknownFile() {
+  fun testFindLambdaFromUnknownFile() = runReadAction {
     val resourceLookup = ResourceLookup(projectRule.project)
     val result = resourceLookup.findLambdaLocation("com.example", "MyOtherFile.kt", "l$1", "", 102, 107)
     assertThat(result.source).isEqualTo("MyOtherFile.kt:unknown")

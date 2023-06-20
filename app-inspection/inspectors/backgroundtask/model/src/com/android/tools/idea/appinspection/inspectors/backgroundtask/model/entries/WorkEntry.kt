@@ -28,15 +28,20 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.Even
 class WorkEntry(override val id: String) : BackgroundTaskEntry {
   private var _isValid = false
 
-  override val isValid get() = _isValid
+  override val isValid
+    get() = _isValid
 
-  override val className get() = work.workerClassName.substringAfterLast('.')
+  override val className
+    get() = work.workerClassName.substringAfterLast('.')
 
-  override val status get() = work.state.name
+  override val status
+    get() = work.state.name
 
-  override val startTimeMs get() = work.scheduleRequestedAt
+  override val startTimeMs
+    get() = work.scheduleRequestedAt
 
-  override val tags get() = work.tagsList.toList()
+  override val tags
+    get() = work.tagsList.toList()
   override val callstacks = emptyList<BackgroundTaskCallStack>()
   override val retries: Int
     get() = (work.runAttemptCount - 1).takeIf { it >= 0 } ?: 0
@@ -55,9 +60,11 @@ class WorkEntry(override val id: String) : BackgroundTaskEntry {
       Event.OneOfCase.WORK_UPDATED -> {
         when (event.workUpdated.oneOfCase!!) {
           WorkUpdatedEvent.OneOfCase.STATE -> work.state = event.workUpdated.state
-          WorkUpdatedEvent.OneOfCase.SCHEDULE_REQUESTED_AT -> work.scheduleRequestedAt = event.workUpdated.scheduleRequestedAt
+          WorkUpdatedEvent.OneOfCase.SCHEDULE_REQUESTED_AT ->
+            work.scheduleRequestedAt = event.workUpdated.scheduleRequestedAt
           WorkUpdatedEvent.OneOfCase.DATA -> work.data = event.workUpdated.data
-          WorkUpdatedEvent.OneOfCase.RUN_ATTEMPT_COUNT -> work.runAttemptCount = event.workUpdated.runAttemptCount
+          WorkUpdatedEvent.OneOfCase.RUN_ATTEMPT_COUNT ->
+            work.runAttemptCount = event.workUpdated.runAttemptCount
           else -> throw RuntimeException()
         }
       }

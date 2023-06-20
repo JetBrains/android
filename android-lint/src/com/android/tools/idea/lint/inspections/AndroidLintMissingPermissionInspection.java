@@ -23,12 +23,12 @@ import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23;
 import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M;
 import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
 
-import com.android.tools.idea.lint.AndroidLintBundle;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.lint.checks.PermissionDetector;
 import com.android.tools.lint.checks.PermissionRequirement;
 import com.android.tools.lint.detector.api.LintFix;
@@ -68,7 +68,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.core.ShortenReferences;
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility;
 import org.jetbrains.kotlin.psi.KtBlockExpression;
 import org.jetbrains.kotlin.psi.KtElement;
 import org.jetbrains.kotlin.psi.KtIfExpression;
@@ -207,7 +207,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         // the MANAGE_ACCOUNTS permission is only needed pre Marshmallow. In that
         // case set a maxSdkVersion attribute on the uses-permission element.
         if (myMaxVersion != Integer.MAX_VALUE
-            && myMaxVersion >= AndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel()) {
+            && myMaxVersion >= StudioAndroidModuleInfo.getInstance(myFacet).getMinSdkVersion().getApiLevel()) {
           permissionTag.setAttribute("maxSdkVersion", ANDROID_URI, Integer.toString(myMaxVersion));
         }
 
@@ -394,7 +394,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
             PsiElement added = parent.addBefore(child, statement);
             parent.addBefore(factory.createNewLine(), statement);
             if (added instanceof KtElement) {
-              ShortenReferences.DEFAULT.process((KtElement)added);
+              ShortenReferencesFacility.Companion.getInstance().shorten((KtElement)added);
             }
             break;
           }

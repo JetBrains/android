@@ -48,6 +48,6 @@ public class MakeIdeaModuleAction extends AndroidStudioActionRemover {
     // MakeModuleAction#update throws an NPE when being wrapped by this action.
     // The method 'updatePresentation' does exactly the same thing as MakeModuleAction#update, but without throwing NPE for non-Gradle
     // projects.
-    MakeGradleModuleAction.updatePresentation(e, project);
+    AbstractMakeGradleModuleAction.updatePresentation(e, project);
   }
 }

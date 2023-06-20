@@ -1024,7 +1024,6 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       logConstraintConnected(mySrc);
       NlDesignSurface designSurface = (NlDesignSurface)mySrc.getScene().getDesignSurface();
       designSurface.forceLayersPaint(true);
-      designSurface.repaint();
     }
 
 

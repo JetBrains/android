@@ -17,8 +17,8 @@ package com.android.build.attribution.analyzers
 
 import com.android.SdkConstants
 import com.android.build.attribution.data.StudioProvidedInfo
-import com.android.ide.common.attribution.CheckJetifierResult
-import com.android.ide.common.repository.GradleVersion
+import com.android.buildanalyzer.common.CheckJetifierResult
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.attribution.getAgpAttributionFileDir
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
@@ -26,14 +26,15 @@ import com.android.utils.FileUtils
 import java.io.File
 
 const val CHECK_JETIFIER_TASK_NAME = "checkJetifier"
-fun checkJetifierResultFile(buildRequest: GradleBuildInvoker.Request): File = FileUtils.join(
-  getAgpAttributionFileDir(buildRequest),
+
+fun checkJetifierResultFile(buildRequestData: GradleBuildInvoker.Request.RequestData): File = FileUtils.join(
+  getAgpAttributionFileDir(buildRequestData),
   SdkConstants.FD_BUILD_ATTRIBUTION,
   "checkJetifierResult.json"
 )
 
 /** Minimal AGP version that supports running checkJetifier task. */
-private val minAGPVersion = GradleVersion.parse("7.1.0-beta01")
+private val minAGPVersion = AgpVersion.parse("7.1.0-beta01")
 
 class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostBuildProcessAnalyzer {
   private var enableJetifierFlagState: Boolean? = null
@@ -50,7 +51,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
     enableJetifierFlagState = studioProvidedInfo.enableJetifierPropertyState
     useAndroidXFlagState = studioProvidedInfo.useAndroidXPropertyState
 
-    checkJetifierResultFile(studioProvidedInfo.buildRequestHolder.buildRequest).let {
+    checkJetifierResultFile(studioProvidedInfo.buildRequestHolder.buildRequest.data).let {
       if (it.exists()) {
         checkJetifierResult = CheckJetifierResult.load(it)
         lastCheckJetifierBuildTimestamp = System.currentTimeMillis()
@@ -80,7 +81,7 @@ class JetifierUsageAnalyzer : BaseAnalyzer<JetifierUsageAnalyzerResult>(), PostB
 
 }
 
-private fun shouldAnalyzerRun(currentAgpVersion: GradleVersion?): Boolean {
+private fun shouldAnalyzerRun(currentAgpVersion: AgpVersion?): Boolean {
   return StudioFlags.BUILD_ANALYZER_JETIFIER_ENABLED.get() && currentAgpVersion != null && currentAgpVersion >= minAGPVersion
 }
 

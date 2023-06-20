@@ -62,7 +62,7 @@ public class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog e
     setUpAsHtmlLabel(myEditorPane);
     myEditorPane.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
-      protected void hyperlinkActivated(HyperlinkEvent e) {
+      protected void hyperlinkActivated(@NotNull HyperlinkEvent e) {
         browse(e.getURL());
       }
     });
@@ -96,7 +96,7 @@ public class AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog e
   }
 
   @Override
-  protected Action @NotNull [] createActions() {
+  protected Action[] createActions() {
     Action previewAction = new AgpUpgradeRefactoringProcessorWithCompileRuntimeSpecialCaseDialog.PreviewRefactoringAction();
     return ArrayUtil.mergeArrays(super.createActions(), new Action [] { previewAction });
   }

@@ -19,6 +19,7 @@ import com.android.SdkConstants.FONT_PREFIX
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.fonts.MoreFontsDialog
 import com.android.tools.idea.fonts.ProjectFonts
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
@@ -34,7 +35,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * The bottom item is an action for opening the downloadable font dialog.
  */
 class FontEnumSupport(private val facet: AndroidFacet, private val resolver: ResourceResolver?) : EnumSupport {
-  private val projectFonts = ProjectFonts(facet)
+  private val projectFonts = ProjectFonts(StudioResourceRepositoryManager.getInstance(facet))
 
   override val values: List<EnumValue>
     get() {

@@ -45,6 +45,7 @@ import com.android.tools.idea.apk.viewer.ApkParser;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
+import com.android.tools.idea.gradle.model.IdeBasicVariant;
 import com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
@@ -56,7 +57,6 @@ import com.android.tools.idea.gradle.util.BuildOutputUtil;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.OutputType;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath;
@@ -71,7 +71,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ConfigurationQuickFix;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
@@ -217,9 +216,25 @@ public final class GradleApkProvider implements ApkProvider {
             baseAppModule = DynamicAppUtils.getBaseFeature(myFacet.getModule());
           }
           if (baseAppModule != null) {
-            ApkInfo apkInfo = collectAppBundleOutput(baseAppModule, myOutputModelProvider, pkgName);
-            if (apkInfo != null) {
-              apkList.add(apkInfo);
+            GradleAndroidModel baseAndroidModel = GradleAndroidModel.get(baseAppModule);
+            if (baseAndroidModel == null) {
+              getLogger().warn("Android model is null. Sync might have failed");
+            }
+            else {
+              // Privacy sandbox SDKs should be installed before the app itself.
+              IdeVariant baseVariant = baseAndroidModel.getSelectedVariant();
+              if (baseVariant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
+                apkList.addAll(getApksForPrivacySandboxSdks(
+                  baseVariant.getName(),
+                  baseVariant.getMainArtifact().getPrivacySandboxSdkInfo(),
+                  baseVariant.getMainArtifact().getAbiFilters(),
+                  deviceAbis
+                ));
+              }
+              ApkInfo apkInfo = collectAppBundleOutput(baseAndroidModel, baseAppModule, myOutputModelProvider, pkgName);
+              if (apkInfo != null) {
+                apkList.add(apkInfo);
+              }
             }
           }
           break;
@@ -391,7 +406,7 @@ public final class GradleApkProvider implements ApkProvider {
 
     List<ApkInfo> list = new ArrayList<>();
     for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
-      ApkInfo unit = new ApkInfo(findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact), builtArtifact.getApplicationId());
+      ApkInfo unit = new ApkInfo(findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact), builtArtifact.getApplicationId(), ImmutableSet.of(), true);
       list.add(unit);
     }
     return list;
@@ -518,14 +533,16 @@ public final class GradleApkProvider implements ApkProvider {
       }
 
       IdeVariant targetVariant = targetAndroidModel.findVariantByName(testedVariant.getTargetVariant());
-      if (targetVariant == null) {
+      IdeBasicVariant targetBasicVariant = targetAndroidModel.findBasicVariantByName(testedVariant.getTargetVariant());
+      if (targetBasicVariant == null) {
         getLogger().warn("Tested variant not found. Sync might have failed.");
         continue;
       }
 
       File targetApk = getApk(targetVariant.getName(), targetVariant.getMainArtifact(), deviceAbis, deviceVersion, targetFacet);
 
-      String applicationId = new GradleApplicationIdProvider(targetFacet, false, targetAndroidModel, targetVariant).getPackageName();
+      String applicationId =
+        GradleApplicationIdProvider.createForBaseModule(targetFacet, targetAndroidModel, targetBasicVariant).getPackageName();
       targetedApks.add(new ApkInfo(targetApk, applicationId));
     }
 
@@ -578,17 +595,7 @@ public final class GradleApkProvider implements ApkProvider {
 
     final String message =
       AndroidBundle.message("run.error.apk.not.signed", androidModuleModel.getSelectedVariant().getDisplayName());
-
-    ConfigurationQuickFix quickFix = (dataContext) -> {
-      ProjectSettingsService service = ProjectSettingsService.getInstance(module.getProject());
-      if (service instanceof AndroidProjectSettingsService) {
-        ((AndroidProjectSettingsService)service).openSigningConfiguration(module);
-      }
-      else {
-        service.openModuleSettings(module);
-      }
-    };
-
+    ConfigurationQuickFix quickFix = new UnsignedApkQuickFix(module, androidModuleModel.getSelectedVariant().getBuildType());
     result.add(ValidationError.fatal(message, quickFix));
     return result.build();
   }
@@ -598,15 +605,10 @@ public final class GradleApkProvider implements ApkProvider {
    * in case of unexpected error.
    */
   @Nullable
-  private static ApkInfo collectAppBundleOutput(@NotNull Module module,
+  private static ApkInfo collectAppBundleOutput(@NotNull GradleAndroidModel androidModel,
+                                                @NotNull Module module,
                                                 @NotNull PostBuildModelProvider outputModelProvider,
                                                 @NotNull String pkgName) {
-    GradleAndroidModel androidModel = GradleAndroidModel.get(module);
-    if (androidModel == null) {
-      getLogger().warn("Android model is null. Sync might have failed");
-      return null;
-    }
-
     List<File> apkFiles;
     if (androidModel.getFeatures().isBuildOutputFileSupported()) {
       String outputListingFile = BuildOutputUtil

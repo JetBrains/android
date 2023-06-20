@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.codegen.gradle
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
@@ -51,6 +51,7 @@ import org.jetbrains.uast.kotlin.KotlinUClass
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.AbstractUastVisitor
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -69,7 +70,7 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
   val expect: Expect = Expect.create()
 
   @get:Rule
-  val enableSafeArgsCodeGen = RestoreFlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
+  val enableSafeArgsCodeGen = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
 
   @get:Rule
   val temporaryFolder = TemporaryFolder()
@@ -111,6 +112,7 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
     NavigationResourcesModificationListener.ensureSubscribed(fixture.project)
   }
 
+  @Ignore("b/246884723")
   @Test
   @RunsInEdt
   fun compile() {
@@ -222,7 +224,8 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
   )
 
   private fun KotlinType.toDescription(): String {
-    return when (val type = if (this.isMarkedNullable) this.makeNullable() else this) {
+    val type = if (this.isMarkedNullable) this.makeNullable() else this
+    return when (type) {
       // Note: References to dependencies are not working when generating sources, e.g. NavDirections, but they are
       // not critical to verifying safe args behavior, so we're OK simply peeling the class name out of the error type
       // for now.

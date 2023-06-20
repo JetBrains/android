@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.settings
 
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.google.common.truth.Truth.assertThat
@@ -25,6 +26,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.runInEdtAndWait
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
@@ -38,6 +40,11 @@ class LogcatApplicationSettingsConfigurableTest {
   val rule = RuleChain(ApplicationRule(), EdtRule())
 
   private val logcatSettings = AndroidLogcatSettings()
+
+  @After
+  fun tearDown() {
+    LogcatToolWindowFactory.logcatPresenters.clear()
+  }
 
   @Test
   fun init_doesNotRequireEdt() {
@@ -102,6 +109,30 @@ class LogcatApplicationSettingsConfigurableTest {
   }
 
   @Test
+  fun ignoredTags_initialValue() {
+    logcatSettings.ignoredTags = setOf("foo", "bar")
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+
+    assertThat(configurable.ignoreTagsTextField.component.text).isEqualTo("foo bar")
+  }
+
+  @Test
+  fun ignoredTagsNote_noPanels() {
+    LogcatToolWindowFactory.logcatPresenters.clear()
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+
+    assertThat(configurable.ignoreTagsNote.isVisible).isTrue()
+  }
+
+  @Test
+  fun ignoredTagsNote_withPanel() {
+    LogcatToolWindowFactory.logcatPresenters.add(FakeLogcatPresenter().apply { tagSet.add("foo") })
+    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
+
+    assertThat(configurable.ignoreTagsNote.isVisible).isFalse()
+  }
+
+  @Test
   fun apply_appliesToLogcatPresenters() {
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     val mockLogcatPresenter = mock<LogcatPresenter>()
@@ -120,12 +151,12 @@ class LogcatApplicationSettingsConfigurableTest {
       bufferSize = 100 * 1024,
       defaultFilter = "foo",
       mostRecentlyUsedFilterIsDefault = false,
-      namedFiltersEnabled = false)
+      ignoredTags = emptySet())
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     configurable.cycleBufferSizeTextField.text = "200"
     configurable.defaultFilterTextField.text = "bar"
     configurable.mostRecentlyUsedFilterIsDefaultCheckbox.isSelected = true
-    configurable.enableNamedFiltersCheckbox.isSelected = true
+    configurable.ignoreTagsTextField.component.text = " foo  bar "
 
     configurable.apply()
 
@@ -133,7 +164,7 @@ class LogcatApplicationSettingsConfigurableTest {
       bufferSize = 200 * 1024,
       defaultFilter = "bar",
       mostRecentlyUsedFilterIsDefault = true,
-      namedFiltersEnabled = true))
+      ignoredTags = setOf("foo", "bar")))
   }
 
   @Test
@@ -171,12 +202,14 @@ class LogcatApplicationSettingsConfigurableTest {
   }
 
   @Test
-  fun isModified_namedFilters() {
-    logcatSettings.namedFiltersEnabled = false
+  fun isModified_ignoredTags() {
+    logcatSettings.ignoredTags = setOf("foo", "bar")
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     assertThat(configurable.isModified).isFalse()
 
-    configurable.enableNamedFiltersCheckbox.isSelected = true
+    runInEdtAndWait {
+      configurable.ignoreTagsTextField.component.text = "foobar"
+    }
 
     assertThat(configurable.isModified).isTrue()
   }

@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
@@ -41,14 +44,35 @@ public class OpenCloseVisualizationToolTest {
    *   Test Steps:
    *   1. Import SimpleApplication project.
    *   2. Open xml files and verify the files are opened in Visualization Tool window.
-   *   3. Open Java file, and verify the Visualization Tool window is closed.
-   *   4. Closed all opened xml files and java file.
+   *   3. Resize the validation window and check that the display has rearranged.
+   *   4. Open Java file, and verify the Visualization Tool window is closed.
+   *   5. Close all opened xml files and java file.
    *   </pre>
    * </p>
    */
   @Test
   public void visualizationToolAvailableForLayoutFile() throws Exception {
-    VisualizationTest.openAndCloseVisualizationTool(guiTest.importSimpleApplication().getEditor());
+    EditorFixture editor = guiTest.importSimpleApplication().getEditor();
+    final String file1 = "app/src/main/res/layout/frames.xml";
+    final String file2 = "app/src/main/res/layout/activity_my.xml";
+    final String file3 = "app/src/main/java/google/simpleapplication/MyActivity.java";
+
+    editor.open(file1);
+    assertThat(editor.getVisualizationTool().getCurrentFileName()).isEqualTo("frames.xml");
+
+    editor.open(file2);
+    assertThat(editor.getVisualizationTool().getCurrentFileName()).isEqualTo("activity_my.xml");
+    editor.getVisualizationTool().zoomToFit();
+    assertThat(editor.getVisualizationTool().getRowNumber()).isEqualTo(3);
+
+    editor.getVisualizationTool().expandWindow();
+    assertThat(editor.getVisualizationTool().getRowNumber()).isEqualTo(2);
+
+    editor.open(file3).waitForVisualizationToolToHide();
+
+    // reset the state, i.e. hide the visualization tool window and close all the files.
+    editor.open(file1).getVisualizationTool().hide();
+    editor.closeFile(file1).closeFile(file2).closeFile(file3);
   }
 
 }

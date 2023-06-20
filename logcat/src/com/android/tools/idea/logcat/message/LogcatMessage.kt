@@ -15,11 +15,25 @@
  */
 package com.android.tools.idea.logcat.message
 
+import java.io.ObjectInput
+import java.io.ObjectOutput
+
 /**
  * A Logcat message.
  */
-internal data class LogcatMessage(val header: LogcatHeader, val message: String) {
+data class LogcatMessage(val header: LogcatHeader, val message: String) {
   override fun toString(): String {
     return "$header: $message"
   }
+
+  fun writeExternal(out: ObjectOutput) {
+    header.writeExternal(out)
+    out.writeUTF(message)
+  }
+}
+
+fun ObjectInput.readLogcatMessage(): LogcatMessage {
+  val logcatHeader = readLogcatHeader()
+  val message = readUTF()
+  return LogcatMessage(logcatHeader, message)
 }

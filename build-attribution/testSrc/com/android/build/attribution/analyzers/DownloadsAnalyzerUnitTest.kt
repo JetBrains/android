@@ -20,16 +20,17 @@ import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
-import com.android.ide.common.repository.GradleVersion
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.testutils.MockitoKt
 import com.google.common.truth.Truth
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.OperationDescriptor
+import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.download.FileDownloadFinishEvent
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor
 import org.gradle.tooling.events.download.FileDownloadResult
+import org.gradle.util.GradleVersion
 import org.junit.Test
 import org.mockito.Mockito
 import java.net.URI
@@ -94,7 +95,8 @@ class DownloadsAnalyzerUnitTest {
     val wrapper = BuildAnalyzersWrapper(listOf(analyzer), taskContainer, pluginContainer)
     val attributionData = AndroidGradlePluginAttributionData(
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(
-        agpVersion = "7.3",
+        agpVersion = "7.3.0",
+        gradleVersion = "8.0.0",
         configurationCacheIsOn = false
       )
     )
@@ -178,7 +180,7 @@ class DownloadsAnalyzerUnitTest {
       Mockito.mock(BuildEventsAnalyzersProxy::class.java),
       StudioProvidedInfo(
         agpVersion = null,
-        gradleVersion = GradleVersion.parse("7.3"),
+        gradleVersion = GradleVersion.version("7.3"),
         configurationCachingGradlePropertyState = null,
         buildInvocationType = BuildInvocationType.REGULAR_BUILD,
         enableJetifierPropertyState = false,
@@ -192,7 +194,7 @@ class DownloadsAnalyzerUnitTest {
 
   @Test
   fun testDownloadsAnalyzerInactiveWithOldGradleAndAgpVersions() = runTestWithNoEventsForAgpAndGradleVersions(
-    agpVersionFromBuild = "4.3",
+    agpVersionFromBuild = "4.3.0",
     gradleVersion = "7.2",
     expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
   )
@@ -207,7 +209,7 @@ class DownloadsAnalyzerUnitTest {
 
   @Test
   fun testDownloadsAnalyzerInactiveWithOldAgpAndMissingGradleVersions() = runTestWithNoEventsForAgpAndGradleVersions(
-    agpVersionFromBuild = "4.3",
+    agpVersionFromBuild = "4.3.0",
     gradleVersion = null,
     expectAnalyzerResult = DownloadsAnalyzer.GradleDoesNotProvideEvents
   )
@@ -215,14 +217,14 @@ class DownloadsAnalyzerUnitTest {
   @Test
   fun testDownloadsAnalyzerWithRecentAGP() = runTestWithNoEventsForAgpAndGradleVersions(
     // Case for when we assume Gradle version base on AGP version received from build.
-    agpVersionFromBuild = "7.3",
+    agpVersionFromBuild = "7.3.0",
     gradleVersion = null,
     expectAnalyzerResult = DownloadsAnalyzer.ActiveResult(emptyList())
   )
 
   @Test
   fun testDownloadsAnalyzerWithOldAGPButRecentGradle() = runTestWithNoEventsForAgpAndGradleVersions(
-    agpVersionFromBuild = "4.3",
+    agpVersionFromBuild = "4.3.0",
     gradleVersion = "7.3",
     expectAnalyzerResult = DownloadsAnalyzer.ActiveResult(emptyList())
   )
@@ -235,6 +237,7 @@ class DownloadsAnalyzerUnitTest {
     val attributionData = AndroidGradlePluginAttributionData(
       buildInfo = AndroidGradlePluginAttributionData.BuildInfo(
         agpVersion = agpVersionFromBuild,
+        gradleVersion = "8.0.0",
         configurationCacheIsOn = false
       )
     )
@@ -247,7 +250,7 @@ class DownloadsAnalyzerUnitTest {
       Mockito.mock(BuildEventsAnalyzersProxy::class.java),
       StudioProvidedInfo(
         agpVersion = null,
-        gradleVersion = gradleVersion?.let{ GradleVersion.parse(it) },
+        gradleVersion = gradleVersion?.let{ GradleVersion.version(it) },
         configurationCachingGradlePropertyState = null,
         buildInvocationType = BuildInvocationType.REGULAR_BUILD,
         enableJetifierPropertyState = false,
@@ -257,41 +260,6 @@ class DownloadsAnalyzerUnitTest {
     )
 
     Truth.assertThat(analyzer.result).isEqualTo(expectAnalyzerResult)
-  }
-}
-
-private fun downloadFinishEventStub(descriptor: FileDownloadOperationDescriptor, result: FileDownloadResult) =
-  Mockito.mock(FileDownloadFinishEvent::class.java).apply {
-    Mockito.`when`(this.descriptor).thenReturn(descriptor)
-    Mockito.`when`(this.result).thenReturn(result)
-  }
-
-private fun downloadOperationDescriptorStub(url: String, parent: OperationDescriptor?) = Mockito.mock(
-  FileDownloadOperationDescriptor::class.java).apply {
-  Mockito.`when`(this.uri).thenReturn(URI(url))
-  Mockito.`when`(this.parent).thenReturn(parent)
-}
-
-private fun downloadSuccessStub(start: Long, end: Long, bytes: Long) = object : FileDownloadResult {
-  override fun getStartTime(): Long = start
-  override fun getEndTime(): Long = end
-  override fun getBytesDownloaded(): Long = bytes
-}
-
-private interface FailedDownloadResult : FileDownloadResult, FailureResult
-
-private fun downloadFailureStub(start: Long, end: Long, bytes: Long, failures: List<Failure>) = object : FailedDownloadResult {
-  override fun getStartTime(): Long = start
-  override fun getEndTime(): Long = end
-  override fun getBytesDownloaded(): Long = bytes
-  override fun getFailures(): List<Failure> = failures
-}
-
-private fun failureStub(message: String, causes: List<Failure>) = object : Failure {
-  override fun getMessage(): String = message
-  override fun getCauses(): List<Failure> = causes
-  override fun getDescription(): String? {
-    throw UnsupportedOperationException("Not expected to be used.")
   }
 }
 

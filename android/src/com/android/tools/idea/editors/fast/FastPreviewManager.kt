@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
@@ -60,7 +61,7 @@ import java.time.Duration
 import java.util.concurrent.atomic.AtomicBoolean
 
 /** Default version of the runtime to use if the dependency resolution fails when looking for the daemon. */
-private val DEFAULT_RUNTIME_VERSION = GradleVersion.parse("1.1.0-alpha02")
+private val DEFAULT_RUNTIME_VERSION = Version.parse("1.1.0-alpha02")
 
 /**
  * Converts the [Throwable] stacktrace to a string.
@@ -187,10 +188,10 @@ private class DaemonRegistry(
  * Default runtime version locator that, for a given [Module], returns the version of the runtime that
  * should be used.
  */
-private fun defaultRuntimeVersionLocator(module: Module): GradleVersion =
+private fun defaultRuntimeVersionLocator(module: Module): Version =
   module.getModuleSystem()
     .getResolvedDependency(GoogleMavenArtifactId.COMPOSE_TOOLING.getCoordinate("+"))
-    ?.version ?: DEFAULT_RUNTIME_VERSION
+    ?.lowerBoundVersion ?: DEFAULT_RUNTIME_VERSION
 
 /**
  * Returns a [CompilerDaemonClient] that uses the in-process compiler. This is the same
@@ -236,18 +237,17 @@ private const val FAST_PREVIEW_NOTIFICATION_GROUP_ID = "Fast Preview Notificatio
  *
  * @param project [Project] this manager is working with
  * @param alternativeDaemonFactory Optional daemon factory to use if the default one should not be used. Mainly for testing.
- * @param moduleRuntimeVersionLocator A method that given a [Module] returns the [GradleVersion] of the Compose runtime that should
+ * @param moduleRuntimeVersionLocator A method that given a [Module] returns the [Version] of the Compose runtime that should
  *  be used. This is useful when locating the specific kotlin compiler daemon.
  * @param maxCachedRequests Maximum number of cached requests to store by this manager. If 0, caching is disabled.
  */
-@Service
+@Service(Service.Level.PROJECT)
 class FastPreviewManager private constructor(
   private val project: Project,
   alternativeDaemonFactory: ((String, Project, Logger, CoroutineScope) -> CompilerDaemonClient)? = null,
-  private val moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
+  private val moduleRuntimeVersionLocator: (Module) -> Version = ::defaultRuntimeVersionLocator,
   maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS) : Disposable {
 
-  @Suppress("unused") // Needed for IntelliJ service constructor call
   constructor(project: Project) : this(project, null)
 
   private val log = Logger.getInstance(FastPreviewManager::class.java)
@@ -301,7 +301,7 @@ class FastPreviewManager private constructor(
    * Allow auto disable. If set to true, the Fast Preview might disable itself automatically if there is a compiler failure.
    * This can happen if the project has unsupported features like annotation providers.
    */
-  var allowAutoDisable: Boolean = true
+  var allowAutoDisable: Boolean = COMPOSE_FAST_PREVIEW_AUTO_DISABLE.get()
 
   /**
    * Returns true when the feature is available. The feature will not be available if Studio is in power save mode, it's currently building
@@ -346,7 +346,6 @@ class FastPreviewManager private constructor(
    *
    * The given [FastPreviewTrackerManager.Request] is used to track the metrics of this request.
    */
-  @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
   suspend fun compileRequest(files: Collection<PsiFile>,
                              module: Module,
                              indicator: ProgressIndicator = EmptyProgressIndicator(),
@@ -471,7 +470,6 @@ class FastPreviewManager private constructor(
   /**
    * Sends a compilation request for the a single [file]. See [FastPreviewManager.compileRequest].
    */
-  @Suppress("BlockingMethodInNonBlockingContext") // Runs in the IO context
   suspend fun compileRequest(file: PsiFile,
                              module: Module,
                              indicator: ProgressIndicator = EmptyProgressIndicator(),
@@ -545,7 +543,7 @@ class FastPreviewManager private constructor(
     @TestOnly
     fun getTestInstance(project: Project,
                         daemonFactory: (String, Project, Logger, CoroutineScope) -> CompilerDaemonClient,
-                        moduleRuntimeVersionLocator: (Module) -> GradleVersion = ::defaultRuntimeVersionLocator,
+                        moduleRuntimeVersionLocator: (Module) -> Version = ::defaultRuntimeVersionLocator,
                         maxCachedRequests: Int = DEFAULT_MAX_CACHED_REQUESTS): FastPreviewManager =
       FastPreviewManager(project = project,
                          alternativeDaemonFactory = daemonFactory,

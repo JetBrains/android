@@ -288,17 +288,13 @@ public class OverrideResourceAction extends AbstractIntentionAction {
         assert false;
         return; // Should not happen
       }
-      Module module = configuration.getModule();
-      if (module == null) {
-        assert false;
-        return; // Should not happen
-      }
+      Project project = configuration.getConfigModule().getProject();
       XmlFile xmlFile = (XmlFile)configuration.getPsiFile();
       ResourceFolderType folderType = IdeResourcesUtil.getFolderType(xmlFile);
       if (folderType == null) {
         folderType = ResourceFolderType.LAYOUT;
       }
-      forkResourceFile(module.getProject(), folderType, file, xmlFile, newFolder, configuration, open);
+      forkResourceFile(project, folderType, file, xmlFile, newFolder, configuration, open);
     }
   }
 
@@ -475,8 +471,9 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return ResourceFolderType.getFolderType(inputString) != null && FolderConfiguration.getConfigForFolder(inputString) != null;
     }
 
+    @NotNull
     @Override
-    public PsiElement @NotNull [] create(@NotNull String newName) throws Exception {
+    public PsiElement [] create(@NotNull String newName) throws Exception {
       PsiDirectory subdirectory = myDirectory.findSubdirectory(newName);
       if (subdirectory == null) {
         subdirectory = myDirectory.createSubdirectory(newName);

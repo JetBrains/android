@@ -31,10 +31,7 @@ import org.junit.rules.RuleChain
 internal class ToggleFastPreviewActionTest {
   val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val chainRule: RuleChain = RuleChain
-    .outerRule(projectRule)
-    .around(FastPreviewRule())
+  @get:Rule val chainRule: RuleChain = RuleChain.outerRule(projectRule).around(FastPreviewRule())
 
   @Test
   fun `is action visible when Fast Preview depending on the flag values`() {
@@ -48,8 +45,7 @@ internal class ToggleFastPreviewActionTest {
 
         assertEquals(it, event.presentation.isVisible)
       }
-    }
-    finally {
+    } finally {
       StudioFlags.COMPOSE_FAST_PREVIEW.clearOverride()
       LiveEditApplicationConfiguration.getInstance().resetDefault()
     }
@@ -67,8 +63,14 @@ internal class ToggleFastPreviewActionTest {
     assertFalse(manager.isEnabled)
     assertFalse(manager.isAvailable)
 
+    action.update(event) // Manually trigger update, we can check the action presentation
+    assertEquals("Enable Live Updates", event.presentation.text)
+
     action.actionPerformed(event)
     assertTrue(manager.isEnabled)
     assertTrue(manager.isAvailable)
+
+    action.update(event) // Manually trigger update, we can check the action presentation
+    assertEquals("Disable Live Updates", event.presentation.text)
   }
 }

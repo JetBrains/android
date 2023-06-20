@@ -59,8 +59,6 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.util.SystemProperties.getUserHome
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoMoreInteractions
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Collections.singletonList
@@ -68,19 +66,30 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
 import javax.swing.JRadioButton
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 
 private val EXPORT_FORMATS_ALL = listOf(DB, SQL, CSV(mock()))
 
 /** Test suite verifying Export-to-File Dialog behaviour */
 @Suppress("NestedLambdaShadowedImplicitParameter", "SameParameterValue")
 class ExportToFileDialogTest : LightPlatformTestCase() {
-  private val inFileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("name")))
+  private val inFileDatabaseId =
+    SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("name")))
   private val inMemoryDatabaseId = SqliteDatabaseId.fromLiveDatabase(":memory: database1337", 1337)
-  private val databaseId = inFileDatabaseId // for cases where it does not matter if the database is file-backed or memory-backed
-  private val column1 = SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
-  private val column2 = SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+  private val databaseId =
+    inFileDatabaseId // for cases where it does not matter if the database is file-backed or
+  // memory-backed
+  private val column1 =
+    SqliteColumn("c1", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
+  private val column2 =
+    SqliteColumn("c2", SqliteAffinity.TEXT, isNullable = false, inPrimaryKey = false)
   private val table1 = SqliteTable("t1", listOf(column1, column2), null, false)
-  private val query = SqliteStatement(SELECT, "select * from ${table1.name} where ${table1.columns.first().name} == qwerty")
+  private val query =
+    SqliteStatement(
+      SELECT,
+      "select * from ${table1.name} where ${table1.columns.first().name} == qwerty"
+    )
   private val analyticsTracker = mock<DatabaseInspectorAnalyticsTracker>()
 
   override fun setUp() {
@@ -99,7 +108,10 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     test_availableUiElements_exportDatabase(inMemoryDatabaseId, listOf(CSV(mock())))
   }
 
-  private fun test_availableUiElements_exportDatabase(databaseId: SqliteDatabaseId, expectedExportFormats: List<ExportFormat>) {
+  private fun test_availableUiElements_exportDatabase(
+    databaseId: SqliteDatabaseId,
+    expectedExportFormats: List<ExportFormat>
+  ) {
     test_availableUiElements(
       params = ExportDatabaseDialogParams(databaseId, Origin.UNKNOWN_ORIGIN),
       expectedTitle = "Export Database",
@@ -115,7 +127,10 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     test_availableUiElements_exportTable(inMemoryDatabaseId, listOf(CSV(mock())))
   }
 
-  private fun test_availableUiElements_exportTable(databaseId: SqliteDatabaseId, expectedExportFormats: List<ExportFormat>) {
+  private fun test_availableUiElements_exportTable(
+    databaseId: SqliteDatabaseId,
+    expectedExportFormats: List<ExportFormat>
+  ) {
     test_availableUiElements(
       params = ExportTableDialogParams(databaseId, table1.name, Origin.SCHEMA_TREE_CONTEXT_MENU),
       expectedTitle = "Export Table",
@@ -139,7 +154,11 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     )
   }
 
-  private fun test_availableUiElements(params: ExportDialogParams, expectedTitle: String, expectedExportFormats: List<ExportFormat>) {
+  private fun test_availableUiElements(
+    params: ExportDialogParams,
+    expectedTitle: String,
+    expectedExportFormats: List<ExportFormat>
+  ) {
     val dialog = ExportToFileDialogViewImpl(project, params)
     val dialogListener = mock<ExportToFileDialogView.Listener>()
     dialog.addListener(dialogListener)
@@ -150,10 +169,12 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
       // check dialog title
       assertThat(it.title).isEqualTo(expectedTitle)
 
-      // check available formats (all format buttons are created, but only relevant ones are shown, which greatly simplifies the UI code)
+      // check available formats (all format buttons are created, but only relevant ones are shown,
+      // which greatly simplifies the UI code)
       val treeWalker = TreeWalker(it.rootPane)
       val formatButtons = treeWalker.formatButtons()
-      assertThat(formatButtons.map { it.text }).containsExactlyElementsIn(EXPORT_FORMATS_ALL.map { it.displayName })
+      assertThat(formatButtons.map { it.text })
+        .containsExactlyElementsIn(EXPORT_FORMATS_ALL.map { it.displayName })
       formatButtons.forEach { button ->
         val isSupported = expectedExportFormats.any { it.displayName == button.text }
         assertThat(button.isVisible).isEqualTo(isSupported)
@@ -168,11 +189,13 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
         formatButtons.single { it.text == format.displayName }.doClick()
         val isSupported = format is CSV
         assertThat(delimiterComboBox.isEnabled).isEqualTo(isSupported)
-        assertThat(destinationPathTextField.text).endsWith(".${expectedFileExtension(format, params)}")
+        assertThat(destinationPathTextField.text)
+          .endsWith(".${expectedFileExtension(format, params)}")
       }
 
       // ensure all delimiter options are available
-      assertThat(delimiterComboBox.items).containsExactlyElementsIn(Delimiter.values().map { it.displayName })
+      assertThat(delimiterComboBox.items)
+        .containsExactlyElementsIn(Delimiter.values().map { it.displayName })
 
       treeWalker.actionButton("Cancel").doClick()
     }
@@ -183,7 +206,8 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   fun test_dstPathValidation_validPath() = test_dstPathValidation("/out.zip", true)
 
-  fun test_dstPathValidation_validPathLonger() = test_dstPathValidation(Paths.get(getUserHome(), "out.zip").toString(), true)
+  fun test_dstPathValidation_validPathLonger() =
+    test_dstPathValidation(Paths.get(getUserHome(), "out.zip").toString(), true)
 
   fun test_dstPathValidation_validPathTilde() = test_dstPathValidation("~/out.zip", true)
 
@@ -195,20 +219,21 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   fun test_dstPathValidation_targetIsExistingDir() = test_dstPathValidation(getUserHome(), false)
 
-  fun test_dstPathValidation_multiplePaths() = test_dstPathValidation(
-    listOf(
-      PathTestCase("", false),
-      PathTestCase(" ", false),
-      PathTestCase("/", false),
-      PathTestCase("/out", true),
-      PathTestCase("/out/", false),
-      PathTestCase("/does-not-exist-path", true),
-      PathTestCase("/does-not-exist-path/", false),
-      PathTestCase("/does-not-exist-path/out", false),
-      PathTestCase(Paths.get(getUserHome(), "out.zip").toString(), true),
-      PathTestCase("", false),
+  fun test_dstPathValidation_multiplePaths() =
+    test_dstPathValidation(
+      listOf(
+        PathTestCase("", false),
+        PathTestCase(" ", false),
+        PathTestCase("/", false),
+        PathTestCase("/out", true),
+        PathTestCase("/out/", false),
+        PathTestCase("/does-not-exist-path", true),
+        PathTestCase("/does-not-exist-path/", false),
+        PathTestCase("/does-not-exist-path/out", false),
+        PathTestCase(Paths.get(getUserHome(), "out.zip").toString(), true),
+        PathTestCase("", false),
+      )
     )
-  )
 
   private data class PathTestCase(val path: String, val isValidPath: Boolean)
 
@@ -229,7 +254,9 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
       paths.forEach { (dstPath, isValidPath) ->
         treeWalker.destinationPathTextField().text = dstPath
-        assertWithMessage("Validating: $dstPath").that(treeWalker.actionButton("Export").isEnabled).isEqualTo(isValidPath)
+        assertWithMessage("Validating: $dstPath")
+          .that(treeWalker.actionButton("Export").isEnabled)
+          .isEqualTo(isValidPath)
       }
 
       treeWalker.actionButton("Cancel").doClick()
@@ -239,11 +266,17 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     verifyNoMoreInteractions(dialogListener)
   }
 
-  fun test_exportRequest_exportDatabase_db() { test_exportRequest_exportDatabase(DB) }
+  fun test_exportRequest_exportDatabase_db() {
+    test_exportRequest_exportDatabase(DB)
+  }
 
-  fun test_exportRequest_exportDatabase_csv() { test_exportRequest_exportDatabase(CSV(VERTICAL_BAR)) }
+  fun test_exportRequest_exportDatabase_csv() {
+    test_exportRequest_exportDatabase(CSV(VERTICAL_BAR))
+  }
 
-  fun test_exportRequest_exportDatabase_sql() { test_exportRequest_exportDatabase(SQL) }
+  fun test_exportRequest_exportDatabase_sql() {
+    test_exportRequest_exportDatabase(SQL)
+  }
 
   private fun test_exportRequest_exportDatabase(dstFormat: ExportFormat) {
     val dialogParams = ExportDatabaseDialogParams(databaseId, Origin.QUERY_RESULTS_EXPORT_BUTTON)
@@ -253,9 +286,13 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
     test_exportRequest(dialogParams, expectedRequest)
   }
 
-  fun test_exportRequest_exportTable_csv() { test_exportRequest_exportTable(CSV(TAB)) }
+  fun test_exportRequest_exportTable_csv() {
+    test_exportRequest_exportTable(CSV(TAB))
+  }
 
-  fun test_exportRequest_exportTable_sql() { test_exportRequest_exportTable(SQL) }
+  fun test_exportRequest_exportTable_sql() {
+    test_exportRequest_exportTable(SQL)
+  }
 
   private fun test_exportRequest_exportTable(dstFormat: ExportFormat) {
     val table = table1.name
@@ -268,10 +305,12 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   fun test_exportRequest_exportQuery_csv() {
     val srcQuery = query
-    val dialogParams = ExportQueryResultsDialogParams(databaseId, srcQuery, Origin.SCHEMA_TREE_CONTEXT_MENU)
+    val dialogParams =
+      ExportQueryResultsDialogParams(databaseId, srcQuery, Origin.SCHEMA_TREE_CONTEXT_MENU)
     val dstFormat = CSV(COMMA)
     val destinationPath = createDestinationPath(dialogParams, dstFormat)
-    val expectedRequest = ExportQueryResultsRequest(databaseId, srcQuery, dstFormat, destinationPath)
+    val expectedRequest =
+      ExportQueryResultsRequest(databaseId, srcQuery, dstFormat, destinationPath)
 
     test_exportRequest(dialogParams, expectedRequest)
   }
@@ -286,13 +325,18 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
       val treeWalker = TreeWalker(it.rootPane)
       val format = expectedRequest.format
       treeWalker.formatButtons().single { it.text == format.displayName }.doClick()
-      if (format is CSV) treeWalker.delimiterComboBox().run { selectedItem = items.single { it == format.delimiter.displayName } }
+      if (format is CSV)
+        treeWalker.delimiterComboBox().run {
+          selectedItem = items.single { it == format.delimiter.displayName }
+        }
       treeWalker.destinationPathTextField().text = expectedRequest.dstPath.toFile().canonicalPath
 
       val latch = CountDownLatch(1)
-      dialog.addListener(object : ExportToFileDialogView.Listener {
-        override fun exportRequestSubmitted(params: ExportRequest) = latch.countDown()
-      })
+      dialog.addListener(
+        object : ExportToFileDialogView.Listener {
+          override fun exportRequestSubmitted(params: ExportRequest) = latch.countDown()
+        }
+      )
       treeWalker.actionButton("Export").doClick()
       latch.await(5, TimeUnit.SECONDS)
     }
@@ -304,39 +348,49 @@ class ExportToFileDialogTest : LightPlatformTestCase() {
 
   private fun TreeWalker.formatButtons() = descendants().filterIsInstance<JRadioButton>()
 
-  private fun TreeWalker.delimiterComboBox() = descendants().filterIsInstance<ComboBox<String>>().single()
+  private fun TreeWalker.delimiterComboBox() =
+    descendants().filterIsInstance<ComboBox<String>>().single()
 
-  private fun TreeWalker.destinationPathTextField() = descendants().filterIsInstance<ExtendableTextField>().single()
+  private fun TreeWalker.destinationPathTextField() =
+    descendants().filterIsInstance<ExtendableTextField>().single()
 
-  private fun TreeWalker.actionButton(text: String) = descendants().filterIsInstance<JButton>().single { it.text == text }
+  private fun TreeWalker.actionButton(text: String) =
+    descendants().filterIsInstance<JButton>().single { it.text == text }
 
-  private fun expectedFileExtension(format: ExportFormat, params: ExportDialogParams): String = when {
-    format == DB && params is ExportDatabaseDialogParams -> "db"
-    format is CSV && params is ExportDatabaseDialogParams -> "zip"
-    format is CSV -> "csv"
-    format == SQL -> "sql"
-    else -> throw IllegalArgumentException()
-  }
-
-  private val ExportFormat.displayName
-    get() : String = when (this) {
-      DB -> "DB"
-      SQL -> "SQL"
-      is CSV -> "CSV"
-    }
-
-  private val Delimiter.displayName: String
-    get() = when (this) {
-      SEMICOLON -> "Semicolon (;)"
-      TAB -> "Tab (↹)"
-      COMMA -> "Comma (,)"
-      VERTICAL_BAR -> "Vertical Bar (|)"
-      SPACE -> "Space (␣)"
+  private fun expectedFileExtension(format: ExportFormat, params: ExportDialogParams): String =
+    when {
+      format == DB && params is ExportDatabaseDialogParams -> "db"
+      format is CSV && params is ExportDatabaseDialogParams -> "zip"
+      format is CSV -> "csv"
+      format == SQL -> "sql"
       else -> throw IllegalArgumentException()
     }
 
-  private fun createDestinationPath(params: ExportDialogParams, format: ExportFormat) =
-    Path.of(getUserHome(), "exported-file.${expectedFileExtension(format, params)}").toFile().canonicalFile.toPath()
+  private val ExportFormat.displayName
+    get(): String =
+      when (this) {
+        DB -> "DB"
+        SQL -> "SQL"
+        is CSV -> "CSV"
+      }
 
-  private val <T> ComboBox<T>.items get() = (0 until itemCount).map { getItemAt(it) }
+  private val Delimiter.displayName: String
+    get() =
+      when (this) {
+        SEMICOLON -> "Semicolon (;)"
+        TAB -> "Tab (↹)"
+        COMMA -> "Comma (,)"
+        VERTICAL_BAR -> "Vertical Bar (|)"
+        SPACE -> "Space (␣)"
+        else -> throw IllegalArgumentException()
+      }
+
+  private fun createDestinationPath(params: ExportDialogParams, format: ExportFormat) =
+    Path.of(getUserHome(), "exported-file.${expectedFileExtension(format, params)}")
+      .toFile()
+      .canonicalFile
+      .toPath()
+
+  private val <T> ComboBox<T>.items
+    get() = (0 until itemCount).map { getItemAt(it) }
 }

@@ -15,8 +15,9 @@
  */
 package org.jetbrains.android.actions;
 
-import com.android.resources.ResourceFolderType;
 import com.google.common.annotations.VisibleForTesting;
+import com.android.resources.ResourceFolderType;
+import com.google.common.collect.ImmutableList;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
@@ -30,17 +31,17 @@ import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
-import java.awt.BorderLayout;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.text.JTextComponent;
+import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.DeviceConfiguratorPanel;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
+import java.awt.*;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * Dialog to decide where to create a res/ subdirectory (e.g., layout/, values-foo/, etc.)
@@ -165,6 +166,16 @@ public class CreateResourceDirectoryDialog extends CreateResourceDirectoryDialog
   @VisibleForTesting
   JTextComponent getDirectoryNameTextField() {
     return myDirectoryNameTextField;
+  }
+
+  @TestOnly
+  Collection<String> getSourceSets() {
+    int size = mySourceSetCombo.getModel().getSize();
+    ImmutableList.Builder<String> builder = ImmutableList.builder();
+    for (int i = 0; i < size; i++) {
+      builder.add(mySourceSetCombo.getModel().getElementAt(i).toString());
+    }
+    return builder.build();
   }
 
   @Override

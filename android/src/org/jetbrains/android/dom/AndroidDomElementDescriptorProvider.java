@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.dom;
 
+import static com.android.SdkConstants.CLASS_DRAWABLE;
+
 import com.android.sdklib.SdkVersionInfo;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
@@ -22,7 +24,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.xml.XmlElementDescriptorProvider;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.ui.icons.ImageDataByPathLoaderKt;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.xml.DefinesXml;
 import com.intellij.util.xml.DomElement;
@@ -30,9 +31,17 @@ import com.intellij.util.xml.DomManager;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.impl.dom.DomElementXmlDescriptor;
 import icons.StudioIcons;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.Icon;
 import org.jetbrains.android.dom.drawable.CustomDrawableDomElement;
 import org.jetbrains.android.dom.drawable.CustomDrawableElementDescriptor;
-import org.jetbrains.android.dom.layout.*;
+import org.jetbrains.android.dom.layout.DataBindingElement;
+import org.jetbrains.android.dom.layout.LayoutElement;
+import org.jetbrains.android.dom.layout.LayoutElementDescriptor;
+import org.jetbrains.android.dom.layout.LayoutViewElement;
+import org.jetbrains.android.dom.layout.LayoutViewElementDescriptor;
+import org.jetbrains.android.dom.layout.View;
 import org.jetbrains.android.dom.xml.AndroidXmlResourcesUtil;
 import org.jetbrains.android.dom.xml.PreferenceElement;
 import org.jetbrains.android.dom.xml.PreferenceElementDescriptor;
@@ -40,12 +49,6 @@ import org.jetbrains.android.facet.AndroidClassesForXmlUtilKt;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.android.SdkConstants.CLASS_DRAWABLE;
 
 public class AndroidDomElementDescriptorProvider implements XmlElementDescriptorProvider {
   private static final Map<String, Ref<Icon>> ourViewTagName2Icon = ContainerUtil.createSoftMap();
@@ -146,8 +149,12 @@ public class AndroidDomElementDescriptorProvider implements XmlElementDescriptor
       Ref<Icon> iconRef = ourViewTagName2Icon.get(keyName);
 
       if (iconRef == null) {
-        // Find icons from StudioIcons.LayoutEditor.Palette first, then AndroidIcons.Views.
-        Icon icon = ImageDataByPathLoaderKt.getReflectiveIcon("StudioIcons.LayoutEditor.Palette." + convertToPaletteIconName(keyName), StudioIcons.class.getClassLoader());
+        Icon icon;
+        try {
+          icon = (Icon)StudioIcons.LayoutEditor.Palette.class.getField(convertToPaletteIconName(keyName)).get(null);
+        } catch (Exception ex) {
+          icon = null;
+        }
         iconRef = Ref.create(icon);
         ourViewTagName2Icon.put(keyName, iconRef);
       }

@@ -24,7 +24,8 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 fun RecipeExecutor.generateWearModule(
   data: ModuleTemplateData,
   appTitle: String?,
-  useKts: Boolean
+  useKts: Boolean,
+  useVersionCatalog: Boolean = false
 ) {
   val usesFeatureBlock = """<uses-feature android:name="android.hardware.type.watch" />"""
   generateCommonModule(
@@ -35,7 +36,8 @@ fun RecipeExecutor.generateWearModule(
       usesFeatureBlock = usesFeatureBlock,
       hasRoundIcon = false),
     iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
-    themesXml = null, colorsXml = null
+    themesXml = null, colorsXml = null,
+    useVersionCatalog = useVersionCatalog
   )
 
   addDependency("com.google.android.gms:play-services-wearable:+")

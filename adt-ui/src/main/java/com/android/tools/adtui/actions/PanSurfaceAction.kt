@@ -16,12 +16,15 @@
 package com.android.tools.adtui.actions
 
 import com.android.tools.adtui.PANNABLE_KEY
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons.LayoutEditor.Toolbar.PAN_TOOL
 import icons.StudioIcons.LayoutEditor.Toolbar.PAN_TOOL_SELECTED
 
 object PanSurfaceAction : ToggleAction("Pan screen (hold SPACE bar and drag)", "Click and drag the surface.", PAN_TOOL) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(event: AnActionEvent) {
     super.update(event)
     val pannable = event.getData(PANNABLE_KEY)

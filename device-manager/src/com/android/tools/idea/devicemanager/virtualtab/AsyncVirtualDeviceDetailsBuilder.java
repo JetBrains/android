@@ -17,10 +17,10 @@ package com.android.tools.idea.devicemanager.virtualtab;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.device.Resolution;
 import com.android.tools.idea.devicemanager.AdbShellCommandExecutor;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
-import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.StorageDevice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
@@ -52,7 +52,7 @@ final class AsyncVirtualDeviceDetailsBuilder {
     myAdbShellCommandExecutor = adbShellCommandExecutor;
   }
 
-  @NotNull ListenableFuture<@NotNull Device> buildAsync() {
+  @NotNull ListenableFuture<Device> buildAsync() {
     // noinspection UnstableApiUsage
     return Futures.transform(myBridge.findDevice(myProject, myDevice.getKey()), this::build, AppExecutorUtil.getAppExecutorService());
   }

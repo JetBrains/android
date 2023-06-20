@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplay
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
 import com.android.ide.common.blame.SourcePosition;
@@ -39,7 +40,9 @@ import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.rendering.HtmlLinkManager;
+import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
@@ -68,8 +71,11 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -117,7 +123,6 @@ import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -136,10 +141,12 @@ import org.w3c.dom.NodeList;
 // TODO add option to tools:node=”removeAll" Remove all elements of the same node type
 // TODO add option to tools:node=”strict” can be added to anything that merges perfectly
 
+@UiThread
 public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private static final String SUGGESTION_MARKER = "Suggestion: ";
-  private static final Pattern ADD_SUGGESTION_FORMAT = Pattern.compile(".*? 'tools:([\\w:]+)=\"([\\w:]+)\"' to \\<(\\w+)\\> element at [^:]+:(\\d+):(\\d+)-[\\d:]+ to override\\.", Pattern.DOTALL);
+  private static final Pattern ADD_SUGGESTION_FORMAT = Pattern.compile(".*? 'tools:([\\w:]+)=\"([\\w:]+)\"' to \\<(\\w+)\\> element at (.+) to override\\.", Pattern.DOTALL);
+  private static final Pattern FILE_POSITION_FORMAT = Pattern.compile("[^:]+:(\\d+):(\\d+)-[\\d:]+", Pattern.DOTALL);
   private static final Pattern NAV_FILE_PATTERN = Pattern.compile(".*/res/.*navigation(-[^/]*)?/[^/]*$");
 
   /**
@@ -162,7 +169,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private boolean myManifestEditable;
   private final List<ManifestFileWithMetadata> myFiles = new ArrayList<>();
   private final List<ManifestFileWithMetadata> myOtherFiles = new ArrayList<>();
-  private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
+  private final StudioHtmlLinkManager myHtmlLinkManager = new StudioHtmlLinkManager();
   private VirtualFile myFile;
   private final Color myBackgroundColor;
   private Map<PathString, ExternalAndroidLibrary> myLibrariesByManifestDir;
@@ -218,7 +225,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     HyperlinkListener hyperLinkListener = e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
         String url = e.getDescription();
-        myHtmlLinkManager.handleUrl(url, facet.getModule(), null, null, false, null);
+        myHtmlLinkManager.handleUrl(url, facet.getModule(), null, false, HtmlLinkManager.NOOP_SURFACE);
       }
     };
     details.addHyperlinkListener(hyperLinkListener);
@@ -659,14 +666,29 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   @NotNull
   private Color getFileColor(@NotNull File file) {
-    List<String> filesMapped = myFiles.stream().map(test -> test.getFile().getAbsolutePath()).collect(Collectors.toList());
-
-    int index = filesMapped.indexOf(file.getAbsolutePath());
+    int index = getFileIndex(file);
     if (index == 0) {
       // current file shouldn't be highlighted with a background
       return myBackgroundColor;
     }
     return AnnotationColors.BG_COLORS[(index - 1) * AnnotationColors.BG_COLORS_PRIME % AnnotationColors.BG_COLORS.length];
+  }
+
+  private int getFileIndex(@NotNull File file) {
+    int index = 0;
+    for (ManifestFileWithMetadata metadata : myFiles) {
+      if (file.getAbsolutePath().equals(metadata.getFile().getAbsolutePath())) {
+        return index;
+      }
+      index++;
+    }
+    for (ManifestFileWithMetadata metadata : myOtherFiles) {
+      if (file.getAbsolutePath().equals(metadata.getFile().getAbsolutePath())) {
+        return index;
+      }
+      index++;
+    }
+    return index;
   }
 
   private boolean canRemove(@NotNull Node node) {
@@ -767,10 +789,16 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     final String attributeName = matcher.group(1);
     final String attributeValue = matcher.group(2);
     String tagName = matcher.group(3);
-    int line = Integer.parseInt(matcher.group(4));
-    int col = Integer.parseInt(matcher.group(5));
-    final XmlFile mainManifest = ManifestUtils.getMainManifest(facet);
-
+    String filePosition = matcher.group(4);
+    Matcher filePosMatcher = FILE_POSITION_FORMAT.matcher(filePosition);
+    if (position.getPosition().equals(SourcePosition.UNKNOWN) || !filePosMatcher.matches()) {
+      Logger.getInstance(ManifestPanel.class).info("Unknown source position for " + tagName + " tag in file " + position.getFile());
+      sb.add(message);
+      return sb.getHtml();
+    }
+    int line = Integer.parseInt(filePosMatcher.group(1));
+    int col = Integer.parseInt(filePosMatcher.group(2));
+    var mainManifest = getMainManifestFile(facet, position.getFile().getSourceFile());
     Element element = getElementAt(mainManifest, line, col);
     if (element != null && tagName.equals(element.getTagName())) {
       final Element xmlTag = element;
@@ -781,6 +809,30 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       sb.add(message);
     }
     return sb.getHtml();
+  }
+
+  /**
+   * First attempt to get an XmlFile from the file where we detected the error during manifest merger but fallback to the main manifest
+   * if we fail.
+   *
+   * This file is usually the main manifest file of this facet but not always. In case when we have a dynamic feature withina module,
+   * the module's main manifest differ from the file where the manifest merger error is detected.
+   *
+   * @param facet Android Facet
+   * @param manifestErrorSourceFile A file where we detected an error during manifest merger.
+   *
+   */
+  private static XmlFile getMainManifestFile(AndroidFacet facet, File manifestErrorSourceFile) {
+    if (manifestErrorSourceFile != null) {
+      VirtualFile manifestFile = VfsUtil.findFileByIoFile(manifestErrorSourceFile, true);
+      if (manifestFile != null) {
+        PsiFile psiFile = PsiManager.getInstance(facet.getModule().getProject()).findFile(manifestFile);
+        if (psiFile instanceof XmlFile) {
+          return (XmlFile) psiFile;
+        }
+      }
+    }
+    return ManifestUtils.getMainManifest(facet);
   }
 
   @Nullable

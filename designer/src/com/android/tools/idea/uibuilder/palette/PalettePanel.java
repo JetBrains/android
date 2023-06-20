@@ -471,8 +471,9 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       }
     }
 
+    @NotNull
     @Override
-    public @NotNull ActionUpdateThread getActionUpdateThread() {
+    public ActionUpdateThread getActionUpdateThread() {
       return ActionUpdateThread.EDT;
     }
 
@@ -665,7 +666,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
   }
 
   private class MaterialDocAction extends AnAction {
-    private static final String MATERIAL_DEFAULT_REFERENCE = "https://material.io/guidelines/material-design/introduction.html";
+    private static final String MATERIAL_DEFAULT_REFERENCE = "https://d.android.com/r/studio-ui/designer/material/components";
 
     private MaterialDocAction() {
       super("Material Guidelines");

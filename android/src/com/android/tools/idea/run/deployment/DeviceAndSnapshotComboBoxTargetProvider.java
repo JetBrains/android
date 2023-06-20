@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetProvider {
-  private final @NotNull Supplier<@NotNull DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
+  private final @NotNull Supplier<DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
   private final @NotNull DialogSupplier mySelectedDevicesErrorDialog;
 
   // TODO This should not be used in tests

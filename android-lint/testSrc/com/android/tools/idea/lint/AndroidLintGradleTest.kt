@@ -36,7 +36,6 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import org.jetbrains.android.inspections.CreateValueResourceQuickFix
 import java.io.File
 import java.util.Locale
 
@@ -49,13 +48,16 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     myFixture.allowTreeAccessForAllFiles()
   }
 
-  fun testLintWarningInTests() {
+  fun `test lint warning in tests`() {
     // Test that, in a test project which enables lintOptions.checkTestSources, warnings
     // are flagged in unit test sources. This ensures that we're properly syncing lint options
     // into the driver; b/139490306.
     loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
     val file = myFixture.loadFile("app/src/androidTest/java/google/testartifacts/ExampleTest.java")
-    myFixture.checkLint(file, AndroidLintSdCardPathInspection(), "/sd|card",
+    myFixture.checkLint(
+      file,
+      AndroidLintSdCardPathInspection(),
+      "/sd|card",
       """
       Warning: Do not hardcode "/sdcard/"; use `Environment.getExternalStorageDirectory().getPath()` instead
           private String path = "/sdcard/foo"; // Deliberate lint warning
@@ -65,18 +67,24 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
-  fun testMockLocations() {
+  fun `test mock locations`() {
     // MOCK locations are okay in debug manifests; they're not okay in main manifests.
     // This tests that the Gradle builder model is properly passed through to lint.
     loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
 
     val debug = myFixture.loadFile("app/src/debug/AndroidManifest.xml")
-    myFixture.checkLint(debug, AndroidLintMockLocationInspection(), "android.permission.ACCESS_|MOCK_LOCATION",
-                        "No warnings."
+    myFixture.checkLint(
+      debug,
+      AndroidLintMockLocationInspection(),
+      "android.permission.ACCESS_|MOCK_LOCATION",
+      "No warnings."
     )
     val main = myFixture.loadFile("app/src/main/AndroidManifest.xml")
 
-    myFixture.checkLint(main, AndroidLintMockLocationInspection(), "android.permission.ACCESS_|MOCK_LOCATION",
+    myFixture.checkLint(
+      main,
+      AndroidLintMockLocationInspection(),
+      "android.permission.ACCESS_|MOCK_LOCATION",
       """
       Error: Mock locations should only be requested in a test or debug-specific manifest file (typically `src/debug/AndroidManifest.xml`)
           <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
@@ -87,13 +95,61 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
     )
   }
 
-  fun testLibraryDesugaringInLibrary() {
+  fun `test desugaring in library project`() {
     // Regression test for https://issuetracker.google.com/158189490
     loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT)
 
     val debug = myFixture.loadFile("lib/src/main/java/com/example/lib/MyClass.kt")
-    myFixture.checkLint(debug, AndroidLintNewApiInspection(), "LocalDate.n|ow",
-                        "No warnings."
+    myFixture.checkLint(debug, AndroidLintNewApiInspection(), "LocalDate.n|ow", "No warnings.")
+  }
+
+  // app project with global desugaring disabled and android test desugaring enabled
+  fun `test desugaring for instrumentation tests`() {
+    loadProject(TestProjectPaths.TEST_ARTIFACTS_LINT_DESUGARING_ANDROID_TEST)
+
+    val mainFile = myFixture.loadFile("app/src/main/java/google/testartifacts/ExampleMain.java")
+    myFixture.checkLint(
+      mainFile,
+      AndroidLintNewApiInspection(),
+      "LocalDate.n|ow",
+      """
+    Error: Call requires API level 26 (current min is 16): `java.time.LocalDate#now`
+          LocalDate date = LocalDate.now();
+                                     ~~~
+        Fix: Surround with if (VERSION.SDK_INT >= VERSION_CODES.O) { ... }
+        Fix: Add @RequiresApi(O) Annotation
+        Fix: Suppress NewApi with an annotation
+    """
+    )
+
+    val unitTestFile = myFixture.loadFile("app/src/test/java/google/testartifacts/ExampleTest.java")
+    myFixture.checkLint(
+      unitTestFile,
+      AndroidLintNewApiInspection(),
+      "collection.st|ream",
+      """
+    Error: Call requires API level 24 (current min is 16): `java.util.Collection#stream`
+        java.util.stream.Stream<String> streamOfCollection = collection.stream();
+                                                                        ~~~~~~
+        Fix: Surround with if (VERSION.SDK_INT >= VERSION_CODES.N) { ... }
+        Fix: Add @RequiresApi(N) Annotation
+        Fix: Suppress NewApi with an annotation
+    """
+    )
+
+    val androidTestFile =
+      myFixture.loadFile("app/src/androidTest/java/google/testartifacts/ExampleTest.java")
+    myFixture.checkLint(
+      androidTestFile,
+      AndroidLintNewApiInspection(),
+      "LocalDate.n|ow",
+      "No warnings."
+    )
+    myFixture.checkLint(
+      androidTestFile,
+      AndroidLintNewApiInspection(),
+      "collection.st|ream",
+      "No warnings."
     )
   }
 
@@ -103,14 +159,17 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
 
     val debug = myFixture.loadFile("lib/src/main/java/com/example/lib/UseValueOf.java")
     myFixture.checkLint(
-      debug, AndroidLintUseValueOfInspection(), "new Int|eger",
+      debug,
+      AndroidLintUseValueOfInspection(),
+      "new Int|eger",
       """
       Warning: Use `Integer.valueOf(5)` instead
               Integer myInt = new Integer(5);
                               ~~~~~~~~~~~~~~
           Fix: Replace with valueOf()
           Fix: Suppress UseValueOf with an annotation
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 
@@ -123,11 +182,13 @@ class AndroidLintGradleTest : AndroidGradleTestCase() {
 
   fun doGlobalInspectionTest(
     tool: GlobalInspectionTool,
-    scope: AnalysisScope): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
+    scope: AnalysisScope
+  ): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
     // We can't just override
     //    getTestDataDirectoryWorkspaceRelativePath() = "tools/adt/idea/android-lint/testData"
     // here because that interferes with the loadProject() operations running initially
-    myFixture.testDataPath = File(File(getAndroidPluginHome()).parentFile, "android-lint/testData").path
+    myFixture.testDataPath =
+      File(File(getAndroidPluginHome()).parentFile, "android-lint/testData").path
     val testDir = "/lint/global/${getTestName(true)}"
     return super.doGlobalInspectionTest(GlobalInspectionToolWrapper(tool), testDir, scope)
   }
@@ -151,13 +212,19 @@ fun PsiFile.findCaretOffset(caret: String): Int {
   return index + delta
 }
 
-fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLintInspectionBase, caret: String, expected: String) {
+fun JavaCodeInsightTestFixture.checkLint(
+  psiFile: PsiFile,
+  inspection: AndroidLintInspectionBase,
+  caret: String,
+  expected: String
+) {
   AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
   enableInspections(inspection)
   val fileText = psiFile.text
   val sb = StringBuilder()
   val target = psiFile.findCaretOffset(caret)
-  val highlights = doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
+  val highlights =
+    doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
   for (highlight in highlights) {
     val startIndex = highlight.startOffset
     val endOffset = highlight.endOffset
@@ -166,7 +233,7 @@ fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLi
     }
     val description = highlight.description
     val severity = highlight.severity
-    sb.append(severity.name.toLowerCase(Locale.ROOT).capitalize()).append(": ")
+    sb.append(severity.name.lowercase(Locale.ROOT).capitalize()).append(": ")
     sb.append(description).append("\n")
 
     val lineStart = fileText.lastIndexOf("\n", startIndex).let { if (it == -1) 0 else it + 1 }
@@ -183,8 +250,7 @@ fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLi
       if (action.isAvailable(project, editor, psiFile)) {
         sb.append("Fix: ")
         sb.append(action.text)
-      }
-      else {
+      } else {
         sb.append("Disabled Fix: ")
         sb.append(action.text)
       }
@@ -197,6 +263,8 @@ fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLi
     sb.append("No warnings.")
   }
 
-  AndroidGradleTestCase.assertEquals(expected.trimIndent().trim(), sb.toString().trimIndent().trim())
+  AndroidGradleTestCase.assertEquals(
+    expected.trimIndent().trim(),
+    sb.toString().trimIndent().trim()
+  )
 }
-

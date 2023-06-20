@@ -27,7 +27,7 @@ class DexModelTest : GradleFileModelTestCase() {
   fun testParse() {
     writeToBuildFile(TestFile.PARSE)
     val buildModel = gradleBuildModel
-    val dexModel = buildModel.android().packagingOptions().dex()
+    val dexModel = buildModel.android().packaging().dex()
     checkForValidPsiElement(dexModel, DexModelImpl::class.java)
     assertEquals("useLegacyPackaging", true, dexModel.useLegacyPackaging())
   }

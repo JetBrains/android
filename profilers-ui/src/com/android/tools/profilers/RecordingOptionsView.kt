@@ -55,7 +55,11 @@ class RecordingOptionsView @JvmOverloads constructor(private val recordingModel:
     ConfigComponentGroup(
       JButton(EDIT_CONFIG).apply { addActionListener { editConfig(recordingModel.customConfigurationModel) }},
       radioButton("").apply { addActionListener { recordingModel.selectCurrentCustomConfiguration() }},
-      ProfilerCombobox(recordingModel.customConfigurationModel)
+      ProfilerCombobox(recordingModel.customConfigurationModel).apply {
+        // Sets prototype value to minimum width option to compute width of dropdown.
+        // Now dropdown width is always constrained/overriden by parent width as parent is always wider.
+        prototypeDisplayValue = PrototypeDisplayRecordingOption
+      }
     )
   }
 

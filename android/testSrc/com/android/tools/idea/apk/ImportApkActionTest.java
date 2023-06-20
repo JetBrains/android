@@ -155,8 +155,9 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     public void removePath(@Nullable String path) {
     }
 
+    @NotNull
     @Override
-    public AnAction @NotNull [] getRecentProjectsActions(boolean addClearListItem) {
+    public AnAction [] getRecentProjectsActions(boolean addClearListItem) {
       return AnAction.EMPTY_ARRAY;
     }
 
@@ -165,8 +166,9 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
       return false;
     }
 
+    @NotNull
     @Override
-    public @NotNull String suggestNewProjectLocation() {
+    public String suggestNewProjectLocation() {
       return "";
     }
 
@@ -174,8 +176,9 @@ public class ImportApkActionTest extends HeavyPlatformTestCase {
     public void setLastProjectCreationLocation(@Nullable Path value) {
     }
 
+    @NotNull
     @Override
-    public @NotNull List<ProjectGroup> getGroups() {
+    public List<ProjectGroup> getGroups() {
       return Collections.emptyList();
     }
 

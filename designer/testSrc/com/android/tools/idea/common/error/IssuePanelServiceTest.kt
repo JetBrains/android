@@ -16,15 +16,17 @@
 package com.android.tools.idea.common.error
 
 import com.android.testutils.MockitoKt.mock
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
@@ -36,12 +38,10 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.`when`
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -80,17 +80,6 @@ class IssuePanelServiceTest {
   }
 
   @Test
-  fun testInitWithDesignFile() {
-    val file = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
-    runInEdtAndWait {
-      rule.fixture.openFileInEditor(file.virtualFile)
-    }
-
-    assertEquals("Layout and Qualifiers", toolWindow.contentManager.selectedContent!!.displayName)
-    assertEquals(2, toolWindow.contentManager.contents.size)
-  }
-
-  @Test
   fun testInitWithOtherFile() {
     val file = rule.fixture.addFileToProject("/src/file.kt", "")
     runInEdtAndWait {
@@ -113,7 +102,7 @@ class IssuePanelServiceTest {
     runInEdtAndWait {
       rule.fixture.openFileInEditor(layoutFile.virtualFile)
     }
-    assertTrue(service.isIssuePanelVisible(mock()))
+    assertFalse(service.isIssuePanelVisible(mock()))
   }
 
   @Test
@@ -137,7 +126,7 @@ class IssuePanelServiceTest {
   }
 
   @Test
-  fun testGetSharedIssuePanel() {
+  fun testOpeningFileDoesNotOpenSharedIssuePanel() {
     val ktFile = rule.fixture.addFileToProject("/src/file.kt", "")
     val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
 
@@ -149,7 +138,7 @@ class IssuePanelServiceTest {
     runInEdtAndWait {
       rule.fixture.openFileInEditor(layoutFile.virtualFile)
     }
-    assertNotNull(service.getSelectedSharedIssuePanel())
+    assertNull(service.getSelectedSharedIssuePanel())
 
     runInEdtAndWait {
       rule.fixture.openFileInEditor(ktFile.virtualFile)
@@ -200,23 +189,39 @@ class IssuePanelServiceTest {
     runInEdtAndWait {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf())
     }
-    assertEquals("Layout and Qualifiers", content.displayName)
+
+    assertEquals("Layout and Qualifiers".toTabTitle(), content.displayName)
 
     runInEdtAndWait {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(source = issueSource)))
     }
-    assertEquals("<html><body>Layout and Qualifiers <font color=\"#999999\">1</font></body></html>", content.displayName)
+    assertEquals("Layout and Qualifiers".toTabTitle(1), content.displayName)
 
     runInEdtAndWait {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(summary = "1", source = issueSource),
                                                                                         TestIssue(summary = "2", source = issueSource)))
     }
-    assertEquals("<html><body>Layout and Qualifiers <font color=\"#999999\">2</font></body></html>", content.displayName)
+    assertEquals("Layout and Qualifiers".toTabTitle(2), content.displayName)
 
     runInEdtAndWait {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf())
     }
-    assertEquals("Layout and Qualifiers", content.displayName)
+    assertEquals("Layout and Qualifiers".toTabTitle(), content.displayName)
+  }
+
+  /**
+   * Note: This test may fail if [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] changes the implementation
+   * after merging IDEA. Please disable it and file a bug to fix.
+   */
+  @Test
+  fun testTabNameAndStyleSameAsIntellijProblemsPanel() {
+    // Create an IJ's problems panel for comparing the custom tab title and style.
+    val panel = ProblemsViewPanel(rule.project, "ID_IssuePanelServiceTest", ProblemsViewState()) { "Problems" }
+    Disposer.register(rule.testRootDisposable, panel)
+
+    assertEquals(panel.getName(0), createTabName("Problems", 0))
+    assertEquals(panel.getName(1), createTabName("Problems", 1))
+    assertEquals(panel.getName(10), createTabName("Problems", 10))
   }
 
   @RunsInEdt
@@ -235,7 +240,7 @@ class IssuePanelServiceTest {
     service.setSharedIssuePanelVisibility(true)
     // It should select the shared issue panel.
     assertEquals(contentManager.selectedContent,
-                 contentManager.findContent("Designer"))
+                 contentManager.findContent("Designer".toTabTitle()))
 
     service.removeSharedIssueTabFromProblemsPanel()
     // It should select the first tab, which is the "Current File" tab.
@@ -245,23 +250,26 @@ class IssuePanelServiceTest {
 
   @RunsInEdt
   @Test
-  fun testRegisteredSurface() {
+  fun testRegisterFileName() {
     val randomFile = rule.fixture.addFileToProject("src/TestFile.kt", "")
     val layoutFile = rule.fixture.addFileToProject("res/layout/my_layout.xml", "")
 
-    val surface = mock<DesignSurface<*>>()
-    `when`(surface.name).thenReturn("My Random Surface")
-    service.registerSurfaceFile(randomFile.virtualFile, surface)
+    service.registerFile(randomFile.virtualFile, "My Random Surface")
 
     FileEditorManager.getInstance(rule.project).openFile(randomFile.virtualFile, true)
     assertEquals("My Random Surface", service.getSharedIssuePanelTabTitle())
 
-    service.unregisterSurfaceFile(randomFile.virtualFile)
+    service.unregisterFile(randomFile.virtualFile)
     // No surface is found, return default name.
     assertEquals("Designer", service.getSharedIssuePanelTabTitle())
 
     FileEditorManager.getInstance(rule.project).openFile(layoutFile.virtualFile, true)
     assertEquals("Layout and Qualifiers", service.getSharedIssuePanelTabTitle())
+
+    // If the registered file has no tab title, the default name would be used.
+    service.registerFile(randomFile.virtualFile, null)
+    FileEditorManager.getInstance(rule.project).openFile(randomFile.virtualFile, true)
+    assertEquals("Designer", service.getSharedIssuePanelTabTitle())
   }
 
   @RunsInEdt
@@ -270,7 +278,7 @@ class IssuePanelServiceTest {
     service.setSharedIssuePanelVisibility(true)
 
     val manager = toolWindow.contentManager
-    val tab = manager.findContent("Designer")
+    val tab = manager.findContent("Designer".toTabTitle())
     assertFalse(tab.isPinnable)
   }
 
@@ -311,6 +319,33 @@ class IssuePanelServiceTest {
     service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
     assertTrue(window.isVisible)
     assertTrue(contentManager.selectedContent?.isTab(IssuePanelService.Tab.CURRENT_FILE) ?: false)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testRegisterFile() {
+    val file = rule.fixture.addFileToProject("/src/file.kt", "").virtualFile
+
+    service.removeSharedIssueTabFromProblemsPanel()
+    assertFalse(service.isSharedIssuePanelAddedToProblemsPane())
+
+    rule.fixture.openFileInEditor(file)
+    // The issue panel should be added back after register the file
+    service.registerFile(file, null)
+    assertTrue(service.isSharedIssuePanelAddedToProblemsPane())
+  }
+
+  @Test
+  fun testExplicitShowCallSelectsTheCorrectTab() {
+    val layoutFile = rule.fixture.addFileToProject("/res/layout/layout.xml", "<FrameLayout />")
+    ProblemsView.getToolWindow(rule.project)!!.show()
+    runInEdtAndWait {
+      rule.fixture.openFileInEditor(layoutFile.virtualFile)
+    }
+    assertFalse(service.isIssuePanelVisible(mock()))
+
+    service.setIssuePanelVisibility(true, IssuePanelService.Tab.CURRENT_FILE)
+    assertFalse(service.isIssuePanelVisible(mock()))
   }
 }
 

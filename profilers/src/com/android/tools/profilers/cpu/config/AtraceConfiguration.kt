@@ -16,28 +16,24 @@
 package com.android.tools.profilers.cpu.config
 
 import com.android.sdklib.AndroidVersion
-import com.android.tools.adtui.model.options.OptionsProperty
-import com.android.tools.adtui.model.options.Slider
-import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profiler.proto.Trace
 
 /**
  * Configuration for ATrace traces.
  */
-open class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
-  @Slider(min = 1, max = 32, step = 1)
-  @OptionsProperty(group = TRACE_CONFIG_GROUP, order = 100, name = "Buffer size limit:",
-                   description = "In memory buffer size for capturing trace events.",
-            unit = "Mb")
-  var profilingBufferSizeInMb = DEFAULT_BUFFER_SIZE_MB
-
-  override fun buildUserOptions(): Cpu.CpuTraceConfiguration.UserOptions.Builder {
-    return Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-      .setBufferSizeInMb(profilingBufferSizeInMb)
+class AtraceConfiguration(name: String) : ProfilingConfiguration(name) {
+  override fun getOptions(): Trace.AtraceOptions {
+    return Trace.AtraceOptions.newBuilder()
+      .setBufferSizeInMb(SYSTEM_TRACE_BUFFER_SIZE_MB)
+      .build()
   }
 
-  override fun getTraceType(): CpuTraceType {
-    return CpuTraceType.ATRACE
+  override fun addOptions(configBuilder: Trace.TraceConfiguration.Builder, additionalOptions: Map<AdditionalOptions, Any>) {
+    configBuilder.atraceOptions = options
+  }
+
+  override fun getTraceType(): TraceType {
+    return TraceType.ATRACE
   }
 
   override fun getRequiredDeviceLevel(): Int {

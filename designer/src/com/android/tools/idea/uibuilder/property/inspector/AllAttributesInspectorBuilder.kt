@@ -40,14 +40,20 @@ class AllAttributesInspectorBuilder(
   private val allTableUIProvider = TableUIProvider(controlTypeProvider, editorProvider)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
-    if (properties.isEmpty || !InspectorSection.ALL.visible) {
+    if (properties.isEmpty) {
       return
     }
 
     val allTableModel = FilteredPTableModel(
       model, itemFilter = { true }, itemComparator = alphabeticalSortOrder, groups = createGroups(properties))
-    val titleModel = inspector.addExpandableTitle(InspectorSection.ALL.title, false)
-    inspector.addTable(allTableModel, true, allTableUIProvider, emptyList(), titleModel)
+    if (InspectorSection.ALL.visible) {
+      val titleModel = inspector.addExpandableTitle(InspectorSection.ALL.title, false)
+      inspector.addTable(allTableModel, true, allTableUIProvider, emptyList(), titleModel)
+    } else {
+      val tableModel = inspector.addTable(allTableModel, true, allTableUIProvider, emptyList())
+      tableModel.hidden = true
+      tableModel.addValueChangedListener { tableModel.hidden = tableModel.filter.isEmpty() }
+    }
   }
 
   private fun createGroups(properties: PropertiesTable<NlPropertyItem>): List<GroupSpec<NlPropertyItem>> {

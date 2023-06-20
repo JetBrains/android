@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.execution.common.debug.AndroidDebugger;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.intellij.execution.configurations.RunConfiguration;

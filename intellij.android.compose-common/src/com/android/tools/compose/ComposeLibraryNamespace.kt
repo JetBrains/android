@@ -43,3 +43,5 @@ val COMPOSABLE_FQ_NAMES = setOf(
   "androidx.compose.$COMPOSABLE_ANNOTATION_NAME",
   "androidx.compose.runtime.$COMPOSABLE_ANNOTATION_NAME"
 )
+
+val COMPOSABLE_FQ_NAMES_ARRAY = COMPOSABLE_FQ_NAMES.toTypedArray()

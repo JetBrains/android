@@ -20,8 +20,9 @@ import com.android.build.attribution.analytics.BuildAttributionAnalyticsManager
 import com.android.build.attribution.analyzers.BuildAnalyzersWrapper
 import com.android.build.attribution.analyzers.BuildEventsAnalyzersProxy
 import com.android.build.attribution.analyzers.CHECK_JETIFIER_TASK_NAME
-import com.android.build.attribution.data.BuildInvocationType
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.data.BuildRequestHolder
+import com.android.build.attribution.data.BuildInvocationType
 import com.android.build.attribution.data.PluginContainer
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.build.attribution.data.TaskContainer
@@ -29,17 +30,25 @@ import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.build.attribution.ui.invokeLaterIfNotDisposed
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
-import com.android.ide.common.repository.GradleVersion
+import com.android.build.output.DownloadInfoDataModel
+import com.android.build.output.DownloadsInfoPresentableBuildEvent
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
+import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.attribution.BasicBuildAttributionInfo
 import com.android.tools.idea.gradle.project.build.attribution.BuildAttributionManager
 import com.android.tools.idea.gradle.project.build.attribution.getAgpAttributionFileDir
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
+import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.build.BuildViewManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.CheckedDisposable
+import com.intellij.openapi.util.Disposer
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
 import java.util.UUID
@@ -58,49 +67,58 @@ class BuildAttributionManagerImpl(
   val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
   @get:VisibleForTesting
   lateinit var currentBuildRequest: GradleBuildInvoker.Request
+  private var currentBuildDisposable: CheckedDisposable? = null
   private val analyzersWrapper = BuildAnalyzersWrapper(analyzersProxy.buildAnalyzers, taskContainer, pluginContainer)
 
   override fun onBuildStart(request: GradleBuildInvoker.Request) {
     currentBuildRequest = request
+    currentBuildDisposable = Disposer.newCheckedDisposable("BuildAnalyzer disposable for ${request.taskId}")
     eventsProcessingFailedFlag = false
     myCurrentBuildInvocationType = detectBuildType(request)
     analyzersWrapper.onBuildStart()
     ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
+    analyzersProxy.buildAnalyzers.filterIsInstance<DownloadsAnalyzer>().singleOrNull()?.let {
+      if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
+      val downloadsInfoDataModel = DownloadInfoDataModel(currentBuildDisposable!!)
+      it.eventsProcessor.downloadsInfoDataModel = downloadsInfoDataModel
+      project.setUpDownloadsInfoNodeOnBuildOutput(request.taskId, currentBuildDisposable!!, downloadsInfoDataModel)
+    }
   }
 
   override fun onBuildSuccess(request: GradleBuildInvoker.Request): BasicBuildAttributionInfo {
     val buildFinishedTimestamp = System.currentTimeMillis()
     val buildSessionId = UUID.randomUUID().toString()
     val buildRequestHolder = BuildRequestHolder(request)
-    val attributionFileDir = getAgpAttributionFileDir(request)
-    var agpVersion: GradleVersion? = null
+    val attributionFileDir = getAgpAttributionFileDir(request.data)
+    var agpVersion: AgpVersion? = null
 
     BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
       analyticsManager.runLoggingPerformanceStats(
-        buildFinishedTimestamp - analyzersProxy.criticalPathAnalyzer.result.buildFinishedTimestamp) {
+        toolingApiLatencyMs = buildFinishedTimestamp - analyzersProxy.criticalPathAnalyzer.result.buildFinishedTimestamp,
+        numberOfGeneratedPartialResults = getNumberOfPartialResultsGenerated(attributionFileDir)
+      ) {
         try {
           val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
-          agpVersion = attributionData?.buildInfo?.agpVersion?.let { GradleVersion.tryParseAndroidGradlePluginVersion(it) }
+          agpVersion = attributionData?.buildInfo?.agpVersion?.let { AgpVersion.tryParse(it) }
           val pluginsData = ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).gradlePluginsData
           val studioProvidedInfo = StudioProvidedInfo.fromProject(project, buildRequestHolder, myCurrentBuildInvocationType)
           // If there was an error in events processing already there is no need to continue.
           if (!eventsProcessingFailedFlag) {
             analyzersWrapper.onBuildSuccess(attributionData, pluginsData, analyzersProxy, studioProvidedInfo)
-            BuildAnalyzerStorageManager.getInstance(project)
+            val analysisResults = BuildAnalyzerStorageManager.getInstance(project)
               .storeNewBuildResults(analyzersProxy, buildSessionId, BuildRequestHolder(currentBuildRequest))
-            analyticsManager.logAnalyzersData(BuildAnalyzerStorageManager.getInstance(project).getLatestBuildAnalysisResults())
+            analyticsManager.logAnalyzersData(analysisResults.get())
             analyticsManager.logBuildSuccess(myCurrentBuildInvocationType)
           }
           else {
             analyticsManager.logAnalysisFailure(myCurrentBuildInvocationType)
-            //TODO (b/184273397): currently show general failure state, same as for failed build. Adjust in further refactorings.
-            BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
+            BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId, FailureResult.Type.ANALYSIS_FAILURE)
           }
         }
         catch (t: Throwable) {
           log.error("Error during post-build analysis", t)
           analyticsManager.logAnalysisFailure(myCurrentBuildInvocationType)
-          BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
+          BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId, FailureResult.Type.ANALYSIS_FAILURE)
         }
         finally {
           cleanup(attributionFileDir)
@@ -112,18 +130,27 @@ class BuildAttributionManagerImpl(
   }
 
   override fun onBuildFailure(request: GradleBuildInvoker.Request) {
-    cleanup(getAgpAttributionFileDir(request))
+    cleanup(getAgpAttributionFileDir(request.data))
     project.invokeLaterIfNotDisposed {
       val buildSessionId = UUID.randomUUID().toString()
       BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
         analyticsManager.logBuildFailure(myCurrentBuildInvocationType)
         analyzersWrapper.onBuildFailure()
-        BuildAttributionUiManager.getInstance(project).onBuildFailure(buildSessionId)
+        BuildAnalyzerStorageManager.getInstance(project).recordNewFailure(buildSessionId, FailureResult.Type.BUILD_FAILURE)
       }
     }
   }
 
   private fun cleanup(attributionFileDir: File) {
+    try {
+      // There is a valid codepath that would result in this being already disposed and set tu null.
+      // GradleTasksExecutorImpl.TaskImpl.reportAgpVersionMismatch throws exception redirecting to build failure path
+      // AND it is called AFTER onBuildSuccess of build analyzer was already called resulting in cleanup happening twice.
+      currentBuildDisposable?.let { Disposer.dispose(it) }
+      currentBuildDisposable = null
+    } catch (t: Throwable) {
+      log.error("Error disposing build disposable", t)
+    }
     try {
       FileUtils.deleteRecursivelyIfExists(FileUtils.join(attributionFileDir, SdkConstants.FD_BUILD_ATTRIBUTION))
     } catch (t: Throwable) {
@@ -156,5 +183,24 @@ class BuildAttributionManagerImpl(
     ConfigurationCacheTestBuildFlowRunner.getInstance(project).isTestConfigurationCacheBuild(request) -> BuildInvocationType.CONFIGURATION_CACHE_TRIAL
     request.gradleTasks.contains(CHECK_JETIFIER_TASK_NAME) -> BuildInvocationType.CHECK_JETIFIER
     else -> BuildInvocationType.REGULAR_BUILD
+  }
+
+  private fun getNumberOfPartialResultsGenerated(attributionFileDir: File): Int? {
+    return try {
+      AndroidGradlePluginAttributionData.getPartialResultsDir(attributionFileDir).takeIf {
+        it.exists()
+      }?.listFiles()?.size
+    } catch (e: Exception) {
+      null
+    }
+  }
+
+  private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId,
+                                                          buildDisposable: CheckedDisposable,
+                                                          downloadsInfoDataModel: DownloadInfoDataModel) {
+    val gradleVersion = GradleVersions.getInstance().getGradleVersion(this)
+    val rootDownloadEvent = DownloadsInfoPresentableBuildEvent(id, buildDisposable, System.currentTimeMillis(), gradleVersion, downloadsInfoDataModel)
+    val viewManager = getService(BuildViewManager::class.java)
+    viewManager.onEvent(id, rootDownloadEvent)
   }
 }

@@ -26,10 +26,10 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.property.panel.api.ActionIconButton
-import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.FlagsPropertyGroupItem
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertiesTable
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 
 /**
  * A [NlPropertyItem] where it is possible to edit the name of the property.
@@ -43,7 +43,7 @@ class NlNewPropertyItem(model: NlPropertiesModel,
                         val filter: (NlPropertyItem) -> Boolean = { true },
                         val delegateUpdated: (NlNewPropertyItem) -> Unit = {})
   : NlPropertyItem("", "", NlPropertyType.UNKNOWN, null, "", "", model, listOf()), NewPropertyItem,
-    FlagsPropertyItem<NlFlagPropertyItem> {
+    FlagsPropertyGroupItem<NlFlagPropertyItem> {
 
   override var namespace: String = ""
     get() = delegate?.namespace ?: field

@@ -16,7 +16,12 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.adtui.instructions.*
+import com.android.tools.adtui.instructions.HyperlinkInstruction
+import com.android.tools.adtui.instructions.IconInstruction
+import com.android.tools.adtui.instructions.InstructionsPanel
+import com.android.tools.adtui.instructions.NewRowInstruction
+import com.android.tools.adtui.instructions.RenderInstruction
+import com.android.tools.adtui.instructions.TextInstruction
 import com.intellij.icons.AllIcons
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtilities

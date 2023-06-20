@@ -23,7 +23,6 @@ import com.android.tools.property.panel.api.PropertiesView
 import com.android.tools.property.panel.api.Watermark
 import com.android.tools.property.ptable.PTableItem
 import org.jetbrains.android.formatter.AttributeComparator
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 private const val VIEW_NAME = "LayoutInspectorPropertyEditor"
 private const val WATERMARK_MESSAGE = "No view selected."
@@ -48,11 +47,11 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
   private val controlTypeProvider = object : ControlTypeProvider<InspectorPropertyItem> {
     override fun invoke(property: InspectorPropertyItem): ControlType {
       return when (property.type) {
-        Type.DRAWABLE,
-        Type.COLOR -> if (property.needsResolutionEditor) COLOR_RESOURCE_EDITOR else ControlType.COLOR_EDITOR
-        Type.LAMBDA,
-        Type.FUNCTION_REFERENCE,
-        Type.SHOW_MORE_LINK -> ControlType.LINK_EDITOR
+        PropertyType.DRAWABLE,
+        PropertyType.COLOR -> if (property.needsResolutionEditor) COLOR_RESOURCE_EDITOR else ControlType.COLOR_EDITOR
+        PropertyType.LAMBDA,
+        PropertyType.FUNCTION_REFERENCE,
+        PropertyType.SHOW_MORE_LINK -> ControlType.LINK_EDITOR
         else -> if (property.needsResolutionEditor) TEXT_RESOURCE_EDITOR else ControlType.TEXT_EDITOR
       }
     }
@@ -64,6 +63,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
     val attributeSections = setOf(PropertySection.DEFAULT, PropertySection.DECLARED, PropertySection.LAYOUT)
     val tab = addTab("")
     tab.builders.add(DimensionBuilder)
+    tab.builders.add(InlineNotificationBuilder(model))
     tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.section == PropertySection.DECLARED },
                                            model, enumSupportProvider, controlTypeProvider))
     tab.builders.add(InspectorTableBuilder("Layout", { it.section == PropertySection.LAYOUT },
@@ -83,7 +83,7 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
   // When TreeSettings.showRecompositions is off, we will want to hide the Recomposition section:
   private fun showRecompositions(propertiesModel: InspectorPropertiesModel): Boolean {
     val treeSettings = propertiesModel.layoutInspector?.treeSettings ?: return false
-    val model = propertiesModel.layoutInspector?.layoutInspectorModel ?: return false
+    val model = propertiesModel.layoutInspector?.inspectorModel ?: return false
     return treeSettings.showRecompositions && !model.maxRecomposition.isEmpty
   }
 }

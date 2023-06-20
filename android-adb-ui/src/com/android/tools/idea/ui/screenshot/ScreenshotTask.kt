@@ -25,7 +25,7 @@ import com.intellij.util.ExceptionUtil
 /**
  * A task that captures a screenshot from a device.
  */
-internal open class ScreenshotTask(
+open class ScreenshotTask(
   project: Project,
   private val screenshotSupplier: ScreenshotSupplier,
 ) : Task.Modal(project, AndroidAdbUiBundle.message("screenshot.action.title"), true) {

@@ -24,7 +24,7 @@ public final class Devices {
   private Devices() {
   }
 
-  public static int indexOf(@NotNull List<? extends @NotNull Device> devices, @NotNull Key key) {
+  public static int indexOf(@NotNull List<? extends Device> devices, @NotNull Key key) {
     OptionalInt optionalIndex = IntStream.range(0, devices.size())
       .filter(index -> devices.get(index).getKey().equals(key))
       .findFirst();

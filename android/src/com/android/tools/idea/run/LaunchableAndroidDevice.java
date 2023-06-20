@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_DEVICE_NAME;
+import static com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManagerConnection;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ddmlib.IDevice;
@@ -24,6 +27,7 @@ import com.android.sdklib.devices.Abi;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.internal.avd.HardwareProperties;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -86,7 +90,8 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
 
   @Override
   public boolean supportsMultipleScreenFormats() {
-    return myAvdInfo.getAndroidVersion().isGreaterOrEqualThan(AndroidVersion.MIN_RESIZABLE_DEVICE_API) && "resizable".equals(myAvdInfo.getName());
+    return myAvdInfo.getAndroidVersion().isGreaterOrEqualThan(AndroidVersion.MIN_RESIZABLE_DEVICE_API)
+           && "resizable".equals(myAvdInfo.getProperties().get(AVD_INI_DEVICE_NAME));
   }
 
   @NotNull
@@ -132,7 +137,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   public void coldBoot(@NotNull Project project) {
     synchronized (myLock) {
       if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().coldBoot(project, myAvdInfo);
+        myLaunchedEmulator = getDefaultAvdManagerConnection().coldBoot(project, myAvdInfo, RequestType.INDIRECT);
       }
     }
   }
@@ -140,7 +145,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   public void quickBoot(@NotNull Project project) {
     synchronized (myLock) {
       if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().quickBoot(project, myAvdInfo);
+        myLaunchedEmulator = getDefaultAvdManagerConnection().quickBoot(project, myAvdInfo, RequestType.INDIRECT);
       }
     }
   }
@@ -148,7 +153,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   public void bootWithSnapshot(@NotNull Project project, @NotNull String snapshot) {
     synchronized (myLock) {
       if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().bootWithSnapshot(project, myAvdInfo, snapshot);
+        myLaunchedEmulator = getDefaultAvdManagerConnection().bootWithSnapshot(project, myAvdInfo, snapshot, RequestType.INDIRECT);
       }
     }
   }
@@ -158,7 +163,7 @@ public final class LaunchableAndroidDevice implements AndroidDevice {
   public ListenableFuture<IDevice> launch(@NotNull Project project) {
     synchronized (myLock) {
       if (myLaunchedEmulator == null) {
-        myLaunchedEmulator = AvdManagerConnection.getDefaultAvdManagerConnection().startAvd(project, myAvdInfo);
+        myLaunchedEmulator = getDefaultAvdManagerConnection().startAvd(project, myAvdInfo, RequestType.INDIRECT);
       }
       return myLaunchedEmulator;
     }

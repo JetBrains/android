@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("ProjectSystemSyncUtil")
-
+@file:JvmName("ProjectSystemBuildUtil")
 package com.android.tools.idea.projectsystem
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.messages.Topic
 
 /**
  * Provides a build-system-agnostic interface for triggering, responding to, and gathering information about project builds.
@@ -102,3 +102,8 @@ interface ProjectSystemBuildManager {
     fun buildCompleted(result: BuildResult) {}
   }
 }
+
+/**
+ * Topic to notify the build changes.
+ */
+@JvmField val PROJECT_SYSTEM_BUILD_TOPIC = Topic("Project build", ProjectSystemBuildManager.BuildListener::class.java)

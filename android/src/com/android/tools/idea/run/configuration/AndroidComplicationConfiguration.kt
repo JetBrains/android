@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.deployer.model.component.Complication
+import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.editors.AndroidComplicationConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.AndroidComplicationConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.ComplicationLaunchOptions
-import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.ConfigurationTypeBase
 import com.intellij.execution.configurations.RuntimeConfigurationError
-import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -63,11 +64,11 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
     private constructor() : this(-1, Complication.ComplicationType.LONG_TEXT)
   }
 
+  @WorkerThread
   override fun checkConfiguration() {
     super.checkConfiguration()
     // super.checkConfiguration() has already checked that module and componentName are not null.
     val rawTypes = getComplicationTypesFromManifest(module!!, componentLaunchOptions.componentName!!)
-                   ?: throw RuntimeConfigurationWarning(AndroidBundle.message("provider.type.manifest.not.available"))
     if (componentLaunchOptions.chosenSlots.isEmpty()) {
       throw RuntimeConfigurationError(AndroidBundle.message("provider.slots.empty.error"))
     }
@@ -80,10 +81,10 @@ class AndroidComplicationConfiguration(project: Project, factory: ConfigurationF
   override fun getConfigurationEditor() = AndroidComplicationConfigurationEditor(project, this)
 
   override fun getExecutor(environment: ExecutionEnvironment,
-                           deployTarget: DeployTarget,
+                           deviceFutures: DeviceFutures,
                            appRunSettings: AppRunSettings,
                            applicationIdProvider: ApplicationIdProvider,
                            apkProvider: ApkProvider): AndroidConfigurationExecutor {
-    return AndroidComplicationConfigurationExecutor(environment, deployTarget, appRunSettings, applicationIdProvider, apkProvider)
+    return AndroidComplicationConfigurationExecutor(environment, deviceFutures, appRunSettings, applicationIdProvider, apkProvider)
   }
 }

@@ -20,7 +20,7 @@ import com.android.tools.adtui.visualtests.flamegraph.FlameGraphVisualTest;
 import com.android.tools.adtui.visualtests.threadgraph.ThreadCallsVisualTest;
 import javax.swing.SwingUtilities;
 
-public final class VisualTests {
+public class VisualTests {
 
   interface Value {
     void set(int v);
@@ -57,7 +57,6 @@ public final class VisualTests {
       dialog.addTest(new TooltipVisualTest());
       dialog.addTest(new LineChartVisualTest());
       dialog.addTest(new FlameGraphVisualTest());
-      dialog.addTest(new AccordionVisualTest());
       dialog.addTest(new ThreadCallsVisualTest());
       dialog.addTest(new AxisLineChartVisualTest());
       dialog.addTest(new StateChartVisualTest());

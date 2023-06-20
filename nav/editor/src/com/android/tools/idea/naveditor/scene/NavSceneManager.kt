@@ -59,6 +59,7 @@ import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider
 import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
+import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
@@ -67,9 +68,10 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Rectangle
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
 import kotlin.math.max
-import kotlin.streams.toList
 
 @NavCoordinate
 private val SCREEN_LONG = JBUIScale.scale(256f)
@@ -115,6 +117,11 @@ open class NavSceneManager(
     updateHierarchy(getModel(), null)
     getModel().addListener(ModelChangeListener())
     designSurface.selectionModel.addListener(SelectionListener { _, _ -> scene.needsRebuildList() })
+    designSurface.addComponentListener(object : ComponentAdapter() {
+      override fun componentResized(event: ComponentEvent?) {
+        update()
+      }
+    })
   }
 
   override fun getDesignSurface() = super.getDesignSurface() as NavDesignSurface
@@ -552,7 +559,7 @@ private fun buildTree(roots: List<XmlTag>): List<NlModel.TagSnapshotTreeNode> {
   return roots.map {
     object : NlModel.TagSnapshotTreeNode {
       override fun getTagSnapshot(): TagSnapshot {
-        return TagSnapshot.createTagSnapshot(it, null)
+        return TagSnapshot.createTagSnapshot(PsiXmlTag(it), null)
       }
 
       override fun getChildren(): List<NlModel.TagSnapshotTreeNode> {

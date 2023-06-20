@@ -60,7 +60,7 @@ import org.jetbrains.uast.UElementKt;
 import org.jetbrains.uast.UastContext;
 import org.jetbrains.uast.UastUtils;
 
-public final class AndroidPsiUtils {
+public class AndroidPsiUtils {
   /**
    * Looks up the {@link PsiFile} for a given {@link VirtualFile} in a given {@link Project}, in
    * a safe way (meaning it will acquire a read lock first, and will check that the file is valid
@@ -160,28 +160,6 @@ public final class AndroidPsiUtils {
       return file.getRootTag();
     }
     return ApplicationManager.getApplication().runReadAction((Computable<XmlTag>)file::getRootTag);
-  }
-
-  /**
-   * Get the value of an attribute in the {@link XmlFile} safely (meaning it will acquire the read lock first).
-   */
-  @Nullable
-  public static String getRootTagAttributeSafely(@NotNull final XmlFile file,
-                                                 @NotNull final String attribute,
-                                                 @Nullable final String namespace) {
-    Application application = ApplicationManager.getApplication();
-    if (!application.isReadAccessAllowed()) {
-      return application.runReadAction((Computable<String>)() -> getRootTagAttributeSafely(file, attribute, namespace));
-    } else {
-      XmlTag tag = file.getRootTag();
-      if (tag != null) {
-        XmlAttribute attr = namespace != null ? tag.getAttribute(attribute, namespace) : tag.getAttribute(attribute);
-        if (attr != null) {
-          return attr.getValue();
-        }
-      }
-      return null;
-    }
   }
 
   /**

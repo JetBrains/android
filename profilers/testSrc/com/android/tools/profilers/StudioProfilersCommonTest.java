@@ -33,8 +33,7 @@ import org.junit.Test;
 public final class StudioProfilersCommonTest {
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer, false);
-  @Rule public FakeGrpcServer myGrpcServer =
-    FakeGrpcServer.createFakeGrpcServer("StudioProfilerCommonTestChannel", myTransportService, new FakeProfilerService(myTimer));
+  @Rule public FakeGrpcServer myGrpcServer = FakeGrpcServer.createFakeGrpcServer("StudioProfilerCommonTestChannel", myTransportService);
   private ProfilerClient myProfilerClient;
 
   @Before
@@ -62,9 +61,8 @@ public final class StudioProfilersCommonTest {
   }
 
   private StudioProfilers getProfilersWithDeviceAndProcess() {
-    FakeTimer timer = new FakeTimer();
-    StudioProfilers profilers = new StudioProfilers(myProfilerClient, new FakeIdeProfilerServices(), timer);
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    StudioProfilers profilers = new StudioProfilers(myProfilerClient, new FakeIdeProfilerServices(), myTimer);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     Common.Device device = Common.Device.newBuilder()
       .setDeviceId("FakeDevice".hashCode())
@@ -73,7 +71,7 @@ public final class StudioProfilersCommonTest {
       .setState(Common.Device.State.ONLINE)
       .build();
     myTransportService.addDevice(device);
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
     profilers.setProcess(device, null);
     assertThat(profilers.getDevice()).isEqualTo(device);
     assertThat(profilers.getProcess()).isNull();
@@ -83,9 +81,10 @@ public final class StudioProfilersCommonTest {
       .setPid(20)
       .setName("FakeProcess")
       .setState(Common.Process.State.ALIVE)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
       .build();
     myTransportService.addProcess(device, process);
-    timer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS); // One second must be enough for new devices to be picked up
     profilers.setProcess(device, process);
 
     assertThat(profilers.getProcess()).isEqualTo(process);

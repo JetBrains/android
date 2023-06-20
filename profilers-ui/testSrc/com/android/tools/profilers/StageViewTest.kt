@@ -17,9 +17,11 @@ package com.android.tools.profilers
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeGrpcServer
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -27,16 +29,21 @@ import javax.swing.JComponent
 
 class StageViewTest {
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("StageViewTest")
+  val applicationRule = ApplicationRule()
 
   @get:Rule
-  val applicationRule = ApplicationRule()
+  val disposableRule = DisposableRule()
+
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, false)
+
+  @get:Rule
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("StageViewTest", transportService)
 
   @Test
   fun testSelectionTimeLabel() {
-    val timer = FakeTimer()
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices(), timer)
+    val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     val stageView = object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
       override fun getToolbar(): JComponent? {
         return null
@@ -63,8 +70,8 @@ class StageViewTest {
   @Test
   fun testClickSelectionTimeLabel() {
     val timer = FakeTimer()
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices(), timer)
+    val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     val stageView = object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
       override fun getToolbar(): JComponent? {
         return null

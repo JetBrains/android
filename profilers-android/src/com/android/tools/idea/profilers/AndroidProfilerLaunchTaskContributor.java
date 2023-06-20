@@ -25,35 +25,34 @@ import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
 import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.run.AndroidLaunchTaskContributor;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.editor.ProfilerState;
+import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.android.tools.idea.run.tasks.LaunchContext;
-import com.android.tools.idea.run.tasks.LaunchResult;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTaskDurations;
-import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.proto.CpuProfiler;
-import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.AdditionalOptions;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
+import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -68,13 +67,13 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,7 +103,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
                                            @NotNull AndroidRunConfigurationBase configuration,
                                            @NotNull IDevice device,
                                            @NotNull Executor executor) {
-    return AndroidProfilerLaunchTaskContributor.getAmStartOptions(configuration.getProject(), applicationId, configuration.getProfilerState(), device, executor);
+    return AndroidProfilerLaunchTaskContributor.getAmStartOptions(configuration.getProject(), applicationId,
+                                                                  configuration.getProfilerState(), device, executor);
   }
 
   // Used only for Bazel. We need to write better mechanism of reusing AndroidLaunchTaskContributor for Blaze.
@@ -121,17 +121,13 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     TransportService transportService = TransportService.getInstance();
-    if (transportService == null) {
-      // Profiler cannot be run.
-      return "";
-    }
-
     ProfilerClient client = new ProfilerClient(TransportService.getChannelName());
     Common.Device profilerDevice;
     try {
       profilerDevice = waitForDaemon(device, client);
     }
     catch (InterruptedException | TimeoutException e) {
+      client.shutdownChannel();
       getLogger().debug(e);
       // Don't attach JVMTI agent for now, there is a chance that it will be attached during runtime.
       return "";
@@ -139,8 +135,9 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     TransportFileManager fileManager = new TransportFileManager(device, transportService.getMessageBus());
     pushStartupAgentConfig(fileManager, project);
-    String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME);
+    String agentArgs = fileManager.configureStartupAgent(applicationId, STARTUP_AGENT_CONFIG_NAME, executor.getId());
     String startupProfilingResult = startStartupProfiling(profilerState, applicationId, project, client, device, profilerDevice);
+    client.shutdownChannel();
     return String.format("%s %s", agentArgs, startupProfilingResult);
   }
 
@@ -212,15 +209,22 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
     featureTracker.trackRecordAllocations();
     String traceFilePath = String.format(Locale.US, "%s/%s.trace", DAEMON_DEVICE_DIR_PATH, appPackageName);
+
+    Trace.TraceConfiguration configuration = Trace.TraceConfiguration.newBuilder()
+      .setAppName(appPackageName)
+      .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP)
+      .setAbiCpuArch(abi)
+      .setPerfettoOptions(
+        PerfettoTraceConfigBuilders.INSTANCE.getMemoryTraceConfig(appPackageName, profilerState.NATIVE_MEMORY_SAMPLE_RATE_BYTES))
+      .setTempPath(traceFilePath)
+      .build();
+
     Commands.Command sampleCommand = Commands.Command.newBuilder()
       .setStreamId(profilerDevice.getDeviceId())
-      .setType(Commands.Command.CommandType.START_NATIVE_HEAP_SAMPLE)
-      .setStartNativeSample(Memory.StartNativeSample.newBuilder()
-                              .setSamplingIntervalBytes(profilerState.NATIVE_MEMORY_SAMPLE_RATE_BYTES)
-                              .setSharedMemoryBufferBytes(64 * 1024 * 1024)
-                              .setAbiCpuArch(abi)
-                              .setTempPath(traceFilePath)
-                              .setAppName(appPackageName))
+      .setType(Commands.Command.CommandType.START_TRACE)
+      .setStartTrace(Trace.StartTrace.newBuilder()
+                       .setProfilerType(Trace.ProfilerType.MEMORY)
+                       .setConfiguration(configuration))
       .build();
     Transport.ExecuteResponse response =
       client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder().setCommand(sampleCommand).build());
@@ -262,44 +266,43 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
     // TODO b/133321803 switch back to having daemon generates and provides the path.
     String traceFilePath = String.format(Locale.US, "%s/%s-%d.trace", DAEMON_DEVICE_DIR_PATH, appPackageName, System.nanoTime());
-    Cpu.CpuTraceConfiguration.UserOptions traceOptions =
-      CpuProfilerConfigConverter.toProto(startupConfig, device.getVersion().getFeatureLevel());
-    Cpu.CpuTraceConfiguration configuration = Cpu.CpuTraceConfiguration.newBuilder()
+
+    ProfilingConfiguration profilingConfiguration =
+      CpuProfilerConfigConverter.toProfilingConfiguration(startupConfig, device.getVersion().getFeatureLevel());
+
+    Trace.TraceConfiguration.Builder configurationBuilder = Trace.TraceConfiguration.newBuilder()
       .setAppName(appPackageName)
-      .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP)
+      .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP)
       .setAbiCpuArch(cpuAbi)
-      .setTempPath(traceFilePath)
-      .setUserOptions(traceOptions)
-      .build();
+      .setTempPath(traceFilePath);
+
+    // Set the options field of the TraceConfiguration with the respective profiling configuration.
+    profilingConfiguration.addOptions(configurationBuilder, Map.of(AdditionalOptions.APP_PKG_NAME, appPackageName));
+    Trace.TraceConfiguration configuration = configurationBuilder.build();
+
     try {
-      if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-        Commands.Command startCommand = Commands.Command.newBuilder()
-          .setStreamId(profilerDevice.getDeviceId())
-          .setType(Commands.Command.CommandType.START_CPU_TRACE)
-          .setStartCpuTrace(Cpu.StartCpuTrace.newBuilder().setConfiguration(configuration).build())
-          .build();
-        // TODO handle async error statuses.
-        // TODO(b/150503095)
-        Transport.ExecuteResponse response = client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
-                                                                                   .setCommand(startCommand)
-                                                                                   .build());
-      }
-      else {
-        CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest.newBuilder()
-          .setDeviceId(profilerDevice.getDeviceId())
-          .setConfiguration(configuration);
-        // TODO(b/150503095)
-        CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
-      }
+      Commands.Command startCommand = Commands.Command.newBuilder()
+        .setStreamId(profilerDevice.getDeviceId())
+        .setType(Commands.Command.CommandType.START_TRACE)
+        .setStartTrace(Trace.StartTrace.newBuilder()
+                         .setProfilerType(Trace.ProfilerType.CPU)
+                         .setConfiguration(configuration)
+                         .build())
+        .build();
+      // TODO handle async error statuses.
+      // TODO(b/150503095)
+      Transport.ExecuteResponse response = client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
+                                                                                 .setCommand(startCommand)
+                                                                                 .build());
     }
     catch (StatusRuntimeException exception) {
       getLogger().error(exception);
     }
 
     StudioFeatureTracker featureTracker = new StudioFeatureTracker(project);
-    featureTracker.trackCpuStartupProfiling(profilerDevice, ProfilingConfiguration.fromProto(traceOptions));
+    featureTracker.trackCpuStartupProfiling(profilerDevice, ProfilingConfiguration.fromProto(configuration));
 
-    if (traceOptions.getTraceType() != Cpu.CpuTraceType.ART) {
+    if (profilingConfiguration.getTraceType() != TraceType.ART) {
       return "";
     }
 
@@ -351,8 +354,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    */
   @NotNull
   private static Common.Device getProfilerDevice(@NotNull IDevice device, @NotNull ProfilerClient client) {
-    List<Common.Device> devices = StudioProfilers.getUpToDateDevices(
-      StudioFlags.PROFILER_UNIFIED_PIPELINE.get(), client, null, null);
+    List<Common.Device> devices = StudioProfilers.getUpToDateDevices(client, null, null);
     for (Common.Device profilerDevice : devices) {
       if (profilerDevice.getSerial().equals(device.getSerialNumber()) && profilerDevice.getState() == Common.Device.State.ONLINE) {
         return profilerDevice;
@@ -384,7 +386,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     Path dir;
     if (StudioPathManager.isRunningFromSources()) {
       dir = StudioPathManager.resolvePathFromSourcesRoot(devDir);
-    } else {
+    }
+    else {
       dir = Paths.get(PathManager.getHomePath(), releaseDir);
     }
     for (String abi : device.getAbis()) {
@@ -400,7 +403,8 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
    * @return true if the launch is initiated by the {@link ProfileRunExecutor}. False otherwise.
    */
   public static boolean isProfilerLaunch(@NotNull Executor executor) {
-    return ProfileRunExecutor.EXECUTOR_ID.equals(executor.getId());
+    return ProfileRunExecutor.EXECUTOR_ID.equals(executor.getId()) || // Legacy Profile executor
+           AbstractProfilerExecutorGroup.Companion.getExecutorSetting(executor.getId()) != null; // Profileable Builds executor group
   }
 
   public static final class AndroidProfilerToolWindowLaunchTask implements LaunchTask {
@@ -426,14 +430,14 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     }
 
     @Override
-    public LaunchResult run(@NotNull LaunchContext launchContext) {
+    public void run(@NotNull LaunchContext launchContext) {
       IDevice device = launchContext.getDevice();
 
       // Get the current device time so that the profiler knows to not profile existing processes that were spawned before that time.
       // Otherwise, the profiler can start profiling for a brief moment, then the new process launches and the profiler switches
       // immediately to the new process, leaving a short-lived session behind. We do this only if the user launches explicit with the
       // profile option, as we need to not impact the run/debug workflow.
-      long currentDeviceTimeNs = isProfilerLaunch(launchContext.getExecutor()) ? getCurrentDeviceTime(device) : Long.MIN_VALUE;
+      long currentDeviceTimeNs = isProfilerLaunch(launchContext.getEnv().getExecutor()) ? getCurrentDeviceTime(device) : Long.MIN_VALUE;
 
       // There are two scenarios here:
       // 1. If the profiler window is opened, we only profile the process that is launched and detected by the profilers after the current
@@ -468,21 +472,16 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
       // When Studio detects that the process is terminated, remove the LAST_RUN_APP_INFO cache to prevent the profilers from waiting
       // to auto-profiling a process that has already been killed.
-      LaunchStatus launchStatus = launchContext.getLaunchStatus();
-      if (launchStatus instanceof ProcessHandlerLaunchStatus) {
-        ProcessHandler processHandler = ((ProcessHandlerLaunchStatus)launchStatus).getProcessHandler();
-        ProcessAdapter adapter = new ProcessAdapter() {
-          @Override
-          public void processTerminated(@NotNull ProcessEvent event) {
-            myProject.putUserData(LAST_RUN_APP_INFO, null);
-            // Removes the listener as soon as we receive the event, to avoid the ProcessHandler holding to it any longer than needed.
-            processHandler.removeProcessListener(this);
-          }
-        };
-        processHandler.addProcessListener(adapter);
-      }
-
-      return LaunchResult.success();
+      ProcessHandler processHandler = launchContext.getProcessHandler();
+      ProcessAdapter adapter = new ProcessAdapter() {
+        @Override
+        public void processTerminated(@NotNull ProcessEvent event) {
+          myProject.putUserData(LAST_RUN_APP_INFO, null);
+          // Removes the listener as soon as we receive the event, to avoid the ProcessHandler holding to it any longer than needed.
+          processHandler.removeProcessListener(this);
+        }
+      };
+      processHandler.addProcessListener(adapter);
     }
 
     @NotNull
@@ -524,6 +523,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       catch (StatusRuntimeException exception) {
         getLogger().error(exception);
       }
+      client.shutdownChannel();
 
       return startTimeNs;
     }

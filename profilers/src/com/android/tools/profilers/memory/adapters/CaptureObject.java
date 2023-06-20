@@ -247,7 +247,7 @@ public interface CaptureObject extends MemoryObject {
     return true;
   }
 
-  final class Utils {
+  class Utils {
     static ListenableFutureTask<Void> makeEmptyTask() {
       return ListenableFutureTask.create(() -> null);
     }

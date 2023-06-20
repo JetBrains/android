@@ -24,9 +24,12 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.parsers.PsiXmlFile
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.highlighter.XmlFileType
@@ -150,11 +153,8 @@ class PreviewProvider(
   private fun getRenderTask(configuration: Configuration): CompletableFuture<RenderTask?> {
     val module = configuration.module ?: return CompletableFuture.completedFuture(null)
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
-    val renderService = RenderService.getInstance(module.project)
-    val logger = renderService.createLogger(facet)
-    return renderService.taskBuilder(facet, configuration)
-      .withLogger(logger)
-      .build()
+    val renderService = StudioRenderService.getInstance(module.project)
+    return renderService.taskBuilder(facet, configuration).build()
   }
 
   private fun extractImage(result: RenderResult): BufferedImage? {
@@ -184,7 +184,14 @@ class PreviewProvider(
   }
 
   private val currentScale: Double?
-    get() = myDesignSurfaceSupplier.get()?.let { it.scale * it.screenScalingFactor }
+    get() = myDesignSurfaceSupplier.get()?.let {
+      if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+        val sceneScale = it.focusedSceneView?.sceneManager?.sceneScalingFactor ?: 1.0f
+        return it.scale * it.screenScalingFactor / sceneScale
+      } else {
+        return it.scale * it.screenScalingFactor
+      }
+    }
 
   private val sceneView: SceneView?
     get() = myDesignSurfaceSupplier.get()?.focusedSceneView
@@ -199,7 +206,7 @@ class PreviewProvider(
         .createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml)
     }
     assert(file is XmlFile)
-    renderTask.setXmlFile((file as XmlFile))
+    renderTask.setXmlFile(PsiXmlFile(file as XmlFile))
     renderTask.setTransparentBackground()
     renderTask.setDecorations(false)
     renderTask.setRenderingMode(SessionParams.RenderingMode.V_SCROLL)

@@ -27,7 +27,6 @@ import com.android.tools.idea.layoutinspector.properties.PropertySection.VIEW
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.util.concurrent.Futures
 import java.util.concurrent.Future
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
 
 // Constants for fabricated internal properties
 const val NAMESPACE_INTERNAL = "internal"
@@ -71,12 +70,12 @@ fun addInternalProperties(
   attrId: String?,
   lookup: ViewNodeAndResourceLookup
 ) {
-  add(table, ATTR_NAME, Type.STRING, view.qualifiedName, VIEW, view.drawId, lookup)
-  add(table, ATTR_X, Type.DIMENSION, view.layoutBounds.x.toString(), DIMENSION, view.drawId, lookup)
-  add(table, ATTR_Y, Type.DIMENSION, view.layoutBounds.y.toString(), DIMENSION, view.drawId, lookup)
-  add(table, ATTR_WIDTH, Type.DIMENSION, view.layoutBounds.width.toString(), DIMENSION, view.drawId, lookup)
-  add(table, ATTR_HEIGHT, Type.DIMENSION, view.layoutBounds.height.toString(), DIMENSION, view.drawId, lookup)
-  attrId?.let { add(table, ATTR_ID, Type.STRING, it, VIEW, view.drawId, lookup) }
+  add(table, ATTR_NAME, PropertyType.STRING, view.qualifiedName, VIEW, view.drawId, lookup)
+  add(table, ATTR_X, PropertyType.DIMENSION, view.layoutBounds.x.toString(), DIMENSION, view.drawId, lookup)
+  add(table, ATTR_Y, PropertyType.DIMENSION, view.layoutBounds.y.toString(), DIMENSION, view.drawId, lookup)
+  add(table, ATTR_WIDTH, PropertyType.DIMENSION, view.layoutBounds.width.toString(), DIMENSION, view.drawId, lookup)
+  add(table, ATTR_HEIGHT, PropertyType.DIMENSION, view.layoutBounds.height.toString(), DIMENSION, view.drawId, lookup)
+  attrId?.let { add(table, ATTR_ID, PropertyType.STRING, it, VIEW, view.drawId, lookup) }
 
   (view as? ComposeViewNode)?.addComposeProperties(table, lookup)
 }
@@ -85,12 +84,12 @@ private fun ComposeViewNode.addComposeProperties(table: PropertiesTable<Inspecto
   if (!recompositions.isEmpty) {
     // Do not show the "Recomposition" section in the properties panel for nodes without any counts.
     // This includes inlined composables for which we are unable to get recomposition counts for.
-    add(table, "count", Type.INT32, recompositions.count.toString(), RECOMPOSITIONS, drawId, lookup)
-    add(table, "skips", Type.INT32, recompositions.skips.toString(), RECOMPOSITIONS, drawId, lookup)
+    add(table, "count", PropertyType.INT32, recompositions.count.toString(), RECOMPOSITIONS, drawId, lookup)
+    add(table, "skips", PropertyType.INT32, recompositions.skips.toString(), RECOMPOSITIONS, drawId, lookup)
   }
 }
 
-private fun add(table: PropertiesTable<InspectorPropertyItem>, name: String, type: Type, value: String?, section: PropertySection, id: Long,
+private fun add(table: PropertiesTable<InspectorPropertyItem>, name: String, type: PropertyType, value: String?, section: PropertySection, id: Long,
                 lookup: ViewNodeAndResourceLookup) {
   table.put(InspectorPropertyItem(NAMESPACE_INTERNAL, name, type, value, section, null, id, lookup))
 }

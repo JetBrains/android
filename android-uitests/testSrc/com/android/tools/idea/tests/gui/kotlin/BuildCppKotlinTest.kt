@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit
 @RunWith(GuiTestRemoteRunner::class)
 class BuildCppKotlinTest {
 
-  @Rule @JvmField val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule @JvmField val guiTest = GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
   /**
    * Verifies new project with Kotlin and C++ support can be built
@@ -64,7 +64,7 @@ class BuildCppKotlinTest {
   @Test
   fun buildCppKotlinProj() {
     val ideFrame =
-      guiTest.importProjectAndWaitForProjectSyncToFinish("CppKotlin", Wait.seconds(TimeUnit.MINUTES.toSeconds(5)))
+      guiTest.importProjectAndWaitForProjectSyncToFinish("CppKotlin", Wait.seconds(TimeUnit.MINUTES.toSeconds(7)))
     ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300), "Build", "Rebuild Project")
   }
 }

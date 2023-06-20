@@ -66,7 +66,7 @@ class LiveEditAdvancedSettingsConfigurable : BoundSearchableConfigurable(
   }
 }
 
-class LiveEditAdvancedSettingsConfigurableProvider : ConfigurableProvider() {
+class LiveEditAdvancedSettingsConfigurableProvider: ConfigurableProvider() {
   override fun createConfigurable(): Configurable? = if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_ADVANCED_SETTINGS_MENU.get()) LiveEditAdvancedSettingsConfigurable() else null
 
   override fun canCreateConfigurable(): Boolean {

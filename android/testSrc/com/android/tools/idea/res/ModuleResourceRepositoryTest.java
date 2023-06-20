@@ -60,8 +60,8 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
   public void testStable() {
-    assertSame(ResourceRepositoryManager.getModuleResources(myFacet), ResourceRepositoryManager.getModuleResources(myFacet));
-    assertSame(ResourceRepositoryManager.getModuleResources(myFacet), ResourceRepositoryManager.getModuleResources(myModule));
+    assertSame(StudioResourceRepositoryManager.getModuleResources(myFacet), StudioResourceRepositoryManager.getModuleResources(myFacet));
+    assertSame(StudioResourceRepositoryManager.getModuleResources(myFacet), StudioResourceRepositoryManager.getModuleResources(myModule));
   }
 
   public void testOverlays() {

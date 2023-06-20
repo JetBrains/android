@@ -1,0 +1,3 @@
+dependencies {
+  compile rootProject.ext.dep
+}

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui;
 
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.android.tools.idea.project.hyperlink.SyncMessageFragment;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.openapi.project.Project;
@@ -24,9 +24,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class QuickFixNotificationListener extends NotificationListener.Adapter {
   @NotNull private Project myProject;
-  @NotNull private NotificationHyperlink myQuickFix;
+  @NotNull private SyncMessageFragment myQuickFix;
 
-  public QuickFixNotificationListener(@NotNull Project project, @NotNull NotificationHyperlink quickFix) {
+  public QuickFixNotificationListener(@NotNull Project project, @NotNull SyncMessageFragment quickFix) {
     myProject = project;
     myQuickFix = quickFix;
   }
@@ -37,7 +37,7 @@ public class QuickFixNotificationListener extends NotificationListener.Adapter {
   }
 
   @NotNull
-  public NotificationHyperlink getQuickFix() {
+  public SyncMessageFragment getQuickFix() {
     return myQuickFix;
   }
 }

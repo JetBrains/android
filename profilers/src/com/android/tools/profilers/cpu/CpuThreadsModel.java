@@ -169,8 +169,7 @@ public class CpuThreadsModel extends DragAndDropListModel<CpuThreadsModel.Ranged
     private final Range myRange;
     private final StateChartModel<ThreadState> myModel;
     /**
-     * If the thread is imported from a trace file (excluding an atrace one), we use a {@link ImportedTraceThreadDataSeries} to represent
-     * its data. Otherwise, we use a {@link MergeCaptureDataSeries} that will combine the sampled {@link DataSeries} pulled from perfd, and
+     * We use a {@link MergeCaptureDataSeries} that will combine the sampled {@link DataSeries} pulled from perfd, and
      * {@link SystemTraceCpuCapture}, populated when an atrace capture is parsed.
      */
     private DataSeries<ThreadState> mySeries;

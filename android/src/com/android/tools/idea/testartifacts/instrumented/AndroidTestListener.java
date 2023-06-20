@@ -19,8 +19,9 @@ package com.android.tools.idea.testartifacts.instrumented;
 import com.android.ddmlib.testrunner.ITestRunListener;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.run.ConsolePrinter;
+import com.android.tools.idea.run.configuration.execution.ExecutionUtils;
 import com.intellij.execution.testframework.sm.ServiceMessageBuilder;
+import com.intellij.execution.ui.ConsoleView;
 import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
@@ -29,19 +30,19 @@ public class AndroidTestListener implements ITestRunListener {
 
   private static final String DISPLAY_PREFIX = "android.studio.display.";
 
-  @NotNull private final ConsolePrinter myPrinter;
+  @NotNull private final ConsoleView myConsole;
 
   private long myTestStartingTime;
   private long myTestSuiteStartingTime;
   private String myTestClassName = null;
 
-  public AndroidTestListener(@NotNull ConsolePrinter printer) {
-    myPrinter = printer;
+  public AndroidTestListener(@NotNull ConsoleView consoleView) {
+    myConsole = consoleView;
   }
 
   @Override
   public void testRunStopped(long elapsedTime) {
-    myPrinter.stderr("Test run stopped.\n");
+    ExecutionUtils.printlnError(myConsole, "Test run stopped.\n");
   }
 
   @Override
@@ -49,20 +50,20 @@ public class AndroidTestListener implements ITestRunListener {
     if (myTestClassName != null) {
       testSuiteFinished();
     }
-    myPrinter.stdout("Tests ran to completion.\n");
+    ExecutionUtils.println(myConsole, "Tests ran to completion.");
   }
 
   @Override
   public void testRunFailed(String errorMessage) {
-    myPrinter.stderr("Test running failed: " + errorMessage);
+    ExecutionUtils.printlnError(myConsole, "Test running failed: " + errorMessage);
   }
 
   @Override
   public void testRunStarted(String runName, int testCount) {
-    myPrinter.stdout("\nStarted running tests\n");
+    ExecutionUtils.println(myConsole, "Started running tests");
 
     final ServiceMessageBuilder builder = new ServiceMessageBuilder("enteredTheMatrix");
-    myPrinter.stdout(builder.toString());
+    ExecutionUtils.println(myConsole, builder.toString());
   }
 
   @Override
@@ -76,8 +77,10 @@ public class AndroidTestListener implements ITestRunListener {
     }
     ServiceMessageBuilder builder = new ServiceMessageBuilder("testStarted");
     builder.addAttribute("name", test.getTestName());
-    builder.addAttribute("locationHint", AndroidTestLocationProvider.PROTOCOL_ID + "://" + test.getClassName() + '.' + test.getTestName() + "()");
-    myPrinter.stdout(builder.toString());
+    builder.addAttribute("locationHint",
+                         AndroidTestLocationProvider.PROTOCOL_ID + "://" + test.getClassName() + '.' + test.getTestName() + "()");
+    ExecutionUtils.println(myConsole,
+                           builder.toString());
     myTestStartingTime = System.currentTimeMillis();
   }
 
@@ -86,14 +89,14 @@ public class AndroidTestListener implements ITestRunListener {
     ServiceMessageBuilder builder = new ServiceMessageBuilder("testSuiteStarted");
     builder.addAttribute("name", myTestClassName);
     builder.addAttribute("locationHint", AndroidTestLocationProvider.PROTOCOL_ID + "://" + myTestClassName);
-    myPrinter.stdout(builder.toString());
+    ExecutionUtils.println(myConsole, builder.toString());
   }
 
   private void testSuiteFinished() {
     ServiceMessageBuilder builder = new ServiceMessageBuilder("testSuiteFinished");
     builder.addAttribute("name", myTestClassName);
     builder.addAttribute("duration", Long.toString(System.currentTimeMillis() - myTestSuiteStartingTime));
-    myPrinter.stdout(builder.toString());
+    ExecutionUtils.println(myConsole, builder.toString());
     myTestClassName = null;
   }
 
@@ -104,7 +107,7 @@ public class AndroidTestListener implements ITestRunListener {
     builder.addAttribute("message", "");
     builder.addAttribute("details", stackTrace);
     builder.addAttribute("error", "true");
-    myPrinter.stdout(builder.toString());
+    ExecutionUtils.println(myConsole, builder.toString());
   }
 
   @Override
@@ -112,13 +115,13 @@ public class AndroidTestListener implements ITestRunListener {
     ServiceMessageBuilder builder = ServiceMessageBuilder.testIgnored(test.getTestName());
     builder.addAttribute("message", "Test ignored. Assumption Failed:");
     builder.addAttribute("details", trace);
-    myPrinter.stdout(builder.toString());
+    ExecutionUtils.println(myConsole, builder.toString());
   }
 
   @Override
   public void testIgnored(TestIdentifier test) {
     ServiceMessageBuilder builder = ServiceMessageBuilder.testIgnored(test.getTestName());
-    myPrinter.stdout(builder.toString());
+    ExecutionUtils.println(myConsole, builder.toString());
   }
 
   @Override
@@ -128,7 +131,7 @@ public class AndroidTestListener implements ITestRunListener {
       for (Map.Entry<String, String> entry : testMetrics.entrySet()) {
         String key = entry.getKey();
         if (key.startsWith(DISPLAY_PREFIX)) {
-          myPrinter.stdout(key.substring(DISPLAY_PREFIX.length()) + ": " + entry.getValue());
+          ExecutionUtils.println(myConsole, key.substring(DISPLAY_PREFIX.length()) + ": " + entry.getValue());
         }
       }
     }
@@ -136,6 +139,6 @@ public class AndroidTestListener implements ITestRunListener {
     ServiceMessageBuilder builder = new ServiceMessageBuilder("testFinished");
     builder.addAttribute("name", test.getTestName());
     builder.addAttribute("duration", Long.toString(System.currentTimeMillis() - myTestStartingTime));
-    myPrinter.stdout(builder.toString());
+    ExecutionUtils.println(myConsole, builder.toString());
   }
 }

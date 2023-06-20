@@ -18,7 +18,9 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
@@ -113,6 +115,24 @@ class VisualizationToolWindowFactoryTest {
       FileEditorManager.getInstance(projectRule.project).closeFile(layoutFile.virtualFile)
     }
     assertFalse(toolWindow.isAvailable)
+  }
+
+  @Test
+  fun testAvailableWhenEditorIsOpenedBeforeInit() {
+    val toolWindow = VisualizationTestToolWindow(projectRule.project)
+    val factory = VisualizationToolWindowFactory()
+
+    val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
+
+    factory.init(toolWindow)
+    assertFalse(toolWindow.isAvailable)
+
+    projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowsRegistered(
+      listOf(VisualizationToolWindowFactory.TOOL_WINDOW_ID), ToolWindowManager.getInstance(projectRule.project)
+    )
+
+    assertTrue(toolWindow.isAvailable)
   }
 }
 

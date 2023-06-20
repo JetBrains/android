@@ -22,7 +22,6 @@ import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public interface DeployTarget {
   boolean hasCustomRunProfileState(@NotNull Executor executor);
@@ -34,6 +33,6 @@ public interface DeployTarget {
    * @return the target to use, or null if the user cancelled (or there was an error). Null return values will end the launch quietly -
    * if an error needs to be displayed, the target chooser should surface it.
    */
-  @Nullable
+  @NotNull
   DeviceFutures getDevices(@NotNull Project project);
 }

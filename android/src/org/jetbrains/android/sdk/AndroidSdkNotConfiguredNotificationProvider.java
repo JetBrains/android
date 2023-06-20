@@ -2,7 +2,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.sdk.AndroidPlatform;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
@@ -19,6 +19,7 @@ import java.util.function.Function;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +45,7 @@ public class AndroidSdkNotConfiguredNotificationProvider implements EditorNotifi
       }
       if (!AndroidModel.isRequired(facet)
           && (IdeResourcesUtil.isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
-        final AndroidPlatform platform = AndroidPlatform.getInstance(module);
+        final AndroidPlatform platform = AndroidPlatforms.getInstance(module);
 
         if (platform == null) {
           return new MySdkNotConfiguredNotificationPanel(fileEditor, module);

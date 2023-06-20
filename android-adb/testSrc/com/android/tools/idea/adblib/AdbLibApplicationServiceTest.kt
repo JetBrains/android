@@ -16,7 +16,7 @@
 package com.android.tools.idea.adblib
 
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.tools.idea.testingutils.FakeAdbServiceRule
+import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking

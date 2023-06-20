@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.bleak
 
-class JniBleakHelper: BleakHelper {
+class JniBleakHelper: BleakHelper() {
 
   private val Any.isPrimitiveArray: Boolean
     get() = javaClass.isArray && javaClass.componentType.isPrimitive
 
-  override fun allLoadedClasses(): List<Any> {
+  override fun computeLoadedClasses(): List<Any> {
     return allLoadedClasses0().toList()
   }
 

@@ -15,9 +15,11 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import com.android.annotations.NonNull;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.idea.codenavigation.CodeNavigator;
+import com.android.tools.profilers.FeatureConfig;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.intellij.ui.DoubleClickListener;
 import java.awt.Point;
@@ -28,10 +30,13 @@ import org.jetbrains.annotations.Nullable;
 
 public final class CodeNavigationHandler extends MouseAdapter {
   @NotNull private final HTreeChart<CaptureNode> myChart;
+  @NonNull private final FeatureConfig myFeatureConfig;
   private Point myLastPopupPoint;
 
-  public CodeNavigationHandler(@NotNull HTreeChart<CaptureNode> chart, @NotNull CodeNavigator navigator) {
+  public CodeNavigationHandler(@NotNull HTreeChart<CaptureNode> chart, @NotNull CodeNavigator navigator,
+                               @NonNull FeatureConfig featureConfig) {
     myChart = chart;
+    myFeatureConfig = featureConfig;
     new DoubleClickListener() {
       @Override
       protected boolean onDoubleClick(MouseEvent event) {
@@ -71,6 +76,6 @@ public final class CodeNavigationHandler extends MouseAdapter {
     if (n == null) {
       return null;
     }
-    return ChartDetailsView.modelToCodeLocation(n.getData());
+    return ChartDetailsView.modelToCodeLocation(n.getData(), myFeatureConfig);
   }
 }

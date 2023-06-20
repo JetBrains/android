@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.res.FrameworkResourceRepositoryManager.Companion.getInstance
+import com.android.tools.res.FrameworkResourceRepositoryManager.Companion.getInstance
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
 import junit.framework.TestCase

@@ -20,6 +20,7 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
@@ -27,12 +28,13 @@ import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.Futures.immediateFuture
-import com.google.common.util.concurrent.ListenableFuture
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,7 +43,6 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.net.Socket
 import java.nio.file.Path
-import java.util.concurrent.CompletableFuture
 
 class AbstractInspectorClientTest {
 
@@ -78,10 +79,10 @@ class AbstractInspectorClientTest {
   fun clientWithAdbResponseConnects() {
     shouldEcho = true
     adbRule.withDeviceCommandHandler(FakeShellCommandHandler())
-    val client = MyClient(disposableRule.disposable)
+    val client = MyClient(projectRule.project, disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
-    client.connect(projectRule.project)
+    runBlocking { client.connect (projectRule.project) }
     assertThat(client.isConnected).isTrue()
     verify(monitor).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
@@ -90,24 +91,33 @@ class AbstractInspectorClientTest {
   fun clientWithNoAdbResponseFailsToConnect() {
     shouldEcho = false
     adbRule.withDeviceCommandHandler(FakeShellCommandHandler())
-    val client = MyClient(disposableRule.disposable)
+    val client = MyClient(projectRule.project, disposableRule.disposable)
     val monitor = mock<InspectorClientLaunchMonitor>()
     client.launchMonitor = monitor
-    client.connect(projectRule.project)
+    runBlocking { client.connect (projectRule.project) }
     assertThat(client.isConnected).isFalse()
     verify(monitor, times(0)).updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ADB_PING)
   }
 
   class MyClient(
+    project: Project,
     disposable: Disposable
-  ) : AbstractInspectorClient(MODERN_DEVICE.createProcess(), true, DisconnectedClient.stats, disposable) {
-    override fun doConnect(): ListenableFuture<Nothing> = immediateFuture(null)
+  ) : AbstractInspectorClient(
+    ClientType.UNKNOWN_CLIENT_TYPE,
+    project,
+    MODERN_DEVICE.createProcess(),
+    true,
+    DisconnectedClient.stats,
+    AndroidCoroutineScope(disposable),
+    disposable
+  ) {
+    override suspend fun doConnect() { }
 
-    override fun doDisconnect(): ListenableFuture<Nothing> = immediateFuture(null)
+    override suspend fun doDisconnect() { }
 
-    override fun startFetching() = CompletableFuture.completedFuture(Unit)!!
+    override suspend fun startFetching() { }
 
-    override fun stopFetching() = CompletableFuture.completedFuture(Unit)!!
+    override suspend fun stopFetching() { }
 
     override fun refresh() {}
 

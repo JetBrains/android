@@ -70,15 +70,15 @@
     <orientation name="land" size="370,424" screenPos="25,26" screenSize="320,320" shadow="shadow.png" back="back.png" lights="fore.png" mask="mask.png"/>
   </device>
 
-  <device id="tv_1080p" name="Android TV 1080p">
+  <device id="tv_1080p" name="Television 1080p">
     <orientation name="land" size="2090,1255" screenPos="85,59" screenSize="1920,1080" shadow="shadow.png" back="back.png" lights="fore.png"/>
   </device>
 
-  <device id="tv_4k" name="Android TV 4K">
+  <device id="tv_4k" name="Television 4K">
     <orientation name="land" size="4180,2510" screenPos="170,118" screenSize="3840,2160" shadow="shadow.png" back="back.png" lights="fore.png"/>
   </device>
 
-  <device id="tv_720p" name="Android TV 720p">
+  <device id="tv_720p" name="Television 720p">
     <orientation name="land" size="1394,837" screenPos="57,39" screenSize="1280,720" shadow="shadow.png" back="back.png" lights="fore.png"/>
   </device>
 

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_MERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.FLAG_HAS_UNMERGED_SEMANTICS
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.model.isSystemComposeNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.ComposableNode
@@ -93,6 +95,9 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
 
     val layoutBounds = Rectangle(bounds.layout.x, bounds.layout.y, bounds.layout.w, bounds.layout.h)
     val renderBounds = bounds.render.takeIf { it != Quad.getDefaultInstance() }?.toShape() ?: layoutBounds
+    val ignoreRecompositions =
+      pendingRecompositionCountReset ||
+      (isSystemComposeNode(packageHash) && StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK.get())
     val node = ComposeViewNode(
       id,
       stringTable[name],
@@ -102,8 +107,8 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
       null,
       "",
       0,
-      if (pendingRecompositionCountReset) 0 else recomposeCount,
-      if (pendingRecompositionCountReset) 0 else recomposeSkips,
+      if (ignoreRecompositions) 0 else recomposeCount,
+      if (ignoreRecompositions) 0 else recomposeSkips,
       stringTable[filename],
       packageHash,
       offset,

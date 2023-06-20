@@ -42,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Indexes machine learning model (e.g. TFLite model) files under the ml folder.
  */
-public final class MlModelFileIndex {
+public class MlModelFileIndex {
   private static final VirtualFileGist<MlModelMetadata> ourGist = GistManager.getInstance()
     .newVirtualFileGist(
       "MlModelFileGist",

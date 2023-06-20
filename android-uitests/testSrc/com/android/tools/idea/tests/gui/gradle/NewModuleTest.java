@@ -18,11 +18,11 @@ package com.android.tools.idea.tests.gui.gradle;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.android.tools.idea.wizard.template.Language.Kotlin;
-import static com.android.tools.idea.wizard.template.impl.activities.blankWearActivity.BlankWearActivityTemplateKt.getBlankWearActivityTemplate;
+import static com.android.tools.idea.wizard.template.impl.activities.composeWearActivity.ComposeWearActivityTemplateKt.getComposeWearActivityTemplate;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.flags.junit.RestoreFlagRule;
+import com.android.flags.junit.FlagRule;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
@@ -44,7 +44,7 @@ public class NewModuleTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
-  @Rule public final RestoreFlagRule<Boolean> restoreNpwNativeModuleFlagRule = new RestoreFlagRule<>(StudioFlags.NPW_NEW_NATIVE_MODULE);
+  @Rule public final FlagRule<Boolean> restoreNpwNativeModuleFlagRule = new FlagRule<>(StudioFlags.NPW_NEW_NATIVE_MODULE);
 
   @Before
   public void setup() {
@@ -151,7 +151,7 @@ public class NewModuleTest {
         .enterModuleName(moduleName)
         .wizard()
         .clickNext()
-        .chooseActivity(getBlankWearActivityTemplate().getName())
+        .chooseActivity(getComposeWearActivityTemplate().getName())
         .clickNext()
         .clickFinishAndWaitForSyncToFinish();
 

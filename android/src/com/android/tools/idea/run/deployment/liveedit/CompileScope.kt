@@ -19,11 +19,18 @@ import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiErrorElement
+import com.intellij.psi.PsiRecursiveElementWalkingVisitor
+import com.intellij.psi.TokenType
+import com.intellij.psi.util.elementType
+import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.FacadeClassSourceShimForFragmentCompilation
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensionsImpl
 import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
 import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
@@ -36,13 +43,17 @@ import org.jetbrains.kotlin.config.languageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.InvalidModuleException
 import org.jetbrains.kotlin.diagnostics.Severity
+import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.core.util.analyzeInlinedFunctions
+import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.load.kotlin.toSourceElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.source.PsiSourceFile
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
+import org.jetbrains.kotlin.types.isPrimitiveNumberUntil
+import org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -111,18 +122,17 @@ interface CompileScope {
    *
    * This function needs to be done in a read action.
    */
-  fun analyze(input: List<KtFile>, resolution: ResolutionFacade): BindingContext
+  fun analyze(input: List<KtFile>, resolution: ResolutionFacade): AnalysisResult
 
   /**
    * Invoke the Kotlin compiler that is part of the plugin. The compose plugin is also attached by the
    * the extension point to generate code for @composable functions.
    */
-  fun backendCodeGen(project: Project, resolution: ResolutionFacade,
-                     bindingContext: BindingContext,
+  fun backendCodeGen(project: Project,
+                     analysisResult: AnalysisResult,
                      input: List<KtFile>,
                      module: Module,
-                     inlineClassRequest : Set<SourceInlineCandidate>?,
-                     langVersion: LanguageVersionSettings): GenerationState
+                     inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState
 }
 
 private object CompileScopeImpl : CompileScope {
@@ -140,7 +150,7 @@ private object CompileScopeImpl : CompileScope {
     return analyzeInlinedFunctions(resolution, file, false)
   }
 
-  override fun analyze(input: List<KtFile>, resolution: ResolutionFacade): BindingContext {
+  override fun analyze(input: List<KtFile>, resolution: ResolutionFacade): AnalysisResult {
     val trace = com.android.tools.tracer.Trace.begin("analyzeWithAllCompilerChecks")
     try {
       var exception: LiveEditUpdateException? = null
@@ -163,21 +173,43 @@ private object CompileScopeImpl : CompileScope {
         }
       }
 
-      return analysisResult.bindingContext
+      return analysisResult
     }
     finally {
       trace.close()
     }
   }
 
-  override fun backendCodeGen(project: Project, resolution: ResolutionFacade, bindingContext: BindingContext, input: List<KtFile>,
-                              module: Module,
-                              inlineClassRequest : Set<SourceInlineCandidate>?, langVersion: LanguageVersionSettings): GenerationState {
+  @OptIn(IDEAPluginsCompatibilityAPI::class)
+  override fun backendCodeGen(project: Project, analysisResult: AnalysisResult, input: List<KtFile>, module: Module,
+                              inlineClassRequest : Set<SourceInlineCandidate>?): GenerationState {
 
     val compilerConfiguration = CompilerConfiguration()
-    compilerConfiguration.languageVersionSettings = langVersion
+    compilerConfiguration.languageVersionSettings = input.first().languageVersionSettings
+
+    // The Kotlin compiler is built on top of the PSI parse tree which is used in the IDE.
+    // In order to support things like auto-complete when the user is still typing code, the IDE needs to be able to perform
+    // analysis of syntactically incorrect code during the Analysis phrase. The parser will try to continue to build the PSI tree by
+    // filling in PsiErrorElements to recover from lexical error states. Since the backend is also fine with generating code gen with
+    // PsiErrorElement, we need to do a quick pass to check if there are any PsiErrorElement in the tree and prevent Live Edit from
+    // sending invalid code to the device. It is important to note that the Analysis phrase would have triggered a full parse of the given
+    // file already so this is the best time to check.
+    var errorElement : PsiErrorElement? = null
+    input.forEach() {
+      it.acceptChildren(object : PsiRecursiveElementWalkingVisitor() {
+        override fun visitErrorElement(e: PsiErrorElement) {
+          errorElement = e
+        }
+      })
+    }
+    errorElement?.let { throw LiveEditUpdateException.compilationError(it.errorDescription, it.containingFile, null)}
 
     compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, module.name)
+    KotlinFacet.get(module)?.let { kotlinFacet ->
+      (kotlinFacet.configuration.settings.compilerArguments as K2JVMCompilerArguments).moduleName?.let {
+        compilerConfiguration.put(CommonConfigurationKeys.MODULE_NAME, it)
+      }
+    }
 
     val useComposeIR = LiveEditAdvancedConfiguration.getInstance().useEmbeddedCompiler
     if (useComposeIR) {
@@ -191,8 +223,8 @@ private object CompileScopeImpl : CompileScope {
 
     val generationStateBuilder = GenerationState.Builder(project,
                                                          ClassBuilderFactories.BINARIES,
-                                                         resolution.moduleDescriptor,
-                                                         bindingContext,
+                                                         analysisResult.moduleDescriptor,
+                                                         analysisResult.bindingContext,
                                                          input,
                                                          compilerConfiguration)
 

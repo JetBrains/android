@@ -23,19 +23,19 @@ import static com.android.SdkConstants.TOOLS_URI;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.tools.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidAttribute;
 import com.google.wireless.android.sdk.stats.AndroidView;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class UsageTrackerUtil {
+public class UsageTrackerUtil {
 
   // Identifies a custom tag name or attribute name i.e. a placeholder for a name we do NOT want to log.
   @VisibleForTesting

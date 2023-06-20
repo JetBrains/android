@@ -24,8 +24,8 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.impl.installer.AbstractInstaller;
 import com.android.repository.impl.meta.Archive;
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
+import com.android.utils.PathUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -122,7 +122,10 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
       if (progress.isCanceled()) {
         return false;
       }
-      FileOpUtils.deleteFileOrFolder(downloadLocation);
+      try {
+        PathUtils.deleteRecursivelyIfExists(downloadLocation);
+      }
+      catch (IOException ignore) {}
 
       return true;
     }
@@ -171,9 +174,15 @@ class FullInstaller extends AbstractInstaller implements PatchOperation {
   @Override
   protected void cleanup(@NotNull ProgressIndicator progress) {
     super.cleanup(progress);
-    FileOpUtils.deleteFileOrFolder(getLocation(progress));
+    try {
+      PathUtils.deleteRecursivelyIfExists(getLocation(progress));
+    }
+    catch (IOException ignore) {}
     if (myUnzippedPackage != null) {
-      FileOpUtils.deleteFileOrFolder(myUnzippedPackage);
+      try {
+        PathUtils.deleteRecursivelyIfExists(myUnzippedPackage);
+      }
+      catch (IOException ignore) {}
     }
   }
 }

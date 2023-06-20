@@ -57,9 +57,9 @@ class NlVisibilityButton: JButton() {
   var isClicked = false
   var isHovered = false
   var normalIcon: Icon = EmptyIcon.ICON_16
-  private var hoveredIcon: Icon = EmptyIcon.ICON_16
-  private var clickedIcon: Icon = EmptyIcon.ICON_16
-  private var updateBgWhenHovered = false
+  var hoveredIcon: Icon = EmptyIcon.ICON_16
+  var clickedIcon: Icon = EmptyIcon.ICON_16
+  var updateBgWhenHovered = false
 
   init {
     background = secondaryPanelBackground
@@ -132,9 +132,9 @@ class ButtonPresentation {
   var visibility: Visibility? = null
   // True if this item represents Tools attribute.
   // False if it represents android attribute.
-  private var isToolsAttr: Boolean = false
+  var isToolsAttr: Boolean = false
   // True if visibility.none should hide icon. False otherwise.
-  private var hideNone: Boolean = false
+  var hideNone: Boolean = false
 
   var model: NlVisibilityModel? = null
   // Normal Icon

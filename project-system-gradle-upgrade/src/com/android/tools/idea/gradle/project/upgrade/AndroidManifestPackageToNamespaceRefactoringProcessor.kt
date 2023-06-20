@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.Companion.standardRegionNecessity
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.projectsystem.getAndroidTestModule
+import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.util.toVirtualFile
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_PACKAGE
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
@@ -35,11 +38,10 @@ import org.jetbrains.android.util.AndroidBundle
 import java.io.File
 
 class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity() =
-    standardRegionNecessity(current, new, GradleVersion.parse("4.2.0-beta03"), GradleVersion.parse("8.0.0-alpha01"))
+  override val necessityInfo = RegionNecessity(AgpVersion.parse("7.0.0-alpha05"), AgpVersion.parse("8.0.0-alpha03"))
 
   data class Namespaces(val namespace: String?, val testNamespace: String?)
 
@@ -78,20 +80,26 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
                   "package for the main and androidTest artifacts, in the following modules: \n" +
                   moduleNames.descriptionText + "\n" +
                   "To proceed, change the androidTest package in the manifest for all affected modules.",
-    // TODO(b/191813691): add helpLinkUrl to https://developer.android.com/studio/build/configure-app-module#change-namespace-for-testing
+    readMoreUrl = ReadMoreUrlRedirect("main-and-test-package-equal"),
   )
 
   override fun blockProcessorReasons(): List<BlockReason> {
     val moduleNames = mutableListOf<String>()
-    projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
-      model.psiElement ?: return@model
-      val moduleDirectory = model.moduleRootDirectory
+    val modules = ModuleManager.getInstance(project).modules.filter { it.isMainModule() }
+    modules.forEach module@{ module ->
+      val modelNamespace = GradleAndroidModel.get(module)?.androidProject?.namespace
+      val androidTestModule = module.getAndroidTestModule()
+      val modelTestNamespace = androidTestModule?.let { GradleAndroidModel.get(it)?.androidProject?.testNamespace }
+      val buildModel = projectBuildModel.getModuleBuildModel(module) ?: return@module
+      buildModel.psiElement ?: return@module
+      val moduleDirectory = buildModel.moduleRootDirectory
       val (namespace, testNamespace) = moduleDirectory.computeNamespacesFromManifestPackageAttributes()
-      testNamespace?.let { testNamespace ->
-        if (model.android().testNamespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
+      (testNamespace ?: modelTestNamespace)?.let { testNamespace ->
+        if (buildModel.android().testNamespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
         val currentNamespace = when {
-          model.android().namespace().valueType != GradlePropertyModel.ValueType.NONE -> model.android().namespace().forceString()
+          buildModel.android().namespace().valueType != GradlePropertyModel.ValueType.NONE -> buildModel.android().namespace().forceString()
           namespace != null -> namespace
+          modelNamespace != null -> modelNamespace
           else -> ""
         }
         // TODO(xof): the moduleDirectory need not have the same name as the module (though I guess it's reasonably common?)
@@ -120,14 +128,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
       }
       testNamespace?.let { testNamespace ->
         if (model.android().testNamespace().valueType != GradlePropertyModel.ValueType.NONE) return@let
-        val currentNamespace = when {
-          model.android().namespace().valueType != GradlePropertyModel.ValueType.NONE -> model.android().namespace().forceString()
-          namespace != null -> namespace
-          else -> ""
-        }
-        if (testNamespace == "$currentNamespace.test") return@let // default value for testNamespace is correct.
-        // TODO(b/191813691): check for agreement between model and specified testNamespace
-        val psiElement = model.android().namespace().psiElement ?: model.android().psiElement ?: modelPsiElement
+        val psiElement = model.android().testNamespace().psiElement ?: model.android().psiElement ?: modelPsiElement
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_TEST_NAMESPACE_BUILDFILE)
         val usageInfo = AndroidTestNamespaceUsageInfo(wrappedPsiElement, model, testNamespace)
         usages.add(usageInfo)
@@ -138,7 +139,7 @@ class AndroidManifestPackageToNamespaceRefactoringProcessor : AgpUpgradeComponen
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.commandName")
 
-  override fun getReadMoreUrl(): String = "https://developer.android.com/r/tools/upgrade-assistant/manifest-package-deprecated"
+  override val readMoreUrlRedirect = ReadMoreUrlRedirect("manifest-package-deprecated")
 
   override fun getShortDescription(): String? = """
     Declaration of a project's namespace using the package attribute of the
@@ -201,27 +202,3 @@ class AndroidTestNamespaceUsageInfo(
 
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.androidManifestPackageToNamespaceRefactoringProcessor.addTestNamespace.tooltipText")
 }
-
-private val List<String>.descriptionText: String
-  get() {
-    var col = 0
-    val sb = StringBuilder()
-    val last = this.size - 1
-    this.forEachIndexed moduleNames@{ index, name ->
-      when (index) {
-        0 -> name.let { col += it.length; sb.append(it) }
-        last -> name.let { if (index != 1) sb.append(","); sb.append(" and $it") }
-        in 1..7 -> {
-          sb.append(", ")
-          if (col > 72) {
-            sb.append("\n"); col = 0
-          }
-          col += name.length
-          sb.append(name)
-        }
-        else -> this.let { sb.append("and ${it.size - index} other modules"); return@moduleNames }
-      }
-    }
-    sb.append(".")
-    return sb.toString()
-  }

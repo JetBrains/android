@@ -17,19 +17,16 @@ package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.MessageType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.GradleSyncIssue;
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory;
-import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
 import java.util.ArrayList;
@@ -41,18 +38,14 @@ import org.mockito.Mock;
  */
 public class BuildToolsTooLowReporterTest extends PlatformTestCase {
   @Mock private IdeSyncIssue mySyncIssue;
-  private GradleSyncMessagesStub mySyncMessages;
   private BuildToolsTooLowReporter myIssueReporter;
-  private TestSyncIssueUsageReporter myUsageReporter;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
 
     initMocks(this);
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
     myIssueReporter = new BuildToolsTooLowReporter();
-    myUsageReporter = new TestSyncIssueUsageReporter();
   }
 
   public void testGetSupportedIssueType() {
@@ -70,27 +63,31 @@ public class BuildToolsTooLowReporterTest extends PlatformTestCase {
 
     Module module = getModule();
     List<SyncIssueNotificationHyperlink> quickFixes = new ArrayList<>();
-    quickFixes.add(mock(SyncIssueNotificationHyperlink.class));
+    quickFixes.add(new TestSyncIssueNotificationHyperlink("url", "", AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX));
 
     BuildToolsTooLowReporter spiedReporter = spy(myIssueReporter);
 
     when(spiedReporter.getQuickFixHyperlinks(minVersion, ImmutableList.of(module), ImmutableMap.of()))
       .thenReturn(quickFixes);
 
-    spiedReporter.report(mySyncIssue, module, null, myUsageReporter);
 
-    List<NotificationData> messages = mySyncMessages.getNotifications();
+
+    final var messages = spiedReporter.report(mySyncIssue, module, null);
     assertThat(messages).hasSize(1);
 
-    NotificationData message = messages.get(0);
+    final var message = messages.get(0);
 
-    assertEquals(NotificationCategory.WARNING, message.getNotificationCategory());
+    assertEquals(MessageType.WARNING, message.getType());
     assertEquals("Upgrade Build Tools!\nAffected Modules: testReport", message.getMessage());
 
-    assertEquals(quickFixes, mySyncMessages.getNotificationUpdate().getFixes());
+    final var actualQuickFixes = message.getQuickFixes();
+    assertEquals(quickFixes,
+                 actualQuickFixes.subList(0, actualQuickFixes.size() - 1));
     assertEquals(
-      ImmutableList.of(
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_BUILD_TOOLS_TOO_LOW).build()),
-      myUsageReporter.getCollectedIssue());
+        GradleSyncIssue.newBuilder()
+          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_BUILD_TOOLS_TOO_LOW)
+          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.UNKNOWN_GRADLE_SYNC_QUICK_FIX)
+          .build(),
+      SyncIssueUsageReporter.createGradleSyncIssue(mySyncIssue.getType(), message));
   }
 }

@@ -54,7 +54,7 @@ public final class HprofSessionArtifact extends MemorySessionArtifact<HeapDumpIn
 
   @Override
   public void export(@NotNull OutputStream outputStream) {
-    assert canExport();
+    assert getCanExport();
     saveHeapDumpToFile(getProfilers().getClient(), getSession(), getArtifactProto(), outputStream,
                        getProfilers().getIdeServices().getFeatureTracker());
   }
@@ -66,8 +66,7 @@ public final class HprofSessionArtifact extends MemorySessionArtifact<HeapDumpIn
                                    session.getEndTimestamp() == Long.MAX_VALUE
                                    ? Long.MAX_VALUE
                                    : TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp()));
-    List<HeapDumpInfo> infos =
-      MemoryProfiler.getHeapDumpsForSession(profilers.getClient(), session, queryRangeUs, profilers.getIdeServices());
+    List<HeapDumpInfo> infos = MemoryProfiler.getHeapDumpsForSession(profilers.getClient(), session, queryRangeUs);
     return ContainerUtil.map(infos, info -> new HprofSessionArtifact(profilers, session, sessionMetaData, info));
   }
 

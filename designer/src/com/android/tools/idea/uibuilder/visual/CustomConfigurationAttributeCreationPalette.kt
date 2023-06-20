@@ -162,7 +162,7 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
   private fun createDeviceOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val groupedDevices = groupDevices(ConfigurationManager.getOrCreateInstance(facet).devices.filter { !it.isDeprecated })
+    val groupedDevices = groupDevices(ConfigurationManager.getOrCreateInstance(facet.module).devices.filter { !it.isDeprecated })
     val devices = groupedDevices.toSortedMap(Comparator { d1, d2 -> d1.orderOfOption - d2.orderOfOption }).flatMap { it.value }
     val boxModel = MyComboBoxModel(devices, { it.displayName })
     val box = CommonComboBox(boxModel)
@@ -177,7 +177,7 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
 
   private fun createApiOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    val apiLevels = ConfigurationManager.getOrCreateInstance(facet).targets.reversed()
+    val apiLevels = ConfigurationManager.getOrCreateInstance(facet.module).targets.reversed()
     if (apiLevels.isEmpty()) {
       val noApiLevelLabel = JBLabel("No available API Level")
      panel.add(noApiLevelLabel, BorderLayout.CENTER)
@@ -212,7 +212,7 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
   private fun createLocaleOptionPanel(): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
 
-    val locales = listOf(null) + ConfigurationManager.getOrCreateInstance(facet).localesInProject
+    val locales = listOf(null) + ConfigurationManager.getOrCreateInstance(facet.module).localesInProject
     val boxModel = MyComboBoxModel(locales,
                                    { it?.toLocaleId() ?: Locale.getLocaleLabel(it, false) },
                                    { Locale.getLocaleLabel(it, false)!!} )
@@ -230,7 +230,7 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
     val panel = AdtPrimaryPanel(BorderLayout())
 
     val themeResolver = ThemeResolver(
-      ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file.virtualFile))
+      ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(file.virtualFile))
     val filter = createFilter(themeResolver, emptySet())
 
     val projectTheme = getProjectThemeNames(themeResolver, filter)

@@ -46,16 +46,15 @@ internal constructor(private val stringResourceWriter: StringResourceWriter) :
 
     JBPopupFactory.getInstance()
         .createPopupChooserBuilder(getUnusedLocales(data.localeSet))
-        .setItemChosenCallback {
+        .setItemChosenCallback { locale ->
           val key = findResourceKey(data, event.panel.facet)
-          if (stringResourceWriter.add(
-              event.requiredProject, key, data.getStringResource(key).defaultValueAsString, it)) {
+          if (stringResourceWriter.addTranslation(
+              event.requiredProject, key, data.getStringResource(key).defaultValueAsString, locale)) {
             event.panel.reloadData()
           }
         }
         .setRenderer(
             SimpleListCellRenderer.create { label, value, _ ->
-              label.icon = FlagManager.getFlagImage(value)
               label.text = Locale.getLocaleLabel(value, /* brief= */ false)
             })
         .createPopup()

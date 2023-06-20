@@ -1,9 +1,9 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.download;
 
+import com.android.tools.sdk.EmbeddedRenderTarget;
 import com.intellij.util.download.FileDownloader;
 import java.io.File;
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidLayoutlibDownloader extends AndroidComponentDownloader {
@@ -20,7 +20,7 @@ public class AndroidLayoutlibDownloader extends AndroidComponentDownloader {
   protected boolean doDownload(File pluginDir, FileDownloader downloader) {
     boolean res = super.doDownload(pluginDir, downloader);
     if (res) {
-      StudioEmbeddedRenderTarget.resetInstance();
+      EmbeddedRenderTarget.resetInstance();
     }
     return res;
   }

@@ -16,6 +16,7 @@
 package com.android.tools.adtui
 
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.common.SwingCoordinate
 import com.intellij.openapi.actionSystem.DataKey
 
 @JvmField
@@ -40,4 +41,14 @@ interface Zoomable {
   fun canZoomOut(): Boolean
   fun canZoomToFit(): Boolean
   fun canZoomToActual(): Boolean
+
+  /**
+   * Execute a zoom on the content. See [ZoomType] for the different types of zoom available.
+   *
+   * If type is [ZoomType.IN], zoom toward the given view coordinates.
+   * If [x] or [y] are negative, zoom toward the center of the viewport.
+   *
+   * @return True if the scaling was changed, false if this was a noop.
+   */
+  fun zoom(type: ZoomType, @SwingCoordinate x: Int, @SwingCoordinate y: Int): Boolean = zoom(type)
 }

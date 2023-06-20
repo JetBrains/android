@@ -15,8 +15,10 @@
  */
 package com.android.tools.profilers.cpu
 
-import com.android.tools.profiler.proto.Cpu.CpuTraceMode
-import com.android.tools.profiler.proto.Cpu.CpuTraceType
+import com.android.tools.profiler.proto.Trace
+import com.android.tools.profiler.proto.Trace.TraceMode
+import com.android.tools.profilers.TraceConfigOptionsUtils
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration
 import com.android.tools.profilers.cpu.config.ArtSampledConfiguration
 import com.android.tools.profilers.cpu.config.AtraceConfiguration
@@ -27,6 +29,50 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
 class ProfilingTechnologyTest {
+  @Test
+  fun fromTraceConfigurationArtSampled() {
+    val config = Trace.TraceConfiguration.getDefaultInstance().toBuilder()
+    TraceConfigOptionsUtils.addDefaultTraceOptions(config, TraceType.ART)
+    config.artOptionsBuilder.traceMode = TraceMode.SAMPLED
+    assertThat(ProfilingTechnology.fromTraceConfiguration(config.build())).isEqualTo(ProfilingTechnology.ART_SAMPLED)
+  }
+
+  @Test
+  fun fromTraceConfigurationArtInstrumented() {
+    val config = Trace.TraceConfiguration.getDefaultInstance().toBuilder()
+    TraceConfigOptionsUtils.addDefaultTraceOptions(config, TraceType.ART)
+    config.artOptionsBuilder.traceMode = TraceMode.INSTRUMENTED
+    assertThat(ProfilingTechnology.fromTraceConfiguration(config.build())).isEqualTo(ProfilingTechnology.ART_INSTRUMENTED)
+  }
+
+  @Test
+  fun fromTraceConfigurationArtUnspecified() {
+    val config = Trace.TraceConfiguration.getDefaultInstance().toBuilder()
+    TraceConfigOptionsUtils.addDefaultTraceOptions(config, TraceType.ART)
+    assertThat(ProfilingTechnology.fromTraceConfiguration(config.build())).isEqualTo(ProfilingTechnology.ART_UNSPECIFIED)
+  }
+
+  @Test
+  fun fromTraceConfigurationAtrace() {
+    val config = Trace.TraceConfiguration.getDefaultInstance().toBuilder()
+    TraceConfigOptionsUtils.addDefaultTraceOptions(config, TraceType.ATRACE)
+    assertThat(ProfilingTechnology.fromTraceConfiguration(config.build())).isEqualTo(ProfilingTechnology.SYSTEM_TRACE)
+  }
+
+  @Test
+  fun fromTraceConfigurationSimpleperf() {
+    val config = Trace.TraceConfiguration.getDefaultInstance().toBuilder()
+    TraceConfigOptionsUtils.addDefaultTraceOptions(config, TraceType.SIMPLEPERF)
+    assertThat(ProfilingTechnology.fromTraceConfiguration(config.build())).isEqualTo(ProfilingTechnology.SIMPLEPERF)
+  }
+
+  @Test
+  fun fromTraceConfigurationPerfetto() {
+    val config = Trace.TraceConfiguration.getDefaultInstance().toBuilder()
+    TraceConfigOptionsUtils.addDefaultTraceOptions(config, TraceType.PERFETTO)
+    assertThat(ProfilingTechnology.fromTraceConfiguration(config.build())).isEqualTo(ProfilingTechnology.SYSTEM_TRACE)
+  }
+
   @Test
   fun fromConfigArtSampled() {
     val artSampledConfiguration = ArtSampledConfiguration("MyConfiguration")
@@ -66,21 +112,21 @@ class ProfilingTechnologyTest {
 
   @Test
   fun getType() {
-    assertThat(ProfilingTechnology.SIMPLEPERF.type).isEqualTo(CpuTraceType.SIMPLEPERF)
-    assertThat(ProfilingTechnology.SYSTEM_TRACE.type).isEqualTo(CpuTraceType.ATRACE)
+    assertThat(ProfilingTechnology.SIMPLEPERF.type).isEqualTo(TraceType.SIMPLEPERF)
+    assertThat(ProfilingTechnology.SYSTEM_TRACE.type).isEqualTo(TraceType.ATRACE)
 
-    assertThat(ProfilingTechnology.ART_INSTRUMENTED.type).isEqualTo(CpuTraceType.ART)
-    assertThat(ProfilingTechnology.ART_SAMPLED.type).isEqualTo(CpuTraceType.ART)
-    assertThat(ProfilingTechnology.ART_UNSPECIFIED.type).isEqualTo(CpuTraceType.ART)
+    assertThat(ProfilingTechnology.ART_INSTRUMENTED.type).isEqualTo(TraceType.ART)
+    assertThat(ProfilingTechnology.ART_SAMPLED.type).isEqualTo(TraceType.ART)
+    assertThat(ProfilingTechnology.ART_UNSPECIFIED.type).isEqualTo(TraceType.ART)
   }
 
   @Test
   fun getMode() {
-    assertThat(ProfilingTechnology.SIMPLEPERF.mode).isEqualTo(CpuTraceMode.SAMPLED)
-    assertThat(ProfilingTechnology.SYSTEM_TRACE.mode).isEqualTo(CpuTraceMode.INSTRUMENTED)
+    assertThat(ProfilingTechnology.SIMPLEPERF.mode).isEqualTo(TraceMode.SAMPLED)
+    assertThat(ProfilingTechnology.SYSTEM_TRACE.mode).isEqualTo(TraceMode.INSTRUMENTED)
 
-    assertThat(ProfilingTechnology.ART_INSTRUMENTED.mode).isEqualTo(CpuTraceMode.INSTRUMENTED)
-    assertThat(ProfilingTechnology.ART_SAMPLED.mode).isEqualTo(CpuTraceMode.SAMPLED)
-    assertThat(ProfilingTechnology.ART_UNSPECIFIED.mode).isEqualTo(CpuTraceMode.UNSPECIFIED_MODE)
+    assertThat(ProfilingTechnology.ART_INSTRUMENTED.mode).isEqualTo(TraceMode.INSTRUMENTED)
+    assertThat(ProfilingTechnology.ART_SAMPLED.mode).isEqualTo(TraceMode.SAMPLED)
+    assertThat(ProfilingTechnology.ART_UNSPECIFIED.mode).isEqualTo(TraceMode.UNSPECIFIED_MODE)
   }
 }

@@ -39,7 +39,7 @@ public interface ActionData {
   /**
    * Gets the key used to map a {@code StatefulButton} to a {@code AssistActionStateManager}.
    */
-  @NotNull("when the button is not stateful")
+  @Nullable
   String getKey();
 
   /**

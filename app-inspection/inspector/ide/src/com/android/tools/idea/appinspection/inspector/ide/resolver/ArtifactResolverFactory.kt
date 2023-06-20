@@ -17,12 +17,8 @@ package com.android.tools.idea.appinspection.inspector.ide.resolver
 
 import com.intellij.openapi.project.Project
 
-/**
- * A factory for creating [ArtifactResolver].
- */
+/** A factory for creating [ArtifactResolver]. */
 interface ArtifactResolverFactory {
-  /**
-   * Creates an [ArtifactResolver] based on the project.
-   */
+  /** Creates an [ArtifactResolver] based on the project. */
   fun getArtifactResolver(project: Project): ArtifactResolver
 }

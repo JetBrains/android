@@ -76,7 +76,7 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
   // TODO: update all listeners to use ListenerCollection
   val attachStageListeners = ListenerCollection.createWithDirectExecutor<(DynamicLayoutInspectorErrorInfo.AttachErrorState) -> Unit>()
 
-  val windows = mutableMapOf<Any, AndroidWindow>()
+  val windows = ConcurrentHashMap<Any, AndroidWindow>()
   // synthetic node to hold the roots of the current windows.
   val root = ViewNode("android.root - hide")
 
@@ -184,6 +184,7 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
       root.layoutBounds.width = maxWidth
       root.layoutBounds.height = maxHeight
       for (id in allIds) {
+        if (id == null) continue
         val window = windows[id] ?: continue
         if (window.isDimBehind) {
           root.drawChildren.add(Dimmer(root))
@@ -231,7 +232,7 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
       resetRecompositionCounters()
     }
     var structuralChange: Boolean = windows.keys.retainAll(allIds)
-    val oldWindow = windows[newWindow?.id]
+    val oldWindow = if (newWindow != null) windows[newWindow.id] else null
     updating = true
     try {
       ViewNode.writeAccess {
@@ -286,7 +287,8 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
     }
 
     notifyUpdateCompleted()
-    modificationListeners.forEach { it(oldWindow, windows[newWindow?.id], structuralChange) }
+    val window = if (newWindow != null) windows[newWindow.id] else null
+    modificationListeners.forEach { it(oldWindow, window, structuralChange) }
   }
 
   private fun decreaseHighlights() {
@@ -321,6 +323,7 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
   }
 
   fun clear() {
+    foldInfo = null
     update(null, listOf<Nothing>(), 0)
   }
 

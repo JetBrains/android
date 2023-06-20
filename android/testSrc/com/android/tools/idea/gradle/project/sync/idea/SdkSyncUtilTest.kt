@@ -103,4 +103,21 @@ class SdkSyncUtilTest : AndroidGradleTestCase() {
     verify(mockTable).removeJdk(eq(sdk))
     verify(repoManager).reloadLocalIfNeeded(any())
   }
+
+  @Test
+  fun testInvalidSdkSetup() {
+    val repoManager = mock(RepoManager::class.java)
+    val sdkHandler = AndroidSdkHandler(null, null, repoManager)
+    whenever(androidSdks.findSuitableAndroidSdk(eq("WantedCompileTarget"))).thenReturn(null)
+    whenever(androidSdks.tryToChooseSdkHandler()).thenReturn(sdkHandler)
+    whenever(androidSdks.tryToCreate(any(), any())).thenAnswer { null }
+
+    assertEquals(null, androidSdks.computeSdkReloadingAsNeeded(
+      project,
+      "ModuleName",
+      "WatchedCompileTarget",
+      listOf("android.jar", "foo.jar"), // need bootclasspath with at least 2 elements
+      ideSdks
+    ))
+  }
 }

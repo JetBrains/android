@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.model;
 
+
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,9 +24,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 
-
-public class DefaultDataSeries<E> implements DataSeries<E> {
-  @NotNull protected final List<SeriesData<E>> mSeriesList = new ArrayList<>();
+public final class DefaultDataSeries<E> implements DataSeries<E> {
+  @NotNull
+  private final List<SeriesData<E>> mSeriesList = new ArrayList<>();
 
   @NotNull
   private List<SeriesData<E>> getDataSubList(final int fromIndex, final int toIndex) {
@@ -39,9 +40,13 @@ public class DefaultDataSeries<E> implements DataSeries<E> {
       return getDataSubList(0, 0);
     }
 
-    int fromIndex = getNearestXIndex((long)range.getMin());
-    int toIndex = getNearestXIndex((long)range.getMax()) + 1;
-    return getDataSubList(fromIndex, toIndex);
+    long rangeMin = (long)Math.ceil(range.getMin());
+    long rangeMax = (long)Math.floor(range.getMax());
+
+    int fromIndex = getNearestXIndex(rangeMin);
+    int toIndex = getNearestXIndex(rangeMax);
+
+    return getDataSubList(fromIndex, toIndex + 1);
   }
 
   public List<SeriesData<E>> getAllData() {
@@ -85,3 +90,4 @@ public class DefaultDataSeries<E> implements DataSeries<E> {
     return Math.max(0, Math.min(index, size() - 1));
   }
 }
+

@@ -43,7 +43,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
@@ -72,7 +72,7 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomUtil
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 import java.awt.Color
 import javax.swing.Icon
 
@@ -304,7 +304,7 @@ open class NlPropertyItem(
     get() = firstComponent?.model
 
   private fun computeDefaultNamespace(): ResourceNamespace =
-    ReadAction.compute<ResourceNamespace, RuntimeException> { ResourceRepositoryManager.getInstance(model.facet).namespace }
+    ReadAction.compute<ResourceNamespace, RuntimeException> { StudioResourceRepositoryManager.getInstance(model.facet).namespace }
 
   private fun isReferenceValue(value: String?): Boolean {
     return value != null && (value.startsWith("?") || value.startsWith("@") && !isId(value))
@@ -348,7 +348,7 @@ open class NlPropertyItem(
     if (attrDefinition != null && attrDefinition.values.isNotEmpty()) {
       values.addAll(attrDefinition.values)
     }
-    val repositoryManager = ResourceRepositoryManager.getInstance(model.facet)
+    val repositoryManager = StudioResourceRepositoryManager.getInstance(model.facet)
     val localRepository = repositoryManager.appResources
     val frameworkRepository = repositoryManager.getFrameworkResources(emptySet())
     val types = type.resourceTypes
@@ -404,7 +404,7 @@ open class NlPropertyItem(
 
   protected open fun validate(text: String?): Pair<EditingErrorCategory, String> {
     val value = (text ?: rawValue).nullize() ?: return EDITOR_NO_ERROR
-    return validateEditedValue(value) ?: lintValidation() ?: EDITOR_NO_ERROR
+    return validateEditedValue(value) ?: lintValidation(value) ?: EDITOR_NO_ERROR
   }
 
   private fun validateEditedValue(text: String): Pair<EditingErrorCategory, String>? {
@@ -453,7 +453,12 @@ open class NlPropertyItem(
     return Pair(EditingErrorCategory.ERROR, message)
   }
 
-  protected fun lintValidation(): Pair<EditingErrorCategory, String>? {
+  protected fun lintValidation(value: String?): Pair<EditingErrorCategory, String>? {
+    if (value != rawValue) {
+      // Only show lint errors when the value is equal to the saved value.
+      // Otherwise, if there is a lint error, it will be shown after the user corrected the problem.
+      return null
+    }
     val component = firstComponent ?: return null
     val issue = nlModel?.lintAnnotationsModel?.findIssue(component, namespace, name) ?: return null
     return when (issue.level) {

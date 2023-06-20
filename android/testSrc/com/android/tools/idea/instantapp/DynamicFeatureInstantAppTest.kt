@@ -17,26 +17,22 @@ package com.android.tools.idea.instantapp
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.tasks.RunInstantAppTask
-import com.android.tools.idea.run.util.LaunchStatus
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
 import com.android.tools.idea.testing.IdeComponents
-import com.android.tools.idea.testing.TestProjectPaths
-import com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.mockDeviceFor
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.util.androidFacet
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
@@ -51,11 +47,9 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mock
 import org.mockito.MockitoAnnotations
-import java.io.File
 
-class DynamicFeatureInstantAppTest : GradleIntegrationTest {
+class DynamicFeatureInstantAppTest  {
 
   private lateinit var configSettings: RunnerAndConfigurationSettings
   private lateinit var configuration: AndroidRunConfiguration
@@ -70,14 +64,10 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
 
   private lateinit var device: IDevice
 
-  @Mock
-  private lateinit var launchStatus: LaunchStatus
-  private val consolePrinter = StubConsolePrinter()
-
   private lateinit var instantAppSdks: InstantAppSdks
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Before
   fun setUp() {
@@ -85,8 +75,8 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
   }
 
   private fun runTest(test: (Project) -> Unit) {
-    prepareGradleProject(INSTANT_APP_WITH_DYNAMIC_FEATURES, "project").also { println(it) }
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.INSTANT_APP_WITH_DYNAMIC_FEATURES)
+    preparedProject.open { project ->
       configSettings = RunManager.getInstance(project).allSettings.single { it.configuration is AndroidRunConfiguration }
       configuration = configSettings.configuration as AndroidRunConfiguration
 
@@ -98,7 +88,7 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
       launchOptionsBuilder = LaunchOptions.builder()
         .setClearLogcatBeforeStart(false)
 
-      instantAppSdks = IdeComponents(null, projectRule.fixture.testRootDisposable)
+      instantAppSdks = IdeComponents(null, projectRule.testRootDisposable)
         .mockApplicationService(InstantAppSdks::class.java)
 
       androidFacet = project.gradleModule(":app")?.androidFacet!!
@@ -123,10 +113,11 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
       androidFacet,
       project.applicationIdProvider,
       project.apkProvider,
-      launchOptionsBuilder.build()
+      launchOptionsBuilder.build(),
+      false
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
+    val launchTasks = launchTaskProvider.getTasks(device)
 
     val deployTask = launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)
 
@@ -156,10 +147,11 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
       androidFacet,
       project.applicationIdProvider,
       project.apkProvider,
-      launchOptionsBuilder.build()
+      launchOptionsBuilder.build(),
+      false
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
+    val launchTasks = launchTaskProvider.getTasks(device)
 
     val deployTask = launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)
 
@@ -184,23 +176,12 @@ class DynamicFeatureInstantAppTest : GradleIntegrationTest {
       androidFacet,
       project.applicationIdProvider,
       project.apkProvider,
-      launchOptionsBuilder.build()
+      launchOptionsBuilder.build(),
+      false
     )
 
-    val launchTasks = launchTaskProvider.getTasks(device, launchStatus, consolePrinter)
+    val launchTasks = launchTaskProvider.getTasks(device)
 
     assertThat(launchTasks.stream().filter { x -> x is RunInstantAppTask }.findFirst().orElse(null)).isNull()
   }
-
-  class StubConsolePrinter : ConsolePrinter {
-    override fun stdout(message: String) {
-    }
-
-    override fun stderr(message: String) {
-    }
-  }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
 }

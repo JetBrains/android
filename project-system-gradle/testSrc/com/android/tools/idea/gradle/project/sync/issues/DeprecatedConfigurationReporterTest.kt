@@ -15,185 +15,218 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeSyncIssue
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
+import com.android.tools.idea.project.messages.MessageType
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncIssueType
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.INFO
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory.WARNING
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.HeavyPlatformTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import org.mockito.Mockito.mock
+import java.util.IdentityHashMap
 
 class DeprecatedConfigurationReporterTest : HeavyPlatformTestCase() {
-  private lateinit var syncIssue1: IdeSyncIssue
-  private lateinit var syncIssue2: IdeSyncIssue
   private lateinit var module1: Module
   private lateinit var module2: Module
-  private lateinit var messageStub: GradleSyncMessagesStub
   private lateinit var reporter: DeprecatedConfigurationReporter
   private lateinit var usageReporter: TestSyncIssueUsageReporter
 
   override fun setUp() {
     super.setUp()
-    messageStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
-    messageStub.removeAllMessages()
     reporter = DeprecatedConfigurationReporter()
-    syncIssue1 = mock(IdeSyncIssue::class.java)
-    syncIssue2 = mock(IdeSyncIssue::class.java)
     module1 = createModule("app")
     module2 = createModule("lib")
     usageReporter = TestSyncIssueUsageReporter()
-
-    whenever(syncIssue1.type).thenReturn(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION)
-    whenever(syncIssue2.type).thenReturn(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION)
   }
 
   @Test
   fun testDeduplicationInSameModule() {
-    whenever(syncIssue1.message).thenReturn("Warning message!")
-    whenever(syncIssue1.data).thenReturn("key")
-    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    whenever(syncIssue2.message).thenReturn("Warning message!")
-    whenever(syncIssue2.data).thenReturn("key")
-    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    val syncIssue1 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
+    val syncIssue2 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module1), mapOf(), usageReporter)
+    val messages = reporter.reportAll(
+      listOf(syncIssue1, syncIssue2),
+      listOf(syncIssue1 to module1, syncIssue2 to module1).toMap(IdentityHashMap()),
+      mapOf()
+    )
 
-    val messages = messageStub.notifications
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
 
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: app"))
-    assertThat(message.notificationCategory, equalTo(INFO))
-
-    assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     assertEquals(
-      listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
-      usageReporter.collectedIssue)
+      listOf(GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages))
   }
 
   @Test
   fun testNoDeduplicationInSameModule() {
-    whenever(syncIssue1.message).thenReturn("Warning message!")
-    whenever(syncIssue1.data).thenReturn("key1")
-    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    whenever(syncIssue2.message).thenReturn("Warning message!")
-    whenever(syncIssue2.data).thenReturn("key")
-    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    val syncIssue1 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key1",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
+    val syncIssue2 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
+    val messages = reporter.reportAll(
+      listOf(syncIssue1, syncIssue2),
+      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+      mapOf()
+    )
 
-    val messages = messageStub.notifications
     assertSize(2, messages)
     var message = messages[0]
     assertNotNull(message)
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: app"))
-    assertThat(message.notificationCategory, equalTo(INFO))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     message = messages[1]
     assertNotNull(message)
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: lib"))
-    assertThat(message.notificationCategory, equalTo(INFO))
-
-    assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     assertEquals(
       listOf(
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
+        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
+        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
       ),
-      usageReporter.collectedIssue)
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages))
   }
 
   @Test
   fun testDeduplicationAcrossModules() {
-    whenever(syncIssue1.message).thenReturn("Warning message!")
-    whenever(syncIssue1.data).thenReturn("key")
-    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    whenever(syncIssue2.message).thenReturn("Warning message!")
-    whenever(syncIssue2.data).thenReturn("key")
-    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    val syncIssue1 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
+    val syncIssue2 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
+    val messages = reporter.reportAll(
+      listOf(syncIssue1, syncIssue2),
+      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+      mapOf()
+    )
 
-    val messages = messageStub.notifications
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
 
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: app, lib"))
-    assertThat(message.notificationCategory, equalTo(INFO))
-
-    assertThat(GradleSyncMessagesStub.getInstance(project).errorCount, equalTo(0))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     assertEquals(
-      listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
-      usageReporter.collectedIssue)
+      listOf(GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages))
   }
 
   @Test
   fun testNoDeduplicationAcrossModules() {
-    whenever(syncIssue1.message).thenReturn("Warning message!")
-    whenever(syncIssue1.data).thenReturn("key1")
-    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    whenever(syncIssue2.message).thenReturn("Warning message!")
-    whenever(syncIssue2.data).thenReturn("key")
-    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
+    val syncIssue1 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key1",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
+    val syncIssue2 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Warning message!",
+      multiLineMessage = null
+    )
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
+    val messages = reporter.reportAll(
+      listOf(syncIssue1, syncIssue2),
+      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+      mapOf()
+    )
 
-    val messages = messageStub.notifications
     assertSize(2, messages)
     var message = messages[0]
     assertNotNull(message)
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: app"))
-    assertThat(message.notificationCategory, equalTo(INFO))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     message = messages[1]
     assertNotNull(message)
     assertThat(message.message, equalTo("Warning message!\nAffected Modules: lib"))
-    assertThat(message.notificationCategory, equalTo(INFO))
-
-    assertThat(messageStub.fakeErrorCount, equalTo(0))
+    assertThat(message.type, equalTo(MessageType.INFO))
 
     assertEquals(
       listOf(
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
-        GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
+        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build(),
+        GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()
       ),
-      usageReporter.collectedIssue)
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages))
   }
 
   @Test
   fun testDeduplicationHandlesErrors() {
-    whenever(syncIssue1.message).thenReturn("Error message!")
-    whenever(syncIssue1.data).thenReturn("key")
-    whenever(syncIssue1.severity).thenReturn(IdeSyncIssue.SEVERITY_WARNING)
-    whenever(syncIssue2.message).thenReturn("Error message!")
-    whenever(syncIssue2.data).thenReturn("key")
-    whenever(syncIssue2.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
+    val syncIssue1 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_WARNING,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Error message!",
+      multiLineMessage = null
+    )
+    val syncIssue2 = IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_ERROR,
+      type = IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION,
+      data = "key",
+      message = "Error message!",
+      multiLineMessage = null
+    )
 
-    reporter.reportAll(listOf(syncIssue1, syncIssue2), mapOf(syncIssue1 to module1, syncIssue2 to module2), mapOf(), usageReporter)
+    val messages = reporter.reportAll(
+      listOf(syncIssue1, syncIssue2),
+      listOf(syncIssue1 to module1, syncIssue2 to module2).toMap(IdentityHashMap()),
+      mapOf()
+    )
 
-    val messages = messageStub.notifications
     assertSize(1, messages)
     val message = messages[0]
     assertNotNull(message)
 
     assertThat(message.message, equalTo("Error message!\nAffected Modules: app, lib"))
-    assertThat(message.notificationCategory, equalTo(WARNING))
-
-    assertThat(messageStub.fakeErrorCount, equalTo(0))
+    assertThat(message.type, equalTo(MessageType.WARNING))
 
     assertEquals(
-      listOf(GradleSyncIssue.newBuilder().setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
-      usageReporter.collectedIssue)
+      listOf(GradleSyncIssue.newBuilder().setType(GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION).build()),
+      SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_DEPRECATED_CONFIGURATION, messages))
   }
 }

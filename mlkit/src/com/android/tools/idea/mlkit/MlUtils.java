@@ -40,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Provides common utility methods.
  */
-public final class MlUtils {
+public class MlUtils {
 
   private static final ImmutableList<String> REQUIRED_DEPENDENCY_LIST = ImmutableList.of(
     "org.tensorflow:tensorflow-lite-support:0.1.0",

@@ -68,14 +68,18 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
   private fun capture(windowName: String, propertiesUpdater: LegacyPropertiesProvider.Updater): AndroidWindow? {
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_HIERARCHY_REQUESTED)
     val ddmClient = client.selectedDdmClient ?: return null
-    val hierarchyHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VURT)
+    val hierarchyHandler = CaptureByteArrayHandler()
     ddmClient.dumpViewHierarchy(windowName, false, true, false, hierarchyHandler)
-    propertiesUpdater.lookup.resourceLookup.updateLegacyConfiguration(ddmClient.device.density)
+    propertiesUpdater.lookup.resourceLookup.updateConfiguration(ddmClient.device.density)
     val hierarchyData = hierarchyHandler.getData() ?: return null
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_HIERARCHY_RECEIVED)
     client.latestData[windowName] = hierarchyData
+    if (!client.isConnected) {
+      // The hierarchy data may be cut short if the client was closed under us
+      return null
+    }
     val (rootNode, hash) = LegacyTreeParser.parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
-    val imageHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VUOP)
+    val imageHandler = CaptureByteArrayHandler()
     client.launchMonitor.updateProgress(AttachErrorState.LEGACY_SCREENSHOT_REQUESTED)
     ddmClient.captureView(windowName, hash, imageHandler)
     try {
@@ -91,7 +95,7 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
     return LegacyAndroidWindow(client, rootNode, windowName)
   }
 
-  private class CaptureByteArrayHandler(type: Int) : DebugViewDumpHandler(type) {
+  private class CaptureByteArrayHandler : DebugViewDumpHandler() {
 
     private val mData = AtomicReference<ByteArray>()
 
@@ -107,7 +111,7 @@ class LegacyTreeLoader(private val client: LegacyClient) : TreeLoader {
     }
   }
 
-  private class ListViewRootsHandler : DebugViewDumpHandler(CHUNK_VULW) {
+  private class ListViewRootsHandler : DebugViewDumpHandler() {
 
     private val viewRoots = Lists.newCopyOnWriteArrayList<String>()
 

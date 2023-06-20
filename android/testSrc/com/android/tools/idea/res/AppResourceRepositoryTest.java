@@ -63,8 +63,8 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
   public void testStable() {
-    assertSame(ResourceRepositoryManager.getAppResources(myFacet), ResourceRepositoryManager.getAppResources(myFacet));
-    assertSame(ResourceRepositoryManager.getAppResources(myFacet), ResourceRepositoryManager.getAppResources(myModule));
+    assertSame(StudioResourceRepositoryManager.getAppResources(myFacet), StudioResourceRepositoryManager.getAppResources(myFacet));
+    assertSame(StudioResourceRepositoryManager.getAppResources(myFacet), StudioResourceRepositoryManager.getAppResources(myModule));
   }
 
   public void testStringOrder() {
@@ -293,7 +293,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     addBinaryAarDependency(myModule);
     enableNamespacing("p1.p2");
 
-    LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(myFacet);
+    LocalResourceRepository appResources = StudioResourceRepositoryManager.getAppResources(myFacet);
     Collection<SingleNamespaceResourceRepository> repositories = appResources.getLeafResourceRepositories();
     assertThat(repositories).hasSize(4);
 

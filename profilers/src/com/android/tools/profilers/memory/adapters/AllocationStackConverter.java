@@ -19,7 +19,7 @@ import com.android.tools.idea.codenavigation.CodeLocation;
 import com.android.tools.profiler.proto.Memory.AllocationStack.StackFrame;
 import org.jetbrains.annotations.NotNull;
 
-public final class AllocationStackConverter {
+public class AllocationStackConverter {
   public static CodeLocation getCodeLocation(@NotNull StackFrame stackFrame) {
     return new CodeLocation.Builder(stackFrame.getClassName())
       .setFileName(stackFrame.getFileName())

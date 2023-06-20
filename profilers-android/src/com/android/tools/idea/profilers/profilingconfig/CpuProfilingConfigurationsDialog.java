@@ -274,7 +274,7 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
         configNames.add(configName);
 
         if (!isDefaultConfig(config)) {
-          configsToSave.add(CpuProfilerConfigConverter.fromProto(config.toProto()));
+          configsToSave.add(CpuProfilerConfigConverter.fromProfilingConfiguration(config));
         }
       }
 

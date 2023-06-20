@@ -24,6 +24,8 @@ import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.lang.injection.general.LanguageInjectionContributor
 import com.intellij.lang.injection.general.LanguageInjectionPerformer
 import com.intellij.testFramework.fixtures.InjectionTestFixture
+import kotlin.test.assertEquals
+import kotlin.test.assertFails
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -33,14 +35,12 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFails
 
 internal class DeviceSpecInjectorTest {
-  @get:Rule
-  val rule = AndroidProjectRule.inMemory()
+  @get:Rule val rule = AndroidProjectRule.inMemory()
 
-  val fixture get() = rule.fixture
+  val fixture
+    get() = rule.fixture
 
   private val injectionFixture: InjectionTestFixture
     get() = InjectionTestFixture(fixture)
@@ -50,7 +50,11 @@ internal class DeviceSpecInjectorTest {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     fixture.stubPreviewAnnotation()
     fixture.stubComposableAnnotation()
-    fixture.registerLanguageExtensionPoint(LanguageParserDefinitions.INSTANCE, DeviceSpecParserDefinition(), DeviceSpecLanguage)
+    fixture.registerLanguageExtensionPoint(
+      LanguageParserDefinitions.INSTANCE,
+      DeviceSpecParserDefinition(),
+      DeviceSpecLanguage
+    )
     fixture.registerLanguageExtensionPoint(
       LanguageInjectionContributor.INJECTOR_EXTENSION,
       DeviceSpecInjectionContributor(),
@@ -81,11 +85,10 @@ internal class DeviceSpecInjectorTest {
         @Preview(device = "id:device$caret name")
         @Composable
         fun myFun() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
-    runReadAction {
-      injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
-    }
+    runReadAction { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
   }
 
   @Test
@@ -113,15 +116,11 @@ internal class DeviceSpecInjectorTest {
         @Preview(device = "spec:width=1080px," + "height=" + heightPx)
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     val injectedElementsAndTexts = runReadAction {
-      injectionFixture.getAllInjections().map {
-        Pair(
-          it.first.text,
-          it.second.text
-        )
-      }
+      injectionFixture.getAllInjections().map { Pair(it.first.text, it.second.text) }
     }
     assertEquals(3, injectedElementsAndTexts.size)
     // Assert the text of the elements marked for Injection
@@ -129,8 +128,12 @@ internal class DeviceSpecInjectorTest {
     assertEquals(""""width=10dp,height="""", injectedElementsAndTexts[1].first)
     assertEquals(""""spec:width=1080px,"""", injectedElementsAndTexts[2].first)
 
-    // Assert the contents of the Injected file, should reflect the resolved text in the `device` parameter
-    assertEquals("spec:width=673.5dp,height=841dp,chinSize=11dp", injectedElementsAndTexts[0].second)
+    // Assert the contents of the Injected file, should reflect the resolved text in the `device`
+    // parameter
+    assertEquals(
+      "spec:width=673.5dp,height=841dp,chinSize=11dp",
+      injectedElementsAndTexts[0].second
+    )
     assertEquals("spec:width=10dp,height=841dp", injectedElementsAndTexts[1].second)
     assertEquals("spec:width=1080px,height=1900px", injectedElementsAndTexts[2].second)
   }
@@ -149,11 +152,10 @@ internal class DeviceSpecInjectorTest {
         @Preview(device = "spec$caret:width=1080px," + "height=" + heightPx)
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
-    runReadAction {
-      injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
-    }
+    runReadAction { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
 
     rule.fixture.configureByText(
       KotlinFileType.INSTANCE,
@@ -167,7 +169,8 @@ internal class DeviceSpecInjectorTest {
         @Preview(device = "spec:width=1080px," + "height$caret=" + heightPx)
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     runReadAction {
       assertFails { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
@@ -187,7 +190,8 @@ internal class DeviceSpecInjectorTest {
         @Preview($parameterName = "id:device$caret name")
         @Composable
         fun myFun() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     runReadAction {
       assertFails { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }

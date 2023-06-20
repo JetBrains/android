@@ -19,7 +19,7 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import com.android.tools.idea.layoutinspector.tree.isActionVisible
+import com.android.tools.idea.layoutinspector.tree.isActionActive
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -36,8 +36,10 @@ const val HIGHLIGHT_COLOR_YELLOW = 0xFFC66D
 const val HIGHLIGHT_COLOR_PURPLE = 0x871094
 const val HIGHLIGHT_COLOR_ORANGE = 0xE1A336
 
+const val HIGHLIGHT_DEFAULT_COLOR = HIGHLIGHT_COLOR_BLUE
+
 object ViewMenuAction : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
-  class SettingsAction(name: String, val property: KMutableProperty1<DeviceViewSettings, Boolean>) : ToggleAction(name) {
+  class SettingsAction(name: String, val property: KMutableProperty1<RenderSettings, Boolean>) : ToggleAction(name) {
     override fun isSelected(event: AnActionEvent) =
       event.getData(DEVICE_VIEW_SETTINGS_KEY)?.let { settings -> return property.get(settings) } ?: false
 
@@ -47,10 +49,10 @@ object ViewMenuAction : DropDownAction(null, "View Options", StudioIcons.Common.
   }
 
   init {
-    add(SettingsAction("Show Borders", DeviceViewSettings::drawBorders))
-    add(SettingsAction("Show Layout Bounds", DeviceViewSettings::drawUntransformedBounds))
-    add(SettingsAction("Show View Label", DeviceViewSettings::drawLabel))
-    add(SettingsAction("Show Fold Hinge and Angle", DeviceViewSettings::drawFold))
+    add(SettingsAction("Show Borders", RenderSettings::drawBorders))
+    add(SettingsAction("Show Layout Bounds", RenderSettings::drawUntransformedBounds))
+    add(SettingsAction("Show View Label", RenderSettings::drawLabel))
+    add(SettingsAction("Show Fold Hinge and Angle", RenderSettings::drawFold))
     add(HighlightColorAction)
   }
 
@@ -70,9 +72,8 @@ object HighlightColorAction : DefaultActionGroup("Recomposition Highlight Color"
     val isConnected = layoutInspector?.currentClient?.isConnected ?: false
     event.presentation.isVisible = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS.get() &&
                                    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
-                                   StudioFlags.USE_COMPONENT_TREE_TABLE.get() &&
                                    layoutInspector?.treeSettings?.showRecompositions ?: false &&
-                                   (!isConnected || isActionVisible(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS))
+                                   (!isConnected || isActionActive(event, Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS))
     event.presentation.isEnabled = isConnected
   }
 

@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.RecyclerViewDetector
 
-class AndroidLintNotifyDataSetChangedInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.notify.data.set.changed"), RecyclerViewDetector.CLEAR_ALL_DATA
-)
+class AndroidLintNotifyDataSetChangedInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.notify.data.set.changed"),
+    RecyclerViewDetector.CLEAR_ALL_DATA
+  )

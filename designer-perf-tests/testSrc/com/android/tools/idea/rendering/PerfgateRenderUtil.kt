@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.android.tools.idea.rendering.imagepool.ImagePool
 import com.android.tools.idea.validator.ValidatorHierarchy
+import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
@@ -66,15 +67,44 @@ private val renderMemoryBenchmark = Benchmark.Builder("DesignTools Memory Usage 
  * A measurement for the given [metric]. This class will be called before and after a profiled operation is executed. [after] is expected
  * to return the [MetricSample] of one execution.
  */
-internal abstract class MetricMeasurement<T>(val metric: Metric) {
-  abstract fun before()
-  abstract fun after(result: T): MetricSample?
+interface MetricMeasurement<T> {
+  val metric: Metric
+
+  /**
+   * Set of [Analyzer] to run on the result after obtaining the sample.
+   */
+  val analyzers: Set<Analyzer>
+
+  fun before()
+  fun after(result: T): MetricSample?
 }
+
+abstract class MetricMeasurementAdapter<T>(override val metric: Metric): MetricMeasurement<T> {
+  override val analyzers = setOf<Analyzer>()
+}
+
+private class DelegateMetricMeasurementWithAnalyzers<T>(private val delegate: MetricMeasurement<T>,
+                                                        override val analyzers: Set<Analyzer>) : MetricMeasurementAdapter<T>(delegate.metric) {
+  override fun before() = delegate.before()
+  override fun after(result: T): MetricSample? = delegate.after(result)
+}
+
+/**
+ * Returns a [MetricMeasurement] that runs the given [analyzer]s in the result.
+ */
+internal fun <T> MetricMeasurement<T>.withAnalyzers(analyzers: Set<Analyzer>): MetricMeasurement<T> =
+  DelegateMetricMeasurementWithAnalyzers(this, analyzers)
+
+/**
+ * Returns a [MetricMeasurement] that runs the given [analyzer] in the result.
+ */
+internal fun <T> MetricMeasurement<T>.withAnalyzer(analyzer: Analyzer): MetricMeasurement<T> =
+  DelegateMetricMeasurementWithAnalyzers(this, setOf(analyzer))
 
 /**
  * A [MetricMeasurement] that measures the elapsed time in milliseconds between [before] and [after].
  */
-internal class ElapsedTimeMeasurement<T>(metric: Metric) : MetricMeasurement<T>(metric) {
+internal class ElapsedTimeMeasurement<T>(metric: Metric) : MetricMeasurementAdapter<T>(metric) {
   private var startMs = -1L
 
   override fun before() {
@@ -88,7 +118,7 @@ internal class ElapsedTimeMeasurement<T>(metric: Metric) : MetricMeasurement<T>(
 /**
  * A [MetricMeasurement] that measures the memory usage delta between [before] and [after].
  */
-internal class MemoryUseMeasurement<T>(metric: Metric) : MetricMeasurement<T>(metric) {
+internal class MemoryUseMeasurement<T>(metric: Metric) : MetricMeasurementAdapter<T>(metric) {
   private var initialMemoryUse = -1L
 
   override fun before() {
@@ -104,7 +134,7 @@ internal class MemoryUseMeasurement<T>(metric: Metric) : MetricMeasurement<T>(me
 /**
  * A [MetricMeasurement] that measures the inflate time of a render.
  */
-internal class InflateTimeMeasurement(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+internal class InflateTimeMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result.stats.inflateDurationMs != -1L)
@@ -115,7 +145,7 @@ internal class InflateTimeMeasurement(metric: Metric) : MetricMeasurement<Render
 /**
  * A [MetricMeasurement] that measures the render time of a render.
  */
-internal class RenderTimeMeasurement(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+internal class RenderTimeMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result.stats.renderDurationMs != -1L)
@@ -126,7 +156,7 @@ internal class RenderTimeMeasurement(metric: Metric) : MetricMeasurement<RenderR
 /**
  * A [MetricMeasurement] that measures the render time of a render.
  */
-internal class ClassLoadTimeMeasurment(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+internal class ClassLoadTimeMeasurment(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result.stats.totalClassLoadDurationMs != -1L)
@@ -137,7 +167,7 @@ internal class ClassLoadTimeMeasurment(metric: Metric) : MetricMeasurement<Rende
 /**
  * A [MetricMeasurement] that measures the render time of a render.
  */
-internal class ClassLoadCountMeasurement(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+internal class ClassLoadCountMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result.stats.classesFound != -1L)
@@ -148,7 +178,7 @@ internal class ClassLoadCountMeasurement(metric: Metric) : MetricMeasurement<Ren
 /**
  * A [MetricMeasurement] that measures the render time of a render.
  */
-internal class ClassAverageLoadTimeMeasurement(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+internal class ClassAverageLoadTimeMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result.stats.totalClassLoadDurationMs != -1L && result.stats.classesFound > 0)
@@ -159,7 +189,7 @@ internal class ClassAverageLoadTimeMeasurement(metric: Metric) : MetricMeasureme
 /**
  * A [MetricMeasurement] that measures the render time of a render.
  */
-internal class ClassRewriteTimeMeasurement(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+internal class ClassRewriteTimeMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result.stats.totalClassRewriteDurationMs != -1L)
@@ -170,7 +200,7 @@ internal class ClassRewriteTimeMeasurement(metric: Metric) : MetricMeasurement<R
 /**
  * A [MetricMeasurement] that measures the time it takes to execute callbacks the very first time.
  */
-internal class FirstCallbacksExecutionTimeMeasurement(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+internal class FirstCallbacksExecutionTimeMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result is ExtendedRenderResult)
@@ -181,22 +211,22 @@ internal class FirstCallbacksExecutionTimeMeasurement(metric: Metric) : MetricMe
 /**
  * A [MetricMeasurement] that measures the time it takes to propagate the touch event the very first time.
  */
-internal class FirstTouchEventTimeMeasurement(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+internal class FirstTouchEventTimeMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result is ExtendedRenderResult)
-    MetricSample(Instant.now().toEpochMilli(), result.extendedStats.firstTouchEventDurationMs)
+    MetricSample(Instant.now().toEpochMilli(), result.extendedStats.firstInteractionEventDurationMs)
   else null // No time available
 }
 
 /**
  * A [MetricMeasurement] that measures the time it takes to execute callbacks after the very first touch event.
  */
-internal class PostTouchEventCallbacksExecutionTimeMeasurement(metric: Metric) : MetricMeasurement<RenderResult>(metric) {
+internal class PostTouchEventCallbacksExecutionTimeMeasurement(metric: Metric) : MetricMeasurementAdapter<RenderResult>(metric) {
   override fun before() {}
 
   override fun after(result: RenderResult) = if (result is ExtendedRenderResult)
-    MetricSample(Instant.now().toEpochMilli(), result.extendedStats.postTouchEventDurationMs)
+    MetricSample(Instant.now().toEpochMilli(), result.extendedStats.postInteractionEventDurationMs)
   else null // No time available
 }
 
@@ -244,6 +274,10 @@ internal fun <T> Benchmark.measureOperation(measures: List<MetricMeasurement<T>>
             ${metric.metricName}: ${samples.joinToString(",") { it.sampleData.toString() }}
               median=${dataPoints.median()} p95=${dataPoints.p95()}
           """.trimIndent())
+      }
+      val analyzers = measure.analyzers
+      if (analyzers.isNotEmpty()) {
+        metric.setAnalyzers(this, analyzers)
       }
       metric.addSamples(this, *samples.toTypedArray())
       metric.commit()

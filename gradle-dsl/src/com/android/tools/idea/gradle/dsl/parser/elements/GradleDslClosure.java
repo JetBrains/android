@@ -41,6 +41,6 @@ public class GradleDslClosure extends GradlePropertiesDslElement implements Grad
   @NotNull
   @Override
   public GradleDslExpression copy() {
-    throw new UnsupportedOperationException("Copying GradleDslClosure is not supported.");
+    return new GradleDslClosure(myParent, myParent.getPsiElement(), GradleNameElement.copy(myName));
   }
 }

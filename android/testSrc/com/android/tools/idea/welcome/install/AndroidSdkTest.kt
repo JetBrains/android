@@ -35,11 +35,22 @@ class AndroidSdkTest {
   }
 
   @Test
-  fun `Haxm is only compatible on Windows with Intel CPU`() {
+  fun `Haxm is only compatible with Windows with Intel CPU`() {
     if (SystemInfo.isWindows && CpuVendor.isIntel) {
-      assertThat(Haxm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS)
+      assertThat(Haxm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.HAXM_REQUIRES_WINDOWS);
+    } else if (SystemInfo.isWindows && !CpuVendor.isIntel) {
+      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.HAXM_REQUIRES_INTEL_CPU)
     } else {
-      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS)
+      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.HAXM_REQUIRES_WINDOWS)
+    }
+  }
+
+  @Test
+  fun `AEHD is only compatible with Windows`() {
+    if (SystemInfo.isWindows) {
+      assertThat(Aehd.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
+    } else {
+      assertThat(Aehd.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
     }
   }
 }

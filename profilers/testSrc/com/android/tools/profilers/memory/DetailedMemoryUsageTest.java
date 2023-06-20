@@ -44,7 +44,7 @@ public class DetailedMemoryUsageTest {
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myService = new FakeTransportService(myTimer);
   // FakeMemoryService needed only for legacy pipeline.
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryUsageTEst", myService, new FakeMemoryService());
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryUsageTEst", myService);
   private FakeIdeProfilerServices myIdeProfilerServices;
   private StudioProfilers myProfilers;
   private MainMemoryProfilerStage myStage;
@@ -52,7 +52,6 @@ public class DetailedMemoryUsageTest {
   @Before
   public void setup() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myIdeProfilerServices.enableEventsPipeline(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
     myStage = new MainMemoryProfilerStage(myProfilers);
 

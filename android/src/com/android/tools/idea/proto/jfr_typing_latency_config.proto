@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+message JfrTypingLatencyConfig {
+  // Tuning parameters for the report. Each is checked individually for whether
+  // it's present in the proto, so is truly optional; if any of these is
+  // unspecified in the proto, the code will use a default for that value. This
+  // means that if we have to include this flag in the server flags download,
+  // we only need to send values for parameters that differ from defaults.
+  optional int32 max_report_length_bytes = 1;
+  optional int64 typing_timeout_millis = 2;
+  optional int64 session_timeout_millis = 3;
+  optional int64 cooldown_timeout_millis = 4;
+  optional int64 latency_reporting_threshold_millis = 5;
+}

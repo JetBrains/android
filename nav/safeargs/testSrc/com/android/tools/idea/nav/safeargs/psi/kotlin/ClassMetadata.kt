@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
-import org.jetbrains.kotlin.backend.common.descriptors.explicitParameters
+import org.jetbrains.kotlin.descriptors.explicitParameters
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorVisitor

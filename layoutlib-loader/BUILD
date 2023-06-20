@@ -12,7 +12,24 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
+    ],
+)
+
+# Build target to verify that layoutlib-loader builds for tools/base
+java_library(
+    name = "tools.layoutlib-loader",
+    srcs = glob(
+        ["src/**/*.java"],
+    ),
+    resources = glob(["resources/**"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//prebuilts/tools/common/lint-psi/intellij-core",
+        "//tools/base/common:tools.common",
+        "//tools/base/layoutlib-api:tools.layoutlib-api",
+        "//tools/base/sdk-common:tools.sdk-common",
+        "//tools/base/sdklib:tools.sdklib",
+        "@maven//:com.google.guava.guava",
     ],
 )

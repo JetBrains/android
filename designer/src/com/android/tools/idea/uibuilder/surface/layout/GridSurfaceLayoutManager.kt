@@ -16,8 +16,12 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.scaleBy
+import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
+import java.awt.Point
 import kotlin.math.max
+import kotlin.math.sqrt
 
 /**
  * [SurfaceLayoutManager] that layouts [PositionableContent]s in grid style. It tries to fill the [PositionableContent]s horizontally then
@@ -38,25 +42,28 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
   private var previousHorizontalPadding = 0
   private var previousVerticalPadding = 0
 
+  private var fitIntoCache: Pair<FitIntoScaleData, Double>? = null
+
   override fun getPreferredSize(content: Collection<PositionableContent>,
                                 @SwingCoordinate availableWidth: Int,
                                 @SwingCoordinate availableHeight: Int,
                                 @SwingCoordinate dimension: Dimension?) =
-    getSize(content, PositionableContent::contentSize, availableWidth, dimension)
+    getSize(content, PositionableContent::contentSize, { 1.0 }, availableWidth, dimension)
 
   override fun getRequiredSize(content: Collection<PositionableContent>,
                                @SwingCoordinate availableWidth: Int,
                                @SwingCoordinate availableHeight: Int,
                                @SwingCoordinate dimension: Dimension?) =
-    getSize(content, PositionableContent::scaledContentSize, availableWidth, dimension)
+    getSize(content, PositionableContent::scaledContentSize, { scale }, availableWidth, dimension)
 
   private fun getSize(content: Collection<PositionableContent>,
                       sizeFunc: PositionableContent.() -> Dimension,
+                      scaleFunc: PositionableContent.() -> Double,
                       availableWidth: Int,
                       dimension: Dimension?): Dimension {
     val dim = dimension ?: Dimension()
 
-    val grid = layoutGrid(content, availableWidth) { sizeFunc().width }
+    val grid = layoutGrid(content, availableWidth, scaleFunc) { sizeFunc().width }
     var requiredWidth = 0
     var requiredHeight = 0
 
@@ -65,14 +72,15 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
       val rowY = requiredHeight
       var currentHeight = 0
       for (view in row) {
-        rowX += view.sizeFunc().width + horizontalViewDelta + view.margin.horizontal
-        currentHeight = max(currentHeight, rowY + verticalViewDelta + view.sizeFunc().height + view.margin.vertical)
+        val margin = view.getMargin(view.scaleFunc())
+        rowX += view.sizeFunc().width + horizontalViewDelta + margin.horizontal
+        currentHeight = max(currentHeight, rowY + verticalViewDelta + view.sizeFunc().height + margin.vertical)
       }
       requiredWidth = max(requiredWidth, max(rowX - horizontalViewDelta, 0))
       requiredHeight = currentHeight
     }
 
-    dim.setSize(requiredWidth, max(0, requiredHeight - verticalViewDelta))
+    dim.setSize(requiredWidth + 2 * horizontalPadding, max(0, requiredHeight - verticalViewDelta + 2 * verticalPadding))
     return dim
   }
 
@@ -82,6 +90,7 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
    */
   protected open fun layoutGrid(content: Collection<PositionableContent>,
                                 @SwingCoordinate availableWidth: Int,
+                                scaleFunc: PositionableContent.() -> Double,
                                 @SwingCoordinate widthFunc: PositionableContent.() -> Int): List<List<PositionableContent>> {
     val visibleContent = content.filter { it.isVisible }
     if (visibleContent.isEmpty()) {
@@ -91,12 +100,12 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
     val gridList = mutableListOf<List<PositionableContent>>()
 
     val firstView = visibleContent.first()
-    var nextX = startX + firstView.widthFunc() + firstView.margin.horizontal + horizontalViewDelta
+    var nextX = startX + firstView.widthFunc() + firstView.getMargin(firstView.scaleFunc()).horizontal + horizontalViewDelta
 
     var columnList = mutableListOf(firstView)
     for (view in visibleContent.drop(1)) {
       // The full width is the view width + any horizontal margins
-      val totalWidth = view.widthFunc() + view.margin.horizontal
+      val totalWidth = view.widthFunc() + view.getMargin(view.scaleFunc()).horizontal
       if (nextX + totalWidth > availableWidth) {
         nextX = horizontalPadding + totalWidth + horizontalViewDelta
         gridList.add(columnList)
@@ -111,12 +120,85 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
     return gridList
   }
 
-  override fun layout(content: Collection<PositionableContent>,
+  @SurfaceScale
+  override fun getFitIntoScale(content: Collection<PositionableContent>,
+                               @SwingCoordinate availableWidth: Int,
+                               @SwingCoordinate availableHeight: Int): Double {
+    if (content.isEmpty()) {
+      return 1.0
+    }
+
+    val previousData = fitIntoCache
+    if (previousData != null) {
+      val arguments = previousData.first
+      if (arguments.content == content && arguments.availableWidth == availableWidth && arguments.availableHeight == availableHeight) {
+        return previousData.second
+      }
+    }
+
+    // Find the upper and lower bounds, then do binary search to find the best scaling size.
+
+    // Calculate the sum of the area of the original content sizes. This considers the margins of every content.
+    val rawSizes = content.map {
+      val contentSize = it.contentSize
+      val margin = it.getMargin(1.0)
+      Dimension(contentSize.width + margin.horizontal, contentSize.height + margin.vertical)
+    }
+
+    val upperBound = run {
+      // Find the scale the total areas of contents equals to the available spaces.
+      // This happens when the contents perfectly full-fill the available space.
+      // It is not possible that the zoom-to-fit scale is larger than this value.
+      val contentAreas = rawSizes.sumOf { it.width * it.height }
+      val availableArea = (availableWidth - 2 * horizontalPadding) * (availableHeight - 2 * verticalPadding)
+      sqrt(availableArea.toDouble() / contentAreas)
+    }
+
+    val lowerBound = run {
+      // This scale can fit all the content in a single row or a single column, which is the worst case.
+      // The zoom-to-fit scale should not be smaller than this value.
+      val totalWidth = rawSizes.sumOf { it.width } + (content.size - 1) * horizontalViewDelta + 2 * horizontalPadding
+      val totalHeight = rawSizes.sumOf { it.height } + (content.size - 1) * verticalViewDelta + 2 * verticalPadding
+      maxOf(SCALE_UNIT, minOf(availableWidth.toDouble() / totalWidth, availableHeight.toDouble() / totalHeight))
+    }
+
+    // Do binary search to find the most proper scale.
+    val scale = getMaxScale(content, lowerBound, upperBound, availableWidth, availableHeight, Dimension())
+    fitIntoCache = FitIntoScaleData(content, availableWidth, availableHeight) to scale
+    return scale
+  }
+
+  /**
+   * Binary search to find the largest scale for [width] x [height] space.
+   */
+  @SurfaceScale
+  private fun getMaxScale(content: Collection<PositionableContent>,
+                          @SurfaceScale min: Double,
+                          @SurfaceScale max: Double,
+                          @SwingCoordinate width: Int,
+                          @SwingCoordinate height: Int,
+                          cache: Dimension): Double {
+    if (max - min <= SCALE_UNIT) {
+      // Last attempt.
+      val dim = getSize(content, { contentSize.scaleBy(max) }, { max }, width, cache)
+      return if (dim.width <= width && dim.height <= height) max else min
+    }
+    val scale = (min + max) / 2
+    val dim = getSize(content, { contentSize.scaleBy(scale) }, { scale }, width, cache)
+    return if (dim.width <= width && dim.height <= height) {
+      getMaxScale(content, scale, max, width, height, cache)
+    }
+    else {
+      getMaxScale(content, min, scale, width, height, cache)
+    }
+  }
+
+  override fun measure(content: Collection<PositionableContent>,
                       @SwingCoordinate availableWidth: Int,
                       @SwingCoordinate availableHeight: Int,
-                      keepPreviousPadding: Boolean) {
+                      keepPreviousPadding: Boolean): Map<PositionableContent, Point> {
     if (content.isEmpty()) {
-      return
+      return emptyMap()
     }
 
     val startX: Int
@@ -139,7 +221,9 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
       previousVerticalPadding = startY
     }
 
-    val grid = layoutGrid(content, availableWidth) { scaledContentSize.width }
+    val grid = layoutGrid(content, availableWidth, { scale }) { scaledContentSize.width }
+
+    val positionMap = mutableMapOf<PositionableContent, Point>()
 
     var nextX = startX
     var nextY = startY
@@ -149,7 +233,7 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
         if (!view.isVisible) {
           continue
         }
-        view.setLocation(nextX + view.margin.left, nextY)
+        positionMap[view] = Point(nextX + view.margin.left, nextY)
         nextX += view.scaledContentSize.width + horizontalViewDelta + view.margin.horizontal
         maxBottomInRow = max(maxBottomInRow, nextY + view.margin.vertical + view.scaledContentSize.height)
       }
@@ -157,6 +241,13 @@ open class GridSurfaceLayoutManager(@SwingCoordinate private val horizontalPaddi
       nextY = maxBottomInRow + verticalViewDelta
     }
 
-    content.filterNot { it.isVisible }.forEach { it.setLocation(-1, -1) }
+    return positionMap + content.filterNot { it.isVisible }.associateWith { Point(-1, -1) }
   }
+
+  /**
+   * The data when calculating the [getFitIntoScale] value. This is used to avoid duplicated calculation.
+   */
+  private data class FitIntoScaleData(val content: Collection<PositionableContent>,
+                                      val availableWidth: Int,
+                                      val availableHeight: Int)
 }

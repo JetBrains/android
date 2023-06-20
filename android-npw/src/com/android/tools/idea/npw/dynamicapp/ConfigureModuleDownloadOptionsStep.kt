@@ -141,7 +141,7 @@ class ConfigureModuleDownloadOptionsStep(
 
   override fun getComponent(): JComponent = validatorPanel
 
-  override fun getPreferredFocusComponent(): JComponent = featureTitle
+  override fun getPreferredFocusComponent(): JComponent? = featureTitle
 
   override fun dispose() {
     bindings.releaseAll()

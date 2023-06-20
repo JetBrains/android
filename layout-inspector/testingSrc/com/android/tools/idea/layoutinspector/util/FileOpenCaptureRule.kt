@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.util
 
+import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
@@ -30,6 +31,8 @@ import org.junit.rules.ExternalResource
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
+import org.mockito.Mockito.anyBoolean
+import org.mockito.Mockito.never
 import org.mockito.Mockito.timeout
 
 private const val TIMEOUT = 1000L // milliseconds
@@ -49,18 +52,23 @@ class FileOpenCaptureRule(private val projectRule: AndroidProjectRule) : Externa
     fileManager = null
   }
 
-  fun checkEditor(fileName: String, lineNumber: Int, text: String) {
-    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
-    Mockito.verify(fileManager!!, timeout(TIMEOUT)).openEditor(file.capture(), ArgumentMatchers.eq(true))
-    val descriptor = file.value
+  fun checkEditor(fileName: String, lineNumber: Int, text: String, ) {
+    val descriptor = checkEditorOpened(fileName, focusEditor = true)
     val line = findLineAtOffset(descriptor.file, descriptor.offset)
-    Truth.assertThat(descriptor.file.name).isEqualTo(fileName)
     Truth.assertThat(line.second).isEqualTo(text)
     Truth.assertThat(line.first.line + 1).isEqualTo(lineNumber)
   }
 
+  fun checkEditorOpened(fileName: String, focusEditor: Boolean): OpenFileDescriptor {
+    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
+    Mockito.verify(fileManager!!, timeout(TIMEOUT)).openEditor(file.capture(), ArgumentMatchers.eq(focusEditor))
+    val descriptor = file.value
+    Truth.assertThat(descriptor.file.name).isEqualTo(fileName)
+    return descriptor
+  }
+
   fun checkNoNavigation() {
-    Mockito.verifyNoInteractions(fileManager!!)
+    Mockito.verify(fileManager!!, never()).openEditor(any(), anyBoolean())
   }
 
   private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {

@@ -34,7 +34,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -86,9 +86,9 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
     PsiManager psiManager = PsiManager.getInstance(getProject());
 
-    assertTrue(LayoutPullParsers.isSupported(psiManager.findFile(layoutFile)));
-    assertTrue(LayoutPullParsers.isSupported(psiManager.findFile(menuFile)));
-    assertTrue(LayoutPullParsers.isSupported(psiManager.findFile(drawableFile)));
+    assertTrue(LayoutPullParsers.isSupported(new PsiXmlFile((XmlFile)psiManager.findFile(layoutFile))));
+    assertTrue(LayoutPullParsers.isSupported(new PsiXmlFile((XmlFile)psiManager.findFile(menuFile))));
+    assertTrue(LayoutPullParsers.isSupported(new PsiXmlFile((XmlFile)psiManager.findFile(drawableFile))));
   }
 
   public void testRenderDrawable() {
@@ -314,7 +314,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertNotNull(file);
 
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    ILayoutPullParser parser = LayoutPullParsers.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily);
+    ILayoutPullParser parser = LayoutPullParsers.createFontFamilyParser(new PsiXmlFile((XmlFile)psiFile), (name) -> compoundFontFamily);
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
@@ -349,7 +349,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertNotNull(file);
 
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    assertNull(LayoutPullParsers.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily));
+    assertNull(LayoutPullParsers.createFontFamilyParser(new PsiXmlFile((XmlFile)psiFile), (name) -> compoundFontFamily));
   }
 
   public void testNamespace() throws Exception {
@@ -363,7 +363,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     withRenderTask(drawableFile, task -> assertEquals(RES_AUTO, LayoutPullParsers.create(task).getLayoutNamespace()));
 
     // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
-    List<ResourceItem> frameworkResourceItems = ResourceRepositoryManager.getInstance(myFacet)
+    List<ResourceItem> frameworkResourceItems = StudioResourceRepositoryManager.getInstance(myFacet)
       .getFrameworkResources(ImmutableSet.of())
       .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
 

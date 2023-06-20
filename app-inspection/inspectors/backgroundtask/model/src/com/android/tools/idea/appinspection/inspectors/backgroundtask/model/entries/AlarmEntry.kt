@@ -39,20 +39,28 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
   private var _isValid = false
   private var _tags = mutableListOf<String>()
 
-  override val isValid get() = _isValid
+  override val isValid
+    get() = _isValid
 
-  override val className get() = _className
+  override val className
+    get() = _className
 
-  override val status get() = _status.name
+  override val status
+    get() = _status.name
 
-  override val startTimeMs get() = _startTime
+  override val startTimeMs
+    get() = _startTime
 
-  override val tags get() = _tags
+  override val tags
+    get() = _tags
   override val callstacks = mutableListOf<BackgroundTaskCallStack>()
   override val retries = 0
 
   var alarmSet: BackgroundTaskInspectorProtocol.AlarmSet? = null
+    private set
+  val alarmFiredTimestamps = mutableListOf<Long>()
   var latestEvent: BackgroundTaskInspectorProtocol.Event? = null
+    private set
 
   override fun consume(eventWrapper: EventWrapper) {
     latestEvent = eventWrapper.backgroundTaskEvent
@@ -62,7 +70,9 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
       BackgroundTaskEvent.MetadataCase.ALARM_SET -> {
         _isValid = true
         alarmSet = backgroundTaskEvent.alarmSet
-        _className = getTopExternalClassSimpleName(backgroundTaskEvent.stacktrace, "android.app.AlarmManager") ?: "Alarm $id"
+        _className =
+          getTopExternalClassSimpleName(backgroundTaskEvent.stacktrace, "android.app.AlarmManager")
+            ?: "Alarm $id"
         _status = State.SET
         _startTime = latestEvent!!.timestamp
         if (alarmSet!!.hasListener()) {
@@ -77,6 +87,7 @@ class AlarmEntry(override val id: String) : BackgroundTaskEntry {
       }
       BackgroundTaskEvent.MetadataCase.ALARM_FIRED -> {
         _status = State.FIRED
+        alarmFiredTimestamps.add(latestEvent!!.timestamp)
       }
       else -> throw RuntimeException()
     }

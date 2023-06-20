@@ -15,19 +15,18 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs.actions
 
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.toolwindow.splittingtabs.ChildComponentFactory
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
-import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComponent
@@ -37,21 +36,17 @@ import javax.swing.JPanel
  * Tests for [RenameTabAction]
  */
 class RenameTabActionTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  private val projectRule = ProjectRule()
 
-  private val project = MockitoKt.mock<Project>()
-  private val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+  @get:Rule
+  val rule = RuleChain(projectRule, EdtRule())
+
+  private val toolWindow by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)}
   private val contentFactory by lazy { toolWindow.contentManager.factory }
   private val event by lazy { TestActionEvent.createTestEvent(
-    action, SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).build()) }
+    action, SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build()) }
 
   private val action = RenameTabAction()
-
-  @After
-  fun tearDown(){
-    Disposer.dispose(project)
-  }
 
   @Test
   fun presentationTextSet() {
@@ -78,11 +73,11 @@ class RenameTabActionTest {
   @Test
   fun update_splittingTabContent_visible() {
     val content = contentFactory.createContent(null, "Content", false).also {
-      Disposer.register(project, it)
       it.component = SplittingPanel(it, null, object : ChildComponentFactory {
         override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
       })
     }
+    Disposer.register(toolWindow.contentManager, content)
 
     action.update(event, toolWindow, content)
 

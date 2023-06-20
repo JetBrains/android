@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Parses sketch files.
  */
-public final class SketchParser {
+public class SketchParser {
   private static final Logger LOG = Logger.getInstance(SketchParser.class);
   // Tells GSON which deserializers to use for special classes
   private static final Gson gson = new GsonBuilder()

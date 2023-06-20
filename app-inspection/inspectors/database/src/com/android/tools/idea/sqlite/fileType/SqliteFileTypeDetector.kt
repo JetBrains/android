@@ -24,17 +24,22 @@ import com.intellij.openapi.vfs.VirtualFile
 /**
  * Implementation of [FileTypeRegistry.FileTypeDetector] for Sqlite files.
  *
- * If starting by sequence of bytes of a file is the recognized Sqlite header [SQLITE3_FORMAT_HEADER],
- * the implementation returns the [SqliteFileType] file type.
+ * If starting by sequence of bytes of a file is the recognized Sqlite header
+ * [SQLITE3_FORMAT_HEADER], the implementation returns the [SqliteFileType] file type.
  */
 class SqliteFileTypeDetector : FileTypeRegistry.FileTypeDetector {
   private val SQLITE3_FORMAT_HEADER = "SQLite format 3\u0000".toByteArray(Charsets.UTF_8)
 
-  override fun detect(file: VirtualFile, firstBytes: ByteSequence, firstCharsIfText: CharSequence?): FileType? {
+  override fun detect(
+    file: VirtualFile,
+    firstBytes: ByteSequence,
+    firstCharsIfText: CharSequence?
+  ): FileType? {
     return when {
       !DatabaseInspectorFlagController.isOpenFileEnabled -> null
       firstBytes.length() < SQLITE3_FORMAT_HEADER.size -> null
-      firstBytes.subSequence(0, SQLITE3_FORMAT_HEADER.size).toBytes() contentEquals SQLITE3_FORMAT_HEADER -> SqliteFileType
+      firstBytes.subSequence(0, SQLITE3_FORMAT_HEADER.size).toBytes() contentEquals
+        SQLITE3_FORMAT_HEADER -> SqliteFileType
       else -> null
     }
   }

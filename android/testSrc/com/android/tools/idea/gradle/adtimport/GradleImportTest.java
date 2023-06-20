@@ -45,6 +45,8 @@ import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.testutils.TestUtils;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.ImportUtil;
 import com.android.tools.idea.gradle.util.PropertiesFiles;
@@ -868,6 +870,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.application'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.pkg\"\n"
                  + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -897,6 +900,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.library'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.lib2.pkg\"\n"
                  + "    compileSdkVersion 18\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -1072,6 +1076,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.application'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.pkg\"\n"
                  + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -1160,6 +1165,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.application'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.pkg\"\n"
                  + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -1291,6 +1297,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.application'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.pkg\"\n"
                  + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + CURRENT_BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -1482,6 +1489,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.application'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.pkg\"\n"
                  + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -1665,6 +1673,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.application'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.pkg\"\n"
                  + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -2124,6 +2133,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.application'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.pkg\"\n"
                  + "    compileSdkVersion 22\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -2152,6 +2162,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.library'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.android.lib.pkg\"\n"
                  + "    compileSdkVersion 18\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -2766,6 +2777,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.application'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.pkg\"\n"
                  + "    compileSdkVersion 16\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -2837,6 +2849,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.application'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.pkg\"\n"
                  + "    compileSdkVersion 'android-L'\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -2889,6 +2902,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "apply plugin: 'com.android.application'\n"
                  + "\n"
                  + "android {\n"
+                 + "    namespace \"test.pkg\"\n"
                  + "    compileSdkVersion 'Google Inc.:Google APIs:18'\n"
                  + "    buildToolsVersion \"" + BUILD_TOOLS_VERSION + "\"\n"
                  + "\n"
@@ -3398,7 +3412,11 @@ public class GradleImportTest extends AndroidTestCase {
     removeJcenter(new File(base, "build.gradle"));
     AndroidGradleTests.updateToolingVersionsAndPaths(base);
     GeneralCommandLine cmdLine = new GeneralCommandLine(args).withWorkDirectory(pwd);
-    cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().normalize().toAbsolutePath().toString());
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      cmdLine.withEnvironment("JAVA_HOME", EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath().normalize().toAbsolutePath().toString());
+    } else {
+      cmdLine.withEnvironment("JAVA_HOME", TestUtils.getEmbeddedJdk17Path().toAbsolutePath().toString());
+    }
     cmdLine.withEnvironment(AbstractAndroidLocations.ANDROID_PREFS_ROOT, AndroidLocationsSingleton.INSTANCE.getPrefsLocation().toAbsolutePath().toString());
     CapturingProcessHandler process = new CapturingProcessHandler(cmdLine);
     // Building currently takes about 30s, so a 5min timeout should give a safe margin.
@@ -3804,19 +3822,20 @@ public class GradleImportTest extends AndroidTestCase {
   }
 
   /** Latest build tools version */
-  private static final String BUILD_TOOLS_VERSION;
+  private static final String BUILD_TOOLS_VERSION = CURRENT_BUILD_TOOLS_VERSION;
 
-  static {
-    String candidate = CURRENT_BUILD_TOOLS_VERSION;
-    FakeProgressIndicator progress = new FakeProgressIndicator();
-    AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, getSdk());
-    BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
-    if (buildTool != null) {
-      candidate = buildTool.getRevision().toString();
-    }
-
-    BUILD_TOOLS_VERSION = candidate;
-  }
+  // TODO nvuk this method call resolves in flaky test.
+  //static {
+  //  String candidate = CURRENT_BUILD_TOOLS_VERSION;
+  //  FakeProgressIndicator progress = new FakeProgressIndicator();
+  //  AndroidSdkHandler sdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, getSdk());
+  //  BuildToolInfo buildTool = sdkHandler.getLatestBuildTool(progress, false);
+  //  if (buildTool != null) {
+  //    candidate = buildTool.getRevision().toString();
+  //  }
+  //
+  //  BUILD_TOOLS_VERSION = candidate;
+  //}
 
   private static final String DEFAULT_MOVED = ""
                                               + "* AndroidManifest.xml => app/src/main/AndroidManifest.xml\n"

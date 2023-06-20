@@ -154,7 +154,8 @@ private abstract class PickerDialogBase(val parent: JComponent, val callback: Co
   private var previousLoc: Point? = null
 
   private val picker: Dialog = let {
-    val pickerDialog = when (val owner = SwingUtilities.getWindowAncestor(parent)) {
+    val owner = SwingUtilities.getWindowAncestor(parent)
+    val pickerDialog = when (owner) {
       is Dialog -> JDialog(owner)
       is Frame -> JDialog(owner)
       else -> JDialog(JFrame())

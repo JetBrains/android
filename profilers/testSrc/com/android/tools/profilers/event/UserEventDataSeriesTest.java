@@ -27,48 +27,29 @@ import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.EventProfiler.SystemData;
 import com.android.tools.profiler.proto.Interaction;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public class UserEventDataSeriesTest {
-
   private static final long TEST_START_TIME_NS = System.nanoTime();
   private static final long TEST_END_TIME_NS = TEST_START_TIME_NS + TimeUnit.SECONDS.toNanos(1);
 
-  private FakeTimer myTimer = new FakeTimer();
-  private FakeTransportService myTransportService = new FakeTransportService(myTimer);
-  private FakeEventService myEventService = new FakeEventService();
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel(getClass().getName(), myTransportService, myEventService);
-
-  private FakeIdeProfilerServices myIdeProfilerServices;
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel(getClass().getName(), myTransportService);
   private UserEventDataSeries mySeries;
-
-  @Parameterized.Parameters
-  public static Collection<Boolean> useNewEventPipelineParameter() {
-    return Arrays.asList(false, true);
-  }
-
-  public UserEventDataSeriesTest(boolean useNewEventPipeline) {
-    myIdeProfilerServices = new FakeIdeProfilerServices();
-    myIdeProfilerServices.enableEventsPipeline(useNewEventPipeline);
-  }
 
   @Before
   public void setUp() {
-    mySeries = new UserEventDataSeries(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer));
+    mySeries =
+      new UserEventDataSeries(new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer));
   }
 
   @Test
@@ -134,82 +115,51 @@ public class UserEventDataSeriesTest {
   }
 
   private void buildTouchEvent(int eventId) {
-    if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myTransportService.addEventToStream(FAKE_DEVICE_ID,
-                                          Common.Event.newBuilder()
-                                                .setKind(Common.Event.Kind.INTERACTION)
-                                                .setTimestamp(TEST_START_TIME_NS)
-                                                .setGroupId(eventId)
-                                                .setInteraction(
-                                                  Interaction.InteractionData.newBuilder()
-                                                    .setType(Interaction.InteractionData.Type.TOUCH))
-                                                .build());
-      myTransportService.addEventToStream(FAKE_DEVICE_ID,
-                                          Common.Event.newBuilder()
-                                                .setKind(Common.Event.Kind.INTERACTION)
-                                                .setTimestamp(TEST_END_TIME_NS)
-                                                .setGroupId(eventId)
-                                                .setIsEnded(true)
-                                                .setInteraction(
-                                                  Interaction.InteractionData.newBuilder()
-                                                    .setType(Interaction.InteractionData.Type.TOUCH))
-                                                .build());
-    }
-    else {
-      myEventService.addSystemEvent(SystemData.newBuilder()
-                                      .setEventId(eventId)
-                                      .setStartTimestamp(TEST_START_TIME_NS)
-                                      .setEndTimestamp(TEST_END_TIME_NS)
-                                      .setType(Interaction.InteractionData.Type.TOUCH)
-                                      .build());
-    }
+    myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                        Common.Event.newBuilder()
+                                          .setKind(Common.Event.Kind.INTERACTION)
+                                          .setTimestamp(TEST_START_TIME_NS)
+                                          .setGroupId(eventId)
+                                          .setInteraction(
+                                            Interaction.InteractionData.newBuilder()
+                                              .setType(Interaction.InteractionData.Type.TOUCH))
+                                          .build());
+    myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                        Common.Event.newBuilder()
+                                          .setKind(Common.Event.Kind.INTERACTION)
+                                          .setTimestamp(TEST_END_TIME_NS)
+                                          .setGroupId(eventId)
+                                          .setIsEnded(true)
+                                          .setInteraction(
+                                            Interaction.InteractionData.newBuilder()
+                                              .setType(Interaction.InteractionData.Type.TOUCH))
+                                          .build());
   }
 
   private void buildRotationEvent(int eventId) {
-    if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myTransportService.addEventToStream(FAKE_DEVICE_ID,
-                                          Common.Event.newBuilder()
-                                                .setKind(Common.Event.Kind.INTERACTION)
-                                                .setTimestamp(TEST_START_TIME_NS)
-                                                .setGroupId(eventId)
-                                                .setIsEnded(true)
-                                                .setInteraction(
-                                                  Interaction.InteractionData.newBuilder()
-                                                    .setType(Interaction.InteractionData.Type.ROTATION))
-                                                .build());
-    }
-    else {
-      myEventService.addSystemEvent(SystemData.newBuilder()
-                                      .setEventId(eventId)
-                                      .setStartTimestamp(TEST_START_TIME_NS)
-                                      .setEndTimestamp(TEST_START_TIME_NS)
-                                      .setType(Interaction.InteractionData.Type.ROTATION)
-                                      .build());
-    }
+    myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                        Common.Event.newBuilder()
+                                          .setKind(Common.Event.Kind.INTERACTION)
+                                          .setTimestamp(TEST_START_TIME_NS)
+                                          .setGroupId(eventId)
+                                          .setIsEnded(true)
+                                          .setInteraction(
+                                            Interaction.InteractionData.newBuilder()
+                                              .setType(Interaction.InteractionData.Type.ROTATION))
+                                          .build());
   }
 
   private void buildKeyEvent(int eventId) {
-    if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myTransportService.addEventToStream(FAKE_DEVICE_ID,
-                                          Common.Event.newBuilder()
-                                                .setKind(Common.Event.Kind.INTERACTION)
-                                                .setTimestamp(TEST_START_TIME_NS)
-                                                .setGroupId(eventId)
-                                                .setIsEnded(true)
-                                                .setInteraction(
-                                                  Interaction.InteractionData.newBuilder()
-                                                    .setType(Interaction.InteractionData.Type.KEY)
-                                                    .setEventData("Hello"))
-                                                .build());
-    }
-    else {
-      myEventService.addSystemEvent(SystemData.newBuilder()
-                                      .setEventId(eventId)
-                                      .setStartTimestamp(TEST_START_TIME_NS)
-                                      .setEndTimestamp(TEST_START_TIME_NS)
-                                      .setType(Interaction.InteractionData.Type.KEY)
-                                      .setEventData("Hello")
-                                      .build());
-    }
+    myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                        Common.Event.newBuilder()
+                                          .setKind(Common.Event.Kind.INTERACTION)
+                                          .setTimestamp(TEST_START_TIME_NS)
+                                          .setGroupId(eventId)
+                                          .setIsEnded(true)
+                                          .setInteraction(
+                                            Interaction.InteractionData.newBuilder()
+                                              .setType(Interaction.InteractionData.Type.KEY)
+                                              .setEventData("Hello"))
+                                          .build());
   }
 }

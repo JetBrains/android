@@ -28,16 +28,18 @@ import com.android.tools.adtui.model.event.UserEvent;
 import com.android.tools.adtui.model.trackgroup.TrackGroupActionListener;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.EventStreamServer;
 import com.android.tools.profiler.perfetto.proto.TraceProcessor;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.TraceConfigOptionsUtils;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.analysis.AndroidFrameTimelineAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
@@ -61,6 +63,9 @@ import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData;
 import com.android.tools.profilers.cpu.systemtrace.CpuThreadSliceInfo;
 import com.android.tools.profilers.cpu.systemtrace.DeadlineTextModel;
 import com.android.tools.profilers.cpu.systemtrace.FrameState;
+import com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel;
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTooltip;
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTooltip;
 import com.android.tools.profilers.cpu.systemtrace.RssMemoryTrackModel;
 import com.android.tools.profilers.cpu.systemtrace.SurfaceflingerTooltip;
@@ -220,11 +225,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
    */
   @VisibleForTesting
   public CpuCaptureStage(@NotNull StudioProfilers profilers,
-                  @NotNull ProfilingConfiguration configuration,
-                  @NotNull File captureFile,
-                  long traceId,
-                  @Nullable String captureProcessNameHint,
-                  int captureProcessIdHint) {
+                         @NotNull ProfilingConfiguration configuration,
+                         @NotNull File captureFile,
+                         long traceId,
+                         @Nullable String captureProcessNameHint,
+                         int captureProcessIdHint) {
     super(profilers);
     myCpuCaptureHandler = new CpuCaptureHandler(
       profilers.getIdeServices(), captureFile, traceId, configuration, captureProcessNameHint, captureProcessIdHint);
@@ -299,6 +304,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   @Override
   public void enter() {
+    logEnterStage();
     getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
     myCpuCaptureHandler.parse(capture -> {
@@ -392,16 +398,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private void insertImportedTraceEvent(@NotNull CpuCapture capture) {
-    Cpu.CpuTraceInfo importedTraceInfo = Cpu.CpuTraceInfo.newBuilder()
+    Trace.TraceInfo.Builder importedTraceInfo = Trace.TraceInfo.newBuilder()
       // Use session ID as trace ID for imported traces.
       .setTraceId(getStudioProfilers().getSession().getSessionId())
       .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMin()))
-      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()))
-      .setConfiguration(
-        Cpu.CpuTraceConfiguration
-          .newBuilder()
-          .setUserOptions(Cpu.CpuTraceConfiguration.UserOptions.newBuilder().setTraceType(capture.getType())))
-      .build();
+      .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)capture.getRange().getMax()));
+
+    Trace.TraceConfiguration.Builder config = Trace.TraceConfiguration.newBuilder();
+    TraceConfigOptionsUtils.addDefaultTraceOptions(config, capture.getType());
+    importedTraceInfo.setConfiguration(config);
+
     // TODO(b/141560550): add test when we can mock TransportService#registerStreamServer.
     EventStreamServer streamServer =
       getStudioProfilers().getSessionsManager().getEventStreamServer(getStudioProfilers().getSession().getStreamId());
@@ -412,8 +418,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
           .setTimestamp(importedTraceInfo.getToTimestamp())
           .setIsEnded(true)
           .setKind(Common.Event.Kind.CPU_TRACE)
-          .setCpuTrace(
-            Cpu.CpuTraceData.newBuilder().setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(importedTraceInfo)))
+          .setTraceData(
+            Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(importedTraceInfo)))
           .build());
     }
   }
@@ -454,6 +460,21 @@ public class CpuCaptureStage extends Stage<Timeline> {
       }
       // Thread states and trace events.
       myTrackGroupModels.add(createThreadsTrackGroup(capture));
+    }
+
+    if (capture instanceof SystemTraceCpuCapture && capture.getSystemTraceData() != null &&
+        getStudioProfilers().getIdeServices().getFeatureConfig().getSystemTracePowerProfilerDisplayMode() !=
+        PowerProfilerDisplayMode.HIDE) {
+      // Power rail data is ODPM hardware exclusive, but we take a data driven approach for checking compatibility.
+      if (!capture.getSystemTraceData().getPowerRailCounters().isEmpty()) {
+        // Power rail counters.
+        myTrackGroupModels.add(createPowerRailsTrackGroup(capture.getSystemTraceData()));
+      }
+
+      if (!capture.getSystemTraceData().getBatteryDrainCounters().isEmpty()) {
+        // Battery drain counters.
+        myTrackGroupModels.add(createBatteryDrainTrackGroup(capture.getSystemTraceData()));
+      }
     }
 
     // Add action listener for tracking all track group actions.
@@ -657,7 +678,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
     Map<Long, AndroidFrameTimelineEvent> timelineEventIndex =
       CollectionsKt.associateBy(capture.getAndroidFrameTimelineEvents(), AndroidFrameTimelineEvent::getSurfaceFrameToken);
     BiConsumer<Function1<TraceProcessor.AndroidFrameEventsResult.FrameEvent, Boolean>,
-                         Function1<Set<String>, Boolean>> adder = (frameFilter, displayingCondition) ->
+      Function1<Set<String>, Boolean>> adder = (frameFilter, displayingCondition) ->
       TraceProcessorModelKt.groupedByPhase(capture.getAndroidFrameLayers()).stream()
         .map(phase -> new AndroidFrameEventTrackModel(phase, myTrackGroupTimeline.getViewRange(), capture.getVsyncCounterValues(),
                                                       myMultiSelectionModel, frameFilter, timelineEventIndex))
@@ -767,6 +788,52 @@ public class CpuCaptureStage extends Stage<Timeline> {
     return memory;
   }
 
+  private TrackGroupModel createPowerRailsTrackGroup(@NotNull CpuSystemTraceData systemTraceData) {
+    TrackGroupModel power = TrackGroupModel.newBuilder()
+      .setTitle("Power Rails")
+      .setTitleHelpText("This section shows the device's power consumption per hardware component." +
+                        "<p><b>Power Rails</b> are wires in your device that connect the battery to hardware modules.</p>")
+      .setTitleHelpLink("Learn more", "https://perfetto.dev/docs/data-sources/battery-counters#odpm")
+      .setCollapsedInitially(false)
+      .build();
+
+    systemTraceData.getPowerRailCounters().forEach(
+      (trackName, trackData) -> {
+        PowerRailTrackModel trackModel = new PowerRailTrackModel(trackData, myTrackGroupTimeline.getViewRange());
+        PowerRailTooltip tooltip = new PowerRailTooltip(myTrackGroupTimeline, trackName, trackModel.getPowerRailCounterSeries());
+
+        power.addTrackModel(
+          TrackModel.newBuilder(trackModel, ProfilerTrackRendererType.ANDROID_POWER_RAIL, trackName).setDefaultTooltipModel(tooltip)
+        );
+      }
+    );
+
+    return power;
+  }
+
+  private TrackGroupModel createBatteryDrainTrackGroup(@NotNull CpuSystemTraceData systemTraceData) {
+    TrackGroupModel battery = TrackGroupModel.newBuilder()
+      .setTitle("Battery")
+      .setTitleHelpText("This section shows the device's battery consumption in three contexts (in order): " +
+                        "<ol><li>Remaining battery percentage (%)</li>" +
+                        "<li>Remaining battery charge in microampere-hours (µAh)</li>" +
+                        "<li>Instantaneous current in microampere (µA)</li></ol>")
+      .setCollapsedInitially(false)
+      .build();
+
+    systemTraceData.getBatteryDrainCounters().forEach(
+      (trackName, trackData) -> {
+        BatteryDrainTrackModel trackModel = new BatteryDrainTrackModel(trackData, myTrackGroupTimeline.getViewRange(), trackName);
+        BatteryDrainTooltip tooltip = new BatteryDrainTooltip(myTrackGroupTimeline, trackName, trackModel.getBatteryDrainCounterSeries());
+
+        battery.addTrackModel(
+          TrackModel.newBuilder(trackModel, ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, trackName).setDefaultTooltipModel(tooltip)
+        );
+      }
+    );
+
+    return battery;
+  }
   private Unit runInBackground(Runnable work) {
     getStudioProfilers().getIdeServices().getPoolExecutor().execute(work);
     return Unit.INSTANCE;

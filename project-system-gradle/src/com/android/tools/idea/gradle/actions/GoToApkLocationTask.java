@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvokerKt.whenFinished;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static com.intellij.notification.NotificationType.ERROR;
+import static com.intellij.notification.NotificationType.INFORMATION;
+
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildResult;
@@ -37,17 +42,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.event.HyperlinkEvent;
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvokerKt.whenFinished;
-import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
-import static com.intellij.notification.NotificationType.ERROR;
-import static com.intellij.notification.NotificationType.INFORMATION;
+import javax.swing.event.HyperlinkEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class GoToApkLocationTask {
   public static final String ANALYZE = "analyze:";

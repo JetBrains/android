@@ -23,11 +23,14 @@ import java.io.Serializable
  * Implementation of the [GradlePluginModel] model object.
  */
 data class GradlePluginModelImpl(
-  private val myGradlePluginList: Collection<String>
+  private val hasSafeArgsJava: Boolean,
+  private val hasSafeArgsKotlin: Boolean
 ) : GradlePluginModel, Serializable {
-  override fun getGradlePluginList(): Collection<String> = myGradlePluginList
+  override fun hasSafeArgsJava(): Boolean = hasSafeArgsJava
+
+  override fun hasSafeArgsKotlin(): Boolean = hasSafeArgsKotlin
 
   companion object {
-    private const val serialVersionUID = 2L
+    private const val serialVersionUID = 3L
   }
 }

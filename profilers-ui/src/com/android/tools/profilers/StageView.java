@@ -122,7 +122,7 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
   protected JComponent buildTimeAxis(StudioProfilers profilers) {
     JPanel axisPanel = new JPanel(new BorderLayout());
     axisPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
-    AxisComponent timeAxis = new AxisComponent(profilers.getViewAxis(), AxisComponent.AxisOrientation.BOTTOM);
+    AxisComponent timeAxis = new AxisComponent(profilers.getViewAxis(), AxisComponent.AxisOrientation.BOTTOM, true);
     timeAxis.setShowAxisLine(false);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));

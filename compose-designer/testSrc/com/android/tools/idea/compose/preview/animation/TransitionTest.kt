@@ -15,21 +15,23 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import org.junit.Test
 
 class TransitionTest {
 
-  private val rect = AnimatedProperty.Builder()
-    .add(100, ComposeUnit.Rect(0f, 0f, 0f, 0f))
-    .add(200, ComposeUnit.Rect(1f, 1f, 1f, 1f))
-    .build()
+  private val rect =
+    AnimatedProperty.Builder()
+      .add(100, ComposeUnit.Rect(0f, 0f, 0f, 0f))
+      .add(200, ComposeUnit.Rect(1f, 1f, 1f, 1f))
+      .build()
 
-  private val offset = AnimatedProperty.Builder()
-    .add(50, ComposeUnit.Offset(0f, 0f))
-    .add(150, ComposeUnit.Offset(1f, 1f))
-    .build()
+  private val offset =
+    AnimatedProperty.Builder()
+      .add(50, ComposeUnit.Offset(0f, 0f))
+      .add(150, ComposeUnit.Offset(1f, 1f))
+      .build()
 
   @Test
   fun `create transition`() {

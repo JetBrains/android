@@ -25,21 +25,23 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import org.jetbrains.android.facet.AndroidFacet;
+import com.android.tools.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility methods for selecting a running device.
  */
-public final class DeviceSelectionUtils {
+public class DeviceSelectionUtils {
   @NotNull private static final Logger LOG = Logger.getInstance(DeviceSelectionUtils.class);
   // We remember what serials the user uses so we can pre-select them in the manual choosing dialog.
   @NonNls private static final String ANDROID_TARGET_DEVICES_PROPERTY = "AndroidTargetDevices";
@@ -116,7 +118,7 @@ public final class DeviceSelectionUtils {
     final Project project = facet.getModule().getProject();
     String value = PropertiesComponent.getInstance(project).getValue(ANDROID_TARGET_DEVICES_PROPERTY);
     String[] selectedSerials = value != null ? deserialize(value) : null;
-    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
+    AndroidPlatform platform = AndroidPlatforms.getInstance(facet.getModule());
     if (platform == null) {
       LOG.error("Android platform not set for module: " + facet.getModule().getName());
       return DeviceChooser.EMPTY_DEVICE_ARRAY;

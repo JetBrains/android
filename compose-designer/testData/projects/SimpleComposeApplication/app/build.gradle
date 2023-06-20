@@ -17,7 +17,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 32
+    namespace "java.google.simpleapplication"
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "google.simpleapplication"

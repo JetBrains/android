@@ -15,20 +15,19 @@
  */
 package com.android.tools.idea.gradle.structure.model.pom;
 
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.util.text.StringUtil.nullize;
-
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.JDOMUtil;
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
+import static com.intellij.openapi.util.text.StringUtil.*;
 
 public final class MavenPoms {
   private static final Logger LOG = Logger.getInstance(MavenPoms.class);
@@ -36,7 +35,8 @@ public final class MavenPoms {
   private MavenPoms() {
   }
 
-  public static @NotNull List<PsArtifactDependencySpec> findDependenciesInPomFile(@Nullable File pomFilePath) {
+  @NotNull
+  public static List<PsArtifactDependencySpec> findDependenciesInPomFile(@Nullable File pomFilePath) {
     if (pomFilePath == null || !pomFilePath.isFile()) {
       return Collections.emptyList();
     }
@@ -69,7 +69,8 @@ public final class MavenPoms {
     return dependencies;
   }
 
-  private static @Nullable PsArtifactDependencySpec createSpec(@NotNull Element dependencyElement) {
+  @Nullable
+  private static PsArtifactDependencySpec createSpec(@NotNull Element dependencyElement) {
     String artifactId = null;
     String groupId = null;
     String version = null;
@@ -100,7 +101,8 @@ public final class MavenPoms {
     return null;
   }
 
-  private static @Nullable String textOf(@NotNull Element e) {
+  @Nullable
+  private static String textOf(@NotNull Element e) {
     return nullize(e.getText(), true);
   }
 }

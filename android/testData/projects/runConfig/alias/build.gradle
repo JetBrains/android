@@ -29,7 +29,6 @@ repositories {
 
 android {
   compileSdkVersion 18
-  buildToolsVersion "19.1.0"
 
   defaultConfig {
     minSdkVersion 9

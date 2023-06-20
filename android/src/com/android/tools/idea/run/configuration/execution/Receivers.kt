@@ -17,14 +17,14 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.MultiLineReceiver
 import com.intellij.execution.ui.ConsoleView
-import com.intellij.execution.ui.ConsoleViewContentType
 
 internal class ConsoleOutputReceiver(private val isCancelledCheck: () -> Boolean,
-                                          private val consoleView: ConsoleView) : MultiLineReceiver() {
+                                     private val consoleView: ConsoleView
+) : MultiLineReceiver() {
   override fun isCancelled() = isCancelledCheck()
 
   override fun processNewLines(lines: Array<String>) = lines.forEach {
-    consoleView.print(it + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
+    consoleView.println(it)
   }
 }
 

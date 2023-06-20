@@ -16,10 +16,13 @@
 package com.android.tools.idea.naveditor.actions
 
 import com.android.tools.idea.common.surface.DesignSurface
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class ActivateSelectionAction(val surface: DesignSurface<*>) : AnAction() {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun actionPerformed(e: AnActionEvent) {
     surface.selectionModel.selection.let {
       if (it.size == 1) {

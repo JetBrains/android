@@ -31,25 +31,32 @@
 package com.android.tools.idea.gradle.project.upgrade.integration
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.junit4.OldAgpSuite
+import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvokerImpl
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeRefactoringProcessor
-import com.android.tools.idea.gradle.project.upgrade.CompatibleGradleVersion
+import com.android.tools.idea.gradle.util.CompatibleGradleVersion
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleWrapper
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.BuildEnvironment
+import com.android.tools.idea.testing.CustomAgpVersionSoftwareEnvironment
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.resolve
+import com.android.tools.idea.testing.withGradle
 import com.android.utils.FileUtils
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.EdtRule
 import junit.framework.TestCase
 import org.junit.Before
@@ -84,7 +91,7 @@ open class ProjectsUpgradeTestBase {
     loadAUATestProject(baseProject)
     fakeSyncInvoker.fakeNextSyncSuccess = true
     //TODO run upgrade through FakeUI instead.
-    val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpGradleVersion(), to.agpGradleVersion())
+    val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpVersion(), to.agpVersion())
     processor.componentRefactoringProcessors.forEach {
       it.isEnabled = when (it.necessity()) {
         AgpUpgradeComponentNecessity.IRRELEVANT_FUTURE -> false
@@ -103,7 +110,7 @@ open class ProjectsUpgradeTestBase {
     loadAUATestProject(baseProject)
     fakeSyncInvoker.fakeNextSyncSuccess = true
     //TODO run upgrade through FakeUI instead.
-    val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpGradleVersion(), to.agpGradleVersion())
+    val processor = AgpUpgradeRefactoringProcessor(projectRule.project, baseProject.agpVersion(), to.agpVersion())
     processor.componentRefactoringProcessors.forEach {
       it.isEnabled = when (it.necessity()) {
         AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT -> true
@@ -120,9 +127,7 @@ open class ProjectsUpgradeTestBase {
 
   fun loadAUATestProject(testProject: AUATestProjectState) = projectRule.load(
     projectPath = testProject.projectBasePath(),
-    gradleVersion = testProject.gradleVersion(),
-    kotlinVersion = testProject.kotlinVersion(),
-    agpVersion = testProject.agpVersion(),
+    agpVersion = testProject.agpVersionDef(),
     ndkVersion = testProject.ndkVersion()
   ) { projectRoot ->
     applyProjectPatch(testProject, projectRoot)
@@ -135,11 +140,22 @@ open class ProjectsUpgradeTestBase {
       val srcRoot = projectRule.resolveTestDataPath(projectPatchPath)
       TestCase.assertTrue(srcRoot.getPath(), srcRoot.exists())
       FileUtils.getAllFiles(srcRoot).forEach { source ->
-        val target = projectRoot.resolve(source.relativeTo(srcRoot))
+        val relative = source.relativeTo(srcRoot)
+        val target = projectRoot.resolve(relative)
         FileUtils.copyFile(source, target)
         // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-        AndroidGradleTests.updateToolingVersionsAndPaths(target, testProject.gradleVersion(), testProject.agpVersion(),
-                                                         testProject.kotlinVersion(), testProject.ndkVersion(), null)
+        AndroidGradleTests.updateToolingVersionsAndPaths(
+          target,
+          testProject.agpVersionDef().resolve(),
+          testProject.ndkVersion(),
+          emptyList()
+        )
+        when (relative.path) {
+          FN_GRADLE_PROPERTIES -> {
+            VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot)
+            AndroidGradleTests.updateGradleProperties(projectRoot)
+          }
+        }
       }
     }
   }
@@ -152,19 +168,24 @@ open class ProjectsUpgradeTestBase {
       // Load project with base gradle version first. We can not pass expected updated version here because
       // it will try to verify the binary actually exists. That would require to get all versions of gradle
       // for every test target. But we don't care about binary existing in this case, we are not going to run
-      // this project, we just need it's source files for comparison.
+      // this project, we just need its source files for comparison.
       // So set existing gradle version here and change it to expected one after project is prepared.
       val baseGradleVersion = OldAgpSuite.GRADLE_VERSION?.takeIf { it != "LATEST" }
       AndroidGradleTests.defaultPatchPreparedProject(
-        projectRoot, baseGradleVersion, expectedProjectState.agpVersion(), expectedProjectState.kotlinVersion(),
-        expectedProjectState.ndkVersion(), null)
+        projectRoot,
+        expectedProjectState.agpVersionDef().withGradle(baseGradleVersion).resolve(),
+        expectedProjectState.ndkVersion()
+      )
       // Patch base project with files expected to change.
       // Note: one could think that we only need to check these files instead of comparing all files recursively
       // but checking all project files allows us to make sure no unexpected changes were made to any other not listed files.
       applyProjectPatch(expectedProjectState, projectRoot)
-      // Setting actual expected gradle version here as described above.
+      // Setting actual expected gradle path here, which does not use EmbeddedDistributionPaths.findEmbeddedGradleDistributionFile() or
+      // AndroidGradleTests.createGradleWrapper() because the file does not necessarily exist (because of bazel sandboxing, for example).
       val wrapper = GradleWrapper.create(projectRoot, null)
-      wrapper.updateDistributionUrl(wrapper.getUpdatedDistributionUrl(expectedProjectState.gradleVersion(), true))
+      EmbeddedDistributionPaths.getInstance().findEmbeddedGradleDistributionPath()
+        ?.resolve("gradle-${expectedProjectState.gradleVersionString()}-bin.zip")
+        ?.let { file -> wrapper.updateDistributionUrl(file) } ?: error("failed to set expected Gradle path")
     }
     return temporaryFolder.root
   }
@@ -174,26 +195,37 @@ open class ProjectsUpgradeTestBase {
     val projectRoot = File(projectRule.project.basePath!!)
 
     FileUtils.getAllFiles(goldenProjectRoot)
-      .filter { it != null && it.isFileToCompare() }
+      .filter { it != null }
+      .mapNotNull { it.getExpectFun(expectedProjectState)?.let { f -> it to f } }
       .forEach {
-        val expectedContent = it.readText()
-        val relativePath = FileUtil.getRelativePath(goldenProjectRoot, it)
+        val file = it.first
+        val expectedContent = file.readText()
+        val relativePath = FileUtil.getRelativePath(goldenProjectRoot, file)
         val actualContent = FileUtils.join(projectRoot, relativePath).readText()
-        expect.withMessage(relativePath).that(actualContent).isEqualTo(expectedContent)
+        it.second.invoke(relativePath, actualContent, expectedContent)
       }
-    val gradleWrapperFile = FileUtils.join(projectRoot, "gradle", "wrapper", "gradle-wrapper.properties")
-    val distributionUrlLine = gradleWrapperFile.readLines().first { it.contains("distributionUrl") }
-    Truth.assertThat(distributionUrlLine).contains("gradle-${expectedProjectState.gradleVersion()}-bin.zip")
   }
 
-  private fun File.isFileToCompare() = isFile() && path.let {
-    it.endsWith(SdkConstants.DOT_GRADLE)
-    || it.endsWith(SdkConstants.EXT_GRADLE_KTS)
-    || it.endsWith(SdkConstants.DOT_XML)
-    || it.endsWith(SdkConstants.DOT_JAVA)
-    || it.endsWith(SdkConstants.DOT_KT)
-    //|| it.endsWith(SdkConstants.DOT_PROPERTIES) // TODO need to avoid comparing timestamp first
-  }
+  private fun File.getExpectFun(expectedProjectState: AUATestProjectState): ((String?, String, String) -> Unit)? =
+    takeIf { it.isFile }?.let {
+      when {
+        path.endsWith(SdkConstants.DOT_GRADLE) ||
+        path.endsWith(SdkConstants.EXT_GRADLE_KTS) ||
+        path.endsWith(SdkConstants.DOT_XML) ||
+        path.endsWith(SdkConstants.DOT_JAVA) ||
+        path.endsWith(SdkConstants.DOT_KT) ->
+          { relativePath: String?, actualContent: String, goldenContent: String ->
+            expect.withMessage(relativePath).that(actualContent).isEqualTo(goldenContent)
+          }
+
+        path.endsWith(SdkConstants.DOT_PROPERTIES) ->
+        { relativePath: String?, actualContent: String, goldenContent: String ->
+          expect.withMessage(relativePath).that(actualContent.lines().filter { !it.startsWith("#") }.joinToString("\n"))
+            .isEqualTo(goldenContent.lines().filter { !it.startsWith("#") }.joinToString("\n")) }
+
+        else -> null
+      }
+    }
 
   private class FakeInvoker(val delegate: GradleSyncInvoker = GradleSyncInvokerImpl()) : GradleSyncInvoker by delegate {
     var callsCount = 0
@@ -206,11 +238,21 @@ open class ProjectsUpgradeTestBase {
     }
   }
 
-  private fun AUATestProjectState.agpVersion() = version.agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion
-  private fun AUATestProjectState.agpGradleVersion() = GradleVersion.parse(agpVersion())
-  private fun AUATestProjectState.gradleVersion() = CompatibleGradleVersion.getCompatibleGradleVersion(
-    agpGradleVersion()).version.toString()
+  private fun AUATestProjectState.agpVersionString() = version.agpVersion ?: BuildEnvironment.getInstance().gradlePluginVersion
+  private fun AUATestProjectState.agpVersion() = AgpVersion.parse(agpVersionString())
+  private fun AUATestProjectState.gradleVersion() = CompatibleGradleVersion.getCompatibleGradleVersion(agpVersion()).version
+  private fun AUATestProjectState.gradleVersionString() = gradleVersion().version
 
+  private fun AUATestProjectState.jdkVersion() = version.jdkVersion
   private fun AUATestProjectState.kotlinVersion() = version.kotlinVersion
-  private fun AUATestProjectState.ndkVersion() : String? = null
+
+  private fun AUATestProjectState.agpVersionDef(): AgpVersionSoftwareEnvironment =
+    CustomAgpVersionSoftwareEnvironment(
+      agpVersion = agpVersionString(),
+      gradleVersion = gradleVersionString(),
+      jdkVersion = jdkVersion(),
+      kotlinVersion = kotlinVersion()
+    )
+
+  private fun AUATestProjectState.ndkVersion(): String? = null
 }

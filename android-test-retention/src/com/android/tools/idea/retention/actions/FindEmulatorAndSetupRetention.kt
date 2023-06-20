@@ -21,18 +21,20 @@ import com.android.ddmlib.IDevice
 import com.android.emulator.control.SnapshotPackage
 import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.internal.avd.AvdInfo
-import com.android.sdklib.internal.avd.AvdManager
-import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.tools.idea.avdmanager.AvdLaunchListener
+import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
-import com.android.tools.idea.emulator.EmulatorController
-import com.android.tools.idea.emulator.RunningEmulatorCatalog
-import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.execution.common.debug.AndroidDebugger
+import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
+import com.android.tools.idea.io.grpc.stub.ClientCallStreamObserver
+import com.android.tools.idea.io.grpc.stub.ClientResponseObserver
+import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.DeploymentApplicationService
-import com.android.tools.idea.run.editor.AndroidDebugger
-import com.android.tools.idea.run.editor.AndroidJavaDebugger
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.streaming.emulator.EmulatorController
+import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.testartifacts.instrumented.AVD_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_FILE_KEY
 import com.android.tools.idea.testartifacts.instrumented.EMULATOR_SNAPSHOT_ID_KEY
@@ -41,7 +43,6 @@ import com.android.tools.idea.testartifacts.instrumented.IS_MANAGED_DEVICE
 import com.android.tools.idea.testartifacts.instrumented.PACKAGE_NAME_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_AUTO_CONNECT_DEBUGGER_KEY
 import com.android.tools.idea.testartifacts.instrumented.RETENTION_ON_FINISH_KEY
-import com.android.utils.ILogger
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.debugger.ui.DebuggerContentInfo
@@ -66,14 +67,12 @@ import com.intellij.xdebugger.XDebuggerManagerListener
 import com.intellij.xdebugger.frame.XExecutionStack
 import com.intellij.xdebugger.frame.XStackFrame
 import com.intellij.xdebugger.frame.XSuspendContext
-import com.android.tools.idea.io.grpc.stub.ClientCallStreamObserver
-import com.android.tools.idea.io.grpc.stub.ClientResponseObserver
-import com.android.tools.idea.io.grpc.stub.StreamObserver
+import com.android.tools.idea.sdk.AvdManagerCache
+import com.android.tools.idea.sdk.IdeAvdManagers
 import org.jetbrains.android.actions.AndroidConnectDebuggerAction
 import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
-import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 
 // Const values for the progress bar
@@ -88,11 +87,7 @@ private const val NOTIFICATION_GROUP_NAME = "Retention Snapshot Load"
 /**
  * An action to load an Android Test Retention snapshot.
  */
-class FindEmulatorAndSetupRetention(private val avdManagerBuilder: (AndroidSdkHandler,
-                                                                    Path,
-                                                                    ILogger) -> AvdManager? = { sdkHandler, path, logger ->
-  AvdManager.getInstance(sdkHandler, path, logger)
-}) : AnAction() {
+class FindEmulatorAndSetupRetention(private val avdManagerCache: AvdManagerCache = IdeAvdManagers) : AnAction() {
   override fun actionPerformed(event: AnActionEvent) {
     val dataContext = event.dataContext
     val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return
@@ -109,17 +104,12 @@ class FindEmulatorAndSetupRetention(private val avdManagerBuilder: (AndroidSdkHa
           val isManagedDevice = dataContext.getData(IS_MANAGED_DEVICE)!!
           val catalog = RunningEmulatorCatalog.getInstance()
           val androidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-          val logWrapper = LogWrapper(LOG)
           val baseAvdFolder = if (isManagedDevice) {
             AndroidLocationsSingleton.gradleAvdLocation
           } else {
             AndroidLocationsSingleton.avdLocation
           }
-          val avdManager = avdManagerBuilder(
-            androidSdkHandler,
-            baseAvdFolder,
-            logWrapper
-          )
+          val avdManager = avdManagerCache.getAvdManager(androidSdkHandler, baseAvdFolder)
           val avdInfo = avdManager?.getAvd(deviceName, true)
           try {
             AndroidDebugBridge.init(true)
@@ -336,11 +326,8 @@ private fun bootEmulator(project: Project, avdInfo: AvdInfo, isManagedDevice: Bo
   } else {
     AvdManagerConnection.getDefaultAvdManagerConnection()
   }
-  return avdManagerConnection.startAvd(
-    project,
-    avdInfo
-  ) { emulator, avd ->
-     EmulatorCommandBuilder(emulator, avd).addAllStudioEmuParams(filterEmulatorBootParameters(parameters))
+  return avdManagerConnection.startAvd(project, avdInfo, RequestType.INDIRECT) { emulator, avd ->
+    EmulatorCommandBuilder(emulator, avd).addAllStudioEmuParams(filterEmulatorBootParameters(parameters))
   }
 }
 

@@ -26,9 +26,8 @@ import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
-import com.android.tools.idea.uibuilder.surface.PanInteraction
+import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -75,11 +74,6 @@ class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
     val currentEditor = FileEditorManager.getInstance(surface.project).selectedEditor ?: return
     val sourceFile = currentEditor.file ?: return
     val targetFile = view.sceneManager.model.virtualFile
-    if (!StudioFlags.NELE_VISUALIZATION_APPLY_CONFIG_TO_LAYOUT_EDITOR.get()) {
-      // Simply open another file.
-      LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile)
-      return
-    }
 
     if (sourceFile == targetFile) {
       // Same file, just apply the config to it.
@@ -128,11 +122,11 @@ class VisualizationInteractionHandler(private val surface: DesignSurface<*>,
       context.setMouseLocation(mouseX, mouseY)
       sceneView.scene.mouseHover(context, Coordinates.getAndroidXDip(sceneView, mouseX), Coordinates.getAndroidYDip(sceneView, mouseY), modifiersEx)
     }
-    surface.sceneManagers.flatMap { it.sceneViews }.forEach { it.onHover(mouseX, mouseY) }
+    surface.onHover(mouseX, mouseY)
   }
 
   override fun stayHovering(mouseX: Int, mouseY: Int) {
-    surface.sceneManagers.flatMap { it.sceneViews }.forEach { it.onHover(mouseX, mouseY) }
+    surface.onHover(mouseX, mouseY)
   }
 
   override fun popupMenuTrigger(mouseEvent: MouseEvent) {

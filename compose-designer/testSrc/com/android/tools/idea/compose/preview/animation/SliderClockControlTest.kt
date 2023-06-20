@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.compose.preview.animation
 
-import org.junit.Test
 import javax.swing.JSlider
 import kotlin.test.assertTrue
+import org.junit.Test
 
 class SliderClockControlTest {
 
-  private val clockControl = SliderClockControl(JSlider().apply {
-    minimum = 10
-    maximum = 100
-  })
+  private val clockControl =
+    SliderClockControl(
+      JSlider().apply {
+        minimum = 10
+        maximum = 100
+      }
+    )
 
   @Test
   fun `jump to start`() {

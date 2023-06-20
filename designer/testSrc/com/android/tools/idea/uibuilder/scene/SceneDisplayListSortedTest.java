@@ -71,14 +71,14 @@ public class SceneDisplayListSortedTest extends SceneTest {
                         "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                         "Clip,10,10,990,20\n" +
                         "DrawComponentBackground,10,10,990,20,1\n" +
-                        "DrawTextRegion,10,10,990,20,0,16,false,false,5,5,28,1.0,\"\"\n" +
+                        "DrawTextRegion,10,10,990,20,0,16,false,false,4,5,28,1.0,\"TextView\"\n" +
                         "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                         "UNClip\n" +
                         "DrawLinearLayout,10,100,990,20,1\n" +
                         "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                         "Clip,10,100,990,20\n" +
                         "DrawComponentBackground,10,100,990,20,1\n" +
-                        "DrawTextRegion,10,100,990,20,0,16,false,false,5,5,28,1.0,\"\"\n" +
+                        "DrawTextRegion,10,100,990,20,0,16,false,false,4,5,28,1.0,\"TextView\"\n" +
                         "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                         "UNClip\n" +
                         "UNClip\n";
@@ -97,7 +97,7 @@ public class SceneDisplayListSortedTest extends SceneTest {
                     "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                     "Clip,10,10,990,20\n" +
                     "DrawComponentBackground,10,10,990,20,1\n" +
-                    "DrawTextRegion,10,10,990,20,0,16,false,false,5,5,28,1.0,\"\"\n" +
+                    "DrawTextRegion,10,10,990,20,0,16,false,false,4,5,28,1.0,\"TextView\"\n" +
                     "DrawNlComponentFrame,10,10,990,20,1,20,20\n" +
                     "UNClip\n" +
                     "\n" +
@@ -105,7 +105,7 @@ public class SceneDisplayListSortedTest extends SceneTest {
                     "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                     "Clip,10,100,990,20\n" +
                     "DrawComponentBackground,10,100,990,20,1\n" +
-                    "DrawTextRegion,10,100,990,20,0,16,false,false,5,5,28,1.0,\"\"\n" +
+                    "DrawTextRegion,10,100,990,20,0,16,false,false,4,5,28,1.0,\"TextView\"\n" +
                     "DrawNlComponentFrame,10,100,990,20,1,20,20\n" +
                     "UNClip\n" +
                     "\n" +

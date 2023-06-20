@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Class that produces a {@link RenderErrorModel} containing the issues found in a {@link RenderResult}.
  */
-public final class RenderErrorModelFactory {
+public class RenderErrorModelFactory {
   private RenderErrorModelFactory() {
   }
 
@@ -37,7 +37,7 @@ public final class RenderErrorModelFactory {
   public static RenderErrorModel createErrorModel(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
     List<RenderErrorModel.Issue> issues = new ArrayList<>();
     for (RenderErrorContributor.Provider provider : RenderErrorContributor.Provider.EP_NAME.getExtensions()) {
-      if (provider.isApplicable(result.getModule().getProject())) {
+      if (provider.isApplicable(result.getProject())) {
         issues.addAll(provider.getContributor(surface, result, dataContext).reportIssues());
       }
     }

@@ -1,9 +1,9 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.sdk;
 
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName;
 
 import com.android.sdklib.AndroidVersion;
@@ -12,6 +12,7 @@ import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.projectRoots.AdditionalDataConfigurable;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -21,16 +22,13 @@ import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import com.intellij.openapi.projectRoots.SdkModel;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.projectRoots.SdkType;
-import com.intellij.openapi.projectRoots.impl.JavaDependentSdkType;
 import com.intellij.openapi.roots.AnnotationOrderRootType;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.ui.Messages;
 import icons.StudioIcons;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import javax.swing.Icon;
 import org.jdom.Element;
 import org.jetbrains.android.util.AndroidBundle;
@@ -38,7 +36,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType {
+public class AndroidSdkType extends SdkType implements JavaSdkType {
   @NonNls public static final String SDK_NAME = "Android SDK";
   @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_PATH = "developer.android.com/reference/";
   @NonNls public static final String DEFAULT_EXTERNAL_DOCUMENTATION_URL = "http://" + DEFAULT_EXTERNAL_DOCUMENTATION_PATH;
@@ -50,14 +48,14 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   @Override
   @Nullable
   public String getBinPath(@NotNull Sdk sdk) {
-    Sdk internalJavaSdk = getInternalJavaSdk(sdk);
-    return internalJavaSdk == null ? null : JavaSdk.getInstance().getBinPath(internalJavaSdk);
+    Sdk jdk = IdeSdks.getInstance().getJdk();
+    return jdk == null ? null : JavaSdk.getInstance().getBinPath(jdk);
   }
 
   @Override
   @Nullable
   public String getToolsPath(@NotNull Sdk sdk) {
-    Sdk jdk = getInternalJavaSdk(sdk);
+    Sdk jdk = IdeSdks.getInstance().getJdk();
     if (jdk != null && jdk.getVersionString() != null) {
       return JavaSdk.getInstance().getToolsPath(jdk);
     }
@@ -67,8 +65,8 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   @Override
   @Nullable
   public String getVMExecutablePath(@NotNull Sdk sdk) {
-    Sdk internalJavaSdk = getInternalJavaSdk(sdk);
-    return internalJavaSdk == null ? null : JavaSdk.getInstance().getVMExecutablePath(internalJavaSdk);
+    Sdk jdk = IdeSdks.getInstance().getJdk();
+    return jdk == null ? null : JavaSdk.getInstance().getVMExecutablePath(jdk);
   }
 
   @Override
@@ -87,12 +85,6 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   }
 
   @Override
-  public String getVersionString(@NotNull Sdk sdk) {
-    Sdk internalJavaSdk = getInternalJavaSdk(sdk);
-    return internalJavaSdk != null ? internalJavaSdk.getVersionString() : null;
-  }
-
-  @Override
   @NotNull
   public String suggestSdkName(@Nullable String currentSdkName, @NotNull String sdkHome) {
     return SDK_NAME;
@@ -100,25 +92,9 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
 
   @Override
   public boolean setupSdkPaths(@NotNull Sdk sdk, @NotNull SdkModel sdkModel) {
-    final List<String> javaSdks = new ArrayList<>();
-    final Sdk[] sdks = sdkModel.getSdks();
-    for (Sdk jdk : sdks) {
-      if (IdeSdks.getInstance().isJdkCompatible(jdk)) {
-        javaSdks.add(jdk.getName());
-      }
-    }
-
-    if (javaSdks.isEmpty()) {
-      Messages.showErrorDialog(AndroidBundle.message("no.jdk.for.android.found.error"), "No Java SDK Found");
-      return false;
-    }
-
-    MessageBuildingSdkLog log = new MessageBuildingSdkLog();
     AndroidSdkData sdkData = getSdkData(sdk);
-
     if (sdkData == null) {
-      String errorMessage = !log.getErrorMessage().isEmpty() ? log.getErrorMessage() : AndroidBundle.message("cannot.parse.sdk.error");
-      Messages.showErrorDialog(errorMessage, "SDK Parsing Error");
+      Messages.showErrorDialog(AndroidBundle.message("cannot.parse.sdk.error"), "SDK Parsing Error");
       return false;
     }
 
@@ -147,16 +123,14 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
       }
     }
 
-    AndroidNewSdkDialog dialog = new AndroidNewSdkDialog(null, javaSdks, javaSdks.get(0), Arrays.asList(targetNames),
+    AndroidNewSdkDialog dialog = new AndroidNewSdkDialog(null, Arrays.asList(targetNames),
                                                          newestPlatform != null ? newestPlatform : targetNames[0]);
     if (!dialog.showAndGet()) {
       return false;
     }
-    String name = javaSdks.get(dialog.getSelectedJavaSdkIndex());
-    Sdk jdk = sdkModel.findSdk(name);
     IAndroidTarget target = targets[dialog.getSelectedTargetIndex()];
     String sdkName = AndroidSdks.getInstance().chooseNameForNewLibrary(target);
-    AndroidSdks.getInstance().setUpSdk(sdk, target, sdkName, Arrays.asList(sdks), jdk);
+    AndroidSdks.getInstance().setUpSdk(sdk, target, sdkName, Arrays.asList(sdkModel.getSdks()));
 
     return true;
   }
@@ -164,7 +138,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
   @Override
   @NotNull
   public AdditionalDataConfigurable createAdditionalDataConfigurable(@NotNull SdkModel sdkModel, @NotNull SdkModificator sdkModificator) {
-    return new AndroidSdkConfigurable(sdkModel, sdkModificator);
+    return new AndroidSdkConfigurable(sdkModificator);
   }
 
   @Override
@@ -206,14 +180,7 @@ public class AndroidSdkType extends JavaDependentSdkType implements JavaSdkType 
            type == AnnotationOrderRootType.getInstance();
   }
 
-  @Nullable
-  private static Sdk getInternalJavaSdk(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk);
-    return data != null ? data.getJavaSdk() : null;
-  }
-
   public static AndroidSdkType getInstance() {
     return SdkType.findInstance(AndroidSdkType.class);
   }
-
 }

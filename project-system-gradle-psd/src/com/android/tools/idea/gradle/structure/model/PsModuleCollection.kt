@@ -56,7 +56,8 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
     }
     parent.parsedModel.modules.forEach { path ->
       val buildModel = projectParsedModel.getModuleByGradlePath(path)
-      val moduleKey = when (buildModel?.parsedModelModuleType()) {
+      val moduleType = buildModel?.parsedModelModuleType()
+      val moduleKey = when (moduleType) {
         PsModuleType.JAVA -> ModuleKey(ModuleKind.JAVA, path)
         PsModuleType.ANDROID_APP,
         PsModuleType.ANDROID_DYNAMIC_FEATURE,
@@ -119,6 +120,7 @@ class PsModuleCollection(parent: PsProjectImpl) : PsMutableCollectionBase<PsModu
             .init(moduleName,
                   findParentModuleFor(key.gradlePath),
                   (moduleResolvedModel as? PsResolvedModuleModel.PsJavaModuleResolvedModel)?.model,
+                  (moduleResolvedModel as? PsResolvedModuleModel.PsJavaModuleResolvedModel)?.dependencies,
                   moduleParsedModel)
       ModuleKind.EMPTY -> (model as PsEmptyModule).init(moduleName, findParentModuleFor(key.gradlePath))
       ModuleKind.FAKE -> throw IllegalArgumentException()

@@ -30,8 +30,8 @@ import com.android.tools.profilers.ChartTooltipViewBase;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CaptureNode;
 import java.awt.Color;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,7 +43,7 @@ class CpuTraceEventTooltipView extends ChartTooltipViewBase<CaptureNode> {
   @NotNull private final Color myIdleColor;
 
   protected CpuTraceEventTooltipView(@NotNull HTreeChart<CaptureNode> chart,
-                                     @NotNull JLayeredPane tooltipRoot,
+                                     @NotNull JComponent tooltipRoot,
                                      @NotNull Color runningColor,
                                      @NotNull Color idleColor) {
     super(chart, tooltipRoot);

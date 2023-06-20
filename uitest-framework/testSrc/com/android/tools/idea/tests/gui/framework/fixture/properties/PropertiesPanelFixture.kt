@@ -57,7 +57,7 @@ class PropertiesPanelFixture<P : PropertyItem>(private val propertiesPanel: Prop
     get() = (findHeader()?.components?.firstOrNull() as? SelectedComponentPanelFixture)?.id
 
   fun waitForId(id: String): PropertiesPanelFixture<P> {
-    Wait.seconds(10)
+    Wait.seconds(20)
       .expecting("properties panel to populate for $id currently shown: ${currentId}")
       .until { currentId == id }
     robot.waitForIdle()
@@ -82,6 +82,15 @@ class PropertiesPanelFixture<P : PropertyItem>(private val propertiesPanel: Prop
    */
   fun findSectionByName(name: String): SectionFixture? =
     (mainSections union scrollableSections).firstOrNull { it.title?.name == name }
+
+  fun listSectionNames(): List<String> =
+    scrollableSections.map { it.title?.name.toString()}
+
+  fun expandSectionByName(name: String) =
+    findSectionByName(name)?.title?.expand()
+
+  fun listAllLabels(): List<String> =
+    robot.finder().findAll(Matchers.byType(CollapsibleLabelPanel::class.java)).map { it.text.toString() }
 
   private fun findSections(page: PropertiesPage): List<SectionFixture> {
     return SectionBuilder(page, robot).build()

@@ -17,7 +17,7 @@ package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 
 /**
  * Analyzer for reporting tasks that are not cacheable.

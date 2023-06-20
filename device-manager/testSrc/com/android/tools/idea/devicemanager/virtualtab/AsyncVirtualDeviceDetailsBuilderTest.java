@@ -20,10 +20,10 @@ import static org.junit.Assert.assertNull;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.internal.avd.AvdInfo;
+import com.android.tools.idea.device.Resolution;
 import com.android.tools.idea.devicemanager.AdbShellCommandExecutor;
 import com.android.tools.idea.devicemanager.Device;
 import com.android.tools.idea.devicemanager.DeviceManagerAndroidDebugBridge;
-import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.StorageDevice;
 import com.android.tools.idea.devicemanager.TestDeviceManagerFutures;
 import com.google.common.util.concurrent.Futures;
@@ -48,7 +48,7 @@ public final class AsyncVirtualDeviceDetailsBuilderTest {
     myDevice = Mockito.mock(IDevice.class);
 
     DeviceManagerAndroidDebugBridge bridge = Mockito.mock(DeviceManagerAndroidDebugBridge.class);
-    Mockito.when(bridge.findDevice(null, TestVirtualDevices.newKey("Pixel_5_API_31"))).thenReturn(Futures.immediateFuture(myDevice));
+    Mockito.when(bridge.findDevice(null, TestVirtualDevices.PIXEL_5_API_31_KEY)).thenReturn(Futures.immediateFuture(myDevice));
 
     myAdbShellCommandExecutor = Mockito.mock(AdbShellCommandExecutor.class);
     myBuilder = new AsyncVirtualDeviceDetailsBuilder(null, TestVirtualDevices.onlinePixel5Api31(myAvd), bridge, myAdbShellCommandExecutor);
@@ -73,7 +73,7 @@ public final class AsyncVirtualDeviceDetailsBuilderTest {
 
     // Assert
     Object device = new VirtualDevice.Builder()
-      .setKey(TestVirtualDevices.newKey("Pixel_5_API_31"))
+      .setKey(TestVirtualDevices.PIXEL_5_API_31_KEY)
       .setName("Pixel 5 API 31")
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")

@@ -77,7 +77,7 @@ class OptionsPanel : JComponent() {
       .removePrefix("set")
       .removePrefix("is")
       .removeSuffix("\$annotations")
-      .toLowerCase(Locale.getDefault())
+      .lowercase(Locale.getDefault())
   }
 
   private fun updateOptionProvider() {

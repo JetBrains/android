@@ -43,7 +43,7 @@ class BuildTypesPanel(
 
   private val nameValidator = NameValidator { module.validateBuildTypeName(it.orEmpty()) }
 
-  override fun getRemoveAction(): AnAction {
+  override fun getRemoveAction(): AnAction? {
     return object : DumbAwareAction("Remove Build Type", "Removes a Build Type", IconUtil.removeIcon) {
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = selectedConfigurable != null
@@ -65,7 +65,7 @@ class BuildTypesPanel(
     }
   }
 
-  override fun getRenameAction(): AnAction {
+  override fun getRenameAction(): AnAction? {
     return object : DumbAwareAction("Rename Build Type", "Renames a Build Type", IconUtil.editIcon) {
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = selectedConfigurable != null

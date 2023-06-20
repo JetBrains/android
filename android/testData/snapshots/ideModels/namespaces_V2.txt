@@ -2,6 +2,24 @@ CompositeBuildMap             : IdeCompositeBuildMapImpl
     - builds                      : <ROOT> (IdeBuildImpl)
         buildName                     : :
     gradleSupportsDirectTaskInvocation      : true
+LIBRARY_TABLE
+    - library                     : <ROOT>::lib@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :lib
+        sourceSet                     : MAIN
+        variant                       : debug
+    - library                     : <ROOT>::otherlib@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :otherlib
+        sourceSet                     : MAIN
+        variant                       : debug
+    - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :app
+        sourceSet                     : MAIN
+        variant                       : debug
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
         name                          : project
@@ -13,8 +31,8 @@ MODULE                        : project
                 qName                         : :app
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build
                 buildFile                     : <ROOT>/app/build.gradle
@@ -26,7 +44,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestCompileOnly        : <empty>
@@ -49,7 +66,6 @@ MODULE                        : project
                     archives                      : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
-                    debugAabPublication           : <empty>
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
                     debugAndroidTestCompileClasspath        : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
@@ -57,7 +73,6 @@ MODULE                        : project
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
                     debugApiElements              : <empty>
-                    - debugApkPublication         : <ROOT>/app/build/outputs/apk-zips/debug/apks.zip [-]
                     debugCompileClasspath         : <empty>
                     debugCompileOnly              : <empty>
                     debugImplementation           : <empty>
@@ -74,12 +89,10 @@ MODULE                        : project
                     implementation                : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
-                    releaseAabPublication         : <empty>
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
                     releaseApiElements            : <empty>
-                    - releaseApkPublication       : <ROOT>/app/build/outputs/apk-zips/release/apks.zip [-]
                     releaseCompileClasspath       : <empty>
                     releaseCompileOnly            : <empty>
                     releaseImplementation         : <empty>
@@ -132,8 +145,8 @@ MODULE                        : project
                 qName                         : :lib
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lib
                 buildDir                      : <ROOT>/lib/build
                 buildFile                     : <ROOT>/lib/build.gradle
@@ -145,7 +158,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestCompileOnly        : <empty>
@@ -184,10 +196,6 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -206,10 +214,6 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>
@@ -251,8 +255,8 @@ MODULE                        : project
                 qName                         : :otherlib
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/otherlib
                 buildDir                      : <ROOT>/otherlib/build
                 buildFile                     : <ROOT>/otherlib/build.gradle
@@ -264,7 +268,6 @@ MODULE                        : project
                 externalSystemId              : GRADLE
                 artifactsByConfiguration
                     androidApis                   : <empty>
-                    androidJacocoAnt              : <empty>
                     androidJdkImage               : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestCompileOnly        : <empty>
@@ -303,10 +306,6 @@ MODULE                        : project
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
-                    - debugVariantAllApiPublication         : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
-                    - debugVariantAllRuntimePublication     : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
-                    - debugVariantDebugApiPublication       : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
-                    - debugVariantDebugRuntimePublication   : <ROOT>/otherlib/build/outputs/aar/otherlib-debug.aar [-]
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -325,10 +324,6 @@ MODULE                        : project
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
-                    - releaseVariantAllApiPublication       : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-                    - releaseVariantAllRuntimePublication   : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-                    - releaseVariantReleaseApiPublication   : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
-                    - releaseVariantReleaseRuntimePublication         : <ROOT>/otherlib/build/outputs/aar/otherlib-release.aar [-]
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
                     testAnnotationProcessor       : <empty>
@@ -377,19 +372,8 @@ MODULE                        : project.app
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
-        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
-        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
-        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
-        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
-        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
-        - gradlePlugins               : com.android.build.gradle.AppPlugin
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 19
@@ -412,7 +396,7 @@ MODULE                        : project.app
     IsBaseSplit                   : true
     GroupId                       : project
     Namespace                     : com.example.app
-    TestNamespace                 : testData.namespaces.test
+    TestNamespace                 : com.example.app.test
     AaptOptions
         NameSpacing                   : REQUIRED
     LintOptions
@@ -441,9 +425,10 @@ MODULE                        : project.app
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
+        TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -478,12 +463,11 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/main/java
             KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
-            AidlDirectories               : <ROOT>/app/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/main/rs [-]
             ResDirectories                : <ROOT>/app/src/main/res
             AssetsDirectories             : <ROOT>/app/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -494,12 +478,11 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTest/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -509,12 +492,11 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/test/java [-]
                     KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/test/rs [-]
                     ResDirectories                : <ROOT>/app/src/test/res [-]
                     AssetsDirectories             : <ROOT>/app/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -531,12 +513,11 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/debug/java [-]
             KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/app/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/debug/rs [-]
             ResDirectories                : <ROOT>/app/src/debug/res [-]
             AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -547,12 +528,11 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -563,12 +543,11 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/app/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -584,12 +563,11 @@ MODULE                        : project.app
             KotlinDirectories             : <ROOT>/app/src/release/java [-]
             KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
-            AidlDirectories               : <ROOT>/app/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/app/src/release/rs [-]
             ResDirectories                : <ROOT>/app/src/release/res [-]
             AssetsDirectories             : <ROOT>/app/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -600,12 +578,11 @@ MODULE                        : project.app
                     KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/app/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/app/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/app/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -643,33 +620,17 @@ MODULE                        : project.app
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/lib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                                projectPath                   : :lib
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/otherlib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                                projectPath                   : :otherlib
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:lib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:lib-MAIN
+                            module                        : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 ApplicationId                 : testData.namespaces
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -677,8 +638,8 @@ MODULE                        : project.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
@@ -689,25 +650,15 @@ MODULE                        : project.app
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                projectPath                   : :app
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
+                    compileClasspath
+                        module                        : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
+                    runtimeClasspath
                 ApplicationId                 : testData.namespaces.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -715,8 +666,8 @@ MODULE                        : project.app
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -729,20 +680,17 @@ MODULE                        : project.app
                 GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:app-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:app-MAIN
+                            module                        : <ROOT>-:lib-MAIN
+                            module                        : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:lib-MAIN
+                            module                        : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
@@ -756,19 +704,8 @@ MODULE                        : project.lib
         buildFile                     : <ROOT>/lib/build.gradle
         buildFilePath                 : <ROOT>/lib/build.gradle
         rootFolderPath                : <ROOT>
-        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
-        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
-        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
-        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
-        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
-        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 19
@@ -820,9 +757,10 @@ MODULE                        : project.lib
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
+        TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -851,12 +789,11 @@ MODULE                        : project.lib
             KotlinDirectories             : <ROOT>/lib/src/main/java [-]
             KotlinDirectories             : <ROOT>/lib/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/main/resources [-]
-            AidlDirectories               : <ROOT>/lib/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/lib/src/main/rs [-]
             ResDirectories                : <ROOT>/lib/src/main/res
             AssetsDirectories             : <ROOT>/lib/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/lib/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -867,12 +804,11 @@ MODULE                        : project.lib
                     KotlinDirectories             : <ROOT>/lib/src/androidTest/java [-]
                     KotlinDirectories             : <ROOT>/lib/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/lib/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/lib/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/lib/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -882,12 +818,11 @@ MODULE                        : project.lib
                     KotlinDirectories             : <ROOT>/lib/src/test/java [-]
                     KotlinDirectories             : <ROOT>/lib/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/lib/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/test/rs [-]
                     ResDirectories                : <ROOT>/lib/src/test/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/lib/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -904,12 +839,11 @@ MODULE                        : project.lib
             KotlinDirectories             : <ROOT>/lib/src/debug/java [-]
             KotlinDirectories             : <ROOT>/lib/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/lib/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/lib/src/debug/rs [-]
             ResDirectories                : <ROOT>/lib/src/debug/res [-]
             AssetsDirectories             : <ROOT>/lib/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/lib/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -920,12 +854,11 @@ MODULE                        : project.lib
                     KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/lib/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/lib/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/lib/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/lib/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -936,12 +869,11 @@ MODULE                        : project.lib
                     KotlinDirectories             : <ROOT>/lib/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/lib/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/lib/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/lib/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -957,12 +889,11 @@ MODULE                        : project.lib
             KotlinDirectories             : <ROOT>/lib/src/release/java [-]
             KotlinDirectories             : <ROOT>/lib/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/lib/src/release/resources [-]
-            AidlDirectories               : <ROOT>/lib/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/lib/src/release/rs [-]
             ResDirectories                : <ROOT>/lib/src/release/res [-]
             AssetsDirectories             : <ROOT>/lib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/lib/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/lib/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/lib/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -973,12 +904,11 @@ MODULE                        : project.lib
                     KotlinDirectories             : <ROOT>/lib/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/lib/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/lib/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/lib/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/lib/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/lib/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/lib/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/lib/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/lib/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/lib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1014,25 +944,20 @@ MODULE                        : project.lib
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:otherlib-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:otherlib-MAIN
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
@@ -1043,23 +968,17 @@ MODULE                        : project.lib
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/lib/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/compile_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:lib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:lib-MAIN
+                            module                        : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 ApplicationId                 : com.example.lib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1067,8 +986,8 @@ MODULE                        : project.lib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/lib/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/lib/build/generated/res/resValues/androidTest/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -1081,16 +1000,13 @@ MODULE                        : project.lib
                 GeneratedSourceFolders        : <ROOT>/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/lib/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::lib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::lib@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:lib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:lib-MAIN
+                            module                        : <ROOT>-:otherlib-MAIN
+                        module                        : <ROOT>-:otherlib-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :lib (DefaultExternalProject) (*seen*)
 MODULE                        : project.lib.androidTest
@@ -1104,19 +1020,8 @@ MODULE                        : project.otherlib
         buildFile                     : <ROOT>/otherlib/build.gradle
         buildFilePath                 : <ROOT>/otherlib/build.gradle
         rootFolderPath                : <ROOT>
-        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
-        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
-        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
-        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
-        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
-        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 19
@@ -1168,9 +1073,10 @@ MODULE                        : project.otherlib
         TargetCompatibility           : 1.8
         IsCoreLibraryDesugaringEnabled          : false
     AgpFlags
-        ApplicationRClassConstantIds  : true
-        AestRClassConstantIds         : true
-        TransitiveRClasses            : true
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
+        TransitiveRClasses            : false
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -1199,12 +1105,11 @@ MODULE                        : project.otherlib
             KotlinDirectories             : <ROOT>/otherlib/src/main/java [-]
             KotlinDirectories             : <ROOT>/otherlib/src/main/kotlin [-]
             ResourcesDirectories          : <ROOT>/otherlib/src/main/resources [-]
-            AidlDirectories               : <ROOT>/otherlib/src/main/aidl [-]
-            RenderscriptDirectories       : <ROOT>/otherlib/src/main/rs [-]
             ResDirectories                : <ROOT>/otherlib/src/main/res
             AssetsDirectories             : <ROOT>/otherlib/src/main/assets [-]
             JniLibsDirectories            : <ROOT>/otherlib/src/main/jniLibs [-]
             ShadersDirectories            : <ROOT>/otherlib/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/otherlib/src/main/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1215,12 +1120,11 @@ MODULE                        : project.otherlib
                     KotlinDirectories             : <ROOT>/otherlib/src/androidTest/java [-]
                     KotlinDirectories             : <ROOT>/otherlib/src/androidTest/kotlin [-]
                     ResourcesDirectories          : <ROOT>/otherlib/src/androidTest/resources [-]
-                    AidlDirectories               : <ROOT>/otherlib/src/androidTest/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/otherlib/src/androidTest/rs [-]
                     ResDirectories                : <ROOT>/otherlib/src/androidTest/res [-]
                     AssetsDirectories             : <ROOT>/otherlib/src/androidTest/assets [-]
                     JniLibsDirectories            : <ROOT>/otherlib/src/androidTest/jniLibs [-]
                     ShadersDirectories            : <ROOT>/otherlib/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/otherlib/src/androidTest/baselineProfiles [-]
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
                 SourceProvider
@@ -1230,12 +1134,11 @@ MODULE                        : project.otherlib
                     KotlinDirectories             : <ROOT>/otherlib/src/test/java [-]
                     KotlinDirectories             : <ROOT>/otherlib/src/test/kotlin [-]
                     ResourcesDirectories          : <ROOT>/otherlib/src/test/resources [-]
-                    AidlDirectories               : <ROOT>/otherlib/src/test/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/otherlib/src/test/rs [-]
                     ResDirectories                : <ROOT>/otherlib/src/test/res [-]
                     AssetsDirectories             : <ROOT>/otherlib/src/test/assets [-]
                     JniLibsDirectories            : <ROOT>/otherlib/src/test/jniLibs [-]
                     ShadersDirectories            : <ROOT>/otherlib/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/otherlib/src/test/baselineProfiles [-]
     BuildTypes
         BuildType
             Name                          : debug
@@ -1252,12 +1155,11 @@ MODULE                        : project.otherlib
             KotlinDirectories             : <ROOT>/otherlib/src/debug/java [-]
             KotlinDirectories             : <ROOT>/otherlib/src/debug/kotlin [-]
             ResourcesDirectories          : <ROOT>/otherlib/src/debug/resources [-]
-            AidlDirectories               : <ROOT>/otherlib/src/debug/aidl [-]
-            RenderscriptDirectories       : <ROOT>/otherlib/src/debug/rs [-]
             ResDirectories                : <ROOT>/otherlib/src/debug/res [-]
             AssetsDirectories             : <ROOT>/otherlib/src/debug/assets [-]
             JniLibsDirectories            : <ROOT>/otherlib/src/debug/jniLibs [-]
             ShadersDirectories            : <ROOT>/otherlib/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/otherlib/src/debug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _android_test_
@@ -1268,12 +1170,11 @@ MODULE                        : project.otherlib
                     KotlinDirectories             : <ROOT>/otherlib/src/androidTestDebug/java [-]
                     KotlinDirectories             : <ROOT>/otherlib/src/androidTestDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/otherlib/src/androidTestDebug/resources [-]
-                    AidlDirectories               : <ROOT>/otherlib/src/androidTestDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/otherlib/src/androidTestDebug/rs [-]
                     ResDirectories                : <ROOT>/otherlib/src/androidTestDebug/res [-]
                     AssetsDirectories             : <ROOT>/otherlib/src/androidTestDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/otherlib/src/androidTestDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/otherlib/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/otherlib/src/androidTestDebug/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -1284,12 +1185,11 @@ MODULE                        : project.otherlib
                     KotlinDirectories             : <ROOT>/otherlib/src/testDebug/java [-]
                     KotlinDirectories             : <ROOT>/otherlib/src/testDebug/kotlin [-]
                     ResourcesDirectories          : <ROOT>/otherlib/src/testDebug/resources [-]
-                    AidlDirectories               : <ROOT>/otherlib/src/testDebug/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/otherlib/src/testDebug/rs [-]
                     ResDirectories                : <ROOT>/otherlib/src/testDebug/res [-]
                     AssetsDirectories             : <ROOT>/otherlib/src/testDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/otherlib/src/testDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/otherlib/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/otherlib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
             IsDebuggable                  : false
@@ -1305,12 +1205,11 @@ MODULE                        : project.otherlib
             KotlinDirectories             : <ROOT>/otherlib/src/release/java [-]
             KotlinDirectories             : <ROOT>/otherlib/src/release/kotlin [-]
             ResourcesDirectories          : <ROOT>/otherlib/src/release/resources [-]
-            AidlDirectories               : <ROOT>/otherlib/src/release/aidl [-]
-            RenderscriptDirectories       : <ROOT>/otherlib/src/release/rs [-]
             ResDirectories                : <ROOT>/otherlib/src/release/res [-]
             AssetsDirectories             : <ROOT>/otherlib/src/release/assets [-]
             JniLibsDirectories            : <ROOT>/otherlib/src/release/jniLibs [-]
             ShadersDirectories            : <ROOT>/otherlib/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/otherlib/src/release/baselineProfiles [-]
         ExtraSourceProviders
             ExtraSourceProvider
                 ArtifactName                  : _unit_test_
@@ -1321,12 +1220,11 @@ MODULE                        : project.otherlib
                     KotlinDirectories             : <ROOT>/otherlib/src/testRelease/java [-]
                     KotlinDirectories             : <ROOT>/otherlib/src/testRelease/kotlin [-]
                     ResourcesDirectories          : <ROOT>/otherlib/src/testRelease/resources [-]
-                    AidlDirectories               : <ROOT>/otherlib/src/testRelease/aidl [-]
-                    RenderscriptDirectories       : <ROOT>/otherlib/src/testRelease/rs [-]
                     ResDirectories                : <ROOT>/otherlib/src/testRelease/res [-]
                     AssetsDirectories             : <ROOT>/otherlib/src/testRelease/assets [-]
                     JniLibsDirectories            : <ROOT>/otherlib/src/testRelease/jniLibs [-]
                     ShadersDirectories            : <ROOT>/otherlib/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/otherlib/src/testRelease/baselineProfiles [-]
     SigningConfigs
         SigningConfig
             Name                          : debug
@@ -1362,21 +1260,18 @@ MODULE                        : project.otherlib
                 AssembleTaskName              : assembleDebug
                 IsTestArtifact                : false
                 IdeSetupTaskNames             : generateDebugSources
-                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/aidl_source_output_dir/debug/out [-]
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/renderscript_source_output_dir/debug/out [-]
-                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/source/buildConfig/debug [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                    runtimeClasspath              : IdeDependenciesImpl
+                    compileClasspath
+                    runtimeClasspath
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebug
-                GeneratedResourceFolders      : <ROOT>/otherlib/build/generated/res/rs/debug [-]
                 GeneratedResourceFolders      : <ROOT>/otherlib/build/generated/res/resValues/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
@@ -1387,19 +1282,14 @@ MODULE                        : project.otherlib
                 AssembleTaskName              : assembleDebugAndroidTest
                 IsTestArtifact                : true
                 IdeSetupTaskNames             : generateDebugAndroidTestSources
-                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-                GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/source/buildConfig/androidTest/debug [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/compile_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:otherlib-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:otherlib-MAIN
                 ApplicationId                 : com.example.otherlib.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1407,8 +1297,8 @@ MODULE                        : project.otherlib
                 BuildTasksAndOutputInformation
                     AssembleTaskName              : assembleDebugAndroidTest
                     AssembleTaskOutputListingFile : <ROOT>/otherlib/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
-                GeneratedResourceFolders      : <ROOT>/otherlib/build/generated/res/rs/androidTest/debug [-]
                 GeneratedResourceFolders      : <ROOT>/otherlib/build/generated/res/resValues/androidTest/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
@@ -1421,12 +1311,10 @@ MODULE                        : project.otherlib
                 GeneratedSourceFolders        : <ROOT>/otherlib/build/generated/ap_generated_sources/debugUnitTest/out [-]
                 ClassesFolder                 : <ROOT>/otherlib/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::otherlib@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::otherlib@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:otherlib-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:otherlib-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :otherlib (DefaultExternalProject) (*seen*)
 MODULE                        : project.otherlib.androidTest

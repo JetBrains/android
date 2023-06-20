@@ -41,7 +41,7 @@ import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import org.jetbrains.android.dom.AndroidDomUtil
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.util.IdentityHashMap
 

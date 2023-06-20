@@ -27,7 +27,10 @@ import com.intellij.usageView.UsageViewTypeLocation
  * This text is used for example in hint when you press ctrl and hover element
  */
 class AndroidSqlFakePsiElementDescriptionProvider : ElementDescriptionProvider {
-  override fun getElementDescription(element: PsiElement, location: ElementDescriptionLocation): String? {
+  override fun getElementDescription(
+    element: PsiElement,
+    location: ElementDescriptionLocation
+  ): String? {
     if (element is AndroidSqlFakePsiElement) {
       when (location) {
         UsageViewShortNameLocation.INSTANCE -> return element.name

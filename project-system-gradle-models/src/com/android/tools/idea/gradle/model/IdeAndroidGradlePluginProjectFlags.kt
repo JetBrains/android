@@ -49,4 +49,7 @@ interface IdeAndroidGradlePluginProjectFlags {
 
   /** Whether the Android Test Platform is enabled for this project. */
   val unifiedTestPlatformEnabled: Boolean
+
+  /** Whether AndroidX libraries should be used instead of legacy support libraries. */
+  val useAndroidX: Boolean
 }

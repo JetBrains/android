@@ -2,9 +2,9 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.0"
-    defaultConfig {
+  compileSdkVersion 25
+
+  defaultConfig {
         applicationId "google.nestedmodule"
         minSdkVersion 15
         targetSdkVersion 25

@@ -14,9 +14,8 @@ import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.MAIN
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXTURES
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
-import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
-import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
@@ -32,7 +31,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemConstants
 import com.intellij.openapi.externalSystem.util.Order
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
-import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver
+import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMPPGradleProjectResolver
 import org.jetbrains.kotlin.idea.gradleJava.configuration.getMppModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModelBuilder
@@ -70,7 +69,7 @@ class KotlinAndroidMPPGradleProjectResolver : AbstractProjectResolverExtension()
     return super.createModule(gradleModule, projectDataNode)!!.also { ideModule ->
       val sourceSetByName = ideModule.sourceSetsByName()
       for ((sourceSetDesc, compilation) in mppModel.androidCompilationsForVariant(selectedVariantName)) {
-        val kotlinSourceSetInfo = KotlinMppGradleProjectResolver.createSourceSetInfo(
+        val kotlinSourceSetInfo = KotlinMPPGradleProjectResolver.createSourceSetInfo(
           mppModel, compilation, gradleModule, resolverCtx
         ) ?: continue
         val androidGradleSourceSetDataNode = sourceSetByName[sourceSetDesc.sourceSetName] ?: continue
@@ -123,10 +122,10 @@ fun IdeVariantCoreImpl.patchFromMppModel(
     return listOfNotNull(
       this.artifact(artifact)?.variantSourceProvider,
       this.artifact(artifact)?.multiFlavorSourceProvider,
-      *(androidProject.productFlavors.filter { it.productFlavor.name in this.productFlavors }
+      *(androidProject.multiVariantData?.productFlavors.orEmpty().filter { it.productFlavor.name in this.productFlavors }
         .mapNotNull { it.sourceProvider(artifact) }).toTypedArray(),
-      *(androidProject.buildTypes.filter { it.buildType.name == this.buildType }.mapNotNull { it.sourceProvider(artifact) }).toTypedArray(),
-      androidProject.defaultConfig.sourceProvider(artifact)
+      *(androidProject.multiVariantData?.buildTypes.orEmpty().filter { it.buildType.name == this.buildType }.mapNotNull { it.sourceProvider(artifact) }).toTypedArray(),
+      androidProject.defaultSourceProvider.sourceProvider(artifact)
     )
   }
 
@@ -139,7 +138,7 @@ fun IdeVariantCoreImpl.patchFromMppModel(
   }
 
   fun IdeSourceProviderImpl?.patch(artifact: IdeModuleWellKnownSourceSet): IdeSourceProviderImpl? {
-    val root = androidProject.defaultConfig.sourceProvider(artifact)?.manifestFile?.parentFile
+    val root = androidProject.defaultSourceProvider.sourceProvider(artifact)?.manifestFile?.parentFile
 
     val sourceSets = sourceSetsFor(artifact)
     val sourceProviders = sourceProvidersFor(artifact)
@@ -206,16 +205,7 @@ private val IdeModuleWellKnownSourceSet.artifactName: String
     TEST_FIXTURES -> AndroidProject.ARTIFACT_TEST_FIXTURES
   }
 
-private fun IdeBuildTypeContainerImpl.sourceProvider(artifact: IdeModuleWellKnownSourceSet): IdeSourceProviderImpl? {
-  return when (artifact) {
-    MAIN -> sourceProvider
-    TEST_FIXTURES -> extraSourceProviders.singleOrNull { it.artifactName == TEST_FIXTURES.artifactName }?.sourceProvider
-    UNIT_TEST -> extraSourceProviders.singleOrNull { it.artifactName == UNIT_TEST.artifactName }?.sourceProvider
-    ANDROID_TEST -> extraSourceProviders.singleOrNull { it.artifactName == ANDROID_TEST.artifactName }?.sourceProvider
-  }
-}
-
-private fun IdeProductFlavorContainerImpl.sourceProvider(artifact: IdeModuleWellKnownSourceSet): IdeSourceProviderImpl? {
+private fun IdeSourceProviderContainer.sourceProvider(artifact: IdeModuleWellKnownSourceSet): IdeSourceProvider? {
   return when (artifact) {
     MAIN -> sourceProvider
     TEST_FIXTURES -> extraSourceProviders.singleOrNull { it.artifactName == TEST_FIXTURES.artifactName }?.sourceProvider

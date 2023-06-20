@@ -62,13 +62,14 @@ class DynamicFeatureModel(
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData ->
       generateDynamicFeatureModule(
-        td as ModuleTemplateData,
-        isInstant,
-        featureTitle.get(),
-        featureFusing.get(),
-        downloadInstallKind.value,
-        deviceFeatures,
-        useGradleKts.get()
+        moduleData = td as ModuleTemplateData,
+        isInstantModule = isInstant,
+        dynamicFeatureTitle = featureTitle.get(),
+        fusing = featureFusing.get(),
+        downloadInstallKind = downloadInstallKind.value,
+        deviceFeatures = deviceFeatures,
+        useGradleKts = useGradleKts.get(),
+        useVersionCatalog = useVersionCatalog.get()
       )
     }
 

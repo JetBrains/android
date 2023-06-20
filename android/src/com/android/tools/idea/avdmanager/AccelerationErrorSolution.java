@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_GVM;
-import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.REINSTALL_GVM;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.INSTALL_AEHD;
+import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.REINSTALL_AEHD;
 
 import com.android.SdkConstants;
 import com.android.repository.Revision;
@@ -89,11 +89,11 @@ public class AccelerationErrorSolution {
     UPDATE_PLATFORM_TOOLS("Update Platform Tools"),
     UPDATE_SYSTEM_IMAGES("Update System Images"),
     INSTALL_KVM("Install KVM"),
-    INSTALL_HAXM("Install Haxm"),
-    REINSTALL_HAXM("Reinstall Haxm"),
+    INSTALL_HAXM("Install HAXM"),
+    REINSTALL_HAXM("Reinstall HAXM"),
     TURNOFF_HYPER_V("Turn off Hyper-V"),
-    INSTALL_GVM("Install Android Emulator Hypervisor Driver for AMD Processors"),
-    REINSTALL_GVM("Reinstall Android Emulator Hypervisor Driver for AMD Processors");
+    INSTALL_AEHD("Install Android Emulator hypervisor driver"),
+    REINSTALL_AEHD("Reinstall Android Emulator hypervisor driver");
 
     private final String myDescription;
 
@@ -213,9 +213,9 @@ public class AccelerationErrorSolution {
 
       case INSTALL_HAXM:
       case REINSTALL_HAXM:
-      case INSTALL_GVM:
-      case REINSTALL_GVM:
-        final VmType type = myError.getSolution() == INSTALL_GVM || myError.getSolution() == REINSTALL_GVM ? VmType.GVM : VmType.HAXM;
+      case INSTALL_AEHD:
+      case REINSTALL_AEHD:
+        final VmType type = myError.getSolution() == INSTALL_AEHD || myError.getSolution() == REINSTALL_AEHD ? VmType.AEHD : VmType.HAXM;
         return () -> {
           try {
             VmWizard wizard = new VmWizard(false, type);

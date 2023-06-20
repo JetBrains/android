@@ -20,6 +20,7 @@ import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.model.component.WearComponent.CommandResultReceiver.INVALID_ARGUMENT_CODE
 import com.intellij.execution.ExecutionException
+import com.intellij.openapi.progress.EmptyProgressIndicator
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 
@@ -34,7 +35,7 @@ class UtilsTest : AndroidTestCase() {
       }
     }
 
-    assertEquals(version, device.getWearDebugSurfaceVersion())
+    assertEquals(version, device.getWearDebugSurfaceVersion(EmptyProgressIndicator()))
   }
 
   fun testWearDebugSurfaceVersionWhenInvalidResult() {
@@ -45,7 +46,9 @@ class UtilsTest : AndroidTestCase() {
         else -> "Unknown request: $request"
       }
     }
-    assertThrows(ExecutionException::class.java, "Error while checking version") { device.getWearDebugSurfaceVersion() }
+    assertThrows(ExecutionException::class.java, "Error while checking version") {
+      device.getWearDebugSurfaceVersion(EmptyProgressIndicator())
+    }
   }
 
   fun testWearDebugSurfaceVersionWhenMissingVersionOp() {
@@ -56,7 +59,9 @@ class UtilsTest : AndroidTestCase() {
         else -> "Unknown request: $request"
       }
     }
-    assertThrows(ExecutionException::class.java, "Device software is out of date") { device.getWearDebugSurfaceVersion() }
+    assertThrows(ExecutionException::class.java, "Device software is out of date") {
+      device.getWearDebugSurfaceVersion(EmptyProgressIndicator())
+    }
 
   }
 

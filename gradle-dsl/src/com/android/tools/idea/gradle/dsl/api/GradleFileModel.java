@@ -43,7 +43,7 @@ public interface GradleFileModel extends GradleDslModel {
 
   /**
    * @return the psi file representing this GradleFileModel. In order to continue using this instance of the model no modifications should
-   * be made to the underlying psi tree of the file for the models lifetime. This method is exposed to allow the PsiFile to be passed into
+   * be made to the underlying psi tree of the file for the models' lifetime. This method is exposed to allow the PsiFile to be passed into
    * Intellij IDEA APIs. This method makes no guarantees about the validity of the returned element, callers should perform the necessary
    * checks before using.
    */

@@ -23,12 +23,15 @@ fun BackgroundTaskEntry.consumeAndAssert(
   timestamp: Long = 123,
   checkConsume: BackgroundTaskEntry.() -> Unit
 ) {
-  val wrapper = EventWrapper(
-    BackgroundTaskInspectorProtocol.Event.newBuilder().apply {
-      this.timestamp = timestamp
-      backgroundTaskEvent = event
-    }.build()
-  )
+  val wrapper =
+    EventWrapper(
+      BackgroundTaskInspectorProtocol.Event.newBuilder()
+        .apply {
+          this.timestamp = timestamp
+          backgroundTaskEvent = event
+        }
+        .build()
+    )
   consume(wrapper)
   checkConsume()
 }

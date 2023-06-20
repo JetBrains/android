@@ -23,7 +23,10 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.VisualizationForm;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
+import java.awt.event.KeyEvent;
+import java.util.stream.Collectors;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,6 +45,32 @@ public class VisualizationFixture extends ToolWindowFixture {
   public VisualizationFixture waitForRenderToFinish() {
     myDesignSurfaceFixture.waitForRenderToFinish();
     return this;
+  }
+
+  public void expandWindow() {
+    myDesignSurfaceFixture.focus();
+    pressControlKeyAndOtherKey(KeyEvent.VK_QUOTE);
+  }
+
+  private void pressControlKeyAndOtherKey(int keyEvent) {
+    if (SystemInfo.isMac) {
+      robot().pressKey(KeyEvent.CTRL_MASK);
+      robot().pressKey(KeyEvent.SHIFT_MASK);
+      robot().pressAndReleaseKey(keyEvent);
+      robot().releaseKey(KeyEvent.CTRL_MASK);
+      robot().releaseKey(KeyEvent.SHIFT_MASK);
+    }
+    else {
+      robot().pressAndReleaseKey(keyEvent, KeyEvent.CTRL_MASK, KeyEvent.SHIFT_MASK);
+    }
+  }
+
+  public void zoomToFit() {
+    myDesignSurfaceFixture.target().zoomToFit();
+  }
+
+  public int getRowNumber() {
+    return myDesignSurfaceFixture.getAllSceneViews().stream().map(sceneView -> sceneView.getTopLeft().y).collect(Collectors.toSet()).size();
   }
 
   @NotNull

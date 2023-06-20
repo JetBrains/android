@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion.property
 
 import com.android.SdkConstants.ATTR_BACKGROUND
+import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.ATTR_LAYOUT_END_TO_END_OF
 import com.android.SdkConstants.ATTR_ORIENTATION
 import com.android.SdkConstants.ATTR_TEXT_SIZE
@@ -33,6 +34,7 @@ import com.android.tools.property.panel.api.EditorProvider.Companion.create
 import com.android.tools.property.panel.api.TableUIProvider
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.ptable.PTable
+import com.android.tools.property.ptable.PTableColumn
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
@@ -148,6 +150,19 @@ class MotionLayoutAttributesViewTest {
     assertThat(background).isNotNull()
     assertThat(background?.optionalValue2).isEqualTo(CUSTOM_ATTRIBUTE)
     assertThat(background?.type).isEqualTo(NlPropertyType.COLOR_STATE_LIST)
+  }
+
+  @Test
+  fun testIdFieldsAreReadonly() {
+    motionRule.selectConstraint("start", "widget")
+    val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT)
+    val inspector = FakeInspectorPanel()
+    val builder = createBuilder()
+    builder.attachToInspector(inspector, properties)
+    val constraints = inspector.checkTable(2).tableModel
+    val nonEditable = properties.values.filter { !constraints.isCellEditable(it, PTableColumn.VALUE) }
+    assertThat(nonEditable).hasSize(1)
+    assertThat(nonEditable.single().name).isEqualTo(ATTR_ID)
   }
 
   private fun createBuilder(): MotionLayoutAttributesView.MotionInspectorBuilder {

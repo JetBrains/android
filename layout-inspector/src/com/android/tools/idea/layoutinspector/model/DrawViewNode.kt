@@ -16,7 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
-import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
+import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.Gray
 import com.intellij.ui.scale.JBUIScale
@@ -84,7 +84,7 @@ sealed class DrawViewNode(owner: ViewNode) {
 
   abstract fun paint(g2: Graphics2D, model: InspectorModel)
   abstract fun paintBorder(g2: Graphics2D, isSelected: Boolean, isHovered: Boolean, model: InspectorModel,
-                           viewSettings: DeviceViewSettings, treeSettings: TreeSettings)
+                           viewSettings: RenderSettings, treeSettings: TreeSettings)
 
   open fun children(access: ViewNode.ReadAccess): Sequence<DrawViewNode> = sequenceOf()
 }
@@ -104,7 +104,7 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     isSelected: Boolean,
     isHovered: Boolean,
     model: InspectorModel,
-    viewSettings: DeviceViewSettings,
+    viewSettings: RenderSettings,
     treeSettings: TreeSettings
   ) {
     val owner = findFilteredOwner(treeSettings) ?: return
@@ -224,13 +224,13 @@ class DrawViewChild(owner: ViewNode) : DrawViewNode(owner) {
     }
   }
 
-  private fun highlightColor(model: InspectorModel, highlightCount: Float, viewSettings: DeviceViewSettings): Color {
+  private fun highlightColor(model: InspectorModel, highlightCount: Float, viewSettings: RenderSettings): Color {
     val baseColor = Color(viewSettings.highlightColor)
     val alpha = ((highlightCount * 255f) / model.maxHighlight).toInt().coerceIn(32, 255)
     return Color(baseColor.red, baseColor.green, baseColor.blue, alpha)
   }
 
-  private fun heatmapColor(model: InspectorModel, highlightCount: Float, viewSettings: DeviceViewSettings): Color {
+  private fun heatmapColor(model: InspectorModel, highlightCount: Float, viewSettings: RenderSettings): Color {
     val baseColor = Color(viewSettings.highlightColor)
     val alpha = ((highlightCount * 192f) / model.maxHighlight).toInt().coerceIn(8, 192)
     return Color(baseColor.red, baseColor.green, baseColor.blue, alpha)
@@ -309,7 +309,7 @@ class DrawViewImage(@get:VisibleForTesting val image: Image, owner: ViewNode, pr
     isSelected: Boolean,
     isHovered: Boolean,
     model: InspectorModel,
-    viewSettings: DeviceViewSettings,
+    viewSettings: RenderSettings,
     treeSettings: TreeSettings
   ) {
     if (isSelected || isHovered) {
@@ -356,7 +356,7 @@ class Dimmer(val root: ViewNode) : DrawViewNode(root) {
     isSelected: Boolean,
     isHovered: Boolean,
     model: InspectorModel,
-    viewSettings: DeviceViewSettings,
+    viewSettings: RenderSettings,
     treeSettings: TreeSettings
   ) {
     if (root.layoutBounds.width > 0 && root.layoutBounds.height > 0) {

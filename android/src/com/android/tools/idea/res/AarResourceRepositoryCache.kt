@@ -22,7 +22,8 @@ import com.android.resources.aar.AarResourceRepository
 import com.android.resources.aar.AarSourceResourceRepository
 import com.android.resources.aar.CachingData
 import com.android.resources.aar.RESOURCE_CACHE_DIRECTORY
-import com.android.tools.idea.concurrency.AndroidIoManager
+import com.android.tools.concurrency.AndroidIoManager
+import com.android.tools.res.getAndroidPluginVersion
 import com.android.utils.concurrency.getAndUnwrap
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder

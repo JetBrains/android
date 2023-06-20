@@ -57,4 +57,7 @@ data class IdeAndroidGradlePluginProjectFlagsImpl(
 
   /** Whether the Android Test Platform is enabled for this project. */
   override val unifiedTestPlatformEnabled: Boolean,
+
+  override val useAndroidX: Boolean,
+
 ) : Serializable, IdeAndroidGradlePluginProjectFlags

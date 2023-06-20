@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
-import static com.intellij.openapi.util.text.StringUtil.capitalize;
-
 import com.android.annotations.NonNull;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
 import com.android.tools.idea.gradle.stubs.FileStructure;
-import java.io.File;
 import java.util.ArrayList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
 
 public class BaseArtifactStub implements BaseArtifact {
   @NotNull protected final String myName;

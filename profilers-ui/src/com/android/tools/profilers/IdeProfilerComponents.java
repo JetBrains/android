@@ -15,10 +15,8 @@
  */
 package com.android.tools.profilers;
 
-import com.android.tools.adtui.stdui.ContentType;
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
-import com.android.tools.inspectors.common.ui.dataviewer.DataViewer;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup;
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
@@ -62,16 +60,6 @@ public interface IdeProfilerComponents {
 
   @NotNull
   ImportDialog createImportDialog();
-
-  /**
-   * Creates a UI component that displays some data (which may be text or binary). The view uses the data's content type, if known,
-   * to render it correctly.
-   *
-   * @param styleHint A style which the viewer will attempt to apply; however, this may fail in some cases, so you are encouraged
-   *                  to check {@link DataViewer#getStyle()} if you need to confirm the style was actually accepted.
-   */
-  @NotNull
-  DataViewer createDataViewer(@NotNull byte[] bytes, @NotNull ContentType contentType, @NotNull DataViewer.Style styleHint);
 
   @NotNull
   JComponent createResizableImageComponent(@NotNull BufferedImage image);

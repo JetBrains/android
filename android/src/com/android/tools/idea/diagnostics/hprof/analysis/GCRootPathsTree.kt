@@ -357,7 +357,14 @@ class GCRootPathsTree(
               val childrenToReport =
                 currentNodeEdges
                   .entries
-                  .sortedByDescending { it.value.pathsSize }
+                  .sortedWith { a, b ->
+                    if (a.value.pathsSize != b.value.pathsSize)
+                      // Descending
+                      b.value.pathsSize.compareTo(a.value.pathsSize)
+                    else
+                      // To have a deterministic report, sort by field# if the size is the same
+                      a.key.refIndex.compareTo(b.key.refIndex)
+                  }
                   .filterIndexed { index, e ->
                     index == 0 ||
                     e.value.pathsCount >= minimumObjectsForReport ||
@@ -414,8 +421,12 @@ class GCRootPathsTree(
     }
 
     fun collectDisposedDominatorNodes(result: MutableMap<ClassDefinition, MutableList<RegularNode>>) {
-      edges.forEachValue { (node, _) ->
-        node.collectDisposedDominatorNodes(result)
+      edges.forEachValue { (node, edge) ->
+        if (edge.disposed) {
+            result.getOrPut(edge.classDefinition) { mutableListOf() }.add(node)
+        } else {
+          node.collectDisposedDominatorNodes(result)
+        }
         true
       }
     }

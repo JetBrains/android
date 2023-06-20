@@ -21,10 +21,9 @@ import com.android.tools.compose.COMPOSE_ALIGNMENT_VERTICAL
 import com.android.tools.compose.COMPOSE_ARRANGEMENT
 import com.android.tools.compose.COMPOSE_ARRANGEMENT_HORIZONTAL
 import com.android.tools.compose.COMPOSE_ARRANGEMENT_VERTICAL
+import com.android.tools.compose.matchingParamTypeFqName
 import com.android.tools.compose.isClassOrExtendsClass
 import com.android.tools.compose.isComposeEnabled
-import com.android.tools.compose.returnTypeClassifierFqName
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
@@ -58,8 +57,6 @@ import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.KtValueArgumentList
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * Suggests specific implementations of frequently used Compose interfaces in a parameter or a property position.
@@ -68,7 +65,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
 
   override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
     val elementToComplete = parameters.position
-    if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get() || !isComposeEnabled(elementToComplete) || parameters.originalFile !is KtFile) {
+    if (!isComposeEnabled(elementToComplete) || parameters.originalFile !is KtFile) {
       return
     }
     val elementToCompleteTypeFqName = elementToComplete.argumentTypeFqName ?: elementToComplete.propertyTypeFqName
@@ -88,7 +85,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
     if (!isNewElement) {
       val addedElementsNames = elementsToSuggest.mapNotNull { it.name }
       result.runRemainingContributors(parameters) { completionResult ->
-        val skipResult = completionResult.lookupElement.psiElement.safeAs<KtProperty>()?.name?.let { addedElementsNames.contains(it) }
+        val skipResult = (completionResult.lookupElement.psiElement as? KtProperty)?.name?.let { addedElementsNames.contains(it) }
         if (skipResult != true) {
           result.passResult(completionResult)
         }
@@ -100,7 +97,6 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
     return KotlinFullClassNameIndex
       .get(classFqName, project, project.allScope())
       .firstOrNull()
-      .safeAs<KtClassOrObject>()
   }
 
   private fun getAlignments(project: Project, alignmentFqName: String): Collection<KtDeclaration> {
@@ -163,16 +159,9 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
       val argument = contextOfType<KtValueArgument>().takeIf { it !is KtLambdaArgument } ?: return null
 
       val callExpression = argument.parentOfType<KtCallElement>() ?: return null
-      val callee = callExpression.calleeExpression?.mainReference?.resolve().safeAs<KtNamedFunction>() ?: return null
+      val callee = callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction ?: return null
 
-      val argumentTypeFqName = if (argument.isNamed()) {
-        val argumentName = argument.getArgumentName()!!.asName.asString()
-        callee.valueParameters.find { it.name == argumentName }?.returnTypeClassifierFqName()
-      }
-      else {
-        val argumentIndex = (argument.parent as KtValueArgumentList).arguments.indexOf(argument)
-        callee.valueParameters.getOrNull(argumentIndex)?.returnTypeClassifierFqName()
-      }
+      val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
 
       return argumentTypeFqName?.asString()
     }

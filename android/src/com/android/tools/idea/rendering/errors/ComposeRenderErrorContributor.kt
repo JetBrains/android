@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering.errors
 
 import com.android.ide.common.rendering.api.ILayoutLog
 import com.android.tools.idea.rendering.HtmlLinkManager
+import com.android.tools.idea.rendering.StudioHtmlLinkManager
 import com.android.tools.idea.rendering.RenderLogger
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.utils.HtmlBuilder
@@ -49,13 +50,13 @@ object ComposeRenderErrorContributor {
 
   /**
    * Returns true if the [Throwable] represents a failure to instantiate a Preview Composable with `PreviewParameterProvider`. This will
-   * detect the case where the parameter type dose not match the `PreviewParameterProvider`.
+   * detect the case where the parameter type does not match the `PreviewParameterProvider`.
    */
   private fun isPreviewParameterMismatchThrowable(throwable: Throwable?): Boolean {
     return throwable is IllegalArgumentException &&
            throwable.message == "argument type mismatch" &&
            (throwable.stackTrace.drop(5)
-             .firstOrNull()?.methodName?.startsWith("invokeComposableViaReflection") ?: false)
+             .firstOrNull()?.methodName?.startsWith("invokeComposable") ?: false)
   }
 
   /**
@@ -96,7 +97,7 @@ object ComposeRenderErrorContributor {
                                 .addLink("You can ", "read more", " about preview limitations in our external documentation.",
                                           // TODO(b/199834697): add correct header once the ViewModel documentation is published on DAC
                                          "https://developer.android.com/jetpack/compose/tooling")
-                                .addShowException(linkManager, logger.module?.project, it.throwable)
+                                .addShowException(linkManager, logger.project, it.throwable)
               )
           }
           isCompositionLocalStackTrace(it.throwable) -> {
@@ -107,7 +108,7 @@ object ComposeRenderErrorContributor {
                                 .addLink("This preview was unable to find a ", "CompositionLocal", ". ",
                                          "https://developer.android.com/jetpack/compose/compositionlocal")
                                 .add("You might need to define it so it can render correctly.")
-                                .addShowException(linkManager, logger.module?.project, it.throwable)
+                                .addShowException(linkManager, logger.project, it.throwable)
               )
           }
           isComposeNotFoundThrowable(it.throwable) -> {

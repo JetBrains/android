@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.Version
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
@@ -47,7 +48,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
-import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTrackerSettings
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.ProjectKeys
@@ -111,10 +111,7 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
     // See AndroidStudioPreferences for a full list.
     AndroidStudioPreferences.cleanUpPreferences(project)
 
-    if (IdeInfo.getInstance().isAndroidStudio) {
-      ExternalSystemProjectTrackerSettings.getInstance(project).autoReloadType = ExternalSystemProjectTrackerSettings.AutoReloadType.NONE
-      showNeededNotifications(project)
-    }
+    showNeededNotifications(project)
   }
 }
 
@@ -276,7 +273,7 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
 
     fun GradleAndroidModelData.validate() =
       shouldDisableForceUpgrades() ||
-        GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()).let { latestKnown ->
+      AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION).let { latestKnown ->
           !ApplicationManager.getApplication().getService(AgpVersionChecker::class.java).versionsAreIncompatible(agpVersion, latestKnown)
         }
 

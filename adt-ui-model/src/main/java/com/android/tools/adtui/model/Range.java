@@ -178,10 +178,6 @@ public final class Range extends AspectModel<Range.Aspect> {
     return Math.max(getMin(), min) <= Math.min(getMax(), max);
   }
 
-  public static boolean intersects(long min1, long max1, long min2, long max2) {
-    return Math.max(min1, min2) <= Math.min(max1, max2);
-  }
-
   /**
    * @return length of the intersection between this range and the given range. If they don't intersect, returns 0.0.
    */

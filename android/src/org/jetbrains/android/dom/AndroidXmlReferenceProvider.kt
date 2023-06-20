@@ -4,7 +4,7 @@ package org.jetbrains.android.dom
 import com.android.SdkConstants
 import com.android.SdkConstants.CLASS_DRAWABLE
 import com.android.SdkConstants.CLASS_VIEW
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -109,7 +109,7 @@ class AndroidXmlReferenceProvider : PsiReferenceProvider() {
         return emptyArray()
       }
 
-      val apiLevel = AndroidModuleInfo.getInstance(facet).moduleMinApi
+      val apiLevel = StudioAndroidModuleInfo.getInstance(facet).moduleMinApi
 
       return TagToClassMapper.getInstance(facet.module).getClassMap(myBaseClassQName)
         .filter { (name, psiClass) ->

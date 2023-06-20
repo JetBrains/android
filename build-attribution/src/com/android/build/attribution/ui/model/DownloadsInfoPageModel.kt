@@ -24,6 +24,8 @@ import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
+import java.util.Comparator
+import javax.swing.Icon
 import javax.swing.JTable
 import javax.swing.SwingConstants
 import javax.swing.table.TableCellRenderer
@@ -32,20 +34,25 @@ class DownloadsInfoPageModel(
   private val downloadsData: DownloadsAnalyzer.Result
 ) {
 
-  val repositoriesTableModel: ListTableModel<DownloadsAnalyzer.RepositoryResult> = RepositoriesTableModel(downloadsData)
+  var repositoriesTableModel: ListTableModel<DownloadsAnalyzer.RepositoryResult> = RepositoriesTableModel(downloadsData)
+    private set
 
   val repositoriesTableEmptyText: String get() = when(downloadsData) {
-    is DownloadsAnalyzer.GradleDoesNotProvideEvents -> "Minimal Gradle version providing downloads data is $minGradleVersionProvidingDownloadEvents."
+    is DownloadsAnalyzer.GradleDoesNotProvideEvents -> "Minimal Gradle version providing downloads data is ${minGradleVersionProvidingDownloadEvents.version}."
     is DownloadsAnalyzer.ActiveResult -> "There was no attempt to download files during this build."
     is DownloadsAnalyzer.AnalyzerIsDisabled -> error("UI Should not be available for this state.")
   }
 
-  val requestsListModel: ListTableModel<DownloadsAnalyzer.DownloadResult> = RequestsListTableModel().apply {
-    isSortable = true
-  }
+  var requestsListModel: ListTableModel<DownloadsAnalyzer.DownloadResult> = RequestsListTableModel()
+    private set
 
   fun selectedRepositoriesUpdated(repositories: List<DownloadsAnalyzer.RepositoryResult>) {
     requestsListModel.items = repositories.flatMap { it.downloads }
+  }
+
+  fun recreateTableModels() {
+    repositoriesTableModel = RepositoriesTableModel(downloadsData)
+    requestsListModel = RequestsListTableModel()
   }
 }
 
@@ -87,9 +94,16 @@ class RequestsListTableModel : ListTableModel<DownloadsAnalyzer.DownloadResult>(
 
   init {
     columnInfos = arrayOf(
-      object : ColumnInfo<DownloadsAnalyzer.DownloadResult, DownloadsAnalyzer.DownloadResult>("Status") {
-        val cellRenderer = MyWarningIconCellRenderer()
-        override fun valueOf(item: DownloadsAnalyzer.DownloadResult): DownloadsAnalyzer.DownloadResult = item
+      object : ColumnInfo<DownloadsAnalyzer.DownloadResult, StatusColumnData>("Status") {
+        val cellRenderer = MyStatusColumnCellRenderer()
+        override fun valueOf(item: DownloadsAnalyzer.DownloadResult): StatusColumnData {
+          val formattedTooltip = item.failureMessage?.replace("\n", "<br/>")
+          return when (item.status) {
+            DownloadsAnalyzer.DownloadStatus.SUCCESS -> StatusColumnData("Ok", null, formattedTooltip)
+            DownloadsAnalyzer.DownloadStatus.MISSED -> StatusColumnData("Not Found", warningIcon(), formattedTooltip)
+            DownloadsAnalyzer.DownloadStatus.FAILURE -> StatusColumnData("Error", warningIcon(), formattedTooltip)
+          }
+        }
         override fun getRenderer(item: DownloadsAnalyzer.DownloadResult): TableCellRenderer = cellRenderer
         override fun getPreferredStringValue() = "Not Found"
         override fun getMaxStringValue(): String = preferredStringValue
@@ -119,32 +133,34 @@ class RequestsListTableModel : ListTableModel<DownloadsAnalyzer.DownloadResult>(
         override fun getComparator(): Comparator<DownloadsAnalyzer.DownloadResult> = Comparator.comparing { it.bytes }
       }
     )
+    isSortable = true
   }
-}
 
-private class MyWarningIconCellRenderer : ColoredTableCellRenderer() {
-  override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
-    if (value is DownloadsAnalyzer.DownloadResult) {
-      if (value.status != DownloadsAnalyzer.DownloadStatus.SUCCESS) {
-        icon = warningIcon()
-      }
-      val text = when (value.status) {
-        DownloadsAnalyzer.DownloadStatus.SUCCESS -> "Ok"
-        DownloadsAnalyzer.DownloadStatus.MISSED -> "Not Found"
-        DownloadsAnalyzer.DownloadStatus.FAILURE -> "Error"
-      }
-      append(text, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
-      toolTipText = value.failureMessage?.replace("\n", "<br/>")
+  private class StatusColumnData(
+    val text: String,
+    val icon: Icon?,
+    val tooltip: String?
+  ) {
+    override fun toString(): String = text
+  }
 
+  private class MyStatusColumnCellRenderer : ColoredTableCellRenderer() {
+    override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+      if (value is StatusColumnData) {
+        icon = value.icon
+        isTransparentIconBackground = true
+        append(value.text, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
+        toolTipText = value.tooltip
+      }
+      setTextAlign(SwingConstants.RIGHT)
     }
-    setTextAlign(SwingConstants.RIGHT)
   }
-}
 
-private class MyCellRenderer(val textAttributes: SimpleTextAttributes) : ColoredTableCellRenderer() {
-  override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
-    if (value is String) {
-      append(value, textAttributes)
+  private class MyCellRenderer(val textAttributes: SimpleTextAttributes) : ColoredTableCellRenderer() {
+    override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+      if (value is String) {
+        append(value, textAttributes)
+      }
     }
   }
 }

@@ -20,12 +20,12 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.project.upgrade.ui.ContentManagerImpl;
 import com.intellij.mock.MockDumbService;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -40,8 +40,6 @@ import org.mockito.MockedStatic;
  */
 public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
-  @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
-  @Mock private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
   @Mock private RecommendedUpgradeReminder myUpgradeReminder;
   private ContentManager myContentManager;
   @Mock private RefactoringProcessorInstantiator myRefactoringProcessorInstantiator;
@@ -61,9 +59,8 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     // TODO(xof): this is a clear leak of implementation details.  Figure out how to remove it.
     when(myProcessor.getAgpVersionRefactoringProcessor()).thenReturn(myAgpVersionRefactoringProcessor);
     ServiceContainerUtil.replaceService(project, DumbService.class, new MockDumbService(project), project);
-    when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);
     when(myPluginInfo.getModule()).thenReturn(getModule());
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("4.0.0"));
+    when(myPluginInfo.getPluginVersion()).thenReturn(AgpVersion.parse("4.0.0"));
   }
 
   public void testCheckUpgradeWhenUpgradeReminderIsNotDue() {
@@ -72,67 +69,45 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     when(myUpgradeReminder.shouldAsk()).thenReturn(false);
 
     // TODO(xof): this fails with a leaked SDK for me.  Why?  And does it matter?
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(project));
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(project).getUpgrade());
   }
 
   public void testCheckUpgradeWhenCurrentVersionIsEqualToRecommended() {
     simulateUpgradeReminderIsDue();
 
-    GradleVersion pluginVersion = GradleVersion.parse("2.2.0");
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), pluginVersion, pluginVersion));
+    AgpVersion pluginVersion = AgpVersion.parse("2.2.0");
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), pluginVersion, pluginVersion).getUpgrade());
   }
 
   public void testCheckUpgradeWhenCurrentVersionIsGreaterRecommended() {
     simulateUpgradeReminderIsDue();
 
-    GradleVersion current = GradleVersion.parse("2.3.0");
-    GradleVersion recommended = GradleVersion.parse("2.2.0");
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended));
+    AgpVersion current = AgpVersion.parse("2.3.0");
+    AgpVersion recommended = AgpVersion.parse("2.2.0");
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended).getUpgrade());
   }
 
   public void testPerformUpgradeWhenCurrentIsPreviewRecommendedIsSnapshot() {
     simulateUpgradeReminderIsDue();
 
     // Current version is a preview
-    GradleVersion current = GradleVersion.parse("2.3.0-alpha1");
+    AgpVersion current = AgpVersion.parse("2.3.0-alpha1");
     // Recommended version is same major version, but "snapshot"
-    GradleVersion recommended = GradleVersion.parse("2.3.0-dev");
+    AgpVersion recommended = AgpVersion.parse("2.3.0-dev");
     // For this combination of plugin versions, the IDE should not ask for upgrade.
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended));
-  }
-
-  public void testDoNotInvokeUpgradeAssistantWhenUserDeclinesUpgrade() {
-    simulateUpgradeReminderIsDue();
-
-    // Simulate project's plugin version is lower than latest.
-    GradleVersion current = GradleVersion.parse("4.0.0");
-    GradleVersion recommended = GradleVersion.parse("4.1.0");
-
-    // Simulate user declined upgrade.
-    when(myUpgradeDialog.showAndGet()).thenReturn(false);
-    assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));
-
-    verifyUpgradeAssistantWasNotInvoked();
-  }
-
-  private void verifyUpgradeAssistantWasNotInvoked() {
-    verifyNoInteractions(myContentManager);
-    verifyNoInteractions(myRefactoringProcessorInstantiator);
-    verifyNoInteractions(myProcessor);
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended).getUpgrade());
   }
 
   public void testInvokeUpgradeAssistantWhenUserAcceptsUpgrade() {
     simulateUpgradeReminderIsDue();
 
-    GradleVersion current = GradleVersion.parse("4.0.0");
-    GradleVersion recommended = GradleVersion.parse("4.1.0");
+    AgpVersion current = AgpVersion.parse("4.0.0");
+    AgpVersion recommended = AgpVersion.parse("4.1.0");
 
     // Simulate user accepted upgrade.
-    when(myUpgradeDialog.showAndGet()).thenReturn(true);
-    when(myRefactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(any())).thenReturn(true);
     try (MockedStatic<AndroidPluginInfo> androidPluginInfoMock = mockStatic(AndroidPluginInfo.class)) {
       androidPluginInfoMock.when(() -> AndroidPluginInfo.find(myProject)).thenReturn(myPluginInfo);
-      assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));
+      GradlePluginUpgrade.performRecommendedPluginUpgrade(myProject, current, recommended);
       verifyUpgradeAssistantWasInvoked();
     }
   }

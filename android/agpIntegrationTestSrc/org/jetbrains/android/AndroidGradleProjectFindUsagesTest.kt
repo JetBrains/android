@@ -45,7 +45,7 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
     myFixture.openFileInEditor(file!!)
 
     // Resource from androidx library used in both app and lib modules
-    myFixture.moveCaret("R.color.abc_tint|_default")
+    myFixture.moveCaret("androidx.appcompat.R.color.abc_tint|_default")
     val usages = findUsages(myFixture.file.virtualFile, myFixture)
     val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
@@ -64,12 +64,12 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
                  "     MainActivity.kt (1)\n" +
                  "      MainActivity (1)\n" +
                  "       onCreate (1)\n" +
-                 "        12val color = R.color.abc_tint_default\n" +
+                 "        12val color = androidx.appcompat.R.color.abc_tint_default\n" +
                  "   testResourceDefinedInAarUsingModuleRClass.library.main (1)\n" +
                  "    google.mylibrary (1)\n" +
                  "     Library (1)\n" +
                  "      foo() (1)\n" +
-                 "       6int color = R.color.abc_tint_default;\n")
+                 "       6int color = androidx.appcompat.R.color.abc_tint_default;\n")
   }
 
   fun testResourceDefinedInAarUsingLibRClass() {
@@ -78,7 +78,7 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
     myFixture.openFileInEditor(file!!)
 
     // Resource from androidx library used in both app and lib modules
-    myFixture.moveCaret("R.color.abc_tint_default|")
+    myFixture.moveCaret("androidx.appcompat.R.color.abc_tint_default|")
 
     // Adding the fully qualified resource reference from the module R class.
     myFixture.type("\n    com.example.google.androidx.R.color.abc_tint_default")
@@ -89,8 +89,8 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
     val usages = findUsages(myFixture.file.virtualFile, myFixture)
     val treeTextRepresentation = myFixture.getUsageViewTreeTextRepresentation(usages)
     assertThat(treeTextRepresentation)
-      .isEqualTo("<root> (6)\n" +
-                 " Usages in (6)\n" +
+      .isEqualTo("<root> (5)\n" +
+                 " Usages in (5)\n" +
                  "  Resource reference Android resources XML (2)\n" +
                  "   color (1)\n" +
                  "    abc_tint_default.xml (1)\n" +
@@ -98,20 +98,19 @@ class AndroidGradleProjectFindUsagesTest : AndroidGradleTestCase() {
                  "   color-v23 (1)\n" +
                  "    abc_tint_default.xml (1)\n" +
                  "     1<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                 "  Resource reference in code (4)\n" +
-                 "   testResourceDefinedInAarUsingLibRClass.app.main (3)\n" +
-                 "    com.example.google.androidx (3)\n" +
-                 "     MainActivity.kt (3)\n" +
-                 "      MainActivity (3)\n" +
-                 "       onCreate (3)\n" +
-                 "        12val color = R.color.abc_tint_default\n" +
-                 "        13com.example.google.androidx.R.color.abc_tint_default\n" +
+                 "  Resource reference in code (3)\n" +
+                 "   testResourceDefinedInAarUsingLibRClass.app.main (2)\n" +
+                 "    com.example.google.androidx (2)\n" +
+                 "     MainActivity.kt (2)\n" +
+                 "      MainActivity (2)\n" +
+                 "       onCreate (2)\n" +
+                 "        12val color = androidx.appcompat.R.color.abc_tint_default\n" +
                  "        14androidx.appcompat.R.color.abc_tint_default\n" +
                  "   testResourceDefinedInAarUsingLibRClass.library.main (1)\n" +
                  "    google.mylibrary (1)\n" +
                  "     Library (1)\n" +
                  "      foo() (1)\n" +
-                 "       6int color = R.color.abc_tint_default;\n")
+                 "       6int color = androidx.appcompat.R.color.abc_tint_default;\n")
   }
 
   fun findUsages(file: VirtualFile?, fixture: JavaCodeInsightTestFixture): Collection<UsageInfo?> {

@@ -23,7 +23,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
-import com.android.tools.idea.common.surface.InteractionManager
+import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavEditorRule
 import com.android.tools.idea.naveditor.NavModelBuilderUtil
@@ -596,9 +596,9 @@ class NavSceneTest {
 
     scene.layout(0, sceneContext)
 
-    val interactionManager = mock(InteractionManager::class.java)
-    whenever(interactionManager.isInteractionInProgress).thenReturn(true)
-    whenever(surface.interactionManager).thenReturn(interactionManager)
+    val guiInputHandler = mock(GuiInputHandler::class.java)
+    whenever(guiInputHandler.isInteractionInProgress).thenReturn(true)
+    whenever(surface.guiInputHandler).thenReturn(guiInputHandler)
 
     val drawRect1 = scene.getSceneComponent("fragment1")!!
     scene.mouseDown(sceneContext, drawRect1.drawX + drawRect1.drawWidth, drawRect1.centerY, 0)
@@ -905,9 +905,10 @@ class NavSceneTest {
 
     val sceneManager = scene.sceneManager as NavSceneManager
 
+    val expectedEmptyNavSceneClick = Point2D.Float(130f, 258f)
     assertThat(sceneManager.isEmpty).isTrue()
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawEmptyDesigner(inOrder, g, Point2D.Float(130f, 251f))
+      verifyDrawEmptyDesigner(inOrder, g, expectedEmptyNavSceneClick)
     }
 
     root?.fragment("fragment1")
@@ -926,7 +927,7 @@ class NavSceneTest {
     scene.layout(0, scene.sceneManager.sceneViews.first().context)
 
     verifyScene(model.surface) { inOrder, g ->
-      verifyDrawEmptyDesigner(inOrder, g, Point2D.Float(130f, 251f))
+      verifyDrawEmptyDesigner(inOrder, g, expectedEmptyNavSceneClick)
     }
     assertThat(sceneManager.isEmpty).isTrue()
   }

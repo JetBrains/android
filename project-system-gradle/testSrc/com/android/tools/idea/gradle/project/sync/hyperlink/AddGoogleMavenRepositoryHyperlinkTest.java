@@ -23,7 +23,6 @@ import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositoryModel;
@@ -38,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.IOException;
 import java.util.List;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -178,7 +178,7 @@ public class AddGoogleMavenRepositoryHyperlinkTest extends AndroidGradleTestCase
     Project project = getProject();
     GradleVersions spyVersions = spy(GradleVersions.getInstance());
     ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), GradleVersions.class, spyVersions, getTestRootDisposable());
-    when(spyVersions.getGradleVersion(project)).thenReturn(GradleVersion.parse(version));
+    when(spyVersions.getGradleVersion(project)).thenReturn(GradleVersion.version(version));
 
     // Make sure no repositories are listed
     removeRepositories(project);

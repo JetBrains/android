@@ -43,13 +43,16 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val cpuState = buildCpuStateData(mainProcess)
     val cpuCounters = buildCpuCountersData()
     val memoryCounters = buildMainProcessMemoryCountersData(mainProcess)
+    val powerRailCounters = buildPowerRailCountersData()
+    val batteryDrainCounters = buildBatteryDrainCountersData()
     val blastBufferQueueCounter = buildBlastBufferQueueCounterData(mainProcess)
 
     val frameManager = SystemTraceFrameManager(mainProcess)
     val sfManager = SystemTraceSurfaceflingerManager(model, mainProcess.name)
 
     return SystemTraceCpuCapture(traceId, model, captureTreeNodes, threadState, cpuState.schedulingData, cpuState.utilizationData,
-                                 cpuCounters, memoryCounters, blastBufferQueueCounter, frameManager, sfManager, initialViewRange)
+                                 cpuCounters, memoryCounters, powerRailCounters, batteryDrainCounters, blastBufferQueueCounter,
+                                 frameManager, sfManager, initialViewRange)
   }
 
   /**
@@ -105,12 +108,24 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
       val states: MutableList<SeriesData<ThreadState>> = ArrayList()
       threadToStateSeries[thread.id] = states
 
-      var lastState = ThreadState.UNKNOWN
+      // We use a (state, timestamp) tuple and assume the state is valid until the next state.
+      // But Perfetto uses a (state, timestamp, duration) triplet to timebox each state.
+      var (lastState, lastEndTimestampUs) = Pair(ThreadState.NO_ACTIVITY, 0L)
       for (sched in thread.schedulingEvents) {
         if (sched.state !== lastState) {
           states.add(SeriesData(sched.startTimestampUs, sched.state))
           lastState = sched.state
+          lastEndTimestampUs = sched.endTimestampUs
         }
+      }
+
+      // To avoid the last thread state slice extending until
+      // the end of user-dictated capture time, a fake NO_ACTIVITY
+      // event is appended to terminate the last state slice.
+      // Non-empty check makes sure we don't insert state data
+      // when there is actually isn't any.
+      if (lastState != ThreadState.NO_ACTIVITY && states.isNotEmpty()) {
+        states.add(SeriesData(lastEndTimestampUs, ThreadState.NO_ACTIVITY))
       }
     }
 
@@ -139,7 +154,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
     val schedData = mutableMapOf<Int, List<SeriesData<CpuThreadSliceInfo>>>()
 
     // Create a lookup table for thread names, to be used when the full process info is missing
-    val threadNames = model.getProcesses().flatMap { it.getThreads() }.map { it.id to it.name }.toMap()
+    val threadNames = model.getProcesses().flatMap { it.getThreads() }.associate { it.id to it.name }
 
     for (cpu in model.getCpuCores()) {
       val processList: MutableList<SeriesData<CpuThreadSliceInfo>> = ArrayList()
@@ -204,16 +219,25 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
   private fun buildMainProcessMemoryCountersData(mainProcessModel: ProcessModel): Map<String, List<SeriesData<Long>>> {
     return mainProcessModel.counterByName.entries
       .filter { it.key.startsWith("mem.") }
-      .map { it.key to convertCounterToSeriesData(it.value) }
-      .toMap()
+      .associate { it.key to convertCounterToSeriesData(it.value) }
       .toSortedMap()
   }
 
+  private fun buildPowerRailCountersData(): Map<String, List<SeriesData<Long>>> {
+    return model.getPowerRails().associate {
+      it.name.replace("power.rails.", "") to convertCounterToSeriesData(it)
+    }.toSortedMap()
+  }
+
+  private fun buildBatteryDrainCountersData(): Map<String, List<SeriesData<Long>>> {
+    return model.getBatteryDrain().associate {
+      it.name.replace("batt.", "") to convertCounterToSeriesData(it)
+    }.toSortedMap()
+  }
+
   private fun buildCpuCountersData(): List<Map<String, List<SeriesData<Long>>>> {
-    return model.getCpuCores().map { cpuCoreModel ->
-      cpuCoreModel.countersMap.map {
-        it.key to convertCounterToSeriesData(it.value)
-      }.toMap()
+    return model.getCpuCores().map {
+      cpuCoreModel -> cpuCoreModel.countersMap.asSequence().associate { it.key to convertCounterToSeriesData(it.value) }
     }
   }
 

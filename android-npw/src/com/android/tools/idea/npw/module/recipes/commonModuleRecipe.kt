@@ -23,8 +23,11 @@ import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
+import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectBuildGradle
+import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
+import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
@@ -45,11 +48,12 @@ fun RecipeExecutor.generateCommonModule(
   iconsGenerationStyle: IconsGenerationStyle = IconsGenerationStyle.ALL,
   themesXml: String? = androidModuleThemes(data.projectTemplateData.androidXSupport, data.apis.minApi, data.themesData.main.name),
   themesXmlNight: String? = null,
-  themesXmlV29: String? = null,
   colorsXml: String? = androidModuleColors(),
   addLintOptions: Boolean = false,
   enableCpp: Boolean = false,
-  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
+  bytecodeLevel: BytecodeLevel = BytecodeLevel.default,
+  useVersionCatalog: Boolean
   ) {
   val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
@@ -70,7 +74,7 @@ fun RecipeExecutor.generateCommonModule(
       useKts,
       isLibraryProject,
       data.isDynamic,
-      packageName,
+      applicationId = data.namespace,
       apis.buildApi.apiString,
       minApi.apiString,
       apis.targetApi.apiString,
@@ -79,7 +83,8 @@ fun RecipeExecutor.generateCommonModule(
       hasTests = generateGenericLocalTests,
       addLintOptions = addLintOptions,
       enableCpp = enableCpp,
-      cppStandard = cppStandard
+      cppStandard = cppStandard,
+      useVersionCatalog = useVersionCatalog
     ),
     moduleOut.resolve(buildFile)
   )
@@ -91,6 +96,7 @@ fun RecipeExecutor.generateCommonModule(
     else -> applyPlugin("com.android.application", projectData.gradlePluginVersion)
   }
   addKotlinIfNeeded(projectData, targetApi = apis.targetApi.api)
+  requireJavaVersion(bytecodeLevel.versionString, data.projectTemplateData.language == Language.Kotlin)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))
   save(gitignore(), moduleOut.resolve(".gitignore"))
@@ -106,7 +112,7 @@ fun RecipeExecutor.generateCommonModule(
 
   if (!isLibraryProject) {
     when(iconsGenerationStyle) {
-      IconsGenerationStyle.ALL -> copyIcons(resOut, data.apis.targetApi)
+      IconsGenerationStyle.ALL -> copyIcons(resOut, minApi.api)
       IconsGenerationStyle.MIPMAP_ONLY -> copyMipmapFolder(resOut)
       IconsGenerationStyle.MIPMAP_SQUARE_ONLY -> copyMipmapFile(resOut, "ic_launcher.webp")
       IconsGenerationStyle.NONE -> Unit
@@ -125,12 +131,6 @@ fun RecipeExecutor.generateCommonModule(
       // Common themes.xml isn't needed for Compose because theme is created in Composable.
       if (data.category != Category.Compose) {
         save(it, resOut.resolve(SdkConstants.FD_RES_VALUES_NIGHT).resolve("themes.xml"))
-      }
-    }
-    themesXmlV29?.let {
-      // Common themes.xml isn't needed for Compose because theme is created in Composable.
-      if (data.category != Category.Compose) {
-        save(it, resOut.resolve("values-v29").resolve("themes.xml"))
       }
     }
   }

@@ -20,9 +20,10 @@ import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationRes
 import com.android.tools.idea.gradle.project.sync.Target.ManuallyAssembled
 import com.android.tools.idea.gradle.project.sync.Target.NamedAppTargetRunConfiguration
 import com.android.tools.idea.gradle.project.sync.Target.TestTargetRunConfiguration
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.getBuiltApksForSelectedVariant
-import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
@@ -34,10 +35,12 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_71
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_80
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Expect
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -46,13 +49,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.COMPOSITE_BUILD,
+        testProject = AndroidCoreTestProject.COMPOSITE_BUILD,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
       ),
       expectApks =
       """
               ApplicationId: com.test.compositeapp
-              File: project/app/build/outputs/apk/debug/app-debug.apk
               Files:
                 project.app -> project/app/build/outputs/apk/debug/app-debug.apk
               RequiredInstallationOptions: []
@@ -65,7 +67,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
                     ApplicationId: com.test.compositeapp
-                    File: project/app/build/intermediates/apk/debug/app-debug.apk
                     Files:
                       project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
                     RequiredInstallationOptions: []
@@ -76,13 +77,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.COMPOSITE_BUILD,
+        testProject = AndroidCoreTestProject.COMPOSITE_BUILD,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = "TestCompositeLib1:app:main"),
       ),
       expectApks =
       """
               ApplicationId: com.test.composite1
-              File: project/TestCompositeLib1/app/build/outputs/apk/debug/app-debug.apk
               Files:
                 TestCompositeLib1.app -> project/TestCompositeLib1/app/build/outputs/apk/debug/app-debug.apk
               RequiredInstallationOptions: []
@@ -95,7 +95,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
               ApplicationId: com.test.composite1
-              File: project/TestCompositeLib1/app/build/intermediates/apk/debug/app-debug.apk
               Files:
                 TestCompositeLib1.app -> project/TestCompositeLib1/app/build/intermediates/apk/debug/app-debug.apk
               RequiredInstallationOptions: []
@@ -106,7 +105,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
+        testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
         executeMakeBeforeRun = false,
       ),
       expectApks = mapOf(
@@ -136,12 +135,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
+        testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
       ),
       expectApks =
       """
             ApplicationId: one.name.defaultConfig.debug
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
@@ -154,7 +152,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: one.name.defaultConfig.debug
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
@@ -166,12 +163,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         viaBundle = true,
-        testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
+        testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
       ),
       expectApks = mapOf(
         AGP_CURRENT to """
               ApplicationId: one.name.defaultConfig.debug
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
@@ -179,7 +175,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             """,
         AGP_40 to """
               ApplicationId: one.name.defaultConfig.debug
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/out/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/out/base-mdpi.apk
@@ -187,7 +182,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
             """,
         AGP_35 to """
               ApplicationId: one.name.defaultConfig.debug
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-mdpi.apk
@@ -198,20 +192,18 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.APPLICATION_ID_SUFFIX,
+        testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
         target = ManuallyAssembled(":app", forTests = false),
       ),
       expectApks = mapOf(
         AGP_71 to """
             ApplicationId: one.name.defaultConfig.debug
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
           """,
         AGP_CURRENT to """
             ApplicationId: one.name.defaultConfig.debug
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               Application_ID_Suffix_Test_App.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
@@ -221,19 +213,17 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.SIMPLE_APPLICATION,
+        testProject = TestProject.SIMPLE_APPLICATION,
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
       ),
       expectApks =
       """
             ApplicationId: google.simpleapplication
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
@@ -246,13 +236,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
@@ -263,32 +251,28 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.SIMPLE_APPLICATION,
+        testProject = TestProject.SIMPLE_APPLICATION,
         target = ManuallyAssembled(":app", forTests = true),
       ),
       expectApks = mapOf(
         AGP_CURRENT to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
           """,
         AGP_71 to  """
             ApplicationId: google.simpleapplication
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
@@ -298,19 +282,17 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.TEST_ONLY_MODULE,
+        testProject = TestProject.TEST_ONLY_MODULE,
         target = TestTargetRunConfiguration("com.example.android.app.ExampleTest"),
       ),
       expectApks =
       """
             ApplicationId: com.example.android.app
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
                -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: com.example.android.app.testmodule
-            File: project/test/build/outputs/apk/debug/test-debug.apk
             Files:
               project.test -> project/test/build/outputs/apk/debug/test-debug.apk
             RequiredInstallationOptions: []
@@ -324,13 +306,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_CURRENT to
             """
             ApplicationId: com.example.android.app
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
                -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: com.example.android.app.testmodule
-            File: project/test/build/intermediates/apk/debug/test-debug.apk
             Files:
               project.test -> project/test/build/intermediates/apk/debug/test-debug.apk
             RequiredInstallationOptions: []
@@ -341,12 +321,11 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.DYNAMIC_APP,
+        testProject = AndroidCoreTestProject.DYNAMIC_APP,
       ),
       expectApks =
       """
             ApplicationId: google.simpleapplication
-            File: *>java.lang.IllegalArgumentException
             Files:
               simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
               simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
@@ -361,7 +340,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: google.simpleapplication
-            File: *>java.lang.IllegalArgumentException
             Files:
               simpleApplication.app -> project/app/build/intermediates/apk/debug/app-debug.apk
               simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/intermediates/apk/debug/dependsOnFeature1-debug.apk
@@ -375,20 +353,18 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         device = 19,
-        testProject = TestProjectPaths.DYNAMIC_APP,
+        testProject = AndroidCoreTestProject.DYNAMIC_APP,
       ),
       IGNORE = { TODO("b/189190337") },
       expectApks = mapOf(
         AGP_CURRENT to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             Files:
               standalone -> project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
           """,
         AGP_35 to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
             Files:
               standalone -> project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
@@ -399,13 +375,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.DYNAMIC_APP,
+        testProject = AndroidCoreTestProject.DYNAMIC_APP,
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
       ),
       expectApks = mapOf(
         *(arrayOf(AGP_35, AGP_40, AGP_41, AGP_42, AGP_70) eachTo """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 simpleApplication.app -> project/app/build/outputs/apk/debug/app-debug.apk
                 simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
@@ -413,14 +388,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
               
               ApplicationId: google.simpleapplication.test
-              File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
               Files:
                  -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
               RequiredInstallationOptions: []
             """),
         AGP_CURRENT to """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 simpleApplication.app -> project/app/build/intermediates/apk/debug/app-debug.apk
                 simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/intermediates/apk/debug/dependsOnFeature1-debug.apk
@@ -428,7 +401,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
 
               ApplicationId: google.simpleapplication.test
-              File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
               Files:
                  -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
               RequiredInstallationOptions: []
@@ -439,33 +411,29 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       stackMarker = { it() },
       TestScenario(
         device = 19,
-        testProject = TestProjectPaths.DYNAMIC_APP,
+        testProject = AndroidCoreTestProject.DYNAMIC_APP,
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
       ),
       IGNORE = { TODO("b/189190337") },
       expectApks = mapOf(
         AGP_CURRENT to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             Files:
               standalone -> project/app/build/intermediates/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
           """,
         AGP_35 to """
             ApplicationId: google.simpleapplication
-            File: project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
             Files:
               standalone -> project/app/build/outputs/extracted_apks/debug/standalone-mdpi.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.simpleapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
@@ -475,15 +443,14 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.DYNAMIC_APP,
+        testProject = AndroidCoreTestProject.DYNAMIC_APP,
         target = TestTargetRunConfiguration("com.example.feature1.ExampleInstrumentedTest"),
       ),
       // Do not run with the current version of the AGP.
-      IGNORE = { if (agpVersion == AGP_CURRENT) TODO("b/189202602") },
+      IGNORE = { if (agpVersion == AGP_CURRENT || agpVersion == AGP_80) TODO("b/189202602") },
       expectApks = mapOf(
-        AGP_CURRENT to """
+        *(arrayOf(AGP_80, AGP_CURRENT) eachTo """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
@@ -494,21 +461,19 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
 
               ApplicationId: com.example.feature1.test
-              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               Files:
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
-            """,
-        *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73) eachTo """
+            """
+        ),
+        *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73, AGP_74) eachTo """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
               RequiredInstallationOptions: []
 
               ApplicationId: com.example.feature1.test
-              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               Files:
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
@@ -516,14 +481,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         ),
         *(arrayOf(AGP_71) eachTo """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
               RequiredInstallationOptions: []
 
               ApplicationId: com.example.feature1.test
-              File: project/feature1/build/intermediates/apk/androidTest/debug/feature1-debug-androidTest.apk
               Files:
                  -> project/feature1/build/intermediates/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
@@ -531,7 +494,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         ),
         AGP_40 to """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/out/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/out/base-mdpi.apk
@@ -542,14 +504,12 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
 
               ApplicationId: com.example.feature1.test
-              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               Files:
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
             """,
         AGP_35 to """
               ApplicationId: google.simpleapplication
-              File: *>java.lang.IllegalArgumentException
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-master.apk
                 base -> project/app/build/intermediates/extracted_apks/debug/extractApksForDebug/out/base-mdpi.apk
@@ -560,7 +520,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
 
               ApplicationId: com.example.feature1.test
-              File: project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               Files:
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
@@ -570,25 +529,22 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.BUDDY_APKS,
+        testProject = AndroidCoreTestProject.BUDDY_APKS,
         target = TestTargetRunConfiguration("google.testapplication.ApplicationTest"),
       ),
       expectApks =
       """
             ApplicationId: google.testapplication
-            File: project/app/build/outputs/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/outputs/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.testapplication.test
-            File: project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
 
             ApplicationId: com.linkedin.android.testbutler
-            File: <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
             Files:
                -> <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
             RequiredInstallationOptions: [FORCE_QUERYABLE, GRANT_ALL_PERMISSIONS]
@@ -601,19 +557,16 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
             ApplicationId: google.testapplication
-            File: project/app/build/intermediates/apk/debug/app-debug.apk
             Files:
               project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
             RequiredInstallationOptions: []
 
             ApplicationId: google.testapplication.test
-            File: project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             Files:
                -> project/app/build/intermediates/apk/androidTest/debug/app-debug-androidTest.apk
             RequiredInstallationOptions: []
 
             ApplicationId: com.linkedin.android.testbutler
-            File: <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
             Files:
                -> <M2>/com/linkedin/testbutler/test-butler-app/1.3.1/test-butler-app-1.3.1.apk
             RequiredInstallationOptions: [FORCE_QUERYABLE, GRANT_ALL_PERMISSIONS]
@@ -624,7 +577,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.SIMPLE_APPLICATION,
+        testProject = TestProject.SIMPLE_APPLICATION,
         variant = ":app" to "release",
       ),
       expectValidate = mapOf(
@@ -638,7 +591,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       expectApks =
       """
               ApplicationId: google.simpleapplication
-              File: project/app/build/outputs/apk/release/app-release-unsigned.apk
               Files:
                 project.app -> project/app/build/outputs/apk/release/app-release-unsigned.apk
               RequiredInstallationOptions: []
@@ -651,7 +603,6 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
           AGP_70 to it,
           AGP_CURRENT to """
               ApplicationId: google.simpleapplication
-              File: project/app/build/intermediates/apk/release/app-release-unsigned.apk
               Files:
                 project.app -> project/app/build/intermediates/apk/release/app-release-unsigned.apk
               RequiredInstallationOptions: []
@@ -662,39 +613,71 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        testProject = TestProjectPaths.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        testProject = AndroidCoreTestProject.WEAR_WATCHFACE,
+        target = Target.WatchFaceRunConfiguration("com.example.myface.MyWatchFace"),
+      ),
+      expectApks =
+      """
+          ApplicationId: com.example.myface
+          Files:
+            project.app -> project/app/build/outputs/apk/debug/app-debug.apk
+          RequiredInstallationOptions: []
+            """.let {
+        listOf(
+          AGP_35 to it,
+          AGP_40 to it,
+          AGP_41 to it,
+          AGP_42 to it,
+          AGP_70 to it,
+          AGP_CURRENT to """
+           ApplicationId: com.example.myface
+           Files:
+             project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+           RequiredInstallationOptions: []
+            """,
+        )
+      }.toMap()
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
          ApplicationId: com.myrbsdk_10000
-         File: project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
          Files:
             -> project/app/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
 
          ApplicationId: com.example.rubidumconsumer
-         File: project/app/build/intermediates/apk/debug/app-debug.apk
          Files:
            project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
          RequiredInstallationOptions: []
       """.trimIndent())
     ),
-  )
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.myrbsdk_10000
+         Files:
+            -> project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
+         RequiredInstallationOptions: []
 
-private fun def(
-  stackMarker: (() -> Unit) -> Unit, // Is supposed to be implemented as { it() }.
-  scenario: TestScenario,
-  IGNORE: TestConfiguration.() -> Unit = { },
-  expectApks: String,
-  expectValidate: String? = null,
-) = ApkProviderTest(
-  scenario = scenario,
-  IGNORE = IGNORE,
-  expectApks = mapOf(AGP_CURRENT to expectApks),
-  expectValidate = expectValidate?.let { mapOf(AGP_CURRENT to expectValidate) } ?: emptyMap(),
-  stackMarker = stackMarker
-)
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
+           project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
+    ),
+  )
 
 private fun def(
   stackMarker: (() -> Unit) -> Unit, // Is supposed to be implemented as { it() }.
@@ -722,7 +705,7 @@ private data class ApkProviderTest(
     expect: Expect,
     valueNormalizers: ValueNormalizers,
     project: Project,
-    runConfiguration: AndroidRunConfigurationBase?,
+    runConfiguration: RunConfiguration?,
     assembleResult: AssembleInvocationResult?,
     device: IDevice
   ) {
@@ -737,7 +720,7 @@ private data class ApkProviderTest(
 
     val apkProvider = when (scenario.target) {
       is ManuallyAssembled -> assembleResult!!.getApkProvider(scenario.target.gradlePath, scenario.target.forTests)
-      else -> runConfiguration!!.apkProvider!!
+      else -> project.getProjectSystem().getApkProvider(runConfiguration!!)!!
     }
 
     with(valueNormalizers) {
@@ -748,7 +731,6 @@ private data class ApkProviderTest(
           .joinToString("\n        ") { "${it.moduleName} -> ${it.apkFile.toTestString()}" }
         return """
       ApplicationId: ${this.applicationId}
-      File: ${runCatching { file.toTestString() }.let { it.getOrNull() ?: "*>${it.exceptionOrNull()}" }}
       Files:
         $filesString
       RequiredInstallationOptions: ${this.requiredInstallOptions}""".trimIndent()

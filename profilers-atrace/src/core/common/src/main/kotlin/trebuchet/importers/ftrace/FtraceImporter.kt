@@ -27,8 +27,8 @@ import trebuchet.model.fragments.ModelFragment
 import trebuchet.util.contains
 import java.util.regex.Pattern
 
-class FtraceImporter(private val feedback: ImportFeedback) : Importer {
-    private var foundHeader = false
+class FtraceImporter(val feedback: ImportFeedback) : Importer {
+    var foundHeader = false
     var state = FtraceImporterState(feedback)
     val parser = FtraceLine.Parser(state.stringCache)
 
@@ -37,14 +37,14 @@ class FtraceImporter(private val feedback: ImportFeedback) : Importer {
     private var ftraceParserCallback: (FtraceLine) -> Unit = state::importLine
     private val coreStartedRegex = Pattern.compile("^#+ CPU \\d buffer started #+")
 
-    override fun import(stream: StreamingReader): ModelFragment {
+    override fun import(stream: StreamingReader): ModelFragment? {
         val lineReader = StreamingLineReader(1024, stream)
         foundHeader = false
         lineReader.forEachLine(lineReaderCallback)
         return state.finish()
     }
 
-    private fun handleLine(line: DataSlice) {
+    fun handleLine(line: DataSlice) {
         // This should never happen. However due to the dereference below we guard against it so we don't throw out of bounds exceptions.
         if (line.buffer.size < 2) {
             return

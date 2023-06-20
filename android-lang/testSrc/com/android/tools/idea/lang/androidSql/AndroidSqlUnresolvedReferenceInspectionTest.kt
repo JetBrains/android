@@ -18,10 +18,12 @@ package com.android.tools.idea.lang.androidSql
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.loadNewFile
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
-class AndroidSqlUnresolvedReferenceInspectionTest : RoomLightTestCase() {
+class AndroidSqlUnresolvedReferenceInspectionTest : LightJavaCodeInsightFixtureAdtTestCase() {
   override fun setUp() {
     super.setUp()
+    createStubRoomClasses(myFixture)
     myFixture.enableInspections(AndroidSqlUnresolvedReferenceInspection::class.java)
   }
 

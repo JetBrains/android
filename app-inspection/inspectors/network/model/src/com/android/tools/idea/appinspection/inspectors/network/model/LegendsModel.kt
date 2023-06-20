@@ -23,13 +23,27 @@ import com.android.tools.adtui.model.legend.SeriesLegend
 
 private val TRAFFIC_AXIS_FORMATTER = NetworkTrafficFormatter(1, 5, 5)
 
-class LegendsModel(speedLineChartModel: NetworkSpeedLineChartModel, range: Range, tooltip: Boolean) : LegendComponentModel(range) {
-  val rxLegend = SeriesLegend(speedLineChartModel.rxSeries, TRAFFIC_AXIS_FORMATTER,
-                              range, NetworkTrafficLabel.BYTES_RECEIVED.getLabel(tooltip),
-                              Interpolatable.SegmentInterpolator)
-  val txLegend = SeriesLegend(speedLineChartModel.txSeries, TRAFFIC_AXIS_FORMATTER,
-                              range, NetworkTrafficLabel.BYTES_SENT.getLabel(tooltip),
-                              Interpolatable.SegmentInterpolator)
+class LegendsModel(
+  speedLineChartModel: NetworkSpeedLineChartModel,
+  range: Range,
+  tooltip: Boolean
+) : LegendComponentModel(range) {
+  val rxLegend =
+    SeriesLegend(
+      speedLineChartModel.rxSeries,
+      TRAFFIC_AXIS_FORMATTER,
+      range,
+      NetworkTrafficLabel.BYTES_RECEIVED.getLabel(tooltip),
+      Interpolatable.SegmentInterpolator
+    )
+  val txLegend =
+    SeriesLegend(
+      speedLineChartModel.txSeries,
+      TRAFFIC_AXIS_FORMATTER,
+      range,
+      NetworkTrafficLabel.BYTES_SENT.getLabel(tooltip),
+      Interpolatable.SegmentInterpolator
+    )
 
   init {
     add(rxLegend)

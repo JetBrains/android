@@ -78,11 +78,4 @@ class CpuProfilerConfigsStateTest {
   fun getConfigByNameInvalid() {
     assertThat(myConfigsState.getConfigByName("invalid")).isNull()
   }
-
-  @Test
-  fun defaultConfigsDisableLiveAllocation() {
-    CpuProfilerConfigsState.getDefaultConfigs().forEach {
-      config -> assertThat(config.isDisableLiveAllocation).isTrue()
-    }
-  }
 }

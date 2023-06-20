@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
+import com.android.SdkConstants.ATTR_INPUT_TYPE
 import com.android.tools.idea.uibuilder.property.NlFlagsPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
@@ -30,8 +31,11 @@ open class NlControlTypeProvider(val enumSupportProvider: EnumSupportProvider<Nl
   override fun invoke(actual: NlPropertyItem): ControlType {
     val property = actual.delegate ?: actual
     return when {
+      // Note: For InputType properties do not use the standard flag editor. This property has too complex rules.
+      // Instead display an action on the left of a text editor just like we do for color properties.
+      // The action has a custom implementation in InputTypePropertyItem.
       property is NlFlagsPropertyItem ->
-        ControlType.FLAG_EDITOR
+        if (property.name == ATTR_INPUT_TYPE) ControlType.COLOR_EDITOR else ControlType.FLAG_EDITOR
 
       enumSupportProvider(property) != null ->
         when (property.type) {

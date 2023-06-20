@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
 import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -47,6 +48,10 @@ class LibraryResourceClassLoaderTest {
   private lateinit var resourceIdManger: TestResourceIdManager
 
   private lateinit var projectSystem: TestProjectSystem
+
+  private val nullDelegatingClassLoader: DelegatingClassLoader.Loader = object : DelegatingClassLoader.Loader {
+    override fun loadClass(fqcn: String): ByteArray? = null
+  }
 
   @Before
   fun setup() {
@@ -94,20 +99,20 @@ class LibraryResourceClassLoaderTest {
 
   @Test
   fun `not existing class throws`() {
-    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module)
+    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module, nullDelegatingClassLoader)
     assertThrowsClassNotFoundException { classLoader.loadClass("test.R") }
   }
 
   @Test
   fun `empty R class in library`() {
-    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module)
+    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module, nullDelegatingClassLoader)
     assertNotNull(classLoader.loadClass("com.example.mylibrary.empty.R"))
     assertNotNull(classLoader.loadClass("com.example.mylibrary.empty.R${'$'}layout"))
   }
 
   @Test
   fun `library R class is correctly found`() {
-    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module)
+    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module, nullDelegatingClassLoader)
     assertNotNull(classLoader.loadClass("com.example.mylibrary.R"))
     assertNotNull(classLoader.loadClass("com.example.mylibrary.R${'$'}layout"))
     val stringRclass = classLoader.loadClass("com.example.mylibrary.R${'$'}string")
@@ -120,11 +125,13 @@ class LibraryResourceClassLoaderTest {
 
   // Regression test for b/233862429
   @Test
-  fun `library R class are not found if final IDs are used and project is compiled`() {
+  fun `library R class is not found if final IDs are used and module class loader finds class`() {
     resourceIdManger.setFinalIdsUsed(true)
-    projectSystem.getBuildManager().compileProject()
+    val delegatingClassLoader = object : DelegatingClassLoader.Loader {
+      override fun loadClass(fqcn: String): ByteArray? = ByteArray(1) // stub for ModuleClassLoaderImpl being able to load the class
+    }
 
-    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module)
+    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module, delegatingClassLoader)
     // When final IDs are used, we should load the R classes from the compiled R classes, not the light classes created by this class loader
     assertThrowsClassNotFoundException { classLoader.loadClass("com.example.mylibrary.R") }
     assertThrowsClassNotFoundException { classLoader.loadClass("com.example.mylibrary.R${'$'}layout") }
@@ -132,10 +139,13 @@ class LibraryResourceClassLoaderTest {
 
   // Regression test for b/236854148
   @Test
-  fun `library R class are found if final IDs are used and project is not yet compiled`() {
+  fun `library R class is found if final IDs are used and module class loader does not find class`() {
     resourceIdManger.setFinalIdsUsed(true)
+    val delegatingClassLoader = object : DelegatingClassLoader.Loader {
+      override fun loadClass(fqcn: String): ByteArray? = null // stub for ModuleClassLoaderImpl being unable to load the class
+    }
 
-    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module)
+    val classLoader = LibraryResourceClassLoader(null, androidProjectRule.module, delegatingClassLoader)
     // When final IDs are used, we should only load the R classes from the compiled R classes if a build has happened. If not, we should
     // load them from light classes created by this class loader
     classLoader.loadClass("com.example.mylibrary.R")

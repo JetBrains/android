@@ -19,6 +19,9 @@ import com.android.build.attribution.analyzers.ConfigurationCachingCompatibility
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
+import com.android.build.attribution.ui.model.TasksDataPageModel
+import com.android.buildanalyzer.common.TaskCategory
+import com.android.buildanalyzer.common.TaskCategoryIssue
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 
 /*
@@ -31,11 +34,11 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
  */
 
 interface BuildAttributionReportUiData {
-  val successfulBuild: Boolean
-  val buildRequest: GradleBuildInvoker.Request
+  val buildRequestData: GradleBuildInvoker.Request.RequestData
   val buildSummary: BuildSummary
   val criticalPathTasks: CriticalPathTasksUiData
   val criticalPathPlugins: CriticalPathPluginsUiData
+  val criticalPathTaskCategories: CriticalPathTaskCategoriesUiData?
   /**
    * All detected issues grouped by issue type
    */
@@ -45,6 +48,7 @@ interface BuildAttributionReportUiData {
   val confCachingData: ConfigurationCachingCompatibilityProjectResult
   val jetifierData: JetifierUsageAnalyzerResult
   val downloadsData: DownloadsAnalyzer.Result
+  val showTaskCategoryInfo: Boolean
 }
 
 interface BuildSummary {
@@ -72,10 +76,19 @@ interface CriticalPathTasksUiData {
   val infoCount: Int
 }
 
-interface CriticalPathPluginsUiData {
+interface CriticalPathPluginsUiData: CriticalPathEntriesUiData {
+  override val entries: List<CriticalPathPluginUiData>
+}
+
+interface CriticalPathTaskCategoriesUiData: CriticalPathEntriesUiData{
+  override val entries: List<CriticalPathTaskCategoryUiData>
+}
+
+// Model UI object that represents a list of plugins/ task labels
+interface CriticalPathEntriesUiData {
   val criticalPathDuration: TimeWithPercentage
   val miscStepsTime: TimeWithPercentage
-  val plugins: List<CriticalPathPluginUiData>
+  val entries: List<CriticalPathEntryUiData>
   val warningCount: Int
   val infoCount: Int
 }
@@ -102,30 +115,46 @@ interface TaskUiData {
     get() = issues.any { it.type.level == IssueLevel.WARNING }
   val hasInfo: Boolean
     get() = issues.any { it.type.level == IssueLevel.INFO }
+  val primaryTaskCategory: TaskCategory
+  val secondaryTaskCategories: List<TaskCategory>
+  val relatedTaskCategoryIssues: List<TaskCategoryIssueUiData>
 }
 
 enum class PluginSourceType {
-  ANDROID_PLUGIN, BUILD_SRC, THIRD_PARTY
+  ANDROID_PLUGIN, BUILD_SCRIPT, THIRD_PARTY
 }
 
-interface CriticalPathPluginUiData {
+interface CriticalPathPluginUiData : CriticalPathEntryUiData {
+  override val modelGrouping: TasksDataPageModel.Grouping
+    get() = TasksDataPageModel.Grouping.BY_PLUGIN
+}
+
+interface CriticalPathTaskCategoryUiData : CriticalPathEntryUiData {
+  val taskCategory: TaskCategory
+  val taskCategoryDescription: String
+  override val modelGrouping: TasksDataPageModel.Grouping
+    get() = TasksDataPageModel.Grouping.BY_TASK_CATEGORY
+
+  /**
+   * Compiles a list of task categories issues to report. [forWarningsPage] filters out some issues that will be displayed on the warnings
+   * page anyways, (e.g. non-incremental annotation processors).
+   */
+  fun getTaskCategoryIssues(severity: TaskCategoryIssue.Severity, forWarningsPage: Boolean): List<TaskCategoryIssueUiData>
+}
+
+// Model UI object that represents a plugin / task label
+interface CriticalPathEntryUiData {
   val name: String
-  /** Total time of this plugin tasks on critical path. */
+  /** Total time of these entry tasks on critical path. */
   val criticalPathDuration: TimeWithPercentage
   /** This plugin tasks on critical path. */
-  val criticalPathTasks: CriticalPathPluginTasksUiData
+  val criticalPathTasks: List<TaskUiData>
+  val size: Int
+    get() = criticalPathTasks.size
   val issues: List<TaskIssuesGroup>
   val warningCount: Int
   val infoCount: Int
-}
-
-interface CriticalPathPluginTasksUiData {
-  val criticalPathDuration: TimeWithPercentage
-  val tasks: List<TaskUiData>
-  val size: Int
-    get() = tasks.size
-  val warningCount: Int
-  val infoCount: Int
+  val modelGrouping: TasksDataPageModel.Grouping
 }
 
 /**
@@ -204,3 +233,10 @@ interface AnnotationProcessorUiData {
   val className: String
   val compilationTimeMs: Long
 }
+
+data class TaskCategoryIssueUiData(
+  val issue: TaskCategoryIssue,
+  val message: String,
+  val link: BuildAnalyzerBrowserLinks?
+  )
+

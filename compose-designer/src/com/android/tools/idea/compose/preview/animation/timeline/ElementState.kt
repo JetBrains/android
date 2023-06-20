@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
 /** State of the [TimelineElement] in timeline. */
-class ElementState(val title : String? = null) {
+class ElementState(val title: String? = null) {
   private val valueOffsetListeners: MutableList<() -> Unit> = mutableListOf()
 
   /** The offset in ms for which the animation is shifted. */

@@ -16,7 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -29,14 +29,13 @@ import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
-import com.intellij.testFramework.TestDataProvider
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.any
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.verify
-
 
 class UpgradeGradleVersionsQuickFixTest {
   @JvmField
@@ -65,8 +64,8 @@ class UpgradeGradleVersionsQuickFixTest {
 
   private fun verifyUpdaterRun(success: Boolean) {
     val project = gradleProjectRule.project
-    val latestGradleVersion = GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
-    val latestAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val latestGradleVersion = GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
+    val latestAgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
     val quickFix = UpgradeGradleVersionsQuickFix(latestGradleVersion, latestAgpVersion, "latest")
     val ideComponents = IdeComponents(project)
     val mockedUpdater = ideComponents.mockProjectService(AndroidPluginVersionUpdater::class.java);
@@ -80,7 +79,7 @@ class UpgradeGradleVersionsQuickFixTest {
     }
     ideComponents.replaceApplicationService(GradleSyncInvoker::class.java, fakeSyncInvoker)
     whenever(mockedUpdater.updatePluginVersion(any(), any())).thenReturn(success)
-    val result = quickFix.runQuickFix(project, TestDataProvider(project) as DataContext).get()
+    val result = quickFix.runQuickFix(project, DataContext { }).get()
     assertThat(result).isEqualTo(success)
     verify(mockedUpdater).updatePluginVersion(eq(latestAgpVersion), eq(latestGradleVersion))
     if (success) {
@@ -94,13 +93,13 @@ class UpgradeGradleVersionsQuickFixTest {
   private fun verifyProcessorRun(success: Boolean) {
     gradleProjectRule.loadProject(SIMPLE_APPLICATION)
     val project = gradleProjectRule.project
-    val latestGradleVersion = GradleVersion.parse(SdkConstants.GRADLE_LATEST_VERSION)
-    val latestAgpVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val latestGradleVersion = GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
+    val latestAgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
     val quickFix = UpgradeGradleVersionsQuickFix(latestGradleVersion, latestAgpVersion, "latest")
     quickFix.showDialogResult(success)
     val ideComponents = IdeComponents(project)
     val mockSyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker::class.java)
-    val result = quickFix.runQuickFix(project, TestDataProvider(project) as DataContext).get()
+    val result = quickFix.runQuickFix(project, DataContext { }).get()
     assertThat(result).isEqualTo(success)
     Mockito.verifyNoMoreInteractions(mockSyncInvoker)
   }

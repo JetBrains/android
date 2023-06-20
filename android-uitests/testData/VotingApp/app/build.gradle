@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
+    namespace "com.src.adux.votingapp"
 
     defaultConfig {
         applicationId "com.src.adux.votingapp"

@@ -22,6 +22,7 @@ import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.HTMLEditorKitBuilder;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.StartupUiUtil;
 import java.awt.Color;
 import java.awt.Font;
@@ -44,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * TODO: Add font defaults.
  */
-public final class UIUtils {
+public class UIUtils {
 
   /**
    * Foreground color for positive indication of results.
@@ -73,15 +74,15 @@ public final class UIUtils {
   private static final Color SECONDARY_COLOR = new JBColor(0x757575, 0xBDBDBD);
 
   /**
-   * Default color for links. These are treated differently to make it clear that they are not the same as internal links.
-   * Colors are Material Blue Grey 400/200.
+   * Default color for links, whether they are internal or external links.
+   * Colors are using IntelliJ theme colors for links.
    */
-  private static final Color OFFSITE_LINK_COLOR = new JBColor(0x78909C, 0xB0BEC5);
+  private static final Color OFFSITE_LINK_COLOR = JBUI.CurrentTheme.Link.Foreground.ENABLED;
 
   /**
    * Panel background color. Patterned after tree text background.
    */
-  private static final Color BACKGROUND_COLOR = new JBColor(0xFFFFFF, 0xFF3C3F41);
+  private static final Color BACKGROUND_COLOR = JBUI.CurrentTheme.ToolWindow.background();
 
   /**
    * Hover color for components using {@code BACKGROUND_COLOR}.

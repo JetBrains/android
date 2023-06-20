@@ -34,7 +34,7 @@ class ApiLevelColumnInfo extends ColumnInfo<UpdaterTreeNode, String> {
     AndroidVersion version;
     if (node instanceof DetailsTreeNode) {
       DetailsTypes.ApiDetailsType details = (DetailsTypes.ApiDetailsType)((DetailsTreeNode)node).getPackage().getTypeDetails();
-      version = new AndroidVersion(details.getApiLevel(), details.getCodename());
+      version = details.getAndroidVersion();
     }
     else if (node instanceof SummaryTreeNode) {
       version = ((SummaryTreeNode)node).getVersion();
@@ -44,7 +44,7 @@ class ApiLevelColumnInfo extends ColumnInfo<UpdaterTreeNode, String> {
     }
 
     if (version != null) {
-      return version.getApiString();
+      return version.getApiStringWithExtension();
     }
     else {
       return "Unknown";

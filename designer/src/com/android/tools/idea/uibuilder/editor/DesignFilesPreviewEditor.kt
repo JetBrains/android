@@ -86,17 +86,12 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
         }
         .build()
         .apply {
-          val screenViewProvider = if (StudioFlags.NELE_DRAWABLE_BACKGROUND_MENU.get()) {
-            when (file?.toPsiFile(project)?.typeOf()) {
-              is AdaptiveIconFileType, is DrawableFileType -> {
-                val lastBackgroundType = DesignSurfaceSettings.getInstance(project).surfaceState.loadDrawableBackgroundType(project, file!!)
-                DrawableScreenViewProvider(lastBackgroundType)
-              }
-              else -> NlScreenViewProvider.RENDER
+          val screenViewProvider = when (file?.toPsiFile(project)?.typeOf()) {
+            is AdaptiveIconFileType, is DrawableFileType -> {
+              val lastBackgroundType = DesignSurfaceSettings.getInstance(project).surfaceState.loadDrawableBackgroundType(project, file!!)
+              DrawableScreenViewProvider(lastBackgroundType)
             }
-          }
-          else {
-            NlScreenViewProvider.RENDER
+            else -> NlScreenViewProvider.RENDER
           }
           setScreenViewProvider(screenViewProvider, false)
           // Make DesignSurface be focused when mouse clicked. This make the DataContext is provided from it while user clicks it.
@@ -114,7 +109,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
       else DesignerEditorPanel.ModelProvider.defaultModelProvider
 
     return DesignerEditorPanel(this, myProject, myFile, workBench, surface, NlComponentRegistrar, modelProvider, { emptyList() },
-                               { designSurface, model -> addAnimationToolbar(designSurface, model) },
+                               { panel, model -> addAnimationToolbar(panel, model) },
                                AndroidEditorSettings.getInstance().globalState.preferredDrawableSurfaceState())
   }
 
@@ -124,7 +119,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
                              facet: AndroidFacet,
                              componentRegistrar: Consumer<NlComponent>,
                              file: VirtualFile): NlModel {
-      val config = ConfigurationManager.getOrCreateInstance(facet).getPreviewConfig()
+      val config = ConfigurationManager.getOrCreateInstance(facet.module).getPreviewConfig()
       animatedSelectorModel = WriteCommandAction.runWriteCommandAction(project, Computable {
         AnimatedSelectorModel(file, parentDisposable, project, facet, componentRegistrar, config)
       })
@@ -132,7 +127,8 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     }
   }
 
-  private fun addAnimationToolbar(surface: DesignSurface<*>, model: NlModel?): JPanel? {
+  private fun addAnimationToolbar(panel: DesignerEditorPanel, model: NlModel?): JPanel? {
+    val surface = panel.surface
     val toolbar = if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && model?.type is AnimatedStateListTempFileType) {
       AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, AnimatedSelectorListener(surface), 16, 0L)
     }
@@ -153,7 +149,9 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     else {
       null
     }
-    DataManager.registerDataProvider(surface) { if (ANIMATION_TOOLBAR.`is`(it)) toolbar else null }
+    // Clear the existing provider first, which happens when another toolbar is created.
+    DataManager.removeDataProvider(panel)
+    DataManager.registerDataProvider(panel) { if (ANIMATION_TOOLBAR.`is`(it)) toolbar else null }
     if (toolbar != null) {
       myProject.messageBus.connect(toolbar).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
         override fun selectionChanged(event: FileEditorManagerEvent) {

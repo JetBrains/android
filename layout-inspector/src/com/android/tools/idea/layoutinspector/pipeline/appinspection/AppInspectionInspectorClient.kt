@@ -26,16 +26,12 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.concurrency.coroutineScope
-import com.android.tools.idea.concurrency.createChildScope
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
@@ -54,8 +50,6 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
@@ -63,13 +57,13 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.Dynamic
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.android.util.AndroidBundle
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.nio.file.Path
@@ -95,16 +89,25 @@ class AppInspectionInspectorClient(
   process: ProcessDescriptor,
   isInstantlyAutoConnected: Boolean,
   private val model: InspectorModel,
-  private val metrics: LayoutInspectorMetrics,
+  private val metrics: LayoutInspectorSessionMetrics,
   private val treeSettings: TreeSettings,
+  private val inspectorClientSettings: InspectorClientSettings,
+  private val coroutineScope: CoroutineScope,
   parentDisposable: Disposable,
   @TestOnly private val apiServices: AppInspectionApiServices = AppInspectionDiscoveryService.instance.apiServices,
   @TestOnly private val sdkHandler: AndroidSdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-) : AbstractInspectorClient(process, isInstantlyAutoConnected, SessionStatisticsImpl(APP_INSPECTION_CLIENT, model), parentDisposable) {
+) : AbstractInspectorClient(
+  APP_INSPECTION_CLIENT,
+  model.project,
+  process,
+  isInstantlyAutoConnected,
+  SessionStatisticsImpl(APP_INSPECTION_CLIENT),
+  coroutineScope,
+  parentDisposable
+) {
 
   private var viewInspector: ViewLayoutInspectorClient? = null
   private lateinit var propertiesProvider: AppInspectionPropertiesProvider
-  private val scope = AndroidCoroutineScope(this)
 
   /** Compose inspector, may be null if user's app isn't using the compose library. */
   @VisibleForTesting
@@ -112,24 +115,9 @@ class AppInspectionInspectorClient(
     private set
 
   private val loggingExceptionHandler = CoroutineExceptionHandler { _, t ->
-    fireError(t.message!!)
+    fireError(t.message, t)
   }
 
-  private val bannerExceptionHandler = CoroutineExceptionHandler { ctx, t ->
-    loggingExceptionHandler.handleException(ctx, t)
-    InspectorBannerService.getInstance(model.project).setNotification(
-      when {
-        t is ConnectionFailedException -> t.message!!
-        process.device.apiLevel >= 29 -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
-        else -> {
-          Logger.getInstance(AppInspectionInspectorClient::class.java).warn(t)
-          "Unknown error"
-        }
-      }
-    )
-  }
-
-  private val debugViewAttributes = DebugViewAttributes(model.project)
   private var debugViewAttributesChanged = false
 
   override val capabilities =
@@ -151,87 +139,107 @@ class AppInspectionInspectorClient(
   override val provider: PropertiesProvider
     get() = propertiesProvider
   override val isCapturing: Boolean
-    get() = InspectorClientSettings.isCapturingModeOn
+    get() = inspectorClientSettings.isCapturingModeOn
 
-  override fun doConnect(): ListenableFuture<Nothing> {
-    val future = SettableFuture.create<Nothing>()
-    try {
-      checkApi29Version(process, model.project, sdkHandler)
-    }
-    catch (exception: ConnectionFailedException) {
-      future.setException(exception)
-      return future
-    }
+  override suspend fun doConnect() {
+    // we run this function outside the runCatching because it sets a banner in case of exception.
+    // We don't want the runCatching to handle it.
+    checkApi29Version(process, model.project, sdkHandler)
 
-    val exceptionHandler = CoroutineExceptionHandler { ctx, t ->
-      bannerExceptionHandler.handleException(ctx, t)
-      future.setException(t)
-    }
-    scope.launch(exceptionHandler) {
+    runCatching {
       logEvent(DynamicLayoutInspectorEventType.ATTACH_REQUEST)
 
       // Create the app inspection connection now, so we can log that it happened.
       apiServices.attachToProcess(process, model.project.name)
       launchMonitor.updateProgress(DynamicLayoutInspectorErrorInfo.AttachErrorState.ATTACH_SUCCESS)
 
-      composeInspector = ComposeLayoutInspectorClient.launch(apiServices, process, model, treeSettings, capabilities, launchMonitor)
-      val viewIns = ViewLayoutInspectorClient.launch(apiServices, process, model, stats, scope, composeInspector,
-                                                     ::fireError, ::fireTreeEvent, launchMonitor)
+      composeInspector = ComposeLayoutInspectorClient.launch(
+        apiServices, process, model, treeSettings, capabilities, launchMonitor, ::logComposeAttachError
+      )
+      val viewIns = ViewLayoutInspectorClient.launch(
+        apiServices, process, model, stats, coroutineScope, composeInspector, ::fireError, ::fireRootsEvent, ::fireTreeEvent, launchMonitor
+      )
       propertiesProvider = AppInspectionPropertiesProvider(viewIns.propertiesCache, composeInspector?.parametersCache, model)
       viewInspector = viewIns
 
       logEvent(DynamicLayoutInspectorEventType.ATTACH_SUCCESS)
 
-      debugViewAttributesChanged = debugViewAttributes.set(process)
+      debugViewAttributesChanged = DebugViewAttributes.getInstance().set(model.project, process)
       if (debugViewAttributesChanged && !isInstantlyAutoConnected) {
         showActivityRestartedInBanner(model.project, process)
       }
 
-      lateinit var updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit
-      updateListener = { _, _, _ ->
-        future.set(null)
-        model.modificationListeners.remove(updateListener)
+      val completableDeferred = CompletableDeferred<Unit>()
+      val updateListener: (AndroidWindow?, AndroidWindow?, Boolean) -> Unit = { _, _, _ ->
+        completableDeferred.complete(Unit)
       }
+
       model.modificationListeners.add(updateListener)
+
+      if (inspectorClientSettings.disableBitmapScreenshot) {
+        disableBitmapScreenshots(true)
+      }
+
       if (isCapturing) {
         startFetchingInternal()
       }
       else {
         refreshInternal()
       }
+
+      // wait until we start receiving updates
+      completableDeferred.await()
+      model.modificationListeners.remove(updateListener)
+    }.recover {
+      handleException(it)
+      throw it
     }
-    return future
   }
 
-  override fun doDisconnect(): ListenableFuture<Nothing> {
-    val future = SettableFuture.create<Nothing>()
-    // Create a new scope since we might be disconnecting because the original one died.
-    model.project.coroutineScope.createChildScope(true).launch(loggingExceptionHandler) {
-      if (debugViewAttributesChanged) {
-        debugViewAttributes.clear(process)
+  private fun handleException(throwable: Throwable) {
+    fireError(throwable.message, throwable)
+  }
+
+  override suspend fun doDisconnect() = withContext(AndroidDispatchers.workerThread) {
+    try {
+      val debugViewAttributes = DebugViewAttributes.getInstance()
+      if (debugViewAttributesChanged && !debugViewAttributes.usePerDeviceSettings()) {
+        debugViewAttributes.clear(model.project, process)
       }
       viewInspector?.disconnect()
       composeInspector?.disconnect()
+      // TODO: skiaParser#shutdown is a blocking function. Should be ported to coroutines
       skiaParser.shutdown()
       logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
 
-      future.set(null)
+    } catch (t: Throwable) {
+      fireError(t.message, t)
+      throw t
     }
-    return future
   }
 
-  override fun startFetching() =
-    scope.launch(bannerExceptionHandler) {
+  override suspend fun startFetching() {
+    try {
       startFetchingInternal()
-    }.asCompletableFuture()
+    }
+    catch (t: Throwable) {
+      handleException(t)
+      throw t
+    }
+  }
 
   private suspend fun startFetchingInternal() {
     stats.currentModeIsLive = true
     viewInspector?.startFetching(continuous = true)
   }
 
-  override fun stopFetching() =
-    scope.launch(loggingExceptionHandler) {
+  private suspend fun disableBitmapScreenshots(disable: Boolean) {
+    // TODO(b/265150325) disableBitmapScreenshots to stats
+    viewInspector?.disableBitmapScreenshots(disable)
+  }
+
+  override suspend fun stopFetching() {
+    try {
       // Reset the scale to 1 to support zooming while paused, and get an SKP if possible.
       if (capabilities.contains(Capability.SUPPORTS_SKP)) {
         updateScreenshotType(AndroidWindow.ImageType.SKP, 1.0f)
@@ -241,16 +249,24 @@ class AppInspectionInspectorClient(
       }
       stats.currentModeIsLive = false
       viewInspector?.stopFetching()
-    }.asCompletableFuture()
+    } catch (t: Throwable) {
+      fireError(t.message, t)
+      throw t
+    }
+  }
 
   override fun refresh() {
-    scope.launch(loggingExceptionHandler) {
+    coroutineScope.launch(loggingExceptionHandler) {
       refreshInternal()
     }
   }
 
   private fun logEvent(eventType: DynamicLayoutInspectorEventType) {
     metrics.logEvent(eventType, stats)
+  }
+
+  private fun logComposeAttachError(errorCode: AttachErrorCode) {
+    stats.composeAttachError(errorCode)
   }
 
   private suspend fun refreshInternal() {
@@ -269,7 +285,7 @@ class AppInspectionInspectorClient(
   }
 
   fun updateRecompositionCountSettings() {
-    scope.launch(loggingExceptionHandler) {
+    coroutineScope.launch(loggingExceptionHandler) {
       composeInspector?.updateSettings()
     }
   }
@@ -280,7 +296,7 @@ class AppInspectionInspectorClient(
     val metadata = viewInspector?.saveSnapshot(path)
     metadata?.saveDuration = System.currentTimeMillis() - startTime
     // Use a separate metrics instance since we don't want the snapshot metadata to hang around
-    val saveMetrics = LayoutInspectorMetrics(model.project, snapshotMetadata = metadata)
+    val saveMetrics = LayoutInspectorSessionMetrics(model.project, snapshotMetadata = metadata)
     saveMetrics.logEvent(DynamicLayoutInspectorEventType.SNAPSHOT_CAPTURED, stats)
   }
 
@@ -296,7 +312,7 @@ class AppInspectionInspectorClient(
 
     val tags = (image.typeDetails as? DetailsTypes.SysImgDetailsType)?.tags ?: listOf()
 
-    val bannerService = InspectorBannerService.getInstance(project)
+    val bannerService = InspectorBannerService.getInstance(project) ?: return
     if (tags.contains(SystemImage.GOOGLE_APIS_TAG) || tags.contains(SystemImage.DEFAULT_TAG)) {
       val logger = StudioLoggerProgressIndicator(AppInspectionInspectorClient::class.java)
       val showBanner = RepoManager.RepoLoadedListener { packages ->
@@ -319,14 +335,14 @@ class AppInspectionInspectorClient(
           message = API_29_BUG_MESSAGE
           actions = listOf(bannerService.DISMISS_ACTION)
         }
-        bannerService.setNotification(message, actions)
+        bannerService.addNotification(message, actions)
       }
       sdkHandler.getSdkManager(logger).load(0, null, listOf(showBanner), null,
                                             StudioProgressRunner(false, false, "Checking available system images", null),
                                             StudioDownloader(), StudioSettingsController.getInstance())
     }
     else {
-      bannerService.setNotification(API_29_BUG_MESSAGE, listOf(bannerService.DISMISS_ACTION))
+      bannerService.addNotification(API_29_BUG_MESSAGE, listOf(bannerService.DISMISS_ACTION))
     }
     throw ConnectionFailedException("Unsupported system image revision", AttachErrorCode.LOW_API_LEVEL)
   }

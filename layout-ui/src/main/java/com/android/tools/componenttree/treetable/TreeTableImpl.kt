@@ -20,10 +20,14 @@ import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.componenttree.api.BadgeItem
 import com.android.tools.componenttree.api.ColumnInfo
 import com.android.tools.componenttree.api.ContextPopupHandler
+import com.android.tools.componenttree.api.DnDMerger
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.api.TableVisibility
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.dnd.DnDSupport
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.DisabledTraversalPolicy
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -33,13 +37,15 @@ import com.intellij.ui.tree.ui.Control
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.ui.treeStructure.treetable.TreeTableModel
 import com.intellij.ui.treeStructure.treetable.TreeTableModelAdapter
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
+import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.awt.Graphics
 import java.awt.Point
+import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 import java.awt.dnd.DnDConstants
-import java.awt.dnd.DropTarget
 import java.awt.event.MouseEvent
 import java.lang.Integer.max
 import javax.swing.JComponent
@@ -76,6 +82,7 @@ class TreeTableImpl(
   treeSelectionMode: Int,
   autoScroll: Boolean,
   installTreeSearch: Boolean,
+  private val expandAllOnRootChange: Boolean,
   treeHeaderRenderer: TableCellRenderer?
 ) : TreeTable(model), TableVisibility {
   private val extraColumns: List<ColumnInfo>
@@ -86,8 +93,18 @@ class TreeTableImpl(
   private val emptyComponent = JLabel()
   private val emptyTreeCellRenderer = TableCellRenderer { _, _, _, _, _, _ -> emptyComponent }
   private var initialHeaderVisibility = false
+  private var enableDrags = false
+  private var dndClient: Disposable? = null
+
+  // The currently expanded row by the expandable items handler (needed by ViewTreeCellRenderer).
+  val expandedRow: Int?
+    get() = expandableItemsHandler.expandedItems.singleOrNull()?.row
 
   init {
+    // Do not add empty space on the right of the tree. That will cause trouble for the expansionHandler.
+    // If a truncated renderer fit in this space, it will not be expanded when hovering over that row.
+    tree.border = JBUI.Borders.emptyLeft(4)
+
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = DisabledTraversalPolicy()
     resetDefaultFocusTraversalKeys()
@@ -154,6 +171,22 @@ class TreeTableImpl(
   override fun addNotify() {
     super.addNotify()
     setHeaderVisibility(initialHeaderVisibility)
+    if (enableDrags) {
+      dndClient = Disposer.newDisposable()
+      DnDSupport.createBuilder(this)
+        .enableAsNativeTarget()
+        .setDropHandler(dropTargetHandler)
+        .setTargetChecker(dropTargetHandler)
+        .setDisposableParent(dndClient)
+        .setCleanUpOnLeaveCallback { dropTargetHandler?.reset() }
+        .install()
+    }
+  }
+
+  override fun removeNotify() {
+    super.removeNotify()
+    dndClient?.let { Disposer.dispose(it) }
+    dndClient = null
   }
 
   override fun setColumnVisibility(columnIndex: Int, visible: Boolean) {
@@ -163,12 +196,19 @@ class TreeTableImpl(
     }
   }
 
-  fun enableDnD() {
-    dragEnabled = true
-    val treeTransferHandler = TreeTableTransferHandler()
+  /**
+   * Override JTable.getDragEnabled() to avoid calling JTable.setDragEnabled(true) in tests,
+   * since that would cause a HeadlessException.
+   */
+  override fun getDragEnabled(): Boolean {
+    return enableDrags
+  }
+
+  fun enableDnD(merger: DnDMerger?, deleteOriginOfInternalMove: Boolean) {
+    val treeTransferHandler = TreeTableTransferHandler(merger)
+    enableDrags = true
     transferHandler = treeTransferHandler
-    dropTargetHandler = TreeTableDropTargetHandler(this) { treeTransferHandler.draggedItem }
-    dropTarget = DropTarget(this, dropTargetHandler)
+    dropTargetHandler = TreeTableDropTargetHandler(this, deleteOriginOfInternalMove, treeTransferHandler.draggedItems)
   }
 
   override fun getTableModel(): TreeTableModelImpl {
@@ -182,6 +222,9 @@ class TreeTableImpl(
   override fun updateUI() {
     super.updateUI()
     if (initialized) {
+      // The tree row height is not updated correctly after a UI update. See b/275514572
+      tree.rowHeight = getRowHeight()
+
       tableModel.clearRendererCache()
       installKeyboardActions(this)
       registerActionKey(::toggleTree, KeyStrokes.ENTER, "enter")
@@ -272,15 +315,6 @@ class TreeTableImpl(
     return parentPath.parentPath == null && !tree.isRootVisible && !tree.showsRootHandles
   }
 
-  private val selectedItem: Any?
-    get() {
-      val selectedRow = selectedRow
-      if (selectedRow < 0) {
-        return null
-      }
-      return getValueAt(selectedRow, 0)
-    }
-
   private fun Int.toTableSelectionMode() = when(this) {
     TreeSelectionModel.SINGLE_TREE_SELECTION -> ListSelectionModel.SINGLE_SELECTION
     TreeSelectionModel.CONTIGUOUS_TREE_SELECTION -> ListSelectionModel.SINGLE_INTERVAL_SELECTION
@@ -294,7 +328,11 @@ class TreeTableImpl(
       selectionModel.keepSelectionDuring {
         val expanded = TreeUtil.collectExpandedPaths(tree)
         tableModel.fireTreeStructureChange(event)
-        TreeUtil.restoreExpandedPaths(tree, expanded)
+        if (expandAllOnRootChange && event.rootChanged) {
+          TreeUtil.expandAll(tree)
+        } else {
+          TreeUtil.restoreExpandedPaths(tree, expanded)
+        }
       }
       (transferHandler as? TreeTableTransferHandler)?.resetDraggedItem()
       dropTargetHandler?.reset()
@@ -327,8 +365,8 @@ class TreeTableImpl(
     override fun invokePopup(comp: Component, x: Int, y: Int) {
       val cell = position(x, y) ?: return
       val item = getValueAt(cell.row, cell.column)
-      when {
-        cell.column == 0 -> contextPopup(this@TreeTableImpl, x, y)
+      when (cell.column) {
+        0 -> contextPopup(item, this@TreeTableImpl, x, y)
         else -> extraColumns[cell.column - 1].showPopup(item, this@TreeTableImpl, x, y)
       }
     }
@@ -338,7 +376,7 @@ class TreeTableImpl(
         val cell = position(event.x, event.y) ?: return
         val item = getValueAt(cell.row, cell.column)
         when {
-          cell.column == 0 && event.clickCount == 2 -> doubleClick()
+          cell.column == 0 && event.clickCount == 2 -> doubleClick(item)
           cell.column > 0 && event.clickCount == 1 -> {
             val bounds = getCellRect(cell.row, cell.column, true)
             extraColumns[cell.column - 1].performAction(item, this@TreeTableImpl, bounds)
@@ -381,29 +419,47 @@ class TreeTableImpl(
     }
   }
 
-  private inner class TreeTableTransferHandler : TransferHandler() {
-    var draggedItem: Any? = null
-      private set
+  inner class TreeTableTransferHandler(private val dndMerger: DnDMerger?) : TransferHandler() {
+    val draggedItems = mutableListOf<Any>()
 
     fun resetDraggedItem() {
-      draggedItem = null
+      draggedItems.clear()
     }
 
     override fun getSourceActions(component: JComponent): Int = DnDConstants.ACTION_COPY_OR_MOVE
 
+    @TestOnly // Give access to the protected function createTransferable in tests
+    fun createTransferableForTests(component: JComponent): Transferable? = createTransferable(component)
+
     override fun createTransferable(component: JComponent): Transferable? {
-      val item = selectedItem ?: return null
-      val transferable = tableModel.createTransferable(item) ?: return null
-      dragImage = tableModel.createDragImage(item)
-      draggedItem = item
-      return transferable
+      val rows = selectedRows
+      if (rows.isEmpty()) {
+        return null
+      }
+      var combinedTransferable: Transferable? = null
+      draggedItems.clear()
+      rows.forEach { row ->
+        if (combinedTransferable == null || dndMerger != null) {
+          val item = getValueAt(row, 0)
+          tableModel.createTransferable(item)?.let { transferable ->
+            combinedTransferable = combinedTransferable?.let { dndMerger?.invoke(it, transferable) } ?: transferable
+            draggedItems.add(item)
+          }
+        }
+      }
+      dragImage = draggedItems.singleOrNull()?.let { tableModel.createDragImage(it) }
+      return combinedTransferable
     }
 
-    override fun exportDone(source: JComponent, data: Transferable, action: Int) {
+    override fun canImport(comp: JComponent, transferFlavors: Array<out DataFlavor>): Boolean {
+      return true // TODO IMPLEMENT
+    }
+
+    override fun exportDone(source: JComponent, data: Transferable?, action: Int) {
       if (action == DnDConstants.ACTION_MOVE) {
-        draggedItem?.let { tableModel.delete(it) }
+        draggedItems.forEach { tableModel.delete(it) }
       }
-      draggedItem = null
+      draggedItems.clear()
     }
   }
 }

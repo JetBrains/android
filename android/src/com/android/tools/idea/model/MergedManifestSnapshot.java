@@ -32,7 +32,6 @@ import com.android.tools.idea.run.activity.ActivityLocatorUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.util.Clock;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +46,6 @@ import org.w3c.dom.Node;
  * An immutable snapshot of the merged manifests at a point in time.
  */
 public class MergedManifestSnapshot {
-  private final long myCreationTimeMs = Clock.getTime();
   private final Module myModule;
   @Nullable private final String myPackageName;
   @Nullable private final Integer myVersionCode;
@@ -138,10 +136,6 @@ public class MergedManifestSnapshot {
    */
   public boolean isValid() {
     return myIsValid;
-  }
-
-  long getCreationTimestamp() {
-    return myCreationTimeMs;
   }
 
   @Nullable

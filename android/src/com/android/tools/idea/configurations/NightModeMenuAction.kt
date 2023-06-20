@@ -34,7 +34,7 @@ class NightModeMenuAction(private val renderContext: ConfigurationHolder)
   }
 }
 
-private class SetNightModeAction(renderContext: ConfigurationHolder, title: String, private val nightMode: NightMode, checked: Boolean)
+internal class SetNightModeAction(renderContext: ConfigurationHolder, title: String, private val nightMode: NightMode, checked: Boolean)
   : ConfigurationAction(renderContext, title) {
 
   init {

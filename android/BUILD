@@ -3,7 +3,8 @@ load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/android-test-framework:check_tests.bzl", "check_tests")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
-load("//tools/base/bazel:proto.bzl", "android_java_proto_library", "java_proto_library")
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 java_proto_library(
     name = "android-core-proto",
@@ -56,16 +57,14 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
         "//tools/adt/idea/android/lib:spantable",
-        "//prebuilts/tools/common/m2:okio",
-        "//prebuilts/tools/common/m2:moshi",
         "//tools/base/repository:studio.android.sdktools.repository[module]",
         "//tools/data-binding:studio.baseLibrary[module]",
         "//tools/data-binding:studio.baseLibrarySupport[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
         "//tools/data-binding:studio.compiler[module]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
-        "//tools/adt/idea/.idea/libraries:baksmali",
-        "//tools/adt/idea/.idea/libraries:dexlib2",
+        "//tools/adt/idea/.idea/libraries:google-baksmali",
+        "//tools/adt/idea/.idea/libraries:google-dexlib2",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
@@ -127,6 +126,11 @@ iml_module(
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/base/process-monitor:studio.android.sdktools.process-monitor[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//prebuilts/r8",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
     ],
 )
 
@@ -142,31 +146,6 @@ iml_module(
             "shard_count": 6,
             "data": ["//prebuilts/studio/sdk:ndk"],
             "test_filter": "com.android.tools.idea.gradle",
-        },
-        "gradle.structure": {
-            "shard_count": 6,
-            "test_filter": "com.android.tools.idea.gradle.structure",
-        },
-        "gradle.structure.configurables.variables.VariablesTableTest": {
-            # Takes too long (b/152650494)
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.structure.configurables.variables.VariablesTableTest",
-        },
-        "gradle.structure.model.DependencyManagementTest": {
-            # Path separators in map keys (b/151462469)
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.structure.model.DependencyManagementTest",
-        },
-        "gradle.structure.configurables.dependencies.treeview": {
-            # Path separators e.g. (..\lib) (b/152560457)
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.structure.configurables.dependencies.treeview",
-        },
-        "gradle.structure.model.android": {
-            "shard_count": 6,
-            # Timeout waiting to lock Artifact transforms cache (b/152652501)
-            "tags": ["no_windows"],
-            "test_filter": "com.android.tools.idea.gradle.structure.model.android",
         },
         "gradle.project.sync": {
             "shard_count": 4,
@@ -201,6 +180,11 @@ iml_module(
         "editors.manifest": {
             "test_filter": "com.android.tools.idea.editors.manifest",
         },
+        "editors.literals": {
+            # b/253897699
+            "tags": ["no_windows"],
+            "test_filter": "com.android.tools.idea.editors.literals",
+        },
         "instantapp": {
             "test_filter": "com.android.tools.idea.instantapp",
         },
@@ -208,25 +192,42 @@ iml_module(
             "test_filter": "com.android.tools.idea.rendering",
             "shard_count": 2,
         },
+        "jetbrains": {
+            "test_filter": "org.jetbrains.android",
+            "shard_count": 6,
+        },
+        "AndroidGutterIconTest": {
+            # test requires actual image assets from icons to be rendered, if other tests run
+            # before it in the same shard, image assets wouldn't be rendered as they'd be DummyIcons
+            "test_filter": "org.jetbrains.android.AndroidGutterIconAnnotatorTest",
+            "shard_count": 1,
+        },
+        "resourcemanager": {
+            "test_filter": "com.android.tools.idea.ui.resourcemanager",
+            "shard_count": 2,
+        },
         "other": {
-            "shard_count": 7,
+            "shard_count": 5,
         },
     },
     test_class = "com.android.tools.idea.IdeaTestSuite",
     # keep sorted
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/jdk:jdk_1_8",
+        "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
         "//prebuilts/studio/layoutlib/data:layoutlib_extensions",
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",
         "//prebuilts/studio/sdk:licenses",
+        "//prebuilts/studio/sdk:patcher/v4",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
@@ -234,6 +235,7 @@ iml_module(
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/lib:apks",
         "//tools/adt/idea/android/lib:sampleData",
+        "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:libjni_object_tagger.prebuilt",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/compose-ide-plugin/testData",
@@ -245,11 +247,12 @@ iml_module(
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_friends = ["//tools/adt/idea/android:intellij.android.core"],
+    test_jvm_flags = ["-Djdk.attach.allowAttachSelf=true"],
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
+        "cpu:3",
         "no_test_mac",
     ],
     test_timeout = "long",
@@ -276,7 +279,7 @@ iml_module(
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module, test]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module, test]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module, test]",
-        "//tools/adt/idea/.idea/libraries:dexlib2[test]",
+        "//tools/adt/idea/.idea/libraries:google-dexlib2[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
@@ -352,6 +355,12 @@ iml_module(
         "//tools/adt/idea/android-navigator:intellij.android.navigator.testutils[module, test]",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module, test]",
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module, test]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-coverage[test]",
+        "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
     ],
 )
 
@@ -376,8 +385,8 @@ filegroup(
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [
-            "//tools/base/deploy/installer:test-installer",
             "//tools/base/deploy/installer:android-installer",
+            "//tools/base/deploy/installer:test-installer",
             "//tools/base/deploy/installer/tests:artifacts",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
@@ -426,7 +435,9 @@ filegroup(
 filegroup(
     name = "directaccess-artifacts",
     srcs = [
+        "//tools/adt/idea/.idea/libraries:adb_proxy_proto",
         "//tools/adt/idea/.idea/libraries:directaccess_client_proto",
+        "//tools/base/adb-proxy/reverse-daemon:daemon",
     ],
 )
 
@@ -442,29 +453,32 @@ filegroup(
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
+        "//tools/adt/idea/as-driver:as_driver_deploy.jar",
+        "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
         "//tools/adt/idea/server-flags:server-flag-test-proto",
-        "//tools/adt/idea/emulator/screen-sharing-agent:bundle",
+        "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
+        "//tools/base/bazel:utp-core-proto-jarjar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
+        "//tools/base/common:version",
         "//tools/base/ddmlib:am-instrumentation-data-proto",
         "//tools/base/ddmlib:app-processes-proto",
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
         "//tools/base/lint:lint-checks-proto",
+        "//tools/base/process-monitor/process-tracker-agent:bundle",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/base/tracer:trace_agent",
-        "//tools/adt/idea/as-driver:as_driver_deploy.jar",
-        "//tools/base/bazel:utp-core-proto-jarjar",
         "//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto",
         "//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto",
         "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:libstudio.android-test-plugin-result-listener-gradle-proto",
-        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
+        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
@@ -478,33 +492,34 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "//tools/adt/idea/kotlin-integration:kotlin-android-extensions-runtime-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-stdlib-jdk8-for-ide-plugin",
         "@maven//:android.arch.navigation.navigation-fragment_1.0.0",
         "@maven//:android.arch.persistence.room.runtime_1.0.0",
-        "@maven//:androidx.annotation.annotation_1.2.0-rc01",
+        "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.0-beta04",
-        "@maven//:androidx.compose.ui.ui-tooling_1.2.0",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.1",
+        "@maven//:androidx.compose.foundation.foundation_1.4.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.4.0",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
+        "@maven//:androidx.core.core-ktx_1.9.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.legacy.legacy-support-v4_1.0.0",
-        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.5.1",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.3.1",
-        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.4.0",
-        "@maven//:androidx.lifecycle.lifecycle-runtime_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.3.1",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
-        "@maven//:androidx.recyclerview.recyclerview_1.2.1",
+        "@maven//:androidx.recyclerview.recyclerview_1.3.0",
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
@@ -521,7 +536,7 @@ maven_repository(
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
         "@maven//:com.android.tools.desugar_jdk_libs_1.1.5",
         "@maven//:com.google.android.gms.play-services-maps_17.0.1",
-        "@maven//:com.google.android.gms.play-services-maps_18.0.2",
+        "@maven//:com.google.android.gms.play-services-maps_18.1.0",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.code.gson.gson_2.2.4",
@@ -544,7 +559,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.4.31",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.21",
-        "@maven//:org.mockito.mockito-core_3.12.4",
+        "@maven//:org.mockito.mockito-core_4.8.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
     # Do not change: this target is explicitly marked private to avoid bloat.
@@ -589,8 +604,6 @@ java_binary(
         ":update_offline_gmaven_index",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(
@@ -648,6 +661,7 @@ iml_module(
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -689,5 +703,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
     ],
 )

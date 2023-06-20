@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.common.scene.draw;
 
+import static com.android.tools.idea.common.scene.SceneComponent.DrawState.HOVER;
+
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -31,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class DrawNlComponentFrame extends DrawRegion {
 
+  private static final Stroke myHoveredStroke = new BasicStroke(2);
   private static final Stroke myNormalStroke = new BasicStroke(1);
   private static final Stroke myWrapStroke =  new BasicStroke(1);
   private static final Stroke myMatchParentStroke = new BasicStroke(1);
@@ -98,10 +101,10 @@ public class DrawNlComponentFrame extends DrawRegion {
         g.setClip(clipping);
       }
 
-      g.setStroke(getStroke(myLayoutHeight));
+      g.setStroke(getStroke(myLayoutHeight, myMode));
       g.drawLine(x, y, x, y + height);
       g.drawLine(x + width, y, x + width, y + height);
-      g.setStroke(getStroke(myLayoutWidth));
+      g.setStroke(getStroke(myLayoutWidth, myMode));
       g.drawLine(x, y, x + width, y);
       g.drawLine(x, y + height, x + width, y + height);
     }
@@ -130,7 +133,10 @@ public class DrawNlComponentFrame extends DrawRegion {
   }
 
   @NotNull
-  private static Stroke getStroke(int dim) {
+  private static Stroke getStroke(int dim, @NotNull SceneComponent.DrawState mode) {
+    if (mode == HOVER) {
+      return myHoveredStroke;
+    }
     if (dim == 0) {
       return myMatchConstraintStroke;
     }

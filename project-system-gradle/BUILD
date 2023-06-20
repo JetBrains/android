@@ -1,5 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/adt/idea/adt-testutils:old-agp-test.bzl", "old_agp_test")
+load("//tools/adt/idea/old-agp-tests:agp_versions.bzl", "AGP_7_4", "AGP_DATA")
 
 # managed by go/iml_to_build
 iml_module(
@@ -25,6 +27,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
@@ -49,6 +52,7 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl[module]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
     ],
 )
 
@@ -56,16 +60,29 @@ iml_module(
 iml_module(
     name = "intellij.android.projectSystem.gradle.tests",
     iml_files = ["intellij.android.projectSystem.gradle.tests.iml"],
+    split_test_targets = {
+        "jdk.integration": {
+            "data": [
+                "//prebuilts/studio/jdk/jdk11",
+            ],
+            "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
+        },
+        "other": {
+            "shard_count": 27,
+        },
+    },
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/jdk",
+        "//prebuilts/studio/jdk:jdk_1_8",
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
+        # TODO: Update and use platforms/latest-preview instead
+        "//prebuilts/studio/sdk:platforms/android-TiramisuPrivacySandbox",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
@@ -76,7 +93,6 @@ iml_module(
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_resources = ["testSrc/resources"],
-    test_shard_count = 26,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
@@ -115,6 +131,7 @@ iml_module(
         "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd[module, test]",
         "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch[module, test]",
         "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync[module, test]",
+        "//tools/adt/idea/project-system-gradle-sync-test-utils:intellij.android.projectSystem.gradle.sync.testUtils[module, test]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
@@ -122,7 +139,38 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy[test]",
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
+        "//tools/analytics-library/shared:analytics-shared[module, test]",
+        "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module, test]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
     ],
+)
+
+old_agp_test(
+    name = "MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest",
+    timeout = "long",
+    agp_version = AGP_7_4,
+    data = [
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/android-32",
+        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/project-system-gradle/testData",
+        "//tools/base/build-system:gradle-distrib",
+    ],
+    gradle_version = "7.5",
+    ignore_other_tests = True,
+    iml_module = ":intellij.android.projectSystem.gradle.tests",
+    maven_deps = [
+        "//tools/base/build-system/previous-versions:7.4.0",
+        "//tools/base/build-system/previous-versions:kgp1.3.72",
+        ":test_deps",
+    ],
+    tags = [
+        "block-network",
+        "no_test_mac",
+        "no_test_windows",
+    ],
+    test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemOldAgpTestSuite",
 )
 
 maven_repository(
@@ -130,13 +178,16 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:androidx.annotation.annotation_1.2.0-rc01",
+        "@maven//:androidx.annotation.annotation_1.3.0",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
+        "@maven//:androidx.appcompat.appcompat_1.4.1",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
+        "@maven//:androidx.core.core-ktx_1.9.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.legacy.legacy-support-v4_1.0.0",
@@ -147,21 +198,32 @@ maven_repository(
         "@maven//:androidx.navigation.navigation-fragment_2.3.5",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-ui_2.3.5",
+        "@maven//:androidx.privacysandbox.tools.tools-apicompiler_1.0.0-alpha02",
+        "@maven//:androidx.privacysandbox.tools.tools-apigenerator_1.0.0-alpha02",
+        "@maven//:androidx.privacysandbox.tools.tools-apipackager_1.0.0-alpha02",
+        "@maven//:androidx.privacysandbox.tools.tools_1.0.0-alpha02",
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
+        "@maven//:androidx.test.espresso.espresso-core_3.4.0",
         "@maven//:androidx.test.ext.junit_1.1.2",
+        "@maven//:androidx.test.ext.junit_1.1.3",
         "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
+        "@maven//:androidx.test.rules_1.3.0",
+        "@maven//:androidx.wear.watchface.watchface-guava_1.1.0",
         "@maven//:com.android.support.appcompat-v7_25.4.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.constraint.constraint-layout_1.1.0",
+        "@maven//:com.android.support.multidex-instrumentation_1.0.2",
         "@maven//:com.android.support.support-v13_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
+        "@maven//:com.android.tools.desugar_jdk_libs_1.1.5",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.code.gson.gson_2.2.4",
         "@maven//:com.google.dagger.dagger-compiler_2.6",
+        "@maven//:com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin_1.7.10-1.0.6",
         "@maven//:com.google.errorprone.error_prone_annotations_2.3.2",
         "@maven//:com.google.firebase.firebase-common_12.0.1",
         "@maven//:com.google.guava.guava_19.0",
@@ -175,13 +237,20 @@ maven_repository(
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
         "@maven//:org.jacoco.org.jacoco.ant_0.8.8",
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
+        "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.6.21",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.5.0",
-        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-js_1.7.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.6.21",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.0.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.5.2",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
-        "@maven//:org.mockito.mockito-core_3.12.4",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.3",
+        "@maven//:org.mockito.mockito-core_4.8.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )

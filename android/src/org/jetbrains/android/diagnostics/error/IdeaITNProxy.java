@@ -1,4 +1,4 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.diagnostics.error;
 
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -17,7 +17,7 @@ import java.util.Calendar;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
-public final class IdeaITNProxy {
+public class IdeaITNProxy {
   public static List<Pair<String, String>> getKeyValuePairs(@Nullable String login,
                                                             @Nullable String password,
                                                             ErrorBean error,

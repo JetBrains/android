@@ -280,8 +280,22 @@ interface IdeSyncIssue {
     /** Using the variant API to set the application ID to a dynamic value */
     const val TYPE_APPLICATION_ID_MUST_NOT_BE_DYNAMIC = 50
 
+    /**
+     * Using a removed API (which is still present to allow for sync to succeed).
+     */
+    const val TYPE_REMOVED_API = 51
+
+    /**
+     * Using an empty flavor dimension.
+     */
+    const val TYPE_EMPTY_FLAVOR_DIMENSION = 52
     // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
     // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
     // an indexing issue in the past (see http://issuetracker.google.com/138278313).
+
+    /**
+     * A sync issue type for exceptions that were converted to a sync issue.
+     */
+    const val TYPE_EXCEPTION = 53
   }
 }

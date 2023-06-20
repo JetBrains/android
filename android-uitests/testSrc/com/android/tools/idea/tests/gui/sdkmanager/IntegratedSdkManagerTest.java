@@ -92,7 +92,7 @@ public class IntegratedSdkManagerTest {
         File invalidAndroidSdkPath = GuiTests.getProjectCreationDirPath(null);
         File androidSdkPlatformPath = new File(invalidAndroidSdkPath, SdkConstants.FD_PLATFORMS);
         androidSdkPlatformPath.mkdirs();
-        IdeSdks.getInstance().setAndroidSdkPath(invalidAndroidSdkPath, null);
+        IdeSdks.getInstance().setAndroidSdkPath(invalidAndroidSdkPath);
         androidSdkPlatformPath.delete(); // Simulate user removing the Android SDK
       }));
 

@@ -3,8 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 32
-    buildToolsVersion "30.0.2"
+    compileSdkVersion 33
 
     defaultConfig {
         applicationId "com.example.my36"

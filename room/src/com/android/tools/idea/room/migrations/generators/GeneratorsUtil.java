@@ -20,7 +20,7 @@ import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import org.jetbrains.annotations.NotNull;
 
-public final class GeneratorsUtil {
+public class GeneratorsUtil {
   static void makePublic(@NotNull PsiClass migrationTest) {
     PsiModifierList modifierList = migrationTest.getModifierList();
     assert modifierList != null;

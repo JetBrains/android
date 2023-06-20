@@ -16,20 +16,21 @@
 package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.adtui.model.Range
+import java.util.concurrent.CountDownLatch
 import junit.framework.Assert.fail
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
 
 class SelectionRangeDataFetcherTest {
 
   @Test
   fun listenerFiresOnSelectionRangeChange() {
-    val dataModel = object : HttpDataModel {
-      val data = mutableListOf<HttpData>()
-      override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
-        return data.toList()
+    val dataModel =
+      object : HttpDataModel {
+        val data = mutableListOf<HttpData>()
+        override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
+          return data.toList()
+        }
       }
-    }
 
     // The latch is set to a count of 2 because the listener is triggered when it's added
     // and again when the range is modified. The data list is unchanged when selected range
@@ -46,14 +47,16 @@ class SelectionRangeDataFetcherTest {
       }
       onDataChangedListener.countDown()
     }
-    fetcher.addListener(object : SelectionRangeDataListener {
-      override fun onUpdate(data: List<HttpData>) {
-        if (allListener.count == 0L) {
-          fail()
+    fetcher.addListener(
+      object : SelectionRangeDataListener {
+        override fun onUpdate(data: List<HttpData>) {
+          if (allListener.count == 0L) {
+            fail()
+          }
+          allListener.countDown()
         }
-        allListener.countDown()
       }
-    })
+    )
 
     dataModel.data.add(createFakeHttpData(1))
     selectionRange.set(0.0, 1.0)

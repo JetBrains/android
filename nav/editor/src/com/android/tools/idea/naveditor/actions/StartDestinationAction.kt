@@ -19,14 +19,13 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.isActivity
 import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.model.setAsStartDestination
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 
 class StartDestinationAction(private val component: NlComponent) : AnAction("Set as Start Destination") {
-  init {
-    templatePresentation.isEnabled = isEnabled
-  }
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
     WriteCommandAction.runWriteCommandAction(component.model.project) {

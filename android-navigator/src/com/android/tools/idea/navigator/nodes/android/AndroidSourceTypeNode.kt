@@ -77,7 +77,7 @@ open class AndroidSourceTypeNode internal constructor(
     }
   }
 
-  private fun findSourceProvider(virtualFile: VirtualFile): Pair<String?, VirtualFile?> {
+  protected fun findSourceProvider(virtualFile: VirtualFile): Pair<String?, VirtualFile?> {
     val androidFacet = value!!
     return AndroidViewNodes.getSourceProviders(androidFacet)
       .firstNotNullOfOrNull { provider ->

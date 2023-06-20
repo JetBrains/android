@@ -31,62 +31,65 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.compose-common" />
-    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="module" module-name="kotlin.base.plugin" />
+    <orderEntry type="module" module-name="intellij.android.preview-designer" />
+    <orderEntry type="module" module-name="intellij.android.execution.common" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" />
+    <orderEntry type="module" module-name="intellij.android.rendering" />
     <orderEntry type="library" name="protobuf" level="project" />
-    <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
+    <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
-    <orderEntry type="library" name="ASM" level="project" />
+    <orderEntry type="library" name="kotlinx-coroutines-core" level="project" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="library" name="grpc-core" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlinc.high-level-api" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-common" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="kotlinc.kotlin-compiler-fe10" level="project" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
-    <orderEntry type="module" module-name="kotlin.base.code-insight" />
     <orderEntry type="module" module-name="intellij.platform.util.jdom" />
-    <orderEntry type="module" module-name="kotlin.base.fe10.analysis" />
     <orderEntry type="module" module-name="intellij.platform.lang.core" />
+    <orderEntry type="module" module-name="kotlin.base.fe10.analysis" />
     <orderEntry type="module" module-name="kotlin.base.analysis" />
     <orderEntry type="module" module-name="intellij.platform.util.base" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
     <orderEntry type="module" module-name="intellij.platform.util.rt" />
-    <orderEntry type="module" module-name="kotlin.idea" />
     <orderEntry type="module" module-name="intellij.platform.editor" />
+    <orderEntry type="module" module-name="kotlin.base.highlighting" />
+    <orderEntry type="module" module-name="kotlin.base.util" />
+    <orderEntry type="module" module-name="kotlin.base.code-insight" />
+    <orderEntry type="module" module-name="kotlin.base.fe10.highlighting" />
     <orderEntry type="module" module-name="kotlin.completion.impl-k1" />
     <orderEntry type="module" module-name="kotlin.completion.impl-shared" />
-    <orderEntry type="module" module-name="kotlin.base.highlighting" />
-    <orderEntry type="module" module-name="intellij.java.psi.impl" />
-    <orderEntry type="module" module-name="intellij.java.psi" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
-    <orderEntry type="module" module-name="kotlin.base.indices" />
+    <orderEntry type="module" module-name="intellij.java.psi" />
+    <orderEntry type="module" module-name="intellij.java.psi.impl" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
     <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="module" module-name="kotlin.jvm-debugger.core" />
     <orderEntry type="module" module-name="intellij.platform.core.ui" />
+    <orderEntry type="module" module-name="kotlin.jvm-debugger.core" />
     <orderEntry type="module" module-name="kotlin.base.psi" />
     <orderEntry type="module" module-name="intellij.platform.util.ui" />
-    <orderEntry type="module" module-name="intellij.platform.indexing" />
-    <orderEntry type="module" module-name="intellij.platform.analysis.impl" />
+    <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module" module-name="intellij.platform.projectModel" />
+    <orderEntry type="module" module-name="intellij.platform.analysis.impl" />
+    <orderEntry type="module" module-name="intellij.platform.indexing" />
     <orderEntry type="module" module-name="kotlin.jvm-debugger.base.util" />
     <orderEntry type="module" module-name="kotlin.core" />
     <orderEntry type="module" module-name="intellij.platform.execution.impl" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.java.execution.impl" />
-    <orderEntry type="module" module-name="kotlin.base.util" />
     <orderEntry type="module" module-name="intellij.platform.uast" />
     <orderEntry type="module" module-name="intellij.platform.execution" />
-    <orderEntry type="module" module-name="intellij.xml.dom" />
     <orderEntry type="module" module-name="intellij.java.execution" />
     <orderEntry type="module" module-name="intellij.platform.core" />
+    <orderEntry type="module" module-name="kotlin.code-insight.api" />
     <orderEntry type="module" module-name="intellij.platform.extensions" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
-    <orderEntry type="module" module-name="kotlin.code-insight.api" />
     <orderEntry type="module" module-name="intellij.platform.core.impl" />
     <orderEntry type="module" module-name="intellij.platform.util.ex" />
     <orderEntry type="module" module-name="intellij.platform.ide.core" />
     <orderEntry type="module" module-name="kotlin.base.fe10.code-insight" />
-    <orderEntry type="module" module-name="kotlin.base.plugin" />
   </component>
 </module>

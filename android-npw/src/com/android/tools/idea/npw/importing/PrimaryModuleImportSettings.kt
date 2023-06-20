@@ -27,7 +27,7 @@ import javax.swing.event.DocumentEvent
 
 class PrimaryModuleImportSettings : ModuleImportSettings {
   val moduleNameLabel = JBLabel("Module name")
-  val moduleNameField = JTextField()
+  val moduleNameField = JTextField(10)
   val primaryModuleState = JBLabel()
 
   override fun isModuleSelected(): Boolean = true

@@ -21,6 +21,10 @@ message Metadata {
 
    Source source = 5;
    string source_version = 6;
+   uint32 dpi = 7;
+   float font_scale = 8;
+   uint32 screen_width = 9;
+   uint32 screen_height = 10;
 }
 
 message Snapshot {

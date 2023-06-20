@@ -34,7 +34,7 @@ interface AssistantToolWindowService {
   fun openAssistant(bundleId: String, defaultTutorialCardId: String? = null)
 
   companion object {
-    const val TOOL_WINDOW_TITLE = "Assistant:"
+    const val TOOL_WINDOW_TITLE = "Assistant"
   }
 }
 
@@ -74,7 +74,7 @@ private class AssistantToolWindowServiceImpl(private val project: Project) :
   ) {
     var content: Content? = null
     assistSidePanel.showBundle(bundleId, defaultTutorialCardId) { content?.displayName = it.name }
-    val contentFactory = ContentFactory.SERVICE.getInstance()
+    val contentFactory = ContentFactory.getInstance()
     content =
       contentFactory.createContent(assistSidePanel.loadingPanel, null, false).also {
         val contentManager = toolWindow.contentManager

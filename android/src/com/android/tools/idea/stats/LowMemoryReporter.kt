@@ -20,15 +20,25 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.android.tools.idea.diagnostics.report.MemoryReportReason
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.util.LowMemoryWatcher
 import java.util.concurrent.TimeUnit
 
-internal class LowMemoryReporter : Disposable {
+@Service
+class LowMemoryReporter : Disposable {
   private var lowMemoryWatcherAll: LowMemoryWatcher? = null
   private var lowMemoryWatcherAfterGc: LowMemoryWatcher? = null
 
   private val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), manualReset = true)
+
+  companion object {
+    fun getInstance() : LowMemoryReporter {
+      return ApplicationManager.getApplication().getService(LowMemoryReporter::class.java);
+    }
+  }
 
   init {
     lowMemoryWatcherAll = LowMemoryWatcher.register {
@@ -65,5 +75,11 @@ internal class LowMemoryReporter : Disposable {
     lowMemoryWatcherAll = null
     lowMemoryWatcherAfterGc?.stop()
     lowMemoryWatcherAfterGc = null
+  }
+
+  private class OnStartup : ApplicationInitializedListener {
+    override fun componentsInitialized() {
+      getInstance();
+    }
   }
 }

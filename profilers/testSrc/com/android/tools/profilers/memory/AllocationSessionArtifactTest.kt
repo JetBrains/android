@@ -20,14 +20,10 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
-import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
-import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
-import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -40,7 +36,7 @@ class AllocationSessionArtifactTest {
   private val transportService = FakeTransportService(timer)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("AllocationSessionArtifactTestChannel", transportService, FakeMemoryService())
+  var grpcChannel = FakeGrpcChannel("AllocationSessionArtifactTestChannel", transportService)
 
   private lateinit var profilers: StudioProfilers
 
@@ -48,7 +44,7 @@ class AllocationSessionArtifactTest {
   fun setup() {
     profilers = StudioProfilers(
       ProfilerClient(grpcChannel.channel),
-      FakeIdeProfilerServices().apply { enableEventsPipeline(true) },
+      FakeIdeProfilerServices(),
       FakeTimer()
     )
   }
@@ -81,7 +77,7 @@ class AllocationSessionArtifactTest {
       assertThat(name).isEqualTo("Allocation Records")
       assertThat(isOngoing).isFalse()
       assertThat(subtitle).isNotEmpty()
-      assertThat(canExport()).isTrue()
+      assertThat(canExport).isTrue()
       assertThat(this.profilers).isSameAs(profilers)
       assertThat(artifactProto).isNotNull()
     }
@@ -121,8 +117,5 @@ class AllocationSessionArtifactTest {
     const val TIMESTAMP1 = 1000L
     const val TIMESTAMP2 = 2000L
     const val TIMESTAMP3 = 3000L
-    val SAMPLING_FULL = MemoryAllocSamplingData.newBuilder().apply { samplingNumInterval = FULL.value }.build()
-    val SAMPLING_SAMPLED = MemoryAllocSamplingData.newBuilder().apply { samplingNumInterval = SAMPLED.value }.build()
-    val SAMPLING_NONE = MemoryAllocSamplingData.newBuilder().apply { samplingNumInterval = NONE.value }.build()
   }
 }

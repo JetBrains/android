@@ -58,6 +58,6 @@ public final class TargetsTest {
     Object string = Targets.toString(versionWithExtensionLevel);
 
     // Assert
-    assertEquals("Android 11.0 Extension Level 5", string);
+    assertEquals("Android 11.0", string);
   }
 }

@@ -23,20 +23,14 @@ import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.vfs.VirtualFile
+import java.lang.ref.WeakReference
+import java.util.Objects
 import java.util.stream.Stream
 import javax.swing.Icon
 import javax.swing.event.HyperlinkListener
 
-/**
- * And [IssueSource] for issues from an NlModel.
- */
-interface NlIssueSource : IssueSource {
-  val model: NlModel
-}
-
-data class NlComponentIssueSource(val component: NlComponent) : NlIssueSource, NlAttributesHolder {
-  override val model: NlModel
-    get() = component.model
+class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributesHolder {
+  private val componentRef = WeakReference(component)
 
   @Suppress("RedundantNullableReturnType") // May be null when using mocked NlModel in the test environment.
   override val file: VirtualFile? = component.model.virtualFile
@@ -45,25 +39,40 @@ data class NlComponentIssueSource(val component: NlComponent) : NlIssueSource, N
     component.id,
     "<${component.tagName}>").joinToString(" ")
 
+  val component: NlComponent?
+    get() = componentRef.get()
+
   override fun getAttribute(namespace: String?, attribute: String): String? {
-    return component.getAttribute(namespace, attribute)
+    return component?.getAttribute(namespace, attribute)
   }
 
   override fun setAttribute(namespace: String?, attribute: String, value: String?) {
-    NlWriteCommandActionUtil.run(component, "Update issue source") {
-      component.setAttribute(namespace, attribute, value)
+    component?.let { component ->
+      NlWriteCommandActionUtil.run(component, "Update issue source") {
+        component.setAttribute(namespace, attribute, value)
+      }
     }
   }
-}
 
-fun IssueSource.isFromNlComponent(component: NlComponent): Boolean {
-    return this is NlComponentIssueSource && this.component == component
-}
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (other !is NlComponentIssueSource) return false
 
-private data class NlModelIssueSource(override val model: NlModel) : NlIssueSource {
-  @Suppress("RedundantNullableReturnType") // May be null when using mocked NlModel in the test environment.
-  override val file: VirtualFile? = model.virtualFile
-  override val displayText: String = model.modelDisplayName.orEmpty()
+    val component = componentRef.get() ?: return false
+    val otherComponent = other.componentRef.get() ?: return false
+    if (component != otherComponent) return false
+    if (file != other.file) return false
+    if (displayText != other.displayText) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int =
+    Objects.hash(
+      component,
+      file,
+      displayText
+    )
 }
 
 /**
@@ -87,7 +96,22 @@ interface IssueSource {
     fun fromNlComponent(component: NlComponent): IssueSource = NlComponentIssueSource(component)
 
     @JvmStatic
-    fun fromNlModel(model: NlModel): IssueSource = NlModelIssueSource(model)
+    fun fromNlModel(model: NlModel): IssueSource = object: IssueSource {
+      @Suppress("RedundantNullableReturnType") // May be null when using mocked NlModel in the test environment.
+      override val file: VirtualFile? = model.virtualFile
+      override val displayText: String = model.modelDisplayName.orEmpty()
+
+      override fun equals(other: Any?): Boolean =
+        other is IssueSource &&
+        Objects.equals(file, other.file) &&
+        Objects.equals(displayText, other.displayText)
+
+      override fun hashCode(): Int =
+        Objects.hash(
+          file,
+          displayText
+        )
+    }
   }
 }
 

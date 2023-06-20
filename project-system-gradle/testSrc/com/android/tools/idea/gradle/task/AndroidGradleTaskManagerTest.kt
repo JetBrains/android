@@ -15,40 +15,31 @@
  */
 package com.android.tools.idea.gradle.task
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.hookExecuteTasks
-import com.android.tools.idea.testing.onEdt
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Expect
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.service.ExternalSystemFacadeManager
-import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
-class AndroidGradleTaskManagerTest : GradleIntegrationTest {
+class AndroidGradleTaskManagerTest {
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels().onEdt()
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-
-  override fun getTestDataDirectoryWorkspaceRelativePath(): @SystemIndependent String = "tools/adt/idea/android/testData"
-  override fun getAdditionalRepos(): Collection<File> = emptyList()
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun `app assembleDebug from root and app`() {
-    val path = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
+      val path = preparedProject.root
       val capturedRequests = project.hookExecuteTasks()
       val facade = ApplicationManager.getApplication().getService(ExternalSystemFacadeManager::class.java)
         .getFacade(project, path.absolutePath, GradleConstants.SYSTEM_ID)

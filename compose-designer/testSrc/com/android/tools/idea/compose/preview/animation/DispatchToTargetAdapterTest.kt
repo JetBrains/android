@@ -16,41 +16,45 @@
 package com.android.tools.idea.compose.preview.animation
 
 import com.android.tools.adtui.swing.FakeUi
-import org.junit.Test
 import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import org.junit.Test
 
 class DispatchToTargetAdapterTest {
   @Test
   fun `events are dispatched to target`() {
-    val target = JPanel().apply {
-      setSize(100, 100)
-      location = Point(25, 25)
-      addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent?) {
-          assertNotNull(e)
-          assertEquals(Point(25, 25), e.point)
-        }
+    val target =
+      JPanel().apply {
+        setSize(100, 100)
+        location = Point(25, 25)
+        addMouseListener(
+          object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent?) {
+              assertNotNull(e)
+              assertEquals(Point(25, 25), e.point)
+            }
 
-        override fun mousePressed(e: MouseEvent?) {
-          assertNotNull(e)
-          assertEquals(Point(25, 25), e.point)
-        }
+            override fun mousePressed(e: MouseEvent?) {
+              assertNotNull(e)
+              assertEquals(Point(25, 25), e.point)
+            }
 
-        override fun mouseReleased(e: MouseEvent?) {
-          assertNotNull(e)
-          assertEquals(Point(25, 25), e.point)
-        }
-      })
-    }
-    val panel = JPanel().apply {
-      setSize(100, 100)
-      addMouseListener(DispatchToTargetAdapter(target))
-    }
+            override fun mouseReleased(e: MouseEvent?) {
+              assertNotNull(e)
+              assertEquals(Point(25, 25), e.point)
+            }
+          }
+        )
+      }
+    val panel =
+      JPanel().apply {
+        setSize(100, 100)
+        addMouseListener(DispatchToTargetAdapter(target))
+      }
     val ui = FakeUi(panel)
     ui.mouse.click(50, 50)
     ui.mouse.press(50, 50)

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.legacy
 
+import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
@@ -22,17 +23,20 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.layoutinspector.InspectorClientProvider
 import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.CONNECT_TIMEOUT_SECONDS
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.DisposableRule
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -48,21 +52,21 @@ import java.util.concurrent.TimeUnit
 class LegacyClientTest {
   private val windowIds = mutableListOf<String>()
 
-  private val disposableRule = DisposableRule()
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val scheduler = VirtualTimeScheduler()
 
   private val legacyClientProvider = InspectorClientProvider { params, inspector ->
     val loader = mock(LegacyTreeLoader::class.java)
     doAnswer { windowIds }.whenever(loader).getAllWindowIds(ArgumentMatchers.any())
-    val client = LegacyClientProvider(disposableRule.disposable, loader).create(params, inspector) as LegacyClient
-    client.launchMonitor = InspectorClientLaunchMonitor(ListenerCollection.createWithDirectExecutor(), scheduler)
+    val client = LegacyClientProvider({ projectRule.testRootDisposable }, loader).create(params, inspector) as LegacyClient
+    client.launchMonitor =
+      InspectorClientLaunchMonitor(projectRule.project, ListenerCollection.createWithDirectExecutor(), client.stats, scheduler)
     client
   }
-
-  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val inspectorRule = LayoutInspectorRule(listOf(legacyClientProvider), projectRule)
+
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule)!!
 
   @Before
   fun setUp() {
@@ -94,15 +98,31 @@ class LegacyClientTest {
 
   @Test
   fun testReloadAllWindowsWithNone() {
+    // This test may end up in a deadlock if a synchronized launcher is used.
+    inspectorRule.launchSynchronously = false
+    // The launch will attempt to launch an app inspection client and the a legacy client both on connect and the later disconnect.
+    // i.e. a total of 4 launches.
+    // The legacy connection will never succeed (because there are no windows). Do not call awaitLaunch before the end of the test.
+    inspectorRule.startLaunch(4)
     val executor = Executors.newSingleThreadExecutor()
     executor.execute {
       inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
     }
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient is LegacyClient }
-    assertThat((inspectorRule.inspectorClient as LegacyClient).reloadAllWindows()).isFalse()
+    val client = inspectorRule.inspectorClient as LegacyClient
+    waitForCondition(5, TimeUnit.SECONDS) { client.launchMonitor.currentProgress == AttachErrorState.ADB_PING }
+    waitForCondition(5, TimeUnit.SECONDS) { client.launchMonitor.timeoutHandlerScheduled }
+    assertThat(client.reloadAllWindows()).isFalse()
     scheduler.advanceBy(CONNECT_TIMEOUT_SECONDS + 1, TimeUnit.SECONDS)
+    val banner = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
+    val notification1 = banner.notifications.single()
+    assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY))
+
+    // User disconnects:
+    notification1.actions.last().actionPerformed(MockitoKt.mock())
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient === DisconnectedClient }
     executor.shutdownNow()
+    inspectorRule.awaitLaunch()
   }
 
   @Test

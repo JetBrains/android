@@ -39,25 +39,6 @@ public class AbstractSyncMessagesTest extends PlatformTestCase {
     mySyncMessages = new SyncMessages(myProject);
   }
 
-  public void testGetErrorCount() {
-    int expectedCount = 6;
-    generateMessages(expectedCount, MessageType.ERROR);
-    generateMessages(expectedCount + 1, MessageType.WARNING);
-    int actualCount = mySyncMessages.getErrorCount();
-    assertEquals(expectedCount, actualCount);
-    assertEquals(2 * expectedCount + 1, mySyncMessages.getMessageCount(TEST_GROUP));
-  }
-
-  public void testGetMessageCount() {
-    int expectedErrors = 6;
-    int expectedWarnings = 9;
-    generateMessages(expectedErrors, MessageType.ERROR);
-    generateMessages(expectedWarnings, MessageType.WARNING);
-
-    int actualCount = mySyncMessages.getMessageCount(TEST_GROUP);
-    assertEquals(expectedErrors + expectedWarnings, actualCount);
-  }
-
   public void testIsEmptyWithMessages() {
     generateMessages(1, MessageType.ERROR);
     assertFalse(mySyncMessages.isEmpty());

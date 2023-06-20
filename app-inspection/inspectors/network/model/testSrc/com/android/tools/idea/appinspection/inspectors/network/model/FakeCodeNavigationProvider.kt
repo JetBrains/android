@@ -19,6 +19,6 @@ import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.idea.codenavigation.FakeNavSource
 
 class FakeCodeNavigationProvider : CodeNavigationProvider {
-  override val codeNavigator: CodeNavigator = CodeNavigator(FakeNavSource(),
-                                                            CodeNavigator.testExecutor)
+  override val codeNavigator: CodeNavigator =
+    CodeNavigator(FakeNavSource(), CodeNavigator.testExecutor)
 }

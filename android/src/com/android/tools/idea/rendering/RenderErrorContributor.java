@@ -41,13 +41,18 @@ import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.dom.attrs.AttributeDefinition;
+import com.android.tools.dom.attrs.AttributeDefinitions;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidTargetData;
 import com.android.utils.HtmlBuilder;
 import com.android.xml.AndroidManifest;
 import com.google.common.annotations.VisibleForTesting;
@@ -68,6 +73,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.util.ProgressIndicatorUtils;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -99,14 +105,10 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -257,8 +259,8 @@ public class RenderErrorContributor {
                                  @NotNull XmlTag tag,
                                  @NotNull String id,
                                  @NotNull String attribute) {
-    Module module = logger.getModule();
-    if (module == null) {
+    Project project = logger.getProject();
+    if (project == null) {
       return;
     }
     String wrapUrl = myLinkManager.createCommandLink(new SetAttributeFix(tag, attribute, ANDROID_URI, VALUE_WRAP_CONTENT));
@@ -276,11 +278,6 @@ public class RenderErrorContributor {
   private void reportMissingSizeAttributes(@NotNull final RenderLogger logger,
                                            @NotNull RenderContext renderTaskContext,
                                            @Nullable XmlFile psiFile) {
-    Module module = logger.getModule();
-    if (module == null) {
-      return;
-    }
-    Project project = module.getProject();
     if (logger.isMissingSize()) {
       HtmlBuilder builder = new HtmlBuilder();
 
@@ -294,7 +291,7 @@ public class RenderErrorContributor {
       }
 
       // See whether we should offer match_parent instead of fill_parent
-      AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
+      AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(myModule);
       final String fill = moduleInfo == null
                           || moduleInfo.getBuildSdkVersion() == null
                           || moduleInfo.getBuildSdkVersion().getApiLevel() >= 8
@@ -345,12 +342,12 @@ public class RenderErrorContributor {
   }
 
   private static void addHtmlForIssue164378(@NotNull Throwable throwable,
-                                            Module module,
+                                            Project project,
                                             HtmlLinkManager linkManager,
                                             HtmlBuilder builder,
                                             boolean addShowExceptionLink) {
     builder.add("Rendering failed with a known bug. ");
-    if (module == null) {
+    if (project == null) {
       // Unlikely, but just in case.
       builder.add("Please rebuild the project and then clear the cache by clicking the refresh icon above the preview.").newline();
       return;
@@ -360,25 +357,39 @@ public class RenderErrorContributor {
     if (!addShowExceptionLink) {
       return;
     }
-    ShowExceptionFix showExceptionFix = new ShowExceptionFix(module.getProject(), throwable);
+    ShowExceptionFix showExceptionFix = new ShowExceptionFix(project, throwable);
     builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
   }
 
   @VisibleForTesting
   public void performClick(@NotNull String url) {
-    myLinkManager.handleUrl(url, myModule, mySourceFile, myDataContext, true, myDesignSurface);
+    myLinkManager.handleUrl(url, myModule, mySourceFile, true, new HtmlLinkManager.RefreshableSurface() {
+      @Override
+      public void handleRefreshRenderUrl() {
+        if (myDesignSurface != null) {
+          RenderUtils.clearCache(myDesignSurface.getConfigurations());
+          myDesignSurface.forceUserRequestedRefresh();
+        }
+      }
+
+      @Override
+      public void requestRender() {
+        if (myDesignSurface != null) {
+          myDesignSurface.forceUserRequestedRefresh();
+        }
+      }
+    });
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
-    Module module = logger.getModule();
-    if (module == null || module.isDisposed()) {
+    if (myModule.isDisposed()) {
       return;
     }
 
-    Project project = module.getProject();
+    Project project = myModule.getProject();
     WolfTheProblemSolver wolfgang = WolfTheProblemSolver.getInstance(project);
 
-    if (!wolfgang.hasProblemFilesBeneath(module)) {
+    if (!wolfgang.hasProblemFilesBeneath(myModule)) {
       return;
     }
 
@@ -586,7 +597,7 @@ public class RenderErrorContributor {
       String text = Throwables.getStackTraceAsString(throwable);
       try {
         CopyPasteManager.getInstance().setContents(new StringSelection(text));
-        HtmlLinkManager.showNotification("Stack trace copied to clipboard");
+        StudioHtmlLinkManager.showNotification("Stack trace copied to clipboard");
       }
       catch (Exception ignore) {
       }
@@ -602,28 +613,26 @@ public class RenderErrorContributor {
                myLinkManager.createRefreshRenderUrl()).newline();
   }
 
-  private void reportRtlNotEnabled(@NotNull RenderLogger logger) {
-    ApplicationManager.getApplication().runReadAction(() -> {
+  /**
+   * Tries to report an "RTL not enabled" error and returns whether this was successful.
+   */
+  private boolean reportRtlNotEnabled(@NotNull RenderLogger logger) {
+    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
       Project project = logger.getProject();
       if (project == null || project.isDisposed()) {
-        return;
+        return false;
       }
 
-      Module module = logger.getModule();
-      if (module == null) {
-        return;
-      }
-
-      AndroidFacet facet = AndroidFacet.getInstance(module);
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
       Manifest manifest = facet != null ? Manifest.getMainManifest(facet) : null;
       Application application = manifest != null ? manifest.getApplication() : null;
       if (application == null) {
-        return;
+        return false;
       }
 
       final XmlTag applicationTag = application.getXmlTag();
       if (applicationTag == null) {
-        return;
+        return false;
       }
 
       HtmlBuilder builder = new HtmlBuilder();
@@ -641,38 +650,42 @@ public class RenderErrorContributor {
         .setSummary("RTL support requires android:supportsRtl=\"true\" in the manifest")
         .setHtmlContent(builder)
         .build();
+      return true;
     });
   }
 
-  private void reportTagResourceFormat(@NotNull RenderProblem message) {
+  /**
+   * Tries to report a resources format error and returns whether this was successful.
+   */
+  private boolean reportTagResourceFormat(@NotNull RenderProblem message) {
     Object clientData = message.getClientData();
     if (!(clientData instanceof String[])) {
-      return;
+      return false;
     }
     String[] strings = (String[])clientData;
     if (strings.length != 2) {
-      return;
+      return false;
     }
 
     RenderContext renderContext = myRenderContext;
     if (renderContext == null) {
-      return;
+      return false;
     }
     IAndroidTarget target = renderContext.getConfiguration().getRealTarget();
     if (target == null) {
-      return;
+      return false;
     }
-    AndroidPlatform platform = renderContext.getPlatform();
+    AndroidPlatform platform = renderContext.getModule().getAndroidPlatform();
     if (platform == null) {
-      return;
+      return false;
     }
-    AndroidTargetData targetData = platform.getSdkData().getTargetData(target);
-    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(mySourceFile.getProject());
+    AndroidTargetData targetData = AndroidTargetData.get(platform.getSdkData(), target);
+    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs();
     String attributeName = strings[0];
     String currentValue = strings[1];
     AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);
     if (definition == null) {
-      return;
+      return false;
     }
     Set<AttributeFormat> formats = definition.getFormats();
     if (formats.contains(AttributeFormat.FLAGS) || formats.contains(AttributeFormat.ENUM)) {
@@ -697,14 +710,16 @@ public class RenderErrorContributor {
           .setSummary("Incorrect resource value format")
           .setHtmlContent(builder)
           .build();
+        return true;
       }
     }
+    return false;
   }
 
   private void reportOtherProblems(@NotNull RenderLogger logger) {
     List<RenderProblem> messages = logger.getMessages();
 
-    if (messages == null || messages.isEmpty()) {
+    if (messages.isEmpty()) {
       return;
     }
 
@@ -718,20 +733,25 @@ public class RenderErrorContributor {
 
       if (tag != null) {
         switch (tag) {
-          case ILayoutLog.TAG_RESOURCES_FORMAT:
-            reportTagResourceFormat(message);
-            continue;
-          case ILayoutLog.TAG_RTL_NOT_ENABLED:
-            reportRtlNotEnabled(logger);
-            continue;
-          case ILayoutLog.TAG_RTL_NOT_SUPPORTED:
+          case ILayoutLog.TAG_RESOURCES_FORMAT -> {
+            if (reportTagResourceFormat(message)) {
+              continue;
+            }
+          }
+          case ILayoutLog.TAG_RTL_NOT_ENABLED -> {
+            if (reportRtlNotEnabled(logger)) {
+              continue;
+            }
+          }
+          case ILayoutLog.TAG_RTL_NOT_SUPPORTED -> {
             addIssue()
               .setSeverity(HighlightSeverity.ERROR)
               .setSummary("RTL support requires API level >= 17")
               .setHtmlContent(new HtmlBuilder().addHtml(message.getHtml()))
               .build();
             continue;
-          case ILayoutLog.TAG_THREAD_CREATION: {
+          }
+          case ILayoutLog.TAG_THREAD_CREATION -> {
             Throwable throwable = message.getThrowable();
             HtmlBuilder builder = new HtmlBuilder();
             reportThrowable(builder, throwable, false);
@@ -782,7 +802,7 @@ public class RenderErrorContributor {
 
       addRefreshAction(builder);
       addIssue()
-        .setSeverity(message.getSeverity())
+        .setSeverity(ProblemSeverities.toHighlightSeverity(message.getSeverity()))
         .setSummary(summary)
         .setHtmlContent(builder)
         .build();
@@ -936,22 +956,20 @@ public class RenderErrorContributor {
 
     Collection<String> customViews = null;
     Collection<String> androidViewClassNames = null;
-    Module module = logger.getModule();
-    if (module != null) {
-      Ref<Collection<String>> viewsRef = new Ref<>(Collections.emptyList());
-      // We yield to write actions here because UI responsiveness takes priority over typo suggestions.
-      ProgressIndicatorUtils.runWithWriteActionPriority(() -> viewsRef.set(getAllViews(module)), new EmptyProgressIndicator());
-      Collection<String> views = viewsRef.get();
-      if (!views.isEmpty()) {
-        customViews = Lists.newArrayListWithExpectedSize(Math.max(10, views.size() - 80)); // most will be framework views
-        androidViewClassNames = Lists.newArrayListWithExpectedSize(views.size());
-        for (String fqcn : views) {
-          if (fqcn.startsWith("android.") && !isViewPackageNeeded(fqcn, -1)) {
-            androidViewClassNames.add(fqcn);
-          }
-          else {
-            customViews.add(fqcn);
-          }
+
+    Ref<Collection<String>> viewsRef = new Ref<>(Collections.emptyList());
+    // We yield to write actions here because UI responsiveness takes priority over typo suggestions.
+    ProgressIndicatorUtils.runWithWriteActionPriority(() -> viewsRef.set(getAllViews(myModule)), new EmptyProgressIndicator());
+    Collection<String> views = viewsRef.get();
+    if (!views.isEmpty()) {
+      customViews = Lists.newArrayListWithExpectedSize(Math.max(10, views.size() - 80)); // most will be framework views
+      androidViewClassNames = Lists.newArrayListWithExpectedSize(views.size());
+      for (String fqcn : views) {
+        if (fqcn.startsWith("android.") && !isViewPackageNeeded(fqcn, -1)) {
+          androidViewClassNames.add(fqcn);
+        }
+        else {
+          customViews.add(fqcn);
         }
       }
     }
@@ -983,13 +1001,13 @@ public class RenderErrorContributor {
                                          GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                          GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
         builder.addLink("Add constraint-layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(artifact));
+                        myLinkManager.createAddDependencyUrl(artifact.toString()));
         builder.add(", ");
       }
       if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add flexbox layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT));
+                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT.toString()));
         builder.add(", ");
       }
 
@@ -1040,11 +1058,11 @@ public class RenderErrorContributor {
     }
 
     HtmlBuilder builder = new HtmlBuilder();
-    final Module module = logger.getModule();
+    final Project project = logger.getProject();
 
     for (Throwable throwable : brokenClasses.values()) {
       if (RenderLogger.isIssue164378(throwable)) {
-        addHtmlForIssue164378(throwable, module, myLinkManager, builder, false);
+        addHtmlForIssue164378(throwable, project, myLinkManager, builder, false);
         break;
       }
     }
@@ -1068,9 +1086,9 @@ public class RenderErrorContributor {
         .add(className)
         .add(" (")
         .addLink("Open Class", myLinkManager.createOpenClassUrl(className));
-      if (throwable != null && module != null) {
+      if (throwable != null && project != null) {
         builder.add(", ");
-        ShowExceptionFix detailsFix = new ShowExceptionFix(module.getProject(), throwable);
+        ShowExceptionFix detailsFix = new ShowExceptionFix(project, throwable);
         builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
       }
       builder.add(", ")
@@ -1147,13 +1165,12 @@ public class RenderErrorContributor {
       builder.add(" (");
 
       if (isActivityKnown) {
-        final Module module = logger.getModule();
+        final Project project = logger.getProject();
         ApplicationManager.getApplication().runReadAction(() -> {
           // TODO: Look up layout references in the given layout, if possible
           // Find activity class
           // Look for R references in the layout
-          assert module != null;
-          Project project = module.getProject();
+          assert project != null;
           GlobalSearchScope scope = GlobalSearchScope.allScope(project);
           PsiClass clz = DumbService.getInstance(project).isDumb() ?
                          null :

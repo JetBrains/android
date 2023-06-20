@@ -1,24 +1,10 @@
-/*
- * Copyright (C) 2020 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.dsl.model;
-
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogView;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.google.common.base.Strings;
@@ -31,6 +17,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
@@ -103,6 +90,13 @@ public final class GradleModelSource extends GradleModelProvider {
   }
 
   @NotNull
+  @Override
+  public GradleVersionCatalogView getVersionCatalogView(@NotNull Project hostProject) {
+    GradleSettingsModel settings = getSettingsModel(hostProject);
+    return new GradleVersionCatalogViewImpl(settings);
+  }
+
+  @NotNull
   private static GradleBuildModel internalCreateBuildModel(@NotNull BuildModelContext context,
                                                            @NotNull VirtualFile file,
                                                            @NotNull String moduleName) {
@@ -152,16 +146,6 @@ public final class GradleModelSource extends GradleModelProvider {
     }
   }
 
-
-  //methods below are copy-pasted from android core
-
-  private static File getBaseDirPath(@NotNull Project project) {
-    VirtualFile guessedDir = ProjectUtil.guessProjectDir(project);
-    if(guessedDir == null) return new File("");
-
-    return new File(Objects.requireNonNull(guessedDir.getCanonicalPath()));
-  }
-
   @Nullable
   @SystemIndependent
   private static String getModuleDirPath(@NotNull Module module) {
@@ -171,5 +155,13 @@ public final class GradleModelSource extends GradleModelProvider {
     }
     @SystemIndependent String moduleFilePath = module.getModuleFilePath();
     return VfsUtil.getParentDir(moduleFilePath);
+  }
+
+  @NotNull
+  private static File getBaseDirPath(@NotNull Project project) {
+    if (project.isDefault()) {
+      return new File("");
+    }
+    return new File(Objects.requireNonNull(FileUtil.toCanonicalPath(project.getBasePath())));
   }
 }

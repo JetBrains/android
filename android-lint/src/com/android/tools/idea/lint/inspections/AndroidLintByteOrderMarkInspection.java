@@ -22,8 +22,9 @@ import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.ByteOrderMarkDetector;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintByteOrderMarkInspection extends AndroidLintInspectionBase {
@@ -40,7 +41,8 @@ public class AndroidLintByteOrderMarkInspection extends AndroidLintInspectionBas
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
                           @NotNull AndroidQuickfixContexts.Context context) {
-          Document document = FileDocumentManager.getInstance().getDocument(startElement.getContainingFile().getVirtualFile());
+          PsiFile file = startElement.getContainingFile();
+          Document document = context.getDocument(file);
           if (document != null) {
             String text = document.getText();
             for (int i = text.length() - 1; i >= 0; i--) {

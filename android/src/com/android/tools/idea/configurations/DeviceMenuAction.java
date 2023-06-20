@@ -27,7 +27,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.adtui.device.DeviceArtPainter;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -187,12 +186,7 @@ public class DeviceMenuAction extends DropDownAction {
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_XL, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.NEXUS_TABLET, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.DESKTOP, currentDevice);
-    if (StudioFlags.NELE_WEAR_DEVICE_FIXED_ORIENTATION.get()) {
-      addWearDeviceSection(groupedDevices, currentDevice);
-    }
-    else {
-      addDeviceSection(groupedDevices, DeviceGroup.WEAR, currentDevice);
-    }
+    addWearDeviceSection(groupedDevices, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.TV, currentDevice);
     addDeviceSection(groupedDevices, DeviceGroup.AUTOMOTIVE, currentDevice);
     addCustomDeviceSection(currentDevice);
@@ -276,7 +270,7 @@ public class DeviceMenuAction extends DropDownAction {
         boolean selected = current != null && current.getId().equals(device.getId());
 
         String avdDisplayName = "AVD: " + device.getDisplayName();
-        add(new SetAvdAction(myRenderContext, this::updatePresentation, device, avdDisplayName, selected));
+        add(new SetAvdAction(myRenderContext, this::updatePresentation, myDeviceChangeListener, device, avdDisplayName, selected));
       }
       addSeparator();
     }
@@ -416,40 +410,37 @@ public class DeviceMenuAction extends DropDownAction {
       // portrait orientation on a Nexus 4 (its default), and you switch to a Nexus 10, we jump to landscape orientation
       // (its default) unless of course there is a different layout that is the best fit for that device.
       Device prevDevice = configuration.getCachedDevice();
-      State prevState;
 
       ConfigurationProjectState projectState = configuration.getConfigurationManager().getStateManager().getProjectState();
-      String lastNonWearStateName = projectState.getNonWearDeviceLastStateName();
-      if (prevDevice != null && lastNonWearStateName != null) {
-        // Load last state of non-wear device.
-        prevState = prevDevice.getState(lastNonWearStateName);
+      String lastSelectedNonWearStateName = projectState.getNonWearDeviceLastSelectedStateName();
+      String newDefaultStateName = myDevice.getDefaultState().getName();
+      State wantedState = lastSelectedNonWearStateName != null ? getMatchingState(myDevice, lastSelectedNonWearStateName) : null;
+      String wantedStateName = wantedState != null ? wantedState.getName() : newDefaultStateName;
+      if (!wantedStateName.equals(newDefaultStateName) &&
+          projectState.isNonWearDeviceDefaultStateName() &&
+          !hasBetterMatchingLayoutFile(configuration, myDevice, newDefaultStateName)) {
+        wantedStateName = newDefaultStateName;
       }
-      else {
-        prevState = configuration.getDeviceState();
-      }
-      String newState = prevState != null ? prevState.getName() : null;
-      if (prevDevice != null && prevState != null && prevState.isDefaultState() &&
-          !myDevice.getDefaultState().getName().equals(prevState.getName()) &&
-          configuration.getEditedConfig().getScreenOrientationQualifier() == null) {
-        VirtualFile file = configuration.getFile();
-        if (file != null) {
-          String name = myDevice.getDefaultState().getName();
-          if (ConfigurationMatcher.getBetterMatch(configuration, myDevice, name, null, null) == null) {
-            newState = name;
-          }
-        }
-      }
-      // Save last state of non-wear device.
-      projectState.setNonWearDeviceLastStateName(newState);
 
-      if (newState != null) {
-        configuration.setDeviceStateName(newState);
-      }
       if (commit) {
         configuration.getConfigurationManager().selectDevice(myDevice);
       }
       configuration.setDevice(myDevice, true);
+      configuration.setDeviceState(getMatchingState(myDevice, wantedStateName));
       myDeviceChangeListener.onDeviceChanged(prevDevice, myDevice);
+    }
+
+    private boolean hasBetterMatchingLayoutFile(@NotNull Configuration configuration, @NotNull Device device, @NotNull String stateName) {
+      VirtualFile file = configuration.getFile();
+      if (file == null) {
+        return false;
+      }
+      return ConfigurationMatcher.getBetterMatch(configuration, device, stateName, null, null) != null;
+    }
+
+    @Nullable
+    private State getMatchingState(@NotNull Device device, @NotNull String stateName) {
+      return device.getAllStates().stream().filter(state -> state.getName().equalsIgnoreCase(stateName)).findFirst().orElse(null);
     }
 
     @NotNull
@@ -555,13 +546,17 @@ public class DeviceMenuAction extends DropDownAction {
     @NotNull private final Device myAvdDevice;
     private final boolean mySelected;
 
+    @NotNull protected final DeviceChangeListener myDeviceChangeListener;
+
     public SetAvdAction(@NotNull ConfigurationHolder renderContext,
                         @Nullable Consumer<Presentation> updatePresentationCallback,
+                        @NotNull DeviceChangeListener deviceChangeListener,
                         @NotNull Device avdDevice,
                         @NotNull String displayName,
                         final boolean select) {
       super(renderContext, displayName);
       myUpdatePresentationCallback = updatePresentationCallback;
+      myDeviceChangeListener = deviceChangeListener;
       myAvdDevice = avdDevice;
       mySelected = select;
     }
@@ -581,8 +576,12 @@ public class DeviceMenuAction extends DropDownAction {
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      if (commit) {
+        configuration.getConfigurationManager().selectDevice(myAvdDevice);
+      }
       // TODO: force set orientation for virtual wear os device
       configuration.setDevice(myAvdDevice, false);
+      myDeviceChangeListener.onDeviceChanged(configuration.getCachedDevice(), myAvdDevice);
     }
   }
 

@@ -22,12 +22,12 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import java.io.IOException;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
@@ -56,12 +56,12 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
 
     GradleVersion gradleVersion = myGradleVersions.getGradleVersion(project);
     assertNotNull(gradleVersion);
-    assertEquals(expected, gradleVersion.toString());
+    assertEquals(expected, gradleVersion.getVersion());
 
     // double-check GradleSyncState, just in case
     GradleVersion gradleVersionFromSync = GradleSyncState.getInstance(project).getLastSyncedGradleVersion();
     assertNotNull(gradleVersionFromSync);
-    assertEquals(expected, GradleVersions.inferStableGradleVersion(gradleVersionFromSync.toString()));
+    assertEquals(expected, GradleVersions.inferStableGradleVersion(gradleVersionFromSync.getVersion()));
   }
 
   public void testReadGradleVersionFromWrapperWhenGradleSyncStateReturnsNullGradleVersion() throws Exception {
@@ -77,7 +77,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     String expected = getGradleVersionFromWrapper();
 
     GradleVersion gradleVersion = myGradleVersions.getGradleVersion(project);
-    assertEquals(expected, gradleVersion.toString());
+    assertEquals(expected, gradleVersion.getVersion());
   }
 
   public void testReadGradleVersionFromWrapperWhenSyncIsNeeded() throws Exception {
@@ -93,7 +93,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     String expected = getGradleVersionFromWrapper();
 
     GradleVersion gradleVersion = myGradleVersions.getGradleVersion(project);
-    assertEquals(expected, gradleVersion.toString());
+    assertEquals(expected, gradleVersion.getVersion());
   }
 
   public void testInferStableGradleVersion() {

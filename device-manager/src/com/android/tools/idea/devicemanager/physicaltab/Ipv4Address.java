@@ -31,7 +31,7 @@ final class Ipv4Address extends Key {
     myValue = value;
   }
 
-  static @NotNull Optional<@NotNull Key> parse(@NotNull String value) {
+  static @NotNull Optional<Key> parse(@NotNull String value) {
     // noinspection UnstableApiUsage
     if (InetAddressUtils.isIPv4Address(HostAndPort.fromString(value).getHost())) {
       return Optional.of(new Ipv4Address(value));

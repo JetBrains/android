@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.strings.action.FilterKeysAction;
 import com.android.tools.idea.editors.strings.action.FilterLocalesAction;
 import com.android.tools.idea.editors.strings.action.ReloadStringResourcesAction;
 import com.android.tools.idea.editors.strings.action.RemoveKeysAction;
+import com.android.tools.idea.editors.strings.action.TranslationsEditorPasteAction;
 import com.android.tools.idea.editors.strings.model.StringResourceKey;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableEvent;
 import com.android.tools.idea.editors.strings.table.FrozenColumnTableListener;
@@ -120,7 +121,7 @@ public class StringResourceViewPanel implements Disposable {
 
   private void initTable() {
     myDeleteAction = new DeleteStringAction(this);
-    myGoToAction = new GoToDeclarationAction(this);
+    myGoToAction = new GoToDeclarationAction(myFacet.getModule().getProject());
 
     myTable = new StringResourceTable();
 
@@ -165,14 +166,14 @@ public class StringResourceViewPanel implements Disposable {
   }
 
   private void initKeyTextField() {
-    myKeyTextField = new TranslationsEditorTextField(myTable, StringResourceTableModel.KEY_COLUMN);
+    myKeyTextField = new TranslationsEditorTextField(myTable, () -> StringResourceTableModel.KEY_COLUMN);
 
     myKeyTextField.setEnabled(false);
     myKeyTextField.setName("keyTextField");
   }
 
   private void initDefaultValueTextField() {
-    JTextField textField = new TranslationsEditorTextField(myTable, StringResourceTableModel.DEFAULT_VALUE_COLUMN);
+    JTextField textField = new TranslationsEditorTextField(myTable, () -> StringResourceTableModel.DEFAULT_VALUE_COLUMN);
     new TranslationsEditorPasteAction().registerCustomShortcutSet(textField, this);
 
     myDefaultValueTextField = new TextFieldWithBrowseButton(textField, new ShowMultilineActionListener(), this);
@@ -270,7 +271,7 @@ public class StringResourceViewPanel implements Disposable {
   private final class CellSelectionListener implements FrozenColumnTableListener {
     @Override
     public void selectedCellChanged() {
-      if (myTable.getSelectedColumnCount() != 1 || myTable.getSelectedRowCount() != 1) {
+      if (!myTable.hasSelectedCell()) {
         setTextAndEditable(myXmlTextField, "", false);
         setTextAndEditable(myKeyTextField, "", false);
         setTextAndEditable(myDefaultValueTextField.getTextField(), "", false);
@@ -343,7 +344,7 @@ public class StringResourceViewPanel implements Disposable {
   private class ShowMultilineActionListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      if (myTable.getSelectedRowCount() != 1 || myTable.getSelectedColumnCount() != 1) {
+      if (!myTable.hasSelectedCell()) {
         return;
       }
 

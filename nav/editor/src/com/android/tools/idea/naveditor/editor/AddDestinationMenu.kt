@@ -43,6 +43,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -61,6 +62,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
+import com.intellij.psi.PsiModifier
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
@@ -72,6 +74,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.TextComponentEmptyText
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.speedSearch.FilteringListModel
+import com.intellij.util.IconUtil
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI
@@ -96,7 +99,6 @@ import java.io.File
 import java.util.TreeSet
 import java.util.stream.Collectors
 import javax.swing.BorderFactory
-import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
@@ -229,11 +231,13 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     result.add(searchField)
 
     val action: AnAction = object : AnAction("Create new destination") {
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
       override fun actionPerformed(e: AnActionEvent) {
         createNewDestination()
       }
     }
-    createNewDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
+    createNewDestinationButton = ActionButtonWithText(action, action.templatePresentation.clone(), "Toolbar", JBDimension(0, 45))
     val buttonPanel = AdtSecondaryPanel(BorderLayout(0, 8))
     buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 1), DottedRoundedBorder(JBInsets.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f))
     buttonPanel.add(createNewDestinationButton, BorderLayout.CENTER)
@@ -265,11 +269,12 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
         iconProvider.getIcon(DesignAsset(file, listOf(), ResourceType.LAYOUT),
                              dimension.width,
                              dimension.height,
+                             list,
                              { list.getCellBounds(index, index)?.let(list::repaint) },
                              { index in list.firstVisibleIndex..list.lastVisibleIndex })
       }
 
-      thumbnailRenderer.icon = ImageIcon(value.thumbnail(iconCallback))
+      thumbnailRenderer.icon = IconUtil.createImageIcon(value.thumbnail(iconCallback, list))
       thumbnailRenderer.iconTextGap = (maxIconWidth - thumbnailRenderer.icon.iconWidth).coerceAtLeast(0)
       primaryTextRenderer.text = value.label
       secondaryTextRenderer.text = value.typeLabel

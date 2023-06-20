@@ -88,6 +88,7 @@ import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.SdkConstants.PREFIX_APP;
 import static com.android.SdkConstants.SHERPA_URI;
+import static com.android.SdkConstants.TAG_INCLUDE;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_MATCH_CONSTRAINT;
 import static com.android.SdkConstants.VALUE_N_DP;
@@ -99,8 +100,8 @@ import static com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuid
 
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
@@ -117,6 +118,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
@@ -935,64 +937,13 @@ public final class ConstraintComponentUtilities {
   }
 
 
-  public static boolean isConstraintModelGreaterThan(@NotNull ViewEditor editor,
-                                                     int major,
-                                                     int... version) {
+  public static boolean isConstraintModelGreaterThan(@NotNull ViewEditor editor, String version) {
     GoogleMavenArtifactId artifact = GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT;
-    GradleVersion v = NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
-    return (versionGreaterThan(v, major,
-                               (version.length > 0) ? version[0] : -1,
-                               (version.length > 1) ? version[1] : -1,
-                               (version.length > 2) ? version[2] : -1,
-                               (version.length > 3) ? version[3] : -1 ));
+    Version v = NlDependencyManager.getInstance().getModuleDependencyVersion(artifact, editor.getModel().getFacet());
+    if (v == null) return true;
+    return v.compareTo(Version.Companion.parse(version)) > 0;
   }
 
-  /**
-   * Are we past a version used to implement a conditional change for other releases
-   * results when alpha and beta both > 0 is undefined
-   *
-   * @param v
-   * @param major
-   * @param minor
-   * @param micro
-   * @param beta  version of beta to check 0 if not a version of beta
-   * @param alpha version of alpha to check 0 if not a version of alpha
-   * @return
-   */
-  private static boolean versionGreaterThan(GradleVersion v, int major, int minor, int micro, int beta, int alpha) {
-    if (v == null) { // if you could not get the version assume it is the latest
-      return true;
-    }
-    if (v.getMajor() != major) {
-      return v.getMajor() > major;
-    }
-    if (v.getMinor() != minor) {
-      return (v.getMinor() > minor);
-    }
-    if (micro == -1) { // minor version needed to be bigger
-      return false;
-    }
-    if (v.getMicro() != micro) {
-      return (v.getMicro() > micro);
-    }
-    if (alpha > 0) {
-      if ("alpha".equals(v.getPreviewType())) {
-        return (v.getPreview() > alpha);
-      }
-      else { // expecting alpha but out of beta
-        return true;
-      }
-    }
-    if (beta > 0) {
-      if ("beta".equals(v.getPreviewType())) {
-        return (v.getPreview() > beta);
-      }
-      else { // expecting beta but out of beta
-        return true;
-      }
-    }
-    return false;
-  }
   /////////////////////////////////////////////////////////////////////////////
   // Utility methods for Scout
   /////////////////////////////////////////////////////////////////////////////
@@ -1091,7 +1042,7 @@ public final class ConstraintComponentUtilities {
     // Horizontal attributes
     // cleanup needs to be sdk range specific
     //
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(component.getModel().getFacet());
+    AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(component.getModel().getFacet());
     boolean remove_left_right = moduleInfo.getMinSdkVersion().isGreaterOrEqualThan(17);
 
     margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);
@@ -1177,7 +1128,7 @@ public final class ConstraintComponentUtilities {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
     }
 
-    if (isGuideLine(component)) {
+    if (isGuideLine(component) || isBarrier(component) || isGroup(component)) {
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, null);
       transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, null);
     }
@@ -1201,6 +1152,14 @@ public final class ConstraintComponentUtilities {
 
   public static boolean isGuideLine(@NotNull NlComponent component) {
     return AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEqualsIgnoreCase(component.getTagName());
+  }
+
+  private static boolean isBarrier(@NotNull NlComponent component) {
+    return AndroidXConstants.CONSTRAINT_LAYOUT_BARRIER.isEqualsIgnoreCase(component.getTagName());
+  }
+
+  private static boolean isGroup(@NotNull NlComponent component) {
+    return AndroidXConstants.CLASS_CONSTRAINT_LAYOUT_GROUP.isEqualsIgnoreCase(component.getTagName());
   }
 
   public static @Nullable
@@ -1504,9 +1463,9 @@ public final class ConstraintComponentUtilities {
 
   public static boolean hasUserResizedHorizontally(@NotNull NlComponent component) {
     String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH);
-    assert dimension != null;
+    assert dimension != null || TAG_INCLUDE.equals(component.getTagName());
 
-    if (dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
+    if (dimension == null || dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
       return false;
     }
 
@@ -1515,9 +1474,9 @@ public final class ConstraintComponentUtilities {
 
   public static boolean hasUserResizedVertically(@NotNull NlComponent component) {
     String dimension = component.getAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT);
-    assert dimension != null;
+    assert dimension != null || TAG_INCLUDE.equals(component.getTagName());
 
-    if (dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
+    if (dimension == null || dimension.equalsIgnoreCase(VALUE_WRAP_CONTENT)) {
       return false;
     }
 

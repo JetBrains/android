@@ -21,9 +21,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import javax.swing.Icon
 
-/**
- * The [com.intellij.openapi.fileTypes.FileType] used to identify SQLite files.
- */
+/** The [com.intellij.openapi.fileTypes.FileType] used to identify SQLite files. */
 object SqliteFileType : INativeFileType {
   override fun getDefaultExtension() = "db"
 

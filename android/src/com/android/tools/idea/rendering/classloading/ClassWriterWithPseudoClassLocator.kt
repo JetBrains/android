@@ -54,7 +54,7 @@ class PseudoClass private constructor(val name: String,
                                       val superName: String,
                                       val isInterface: Boolean,
                                       val interfaces: List<String>,
-                                      private val classLocator: PseudoClassLocator) {
+                                      val classLocator: PseudoClassLocator) {
   private fun locateClass(fqn: String): PseudoClass =
     if (fqn == JAVA_OBJECT_FQN)
       objectPseudoClass()
@@ -81,7 +81,7 @@ class PseudoClass private constructor(val name: String,
   /**
    * Returns whether this type is a subclass of [pseudoClass].
    */
-  private fun isSubclassOf(pseudoClass: PseudoClass): Boolean {
+  fun isSubclassOf(pseudoClass: PseudoClass): Boolean {
     if (this == pseudoClass) return true
     // Object is not a subclass of anything
     if (this == objectPseudoClass) return false

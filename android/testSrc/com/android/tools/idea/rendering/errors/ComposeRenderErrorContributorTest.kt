@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering.errors
 
 import com.android.ide.common.rendering.api.ILayoutLog
 import com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc
-import com.android.tools.idea.rendering.HtmlLinkManager
+import com.android.tools.idea.rendering.StudioHtmlLinkManager
 import com.android.tools.idea.rendering.RenderErrorContributorTest.stripImages
 import com.android.tools.idea.rendering.RenderLogger
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor.isHandledByComposeContributor
@@ -34,7 +34,7 @@ class ComposeRenderErrorContributorTest {
   @get:Rule
   val androidProjectRule = AndroidProjectRule.inMemory()
 
-  private val linkManager = HtmlLinkManager()
+  private val linkManager = StudioHtmlLinkManager()
   private val nopLinkHandler = HyperlinkListener { }
 
   @Test
@@ -72,7 +72,7 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.lang.Thread.run(Thread.java:834)
 
       """.trimIndent())
-    val logger = RenderLogger("test", androidProjectRule.module).apply {
+    val logger = RenderLogger(androidProjectRule.project).apply {
       error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
     }
     assertTrue(isHandledByComposeContributor(throwable))
@@ -109,7 +109,7 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.lang.Thread.run(Thread.java:834)
 
       """.trimIndent())
-    val logger = RenderLogger("test", androidProjectRule.module).apply {
+    val logger = RenderLogger(androidProjectRule.project).apply {
       error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
     }
 
@@ -159,7 +159,7 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.lang.Thread.run(Thread.java:829)
 
       """.trimIndent())
-    val logger = RenderLogger("test", androidProjectRule.module).apply {
+    val logger = RenderLogger(androidProjectRule.project).apply {
       error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
     }
 
@@ -183,12 +183,12 @@ class ComposeRenderErrorContributorTest {
       	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
       	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
       	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
-      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableMethod(CommonPreviewUtils.kt:150)
-      	at androidx.compose.ui.tooling.CommonPreviewUtils.invokeComposableViaReflection${'$'}ui_tooling_release(CommonPreviewUtils.kt:189)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:588)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:586)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:623)
-      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:581)
+      	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposableMethod(ComposableInvoker.kt:163)
+      	at androidx.compose.ui.tooling.ComposableInvoker.invokeComposable(ComposableInvoker.kt:203)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:509)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1${'$'}composable${'$'}1.invoke(ComposeViewAdapter.kt:507)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:544)
+      	at androidx.compose.ui.tooling.ComposeViewAdapter${'$'}init${'$'}3${'$'}1.invoke(ComposeViewAdapter.kt:502)
       	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:107)
       	at androidx.compose.runtime.internal.ComposableLambdaImpl.invoke(ComposableLambda.jvm.kt:34)
       	at androidx.compose.runtime.CompositionLocalKt.CompositionLocalProvider(CompositionLocal.kt:228)
@@ -221,7 +221,7 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.lang.Thread.run(Thread.java:829)
 
       """.trimIndent())
-    val logger = RenderLogger("test", androidProjectRule.module).apply {
+    val logger = RenderLogger(androidProjectRule.project).apply {
       error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
     }
 
@@ -263,7 +263,7 @@ class ComposeRenderErrorContributorTest {
       	at androidx.compose.ui.platform.ComposeView.Content(ComposeView.android.kt:402)
 
       """.trimIndent())
-    val logger = RenderLogger("test", androidProjectRule.module).apply {
+    val logger = RenderLogger(androidProjectRule.project).apply {
       error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
     }
 

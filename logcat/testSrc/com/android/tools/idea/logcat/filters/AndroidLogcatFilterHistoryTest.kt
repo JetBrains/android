@@ -15,19 +15,33 @@
  */
 package com.android.tools.idea.logcat.filters
 
+import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
 
 /**
  * Tests for [AndroidLogcatFilterHistory]
  */
+@RunsInEdt
 class AndroidLogcatFilterHistoryTest {
+  private val projectRule = ProjectRule()
+
+  @get:Rule
+  val rule = RuleChain(projectRule, EdtRule())
+
+  private val logcatFilterParser by lazy { LogcatFilterParser(projectRule.project, FakePackageNamesProvider()) }
+
   @Test
   fun add_maxNonFavoriteItems() {
     val history = AndroidLogcatFilterHistory(maxNonFavoriteItems = 3)
 
     for (filter in listOf("foo1", "foo2", "foo3", "foo4")) {
-      history.add(filter, isFavorite = false)
+      history.add(logcatFilterParser, filter, isFavorite = false)
     }
     assertThat(history.nonFavorites).containsExactly(
       "foo4",
@@ -41,7 +55,7 @@ class AndroidLogcatFilterHistoryTest {
     val history = AndroidLogcatFilterHistory(maxNonFavoriteItems = 3)
 
     for (filter in listOf("foo1", "foo2", "foo3", "foo4")) {
-      history.add(filter, isFavorite = true)
+      history.add(logcatFilterParser, filter, isFavorite = true)
     }
     assertThat(history.favorites).containsExactly(
       "foo4",
@@ -52,11 +66,26 @@ class AndroidLogcatFilterHistoryTest {
   }
 
   @Test
+  fun add_maxNonFavoriteItems_doesNotAffectNamed() {
+    val history = AndroidLogcatFilterHistory(maxNonFavoriteItems = 3)
+
+    for (filter in listOf("name:foo1", "name:foo2", "name:foo3", "name:foo4")) {
+      history.add(logcatFilterParser, filter, isFavorite = false)
+    }
+    assertThat(history.named).containsExactly(
+      "name:foo4",
+      "name:foo3",
+      "name:foo2",
+      "name:foo1",
+    ).inOrder()
+  }
+
+  @Test
   fun add_nonFavoriteItems_bubbleUp() {
     val history = AndroidLogcatFilterHistory()
 
     for (filter in listOf("foo1", "foo2", "foo3", "foo1")) {
-      history.add(filter, isFavorite = false)
+      history.add(logcatFilterParser, filter, isFavorite = false)
     }
     assertThat(history.nonFavorites).containsExactly(
       "foo1",
@@ -70,12 +99,35 @@ class AndroidLogcatFilterHistoryTest {
     val history = AndroidLogcatFilterHistory()
 
     for (filter in listOf("foo1", "foo2", "foo3", "foo1")) {
-      history.add(filter, isFavorite = true)
+      history.add(logcatFilterParser, filter, isFavorite = true)
     }
     assertThat(history.favorites).containsExactly(
       "foo1",
       "foo3",
       "foo2",
     ).inOrder()
+  }
+
+  @Test
+  fun add_namedItems_bubbleUp() {
+    val history = AndroidLogcatFilterHistory()
+
+    for (filter in listOf("name:foo1", "name:foo2", "name:foo3", "name:foo1")) {
+      history.add(logcatFilterParser, filter, isFavorite = false)
+    }
+    assertThat(history.named).containsExactly(
+      "name:foo1",
+      "name:foo3",
+      "name:foo2",
+    ).inOrder()
+  }
+
+  @Test
+  fun add_namedFavoriteIsFavorite() {
+    val history = AndroidLogcatFilterHistory()
+
+    history.add(logcatFilterParser, "name:foo", isFavorite = true)
+    assertThat(history.named).isEmpty()
+    assertThat(history.favorites).containsExactly("name:foo")
   }
 }

@@ -69,11 +69,11 @@ final class CustomSkinDefinitionResolver {
     myCustomSkinDefinitionBackup = customSkinDefinitionBackup;
   }
 
-  @NotNull Optional<@NotNull Path> getCustomSkinDefinition() {
+  @NotNull Optional<Path> getCustomSkinDefinition() {
     return Optional.ofNullable(myCustomSkinDefinition);
   }
 
-  @NotNull Optional<@NotNull Path> getCustomSkinDefinitionBackup() {
+  @NotNull Optional<Path> getCustomSkinDefinitionBackup() {
     return Optional.ofNullable(myCustomSkinDefinitionBackup);
   }
 }

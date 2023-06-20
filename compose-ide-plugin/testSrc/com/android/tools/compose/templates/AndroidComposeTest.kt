@@ -15,7 +15,6 @@
  */
 package com.android.tools.compose.templates
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.intellij.codeInsight.template.impl.InvokeTemplateAction
@@ -28,7 +27,6 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     myFixture.addFileToProject(
       "src/androidx/compose/foundation/layout/ColumnAndRow.kt",
       // language=kotlin
@@ -42,11 +40,6 @@ class AndroidComposeTest : JavaCodeInsightFixtureTestCase() {
     )
     LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
     TemplateManagerImpl.setTemplateTesting(myFixture.testRootDisposable)
-  }
-
-  override fun tearDown() {
-    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
-    super.tearDown()
   }
 
   fun testBoxTemplate() {

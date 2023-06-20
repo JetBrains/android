@@ -57,7 +57,7 @@ import org.w3c.dom.Node;
 /**
  * Static utilities for generating scaled-down {@link Icon} instances from image resources to display in the gutter.
  */
-public final class GutterIconFactory {
+public class GutterIconFactory {
   private static final Logger LOG = Logger.getInstance(GutterIconCache.class);
   private static final int RENDERING_SCALING_FACTOR = 10;
 
@@ -125,7 +125,7 @@ public final class GutterIconFactory {
         }
       }
       else {
-        Configuration configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file);
+        Configuration configuration = ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(file);
         DrawableRenderer renderer = new DrawableRenderer(facet, configuration);
         Dimension size = new Dimension(maxWidth * RENDERING_SCALING_FACTOR, maxHeight * RENDERING_SCALING_FACTOR);
         try {

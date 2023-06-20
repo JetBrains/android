@@ -27,17 +27,17 @@ import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.layoutinspector.pipeline.ForegroundProcessDetection
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
-import com.android.tools.idea.layoutinspector.ui.InspectorDeviceViewSettings
-import com.android.tools.idea.layoutinspector.util.ComponentUtil
+import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.flatten
+import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.highlighter.ProjectFileType
 import com.intellij.openapi.application.ApplicationManager
@@ -60,22 +60,18 @@ import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.mockito.Mockito.anyString
-import org.mockito.Mockito.times
-import org.mockito.Mockito.verify
-import org.mockito.Mockito.verifyNoInteractions
-import org.mockito.Mockito.verifyNoMoreInteractions
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.util.concurrent.TimeUnit
 
 private val MODERN_PROCESS = MODERN_DEVICE.createProcess()
 private val LEGACY_PROCESS = LEGACY_DEVICE.createProcess()
-private val OLDER_LEGACY_PROCESS = OLDER_LEGACY_DEVICE.createProcess()
 
 class LayoutInspectorToolWindowFactoryTest {
 
@@ -120,46 +116,35 @@ class LayoutInspectorToolWindowFactoryTest {
     }
   }
 
-  private val disposableRule = DisposableRule()
-
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
-  private val inspectionRule = AppInspectionInspectorRule(disposableRule.disposable)
-  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider(disposableRule.disposable)), projectRule) {
+  private val inspectionRule = AppInspectionInspectorRule(projectRule)
+  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider({ projectRule.testRootDisposable })), projectRule) {
     it.name == LEGACY_PROCESS.name
   }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule).around(disposableRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(inspectionRule).around(inspectorRule)!!
 
-  @Test
-  fun foregroundProcessDetectionOnlyStartsIfWindowIsNotMinimized() {
-    val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
-    val listener = ForegroundProcessDetectionWindowManagerListener(mockForegroundProcessDetection, false)
-    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
-
-    verifyNoInteractions(mockForegroundProcessDetection)
-
-    toolWindow.show()
-    toolWindow.hide()
-
-    verify(mockForegroundProcessDetection).startListeningForEvents()
-    verify(mockForegroundProcessDetection).stopListeningForEvents()
+  @Before
+  fun setUp() {
+    val devices = listOf(MODERN_DEVICE, OLDER_LEGACY_DEVICE, LEGACY_DEVICE)
+    devices.forEach { device ->
+      inspectorRule.adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
+    }
   }
 
   @Test
-  fun foregroundProcessDetectionStartsImmediatelyIfWindowIsVisibleAtCreation() {
-    val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
-    val listener = ForegroundProcessDetectionWindowManagerListener(mockForegroundProcessDetection, true)
-    val toolWindow = FakeToolWindow(inspectorRule.project, listener)
+  fun isApplicableReturnsFalseWhenEnabledInRunningDevices() {
+    val prev = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
 
-    toolWindow.show()
+    assertThat(LayoutInspectorToolWindowFactory().isApplicable(projectRule.project)).isFalse()
 
-    verify(mockForegroundProcessDetection, times(2)).startListeningForEvents()
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(false)
 
-    toolWindow.hide()
+    assertThat(LayoutInspectorToolWindowFactory().isApplicable(projectRule.project)).isTrue()
 
-    verify(mockForegroundProcessDetection).stopListeningForEvents()
-    verifyNoMoreInteractions(mockForegroundProcessDetection)
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(prev)
   }
 
   @Test
@@ -178,7 +163,7 @@ class LayoutInspectorToolWindowFactoryTest {
   }
 
   @Test
-  fun testShowInspectionNotificationWhenInspectorIsRunning() {
+  fun testCollapseToolWindowShowsInspectionNotificationWhenInspectorIsRunning() {
     val listener = LayoutInspectorToolWindowManagerListener(inspectorRule.project, inspectorRule.launcher)
 
     val toolWindow = FakeToolWindow(inspectorRule.project, listener)
@@ -221,35 +206,23 @@ class LayoutInspectorToolWindowFactoryTest {
   }
 
   @Test
-  fun testCreateProcessesModel() {
-    val factory = LayoutInspectorToolWindowFactory()
-    val model = factory.createProcessesModel(inspectorRule.project, inspectorRule.processNotifier, MoreExecutors.directExecutor())
-    // Verify that devices older than M will be included in the processes model:
-    inspectorRule.processNotifier.fireConnected(OLDER_LEGACY_PROCESS)
-    assertThat(model.processes).hasSize(1)
-    // An M device as well:
-    inspectorRule.processNotifier.fireConnected(LEGACY_PROCESS)
-    assertThat(model.processes).hasSize(2)
-    // And newer devices as well:
-    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    assertThat(model.processes).hasSize(3)
-  }
-
-  @Test
   fun toolWindowFactoryCreatesCorrectSettings() {
+    ApplicationManager.getApplication().replaceService(TransportService::class.java, mock(), projectRule.testRootDisposable)
     projectRule.replaceService(AppInspectionDiscoveryService::class.java, mock())
     whenever(AppInspectionDiscoveryService.instance.apiServices).thenReturn(inspectionRule.inspectionService.apiServices)
     val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(inspectorRule.project)
-    LayoutInspectorToolWindowFactory().createToolWindowContent(inspectorRule.project, toolWindow)
+    runInEdtAndWait {
+      LayoutInspectorToolWindowFactory().createToolWindowContent(inspectorRule.project, toolWindow)
+    }
     val component = toolWindow.contentManager.selectedContent?.component!!
     waitForCondition(5L, TimeUnit.SECONDS) {
-      ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
+      component.flatten(false).firstIsInstanceOrNull<DeviceViewPanel>() != null
     }
-    val inspector = DataManager.getDataProvider(ComponentUtil.flatten(component).firstIsInstance<WorkBench<*>>())?.getData(
+    val inspector = DataManager.getDataProvider(component.flatten(false).firstIsInstance<WorkBench<*>>())?.getData(
       LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector.treeSettings).isInstanceOf(InspectorTreeSettings::class.java)
-    val contentPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewContentPanel>()
-    assertThat(contentPanel.viewSettings).isInstanceOf(InspectorDeviceViewSettings::class.java)
+    val contentPanel = component.flatten(false).firstIsInstance<DeviceViewContentPanel>()
+    assertThat(inspector.renderLogic.renderSettings).isInstanceOf(InspectorRenderSettings::class.java)
   }
 }
 
@@ -290,11 +263,11 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       LayoutInspectorToolWindowFactory().createToolWindowContent(project, toolWindow)
       val component = toolWindow.contentManager.selectedContent?.component!!
       waitForCondition(25L, TimeUnit.SECONDS) {
-        ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
+        component.flatten(false).firstIsInstanceOrNull<DeviceViewPanel>() != null
       }
-      val deviceViewPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewPanel>()
-      val deviceViewContentPanel = ComponentUtil.flatten(deviceViewPanel).firstIsInstance<DeviceViewContentPanel>()
-      val processes = deviceViewPanel.processesModel!!
+      val deviceViewPanel = component.flatten(false).firstIsInstance<DeviceViewPanel>()
+      val deviceViewContentPanel = deviceViewPanel.flatten(false).firstIsInstance<DeviceViewContentPanel>()
+      val processes = deviceViewPanel.layoutInspector.processModel!!
       RecentProcess.set(project, RecentProcess(adbRule.bridge.devices.first(), MODERN_PROCESS.name))
 
       val modelUpdatedLatch = ReportingCountDownLatch(1)

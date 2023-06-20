@@ -15,20 +15,31 @@
  */
 package com.android.tools.idea.logcat.actions
 
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.actions.AbstractToggleUseSoftWrapsAction
-import com.intellij.openapi.editor.impl.softwrap.SoftWrapAppliancePlaces.CONSOLE
+import com.intellij.openapi.project.DumbAware
 
 /**
- * A [AbstractToggleUseSoftWrapsAction] for Logcat panels.
+ * Toggles Soft Wrap for Logcat panels.
  */
-internal class LogcatToggleUseSoftWrapsToolbarAction(private val editor: Editor) : AbstractToggleUseSoftWrapsAction(CONSOLE, false) {
+internal class LogcatToggleUseSoftWrapsToolbarAction : ToggleAction(), DumbAware {
   init {
     ActionUtil.copyFrom(this, IdeActions.ACTION_EDITOR_USE_SOFT_WRAPS)
   }
 
-  override fun getEditor(e: AnActionEvent): Editor = editor
+  override fun isSelected(e: AnActionEvent): Boolean {
+    val logcatPresenter = e.getData(LOGCAT_PRESENTER_ACTION) ?: return false
+    return logcatPresenter.isSoftWrapEnabled()
+  }
+
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    val logcatPresenter = e.getData(LOGCAT_PRESENTER_ACTION) ?: return
+    logcatPresenter.setSoftWrapEnabled(state)
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread  = ActionUpdateThread.EDT
 }

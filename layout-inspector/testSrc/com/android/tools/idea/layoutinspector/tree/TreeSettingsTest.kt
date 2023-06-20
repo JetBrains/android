@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.testing.registerServiceInstance
@@ -29,33 +30,27 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.doAnswer
 
 class InspectorTreeSettingsTest {
 
-  companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
-  }
-
   @get:Rule
   val cleaner = MockitoCleanerRule()
 
   @get:Rule
-  val recompositionFlagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
-
-  @get:Rule
-  val treeTableFlagRule = SetFlagRule(StudioFlags.USE_COMPONENT_TREE_TABLE, true)
+  val recompositionFlagRule =
+    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS, true)
 
   @get:Rule
   val disposableRule = DisposableRule()
+
+  @get:Rule
+  val projectRule = ProjectRule()
 
   private val client: InspectorClient = mock()
   private val capabilities = mutableSetOf<Capability>()
@@ -68,7 +63,8 @@ class InspectorTreeSettingsTest {
     val application = ApplicationManager.getApplication()
     application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
     settings = InspectorTreeSettings { client }
-    inspector = LayoutInspector(mock(), mock(), settings, MoreExecutors.directExecutor())
+    val model = InspectorModel( projectRule.project)
+    inspector = LayoutInspector(mock(), mock(), mock(), mock(), mock(), mock (), model, settings, MoreExecutors.directExecutor())
     doAnswer { capabilities }.whenever(client).capabilities
     doAnswer { isConnected }.whenever(client).isConnected
   }
@@ -105,10 +101,6 @@ class InspectorTreeSettingsTest {
     settings.showRecompositions = true
     assertThat(settings.showRecompositions).isTrue()
 
-    StudioFlags.USE_COMPONENT_TREE_TABLE.override(false)
-    assertThat(settings.showRecompositions).isFalse()
-
-    StudioFlags.USE_COMPONENT_TREE_TABLE.override(true)
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.override(false)
     assertThat(settings.showRecompositions).isFalse()
   }

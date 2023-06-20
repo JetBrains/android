@@ -43,4 +43,6 @@ data class PairingDevice(
     res.launch = { Futures.immediateFailedFuture(RuntimeException("DISCONNECTED")) }
     return res
   }
+
+  override fun toString() = displayName
 }

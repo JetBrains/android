@@ -31,7 +31,6 @@ import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.profile.codeInspection.ui.DescriptionEditorPane
 import com.intellij.profile.codeInspection.ui.readHTML
-import com.intellij.profile.codeInspection.ui.toHTML
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
@@ -153,7 +152,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
 
     val description = updateImageSize(HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html,
                                       UIUtil.getFontSize(UIUtil.FontSize.NORMAL).toInt())
-    descriptionEditorPane.readHTML(descriptionEditorPane.toHTML(description, false))
+    descriptionEditorPane.readHTML(description)
 
     if (issue is VisualLintRenderIssue) {
       val affectedFilePanel = JPanel().apply { border = JBUI.Borders.empty(4, 0) }

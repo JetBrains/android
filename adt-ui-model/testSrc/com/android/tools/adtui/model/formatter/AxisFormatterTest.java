@@ -74,4 +74,61 @@ public class AxisFormatterTest {
     assertThat(multiplier.accumulation).isEqualTo(1000);
     assertThat(myFormatter.getUnit(multiplier.index)).isEqualTo("m");
   }
+
+  @Test
+  public void testGetFormattedStringByGlobalRange() {
+    // global ranges with value of 0 are computing the correct unit
+    // based off MockAxisFormatter MULTIPLIERS of [10, 100, 10] and with base 10
+    // mapping of units should be of [0, 9] -> mm, [10, 999] -> cm, [999, inf) -> m
+    assertThat(myFormatter.getFormattedString(0, 0, true)).isEqualTo("0mm");
+    assertThat(myFormatter.getFormattedString(9, 0, true)).isEqualTo("0mm");
+    assertThat(myFormatter.getFormattedString(10, 0, true)).isEqualTo("0cm");
+    assertThat(myFormatter.getFormattedString(999, 0, true)).isEqualTo("0cm");
+    assertThat(myFormatter.getFormattedString(1000, 0, true)).isEqualTo("0m");
+    assertThat(myFormatter.getFormattedString(9999, 0, true)).isEqualTo("0m");
+
+    // values within each globalRange range: [0, 9]
+    // based on the globalRange value, the unit should stay mm agnostic of the value
+    assertThat(myFormatter.getFormattedString(9, 0, true)).isEqualTo("0mm");
+    assertThat(myFormatter.getFormattedString(9, 10, true)).isEqualTo("10mm");
+    assertThat(myFormatter.getFormattedString(9, 100, true)).isEqualTo("100mm");
+    assertThat(myFormatter.getFormattedString(9, 1000, true)).isEqualTo("1000mm");
+    assertThat(myFormatter.getFormattedString(9, 10000, true)).isEqualTo("10000mm");
+
+    // values within each globalRange range: [10, 999]
+    // based on the globalRange value, the unit should stay cm agnostic of the value
+    assertThat(myFormatter.getFormattedString(999, 0, true)).isEqualTo("0cm");
+    assertThat(myFormatter.getFormattedString(999, 10, true)).isEqualTo("1cm");
+    assertThat(myFormatter.getFormattedString(999, 100, true)).isEqualTo("10cm");
+    assertThat(myFormatter.getFormattedString(999, 1000, true)).isEqualTo("100cm");
+    assertThat(myFormatter.getFormattedString(999, 10000, true)).isEqualTo("1000cm");
+
+    // values within each globalRange range: [999, inf)
+    // based on the globalRange value, the unit should stay m agnostic of the value
+    assertThat(myFormatter.getFormattedString(1000, 0, true)).isEqualTo("0m");
+    assertThat(myFormatter.getFormattedString(1000, 10, true)).isEqualTo("0m");
+    assertThat(myFormatter.getFormattedString(1000, 100, true)).isEqualTo("0.1m");
+    assertThat(myFormatter.getFormattedString(1000, 1000, true)).isEqualTo("1m");
+    assertThat(myFormatter.getFormattedString(1000, 10000, true)).isEqualTo("10m");
+  }
+
+  @Test
+  public void testGetFormattedStringByValue() {
+    // Passing in the value as the globalRange as well simulates the multiplier
+    // determining the unit and conversion accumulation by value
+
+    // based off MockAxisFormatter MULTIPLIERS of [10, 100, 10] and with base 10
+
+    // the value falls in the range of [0, 9], mapping to mm unit
+    // formatted string will evaluate value / 1 converting mm to mm
+    assertThat(myFormatter.getFormattedString(9, 9, true)).isEqualTo("9mm");
+
+    // the value falls in the range of [10, 999], mapping to cm unit
+    // formatted string will evaluate value / 10 converting mm to cm
+    assertThat(myFormatter.getFormattedString(999, 999, true)).isEqualTo("99.9cm");
+
+    // the value falls in the range of [1000, inf), mapping to m unit
+    // formatted string will evaluate value / 100 converting mm to m
+    assertThat(myFormatter.getFormattedString(1000, 1000, true)).isEqualTo("1m");
+  }
 }

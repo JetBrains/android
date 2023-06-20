@@ -46,7 +46,6 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
   /**
    * Clears the message view
    */
-  @UiThread
   fun clearMessageView()
 
   @UiThread
@@ -72,9 +71,11 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
    */
   fun getConnectedDevice(): Device?
 
+  fun getSelectedDevice(): Device?
+
   fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings)
 
-  fun countFilterMatches(filter: String): Int
+  fun countFilterMatches(filter: LogcatFilter?): Int
 
   fun foldImmediately()
 
@@ -88,7 +89,18 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
 
   fun setFilter(filter: String)
 
+  fun isSoftWrapEnabled(): Boolean
+
+  fun setSoftWrapEnabled(state: Boolean)
+
+  fun getBacklogMessages() : List<LogcatMessage>
+
+  suspend fun enterInvisibleMode()
+
+  fun isShowing() : Boolean
+
   companion object {
     val LOGCAT_PRESENTER_ACTION = DataKey.create<LogcatPresenter>("LogcatPresenter")
+    val CONNECTED_DEVICE = DataKey.create<Device>("ConnectedDevice")
   }
 }

@@ -39,58 +39,79 @@ abstract class JdbcSqliteResultSet(
   private val sqliteStatement: SqliteStatement
 ) : SqliteResultSet {
 
-  override val columns get() = taskExecutor.executeAsync {
-    connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
-      preparedStatement.executeQuery().use {
-        val metaData = it.metaData
-        (1..metaData.columnCount).map { i ->
-          val tableName = metaData.getTableName(i)
-          val columnName = metaData.getColumnName(i)
+  override val columns
+    get() =
+      taskExecutor
+        .executeAsync {
+          connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+            preparedStatement.executeQuery().use {
+              val metaData = it.metaData
+              (1..metaData.columnCount).map { i ->
+                val tableName = metaData.getTableName(i)
+                val columnName = metaData.getColumnName(i)
 
-          val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
-          ResultSetSqliteColumn(
-            metaData.getColumnName(i),
-            SqliteAffinity.fromJDBCType(JDBCType.valueOf(metaData.getColumnType(i))),
-            metaData.isNullable(i) == 1,
-            keyColumnsNames.contains(columnName)
-          )
+                val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
+                ResultSetSqliteColumn(
+                  metaData.getColumnName(i),
+                  SqliteAffinity.fromJDBCType(JDBCType.valueOf(metaData.getColumnType(i))),
+                  metaData.isNullable(i) == 1,
+                  keyColumnsNames.contains(columnName)
+                )
+              }
+            }
+          }
         }
-      }
-    }
-  }.cancelOnDispose(this)
+        .cancelOnDispose(this)
 
   abstract override val totalRowCount: ListenableFuture<Int>
-  abstract override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>>
+  abstract override fun getRowBatch(
+    rowOffset: Int,
+    rowBatchSize: Int
+  ): ListenableFuture<List<SqliteRow>>
 
-  protected fun getRowCount(sqliteStatement: SqliteStatement, handleResponse: (ResultSet) -> Int): ListenableFuture<Int> {
-    return taskExecutor.executeAsync {
-      check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
-      check(!connection.isClosed) { "The connection has been closed." }
+  protected fun getRowCount(
+    sqliteStatement: SqliteStatement,
+    handleResponse: (ResultSet) -> Int
+  ): ListenableFuture<Int> {
+    return taskExecutor
+      .executeAsync {
+        check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
+        check(!connection.isClosed) { "The connection has been closed." }
 
-      connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
-        preparedStatement.executeQuery().use { handleResponse(it) }
+        connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+          preparedStatement.executeQuery().use { handleResponse(it) }
+        }
       }
-    }.cancelOnDispose(this)
+      .cancelOnDispose(this)
   }
 
   protected fun getRowBatch(
     sqliteStatement: SqliteStatement,
     handleResponse: (ResultSet, List<ResultSetSqliteColumn>) -> List<SqliteRow>
   ): ListenableFuture<List<SqliteRow>> {
-    return columns.transform(taskExecutor) { columns ->
-      check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
-      check(!connection.isClosed) { "The connection has been closed." }
+    return columns
+      .transform(taskExecutor) { columns ->
+        check(!Disposer.isDisposed(this)) { "ResultSet has already been closed." }
+        check(!connection.isClosed) { "The connection has been closed." }
 
-      connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
-        preparedStatement.executeQuery().use { handleResponse(it, columns) }
+        connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+          preparedStatement.executeQuery().use { handleResponse(it, columns) }
+        }
       }
-    }.cancelOnDispose(this)
+      .cancelOnDispose(this)
   }
 
   @WorkerThread
-  protected fun createCurrentRow(resultSet: ResultSet, columns: List<ResultSetSqliteColumn>): SqliteRow {
-    return SqliteRow(columns.mapIndexed { i, column -> SqliteColumnValue(column.name, SqliteValue.fromAny(resultSet.getObject(i + 1))) })
+  protected fun createCurrentRow(
+    resultSet: ResultSet,
+    columns: List<ResultSetSqliteColumn>
+  ): SqliteRow {
+    return SqliteRow(
+      columns.mapIndexed { i, column ->
+        SqliteColumnValue(column.name, SqliteValue.fromAny(resultSet.getObject(i + 1)))
+      }
+    )
   }
 
-  override fun dispose() { }
+  override fun dispose() {}
 }

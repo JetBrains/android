@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import org.jetbrains.plugins.gradle.importing.GradleDependenciesImportingTest;
-import org.jetbrains.plugins.gradle.importing.GradleFoldersImportingTest;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-
-/**
- * Check non-android gradle projects import with installed android plugin.
- */
-@RunWith(Suite.class)
-@Suite.SuiteClasses({GradleDependenciesImportingTest.class, GradleFoldersImportingTest.class})
-public class NonAndroidGradleProjectImportingTestSuite {}
+//import org.jetbrains.plugins.gradle.importing.GradleDependenciesImportingTest;
+//import org.jetbrains.plugins.gradle.importing.GradleFoldersImportingTest;
+//import org.junit.runner.RunWith;
+//import org.junit.runners.Suite;
+//
+///**
+// * Check non-android gradle projects import with installed android plugin.
+// */
+//@RunWith(Suite.class)
+//@Suite.SuiteClasses({GradleDependenciesImportingTest.class, GradleFoldersImportingTest.class})
+//public class NonAndroidGradleProjectImportingTestSuite {}

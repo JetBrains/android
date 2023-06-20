@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactCore
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeArtifactName
@@ -34,7 +34,7 @@ import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
 
-private const val ourAndroidSyncVersion = "2022-07-26/1"
+private const val ourAndroidSyncVersion = "2023-03-01/1"
 
 interface GradleAndroidModelData : ModuleModel {
   val androidSyncVersion: String
@@ -42,7 +42,7 @@ interface GradleAndroidModelData : ModuleModel {
   val androidProject: IdeAndroidProject
   val variants: Collection<IdeVariantCore>
   val selectedVariantName: String
-  val agpVersion: GradleVersion
+  val agpVersion: AgpVersion
   val selectedVariantCore: IdeVariantCore
   val mainArtifactCore: IdeAndroidArtifactCore
   fun getJavaLanguageLevel(): LanguageLevel?
@@ -70,7 +70,7 @@ data class GradleAndroidModelDataImpl(
 
   override fun getModuleName(): String = moduleName
 
-  override val agpVersion: GradleVersion get() = GradleVersion.parseAndroidGradlePluginVersion(androidProject.agpVersion)
+  override val agpVersion: AgpVersion get() = AgpVersion.parse(androidProject.agpVersion)
 
   override fun findVariantCoreByName(variantName: String): IdeVariantCore? {
     // Note, when setting up projects models contain just one variant.

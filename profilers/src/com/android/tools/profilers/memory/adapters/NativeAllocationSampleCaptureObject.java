@@ -17,7 +17,7 @@ package com.android.tools.profilers.memory.adapters;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
@@ -62,18 +62,18 @@ public final class NativeAllocationSampleCaptureObject implements CaptureObject 
 
   boolean myIsLoadingError = false;
   boolean myIsDoneLoading = false;
-  private final Memory.MemoryNativeSampleData myInfo;
+  private final Trace.TraceInfo myInfo;
 
   public NativeAllocationSampleCaptureObject(@NotNull ProfilerClient client,
                                              @NotNull Common.Session session,
-                                             @NotNull Memory.MemoryNativeSampleData info,
+                                             @NotNull Trace.TraceInfo info,
                                              @NotNull BaseMemoryProfilerStage stage) {
     myClassDb = new ClassDb();
     myClient = client;
     mySession = session;
     myInfo = info;
-    myStartTimeNs = info.getStartTime();
-    myEndTimeNs = info.getEndTime();
+    myStartTimeNs = info.getFromTimestamp();
+    myEndTimeNs = info.getToTimestamp();
     myStage = stage;
 
     myDefaultHeapSet = new NativeMemoryHeapSet(this);

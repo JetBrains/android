@@ -46,26 +46,34 @@ import org.jetbrains.uast.toUElement
 /**
  * LocalInspection for the Compose @Preview annotation.
  *
- * Outlines IDE-specific issues with the annotation's contents (i.e: the library has independent Lint checks of its own).
+ * Outlines IDE-specific issues with the annotation's contents (i.e: the library has independent
+ * Lint checks of its own).
  */
 class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
 
-  override fun visitPreviewAnnotation(holder: ProblemsHolder,
-                                      function: KtNamedFunction,
-                                      previewAnnotation: KtAnnotationEntry,
-                                      isMultiPreview: Boolean) {
+  override fun visitPreviewAnnotation(
+    holder: ProblemsHolder,
+    function: KtNamedFunction,
+    previewAnnotation: KtAnnotationEntry,
+    isMultiPreview: Boolean
+  ) {
     runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
   }
 
-  override fun visitPreviewAnnotation(holder: ProblemsHolder,
-                                      annotationClass: KtClass,
-                                      previewAnnotation: KtAnnotationEntry,
-                                      isMultiPreview: Boolean) {
+  override fun visitPreviewAnnotation(
+    holder: ProblemsHolder,
+    annotationClass: KtClass,
+    previewAnnotation: KtAnnotationEntry,
+    isMultiPreview: Boolean
+  ) {
     runPreviewPickerChecks(holder, previewAnnotation, isMultiPreview)
   }
 
-
-  private fun runPreviewPickerChecks(holder: ProblemsHolder, previewAnnotation: KtAnnotationEntry, isMultiPreview: Boolean) {
+  private fun runPreviewPickerChecks(
+    holder: ProblemsHolder,
+    previewAnnotation: KtAnnotationEntry,
+    isMultiPreview: Boolean
+  ) {
     // MultiPreviews are not relevant for the PreviewPicker
     if (isMultiPreview) return
 
@@ -86,8 +94,10 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
           Unknown::class -> message("picker.preview.annotator.lint.error.unknown")
           Repeated::class -> message("picker.preview.annotator.lint.error.repeated")
           Failure::class -> {
-            val failureMessage = entry.value.filterIsInstance<Failure>().joinToString("\n") { it.failureMessage }
-            Logger.getInstance(PreviewPickerAnnotationInspection::class.java).warn("Failed when checking annotation: $failureMessage")
+            val failureMessage =
+              entry.value.filterIsInstance<Failure>().joinToString("\n") { it.failureMessage }
+            Logger.getInstance(PreviewPickerAnnotationInspection::class.java)
+              .warn("Failed when checking annotation: $failureMessage")
             return@forEach
           }
           else -> return@forEach
@@ -120,8 +130,8 @@ class PreviewPickerAnnotationInspection : BasePreviewAnnotationInspection() {
 /**
  * QuickFix implementation for the `device` parameter of the Preview Annotation.
  *
- * Whenever there's an incorrect value for the `device` parameter, suggests replacing the expression of the original value to
- * [resultingString]. Which should be a correct value for the parameter.
+ * Whenever there's an incorrect value for the `device` parameter, suggests replacing the expression
+ * of the original value to [resultingString]. Which should be a correct value for the parameter.
  */
 private class DeviceParameterQuickFix(
   deviceValueElement: PsiElement,
@@ -131,44 +141,72 @@ private class DeviceParameterQuickFix(
 
   override fun getFamilyName(): String = message("picker.preview.annotator.fix.family")
 
-  override fun invoke(project: Project, file: PsiFile, startElement: PsiElement, endElement: PsiElement) {
+  override fun invoke(
+    project: Project,
+    file: PsiFile,
+    startElement: PsiElement,
+    endElement: PsiElement
+  ) {
     try {
-      // Find the element that corresponds to the Argument value, this is needed in case the original expression is composed by more than
+      // Find the element that corresponds to the Argument value, this is needed in case the
+      // original expression is composed by more than
       // one element. E.g: device = "spec:width=100dp," + "height=" + heightDp
       var replaceableElement = startElement
-      while(replaceableElement.parent !is KtValueArgument) {
+      while (replaceableElement.parent !is KtValueArgument) {
         replaceableElement = replaceableElement.parent
       }
-      replaceableElement.replace(KtPsiFactory(project = project, markGenerated = true).createExpression("\"$resultingString\""))
-    }
-    catch (e: IncorrectOperationException) {
-      Logger.getInstance(PreviewPickerAnnotationInspection::class.java).error("Unable to apply fix to @Preview 'device' parameter", e)
+      replaceableElement.replace(
+        KtPsiFactory(project = project, markGenerated = true)
+          .createExpression("\"$resultingString\"")
+      )
+    } catch (e: IncorrectOperationException) {
+      Logger.getInstance(PreviewPickerAnnotationInspection::class.java)
+        .error("Unable to apply fix to @Preview 'device' parameter", e)
     }
   }
 }
 
 private fun addMessageForBadTypeParameters(issues: List<BadType>, messageBuffer: StringBuffer) {
-  val parametersByType = issues.groupBy { it.expected }.mapValues { it.value.map(BadType::parameterName) }
+  val parametersByType =
+    issues.groupBy { it.expected }.mapValues { it.value.map(BadType::parameterName) }
   val messagePrefix = message("picker.preview.annotator.lint.error.type.prefix")
 
   parametersByType.entries.forEach { entry ->
-    @Suppress("MoveVariableDeclarationIntoWhen") // The suggested pattern is harder to read/understand
+    @Suppress(
+      "MoveVariableDeclarationIntoWhen"
+    ) // The suggested pattern is harder to read/understand
     val expectedType = entry.key
     when (expectedType) {
       is OpenEndedValueType -> {
-        val messagePostfix = message("picker.preview.annotator.lint.error.type.open", expectedType.valueTypeName)
-        entry.value.joinTo(buffer = messageBuffer, separator = ", ", prefix = "$messagePrefix: ", postfix = " $messagePostfix\n")
+        val messagePostfix =
+          message("picker.preview.annotator.lint.error.type.open", expectedType.valueTypeName)
+        entry.value.joinTo(
+          buffer = messageBuffer,
+          separator = ", ",
+          prefix = "$messagePrefix: ",
+          postfix = " $messagePostfix\n"
+        )
       }
       is MultipleChoiceValueType -> {
         val valuesExamples = expectedType.acceptableValues.joinToString(", ")
-        val messagePostfix = message("picker.preview.annotator.lint.error.type.options", valuesExamples)
-        entry.value.joinTo(buffer = messageBuffer, separator = ", ", prefix = "$messagePrefix: ", postfix = " $messagePostfix\n")
+        val messagePostfix =
+          message("picker.preview.annotator.lint.error.type.options", valuesExamples)
+        entry.value.joinTo(
+          buffer = messageBuffer,
+          separator = ", ",
+          prefix = "$messagePrefix: ",
+          postfix = " $messagePostfix\n"
+        )
       }
     }
   }
 }
 
-private fun addSimpleMessage(prefix: String, issues: List<IssueReason>, messageBuffer: StringBuffer) {
+private fun addSimpleMessage(
+  prefix: String,
+  issues: List<IssueReason>,
+  messageBuffer: StringBuffer
+) {
   val allParameters = issues.map(IssueReason::parameterName)
   if (allParameters.isEmpty()) return
 

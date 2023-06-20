@@ -1,5 +1,6 @@
 package org.jetbrains.android.refactoring;
 
+import com.android.annotations.concurrency.UiThread;
 import com.intellij.lang.Language;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -221,6 +222,7 @@ abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
     }
 
     @Override
+    @UiThread
     public void invoke(@NotNull Project project, Editor editor, PsiFile file, DataContext dataContext) {
       if (myTagsFromExternalContext.length > 0) {
         doRefactorForTags(project, myTagsFromExternalContext);
@@ -249,6 +251,7 @@ abstract class AndroidBaseXmlRefactoringAction extends BaseRefactoringAction {
     }
 
     @Override
+    @UiThread
     public void invoke(@NotNull Project project, @NotNull PsiElement[] elements, DataContext dataContext) {
       if (myTagsFromExternalContext.length > 0) {
         doRefactorForTags(project, myTagsFromExternalContext);

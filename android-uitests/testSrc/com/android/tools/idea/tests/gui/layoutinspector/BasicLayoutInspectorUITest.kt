@@ -19,7 +19,7 @@ import com.android.SdkConstants.ATTR_BACKGROUND_TINT
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
-import com.android.flags.junit.SetFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
@@ -79,7 +79,8 @@ class BasicLayoutInspectorUITest {
   private val button4Id = ResourceReference(namespace, ResourceType.ID, "button4")
 
   private val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
-  private val devSkia = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
+  private val devSkia =
+    FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER, true)
   private val transportRule = TransportRule().withDeviceCommandHandler(commandHandler)
 
   @get:Rule

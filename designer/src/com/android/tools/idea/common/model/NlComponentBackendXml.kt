@@ -23,9 +23,11 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.pom.Navigatable
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
+import org.jetbrains.annotations.TestOnly
 
 private val LOGGER = Logger.getInstance(NlComponentBackendXml::class.java)
 
@@ -38,6 +40,9 @@ open class NlComponentBackendXml private constructor(
 
   companion object {
     const val DEBUG = false
+
+    @TestOnly
+    fun getForTest(project: Project, xmlTag: XmlTag) = NlComponentBackendXml(project, xmlTag)
   }
 
   internal constructor(project: Project, tag: XmlTag) : this(project) {
@@ -105,15 +110,6 @@ open class NlComponentBackendXml private constructor(
       return if (tag != null && tag.isValid) tag else null
     }
 
-  override fun getTagPointer(): SmartPsiElementPointer<XmlTag> {
-    return myTagPointer
-  }
-
-  override fun setTagName(name: String) {
-    myTagName = name
-    tag?.name = name
-  }
-
   override fun getTagName(): String {
     return myTagName
   }
@@ -139,7 +135,7 @@ open class NlComponentBackendXml private constructor(
   private fun getAttributeImpl(attribute: String, namespace: String?): String? {
     val xmlTag = tag
     if (xmlTag == null) {
-      LOGGER.warn(
+      LOGGER.debug(
         "Unable to get attribute from ${getTagName()} because XmlTag is invalidated ${getStackTrace()}")
       return null
     }
@@ -149,7 +145,6 @@ open class NlComponentBackendXml private constructor(
   override fun setAttribute(attribute: String, namespace: String?, value: String?): Boolean {
     val application = ApplicationManager.getApplication()
     if (!application.isWriteAccessAllowed) {
-      assert(false) { "Unable to set attribute to ${getTagName()}. SetAttribute must be called within undo-transparent action" }
       // We shouldn't allow write to be performed outside the WriteCommandAction.
       LOGGER.warn(
         "Unable to set attribute to ${getTagName()}. SetAttribute must be called within undo-transparent action ${getStackTrace()}")
@@ -158,7 +153,7 @@ open class NlComponentBackendXml private constructor(
 
     val xmlTag = tag
     if (xmlTag == null) {
-      LOGGER.warn(
+      LOGGER.debug(
         "Unable to set attribute to ${getTagName()} because XmlTag is invalidated ${getStackTrace()}")
       return false
     }
@@ -169,7 +164,7 @@ open class NlComponentBackendXml private constructor(
     ApplicationManager.getApplication().assertWriteAccessAllowed()
     val xmlTag = myTagPointer.element
     if (xmlTag?.containingFile?.virtualFile == null) {
-      LOGGER.warn(
+      LOGGER.debug(
         "Not reformatting ${getTagName()} because its virtual file is null ${getStackTrace()}")
       return
     }
@@ -179,6 +174,10 @@ open class NlComponentBackendXml private constructor(
 
   override fun isValid(): Boolean {
     return ApplicationManager.getApplication().isReadAccessAllowed && myTagPointer.element?.isValid == true
+  }
+
+  override fun getDefaultNavigatable(): Navigatable? {
+    return tag?.navigationElement as? Navigatable
   }
 
   private fun getStackTrace(): String {

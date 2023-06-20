@@ -21,7 +21,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
-import com.android.tools.idea.uibuilder.model.viewGroupHandler
+import com.android.tools.idea.uibuilder.model.layoutHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.intellij.testFramework.UsefulTestCase
 import junit.framework.TestCase
@@ -113,7 +113,7 @@ class CoordinatorPlaceholderTest : SceneTest() {
 
   fun testAddComponentWithoutSnappingToAnchor() {
     val coordinatorLayout = myScene.getSceneComponent("coordinator")!!
-    val placeholders = coordinatorLayout.nlComponent.viewGroupHandler!!.getPlaceholders(coordinatorLayout, emptyList())
+    val placeholders = coordinatorLayout.nlComponent.layoutHandler!!.getPlaceholders(coordinatorLayout, emptyList())
 
     val left = 100
     val top = 120

@@ -18,14 +18,97 @@ package com.android.tools.profilers.cpu.systemtrace
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.profiler.perfetto.proto.TraceProcessor
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import perfetto.protos.PerfettoTrace
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 
 class SystemTraceCpuCaptureBuilderTest {
+
+  @Test
+  fun `buildThreadStateData - termination state present`() {
+    val sleepingThread = ThreadModel(1, 1, "ENDS_WITH_SLEEPING_STATE_THREAD",
+                                     listOf(),
+                                     listOf(SchedulingEventModel(ThreadState.SLEEPING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+    val runningThread = ThreadModel(2, 2, "ENDS_WITH_RUNNING_STATE_THREAD",
+                                    listOf(),
+                                    listOf(SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+    val waitingThread = ThreadModel(3, 3, "ENDS_WITH_WAITING_STATE_THREAD",
+                                    listOf(),
+                                    listOf(SchedulingEventModel(ThreadState.WAITING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+    val deadThread = ThreadModel(4, 4, "ENDS_WITH_DEAD_STATE_THREAD",
+                                    listOf(),
+                                    listOf(SchedulingEventModel(ThreadState.DEAD_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1)))
+    val unknownThread = ThreadModel(5, 5, "ENDS_WITH_UNKNOWN_STATE_THREAD",
+                                 listOf(),
+                                 listOf(SchedulingEventModel(ThreadState.UNKNOWN, 0L, 5L, 5L, 5L, 1, 1, 1)))
+
+    val processes = mapOf(1 to ProcessModel(
+      1, "Process",
+      mapOf(1 to sleepingThread, 2 to runningThread, 3 to waitingThread, 4 to deadThread, 5 to unknownThread),
+      mapOf()
+    ))
+
+    val model = TestModel(processes, mapOf(), listOf(), listOf(), listOf())
+    val capture = SystemTraceCpuCaptureBuilder(model).build(0L, 1, Range(0.0, 5.0))
+    val systemTraceData = capture.systemTraceData
+
+    // Check if the fake/termination NO_ACTIVITY thread status is added successfully
+    // and that it uses the original last thread status' end timestamp as its start.
+    assertThat(systemTraceData.getThreadStatesForThread(1).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(1).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(systemTraceData.getThreadStatesForThread(1).last().x).isEqualTo(5)
+
+    assertThat(systemTraceData.getThreadStatesForThread(2).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(2).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(systemTraceData.getThreadStatesForThread(2).last().x).isEqualTo(5)
+
+    assertThat(systemTraceData.getThreadStatesForThread(3).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(3).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(systemTraceData.getThreadStatesForThread(3).last().x).isEqualTo(5)
+
+    assertThat(systemTraceData.getThreadStatesForThread(4).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(4).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(systemTraceData.getThreadStatesForThread(4).last().x).isEqualTo(5)
+
+    assertThat(systemTraceData.getThreadStatesForThread(5).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(5).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+    assertThat(systemTraceData.getThreadStatesForThread(5).last().x).isEqualTo(5)
+  }
+
+  @Test
+  fun `buildThreadStateData - termination state not present`() {
+    val noActivityThread = ThreadModel(1, 1, "ENDS_WITH_NO_ACTIVITY_STATE_THREAD",
+                                    listOf(),
+                                    listOf(
+                                      SchedulingEventModel(ThreadState.RUNNING_CAPTURED, 0L, 5L, 5L, 5L, 1, 1, 1),
+                                      SchedulingEventModel(ThreadState.NO_ACTIVITY, 0L, 5L, 5L, 5L, 1, 1, 1),
+                                    ))
+    val emptyThread = ThreadModel(2, 2, "NO_STATE_THREAD",
+                                  listOf(),
+                                  listOf())
+
+    val processes = mapOf(1 to ProcessModel(
+      1, "Process",
+      mapOf(1 to noActivityThread, 2 to emptyThread),
+      mapOf()
+    ))
+
+    val model = TestModel(processes, mapOf(), listOf(), listOf(), listOf())
+    val capture = SystemTraceCpuCaptureBuilder(model).build(0L, 1, Range(0.0, 5.0))
+    val systemTraceData = capture.systemTraceData
+
+    // Check if the fake/termination NO_ACTIVITY thread state is not added
+    // when actual last state was NO_ACTIVITY.
+    assertThat(systemTraceData.getThreadStatesForThread(1).size).isEqualTo(2)
+    assertThat(systemTraceData.getThreadStatesForThread(1).last().value).isEqualTo(ThreadState.NO_ACTIVITY)
+
+    // Make sure fake/termination NO_ACTIVITY thread state is not added
+    // when there is no states in the thread to begin with.
+    assertThat(systemTraceData.getThreadStatesForThread(2).size).isEqualTo(0)
+  }
 
   @Test
   fun `buildCpuStateData - thread states`() {
@@ -51,7 +134,7 @@ class SystemTraceCpuCaptureBuilderTest {
       CpuCoreModel(1, listOf(), mapOf())
     )
 
-    val model = TestModel(processes, danglingThreads, cpuCores)
+    val model = TestModel(processes, danglingThreads, cpuCores, emptyList(), emptyList())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
@@ -86,7 +169,7 @@ class SystemTraceCpuCaptureBuilderTest {
       CpuCoreModel(1, listOf(), mapOf())
     )
 
-    val model = TestModel(processes, emptyMap(), cpuCores)
+    val model = TestModel(processes, emptyMap(), cpuCores, emptyList(), emptyList())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
@@ -125,7 +208,7 @@ class SystemTraceCpuCaptureBuilderTest {
         ))
     )
 
-    val model = TestModel(processes, emptyMap(), cpuCores)
+    val model = TestModel(processes, emptyMap(), cpuCores, emptyList(), emptyList())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
@@ -155,7 +238,7 @@ class SystemTraceCpuCaptureBuilderTest {
           "nonmem.rss" to CounterModel("nonmem.rss", sortedMapOf(50L to 10.0, 100L to 90.0, 101L to 75.0)),
           "non-memory" to CounterModel("non-memory", sortedMapOf(50L to 10.0, 100L to 90.0, 101L to 75.0)))))
 
-    val model = TestModel(processes, emptyMap(), listOf())
+    val model = TestModel(processes, emptyMap(), listOf(), listOf(), listOf())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
@@ -177,6 +260,50 @@ class SystemTraceCpuCaptureBuilderTest {
   }
 
   @Test
+  fun buildPowerCountersData() {
+    val processes = mapOf(
+      1 to ProcessModel(
+        1, "Process",
+        mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
+        mapOf()))
+
+    val powerRails = listOf(
+      CounterModel("power.rails.foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("power.rails.bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
+
+    val batteryDrain = listOf(
+      CounterModel("batt.foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("batt.bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
+
+    val model = TestModel(processes, emptyMap(), emptyList(), powerRails, batteryDrain, emptyList())
+
+    val builder = SystemTraceCpuCaptureBuilder(model)
+    val capture = builder.build(0L, 1, Range())
+    val systemTraceData = capture.systemTraceData!!
+
+    assertThat(systemTraceData.powerRailCounters).hasSize(2)
+    assertThat(systemTraceData.batteryDrainCounters).hasSize(2)
+
+    assertThat(systemTraceData.powerRailCounters).containsExactly(
+      "bar", listOf(
+      SeriesData(3, 300L),
+      SeriesData(4, 400L)),
+      "foo", listOf(
+      SeriesData(1, 100L),
+      SeriesData(2, 200L)))
+      .inOrder()
+
+    assertThat(systemTraceData.batteryDrainCounters).containsExactly(
+      "bar", listOf(
+      SeriesData(3, 300L),
+      SeriesData(4, 400L)),
+      "foo", listOf(
+      SeriesData(1, 100L),
+      SeriesData(2, 200L)))
+      .inOrder()
+  }
+
+  @Test
   fun buildBlastBufferQueueCounterData() {
     val processes = mapOf(
       1 to ProcessModel(
@@ -184,7 +311,7 @@ class SystemTraceCpuCaptureBuilderTest {
         mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
         mapOf("QueuedBuffer - ViewRootImpl[MainActivity]BLAST#0" to CounterModel("PendingBuffer - ViewRootImpl[MainActivity]BLAST#0",
                                                                                  sortedMapOf(1L to 1.0, 4L to 2.0, 7L to 3.0)))))
-    val model = TestModel(processes, emptyMap(), listOf())
+    val model = TestModel(processes, emptyMap(), listOf(), listOf(), listOf())
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range())
     val systemTraceData = capture.systemTraceData!!
@@ -204,7 +331,7 @@ class SystemTraceCpuCaptureBuilderTest {
         mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
         mapOf()))
 
-    val model = TestModel(processes, emptyMap(), listOf())
+    val model = TestModel(processes, emptyMap(), listOf(), listOf(), listOf())
 
     val builder = SystemTraceCpuCaptureBuilder(model)
     val capture = builder.build(0L, 1, Range(1.0,2.0))
@@ -240,7 +367,7 @@ class SystemTraceCpuCaptureBuilderTest {
                                            PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                                            PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
                                            false, false, 0)
-    val model = TestModel(processes, mapOf(), listOf(), timelineEvents = listOf(frame1, frame2))
+    val model = TestModel(processes, mapOf(), listOf(), listOf(), listOf(), timelineEvents = listOf(frame1, frame2))
     val capture = SystemTraceCpuCaptureBuilder(model).build(0L, 1, Range(0.0, 7000.0))
 
     capture.frameRenderSequence(frame1).let { (mainEvent, renderEvent, gpuEvent) ->
@@ -259,6 +386,8 @@ class SystemTraceCpuCaptureBuilderTest {
     private val processes: Map<Int, ProcessModel>,
     private val danglingThreads: Map<Int, ThreadModel>,
     private val cpuCores: List<CpuCoreModel>,
+    private val powerRails: List<CounterModel>,
+    private val batteryDrain: List<CounterModel>,
     private val timelineEvents: List<AndroidFrameTimelineEvent> = listOf()) : SystemTraceModelAdapter {
 
     override fun getCaptureStartTimestampUs() = 0L
@@ -268,7 +397,9 @@ class SystemTraceCpuCaptureBuilderTest {
     override fun getDanglingThread(tid: Int): ThreadModel? = danglingThreads[tid]
     override fun getCpuCores(): List<CpuCoreModel> = cpuCores
 
-    override fun getSystemTraceTechnology() = Cpu.CpuTraceType.UNSPECIFIED_TYPE
+    override fun getSystemTraceTechnology() = TraceType.UNSPECIFIED
+    override fun getPowerRails(): List<CounterModel> = powerRails
+    override fun getBatteryDrain(): List<CounterModel> = batteryDrain
     override fun isCapturePossibleCorrupted() = false
     override fun getAndroidFrameLayers(): List<TraceProcessor.AndroidFrameEventsResult.Layer> = emptyList()
     override fun getAndroidFrameTimelineEvents(): List<AndroidFrameTimelineEvent> = timelineEvents

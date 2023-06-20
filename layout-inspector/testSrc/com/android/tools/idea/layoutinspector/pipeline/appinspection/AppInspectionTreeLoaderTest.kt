@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.model.packageNameHash
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.GetComposablesResult
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableNode
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ComposableRoot
@@ -40,7 +41,7 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.skia.ParsingFailedException
 import com.android.tools.idea.layoutinspector.skia.SkiaParser
 import com.android.tools.idea.layoutinspector.skia.UnsupportedPictureVersionException
-import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Screenshot.Type.BITMAP
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.BitmapType
@@ -56,8 +57,8 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Image
 import java.awt.Polygon
-import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol as ViewProtocol
-import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol as ComposeProtocol
+import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
+import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
 
 class AppInspectionTreeLoaderTest {
 
@@ -72,11 +73,12 @@ class AppInspectionTreeLoaderTest {
    * generating trees.
    */
   private fun createFakeData(
-    screenshotType: ViewProtocol.Screenshot.Type = ViewProtocol.Screenshot.Type.SKP,
+    screenshotType: LayoutInspectorViewProtocol.Screenshot.Type = LayoutInspectorViewProtocol.Screenshot.Type.SKP,
     bitmapType: BitmapType = BitmapType.RGB_565,
-    pendingRecompositionCountReset: Boolean = true
+    pendingRecompositionCountReset: Boolean = true,
+    hasScreenshot: Boolean = true
   ): ViewLayoutInspectorClient.Data {
-    val viewLayoutEvent = ViewProtocol.LayoutEvent.newBuilder().apply {
+    val viewLayoutEvent = LayoutInspectorViewProtocol.LayoutEvent.newBuilder().apply {
       ViewString(1, "en-us")
       ViewString(2, "com.example")
       ViewString(3, "MyViewClass1")
@@ -130,19 +132,23 @@ class AppInspectionTreeLoaderTest {
         }
       }
 
-      screenshotBuilder.apply {
-        type = screenshotType
-        bytes = ByteString.copyFrom(Screenshot("partiallyTransparentImage.png", bitmapType).bytes)
+      if (hasScreenshot) {
+        screenshotBuilder.apply {
+          type = screenshotType
+          bytes = ByteString.copyFrom(Screenshot("partiallyTransparentImage.png", bitmapType).bytes)
+        }
       }
     }.build()
 
-    val composablesResponse = ComposeProtocol.GetComposablesResponse.newBuilder().apply {
+    val composablesResponse = LayoutInspectorComposeProtocol.GetComposablesResponse.newBuilder().apply {
       ComposableString(1, "com.example")
       ComposableString(2, "File1.kt")
       ComposableString(3, "File2.kt")
       ComposableString(4, "Surface")
       ComposableString(5, "Button")
       ComposableString(6, "Text")
+      ComposableString(7, "BasicText")
+      ComposableString(8, "BasicText.kt")
 
       ComposableRoot {
         viewId = 5
@@ -169,11 +175,20 @@ class AppInspectionTreeLoaderTest {
               name = 6
               recomposeCount = 4
               recomposeSkips = 5
+
+              ComposableNode {
+                id = -5
+                packageHash = packageNameHash("androidx.compose.foundation.text")
+                filename = 8
+                name = 7
+                recomposeCount = 4 // These recomposition numbers will be ignored because this is a system node
+                recomposeSkips = 5
+              }
             }
           }
         }
         ComposableNode {
-          id = -5
+          id = -6
           packageHash = 1
           filename = 3
           name = 6
@@ -286,17 +301,17 @@ class AppInspectionTreeLoaderTest {
       assertThat((node4.renderBounds as Polygon).xpoints).isEqualTo(intArrayOf(25, 75, 23, 78))
       assertThat((node4.renderBounds as Polygon).ypoints).isEqualTo(intArrayOf(125, 127, 250, 253))
 
-      val node5 = tree.children[2]
-      assertThat(node5.drawId).isEqualTo(5)
-      assertThat(node5.layoutBounds.x).isEqualTo(0)
-      assertThat(node5.layoutBounds.y).isEqualTo(0)
-      assertThat(node5.layoutBounds.width).isEqualTo(300)
-      assertThat(node5.layoutBounds.height).isEqualTo(200)
-      assertThat(node5.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
-      assertThat((node5.drawChildren[0] as DrawViewImage).image).isEqualTo(image5)
-      assertThat(node5.children.map { it.drawId }).containsExactly(-2L, -5L)
+      val node6 = tree.children[2]
+      assertThat(node6.drawId).isEqualTo(5)
+      assertThat(node6.layoutBounds.x).isEqualTo(0)
+      assertThat(node6.layoutBounds.y).isEqualTo(0)
+      assertThat(node6.layoutBounds.width).isEqualTo(300)
+      assertThat(node6.layoutBounds.height).isEqualTo(200)
+      assertThat(node6.qualifiedName).isEqualTo("androidx.compose.ui.platform.ComposeView")
+      assertThat((node6.drawChildren[0] as DrawViewImage).image).isEqualTo(image5)
+      assertThat(node6.children.map { it.drawId }).containsExactly(-2L, -6L)
 
-      val cNode2 = node5.children[0] as ComposeViewNode
+      val cNode2 = node6.children[0] as ComposeViewNode
       assertThat(cNode2.drawId).isEqualTo(-2)
       assertThat(cNode2.qualifiedName).isEqualTo("Surface")
       assertThat(cNode2.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 2)
@@ -315,22 +330,28 @@ class AppInspectionTreeLoaderTest {
       assertThat(cNode4.qualifiedName).isEqualTo("Text")
       assertThat(cNode4.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
       assertThat(cNode4.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-      assertThat(cNode4.children).isEmpty()
+      assertThat(cNode4.children.map { it.drawId }).containsExactly(-5L)
 
-      val cNode5 = node5.children[1] as ComposeViewNode
+      val cNode5 = cNode4.children[0] as ComposeViewNode
+      assertThat(cNode5.isSystemNode).isTrue()
       assertThat(cNode5.drawId).isEqualTo(-5)
-      assertThat(cNode5.qualifiedName).isEqualTo("Text")
-      assertThat(cNode5.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-      assertThat(cNode5.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode5.qualifiedName).isEqualTo("BasicText")
+      assertThat(cNode5.recompositions.count).isEqualTo(0)
+      assertThat(cNode5.recompositions.skips).isEqualTo(0)
       assertThat(cNode5.children).isEmpty()
+
+      val cNode6 = node6.children[1] as ComposeViewNode
+      assertThat(cNode6.drawId).isEqualTo(-6)
+      assertThat(cNode6.qualifiedName).isEqualTo("Text")
+      assertThat(cNode6.recompositions.count).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode6.recompositions.skips).isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
+      assertThat(cNode6.children).isEmpty()
 
       assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
     }
   }
 
   private fun assertExpectedErrorIfSkiaRespondsWith(msg: String, skiaAnswer: () -> Any) {
-    val banner = InspectorBanner(projectRule.project)
-
     val skiaParser: SkiaParser = mock()
     whenever(skiaParser.getViewTree(eq(sample565.bytes), any(), any(), any())).thenAnswer { skiaAnswer() }
 
@@ -345,7 +366,8 @@ class AppInspectionTreeLoaderTest {
       UIUtil.dispatchAllInvocationEvents()
     }
 
-    assertThat(banner.text.text).isEqualTo(msg)
+    val notification1 = InspectorBannerService.getInstance(projectRule.project)!!.notifications.single()
+    assertThat(notification1.message).isEqualTo(msg)
   }
 
   @Test
@@ -400,5 +422,24 @@ class AppInspectionTreeLoaderTest {
 
     val resultImage2 = ViewNode.readAccess { (window2.root.drawChildren[0] as DrawViewImage).image }
     ImageDiffUtil.assertImageSimilar("image1.png", sample8888.image, resultImage2, 0.01)
+  }
+
+  @Test
+  fun testCanProcessWithoutScreenshot() {
+    val skiaParser: SkiaParser = mock()
+    whenever(skiaParser.getViewTree(any(), any(), any(), any())).thenThrow(AssertionError("SKIA not used in bitmap mode"))
+    val treeLoader = AppInspectionTreeLoader(
+      projectRule.project,
+      logEvent = { assertThat(it).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER_BITMAPS) },
+      skiaParser
+    )
+
+    val data = createFakeData(hasScreenshot = false)
+    val (window, generation) = treeLoader.loadComponentTree(data, ResourceLookup(projectRule.project), MODERN_DEVICE.createProcess())!!
+    assertThat(data.generation).isEqualTo(generation)
+    window!!.refreshImages(1.0)
+
+    val hasDrawViewImage = ViewNode.readAccess { (window.root.drawChildren.filterIsInstance<DrawViewImage>().isNotEmpty()) }
+    assertThat(hasDrawViewImage).isFalse()
   }
 }

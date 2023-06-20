@@ -16,7 +16,7 @@
 package com.android.tools.property.panel.impl.model.util
 
 import com.android.tools.property.panel.api.FlagPropertyItem
-import com.android.tools.property.panel.api.FlagsPropertyItem
+import com.android.tools.property.panel.api.FlagsPropertyGroupItem
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 
@@ -26,7 +26,7 @@ class FakeFlagsPropertyItem(
   flagNames: List<String>,
   values: List<Int>,
   initialValue: String? = null
-) : FakePropertyItem(namespace, name, initialValue, null, null), FlagsPropertyItem<FakeFlagPropertyItem> {
+) : FakePropertyItem(namespace, name, initialValue, null, null), FlagsPropertyGroupItem<FakeFlagPropertyItem> {
   override val children = mutableListOf<FakeFlagPropertyItem>()
 
   val valueAsSet: HashSet<String>

@@ -99,7 +99,7 @@ private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
         if (e is DefaultRecipeExecutor) {
           e.applyChanges()
         }
-    }
+      }
   }
   catch (e: IOException) {
     if (c.showErrors) {
@@ -170,6 +170,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
 
   "Android Project" -> TemplateRenderer.ANDROID_PROJECT
 
+  message("android.wizard.module.new.baselineprofiles.module.app") -> TemplateRenderer.BASELINE_PROFILES_MODULE
   message("android.wizard.module.new.benchmark.module.app") -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
   message("android.wizard.module.new.mobile") -> TemplateRenderer.ANDROID_MODULE
   message("android.wizard.module.new.java.or.kotlin.library") -> TemplateRenderer.JAVA_LIBRARY
@@ -177,30 +178,34 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   message("android.wizard.module.new.dynamic.module") -> TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
   message("android.wizard.module.new.wear") -> TemplateRenderer.ANDROID_WEAR_MODULE
 
-  "Basic Activity" -> TemplateRenderer.BASIC_ACTIVITIY
+  "Basic Views Activity" -> TemplateRenderer.BASIC_ACTIVITIY
   "Basic Activity (Material3)" -> TemplateRenderer.BASIC_ACTIVITIY
-  "Empty Activity" -> TemplateRenderer.EMPTY_ACTIVITY
+  "Empty Views Activity" -> TemplateRenderer.EMPTY_ACTIVITY
   "Blank Activity" -> if (formFactor == FormFactor.Wear) TemplateRenderer.BLANK_WEAR_ACTIVITY else TemplateRenderer.BLANK_ACTIVITY
-  "Login Activity" -> TemplateRenderer.LOGIN_ACTIVITY
-  "Tabbed Activity" -> TemplateRenderer.TABBED_ACTIVITY
-  "Scrolling Activity" -> TemplateRenderer.SCROLLING_ACTIVITY
-  "Google AdMob Ads Activity" -> TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
+  "Login Views Activity" -> TemplateRenderer.LOGIN_ACTIVITY
+  "Tabbed Views Activity" -> TemplateRenderer.TABBED_ACTIVITY
+  "Scrolling Views Activity" -> TemplateRenderer.SCROLLING_ACTIVITY
+  "Google AdMob Ads Views Activity" -> TemplateRenderer.GOOGLE_ADMOBS_ADS_ACTIVITY
   "Always On Wear Activity" -> TemplateRenderer.ALWAYS_ON_WEAR_ACTIVITY
   "Android TV Blank Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
-  "Fullscreen Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
-  "Empty Compose Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
+  "Android TV Blank Views Activity" -> TemplateRenderer.ANDROID_TV_ACTIVITY
+  "Fullscreen Views Activity" -> TemplateRenderer.FULLSCREEN_ACTIVITY
+  "Empty Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
   "Empty Compose Activity (Material3)" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
-  "Google Maps Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
-  "Navigation Drawer Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
-  "Settings Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
-  "Responsive Activity" ->  TemplateRenderer.RESPONSIVE_ACTIVITY
-  "Primary/Detail Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
-  "Watch Face" -> TemplateRenderer.WATCH_FACE
+  "Google Maps Views Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
+  "Navigation Drawer Views Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
+  "Settings Views Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
+  "Responsive Views Activity" -> TemplateRenderer.RESPONSIVE_ACTIVITY
+  "Primary/Detail Views Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
   "Android Things Empty Activity" -> TemplateRenderer.THINGS_ACTIVITY
   "Messaging Service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
   "Media Service" -> TemplateRenderer.AUTOMOTIVE_MEDIA_SERVICE
-  "Google Pay Activity" -> TemplateRenderer.GOOGLE_PAY_ACTIVITY
+  "Google Pay Views Activity" -> TemplateRenderer.GOOGLE_PAY_ACTIVITY
+  "Watch Face" -> TemplateRenderer.WATCH_FACE
   "Empty Wear OS Compose Activity" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
+  "Google Wallet Activity" -> TemplateRenderer.GOOGLE_WALLET_ACTIVITY
+  "Empty Wear App",
+  "Empty Wear App With Tile And Complication" -> TemplateRenderer.BLANK_WEAR_ACTIVITY
 
   "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
   "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS
@@ -238,7 +243,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.CUSTOM_TEMPLATE_RENDERER -> when (title) {
       "Slice Provider" -> TemplateType.SLICE_PROVIDER
       "Fragment + ViewModel" -> TemplateType.VIEW_MODEL_ACTIVITY
-      "Bottom Navigation Activity" -> TemplateType.BOTTOM_NAVIGATION_ACTIVITY
+      "Bottom Navigation Views Activity" -> TemplateType.BOTTOM_NAVIGATION_ACTIVITY
       "Native C++" -> TemplateType.CPP_EMPTY_ACTIVITY
       "Game Activity (C++)" -> TemplateType.CPP_GAME_ACTIVITY
       "AIDL Folder" -> TemplateType.AIDL_FOLDER
@@ -298,6 +303,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.WEAR_OS_COMPOSE_ACTIVITY -> TemplateType.EMPTY_ACTIVITY
     TemplateRenderer.RESPONSIVE_ACTIVITY -> TemplateType.RESPONSIVE_ACTIVITY
     TemplateRenderer.GOOGLE_PAY_ACTIVITY -> TemplateType.GOOGLE_PAY_ACTIVITY
+    TemplateRenderer.GOOGLE_WALLET_ACTIVITY -> TemplateType.GOOGLE_WALLET_ACTIVITY
 
     TemplateRenderer.BLANK_ACTIVITY,
     TemplateRenderer.ANDROID_MODULE,
@@ -320,7 +326,7 @@ fun titleToTemplateType(title: String, formFactor: FormFactor): TemplateType {
     TemplateRenderer.ML_MODEL_BINDING_IMPORT_WIZARD,
     TemplateRenderer.ML_MODEL_BINDING_FEATURE_OFF_NOTIFICATION,
     TemplateRenderer.ANDROID_NATIVE_MODULE,
-    TemplateRenderer.GOOGLE_WALLET_ACTIVITY -> throw RuntimeException("Invalid Template Title")
+    TemplateRenderer.BASELINE_PROFILES_MODULE -> throw RuntimeException("Invalid Template Title")
   }
 }
 
@@ -333,11 +339,12 @@ fun moduleTemplateRendererToModuleType(moduleTemplateRenderer: TemplateRenderer)
     TemplateRenderer.DYNAMIC_FEATURE_MODULE -> ModuleType.DYNAMIC_FEATURE
     TemplateRenderer.INSTANT_DYNAMIC_FEATURE_MODULE -> ModuleType.INSTANT_DYNAMIC_FEATURE
     TemplateRenderer.AUTOMOTIVE_MODULE -> ModuleType.AUTOMOTIVE
-    TemplateRenderer.ANDROID_WEAR_MODULE ->  ModuleType.WEAR_OS
+    TemplateRenderer.ANDROID_WEAR_MODULE -> ModuleType.WEAR_OS
     TemplateRenderer.ANDROID_TV_MODULE -> ModuleType.ANDROID_TV
     TemplateRenderer.THINGS_MODULE -> ModuleType.ANDROID_THINGS
     TemplateRenderer.JAVA_LIBRARY -> ModuleType.JAVA_OR_KOTLIN_LIBRARY
     TemplateRenderer.BENCHMARK_LIBRARY_MODULE -> ModuleType.BENCHMARK_LIBRARY
+    TemplateRenderer.BASELINE_PROFILES_MODULE -> ModuleType.BASELINE_PROFILES
     else -> ModuleType.UNKNOWN
 
     // TODO: b/161230278 Some new modules don't render a template. Need to send the event from their Model render.
@@ -355,6 +362,14 @@ fun logRendering(projectData: ProjectTemplateData, project: Project, templateRen
         .setIncludeKotlinSupport(projectData.language == Language.Kotlin)
         .setKotlinSupportVersion(projectData.kotlinVersion))
   UsageTracker.log(aseBuilder.withProjectId(project))
+
+  // Log event if user declined to add kotlin support in a new project
+  if (templateRenderer == TemplateRenderer.ANDROID_PROJECT && projectData.language != Language.Kotlin) {
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.KOTLIN_SUPPORT_DECLINED_EVENT
+      this.templateRenderer = templateRenderer
+    }.withProjectId(project))
+  }
 }
 
 fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: TemplateMetrics) {

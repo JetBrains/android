@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.devicemanager;
 
+import com.android.tools.idea.device.explorer.DeviceExplorerService;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevice;
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDevice;
-import com.android.tools.idea.explorer.DeviceExplorer;
+import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorer;
+import com.android.tools.idea.flags.StudioFlags;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
@@ -32,12 +34,16 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
   private Device myDevice;
 
   private final @Nullable Project myProject;
-  private final @NotNull DeviceTable<@NotNull D> myTable;
+  private final @NotNull DeviceTable<D> myTable;
 
   public ActivateDeviceFileExplorerWindowButtonTableCellEditor(@Nullable Project project,
-                                                               @NotNull DeviceTable<@NotNull D> table,
+                                                               @NotNull DeviceTable<D> table,
                                                                @NotNull EventKind kind) {
-    super(ActivateDeviceFileExplorerWindowValue.INSTANCE, AllIcons.Actions.MenuOpen, "Open this device in the Device File Explorer.");
+    super(ActivateDeviceFileExplorerWindowValue.INSTANCE,
+          AllIcons.Actions.MenuOpen,
+          StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()
+            ? "Open this device in the Device Explorer."
+            : "Open this device in the Device File Explorer.");
 
     myProject = project;
     myTable = table;
@@ -51,6 +57,7 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
 
       assert project != null;
       openAndShowDeviceLater();
+      fireEditingCanceled();
     });
   }
 
@@ -75,10 +82,18 @@ public final class ActivateDeviceFileExplorerWindowButtonTableCellEditor<D exten
     ApplicationManager.getApplication().invokeLater(() -> {
       if (myProject != null && !myProject.isDisposed()) {
         if (myDevice instanceof VirtualDevice) {
-          DeviceExplorer.openAndShowDevice(myProject, ((VirtualDevice)myDevice).getAvdInfo());
+          if (StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()) {
+            DeviceExplorerService.openAndShowDevice(myProject, ((VirtualDevice)myDevice).getAvdInfo());
+          } else {
+            DeviceExplorer.openAndShowDevice(myProject, ((VirtualDevice)myDevice).getAvdInfo());
+          }
         }
         else if (myDevice instanceof PhysicalDevice) {
-          DeviceExplorer.openAndShowDevice(myProject, myDevice.getKey().toString());
+          if (StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()) {
+            DeviceExplorerService.openAndShowDevice(myProject, myDevice.getKey().toString());
+          } else {
+            DeviceExplorer.openAndShowDevice(myProject, myDevice.getKey().toString());
+          }
         }
         else {
           assert false;

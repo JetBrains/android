@@ -46,6 +46,7 @@ import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderImpl
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.ScopeType
@@ -56,6 +57,7 @@ import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
 import com.android.tools.idea.projectsystem.emptySourceProvider
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.androidFacetsForNonHolderModules
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -71,9 +73,9 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.configurations.ModuleBasedConfiguration
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.impl.scopes.ModulesScope
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
@@ -86,7 +88,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import java.nio.file.Path
 
@@ -102,6 +103,10 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       AndroidManifestClassPsiElementFinder.getInstance(project),
       AndroidResourceClassPsiElementFinder(getLightResourceClassService())
     )
+  }
+
+  override fun getBootClasspath(module: Module): Collection<String> {
+    return GradleAndroidModel.get(module)?.androidProject?.bootClasspath ?: emptyList()
   }
 
   override fun getSyncManager(): ProjectSystemSyncManager = mySyncManager
@@ -144,14 +149,15 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
   override fun getApplicationIdProvider(runConfiguration: RunConfiguration): GradleApplicationIdProvider? {
     if (runConfiguration !is AndroidRunConfigurationBase &&
         runConfiguration !is AndroidWearConfiguration) return null
-    val androidFacet = runConfiguration.safeAs<ModuleBasedConfiguration<*, *>>()?.configurationModule?.module?.androidFacet ?: return null
+    val androidFacet = (runConfiguration as? ModuleBasedConfiguration<*, *>)?.configurationModule?.module?.androidFacet ?: return null
     val androidModel = GradleAndroidModel.get(androidFacet) ?: return null
     val isTestConfiguration = if (runConfiguration is AndroidRunConfigurationBase) runConfiguration.isTestConfiguration else false
 
-    return GradleApplicationIdProvider(
+    return GradleApplicationIdProvider.create(
       androidFacet,
       isTestConfiguration,
       androidModel,
+      androidModel.selectedBasicVariant,
       androidModel.selectedVariant
     )
   }
@@ -189,10 +195,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
     return GradleApkProvider(
       androidFacet,
-      GradleApplicationIdProvider(
+      GradleApplicationIdProvider.create(
         androidFacet,
         forTests,
         androidModel,
+        androidModel.selectedBasicVariant,
         androidModel.selectedVariant
       ),
       postBuildModelProvider,
@@ -220,7 +227,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     get() = moduleHierarchyProvider.forProject.submodules
 
   override fun getSourceProvidersFactory(): SourceProvidersFactory = object : SourceProvidersFactory {
-    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders {
+    override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
       val model = GradleAndroidModel.get(facet)
       return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
     }
@@ -239,21 +246,49 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     return AndroidGradleClassJarProvider()
   }
 
+  /**
+   * Stores information about package names.
+   *
+   * 1. It stores information about scopes that should be searched using manifest index.
+   * 2. It stores mapping information from package name to [AndroidFacet]s that have that package name.
+   */
+  internal class PackageNameInfo(val indexQueryScope: GlobalSearchScope, val packageInfo: Map<String, List<AndroidFacet>>)
+
+  private fun getPackageNameInfo(project: Project): PackageNameInfo {
+    return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
+      val modulesWithoutNamespaceInModel = mutableSetOf<Module>()
+      val facetsFromModuleSystem = mutableMapOf<String, MutableList<AndroidFacet>>()
+
+      for (androidFacet in project.androidFacetsForNonHolderModules()) {
+        val namespace = GradleAndroidModel.get(androidFacet)?.androidProject?.namespace
+        if (namespace == null) {
+          modulesWithoutNamespaceInModel.add(androidFacet.module)
+        }
+        else {
+          val facets = facetsFromModuleSystem[namespace] ?: mutableListOf()
+          facets.add(androidFacet)
+          facetsFromModuleSystem[namespace] = facets
+        }
+      }
+      val indexQueryScope = ModulesScope(modulesWithoutNamespaceInModel, project)
+      return@CachedValueProvider CachedValueProvider.Result(
+        PackageNameInfo(indexQueryScope, facetsFromModuleSystem), ProjectSyncModificationTracker.getInstance(project)
+      )
+    })
+  }
+
   override fun getAndroidFacetsWithPackageName(project: Project, packageName: String): List<AndroidFacet> {
-    val androidFacets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)
-    val shouldQueryIndex = androidFacets.any { GradleAndroidModel.get(it)?.androidProject?.namespace == null }
-    val facetsFromModuleSystem = androidFacets.filter { GradleAndroidModel.get(it)?.androidProject?.namespace == packageName }
-    if (!shouldQueryIndex) {
+    val packageNameInfo = getPackageNameInfo(project)
+
+    val facetsFromModuleSystem = packageNameInfo.packageInfo[packageName] ?: emptyList()
+    if (GlobalSearchScope.isEmptyScope(packageNameInfo.indexQueryScope)) {
+      // No need to query the index, all package names (namespace(s)) are specified in Gradle build files.
       return facetsFromModuleSystem
     }
 
-    val projectScope = GlobalSearchScope.projectScope(project)
     try {
       val facetsFromManifestIndex = DumbService.getInstance(project).runReadActionInSmartMode<List<AndroidFacet>> {
-        AndroidManifestIndex.queryByPackageName(project, packageName, projectScope)
-      }.filter {
-        // Filter out any facets that have a manifest override for package name, as that takes priority.
-        GradleAndroidModel.get(it)?.androidProject?.namespace == null
+        AndroidManifestIndex.queryByPackageName(project, packageName, packageNameInfo.indexQueryScope)
       }
       return facetsFromManifestIndex + facetsFromModuleSystem
     }
@@ -265,7 +300,7 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     }
     // If the index is unavailable fall back to direct filtering of the package names returned by the module system which is supposed
     // to work in the dumb mode (i.e. it fallback to slow manifest parsing if the index is not available).
-    return androidFacets.filter { it.getModuleSystem().getPackageName() == packageName }
+    return project.androidFacetsForNonHolderModules().filter { it.getModuleSystem().getPackageName() == packageName }.toList()
   }
 
   override fun getKnownApplicationIds(project: Project): Set<String> {
@@ -275,6 +310,11 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     ids.add(model.applicationId)
     return ids
   }
+
+  /**
+   * Gradle supports the profiling mode flag.
+   */
+  override fun supportsProfilingMode() = true
 
   // TODO(b/228120633) reimplement this in a more efficient way
   private fun getModel(project: Project): AndroidModel? {
@@ -317,7 +357,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
   }
 
   fun IdeAndroidArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
-    val sourceFolders = getGeneratedSourceFoldersToUse(this, model.data)
+    val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
       scopeType,
       object : IdeaSourceProviderImpl.Core {
@@ -336,12 +376,13 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         override val shadersDirectoryUrls: Sequence<String> = emptySequence()
         override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
         override val customSourceDirectories: Map<String, Sequence<String>> = emptyMap()
+        override val baselineProfileDirectoryUrls: Sequence<String> get() = emptySequence()
       }
     )
   }
 
   fun IdeJavaArtifact.toGeneratedIdeaSourceProvider(): IdeaSourceProvider {
-    val sourceFolders = getGeneratedSourceFoldersToUse(this, model.data)
+    val sourceFolders = getGeneratedSourceFoldersToUse(this, model.androidProject)
     return IdeaSourceProviderImpl(
       ScopeType.UNIT_TEST,
       object : IdeaSourceProviderImpl.Core {
@@ -359,6 +400,7 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
         override val shadersDirectoryUrls: Sequence<String> = emptySequence()
         override val mlModelsDirectoryUrls: Sequence<String> = emptySequence()
         override val customSourceDirectories: Map<String, Sequence<String>> = emptyMap()
+        override val baselineProfileDirectoryUrls: Sequence<String> get() = emptySequence()
       }
     )
   }
@@ -371,13 +413,11 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     currentTestFixturesSourceProviders = model.testFixturesSourceProviders.map { it.toIdeaSourceProvider() },
     currentAndSomeFrequentlyUsedInactiveSourceProviders = model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
-    run {
+    listOf(model.defaultSourceProvider.toIdeaSourceProvider()) + model.androidProject.multiVariantData?.let { multiVariantData ->
       val flavorNames = model.selectedVariant.productFlavors.toSet()
-      listOf(model.defaultSourceProvider.toIdeaSourceProvider()) +
-      model.androidProject.productFlavors
-        .filter { it.productFlavor.name in flavorNames }
+      multiVariantData.productFlavors.filter { it.productFlavor.name in flavorNames }
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
-    },
+    }.orEmpty(),
     generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(),
     generatedUnitTestSources = model.selectedVariant.unitTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
       ScopeType.UNIT_TEST),
@@ -406,6 +446,7 @@ private fun createIdeaSourceProviderFromModelSourceProvider(it: IdeSourceProvide
       override val mlModelsDirectoryUrls: Sequence<String> get() = it.mlModelsDirectories.asSequence().toUrls()
       override val customSourceDirectories: Map<String, Sequence<String>>
         get() = it.customSourceDirectories.associateBy({ it.sourceTypeName }) { f -> sequenceOf(f.directory).toUrls() }
+      override val baselineProfileDirectoryUrls: Sequence<String> get() = it.baselineProfileDirectories.asSequence().toUrls()
     }
   )
 }

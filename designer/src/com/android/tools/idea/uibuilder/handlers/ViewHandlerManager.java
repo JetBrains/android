@@ -57,7 +57,7 @@ import org.jetbrains.annotations.TestOnly;
 public class ViewHandlerManager implements Disposable {
   @VisibleForTesting
   static final ExtensionPointName<ViewHandlerProvider> EP_NAME =
-    new ExtensionPointName<>("com.android.tools.idea.uibuilder.handlers.viewHandlerProvider");
+    ExtensionPointName.create("com.android.tools.idea.uibuilder.handlers.viewHandlerProvider");
 
   /**
    * View handlers are named the same as the class for the view they represent, plus this suffix

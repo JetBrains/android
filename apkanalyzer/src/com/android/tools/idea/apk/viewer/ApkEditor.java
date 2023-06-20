@@ -16,6 +16,7 @@
 package com.android.tools.idea.apk.viewer;
 
 import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+import static com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerUtil.withChecksDisabledForSupplier;
 
 import com.android.SdkConstants;
 import com.android.tools.apk.analyzer.ApkSizeCalculator;
@@ -45,6 +46,7 @@ import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.JarFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -55,8 +57,8 @@ import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.messages.MessageBusConnection;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -64,6 +66,8 @@ import java.util.Optional;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.LayoutFocusTraversalPolicy;
+import kotlin.io.FilesKt;
+import kotlin.text.Charsets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -140,7 +144,9 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
           Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
           FileUtils.copyFile(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk);
           myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
-          myApkViewPanel = new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()));
+          // TODO(b/244771241) ApkViewPanel should be created on the UI thread
+          myApkViewPanel = withChecksDisabledForSupplier(() ->
+              new ApkViewPanel(ApkEditor.this.myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault())));
           myApkViewPanel.setListener(ApkEditor.this);
           ApplicationManager.getApplication().invokeLater(() -> {
             mySplitter.setFirstComponent(myApkViewPanel.getContainer());
@@ -369,13 +375,24 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     if (archive.isProtoXml(p, content)) {
       try {
         ProtoXmlPrettyPrinter prettyPrinter = new ProtoXmlPrettyPrinterImpl();
-        content = prettyPrinter.prettyPrint(content).getBytes(StandardCharsets.UTF_8);
+        String text = prettyPrinter.prettyPrint(content);
+        return ApkVirtualFile.createText(p, text);
       }
       catch (IOException e) {
         // Ignore error, show encoded content.
         getLog().warn(String.format("Error decoding XML entry \"%s\" from archive", p), e);
       }
       return ApkVirtualFile.create(p, content);
+    }
+
+    if (archive.isBaselineProfile(p, content)) {
+      String text = getPrettyPrintedBaseline(myBaseFile, content, p, FileUtilRt.LARGE_FOR_CONTENT_LOADING);
+      if (text != null) {
+        return ApkVirtualFile.createText(p, text);
+      }
+      else {
+        return ApkVirtualFile.create(p, content);
+      }
     }
 
     VirtualFile file = JarFileSystem.getInstance().findLocalVirtualFileByPath(archive.getPath().toString());
@@ -385,6 +402,53 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
     else {
       return ApkVirtualFile.create(p, content);
     }
+  }
+
+  @Nullable
+  public static String getPrettyPrintedBaseline(@NotNull VirtualFile basefile, byte[] content, @NotNull Path path, int maxChars) {
+    String text;
+    try {
+      text = BaselineProfilePrettyPrinter.prettyPrint(basefile, path, content);
+    }
+    catch (IOException e) {
+      getLog().warn(String.format("Error decoding baseline entry \"%s\" from archive", path), e);
+      return null;
+    }
+    if (text.length() > maxChars) {
+      StringBuilder truncated = new StringBuilder(100000);
+      int length = text.getBytes(Charsets.UTF_8).length;
+      truncated.append(
+          "The contents of this baseline file is too large to show by default.\n" +
+          "You can increase the maximum buffer size by setting the property\n" +
+          "    idea.max.content.load.filesize=")
+        .append(length)
+        .append(
+          "\n" +
+          "(or higher)\n\n");
+
+      try {
+        File file = File.createTempFile("baseline", ".txt");
+        FilesKt.writeText(file, text, Charsets.UTF_8);
+        truncated.append(
+            "Alternatively, the full contents have been written to the following\n" + "temp file:\n")
+          .append(file.getPath())
+          .append("\n\n");
+      }
+      catch (IOException ignore) {
+        // Couldn't write temp file -- oh well, we just aren't including a mention of it.
+      }
+
+      // The header has taken up around 380 characters. It varies slightly, based on the path
+      // to the temporary file. We want to make the test output stable (such that the "truncated X chars"
+      // string doesn't vary from run to run) so we'll round up to say 450, instead of using
+      // truncated.length() here.
+      int truncateAt = Math.max(0, maxChars - 450);
+      truncated.append(text, 0, truncateAt).append("\n....truncated ").append(length - truncateAt).append(" characters.");
+
+      return truncated.toString();
+    }
+
+    return text;
   }
 
   @NotNull

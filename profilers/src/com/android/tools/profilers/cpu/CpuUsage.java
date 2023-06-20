@@ -22,6 +22,7 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class CpuUsage extends LineChartModel {
   // Cpu usage is shown as percentages (e.g. 0 - 100) and no range animation is needed.
@@ -51,17 +53,7 @@ public class CpuUsage extends LineChartModel {
    */
   public CpuUsage(@NotNull StudioProfilers profilers, @NotNull Range viewRange, @NotNull Range dataRange, @Nullable CpuCapture cpuCapture) {
     myCpuRange = new Range(0, 100);
-    DataSeries<Long> series = new UnifiedEventDataSeries<>(
-      profilers.getClient().getTransportClient(),
-      profilers.getSession().getStreamId(),
-      profilers.getSession().getPid(),
-      Common.Event.Kind.CPU_USAGE,
-      profilers.getSession().getPid(),
-      events -> extractData(events, false));
-    if (cpuCapture != null && cpuCapture.getSystemTraceData() != null) {
-      series = new MergeCaptureDataSeries<>(cpuCapture, series,
-                                            new LazyDataSeries<>(() -> cpuCapture.getSystemTraceData().getCpuUtilizationSeries()));
-    }
+    DataSeries<Long> series = buildDataSeries(profilers.getClient().getTransportClient(), profilers.getSession(), cpuCapture);
     myCpuSeries = new RangedContinuousSeries(getCpuSeriesLabel(), viewRange, myCpuRange, series, dataRange);
     add(myCpuSeries);
   }
@@ -109,5 +101,23 @@ public class CpuUsage extends LineChartModel {
     app = Math.max(0, Math.min(app, system));
 
     return new SeriesData<>(dataTimestamp, (long)(isOtherProcess ? system - app : app));
+  }
+
+  @VisibleForTesting
+  public static DataSeries<Long> buildDataSeries(@NotNull TransportServiceGrpc.TransportServiceBlockingStub client,
+                                                 @NotNull Common.Session session,
+                                                 @Nullable CpuCapture cpuCapture) {
+    DataSeries<Long> series = new UnifiedEventDataSeries<>(
+      client,
+      session.getStreamId(),
+      session.getPid(),
+      Common.Event.Kind.CPU_USAGE,
+      session.getPid(),
+      events -> extractData(events, false));
+    if (cpuCapture != null && cpuCapture.getSystemTraceData() != null) {
+      series = new MergeCaptureDataSeries<>(cpuCapture, series,
+                                            new LazyDataSeries<>(() -> cpuCapture.getSystemTraceData().getCpuUtilizationSeries()));
+    }
+    return series;
   }
 }

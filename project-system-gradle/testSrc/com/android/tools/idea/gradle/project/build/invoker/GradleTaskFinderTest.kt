@@ -78,7 +78,7 @@ class GradleTaskFinderTest : PlatformTestCase() {
     assertThat(tasksPerProject.forTest()).isEmpty()
     assertThat(getNotification(prefix = "Unable to find Gradle tasks"))
       .isEqualTo(
-        "Unable to find Gradle tasks to build: [:, :buildSrc, :buildSrc:other, :buildSrc:main, :buildSrc:test...]. <br>Build mode: ASSEMBLE. <br>Tests: None.")
+        "Unable to find Gradle tasks to build: [:, :buildSrc, :buildSrc:other]. <br>Build mode: ASSEMBLE. <br>Tests: None.")
   }
 
   fun testFindTasksWithNonBuildSrcModule() {

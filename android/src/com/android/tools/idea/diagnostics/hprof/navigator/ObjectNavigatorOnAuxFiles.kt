@@ -18,13 +18,13 @@ package com.android.tools.idea.diagnostics.hprof.navigator
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassDefinition
 import com.android.tools.idea.diagnostics.hprof.classstore.ClassStore
 import com.android.tools.idea.diagnostics.hprof.parser.Type
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.longs.LongArrayList
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
 class ObjectNavigatorOnAuxFiles(
-  private val roots: Long2ObjectMap<RootReason>,
+  private val roots: Long2ObjectOpenHashMap<RootReason>,
   private val auxOffsets: ByteBuffer,
   private val aux: ByteBuffer,
   classStore: ClassStore,
@@ -58,21 +58,21 @@ class ObjectNavigatorOnAuxFiles(
 
   override fun createRootsIterator(): Iterator<RootObject> {
     return object : Iterator<RootObject> {
-      val internalIterator = roots.keys.iterator()
+      val internalIterator = roots.iterator()
       override fun hasNext(): Boolean {
         return internalIterator.hasNext()
       }
 
       override fun next(): RootObject {
-        val key = internalIterator.nextLong()
-        return RootObject(key, roots.get(key))
+        val (id, reason) = internalIterator.next()
+        return RootObject(id, reason)
       }
     }
   }
 
   override fun getReferencesCopy(): LongArrayList {
     val result = LongArrayList()
-    for (i in 0 until references.size) {
+    for (i in 0 until references.count()) {
       result.add(references.getLong(i))
     }
     return result
@@ -180,7 +180,7 @@ class ObjectNavigatorOnAuxFiles(
         }
         else {
           softWeakReferenceId = reference.toLong()
-          softWeakReferenceIndex = references.size // current index in references list
+          softWeakReferenceIndex = references.count() // current index in references list
           referenceType = if (isSoftReference) ReferenceType.Soft else ReferenceType.Weak
           // Soft/weak reference
           if (includeSoftWeakReferences) {
@@ -237,8 +237,8 @@ class ObjectNavigatorOnAuxFiles(
 
   override fun copyReferencesTo(outReferences: LongArrayList) {
     outReferences.clear()
-    outReferences.ensureCapacity(references.size)
-    for (i in 0 until references.size) {
+    outReferences.ensureCapacity(references.count())
+    for (i in 0 until references.count()) {
       outReferences.add(references.getLong(i))
     }
   }

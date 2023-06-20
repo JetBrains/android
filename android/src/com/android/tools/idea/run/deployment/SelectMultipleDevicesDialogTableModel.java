@@ -34,12 +34,12 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
   private static final int SERIAL_NUMBER_MODEL_COLUMN_INDEX = 3;
   private static final int BOOT_OPTION_MODEL_COLUMN_INDEX = 4;
 
-  private final @NotNull List<@NotNull SelectMultipleDevicesDialogTableModelRow> myRows;
+  private final @NotNull List<SelectMultipleDevicesDialogTableModelRow> myRows;
 
   @NotNull
   private final Multiset<String> myDeviceNameMultiset;
 
-  SelectMultipleDevicesDialogTableModel(@NotNull List<@NotNull Device> devices,
+  SelectMultipleDevicesDialogTableModel(@NotNull List<Device> devices,
                                         @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
     devices.sort(new DeviceComparator());
     myRows = new ArrayList<>();
@@ -55,14 +55,14 @@ final class SelectMultipleDevicesDialogTableModel extends AbstractTableModel {
       .collect(Collectors.toCollection(() -> HashMultiset.create(devices.size())));
   }
 
-  @NotNull Set<@NotNull Target> getSelectedTargets() {
+  @NotNull Set<Target> getSelectedTargets() {
     return myRows.stream()
       .filter(SelectMultipleDevicesDialogTableModelRow::isSelected)
       .map(SelectMultipleDevicesDialogTableModelRow::getTarget)
       .collect(Collectors.toSet());
   }
 
-  void setSelectedTargets(@NotNull Set<@NotNull Target> selectedTargets) {
+  void setSelectedTargets(@NotNull Set<Target> selectedTargets) {
     IntStream.range(0, myRows.size())
       .filter(modelRowIndex -> selectedTargets.contains(myRows.get(modelRowIndex).getTarget()))
       .forEach(modelRowIndex -> setValueAt(true, modelRowIndex, SELECTED_MODEL_COLUMN_INDEX));

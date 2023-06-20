@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.pickers.properties.DimUnit
-import com.android.tools.idea.compose.preview.pickers.properties.Orientation
-import com.android.tools.idea.compose.preview.pickers.properties.Shape
-import com.android.tools.idea.compose.preview.pickers.properties.enumsupport.devices.ReferencePhoneConfig
+import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferencePhoneConfig
+import com.android.tools.idea.compose.pickers.preview.property.DimUnit
+import com.android.tools.idea.compose.pickers.preview.property.Orientation
+import com.android.tools.idea.compose.pickers.preview.property.Shape
 import kotlin.math.roundToInt
 
 // region Preview
@@ -47,6 +47,7 @@ internal const val PARAMETER_HARDWARE_DENSITY = "Density"
 internal const val PARAMETER_HARDWARE_ORIENTATION = "Orientation"
 internal const val PARAMETER_HARDWARE_CHIN_SIZE = "ChinSize"
 internal const val PARAMETER_HARDWARE_IS_ROUND = "IsRound"
+internal const val PARAMETER_WALLPAPER = "wallpaper"
 // endregion
 // region SpringSpec
 internal const val DECLARATION_SPRING_SPEC = "SpringSpec"
@@ -58,11 +59,12 @@ internal const val PARAMETER_STIFFNESS = "stiffness"
 internal const val PARAMETER_THRESHOLD = "visibilityThreshold"
 // endregion
 
-
 object Preview {
   object DeviceSpec {
-    // TODO(205051960): Namespace other Preview parameters, and make a clear distinction of PropertyItem name and parameter name,
-    //  alternatively restructure properties so that they are not a flat list, so that the 'device' PropertyItem has its own PropertyItems
+    // TODO(205051960): Namespace other Preview parameters, and make a clear distinction of
+    // PropertyItem name and parameter name,
+    //  alternatively restructure properties so that they are not a flat list, so that the 'device'
+    // PropertyItem has its own PropertyItems
     internal const val PREFIX = "spec:"
     internal const val SEPARATOR = ','
     internal const val OPERATOR = '='
@@ -99,14 +101,15 @@ object Preview {
     internal val DEFAULT_ORIENTATION = Orientation.portrait
 
     /**
-     * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes an Android dimension value
-     * (with a dp/px suffix).
+     * Returns whether the given [parameterName] matches to a known DeviceSpec parameter that takes
+     * an Android dimension value (with a dp/px suffix).
      */
-    internal fun isDimensionParameter(parameterName: String): Boolean = when (parameterName) {
-      PARAMETER_WIDTH,
-      PARAMETER_HEIGHT,
-      PARAMETER_CHIN_SIZE -> true
-      else -> false
-    }
+    internal fun isDimensionParameter(parameterName: String): Boolean =
+      when (parameterName) {
+        PARAMETER_WIDTH,
+        PARAMETER_HEIGHT,
+        PARAMETER_CHIN_SIZE -> true
+        else -> false
+      }
   }
 }

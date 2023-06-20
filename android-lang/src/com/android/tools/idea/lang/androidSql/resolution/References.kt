@@ -35,7 +35,6 @@ import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiReferenceBase
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayUtil
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 interface AndroidSqlColumnPsiReference : PsiReference {
   /**
@@ -97,7 +96,7 @@ class UnqualifiedColumnPsiReference(
         ?.let { it as AndroidSqlSelectCoreSelect }
 
       if (parentSelect != null && parentSelect.fromClause == null) {
-        element.containingFile?.safeAs<AndroidSqlFile>()?.sqlContext?.processTables(tablesProcessor)
+        (element.containingFile as? AndroidSqlFile)?.sqlContext?.processTables(tablesProcessor)
       }
     }
 
@@ -232,8 +231,8 @@ class AndroidSqlParameterReference(parameter: AndroidSqlBindParameter) : PsiRefe
 
   private val bindParameters: Map<String, BindParameter>?
     get() {
-      return element.containingFile
-        ?.safeAs<AndroidSqlFile>()
+      return (element.containingFile
+        as? AndroidSqlFile)
         ?.sqlContext
         ?.bindParameters
     }

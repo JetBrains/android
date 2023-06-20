@@ -195,7 +195,7 @@ interface SourceProviders {
           get() = throw UnsupportedOperationException()
         override val mainIdeaSourceProvider: NamedIdeaSourceProvider
           get() = sourceSet
-        override val mainManifestFile: VirtualFile
+        override val mainManifestFile: VirtualFile?
           get() = sourceSet.manifestFiles.single()
       })
       Disposer.register(disposable, Disposable { facet.putUserData(KEY_FOR_TEST, null) })
@@ -290,6 +290,7 @@ fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSo
         providers.asSequence().flatMap { it.custom.keys }.toSet().associateWith { customKey ->
           providers.asSequence().map { it.custom[customKey]!!.directoryUrls.asSequence() }.flatten()
         }
+      override val baselineProfileDirectoryUrls: Sequence<String> get() = providers.asSequence().map { it.baselineProfileDirectoryUrls.asSequence() }.flatten()
     }
   )
 }
@@ -309,6 +310,7 @@ fun emptySourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     override val assetsDirectoryUrls: Iterable<String> = emptyList()
     override val shadersDirectoryUrls: Iterable<String> = emptyList()
     override val mlModelsDirectoryUrls: Iterable<String> = emptyList()
+    override val baselineProfileDirectoryUrls: Iterable<String> = emptyList()
     override val manifestFiles: Iterable<VirtualFile> = emptyList()
     override val manifestDirectories: Iterable<VirtualFile> = emptyList()
     override val javaDirectories: Iterable<VirtualFile> = emptyList()
@@ -322,6 +324,7 @@ fun emptySourceProvider(scopeType: ScopeType): IdeaSourceProvider {
     override val shadersDirectories: Iterable<VirtualFile> = emptyList()
     override val mlModelsDirectories: Iterable<VirtualFile> = emptyList()
     override val custom: Map<String, IdeaSourceProvider.Custom> get() = emptyMap()
+    override val baselineProfileDirectories: Iterable<VirtualFile> = emptyList()
   }
 }
 
@@ -348,7 +351,8 @@ fun emptySourceProvider(scopeType: ScopeType): IdeaSourceProvider {
 fun SourceProviders.getForFile(targetFolder: VirtualFile?): List<NamedIdeaSourceProvider>? {
   return if (targetFolder != null) {
     // Add source providers that contain the file (if any) and any that have files under the given folder
-    currentAndSomeFrequentlyUsedInactiveSourceProviders
+    // Also checks in the test providers.
+    (currentAndSomeFrequentlyUsedInactiveSourceProviders + currentAndroidTestSourceProviders + currentUnitTestSourceProviders)
       .filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }
       .takeUnless { it.isEmpty() }
   }

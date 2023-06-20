@@ -138,14 +138,20 @@ private fun AndroidSdks.findMatchingSdkForAddon(
     File(path)
   }.firstOrNull { file ->
     file.name == FN_FRAMEWORK_LIBRARY
-  } ?: return null
+  } ?: run {
+    LOG.warn("Unable to find android.jar in bootclasspath. Bootclasspath: ${bootClasspath.joinToString()}.")
+    return null
+  }
 
-  // There is no android.jar file in the bootClasspath, we can't find the SDK
-  // TODO: Maybe log here, this condition should never happen AFAIK.
-
-  return allAndroidSdks.first { sdk ->
+  return allAndroidSdks.firstOrNull { sdk ->
     sdk.rootProvider.getFiles(CLASSES).any { sdkFile ->
       filesEqual(virtualToIoFile(sdkFile), androidJarPath)
+    }
+  }.also {
+    if (it == null) {
+      val availableSdks = if (allAndroidSdks.isEmpty()) "No available Android SDKs."
+      else "Available Android SDKs: ${allAndroidSdks.joinToString { sdk -> sdk.name }}."
+      LOG.warn("Unable to find Android SDK that contains $androidJarPath. $availableSdks")
     }
   }
 }

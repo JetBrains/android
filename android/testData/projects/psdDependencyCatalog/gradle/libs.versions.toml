@@ -1,0 +1,7 @@
+[versions]
+coreVersion = "0.9.1"
+anotherVersion = "0.9.2"
+wrongVersion = "wrongVersion"
+[libraries]
+core = { module ="com.example.jlib:lib3", version.ref = "coreVersion" }
+core2 = "com.example.jlib:lib4:0.6"

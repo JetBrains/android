@@ -1,0 +1,569 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT> (IdeBuildImpl)
+        buildName                     : :
+    gradleSupportsDirectTaskInvocation      : true
+LIBRARY_TABLE
+    - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :app
+        sourceSet                     : MAIN
+        variant                       : debug
+MODULE                        : project
+    externalProject               : project (DefaultExternalProject)
+        name                          : project
+        qName                         : project
+        version                       : unspecified
+        childProjects
+            app                           : :app (DefaultExternalProject)
+                name                          : app
+                qName                         : :app
+                group                         : project
+                version                       : unspecified
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                projectDir                    : <ROOT>/app
+                buildDir                      : <ROOT>/app/build
+                buildFile                     : <ROOT>/app/build.gradle
+                tasks
+                    testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                        qName                         : :app:testDebugUnitTest
+                    testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                        qName                         : :app:testReleaseUnitTest
+                externalSystemId              : GRADLE
+                artifactsByConfiguration
+                    androidApis                   : <empty>
+                    androidJdkImage               : <empty>
+                    androidTestAnnotationProcessor          : <empty>
+                    androidTestCompileOnly        : <empty>
+                    androidTestDebugAnnotationProcessor     : <empty>
+                    androidTestDebugCompileOnly   : <empty>
+                    androidTestDebugImplementation          : <empty>
+                    androidTestDebugRuntimeOnly   : <empty>
+                    androidTestDebugWearApp       : <empty>
+                    androidTestImplementation     : <empty>
+                    androidTestReleaseAnnotationProcessor   : <empty>
+                    androidTestReleaseCompileOnly : <empty>
+                    androidTestReleaseImplementation        : <empty>
+                    androidTestReleaseRuntimeOnly : <empty>
+                    androidTestReleaseWearApp     : <empty>
+                    androidTestRuntimeOnly        : <empty>
+                    androidTestUtil               : <empty>
+                    androidTestWearApp            : <empty>
+                    annotationProcessor           : <empty>
+                    api                           : <empty>
+                    archives                      : <empty>
+                    compileOnly                   : <empty>
+                    coreLibraryDesugaring         : <empty>
+                    debugAndroidTestAnnotationProcessorClasspath      : <empty>
+                    debugAndroidTestCompileClasspath        : <empty>
+                    debugAndroidTestRuntimeClasspath        : <empty>
+                    debugAnnotationProcessor      : <empty>
+                    debugAnnotationProcessorClasspath       : <empty>
+                    debugApi                      : <empty>
+                    debugApiElements              : <empty>
+                    debugCompileClasspath         : <empty>
+                    debugCompileOnly              : <empty>
+                    debugImplementation           : <empty>
+                    debugReverseMetadataValues    : <empty>
+                    debugRuntimeClasspath         : <empty>
+                    debugRuntimeElements          : <empty>
+                    debugRuntimeOnly              : <empty>
+                    debugUnitTestAnnotationProcessorClasspath         : <empty>
+                    debugUnitTestCompileClasspath : <empty>
+                    debugUnitTestRuntimeClasspath : <empty>
+                    debugWearApp                  : <empty>
+                    debugWearBundling             : <empty>
+                    default                       : <empty>
+                    implementation                : <empty>
+                    lintChecks                    : <empty>
+                    lintPublish                   : <empty>
+                    releaseAnnotationProcessor    : <empty>
+                    releaseAnnotationProcessorClasspath     : <empty>
+                    releaseApi                    : <empty>
+                    releaseApiElements            : <empty>
+                    releaseCompileClasspath       : <empty>
+                    releaseCompileOnly            : <empty>
+                    releaseImplementation         : <empty>
+                    releaseReverseMetadataValues  : <empty>
+                    releaseRuntimeClasspath       : <empty>
+                    releaseRuntimeElements        : <empty>
+                    releaseRuntimeOnly            : <empty>
+                    releaseUnitTestAnnotationProcessorClasspath       : <empty>
+                    releaseUnitTestCompileClasspath         : <empty>
+                    releaseUnitTestRuntimeClasspath         : <empty>
+                    releaseWearApp                : <empty>
+                    releaseWearBundling           : <empty>
+                    runtimeOnly                   : <empty>
+                    testAnnotationProcessor       : <empty>
+                    testCompileOnly               : <empty>
+                    testDebugAnnotationProcessor  : <empty>
+                    testDebugCompileOnly          : <empty>
+                    testDebugImplementation       : <empty>
+                    testDebugRuntimeOnly          : <empty>
+                    testDebugWearApp              : <empty>
+                    testFixturesAnnotationProcessor         : <empty>
+                    testFixturesApi               : <empty>
+                    testFixturesCompileOnly       : <empty>
+                    testFixturesDebugAnnotationProcessor    : <empty>
+                    testFixturesDebugApi          : <empty>
+                    testFixturesDebugCompileOnly  : <empty>
+                    testFixturesDebugImplementation         : <empty>
+                    testFixturesDebugRuntimeOnly  : <empty>
+                    testFixturesDebugWearApp      : <empty>
+                    testFixturesImplementation    : <empty>
+                    testFixturesReleaseAnnotationProcessor  : <empty>
+                    testFixturesReleaseApi        : <empty>
+                    testFixturesReleaseCompileOnly          : <empty>
+                    testFixturesReleaseImplementation       : <empty>
+                    testFixturesReleaseRuntimeOnly          : <empty>
+                    testFixturesReleaseWearApp    : <empty>
+                    testFixturesRuntimeOnly       : <empty>
+                    testFixturesWearApp           : <empty>
+                    testImplementation            : <empty>
+                    testReleaseAnnotationProcessor          : <empty>
+                    testReleaseCompileOnly        : <empty>
+                    testReleaseImplementation     : <empty>
+                    testReleaseRuntimeOnly        : <empty>
+                    testReleaseWearApp            : <empty>
+                    testRuntimeOnly               : <empty>
+                    testWearApp                   : <empty>
+                    wearApp                       : <empty>
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        externalSystemId              : GRADLE
+MODULE                        : project.app
+    GradleModuleModel
+        agpVersion                    : 8.0.0-beta04
+        gradlePath                    : :app
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/app/build.gradle
+        buildFilePath                 : <ROOT>/app/build.gradle
+        rootFolderPath                : <ROOT>
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
+    ProjectPath                   : :app
+    ModelVersion                  : 8.0.0-beta04
+    ProjectType                   : PROJECT_TYPE_APP
+    CompileTarget                 : android-<SDK_VERSION>
+    BuildFolder                   : <ROOT>/app/build
+    buildToolsVersion             : 30.0.3
+    IsBaseSplit                   : true
+    GroupId                       : project
+    Namespace                     : com.example.basiccmakeapp
+    TestNamespace                 : com.example.basiccmakeapp.test
+    AaptOptions
+        NameSpacing                   : DISABLED
+    LintOptions
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : true
+        IsAbsolutePaths               : true
+        IsNoLines                     : false
+        IsQuiet                       : false
+        IsCheckAllWarnings            : false
+        IsIgnoreWarnings              : false
+        IsWarningsAsErrors            : false
+        IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : false
+        TextReport                    : false
+        HtmlReport                    : true
+        XmlReport                     : true
+        SarifReport                   : false
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 1.8
+        TargetCompatibility           : 1.8
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
+        TransitiveRClasses            : false
+        UseAndroidX                   : false
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+    - basicVariant:               : debug
+        applicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
+        testApplicationId             : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
+    - basicVariant:               : release
+        applicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    ViewBindingOptions
+        Enabled                       : false
+    DependenciesInfo
+        IncludeInApk                  : true
+        IncludeInBundle               : true
+    DefaultConfig
+        ProductFlavor
+            Name                          : main
+            ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
+            VersionCode                   : 1
+            VersionName                   : 1.0
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
+            VectorDrawables
+                UseSupportLibrary             : false
+        SourceProvider
+            Name                          : main
+            Manifest                      : <ROOT>/app/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/java
+            KotlinDirectories             : <ROOT>/app/src/main/kotlin [-]
+            ResourcesDirectories          : <ROOT>/app/src/main/resources [-]
+            ResDirectories                : <ROOT>/app/src/main/res
+            AssetsDirectories             : <ROOT>/app/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/main/baselineProfiles [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTest
+                    Manifest                      : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTest/resources [-]
+                    ResDirectories                : <ROOT>/app/src/androidTest/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTest/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTest/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTest/baselineProfiles [-]
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : test
+                    Manifest                      : <ROOT>/app/src/test/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/test/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/test/resources [-]
+                    ResDirectories                : <ROOT>/app/src/test/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/test/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/test/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/test/baselineProfiles [-]
+    BuildTypes
+        BuildType
+            Name                          : debug
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : debug
+            Manifest                      : <ROOT>/app/src/debug/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/app/src/debug/kotlin [-]
+            ResourcesDirectories          : <ROOT>/app/src/debug/resources [-]
+            ResDirectories                : <ROOT>/app/src/debug/res [-]
+            AssetsDirectories             : <ROOT>/app/src/debug/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/debug/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/debug/baselineProfiles [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestDebug
+                    Manifest                      : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/androidTestDebug/resources [-]
+                    ResDirectories                : <ROOT>/app/src/androidTestDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/androidTestDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/androidTestDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestDebug/baselineProfiles [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testDebug
+                    Manifest                      : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testDebug/resources [-]
+                    ResDirectories                : <ROOT>/app/src/testDebug/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
+        BuildType
+            Name                          : release
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-8.0.0-beta04 [-]
+            ProguardFiles                 : <ROOT>/app/proguard-rules.pro
+            IsDebuggable                  : false
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : release
+            Manifest                      : <ROOT>/app/src/release/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/java [-]
+            KotlinDirectories             : <ROOT>/app/src/release/kotlin [-]
+            ResourcesDirectories          : <ROOT>/app/src/release/resources [-]
+            ResDirectories                : <ROOT>/app/src/release/res [-]
+            AssetsDirectories             : <ROOT>/app/src/release/assets [-]
+            JniLibsDirectories            : <ROOT>/app/src/release/jniLibs [-]
+            ShadersDirectories            : <ROOT>/app/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/app/src/release/baselineProfiles [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testRelease
+                    Manifest                      : <ROOT>/app/src/testRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/app/src/testRelease/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/app/src/testRelease/resources [-]
+                    ResDirectories                : <ROOT>/app/src/testRelease/res [-]
+                    AssetsDirectories             : <ROOT>/app/src/testRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/app/src/testRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/app/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testRelease/baselineProfiles [-]
+    SigningConfigs
+        SigningConfig
+            Name                          : debug
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : AndroidDebugKey
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                BundleTaskName                : bundleDebug
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
+                ApkFromBundleTaskName         : extractApksForDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/release/redirect.txt [-]
+                BundleTaskName                : bundleRelease
+                BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/release/redirect.txt [-]
+                ApkFromBundleTaskName         : extractApksForRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/release/redirect.txt [-]
+    IdeVariants
+        IdeVariant
+            Name                          : debug
+            BuildType                     : debug
+            DisplayName                   : debug
+            InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
+            VersionCode                   : 1
+            VersionNameWithSuffix         : 1.0
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileDebugSources
+                AssembleTaskName              : assembleDebug
+                IsTestArtifact                : false
+                IdeSetupTaskNames             : generateDebugSources
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
+                Dependencies
+                    compileClasspath
+                    runtimeClasspath
+                ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                    BundleTaskName                : bundleDebug
+                    BundleTaskOutputListingFile   : <ROOT>/app/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
+                    ApkFromBundleTaskName         : extractApksForDebug
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/app/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                AbiFilters                    : x86
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>/app/build/intermediates/variant_model/debug/variant_model.json [-]
+            AndroidTestArtifact
+                Name                          : ANDROID_TEST
+                CompileTaskName               : compileDebugAndroidTestSources
+                AssembleTaskName              : assembleDebugAndroidTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : generateDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
+                Dependencies
+                    compileClasspath
+                        module                        : <ROOT>-:app-MAIN
+                    runtimeClasspath
+                ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
+                SigningConfigName             : debug
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/app/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                TestOptions
+                    AnimationsDisabled            : false
+                    Execution                     : HOST
+                AbiFilters                    : x86
+            UnitTestArtifact
+                Name                          : UNIT_TEST
+                CompileTaskName               : compileDebugUnitTestSources
+                AssembleTaskName              : assembleDebugUnitTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : createMockableJar
+                GeneratedSourceFolders        : <ROOT>/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
+                Dependencies
+                    compileClasspath
+                        module                        : <ROOT>-:app-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:app-MAIN
+                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    SelectedVariantName           : debug
+    SelectedAbiName               : x86
+    Name                          : app
+    NativeBuildSystem             : CMAKE
+    NdkVersion                    : <DEFAULT_NDK_VERSION>
+    ExternalNativeBuildFile       : <ROOT>/app/CMakeLists.txt
+    Variants
+        NativeVariant
+            Name                          : debug
+        ABIs
+            NativeAbi
+                Name                          : x86
+                SourceFlagsFile               : <ROOT>/app/<CXX>/{DEBUG}/x86/compile_commands.json.bin [-]
+                SymbolFolderIndexFile         : <ROOT>/app/<CXX>/{DEBUG}/x86/symbol_folder_index.txt [-]
+                BuildFileIndexFile            : <ROOT>/app/<CXX>/{DEBUG}/x86/build_file_index.txt [-]
+                AdditionalProjectFilesIndexFile         : <ROOT>/app/<CXX>/{DEBUG}/x86/additional_project_files.txt [-]
+        NativeVariant
+            Name                          : release
+        ABIs
+            NativeAbi
+                Name                          : x86
+                SourceFlagsFile               : <ROOT>/app/<CXX>/{RELEASE}/x86/compile_commands.json.bin [-]
+                SymbolFolderIndexFile         : <ROOT>/app/<CXX>/{RELEASE}/x86/symbol_folder_index.txt [-]
+                BuildFileIndexFile            : <ROOT>/app/<CXX>/{RELEASE}/x86/build_file_index.txt [-]
+                AdditionalProjectFilesIndexFile         : <ROOT>/app/<CXX>/{RELEASE}/x86/additional_project_files.txt [-]
+    externalProject               : :app (DefaultExternalProject) (*seen*)
+MODULE                        : project.app.androidTest
+    SelectedVariantName           : debug
+    SelectedAbiName               : x86
+    Name                          : app
+    NativeBuildSystem             : CMAKE
+    NdkVersion                    : <DEFAULT_NDK_VERSION>
+    ExternalNativeBuildFile       : <ROOT>/app/CMakeLists.txt
+    Variants
+        NativeVariant
+            Name                          : debug
+        ABIs
+            NativeAbi
+                Name                          : x86
+                SourceFlagsFile               : <ROOT>/app/<CXX>/{DEBUG}/x86/compile_commands.json.bin [-]
+                SymbolFolderIndexFile         : <ROOT>/app/<CXX>/{DEBUG}/x86/symbol_folder_index.txt [-]
+                BuildFileIndexFile            : <ROOT>/app/<CXX>/{DEBUG}/x86/build_file_index.txt [-]
+                AdditionalProjectFilesIndexFile         : <ROOT>/app/<CXX>/{DEBUG}/x86/additional_project_files.txt [-]
+        NativeVariant
+            Name                          : release
+        ABIs
+            NativeAbi
+                Name                          : x86
+                SourceFlagsFile               : <ROOT>/app/<CXX>/{RELEASE}/x86/compile_commands.json.bin [-]
+                SymbolFolderIndexFile         : <ROOT>/app/<CXX>/{RELEASE}/x86/symbol_folder_index.txt [-]
+                BuildFileIndexFile            : <ROOT>/app/<CXX>/{RELEASE}/x86/build_file_index.txt [-]
+                AdditionalProjectFilesIndexFile         : <ROOT>/app/<CXX>/{RELEASE}/x86/additional_project_files.txt [-]
+MODULE                        : project.app.main
+    SelectedVariantName           : debug
+    SelectedAbiName               : x86
+    Name                          : app
+    NativeBuildSystem             : CMAKE
+    NdkVersion                    : <DEFAULT_NDK_VERSION>
+    ExternalNativeBuildFile       : <ROOT>/app/CMakeLists.txt
+    Variants
+        NativeVariant
+            Name                          : debug
+        ABIs
+            NativeAbi
+                Name                          : x86
+                SourceFlagsFile               : <ROOT>/app/<CXX>/{DEBUG}/x86/compile_commands.json.bin [-]
+                SymbolFolderIndexFile         : <ROOT>/app/<CXX>/{DEBUG}/x86/symbol_folder_index.txt [-]
+                BuildFileIndexFile            : <ROOT>/app/<CXX>/{DEBUG}/x86/build_file_index.txt [-]
+                AdditionalProjectFilesIndexFile         : <ROOT>/app/<CXX>/{DEBUG}/x86/additional_project_files.txt [-]
+        NativeVariant
+            Name                          : release
+        ABIs
+            NativeAbi
+                Name                          : x86
+                SourceFlagsFile               : <ROOT>/app/<CXX>/{RELEASE}/x86/compile_commands.json.bin [-]
+                SymbolFolderIndexFile         : <ROOT>/app/<CXX>/{RELEASE}/x86/symbol_folder_index.txt [-]
+                BuildFileIndexFile            : <ROOT>/app/<CXX>/{RELEASE}/x86/build_file_index.txt [-]
+                AdditionalProjectFilesIndexFile         : <ROOT>/app/<CXX>/{RELEASE}/x86/additional_project_files.txt [-]
+MODULE                        : project.app.unitTest
+    SelectedVariantName           : debug
+    SelectedAbiName               : x86
+    Name                          : app
+    NativeBuildSystem             : CMAKE
+    NdkVersion                    : <DEFAULT_NDK_VERSION>
+    ExternalNativeBuildFile       : <ROOT>/app/CMakeLists.txt
+    Variants
+        NativeVariant
+            Name                          : debug
+        ABIs
+            NativeAbi
+                Name                          : x86
+                SourceFlagsFile               : <ROOT>/app/<CXX>/{DEBUG}/x86/compile_commands.json.bin [-]
+                SymbolFolderIndexFile         : <ROOT>/app/<CXX>/{DEBUG}/x86/symbol_folder_index.txt [-]
+                BuildFileIndexFile            : <ROOT>/app/<CXX>/{DEBUG}/x86/build_file_index.txt [-]
+                AdditionalProjectFilesIndexFile         : <ROOT>/app/<CXX>/{DEBUG}/x86/additional_project_files.txt [-]
+        NativeVariant
+            Name                          : release
+        ABIs
+            NativeAbi
+                Name                          : x86
+                SourceFlagsFile               : <ROOT>/app/<CXX>/{RELEASE}/x86/compile_commands.json.bin [-]
+                SymbolFolderIndexFile         : <ROOT>/app/<CXX>/{RELEASE}/x86/symbol_folder_index.txt [-]
+                BuildFileIndexFile            : <ROOT>/app/<CXX>/{RELEASE}/x86/build_file_index.txt [-]
+                AdditionalProjectFilesIndexFile         : <ROOT>/app/<CXX>/{RELEASE}/x86/additional_project_files.txt [-]

@@ -21,75 +21,75 @@ import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
+import com.android.tools.idea.compose.preview.util.isRootComponentSelected
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.BorderLayer
-import com.android.tools.idea.uibuilder.surface.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.DiagnosticsLayer
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.layer.BorderColor
+import com.android.tools.idea.uibuilder.surface.layer.BorderLayer
+import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 
-internal val COMPOSE_SCREEN_VIEW_PROVIDER = object : ScreenViewProvider {
-  override val displayName: String = "Compose"
+internal val COMPOSE_SCREEN_VIEW_PROVIDER =
+  object : ScreenViewProvider {
+    override var colorBlindFilter: ColorBlindMode = ColorBlindMode.NONE
+    override val displayName: String = "Compose"
 
-  override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView =
-    ScreenView.newBuilder(surface, manager)
-      .withLayersProvider {
-        ImmutableList.builder<Layer>().apply {
-          if (it.hasBorderLayer()) {
-            add(BorderLayer(it))
-          }
-          add(ScreenViewLayer(it))
-          add(SceneLayer(it.surface, it, false).apply {
-            isShowOnHover = true
-          })
-          StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
-            add(ClassLoadingDebugLayer(surface.models.first().facet.module))
-          }
-          StudioFlags.NELE_RENDER_DIAGNOSTICS.ifEnabled {
-            add(DiagnosticsLayer(surface))
-          }
-        }.build()
-      }
-      .withShapePolicy {
-        (if (COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)?.displaySettings?.showDecoration == true)
-          DEVICE_CONFIGURATION_SHAPE_POLICY
-        else
-          SQUARE_SHAPE_POLICY).getShape(it)
-      }
-      .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
-      .build()
+    override fun createPrimarySceneView(
+      surface: NlDesignSurface,
+      manager: LayoutlibSceneManager
+    ): ScreenView =
+      ScreenView.newBuilder(surface, manager)
+        .withLayersProvider {
+          ImmutableList.builder<Layer>()
+            .apply {
+              if (it.hasBorderLayer()) {
+                add(
+                  BorderLayer(it, true, { surface.rotateSurfaceDegree }) { sceneView ->
+                    when {
+                      StudioFlags.COMPOSE_PREVIEW_SELECTION.get() &&
+                        sceneView.isRootComponentSelected() -> BorderColor.SELECTED
+                      sceneView == sceneView.surface.sceneViewAtMousePosition -> BorderColor.HOVERED
+                      else -> BorderColor.DEFAULT_WITHOUT_SHADOW
+                    }
+                  }
+                )
+              }
+              add(ScreenViewLayer(it, colorBlindFilter))
+              add(
+                SceneLayer(it.surface, it, false).apply {
+                  isShowOnHover = true
+                  setShowOnHoverFilter { sceneView ->
+                    !StudioFlags.COMPOSE_PREVIEW_SELECTION.get() ||
+                      sceneView.isRootComponentSelected()
+                  }
+                }
+              )
+              StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
+                add(ClassLoadingDebugLayer(surface.models.first().facet.module))
+              }
+              StudioFlags.NELE_RENDER_DIAGNOSTICS.ifEnabled { add(DiagnosticsLayer(surface)) }
+            }
+            .build()
+        }
+        .withShapePolicy {
+          (if (
+              COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
+                ?.displaySettings
+                ?.showDecoration == true
+            )
+              DEVICE_CONFIGURATION_SHAPE_POLICY
+            else SQUARE_SHAPE_POLICY)
+            .getShape(it)
+        }
+        .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
+        .build()
 
-  override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
-}
-
-internal val COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER = object : ScreenViewProvider {
-  override val displayName: String = "Compose Blueprint"
-
-  override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView =
-    ScreenView.newBuilder(surface, manager)
-      .withColorSet(BlueprintColorSet())
-      .withLayersProvider {
-        ImmutableList.builder<Layer>().apply {
-          if (it.hasBorderLayer()) {
-            add(BorderLayer(it))
-          }
-          add(SceneLayer(it.surface, it, true))
-        }.build()
-      }
-      .withShapePolicy {
-        (if (COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)?.displaySettings?.showDecoration == true)
-          DEVICE_CONFIGURATION_SHAPE_POLICY
-        else
-          SQUARE_SHAPE_POLICY).getShape(it)
-      }
-      .decorateContentSizePolicy { policy -> ScreenView.ImageContentSizePolicy(policy) }
-      .build()
-
-  override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.BLUEPRINT_SURFACE
-}
+    override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
+  }

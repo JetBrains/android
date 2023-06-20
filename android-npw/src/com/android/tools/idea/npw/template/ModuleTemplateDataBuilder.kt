@@ -25,11 +25,12 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.hasKotlinFacet
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.ThemeHelper
 import com.android.tools.idea.npw.model.isViewBindingSupported
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.projectsystem.AndroidModulePaths
+import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.templates.getAppNameForTheme
 import com.android.tools.idea.util.toIoFile
@@ -52,7 +53,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.facet.SourceProviderManager
 import java.io.File
 
 /**
@@ -65,19 +65,19 @@ class ModuleTemplateDataBuilder(
   val isNewModule: Boolean,
   private val viewBindingSupport: ViewBindingSupport
 ) {
-  private var srcDir: File? = null
-  private var resDir: File? = null
-  private var manifestDir: File? = null
-  private var testDir: File? = null
-  private var unitTestDir: File? = null
-  private var aidlDir: File? = null
+  var srcDir: File? = null
+  var resDir: File? = null
+  var manifestDir: File? = null
+  var testDir: File? = null
+  var unitTestDir: File? = null
+  var aidlDir: File? = null
   var rootDir: File? = null
   var name: String? = null
   var isLibrary: Boolean? = null
   var packageName: PackageName? = null
   var formFactor: FormFactor? = null
   var themesData: ThemesData? = null
-  private var baseFeature: BaseFeature? = null
+  var baseFeature: BaseFeature? = null
   var apis: ApiTemplateData? = null
   var category: Category? = null
   var isMaterial3: Boolean = false
@@ -114,7 +114,7 @@ class ModuleTemplateDataBuilder(
   fun setFacet(facet: AndroidFacet) {
     projectTemplateDataBuilder.setEssentials(facet.module.project)
 
-    val moduleInfo = AndroidModuleInfo.getInstance(facet)
+    val moduleInfo = StudioAndroidModuleInfo.getInstance(facet)
     val targetSdkVersion = moduleInfo.targetSdkVersion
     val buildSdkVersion = moduleInfo.buildSdkVersion ?: targetSdkVersion
     val minSdkVersion = moduleInfo.minSdkVersion
@@ -220,7 +220,7 @@ class ModuleTemplateDataBuilder(
     manifestDir!!,
     testDir ?: srcDir!!.resolve(FD_TEST),
     unitTestDir ?: srcDir!!.resolve(FD_UNIT_TEST),
-    aidlDir!!,
+    aidlDir,
     rootDir!!,
     isNewModule,
     name!!,

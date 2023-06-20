@@ -16,8 +16,9 @@
 package com.android.tools.idea.npw.actions
 
 import com.android.AndroidProjectTypes
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.COMPOSE_MIN_AGP_VERSION
 import com.android.tools.idea.npw.hasComposeMinAgpVersion
 import com.android.tools.idea.npw.model.ProjectSyncInvoker.DefaultProjectSyncInvoker
@@ -40,10 +41,8 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
-import com.intellij.openapi.module.Module
 import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.refactoring.hasAndroidxProperty
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.util.AndroidBundle
 import java.io.File
@@ -71,7 +70,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     minSdkApi: Int
   ): this(Category.values().find { it.name == category }!!, templateName, minSdkApi)
 
-  private var shouldOpenFiles = true
+  var shouldOpenFiles = true
 
   private val isActivityTemplate: Boolean
     get() = NEW_WIZARD_CATEGORIES.contains(category)
@@ -85,7 +84,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
   @Suppress("DialogTitleCapitalization")
   override fun update(e: AnActionEvent) {
     val module = PlatformCoreDataKeys.MODULE.getData(e.dataContext) ?: return
-    val moduleInfo = AndroidModuleInfo.getInstance(module) ?: return
+    val moduleInfo = StudioAndroidModuleInfo.getInstance(module) ?: return
     val presentation = e.presentation
     presentation.isVisible = true
     // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate
@@ -94,12 +93,17 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
         presentation.text = AndroidBundle.message("android.wizard.action.requires.minsdk", templateName, minSdkApi)
         presentation.isEnabled = false
       }
-      templateConstraints.contains(TemplateConstraint.AndroidX) && !useAndroidX(module) -> {
+      templateConstraints.contains(TemplateConstraint.AndroidX) && !module.project.isAndroidx() -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.androidx", templateName)
         presentation.isEnabled = false
       }
       !hasComposeMinAgpVersion(module.project, category) -> {
         presentation.text = AndroidBundle.message("android.wizard.action.requires.new.agp", templateName, COMPOSE_MIN_AGP_VERSION)
+        presentation.isEnabled = false
+      }
+      templateConstraints.contains(TemplateConstraint.Aidl) &&
+      ProjectBuildModel.get(module.project).getModuleBuildModel(module)?.android()?.buildFeatures()?.aidl()?.toBoolean() != true -> {
+        presentation.text = AndroidBundle.message("android.wizard.action.requires.aidlEnabled", templateName)
         presentation.isEnabled = false
       }
       else -> {
@@ -151,9 +155,5 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
     val wizardLayout = SimpleStudioWizardLayout()
     StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(module.project).build(wizardLayout).show()
     e.dataContext.getData(CREATED_FILES)?.addAll(templateModel.createdFiles)
-  }
-
-  companion object {
-    private fun useAndroidX(module: Module?) = module != null && module.project.hasAndroidxProperty() && module.project.isAndroidx()
   }
 }

@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.editors.liveedit
 
+import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDiagnosticsManager
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
+import com.intellij.openapi.project.ProjectManager
 import org.jetbrains.annotations.TestOnly
 
 @com.intellij.openapi.components.State(name = "LiveEditConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
@@ -37,7 +42,8 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   }
 
   class State : BaseState() {
-    var mode by enum(LIVE_LITERALS)
+    var mode by enum(DISABLED)
+    var leTriggerMode by enum(LE_TRIGGER_MANUAL)
   }
 
   var mode
@@ -48,9 +54,27 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
         patchedValue = LIVE_LITERALS
       }
       if (state.mode != patchedValue) {
+        ProjectManager.getInstance().openProjects
+          .forEach {
+            LiveEditService.getInstance(it).toggleLiveEdit(state.mode, patchedValue)
+          }
         state.mode = patchedValue
         LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(patchedValue == LIVE_LITERALS)
+
+        // Force the UI to redraw with the new status. See com.intellij.openapi.actionSystem.AnAction#update().
+        ActivityTracker.getInstance().inc()
       }
+    }
+
+  // Live Edit Trigger Mode
+  var leTriggerMode
+    get() = state.leTriggerMode
+    set(value) {
+        ProjectManager.getInstance().openProjects
+          .forEach {
+            LiveEditService.getInstance(it).toggleLiveEditMode(state.leTriggerMode, value)
+          }
+        state.leTriggerMode = value
     }
 
   /**
@@ -70,6 +94,7 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   }
 
   companion object {
+    @JvmStatic
     fun getInstance(): LiveEditApplicationConfiguration = ApplicationManager.getApplication().getService(
       LiveEditApplicationConfiguration::class.java)
   }

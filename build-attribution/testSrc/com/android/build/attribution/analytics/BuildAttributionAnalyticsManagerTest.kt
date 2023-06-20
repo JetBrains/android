@@ -25,6 +25,7 @@ import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.IncompatiblePluginsDetected
 import com.android.build.attribution.analyzers.JetifierRequiredForLibraries
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
+import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.analyzers.createBinaryPluginIdentifierStub
 import com.android.build.attribution.analyzers.createScriptPluginIdentifierStub
 import com.android.build.attribution.data.AlwaysRunTaskData
@@ -38,10 +39,11 @@ import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.build.attribution.ui.data.builder.AbstractBuildAttributionReportBuilderTest
-import com.android.ide.common.attribution.CheckJetifierResult
-import com.android.ide.common.attribution.DependencyPath
-import com.android.ide.common.attribution.FullDependencyPath
-import com.android.ide.common.repository.GradleVersion
+import com.android.buildanalyzer.common.CheckJetifierResult
+import com.android.buildanalyzer.common.DependencyPath
+import com.android.buildanalyzer.common.FullDependencyPath
+import com.android.buildanalyzer.common.TaskCategoryIssue
+import com.android.ide.common.gradle.Version
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -57,6 +59,7 @@ import com.google.wireless.android.sdk.stats.ConfigurationCacheCompatibilityData
 import com.google.wireless.android.sdk.stats.CriticalPathAnalyzerData
 import com.google.wireless.android.sdk.stats.JetifierUsageData
 import com.google.wireless.android.sdk.stats.ProjectConfigurationAnalyzerData
+import com.google.wireless.android.sdk.stats.TaskCategoryIssuesData
 import com.google.wireless.android.sdk.stats.TasksConfigurationIssuesAnalyzerData
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -144,8 +147,8 @@ class BuildAttributionAnalyticsManagerTest {
       override fun getJavaVersion(): Int? = null
       override fun isGCSettingSet(): Boolean? = null
       override fun getConfigurationCachingCompatibility() = IncompatiblePluginsDetected(
-        listOf(IncompatiblePluginWarning(pluginA, GradleVersion.parse("1.0.0"), GradlePluginsData.PluginInfo("Plugin A", listOf("my.plugin.PluginA")))),
-        listOf(IncompatiblePluginWarning(applicationPlugin, GradleVersion.parse("2.0.0"), GradlePluginsData.PluginInfo("AGP", listOf("com.android.build.gradle.api.AndroidBasePlugin"))))
+        listOf(IncompatiblePluginWarning(pluginA, Version.parse("1.0.0"), GradlePluginsData.PluginInfo("Plugin A", listOf("my.plugin.PluginA")))),
+        listOf(IncompatiblePluginWarning(applicationPlugin, Version.parse("2.0.0"), GradlePluginsData.PluginInfo("AGP", listOf("com.android.build.gradle.api.AndroidBasePlugin"))))
       )
 
       override fun getJetifierUsageResult() = JetifierUsageAnalyzerResult(
@@ -186,6 +189,15 @@ class BuildAttributionAnalyticsManagerTest {
           )
         )
       ))
+
+      override fun getTaskCategoryWarningsAnalyzerResult() =
+        TaskCategoryWarningsAnalyzer.IssuesResult(
+          taskCategoryIssues = listOf(
+            TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
+            TaskCategoryIssue.JAVA_NON_INCREMENTAL_ANNOTATION_PROCESSOR,
+            TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
+          )
+        )
     }
   }
 
@@ -209,6 +221,7 @@ class BuildAttributionAnalyticsManagerTest {
     checkConfigurationCacheCompatibilityData(buildAttributionAnalyzersData.configurationCacheCompatibilityData)
     checkJetifierUsageAnalyzerData(buildAttributionAnalyzersData.jetifierUsageData)
     checkDownloadsAnalyzerData(buildAttributionAnalyzersData.downloadsAnalysisData)
+    checkTaskCategoryAnalyzerData(buildAttributionAnalyzersData.taskCategoryIssuesData)
 
     val buildAttributionReportSessionId = buildAttributionEvents.first().studioEvent.buildAttributionStats.buildAttributionReportSessionId
     assertThat(buildAttributionReportSessionId).isEqualTo("46f89941-2cea-83d7-e613-0c5823be215a")
@@ -296,6 +309,14 @@ class BuildAttributionAnalyticsManagerTest {
       missedRequestsCount = 1
       missedRequestsTotalTimeMs = 10
     }.build())
+  }
+
+  private fun checkTaskCategoryAnalyzerData(analyzerData: TaskCategoryIssuesData) {
+    assertThat(analyzerData.reportedIssuesList).hasSize(2)
+    assertThat(analyzerData.reportedIssuesList).containsExactly(
+      TaskCategoryIssuesData.TaskCategoryIssue.NON_TRANSITIVE_R_CLASS_DISABLED,
+      TaskCategoryIssuesData.TaskCategoryIssue.MINIFICATION_ENABLED_IN_DEBUG_BUILD,
+    )
   }
 
   private fun isTheSamePlugin(pluginIdentifier: BuildAttributionPluginIdentifier, pluginData: PluginData): Boolean {

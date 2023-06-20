@@ -1,6 +1,6 @@
 package com.android.tools.idea.tests.gui.cpp
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests
@@ -20,7 +20,7 @@ class ShowFilesUnknownToCMakeActionTest {
   val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
 
   @get:Rule
-  val restoreNpwNativeModuleFlagRule = RestoreFlagRule(StudioFlags.NPW_NEW_NATIVE_MODULE)
+  val restoreNpwNativeModuleFlagRule = FlagRule(StudioFlags.NPW_NEW_NATIVE_MODULE)
 
   @Test
   fun actionShouldToggleVisibilityOfUnusedFiles() {
@@ -52,7 +52,7 @@ class ShowFilesUnknownToCMakeActionTest {
 
     // Turn off show unused files
     projectView.showOptionsMenu()
-    GuiTests.clickPopupMenuItem("Show Files Unknown to CMake", ideFrame.target(), ideFrame.robot())
+    ideFrame.clickPopupMenuItem("Show Files Unknown to CMake")
 
     // Add a new file inside the IDE
 
@@ -81,7 +81,7 @@ class ShowFilesUnknownToCMakeActionTest {
 
     // Turn on show unused files
     projectView.showOptionsMenu()
-    GuiTests.clickPopupMenuItem("Show Files Unknown to CMake", ideFrame.target(), ideFrame.robot())
+    ideFrame.clickPopupMenuItem("Show Files Unknown to CMake")
 
     Truth.assertThat(androidPane.hasPath("app", "cpp", "unused.c")).isTrue()
   }

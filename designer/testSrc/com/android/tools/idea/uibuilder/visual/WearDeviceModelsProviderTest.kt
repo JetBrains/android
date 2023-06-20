@@ -77,11 +77,34 @@ class WearDeviceModelsProviderTest : LayoutTestCase() {
   fun testDisposedConfigurationManagerShouldCleanTheCached() {
     val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
     val modelsProvider = WearDeviceModelsProvider
-    val manager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val manager = ConfigurationManager.getOrCreateInstance(myModule)
     modelsProvider.createNlModels(testRootDisposable, file, myFacet)
     TestCase.assertTrue(modelsProvider.deviceCaches.containsKey(manager))
     Disposer.dispose(manager)
     TestCase.assertFalse(modelsProvider.deviceCaches.containsKey(manager))
+  }
+
+  fun testReflectConfigurationFromSource() {
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-fr/test.xml", LAYOUT_FILE_CONTENT)
+    myFixture.addFileToProject("/res/layout-jp/test.xml", LAYOUT_FILE_CONTENT)
+
+    val manager = ConfigurationManager.getOrCreateInstance(myModule)
+    val sourceConfig = manager.getConfiguration(file.virtualFile)
+
+    val modelsProvider = WearDeviceModelsProvider
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
+
+    verifyAdaptiveShapeReflected(sourceConfig, nlModels, true)
+    verifyDeviceReflected(sourceConfig, nlModels, false)
+    verifyDeviceStateReflected(sourceConfig, nlModels, true)
+    verifyUiModeReflected(sourceConfig, nlModels, true)
+    verifyNightModeReflected(sourceConfig, nlModels, true)
+    verifyThemeReflected(sourceConfig, nlModels, true)
+    verifyTargetReflected(sourceConfig, nlModels, true)
+    verifyLocaleReflected(sourceConfig, nlModels, true)
+    verifyFontReflected(sourceConfig, nlModels, true)
   }
 }
 

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.editor;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
+
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.model.AndroidModel;
@@ -33,17 +35,30 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.UIUtil;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.UIManager;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.*;
-import java.util.List;
-import java.util.*;
-
-import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 public class DynamicFeaturesParameters {
 

@@ -16,16 +16,13 @@
 package com.android.tools.idea.common.error
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.editor.DesignToolsSplitEditor
-import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodePreview
 import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.MenuFileType
@@ -45,26 +42,29 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.text.HtmlBuilder
-import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
-import com.intellij.ui.ColorUtil.toHtmlColor
+import com.intellij.ui.ColorUtil
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.tree.TreeVisitor
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
+import org.intellij.lang.annotations.Language
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -89,7 +89,7 @@ class IssuePanelService(private val project: Project) {
 
   private var inited = false
 
-  private val fileToSurfaceMap = mutableMapOf<VirtualFile, DesignSurface<*>>()
+  private val fileToTabName = mutableMapOf<VirtualFile, String>()
 
   init {
     val manager = ToolWindowManager.getInstance(project)
@@ -131,9 +131,9 @@ class IssuePanelService(private val project: Project) {
 
     // The shared issue panel for all design tools.
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      val issueProvider = DesignToolsIssueProvider(project, NotSuppressedFilter + SelectedEditorFilter(project))
+      val issueProvider = DesignToolsIssueProvider(problemsViewWindow.disposable, project, NotSuppressedFilter + SelectedEditorFilter(project))
       val treeModel = DesignerCommonIssuePanelModelProvider.getInstance(project).model
-      val issuePanel = DesignerCommonIssuePanel(project, project, treeModel, issueProvider, ::getEmptyMessage)
+      val issuePanel = DesignerCommonIssuePanel(problemsViewWindow.disposable, project, treeModel, issueProvider, ::getEmptyMessage)
       treeModel.addTreeModelListener(object : TreeModelAdapter() {
         override fun process(event: TreeModelEvent, type: EventType) {
           updateSharedIssuePanelTabName()
@@ -165,7 +165,7 @@ class IssuePanelService(private val project: Project) {
     }
     contentManager.addContentManagerListener(contentManagerListener)
 
-    project.messageBus.connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+    project.messageBus.connect(problemsViewWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
       private val coroutineScope = CoroutineScope(Dispatchers.EDT)
 
       override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
@@ -198,12 +198,12 @@ class IssuePanelService(private val project: Project) {
           }
 
           if (composeFile) {
-            addIssuePanel(selectIfVisible)
+            addIssuePanel()
             return@launch
           }
           val surface = newEditor?.getDesignSurface()
           if (surface != null) {
-            updateIssuePanelVisibility(newFile, selectIfVisible)
+            updateIssuePanelVisibility(newFile)
           }
           else {
             removeSharedIssueTabFromProblemsPanel()
@@ -232,26 +232,23 @@ class IssuePanelService(private val project: Project) {
     }
   }
 
-  private fun updateIssuePanelVisibility(file: VirtualFile, selectIfVisible: Boolean) {
+  private fun updateIssuePanelVisibility(file: VirtualFile) {
     val psiFileType = file.toPsiFile(project)?.typeOf()
     if (psiFileType is DrawableFileType) {
       // We don't support Shared issue panel for Drawable files.
       removeSharedIssueTabFromProblemsPanel()
     }
     else {
-      addIssuePanel(selectIfVisible)
+      addIssuePanel()
     }
   }
 
   /**
    * Add shared issue panel into IJ's problems panel. If [selected] is true, select the shared issue panel after added.
    */
-  private fun addIssuePanel(selected: Boolean) {
+  private fun addIssuePanel() {
     addSharedIssueTabToProblemsPanel()
     updateSharedIssuePanelTabName()
-    if (selected) {
-      selectSharedIssuePanelTab()
-    }
   }
 
   private fun selectSharedIssuePanelTab() {
@@ -269,7 +266,6 @@ class IssuePanelService(private val project: Project) {
     val toolWindow = ProblemsView.getToolWindow(project) ?: return false
     val contentManager = toolWindow.contentManager
     contentManager.removeContent(tab, false)
-    contentManager.getContent(0)?.let { contentManager.setSelectedContent(it) }
     return true
   }
 
@@ -345,6 +341,13 @@ class IssuePanelService(private val project: Project) {
     }
   }
 
+  @TestOnly
+  fun isSharedIssuePanelAddedToProblemsPane(): Boolean {
+    val tab = sharedIssueTab ?: return false
+    val problemsViewPanel = ProblemsView.getToolWindow(project) ?: return false
+    return problemsViewPanel.contentManager.contents.any { it === tab }
+  }
+
   fun getSharedPanelIssues() = sharedIssuePanel?.issueProvider?.getFilteredIssues()
 
   /**
@@ -369,7 +372,7 @@ class IssuePanelService(private val project: Project) {
     }
     val file = editors[0].file ?: return DEFAULT_SHARED_ISSUE_PANEL_TAB_NAME
 
-    fileToSurfaceMap[file]?.name?.let { return it }
+    fileToTabName[file]?.let { return it }
 
     if (isComposeFile(file)) {
       return "Compose"
@@ -440,17 +443,16 @@ class IssuePanelService(private val project: Project) {
 
   /**
    * Select the highest severity issue related to the provided [NlComponent] and scroll the viewport to issue.
-   * TODO: Remove the dependency of [NlComponent]
    */
   fun showIssueForComponent(surface: DesignSurface<*>, userInvoked: Boolean, component: NlComponent, collapseOthers: Boolean) {
-    // TODO: The shared issue panel should support this feature.
+    val issueModel = surface.issueModel
+    val issue: Issue = issueModel.getHighestSeverityIssue(component) ?: return
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       setSharedIssuePanelVisibility(true)
+      setSelectedNode(IssueNodeVisitor(issue))
     }
     else {
       val issuePanel = surface.issuePanel
-      val issueModel = surface.issueModel
-      val issue: Issue = issueModel.getHighestSeverityIssue(component) ?: return
       val issueView = issuePanel.getDisplayIssueView(issue)
       if (issueView != null) {
         surface.setIssuePanelVisibility(true, userInvoked)
@@ -511,16 +513,23 @@ class IssuePanelService(private val project: Project) {
     return DataManager.getInstance().getDataContext(issuePanelComponent).getData(SELECTED_ISSUES) ?: emptyList()
   }
 
-  fun registerSurfaceFile(file: VirtualFile, surface: DesignSurface<*>) {
-    fileToSurfaceMap[file] = surface
-
-    if (FileEditorManager.getInstance(project).selectedEditor?.getDesignSurface() == surface) {
-      updateIssuePanelVisibility(file, false)
+  /**
+   * Register a file which should have the shared issue panel. [tabTitle] indicated the preferred tab name of this file.
+   */
+  fun registerFile(file: VirtualFile, tabTitle: String?) {
+    if (tabTitle != null) {
+      fileToTabName[file] = tabTitle
+    }
+    else {
+      fileToTabName.remove(file)
+    }
+    if (FileEditorManager.getInstance(project).selectedEditors.any { it.file == file }) {
+      updateIssuePanelVisibility(file)
     }
   }
 
-  fun unregisterSurfaceFile(file: VirtualFile) {
-    fileToSurfaceMap.remove(file)
+  fun unregisterFile(file: VirtualFile) {
+    fileToTabName.remove(file)
   }
 
   /**
@@ -593,27 +602,22 @@ fun DesignSurface<*>.setIssuePanelVisibility(show: Boolean, userInvoked: Boolean
 }
 
 /**
- * This is same as [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] for consistency.
+ * This should be same as [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] for consistency.
  */
-private fun createTabName(title: String, issueCount: Int?): String {
-  if (issueCount == null || issueCount <= 0) {
-    return title
-  }
-  return HtmlBuilder()
-    .append(title)
-    .append(" ").append(HtmlChunk.tag("font").attr("color", toHtmlColor(NamedColorUtil.getInactiveTextColor())).addText("$issueCount"))
-    .wrapWithHtmlBody()
-    .toString()
-}
-
-fun FileEditor.getDesignSurface(): DesignSurface<*>? {
-  when (this) {
-    is DesignToolsSplitEditor -> return designerEditor.component.surface
-    is SplitEditor<*> -> {
-      // Check if there is a design surface in the context of presentation. For example, Compose and CustomView preview.
-      val component = (preview as? SourceCodePreview)?.currentRepresentation?.component ?: return null
-      return DataManager.getInstance().getDataContext(component).getData(DESIGN_SURFACE)
-    }
-    else -> return null
-  }
+@VisibleForTesting
+@NlsContexts.TabTitle
+fun createTabName(title: String, issueCount: Int?): String {
+  val count: Int = issueCount ?: 0
+  val name: String = title
+  val padding = (if (count <= 0) 0 else JBUI.scale(8)).toString()
+  val fg = ColorUtil.toHtmlColor(NamedColorUtil.getInactiveTextColor())
+  val number = if (count <= 0) "" else count.toString()
+  @Language("HTML")
+  val labelWithCounter = "<html><body>" +
+                         "<table cellpadding='0' cellspacing='0'><tr>" +
+                         "<td><nobr>%s</nobr></td>" +
+                         "<td width='%s'></td>" +
+                         "<td><font color='%s'>%s</font></td>" +
+                         "</tr></table></body></html>"
+  return String.format(labelWithCounter, name, padding, fg, number)
 }

@@ -72,8 +72,7 @@ class InspectorTreeSettings(private val activeClient: () -> InspectorClient) : T
   override var showRecompositions: Boolean
     get() = hasCapability(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) &&
             get(KEY_RECOMPOSITIONS, DEFAULT_RECOMPOSITIONS) &&
-            StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get() &&
-            StudioFlags.USE_COMPONENT_TREE_TABLE.get()
+            StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_COUNTS.get()
     set(value) = set(KEY_RECOMPOSITIONS, value, DEFAULT_RECOMPOSITIONS)
 
   @Suppress("SameParameterValue")

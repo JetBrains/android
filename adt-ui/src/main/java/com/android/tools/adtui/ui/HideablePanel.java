@@ -70,7 +70,7 @@ public class HideablePanel extends JPanel {
     myStateChangeListeners = new EventListenerList();
     myTitlePanel = new JPanel(new TabularLayout("Fit,*,Fit-"));
     myLabel = setupTitleBar(builder);
-    setTitle(builder.myTitle);
+    setTitle(builder.myTitle, builder.myIsTitleBold);
     myChild.setBorder(builder.myContentBorder == null ? HIDEABLE_CONTENT_BORDER : builder.myContentBorder);
     setBorder(builder.myPanelBorder == null ? HIDEABLE_PANEL_BORDER : builder.myPanelBorder);
     add(myChild, BorderLayout.CENTER);
@@ -130,8 +130,15 @@ public class HideablePanel extends JPanel {
     return label;
   }
 
-  public void setTitle(String title) {
+  public void setTitle(String title, boolean isTitleBold) {
+    if (isTitleBold) {
+      title = String.format("<b>%s</b>", title);
+    }
     myLabel.setText(String.format("<html><nobr>%s</nobr></html>", title));
+  }
+
+  public void setTitle(String title) {
+    setTitle(title, false);
   }
 
   /**
@@ -190,6 +197,7 @@ public class HideablePanel extends JPanel {
     int myTitleRightPadding = TITLE_RIGHT_PADDING;
     @Nullable Integer myTitleLeftPadding;
     @Nullable Integer myIconTextGap;
+    boolean myIsTitleBold = false;
 
     public Builder(@NotNull String title, @NotNull JComponent content) {
       myTitle = title;
@@ -274,6 +282,15 @@ public class HideablePanel extends JPanel {
     @NotNull
     public Builder setClickableComponent(@NotNull ClickableComponent clickableComponent) {
       myClickableComponent = clickableComponent;
+      return this;
+    }
+
+    /**
+     * Sets the title to be bold
+     */
+    @NotNull
+    public Builder setIsTitleBold(boolean isTitleBold) {
+      myIsTitleBold = isTitleBold;
       return this;
     }
 

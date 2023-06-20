@@ -86,12 +86,12 @@ class SidePanel<T> extends JPanel implements SideModel.Listener<T> {
       myLayout.show(myCards, tool.getToolName());
     }
     else {
-      AttachedToolWindow tool1 = tools.get(0);
-      AttachedToolWindow tool2 = tools.get(1);
-      tool1.getComponent().setVisible(true);
-      tool2.getComponent().setVisible(true);
-      mySplitter.setFirstComponent(tool1.getComponent());
-      mySplitter.setSecondComponent(tool2.getComponent());
+      AttachedToolWindow toolTop = tools.get(0);
+      AttachedToolWindow toolBottom = tools.get(1);
+      mySplitter.setFirstComponent(toolTop.getComponent());
+      mySplitter.setSecondComponent(toolBottom.getComponent());
+      toolTop.getComponent().setVisible(true);
+      toolBottom.getComponent().setVisible(true);
       mySplitter.setEnabled(true);
       myLayout.show(myCards, SPLITTER);
     }

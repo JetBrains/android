@@ -19,5 +19,6 @@ var prop5 by extra(listOf("val1", "val2", "val3"))
 var prop6 by extra(25.3)
 
 dependencies {
-  testCompile("some:gradle:thing", "some:other:gradle:thing")
+  testCompile("some:gradle:thing")
+  testCompile("some:other:gradle:thing")
 }

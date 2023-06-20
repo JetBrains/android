@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
@@ -202,7 +202,7 @@ class BrTests(private val mode: DataBindingMode) {
 
     // This has to be called to explicitly fetch resources as a side-effect, which are used by the
     // BrShortNamesCache class.
-    ResourceRepositoryManager.getInstance(androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(androidFacet).moduleResources
 
     val projectScope = projectRule.project.projectScope()
     val invalidScope = GlobalSearchScope.EMPTY_SCOPE

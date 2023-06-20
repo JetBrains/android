@@ -28,7 +28,7 @@ import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 final class VirtualDeviceChangeListener implements IDeviceChangeListener {
-  private final @NotNull Supplier<@NotNull Application> myGetApplication;
+  private final @NotNull Supplier<Application> myGetApplication;
   private final @NotNull Runnable mySetAllOnline;
 
   @UiThread
@@ -37,7 +37,7 @@ final class VirtualDeviceChangeListener implements IDeviceChangeListener {
   }
 
   @VisibleForTesting
-  VirtualDeviceChangeListener(@NotNull Supplier<@NotNull Application> getApplication, @NotNull Runnable setAllOnline) {
+  VirtualDeviceChangeListener(@NotNull Supplier<Application> getApplication, @NotNull Runnable setAllOnline) {
     myGetApplication = getApplication;
     mySetAllOnline = setAllOnline;
   }

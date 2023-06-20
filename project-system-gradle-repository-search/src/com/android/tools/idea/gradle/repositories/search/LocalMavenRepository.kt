@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.repositories.search
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.google.wireless.android.sdk.stats.PSDEvent.PSDRepositoryUsage.PSDRepository.PROJECT_STRUCTURE_DIALOG_REPOSITORY_LOCAL
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.Url
@@ -53,7 +53,7 @@ data class LocalMavenRepository(val rootLocation: File, override val name: Strin
                 ?.mapNotNull {
                   val versionProbe = it.name
                   val expectedPomFileName = "$artifactNameProbe-$versionProbe.pom"
-                  if (it.isDirectory && it.resolve(expectedPomFileName).isFile) GradleVersion.tryParse(versionProbe) else null
+                  if (it.isDirectory && it.resolve(expectedPomFileName).isFile) Version.parse(versionProbe) else null
                 }
                 .orEmpty()
             if (versions.isNotEmpty()) {

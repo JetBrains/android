@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -30,17 +29,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 
 class TomlDslWriterTest : PlatformTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.GRADLE_DSL_TOML_SUPPORT.override(true)
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
-    StudioFlags.GRADLE_DSL_TOML_SUPPORT.clearOverride()
-    super.tearDown()
-  }
 
   fun testSingleLiteral() {
     val contents = mapOf("foo" to "bar")

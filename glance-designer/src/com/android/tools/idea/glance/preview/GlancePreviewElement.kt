@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
@@ -24,7 +23,7 @@ import com.intellij.psi.SmartPsiElementPointer
  * Information required to display the preview of a Glance UI element.
  *
  * TODO(b/239802877): Create 2 different classes instead for appwidget and tile cases with different
- * PreviewConfigurations reflecting the specifics of those.
+ *   PreviewConfigurations reflecting the specifics of those.
  */
 class GlancePreviewElement(
   override val displaySettings: PreviewDisplaySettings,
@@ -32,8 +31,3 @@ class GlancePreviewElement(
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
   override val methodFqcn: String
 ) : MethodPreviewElement
-
-/** Function to apply the related parameters of a Glance preview to the [Configuration] instance. */
-fun MethodPreviewElement.applyTo(renderConfiguration: Configuration) {
-  renderConfiguration.target = renderConfiguration.configurationManager.highestApiTarget
-}

@@ -45,6 +45,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   PropertyT : Any> T.property(
   description: String,
   preferredVariableName: ModelT.() -> String = { "var" },
+  canExtractVariable: ModelT.() -> Boolean = { true },
   defaultValueGetter: ((ModelT) -> PropertyT?)? = null,
   variableScope: (ModelT.() -> PsVariablesScope)? = null,
   resolvedValueGetter: (ResolvedT.() -> PropertyT?)?,
@@ -65,6 +66,7 @@ fun <T : ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   this,
   description,
   preferredVariableName,
+  canExtractVariable,
   defaultValueGetter,
   variableScope,
   resolvedValueGetter,
@@ -128,6 +130,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
   private val modelDescriptor: ModelDescriptor<ModelT, ResolvedT, ParsedT>,
   override val description: String,
   val preferredVariableName: ModelT.() -> String,
+  val canExtractVariable: ModelT.() -> Boolean,
   val defaultValueGetter: ((ModelT) -> PropertyT?)?,
   val variableScope: ((ModelT) -> PsVariablesScope)?,
   private val resolvedValueGetter: (ResolvedT.() -> PropertyT?)?,
@@ -160,6 +163,7 @@ class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(
       ModelPropertyCore<PropertyT> {
     override val description: String = this@ModelSimplePropertyImpl.description
     override fun getPreferredVariableName(): String = model.preferredVariableName()
+    override fun getCanExtractVariable(): Boolean = model.canExtractVariable()
     override fun getParsedPropertyForRead(): ResolvedPropertyModel? = modelDescriptor.getParsed(model)?.parsedPropertyGetter()
     override fun getParsedPropertyForWrite(): ResolvedPropertyModel =
       modelDescriptor.getParsed(model)?.let { it.parsedPropertyGetter() ?: it.parsedPropertyInitializer() }!!
@@ -228,7 +232,8 @@ abstract class ModelPropertyCoreImpl<PropertyT : Any>
                     GradleModelCoreProperty<PropertyT, ModelPropertyCore<PropertyT>> {
       override val description: String = this@ModelPropertyCoreImpl.description
       override fun getPreferredVariableName(): String = this@ModelPropertyCoreImpl.getPreferredVariableName()
-      override fun getParsedPropertyForRead(): ResolvedPropertyModel = resolvedProperty
+      override fun getCanExtractVariable(): Boolean = this@ModelPropertyCoreImpl.getCanExtractVariable()
+      override fun getParsedPropertyForRead(): ResolvedPropertyModel? = resolvedProperty
       override fun getParsedPropertyForWrite(): ResolvedPropertyModel = resolvedProperty
       override val getter: ResolvedPropertyModel.() -> PropertyT? = this@ModelPropertyCoreImpl.getter
       override val setter: ResolvedPropertyModel.(PropertyT) -> Unit = this@ModelPropertyCoreImpl.setter

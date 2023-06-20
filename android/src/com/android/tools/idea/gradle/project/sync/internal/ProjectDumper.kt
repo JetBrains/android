@@ -21,11 +21,14 @@ import com.android.Version.ANDROID_TOOLS_BASE_VERSION
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.gradle.plugin.AndroidGradlePluginVersion
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.StudioPathManager
 import com.android.utils.FileUtils
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.projectRoots.JavaSdk
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.android.facet.AndroidFacetProperties
 import org.jetbrains.annotations.VisibleForTesting
@@ -34,7 +37,6 @@ import org.jetbrains.kotlin.idea.artifacts.KotlinArtifacts
 import java.io.File
 import java.util.Locale
 import kotlin.math.max
-
 /**
  * A helper class to dump an IDEA project to a stable human readable text format that can be compared in tests.
  */
@@ -43,7 +45,8 @@ class ProjectDumper(
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!,
   private val devBuildHome: File = File(PathManager.getCommunityHomePath()),
   private val kotlinPlugin: File? = KotlinArtifacts.instance.kotlincDirectory,
-  private val additionalRoots: Map<String, File> = emptyMap()
+  private val additionalRoots: Map<String, File> = emptyMap(),
+  private val projectJdk: Sdk? = null,
 ) {
   private val gradleCache: File = getGradleCacheLocation()
   private val userM2: File = getUserM2Location()
@@ -64,6 +67,7 @@ class ProjectDumper(
     additionalRoots.forEach { (key, value) ->
       println("<$key>        <== ${value.absolutePath}")
     }
+    println("<JDK>        <== ${projectJdk?.name}")
   }
 
   private val output = StringBuilder()
@@ -80,9 +84,9 @@ class ProjectDumper(
   private val gradleLongHashPattern = Regex("[0-9a-f]{${gradleLongHashStub.length - 3},${gradleLongHashStub.length}}")
   private val gradleVersionPattern = Regex("gradle-[^/]*${SdkConstants.GRADLE_LATEST_VERSION}")
   private val kotlinVersionPattern =
-    // org.jetbrains.kotlin:kotlin-smth-smth-smth:1.3.1-eap-23"
-    // kotlin-something-1.3.1-eap-23
-    Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-z]*)*:)|(?:kotlin(?:-[0-9a-z]+)*)-)(\\d+\\.\\d+.[0-9a-z\\-]+)")
+    // org.jetbrains.kotlin:kotlin-something:<version> or kotlin-something-<version>
+    // where <version> could be 1.7.0, 1.3.1-eap-23, or 1.7.20-Beta
+    Regex("(?:(?:org.jetbrains.kotlin:kotlin(?:-[0-9a-zA-Z]*)*:)|(?:kotlin(?:-[0-9a-zA-Z]+)*)-)(\\d+\\.\\d+.[0-9a-zA-Z\\-]+)")
   private val dotAndroidFolderPathPattern = Regex("^/([_/0-9a-z])+\\.android")
 
   fun File.normalizeCxxPath(variantName: String?): String {
@@ -162,26 +166,32 @@ class ProjectDumper(
     return res
   }
 
-  fun String.toPrintableString(): String = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "<CURRENT_BUILD_TOOLS_VERSION>"
-  else this
+  fun String.toPrintableString(): String = when(this) {
+    SdkConstants.CURRENT_BUILD_TOOLS_VERSION ->"<CURRENT_BUILD_TOOLS_VERSION>"
+    "30.0.3" -> "<CURRENT_BUILD_TOOLS_VERSION>"
+    else  -> this
+  }
+
 
   fun String.replaceCurrentSdkVersion(): String = replace(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(), "<SDK_VERSION>")
-  private fun String.replaceCurrentBuildToolsVersion(): String = replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION.toString(), "<BUILD_TOOLS_VERSION>")
+  fun String.replaceCurrentBuildToolsVersion(): String =
+    replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION, "<BUILD_TOOLS_VERSION>")
+      .replace("30.0.3", "<BUILD_TOOLS_VERSION>")
 
   fun String.replaceKnownPatterns(): String =
     this
-      .let {
-        if (it.contains(gradleVersionPattern)) {
-          it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
-        }
-        else it
-      }
-      .replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
+      .replaceAgpVersion()
       .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
       .let {
         kotlinVersionPattern.find(it)?.let { match ->
           it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
         } ?: it
+      }
+      .let {
+        if (it.contains(gradleVersionPattern)) {
+          it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
+        }
+        else it
       }
       .removeAndroidVersionsFromPath()
 
@@ -215,12 +225,6 @@ class ProjectDumper(
         else it
       }
       .replace(FileUtils.toSystemIndependentPath(userM2.absolutePath), "<USER_M2>", ignoreCase = false)
-      .let {
-        if (it.contains(gradleVersionPattern)) {
-          it.replaceGradleVersion()
-        }
-        else it
-      }
       .replace(gradleLongHashPattern, gradleLongHashStub)
       .replace(gradleHashPattern, gradleHashStub)
       .replace(gradleDistPattern, "/$gradleDistStub/")
@@ -233,12 +237,30 @@ class ProjectDumper(
         } ?: it
       }
       .let {
+        if (it.contains(gradleVersionPattern)) {
+          it.replaceGradleVersion()
+        }
+        else it
+      }
+      .let {
         if (IdeInfo.getInstance().isAndroidStudio) it
         else it.replace("/jetified-", "/", ignoreCase = false) // flaky GradleSyncProjectComparisonTest tests in IDEA
       }
       .removeAndroidVersionsFromPath()
 
-  fun String.replaceAgpVersion(): String = replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
+  fun String.replaceAgpVersion(): String {
+    val agpVersionToReplace = agpVersionToReplace()
+
+    if (this == agpVersionToReplace) return "<AGP_VERSION>"
+    return replace("-$agpVersionToReplace", "-<AGP_VERSION>")
+      .replace(": $agpVersionToReplace".trim(), ": <AGP_VERSION>".trim())
+  }
+
+  private fun agpVersionToReplace(): String = when {
+      IdeInfo.getInstance().isAndroidStudio -> ANDROID_GRADLE_PLUGIN_VERSION
+      // - sign is added to avoid replacing 28.0.0 -> 2<AGP_VERSION>
+      else -> AndroidGradlePluginVersion.LATEST_STABLE_VERSION
+  }
 
   fun String.replaceGradleVersion() = replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
 
@@ -271,14 +293,28 @@ class ProjectDumper(
     this.currentRootDirectoryName = savedRootName
   }
 
-  private fun String.removeAndroidVersionsFromPath(): String =
+  fun String.removeAndroidVersionsFromPath(): String =
     androidPathPattern.find(this)?.groups?.get(1)?.let {
       this.replace(it.value, "<VERSION>")
     } ?: this
 
-  fun String.replaceJavaVersion(): String = replace(Regex("(jbr|corretto)-(1\\.8|11|17)"), "<JAVA_VERSION>")
-  fun String.replaceJdkVersion(): String = replace(Regex("(JetBrains Runtime|Amazon Corretto) version (1\\.8\\.0_[0-9]+|11\\.0\\.[0-9]+|17\\.0\\.[0-9]+)"), "<JDK_VERSION>")
-    .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
+  fun String.replaceSourceAndTargetCompatibility(): String {
+    return projectJdk
+      ?.let {
+        replace(JavaSdk.getInstance().getVersion(it)!!.maxLanguageLevel.toJavaVersion().toFeatureString(), "<PROJECT_JDK_FEATURE_LEVEL>")
+      }
+      ?: this
+  }
+
+  private val javaVersionRegex = Regex("(jbr|corretto)-(17|11|1\\.8)")
+  fun String.replaceJdkName(): String = replaceJavaVersionLikeMatch(javaVersionRegex, 2, "JDK_NAME")
+
+  private val jdkVersionRegex = Regex("(JetBrains Runtime|Amazon Corretto) version (1\\.8|1[17])\\.0\\.[0-9]+")
+  fun String.replaceJdkVersion(): String {
+    return replaceJavaVersionLikeMatch(jdkVersionRegex, 2, "JDK_VERSION")
+      .replace(KotlinCompilerVersion.VERSION, "<KOTLIN_SDK_VERSION>")
+  }
+
   fun String.replaceMatchingVersion(version: String?): String =
     if (version != null) this.replace("-$version", "-<VERSION>") else this
 
@@ -296,6 +332,18 @@ class ProjectDumper(
 
   override fun toString(): String = output.toString().trimIndent()
 }
+
+
+private fun String.replaceJavaVersionLikeMatch(regex: Regex, regexVersionGroupIndex: Int, placeholderName: String) =
+  replace(regex) {
+    val defaultVersion = IdeSdks.DEFAULT_JDK_VERSION.maxLanguageLevel.toJavaVersion().toFeatureString()
+    val actualVersion = it.groupValues[regexVersionGroupIndex]
+    val versionSuffix = when {
+      actualVersion != defaultVersion -> "-$actualVersion"
+      else -> ""
+    }
+    "<$placeholderName$versionSuffix>"
+  }
 
 fun ProjectDumper.prop(name: String, value: () -> String?) {
   value()?.let {

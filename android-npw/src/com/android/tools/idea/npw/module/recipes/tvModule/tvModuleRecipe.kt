@@ -25,7 +25,8 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 fun RecipeExecutor.generateTvModule(
   data: ModuleTemplateData,
   appTitle: String,
-  useKts: Boolean
+  useKts: Boolean,
+  useVersionCatalog: Boolean = false
 ) {
   generateCommonModule(
     data, appTitle, useKts,
@@ -35,7 +36,8 @@ fun RecipeExecutor.generateTvModule(
       theme = "@style/${data.themesData.main.name}"
     ),
     iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
-    themesXml = basicThemesXml("@style/Theme.Leanback", data.themesData.main.name), colorsXml = null
+    themesXml = basicThemesXml("@style/Theme.Leanback", data.themesData.main.name), colorsXml = null,
+    useVersionCatalog = useVersionCatalog
   )
 
   addDependency("com.android.support:leanback-v17:+")

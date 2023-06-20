@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
@@ -48,7 +48,7 @@ private val STRING_KEYS = listOf(
 
 private val ALL_STRING_KEYS = STRING_KEYS.map(String::getKeyVariants).flatten()
 
-private val IS_VALUES = listOf("crash ", "stacktrace ")
+private val IS_VALUES = listOf("crash ", "firebase ", "stacktrace ")
 
 /**
  * Tests for [LogcatFilterCompletionContributor]
@@ -60,7 +60,7 @@ class LogcatFilterCompletionContributorTest {
   val chain: RuleChain = RuleChain(
     projectRule,
     EdtRule(),
-    RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER),
+    FlagRule(StudioFlags.LOGCAT_IS_FILTER),
   )
 
   private val fixture: CodeInsightTestFixture by lazy(projectRule::fixture)
@@ -71,8 +71,8 @@ class LogcatFilterCompletionContributorTest {
   fun setUp() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
     val application = ApplicationManager.getApplication()
-    application.replaceService(AndroidLogcatFilterHistory::class.java, history, projectRule.project)
-    application.replaceService(AndroidLogcatSettings::class.java, settings, projectRule.project)
+    application.replaceService(AndroidLogcatFilterHistory::class.java, history, projectRule.fixture.testRootDisposable)
+    application.replaceService(AndroidLogcatSettings::class.java, settings, projectRule.fixture.testRootDisposable)
   }
 
   @Test
@@ -300,6 +300,7 @@ class LogcatFilterCompletionContributorTest {
 
     assertThat(fixture.lookupElementStrings).containsExactly(
       "is:crash ",
+      "is:firebase ",
       "is:stacktrace ",
     )
   }

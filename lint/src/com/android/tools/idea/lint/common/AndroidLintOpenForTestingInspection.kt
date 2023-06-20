@@ -18,6 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.OpenForTestingDetector
 
-class AndroidLintOpenForTestingInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.open.for.testing"), OpenForTestingDetector.ISSUE
-)
+class AndroidLintOpenForTestingInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.open.for.testing"),
+    OpenForTestingDetector.ISSUE
+  )

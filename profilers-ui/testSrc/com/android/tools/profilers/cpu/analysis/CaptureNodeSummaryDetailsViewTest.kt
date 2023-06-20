@@ -17,12 +17,14 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.StatLabel
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.profiler.proto.Cpu
+import com.android.tools.idea.transport.faketransport.FakeGrpcServer
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.Utils
@@ -37,21 +39,28 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
+import com.intellij.testFramework.DisposableRule
 
 class CaptureNodeSummaryDetailsViewTest {
-
-  @get:Rule
-  val grpcChannel = FakeGrpcChannel("CaptureNodeSummaryDetailsViewTest")
-
   @get:Rule
   val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, false)
+
+  @get:Rule
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureNodeSummaryDetailsViewTest", transportService)
 
   private lateinit var profilersView: StudioProfilersView
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices())
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices())
+    profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   @Test
@@ -60,7 +69,7 @@ class CaptureNodeSummaryDetailsViewTest {
       startGlobal = TimeUnit.SECONDS.toMicros(10)
       endGlobal = TimeUnit.SECONDS.toMicros(20)
     }
-    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE), Cpu.CpuTraceType.PERFETTO).apply {
+    val model = CaptureNodeAnalysisSummaryTabModel(Range(0.0, Double.MAX_VALUE), TraceType.PERFETTO).apply {
       dataSeries.add(CaptureNodeAnalysisModel(captureNode, Mockito.mock(CpuCapture::class.java), Utils::runOnUi))
     }
     val view = CaptureNodeSummaryDetailsView(profilersView, model)

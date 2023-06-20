@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import static com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging;
 
+import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
@@ -38,12 +39,12 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.ResourceFolderManager.ResourceFolderListener;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
- * @see ResourceRepositoryManager#getModuleResources()
+ * @see StudioResourceRepositoryManager#getModuleResources()
  */
 final class ModuleResourceRepository extends MultiResourceRepository implements SingleNamespaceResourceRepository {
   @NotNull private final AndroidFacet myFacet;
@@ -128,8 +129,8 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
    * Inserts repositories for the given {@code resourceDirectories} into {@code childRepositories}, in the right order.
    *
    * <p>{@code resourceDirectories} is assumed to be in the order returned from
-   * {@link SourceProviderManager#getCurrentSourceProviders()}, which is the inverse of what we need. The code in
-   * {@link MultiResourceRepository#getMap(ResourceNamespace, ResourceType, boolean)} gives priority to child repositories which are earlier
+   * {@link SourceProviderManager.getCurrentSourceProviders()}, which is the inverse of what we need. The code in
+   * {@link MultiResourceRepository#getMap(ResourceNamespace, ResourceType)} gives priority to child repositories which are earlier
    * in the list, so after creating repositories for every folder, we add them in reverse to the list.
    *
    * @param resourceDirectories directories for which repositories should be constructed
@@ -255,7 +256,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       .toString();
   }
 
-  @VisibleForTesting
+  @TestOnly
   @NotNull
   public static ModuleResourceRepository createForTest(@NotNull AndroidFacet facet,
                                                        @NotNull Collection<VirtualFile> resourceDirectories,

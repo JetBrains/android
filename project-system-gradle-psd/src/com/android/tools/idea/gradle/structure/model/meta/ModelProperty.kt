@@ -57,6 +57,11 @@ interface ModelPropertyCore<PropertyT : Any> :
   fun getPreferredVariableName(): String = "var"
 
   /**
+   * A function expressing whether we should offer extracting a variable for this property at all
+   */
+  fun getCanExtractVariable(): Boolean = true
+
+  /**
    * The function to get the required scope of the property, or null if the default of the module or project scope is acceptable
    */
   val variableScope: (() -> PsVariablesScope?)?
@@ -220,7 +225,8 @@ inline fun <T : Any> ModelPropertyCore<T>.annotateParsedResolvedMismatchBy(
   if (isModified == false) {
     val resolvedValue = (getResolvedValue() as? ResolvedValue.Set<T>)?.resolved
     if (resolvedValue != null) {
-      val parsedValueToCompare = when (val parsedValue = getParsedValue().value) {
+      val parsedValue = getParsedValue().value
+      val parsedValueToCompare = when (parsedValue) {
         is ParsedValue.NotSet -> (defaultValueGetter ?: return null)()
         is ParsedValue.Set.Parsed -> parsedValue.value
       }
@@ -238,6 +244,7 @@ inline fun <T : Any> ModelPropertyCore<T>.annotateParsedResolvedMismatchBy(
 class SimplePropertyStub<ValueT : Any> : ModelPropertyCore<ValueT> {
   override val description: String = ""
   override fun getPreferredVariableName(): String = "var"
+  override fun getCanExtractVariable(): Boolean = true
   override fun getParsedValue(): Annotated<ParsedValue<ValueT>> = ParsedValue.NotSet.annotated()
   override fun setParsedValue(value: ParsedValue<ValueT>) = Unit
   override fun getResolvedValue(): ResolvedValue<ValueT> = ResolvedValue.NotResolved()

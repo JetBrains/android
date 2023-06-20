@@ -15,21 +15,29 @@
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <extensions defaultExtensionNs="com.intellij">
+        <externalSystemNotificationExtension implementation="com.android.tools.idea.gradle.service.notification.GradleJvmNotificationExtension"/>
     <applicationInitializedListener id="Startup.AndroidGradleDisableAutoImportInitializer"
                                     implementation="com.android.tools.idea.projectsystem.gradle.AndroidGradleDisableAutoImportInitializer"/>
+    <applicationInitializedListener id="Startup.AndroidGradleOpenProjectProcessorInitializer"
+                                    implementation="com.android.tools.idea.projectsystem.gradle.DisableGradleProjectOpenProcessor"/>
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
-                    overrides="true"
-    />
-    <actionConfigurationCustomizer id="Startup.GradleSpecificInitializer" order="after Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
+                    overrides="true"/>
+    <actionConfigurationCustomizer id="Startup.GradleSpecificActionCustomizer" order="after Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.GradleSpecificActionCustomizer" />
+    <applicationInitializedListener id="Startup.GradleSpecificInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
     <directoryProjectConfigurator
       implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectConfigurator"
-      order="after PlatformProjectConfigurator"
-    />
+      order="after PlatformProjectConfigurator"/>
     <directoryIndexExcludePolicy implementation="com.android.tools.idea.gradle.project.importing.InitialImportExcludeDirectoryPolicy" />
+    <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectJdkUpdateService" />
   </extensions>
+  <projectListeners>
+    <listener class="com.android.tools.idea.gradle.project.sync.listeners.MigrateGradleJvmFromMacrosSyncListener"
+              topic="com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot"/>
+  </projectListeners>
   <actions>
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
+    <action id="ChangeGradleJdkLocation" class="com.android.tools.idea.gradle.actions.ChangeGradleJdkLocationAction"/>
     <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
     </action>

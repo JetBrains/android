@@ -19,7 +19,9 @@ import com.android.tools.componenttree.treetable.TreeTableImpl
 import com.intellij.openapi.util.Ref
 import com.intellij.util.ui.tree.TreeUtil
 import org.fest.swing.core.Robot
+import org.fest.swing.data.TableCell
 import org.fest.swing.edt.GuiQuery
+import org.fest.swing.fixture.JPopupMenuFixture
 import org.fest.swing.fixture.JTableFixture
 import org.fest.swing.timing.Wait
 import javax.swing.JTable
@@ -48,6 +50,14 @@ class ComponentTreeFixture(robot: Robot, table: JTable) : JTableFixture(robot, t
   fun selectRow(row: Int) {
     selectRows(row)
   }
+
+  fun <T> selectedElements(): List<T> {
+    @Suppress("UNCHECKED_CAST")
+    return target().selectedRows.map { target().getValueAt(it, 0) as T }
+  }
+
+  fun showPopupMenuAt(row: Int, column: Int): JPopupMenuFixture =
+    showPopupMenuAt(TableCell.row(row).column(column))
 
   /**
    * The rowCount in the model of the component tree.

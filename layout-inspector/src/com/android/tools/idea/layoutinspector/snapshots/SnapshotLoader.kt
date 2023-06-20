@@ -50,6 +50,7 @@ interface SnapshotLoader {
         }
       override val abiCpuArch: String get() = "" // TODO
       override val name: String = metadata?.processName ?: "Unknown"
+      override val packageName: String = metadata?.processName ?: "Unknown"
       override val isRunning: Boolean = false
       override val pid: Int get() = -1
       override val streamId: Long = -1

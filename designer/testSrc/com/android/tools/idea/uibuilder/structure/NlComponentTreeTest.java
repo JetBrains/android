@@ -54,6 +54,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -94,6 +95,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import static com.intellij.testFramework.ServiceContainerUtil.registerServiceInstance;
 
 public class NlComponentTreeTest extends LayoutTestCase {
 
@@ -649,7 +651,10 @@ public class NlComponentTreeTest extends LayoutTestCase {
     return model;
   }
 
-  public void testNonNlComponentDrop() throws Exception {
+  public void testNonNlComponentDrop() {
+    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get()) {
+      return;
+    }
     SyncNlModel model = createModelWithBarriers();
     NlComponentTree tree = createTree(model);
     assertNull(tree.getSelectionPaths());
@@ -698,7 +703,10 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(pathForRow5.getLastPathComponent()).isEqualTo("button2");
   }
 
-  public void testDeleteBarrier() throws Exception {
+  public void testDeleteBarrier() {
+    if (StudioFlags.NELE_NEW_COMPONENT_TREE.get()) {
+      return;
+    }
     SyncNlModel model = createModelWithBarriers();
     NlComponentTree tree = createTree(model);
     assertNull(tree.getSelectionPaths());

@@ -22,7 +22,6 @@ import static com.android.tools.idea.actions.DesignerDataKeys.DESIGN_SURFACE;
 import com.android.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -102,7 +101,6 @@ import java.awt.event.AWTEventListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseEvent;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -133,7 +131,8 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * A generic design surface for use in a graphical editor.
  */
-public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface implements Disposable, DataProvider, Zoomable, Pannable, ZoomableViewport {
+public abstract class DesignSurface<T extends SceneManager> extends EditorDesignSurface
+  implements Disposable, InteractableScenesSurface, Zoomable, ZoomableViewport {
   /**
    * Alignment for the {@link SceneView} when its size is less than the minimum size.
    * If the size of the {@link SceneView} is less than the minimum, this enum describes how to align the content within
@@ -207,7 +206,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   /**
    * {@link JScrollPane} contained in this surface when zooming is enabled.
    */
-  @Nullable private final JScrollPane myScrollPane;
+  @Nullable protected final JScrollPane myScrollPane;
   /**
    * Component that wraps the displayed content. If this is a scrollable surface, that will be the Scroll Pane.
    * Otherwise, it will be the ScreenViewPanel container.
@@ -218,7 +217,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull private final SceneViewPanel mySceneViewPanel;
   @NotNull private final MouseClickDisplayPanel myMouseClickDisplayPanel;
   @VisibleForTesting
-  private final InteractionManager myInteractionManager;
+  private final GuiInputHandler myGuiInputHandler;
   private final Object myListenersLock = new Object();
   @GuardedBy("myListenersLock")
   protected final ArrayList<DesignSurfaceListener> myListeners = new ArrayList<>();
@@ -264,7 +263,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   private final DesignerAnalyticsManager myAnalyticsManager;
 
-  @SurfaceScale private final double myMaxFitIntoScale;
+  @SurfaceScale protected final double myMaxFitIntoScale;
 
   /**
    * When surface is opened at first time, it zoom-to-fit the content to make the previews fit the initial window size.
@@ -299,7 +298,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
-    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator,
+    this(project, parentDisposable, actionManagerProvider, SurfaceInteractable::new, interactionProviderCreator,
          positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy, Double.MAX_VALUE);
   }
 
@@ -307,6 +306,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface<T>, ActionManager<? extends DesignSurface<T>>> actionManagerProvider,
+    @NotNull Function<DesignSurface<T>, Interactable> interactableProvider,
     @NotNull Function<DesignSurface<T>, InteractionHandler> interactionProviderCreator,
     @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> actionHandlerProvider,
@@ -348,7 +348,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
     mySceneViewPanel = new SceneViewPanel(
       this::getSceneViews,
-      () -> getInteractionManager().getLayers(),
+      () -> getGuiInputHandler().getLayers(),
       positionableLayoutManagerProvider.apply(this));
     mySceneViewPanel.setBackground(getBackground());
 
@@ -379,6 +379,13 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       myLayeredPane.add(myScrollPane, JLayeredPane.POPUP_LAYER);
       myContentContainerPane = myScrollPane;
       myViewport = new ScrollableDesignSurfaceViewport(myScrollPane.getViewport());
+      myScrollPane.addComponentListener(new ComponentAdapter() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+          // Relayout the PositionableContents when visible size (e.g. window size) of ScrollPane is changed.
+          revalidateScrollArea();
+        }
+      });
     }
     else {
       myLayeredPane.setLayout(new OverlayLayout(myLayeredPane));
@@ -424,9 +431,9 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       }
     });
 
-    Interactable interactable = new SurfaceInteractable(this);
-    myInteractionManager = new InteractionManager(this, interactable, interactionProviderCreator.apply(this));
-    myInteractionManager.startListening();
+    Interactable interactable = interactableProvider.apply(this);
+    myGuiInputHandler = new GuiInputHandler(this, interactable, interactionProviderCreator.apply(this));
+    myGuiInputHandler.startListening();
     //noinspection AbstractMethodCallInConstructor
     myActionManager = actionManagerProvider.apply(this);
     myActionManager.registerActionsShortcuts(myLayeredPane);
@@ -438,19 +445,15 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       zoomControlsLayerPane.setLayout(new BorderLayout());
       zoomControlsLayerPane.setFocusable(false);
 
-      myOnHoverListener = event -> {
-        if (event.getID() == MouseEvent.MOUSE_ENTERED || event.getID() == MouseEvent.MOUSE_EXITED) {
-          zoomControlsLayerPane.setVisible(
-            SwingUtilities.isDescendingFrom(((MouseEvent)event).getComponent(), DesignSurface.this)
-          );
-        }
-      };
-
       myLayeredPane.add(zoomControlsLayerPane, JLayeredPane.DRAG_LAYER);
-      zoomControlsLayerPane.add(myActionManager.createDesignSurfaceToolbar(), BorderLayout.EAST);
+      zoomControlsLayerPane.add(myActionManager.getDesignSurfaceToolbar(), BorderLayout.EAST);
       if (myZoomControlsPolicy == ZoomControlsPolicy.AUTO_HIDE) {
+        myOnHoverListener = DesignSurfaceHelper.createZoomControlAutoHiddenListener(this, zoomControlsLayerPane);
         zoomControlsLayerPane.setVisible(false);
         Toolkit.getDefaultToolkit().addAWTEventListener(myOnHoverListener, AWTEvent.MOUSE_EVENT_MASK);
+      }
+      else {
+        myOnHoverListener = event -> {};
       }
     }
     else {
@@ -659,7 +662,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     // only point subclasses can override to disable the layoutlib render behaviour.
     return modelSceneManager.requestRenderAsync()
       .whenCompleteAsync((result, ex) -> {
-        reactivateInteractionManager();
+        reactivateGuiInputHandler();
 
         revalidateScrollArea();
 
@@ -699,7 +702,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
         listener.modelChanged(this, model);
       }
     });
-    reactivateInteractionManager();
+    reactivateGuiInputHandler();
     return manager;
   }
 
@@ -720,7 +723,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     }
 
     // Mark the scene view panel as invalid to force the scene views to be updated
-    mySceneViewPanel.invalidate();
+    mySceneViewPanel.removeSceneViewForModel(model);
 
     if (manager == null) {
       return false;
@@ -745,7 +748,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return;
     }
 
-    reactivateInteractionManager();
+    reactivateGuiInputHandler();
   }
 
   /**
@@ -774,7 +777,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
     return requestRender()
       .whenCompleteAsync((result, ex) -> {
-        reactivateInteractionManager();
+        reactivateGuiInputHandler();
         if (!restorePreviousScale(model)) {
           zoomToFit();
         }
@@ -789,14 +792,14 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   /**
-   * Update the status of {@link InteractionManager}. It will start or stop listening depending on the current layout type.
+   * Update the status of {@link GuiInputHandler}. It will start or stop listening depending on the current layout type.
    */
-  private void reactivateInteractionManager() {
+  private void reactivateGuiInputHandler() {
     if (isEditable()) {
-      myInteractionManager.startListening();
+      myGuiInputHandler.startListening();
     }
     else {
-      myInteractionManager.stopListening();
+      myGuiInputHandler.stopListening();
     }
   }
 
@@ -806,7 +809,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       myListeners.clear();
       myZoomListeners.clear();
     }
-    myInteractionManager.stopListening();
+    myGuiInputHandler.stopListening();
     Toolkit.getDefaultToolkit().removeAWTEventListener(myOnHoverListener);
     synchronized (myRenderFutures) {
       for (CompletableFuture<Void> future : myRenderFutures) {
@@ -865,10 +868,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     }
   }
 
-  /**
-   * Returns the current focused {@link SceneView} that is responsible of responding to mouse and keyboard events, or null <br>
-   * if there is no focused {@link SceneView}.
-   */
+  @Override
   @Nullable
   public SceneView getFocusedSceneView() {
     ImmutableList<T> managers = getSceneManagers();
@@ -897,6 +897,13 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return getSceneManagers().stream()
       .flatMap(sceneManager -> sceneManager.getSceneViews().stream())
       .collect(ImmutableList.toImmutableList());
+  }
+
+  @Override
+  public void onHover(@SwingCoordinate int x, @SwingCoordinate int y) {
+    for (SceneView sceneView : getSceneViews()) {
+      sceneView.onHover(x, y);
+    }
   }
 
   /**
@@ -979,24 +986,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @Override
   public void setPanning(boolean isPanning) {
-    myInteractionManager.setPanning(isPanning);
+    myGuiInputHandler.setPanning(isPanning);
   }
 
-  /**
-   * <p>
-   * Execute a zoom on the content. See {@link ZoomType} for the different types of zoom available.
-   * </p><p>
-   * If type is {@link ZoomType#IN}, zoom toward the given
-   * coordinates (relative to {@link #getLayeredPane()})
-   * <p>
-   * If x or y are negative, zoom toward the center of the viewport.
-   * </p>
-   *
-   * @param type Type of zoom to execute
-   * @param x    Coordinate where the zoom will be centered
-   * @param y    Coordinate where the zoom will be centered
-   * @return True if the scaling was changed, false if this was a noop.
-   */
+  @Override
   @UiThread
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
     // track user triggered change
@@ -1033,7 +1026,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
         scaled = setScale(1d / getScreenScalingFactor());
         break;
       case FIT:
-        scaled = setScale(getFitScale(false));
+        scaled = setScale(getFitScale());
         break;
       default:
         throw new UnsupportedOperationException("Not yet implemented: " + type);
@@ -1043,51 +1036,16 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   /**
-   * @see #getFitScale(Dimension, boolean)
-   */
-  @SurfaceScale
-  public double getFitScale(boolean fitInto) {
-    int availableWidth = getExtentSize().width;
-    int availableHeight = getExtentSize().height;
-    return getFitScale(getPreferredContentSize(availableWidth, availableHeight), fitInto);
-  }
-
-  /**
    * Measure the scale size which can fit the SceneViews into the scrollable area.
    * This function doesn't consider the legal scale range, which can be get by {@link #getMaxScale()} and {@link #getMinScale()}.
    *
-   * @param size    dimension to fit into the view
-   * @param fitInto If true, don't scale to more than 100%
    * @return The scale to make the content fit the design surface
-   * @see {@link #getScreenScalingFactor()}
    */
   @SurfaceScale
-  protected double getFitScale(@AndroidCoordinate Dimension size, boolean fitInto) {
-    // Fit to zoom
-
-    int availableWidth = getExtentSize().width;
-    int availableHeight = getExtentSize().height;
-    Dimension padding = getDefaultOffset();
-    availableWidth -= padding.width;
-    availableHeight -= padding.height;
-
-    @SurfaceScale double scaleX = size.width == 0 ? 1 : (double)availableWidth / size.width;
-    @SurfaceScale double scaleY = size.height == 0 ? 1 : (double)availableHeight / size.height;
-    @SurfaceScale double scale = Math.min(scaleX, scaleY);
-    if (fitInto) {
-      @SurfaceScale double min = 1d / getScreenScalingFactor();
-      scale = Math.min(min, scale);
-    }
-    scale = Math.min(scale, myMaxFitIntoScale);
-    return scale;
-  }
+  abstract public double getFitScale();
 
   @SwingCoordinate
-  protected abstract Dimension getDefaultOffset();
-
-  @SwingCoordinate
-  @NotNull
-  protected abstract Dimension getPreferredContentSize(int availableWidth, int availableHeight);
+  protected abstract Dimension getScrollToVisibleOffset();
 
   @UiThread
   final public boolean zoomToFit() {
@@ -1102,7 +1060,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @Override
   public boolean isPanning() {
-    return myInteractionManager.isPanning();
+    return myGuiInputHandler.isPanning();
   }
 
   @Override
@@ -1112,12 +1070,16 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @Override
   public boolean canZoomIn() {
-    return getScale() < getMaxScale();
+    double currentScale = getScale();
+    double maxScale = getMaxScale();
+    return currentScale < maxScale && !isScaleSame(currentScale, maxScale);
   }
 
   @Override
   public boolean canZoomOut() {
-    return getScale() > getMinScale();
+    double minScale = getMinScale();
+    double currentScale = getScale();
+    return minScale < currentScale && !isScaleSame(minScale, currentScale);
   }
 
   @Override
@@ -1135,14 +1097,46 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   public abstract void scrollToCenter(@NotNull List<NlComponent> list);
 
   /**
+   * Given a rectangle relative to a sceneView, find its absolute coordinates and then scroll to
+   * center such rectangle. See {@link #scrollToCenter(Rectangle)}
+   * @param sceneView the {@link SceneView} that contains the given rectangle.
+   * @param rectangle the rectangle that should be visible, with its coordinates relative to the sceneView.
+   */
+  protected void scrollToCenter(@NotNull SceneView sceneView, @NotNull @SwingCoordinate Rectangle rectangle) {
+    Dimension availableSpace = getExtentSize();
+    Rectangle sceneViewRectangle =
+      mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
+                                                      getPositionableContent(),
+                                                      availableSpace);
+    if (sceneViewRectangle != null) {
+      Point topLeftCorner = new Point(sceneViewRectangle.x + rectangle.x,
+                                      sceneViewRectangle.y + rectangle.y);
+      scrollToCenter(new Rectangle(topLeftCorner, rectangle.getSize()));
+    }
+  }
+
+  /**
+   * Move the scroll position to make the given rectangle visible and centered.
+   * If the given rectangle is too big for the available space, it will be centered anyway and
+   * some of its borders will probably not be visible at the new scroll position.
+   * @param rectangle the rectangle that should be centered.
+   */
+  protected void scrollToCenter(@NotNull @SwingCoordinate Rectangle rectangle) {
+    Dimension availableSpace = getExtentSize();
+    int extraW = availableSpace.width - rectangle.width;
+    int extraH = availableSpace.height - rectangle.height;
+    setScrollPosition(rectangle.x - (extraW + 1) / 2, rectangle.y - (extraH + 1) / 2);
+  }
+
+  /**
    * Ensures that the given model is visible in the surface by scrolling to it if needed.
    * If the {@link SceneView} is partially visible and {@code forceScroll} is set to {@code false}, no scroll will happen.
    */
   public final void scrollToVisible(@NotNull SceneView sceneView, boolean forceScroll) {
     Rectangle rectangle = mySceneViewPanel.findSceneViewRectangle(sceneView);
     if (rectangle != null && (forceScroll || !getViewport().getViewRect().intersects(rectangle))) {
-      Dimension defaultOffset = getDefaultOffset();
-      setScrollPosition(rectangle.x - defaultOffset.width, rectangle.y - defaultOffset.height);
+      Dimension offset = getScrollToVisibleOffset();
+      setScrollPosition(rectangle.x - offset.width, rectangle.y - offset.height);
     }
   }
 
@@ -1216,6 +1210,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return setScale(scale, -1, -1);
   }
 
+  @SurfaceScale protected double getBoundedScale(@SurfaceScale double scale) {
+    return Math.min(Math.max(scale, getMinScale()), getMaxScale());
+  }
+
   /**
    * <p>
    * Set the scale factor used to multiply the content size and try to
@@ -1235,8 +1233,8 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
    */
   @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
   public boolean setScale(@SurfaceScale double scale, @SwingCoordinate int x, @SwingCoordinate int y) {
-    @SurfaceScale final double newScale = Math.min(Math.max(scale, getMinScale()), getMaxScale());
-    if (Math.abs(newScale - myScale) < SCALING_THRESHOLD / getScreenScalingFactor()) {
+    @SurfaceScale final double newScale = getBoundedScale(scale);
+    if (isScaleSame(myScale, newScale)) {
       return false;
     }
 
@@ -1250,6 +1248,14 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     revalidateScrollArea();
     notifyScaleChanged(previousScale, myScale);
     return true;
+  }
+
+  /**
+   * If the differences of two scales are smaller than tolerance, they are considered as the same scale.
+   */
+  private boolean isScaleSame(@SurfaceScale double scaleA, @SurfaceScale double scaleB) {
+    double tolerance = SCALING_THRESHOLD / getScreenScalingFactor();
+    return Math.abs(scaleA - scaleB) < tolerance;
   }
 
   protected boolean isKeepingScaleWhenReopen() {
@@ -1423,7 +1429,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     myIsActive = false;
     myIssueModel.deactivate();
 
-    myInteractionManager.cancelInteraction();
+    myGuiInputHandler.cancelInteraction();
   }
 
   /**
@@ -1441,13 +1447,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return myFileEditorDelegate.get();
   }
 
-  /**
-   * Return the ScreenView under the given (x, y) position if any or the focused one otherwise. The coordinates are in the viewport view
-   * coordinate space so they will not change with scrolling.
-   * See also {@link #getFocusedSceneView()}
-   *
-   * @deprecated Use {@link #getSceneViewAt(int, int)}
-   */
+  @Override
   @Deprecated
   @Nullable
   public SceneView getSceneViewAtOrPrimary(@SwingCoordinate int x, @SwingCoordinate int y) {
@@ -1462,10 +1462,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return view;
   }
 
-  /**
-   * Return the ScreenView under the given (x, y) position. The coordinates are in the viewport view coordinate
-   * space so they will not change with scrolling.
-   */
+  @Override
   @Nullable
   public SceneView getSceneViewAt(@SwingCoordinate int x, @SwingCoordinate int y) {
     Collection<SceneView> sceneViews = getSceneViews();
@@ -1493,18 +1490,11 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       return null;
     }
 
-    SwingUtilities.convertPointFromScreen(mouseLocation, this);
+    SwingUtilities.convertPointFromScreen(mouseLocation, mySceneViewPanel);
     return getSceneViewAt(mouseLocation.x, mouseLocation.y);
   }
 
-  /**
-   * @return the {@link Scene} of {@link SceneManager} associates to primary {@link NlModel}.
-   * @see #getSceneManager()
-   * @see #getSceneManager(NlModel)
-   * @see SceneManager#getScene()
-   * @deprecated Use {@link #getSceneManager()}{@code .getScene()} or {@link SceneView}{@code .getScene()} instead. Using this method will
-   * cause the code not to correctly support multiple previews.
-   */
+  @Override
   @Deprecated
   @Nullable
   public Scene getScene() {
@@ -1550,8 +1540,8 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   @NotNull
-  public InteractionManager getInteractionManager() {
-    return myInteractionManager;
+  public GuiInputHandler getGuiInputHandler() {
+    return myGuiInputHandler;
   }
 
   protected boolean getSupportPinchAndZoom() {
@@ -1811,7 +1801,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @Override
   public Object getData(@NotNull @NonNls String dataId) {
-    if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId) || InteractionManager.CURSOR_RECEIVER.is(dataId)) {
+    if (DESIGN_SURFACE.is(dataId) || ZOOMABLE_KEY.is(dataId) || PANNABLE_KEY.is(dataId) || GuiInputHandler.CURSOR_RECEIVER.is(dataId)) {
       return this;
     }
     if (PlatformCoreDataKeys.FILE_EDITOR.is(dataId)) {
@@ -1856,6 +1846,10 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return null;
   }
 
+  /**
+   * The data which should be obtained from the background thread.
+   * @see PlatformCoreDataKeys#BGT_DATA_PROVIDER
+   */
   @Nullable
   private static Object getSlowData(@NonNls String slowId, NlComponent primarySelection, List<NlComponent> selection) {
     if (CommonDataKeys.PSI_ELEMENT.is(slowId)) {
@@ -1868,9 +1862,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       }
       return list.toArray(XmlTag.EMPTY);
     }
-    else {
-      return null;
-    }
+    return null;
   }
 
   /**
@@ -1919,7 +1911,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @NotNull
   public ConfigurationManager getConfigurationManager(@NotNull AndroidFacet facet) {
-    return ConfigurationManager.getOrCreateInstance(facet);
+    return ConfigurationManager.getOrCreateInstance(facet.getModule());
   }
 
   @Override

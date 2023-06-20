@@ -22,7 +22,9 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
+import com.android.tools.adtui.swing.laf.HeadlessTableUI
 import com.android.tools.property.ptable.DefaultPTableCellRendererProvider
+import com.android.tools.property.ptable.ColumnFraction
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableCellEditor
 import com.android.tools.property.ptable.PTableCellEditorProvider
@@ -89,6 +91,7 @@ private const val TABLE_NAME = "Table"
 @RunsInEdt
 class PTableImplTest {
   private var model: PTableTestModel? = null
+  private var nameColumnFraction: ColumnFraction? = null
   private var table: PTableImpl? = null
   private var editorProvider: SimplePTableCellEditorProvider? = null
 
@@ -112,11 +115,12 @@ class PTableImplTest {
     // This test created some JTextField components. Do not start timers for the caret blink rate in tests:
     UIManager.put("TextField.caretBlinkRate", 0)
 
+    nameColumnFraction = ColumnFraction(initialValue = 0.5f, resizeSupported = true)
     editorProvider = SimplePTableCellEditorProvider()
     model = createModel(Item("weight"), Item("size"), Item("readonly"), Item("visible", "true"),
                         Group("weiss", Item("siphon"), Item("extra"), Group("flower", Item("rose"))),
                         Item("new"))
-    table = PTableImpl(model!!, null, DefaultPTableCellRendererProvider(), editorProvider!!)
+    table = PTableImpl(model!!, null, DefaultPTableCellRendererProvider(), editorProvider!!, nameColumnFraction = nameColumnFraction!!)
     val app = ApplicationManager.getApplication()
     app.replaceService(IdeFocusManager::class.java, PassThroughIdeFocusManager.getInstance(), disposableRule.disposable)
   }
@@ -809,6 +813,25 @@ class PTableImplTest {
     assertThat(table?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR))
     ui.mouse.moveTo(cell.x + cell.width - 8, cell.centerY.toInt())
     assertThat(table?.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR))
+  }
+
+  @Test
+  fun testColumnResize() {
+    table!!.size = Dimension(600, 800)
+    table!!.setUI(HeadlessTableUI())
+    val ui = FakeUi(table!!)
+    ui.mouse.moveTo(10, 5)
+    assertThat(table!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
+    ui.mouse.moveTo(300, 5)
+    assertThat(table!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR))
+    ui.mouse.press(300, 5)
+    assertThat(nameColumnFraction!!.value).isEqualTo(0.5f)
+    ui.mouse.dragTo(200, 5)
+    assertThat(nameColumnFraction!!.value).isWithin(0.001f).of(0.333f)
+    ui.mouse.release()
+    assertThat(table!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR))
+    ui.mouse.moveTo(300, 5)
+    assertThat(table!!.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
   }
 
   private fun createPanel(): JPanel {

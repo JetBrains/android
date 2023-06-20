@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.upgrade
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.dsl.api.util.DeletablePsiElementHolder
-import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -28,19 +28,18 @@ import com.intellij.usages.impl.rules.UsageType
 import org.jetbrains.android.util.AndroidBundle
 
 class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringProcessor {
-  constructor(project: Project, current: GradleVersion, new: GradleVersion): super(project, current, new)
+  constructor(project: Project, current: AgpVersion, new: AgpVersion): super(project, current, new)
   constructor(processor: AgpUpgradeRefactoringProcessor): super(processor)
 
-  override fun necessity(): AgpUpgradeComponentNecessity = MANDATORY_CODEPENDENT
+  override val necessityInfo = AlwaysNeeded
 
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       val modelPsiElement = model.psiElement ?: return@model
       val buildToolsVersionModel = model.android().buildToolsVersion()
-      val buildToolsVersion = buildToolsVersionModel.valueAsString()
-                                ?.let { GradleVersion.tryParse(it) }
-                                ?.takeIf { it > GradleVersion.parse("0.0.0") } ?: return@model
+      val buildToolsVersion = buildToolsVersionModel.valueAsString()?.let { Version.parse(it) }?.takeIf { it > Version.prefixInfimum("0") }
+                              ?: return@model
       if (buildToolsVersion < minimumBuildToolsVersion(new)) {
         val psiElement = buildToolsVersionModel.representativeContainedPsiElement ?: return@model
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, REDUNDANT_PROPERTY_USAGE_TYPE)
@@ -51,13 +50,13 @@ class RedundantPropertiesRefactoringProcessor: AgpUpgradeComponentRefactoringPro
     return usages.toTypedArray()
   }
 
-  private fun minimumBuildToolsVersion(agpVersion: GradleVersion): GradleVersion = when {
+  private fun minimumBuildToolsVersion(agpVersion: AgpVersion): Version = when {
     // When upgrading to versions earlier than 7.0.0-alpha01, don't remove buildToolsVersion.  (Make that happen by returning a
     // version that will be earlier than the user's specified buildToolsVersion.
     // TODO(xof): extend this table both to the future and the past, or replace it with a more automated mechanism.
-    GradleVersion.parse("7.0.0-alpha01") > agpVersion -> GradleVersion.parse("0.0.1")
-    GradleVersion.parse("7.1.0-alpha01") > agpVersion -> GradleVersion.parse("30.0.2")
-    else -> GradleVersion.parse("30.0.3")
+    AgpVersion.parse("7.0.0-alpha01") > agpVersion -> Version.parse("0.0.1")
+    AgpVersion.parse("7.1.0-alpha01") > agpVersion -> Version.parse("30.0.2")
+    else -> Version.parse("30.0.3")
   }
 
   override fun getCommandName(): String = AndroidBundle.message("project.upgrade.redundantPropertiesRefactoringProcessor.commandName")

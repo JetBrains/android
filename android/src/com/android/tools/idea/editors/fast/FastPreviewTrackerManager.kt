@@ -46,6 +46,13 @@ interface FastPreviewTrackerManager {
      * not -1, it will be logged as the time that took to refresh the previews after compilation.
      */
     fun compilationSucceeded(compilationDurationMs: Long, compiledFiles: Int, refreshTimeMs: Long = -1)
+
+    /**
+     * Called when the fast preview refresh was cancelled, for example due to a new change in the code
+     * that happened while a refresh was being done, or because the user manually cancelled it.
+     * [compilationCompleted] indicates whether the cancellation happened during compilation or rendering.
+     */
+    fun refreshCancelled(compilationCompleted: Boolean)
   }
 
   /**
@@ -143,6 +150,10 @@ internal class FastPreviewTrackerManagerImpl(private val project: Project) : Fas
                                                          .setCompiledFiles(compiledFiles.toLong()).also {
                                                            if (refreshTimeMs != -1L) it.refreshDurationMs = refreshTimeMs
                                                          })))
+    }
+
+    override fun refreshCancelled(compilationCompleted: Boolean) {
+      // Do nothing. As this could happen quite frequently, we don't want to log it here.
     }
   }
 }

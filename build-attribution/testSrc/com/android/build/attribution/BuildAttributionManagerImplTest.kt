@@ -18,7 +18,7 @@ package com.android.build.attribution
 import com.android.build.attribution.analyzers.createBinaryPluginIdentifierStub
 import com.android.build.attribution.analyzers.createTaskFinishEventStub
 import com.android.build.attribution.ui.controllers.createCheckJetifierTaskRequest
-import com.android.ide.common.attribution.AndroidGradlePluginAttributionData
+import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
@@ -44,6 +44,7 @@ import org.mockito.stubbing.Answer
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
+import java.util.EnumSet
 
 class BuildAttributionManagerImplTest {
   private val tracker = TestUsageTracker(VirtualTimeScheduler())
@@ -124,10 +125,10 @@ class BuildAttributionManagerImplTest {
 
     // Expect exception to be caught and logged.
     LoggedErrorProcessor.executeWith<RuntimeExceptionAnswer.TestException>(object : LoggedErrorProcessor() {
-      override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): MutableSet<Action> {
+      override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
         if (t is RuntimeExceptionAnswer.TestException) {
           exceptionWasLogged = true
-          return mutableSetOf()
+          return EnumSet.noneOf(Action::class.java)
         }
         return super.processError(category, message, details, t)
       }
@@ -158,9 +159,8 @@ class BuildAttributionManagerImplTest {
   @Test
   fun testCheckJetifierBuild() {
     val buildAttributionManager = BuildAttributionManagerImpl(project = projectRule.project)
-    val request = createCheckJetifierTaskRequest(
-      originalBuildRequest = builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
-    )
+    val originalBuildRequest = builder(projectRule.project, Projects.getBaseDirPath(projectRule.project), "assembleDebug").build()
+    val request = createCheckJetifierTaskRequest(projectRule.project, originalBuildRequest.data)
     val buildAttributionFile = createBuildAttributionFile(request)
     Truth.assertThat(buildAttributionFile.exists()).isTrue()
 
@@ -184,7 +184,7 @@ class BuildAttributionManagerImplTest {
 
   private fun createBuildAttributionFile(request: GradleBuildInvoker.Request): File {
     val attributionData = AndroidGradlePluginAttributionData()
-    val outputDir = getAgpAttributionFileDir(request)
+    val outputDir = getAgpAttributionFileDir(request.data)
     val file = AndroidGradlePluginAttributionData.getAttributionFile(outputDir)
     file.parentFile.mkdirs()
     BufferedWriter(FileWriter(file)).use {

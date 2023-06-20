@@ -49,6 +49,8 @@ enum class DeviceGroup {
   AUTOMOTIVE,
   GENERIC,
   OTHER,
+  ADDITIONAL_DEVICE,
+  CANONICAL_DEVICE,
 }
 
 /**
@@ -74,6 +76,8 @@ fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Devi
 
 /**
  * Group the given devices by [DeviceGroup]:
+ * - For canonical devices: [DeviceGroup.CANONICAL_DEVICE]
+ * - For predefined devices in [AdditionalDeviceService]: [DeviceGroup.ADDITIONAL_DEVICE]
  * - For Nexus/Pixel devices which diagonal Length < 5 inch: [DeviceGroup.NEXUS]
  * - Nexus/Pixel devices which diagonal Length < 6.5 inch: [DeviceGroup.NEXUS_XL]
  * - Other Nexus/Pixel devices: [DeviceGroup.NEXUS_TABLET]
@@ -88,11 +92,13 @@ fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Devi
  * @see DeviceGroup
  * @return map of sorted devices
  */
-fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> =
-  devices.filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
+fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> {
+  return devices.filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
     .apply { sortDevicesByScreenSize(this) }
     .groupBy {
       when {
+        isCanonicalDevice(it) -> DeviceGroup.CANONICAL_DEVICE
+        isAdditionalDevice(it) -> DeviceGroup.ADDITIONAL_DEVICE
         isAutomotive(it) -> DeviceGroup.AUTOMOTIVE
         isWear(it) -> DeviceGroup.WEAR
         isDesktop(it) -> DeviceGroup.DESKTOP
@@ -103,6 +109,21 @@ fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> =
       }
     }
     .toSortedMap()
+}
+
+private fun isCanonicalDevice(device: Device): Boolean {
+  val id = device.id
+  return id == "SmallPhone" || id == "MediumPhone" || id == "MediumTablet"
+}
+
+private fun isAdditionalDevice(device: Device): Boolean {
+  val id = device.id
+
+  return id == AdditionalDeviceService.DEVICE_CLASS_PHONE_ID ||
+         id == AdditionalDeviceService.DEVICE_CLASS_FOLDABLE_ID ||
+         id == AdditionalDeviceService.DEVICE_CLASS_TABLET_ID ||
+         id == AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID
+}
 
 private fun sizeGroupNexus(device: Device): DeviceGroup {
   val diagonalLength = device.defaultHardware.screen.diagonalLength
@@ -118,9 +139,10 @@ private fun sizeGroupNexus(device: Device): DeviceGroup {
  */
 fun getAvdDevices(configuration: Configuration): List<Device> {
   // Unlikely, but has happened - see http://b.android.com/68091
-  val facet = AndroidFacet.getInstance(configuration.module) ?: return emptyList()
+  val module = (configuration.configModule as StudioConfigurationModelModule).module
+  val facet = AndroidFacet.getInstance(module) ?: return emptyList()
   val configurationManager = configuration.configurationManager
-  val avdManager = AvdManagerUtils.getAvdManagerSilently(facet) ?: return emptyList()
+  val avdManager = AvdManagerUtils.getAvdManager(facet) ?: return emptyList()
   return avdManager.validAvds.mapNotNull { configurationManager.createDeviceForAvd(it) }
 }
 
@@ -144,6 +166,48 @@ fun isUseWearDeviceAsDefault(module: Module): Boolean {
   })
 }
 
+enum class CanonicalDeviceType(val id: String) {
+  SMALL_PHONE("SmallPhone"),
+  MEDIUM_PHONE("MediumPhone"),
+  MEDIUM_TABLET("MediumTablet"),
+}
+
+fun getCanonicalDevice(devices: Map<DeviceGroup, List<Device>>, type: CanonicalDeviceType): Device? =
+  devices[DeviceGroup.CANONICAL_DEVICE]?.firstOrNull { it.id == type.id }
+
+enum class ReferenceDeviceType {
+  MEDIUM_PHONE,
+  FOLDABLE,
+  MEDIUM_TABLET,
+  DESKTOP
+}
+
+/**
+ * Helper function to find the reference device. The device in [AdditionalDeviceService] is picked
+ */
+fun getReferenceDevice(config: Configuration, type: ReferenceDeviceType) = getReferenceDevice(getSuitableDevices (config), type)
+
+/**
+ * Helper function to find the reference device.
+ * @see [getReferenceDevice]
+ */
+fun getReferenceDevice(devices: Map<DeviceGroup, List<Device>>, type: ReferenceDeviceType): Device? {
+  return when (type) {
+    ReferenceDeviceType.MEDIUM_PHONE ->
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_PHONE_ID }
+    ReferenceDeviceType.FOLDABLE ->
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_FOLDABLE_ID }
+    ReferenceDeviceType.MEDIUM_TABLET ->
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_TABLET_ID }
+    ReferenceDeviceType.DESKTOP ->
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID }
+  }
+}
+
+fun isUseWearDeviceAsDefault(configuration: Configuration): Boolean {
+  val module = (configuration.configModule as StudioConfigurationModelModule).module
+  return isUseWearDeviceAsDefault(module)
+}
 /**
  * Convert dp to px.
  * The formula is "px = dp * (dpi / 160)"

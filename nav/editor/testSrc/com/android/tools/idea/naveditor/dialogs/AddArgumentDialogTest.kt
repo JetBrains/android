@@ -22,27 +22,51 @@ import com.android.tools.idea.naveditor.NavModelBuilderUtil
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
-import com.android.tools.idea.testing.IdeComponents
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.google.wireless.android.sdk.stats.NavPropertyInfo
+import com.intellij.ide.util.ClassFilter
 import com.intellij.ide.util.TreeClassChooser
-import com.intellij.ide.util.TreeClassChooserFactory
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.ClassUtil
-import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.isNull
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
 class AddArgumentDialogTest : NavTestCase() {
+  private val testClassChooser = object: TreeClassChooser {
+    private var selected: PsiClass? = null
+    override fun getSelected(): PsiClass? = selected
+    override fun select(aClass: PsiClass?) {
+      selected = aClass
+    }
+
+    override fun selectDirectory(directory: PsiDirectory?) {}
+
+    override fun showDialog() {}
+
+    override fun showPopup() {}
+  }
+
+  private val testClassChooserFactory = object: KotlinTreeClassChooserFactory {
+    override fun createKotlinTreeClassChooser(title: String,
+                                              project: Project,
+                                              scope: GlobalSearchScope,
+                                              base: PsiClass?,
+                                              initialClass: PsiClass?,
+                                              classFilter: ClassFilter): TreeClassChooser = testClassChooser
+
+  }
+
   fun testValidation() {
     val model = model("nav.xml") {
       navigation {
         fragment("fragment1")
       }
     }
-    AddArgumentDialog(null, model.find("fragment1")!!).runAndClose { dialog ->
+    AddArgumentDialog(null, model.find("fragment1")!!, testClassChooserFactory).runAndClose { dialog ->
       assertNotNull(dialog.doValidate())
 
       dialog.name = "myArgument"
@@ -94,21 +118,21 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
     val fragment1 = model.find("fragment1")!!
-    AddArgumentDialog(fragment1.getChild(0), fragment1).runAndClose { dialog ->
+    AddArgumentDialog(fragment1.getChild(0), fragment1, testClassChooserFactory).runAndClose { dialog ->
       assertEquals("myArgument", dialog.name)
       assertEquals("integer", dialog.type)
       assertFalse(dialog.isNullable)
       assertEquals("1234", dialog.defaultValue)
     }
 
-    AddArgumentDialog(fragment1.getChild(1), fragment1).runAndClose { dialog ->
+    AddArgumentDialog(fragment1.getChild(1), fragment1, testClassChooserFactory).runAndClose { dialog ->
       assertEquals("myArgument2", dialog.name)
       assertEquals("custom.Parcelable", dialog.type)
       assertTrue(dialog.isNullable)
       assertTrue(dialog.defaultValue.isNullOrEmpty())
     }
 
-    AddArgumentDialog(fragment1.getChild(2), fragment1).runAndClose { dialog ->
+    AddArgumentDialog(fragment1.getChild(2), fragment1, testClassChooserFactory).runAndClose { dialog ->
       assertEquals("myArgument3", dialog.name)
       assertNull(dialog.type)
       assertFalse(dialog.isNullable)
@@ -125,7 +149,7 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
     val fragment1 = model.find("fragment1")!!
-    AddArgumentDialog(fragment1.children[0], fragment1).runAndClose { dialog ->
+    AddArgumentDialog(fragment1.children[0], fragment1, testClassChooserFactory).runAndClose { dialog ->
 
       assertTrue(dialog.dialogUI.myDefaultValueComboBox.isVisible)
       assertFalse(dialog.dialogUI.myDefaultValueTextField.isVisible)
@@ -161,19 +185,18 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
 
-    val classChooser = replaceTreeClassChooser()
     val customEnum = mock(PsiClass::class.java)
     whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
-    whenever(classChooser.selected).thenReturn(customEnum)
+    testClassChooser.select(customEnum)
 
     val fragment1 = model.find("fragment1")!!
     fragment1.children.forEach {
-      AddArgumentDialog(it, fragment1).runAndClose { dialog ->
+      AddArgumentDialog(it, fragment1, testClassChooserFactory).runAndClose { dialog ->
         assertTrue(dialog.dialogUI.myNullableCheckBox.isEnabled)
       }
     }
 
-    AddArgumentDialog(fragment1.children[0], fragment1).runAndClose { dialog ->
+    AddArgumentDialog(fragment1.children[0], fragment1, testClassChooserFactory).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.STRING
       assertTrue(dialog.dialogUI.myNullableCheckBox.isEnabled)
 
@@ -199,14 +222,13 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
 
-    val classChooser = replaceTreeClassChooser()
     val customEnum = mock(PsiClass::class.java)
     whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
-    whenever(classChooser.selected).thenReturn(customEnum)
+    testClassChooser.select(customEnum)
 
     val fragment1 = model.find("fragment1")!!
 
-    AddArgumentDialog(null, fragment1).runAndClose { dialog ->
+    AddArgumentDialog(null, fragment1, testClassChooserFactory).runAndClose { dialog ->
       for (t in listOf(
         AddArgumentDialog.Type.INFERRED,
         AddArgumentDialog.Type.INTEGER,
@@ -253,20 +275,19 @@ class AddArgumentDialogTest : NavTestCase() {
     myFixture.addFileToProject(relativePath, fileText)
 
     val parcelable = ClassUtil.findPsiClass(PsiManager.getInstance(project), CLASS_PARCELABLE)
-    val classChooser = replaceTreeClassChooser(parcelable)
 
-    testParcelable(model, classChooser, "mytest.navtest.Containing")
-    testParcelable(model, classChooser, "mytest.navtest.Containing\$Inner")
-    testParcelable(model, classChooser, "mytest.navtest.Containing\$Inner\$InnerInner")
+    testParcelable(model, testClassChooser, "mytest.navtest.Containing")
+    testParcelable(model, testClassChooser, "mytest.navtest.Containing\$Inner")
+    testParcelable(model, testClassChooser, "mytest.navtest.Containing\$Inner\$InnerInner")
   }
 
   private fun testParcelable(model: SyncNlModel, classChooser: TreeClassChooser, jvmName: String) {
     val fragment1 = model.find("fragment1")!!
     val psiClass = ClassUtil.findPsiClass(PsiManager.getInstance(project), jvmName)
 
-    whenever(classChooser.selected).thenReturn(psiClass)
+    classChooser.select(psiClass)
 
-    AddArgumentDialog(null, fragment1).runAndClose { dialog ->
+    AddArgumentDialog(null, fragment1, testClassChooserFactory).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_PARCELABLE
       assertEquals(jvmName, dialog.type)
       assertTrue(dialog.dialogUI.myArrayCheckBox.isEnabled)
@@ -280,14 +301,13 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
 
-    val classChooser = replaceTreeClassChooser()
     val customEnum = mock(PsiClass::class.java)
     whenever(customEnum.qualifiedName).thenReturn("java.nio.file.AccessMode")
-    whenever(classChooser.selected).thenReturn(customEnum)
+    testClassChooser.select(customEnum)
 
     val fragment1 = model.find("fragment1")!!
 
-    AddArgumentDialog(null, fragment1).runAndClose { dialog ->
+    AddArgumentDialog(null, fragment1, testClassChooserFactory).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_ENUM
       assertEquals("java.nio.file.AccessMode", dialog.type)
       assertEquals("READ", dialog.dialogUI.myDefaultValueComboBox.model.getElementAt(0))
@@ -300,9 +320,7 @@ class AddArgumentDialogTest : NavTestCase() {
         fragment("fragment1")
       }
     }
-    val classChooserFactory = mock(TreeClassChooserFactory::class.java)
     val classChooser = mock(TreeClassChooser::class.java)
-    whenever(classChooserFactory.createInheritanceClassChooser(any(), any(), any(), any(), any())).thenReturn(classChooser)
     val containingClass = mock(PsiClass::class.java)
     whenever(containingClass.qualifiedName).thenReturn("android.graphics.Paint")
     val innerClass = mock(PsiClass::class.java)
@@ -310,11 +328,11 @@ class AddArgumentDialogTest : NavTestCase() {
     whenever(innerClass.containingClass).thenReturn(containingClass)
     whenever(innerClass.name).thenReturn("Align")
     whenever(classChooser.selected).thenReturn(innerClass)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+    testClassChooser.select(innerClass)
 
     val fragment1 = model.find("fragment1")!!
 
-    AddArgumentDialog(null, fragment1).runAndClose { dialog ->
+    AddArgumentDialog(null, fragment1, testClassChooserFactory).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_ENUM
       assertEquals("android.graphics.Paint\$Align", dialog.type)
     }
@@ -328,20 +346,26 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
     val parcelable = ClassUtil.findPsiClass(PsiManager.getInstance(project), CLASS_PARCELABLE)
-    val classChooserFactory = mock(TreeClassChooserFactory::class.java)
-    val classChooser = mock(TreeClassChooser::class.java)
-    whenever(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(parcelable), isNull(), any())).thenReturn(classChooser)
-    whenever(classChooser.selected).thenReturn(null)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
+    val factory = object: KotlinTreeClassChooserFactory {
+      override fun createKotlinTreeClassChooser(title: String,
+                                                project: Project,
+                                                scope: GlobalSearchScope,
+                                                base: PsiClass?,
+                                                initialClass: PsiClass?,
+                                                classFilter: ClassFilter): TreeClassChooser {
+        assertEquals(parcelable, base)
+        return testClassChooser
+      }
+    }
 
     val fragment1 = model.find("fragment1")!!
 
-    AddArgumentDialog(null, fragment1).runAndClose { dialog ->
+    AddArgumentDialog(null, fragment1, factory).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_PARCELABLE
       assertEquals(null, dialog.type)
     }
 
-    AddArgumentDialog(null, fragment1).runAndClose { dialog ->
+    AddArgumentDialog(null, fragment1, factory).runAndClose { dialog ->
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.INTEGER
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.CUSTOM_PARCELABLE
       assertEquals("integer", dialog.type)
@@ -357,7 +381,7 @@ class AddArgumentDialogTest : NavTestCase() {
 
     val f1 = model.find("f1")!!
 
-    AddArgumentDialog(null, f1).runAndClose { dialog ->
+    AddArgumentDialog(null, f1, testClassChooserFactory).runAndClose { dialog ->
       dialog.name = "myArgument"
       dialog.dialogUI.myTypeComboBox.selectedItem = AddArgumentDialog.Type.LONG
       dialog.defaultValue = "1234"
@@ -388,15 +412,4 @@ class AddArgumentDialogTest : NavTestCase() {
       }
     }
   }
-
-  private fun replaceTreeClassChooser(base: PsiClass? = null): TreeClassChooser {
-    val classChooserFactory = mock(TreeClassChooserFactory::class.java)
-    val classChooser = mock(TreeClassChooser::class.java)
-    whenever(classChooserFactory.createInheritanceClassChooser(any(), any(), eq(base), any(), any())).thenReturn(classChooser)
-    IdeComponents(project).replaceProjectService(TreeClassChooserFactory::class.java, classChooserFactory)
-    return classChooser
-  }
 }
-
-private fun <T> any(): T = ArgumentMatchers.any() as T
-private fun <T> eq(arg: T): T = ArgumentMatchers.eq(arg) as T

@@ -246,12 +246,7 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
    * @param project A {@link Project} that is used to find the ADB executable file.
    */
   public @NotNull ListenableFuture<AndroidDebugBridge> getDebugBridge(@NotNull Project project) {
-    AdbFileProvider provider = AdbFileProvider.fromProject(project);
-    if (provider == null) {
-      LOG.warn("AdbFileProvider is not correctly set up (see AdbFileProviderInitializer)");
-      return Futures.immediateFailedFuture(new IllegalStateException("AdbFileProvider is not correctly set up"));
-    }
-    File adbFile = provider.getAdbFile();
+    File adbFile = AdbFileProvider.fromProject(project).get();
     if (adbFile == null) {
       LOG.warn("The path to the ADB command is not available");
       return Futures.immediateFailedFuture(new FileNotFoundException("The path to the ADB command is not available"));
@@ -330,6 +325,10 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     AdbOptionsService.getInstance().addListener(this);
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
 
+    // TODO Also connect to adblib
+    AndroidDebugBridge.setJdwpTracerFactory(() -> new StudioDDMLibJdwpTracer(StudioFlags.JDWP_TRACER.get()) {});
+    StudioAdbLibJdwpTracerFactory.install(AdbLibApplicationService.getInstance().getSession(), StudioFlags.JDWP_TRACER::get);
+
     // Ensure ADB is terminated when there are no more open projects.
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
       @Override
@@ -339,8 +338,17 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
         // So, we only check if all projects are closed. If yes, terminate adb.
         if (ProjectManager.getInstance().getOpenProjects().length == 0) {
           LOG.info("Ddmlib can be terminated as all projects have been closed");
-          //noinspection unused
-          Future<?> unused = mySequentialExecutor.submit(myImplementation::terminate);
+          Future<?> terminateAdb = mySequentialExecutor.submit(myImplementation::terminate);
+          if (ApplicationManager.getApplication().isUnitTestMode()) {
+            // In unit tests terminate ADB synchronously to ensures ADB won't be terminated when another test has started running.
+            try {
+              terminateAdb.get(30, TimeUnit.SECONDS);
+            }
+            catch (Throwable e) {
+              LOG.warn("Failed to terminate ddmlib.", e);
+              throw new RuntimeException(e);
+            }
+          }
         }
       }
     });
@@ -477,14 +485,11 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
         return;
       }
 
-      LOG.info("Options changed. Re-initing/restarting adb server if needed.");
-      AndroidDebugBridge.optionsChanged(
-        getAdbInitOptions(),
-        myAdbExecutableFile.getPath(),
-        false,
-        ADB_TERMINATE_TIMEOUT_MILLIS,
-        DEFAULT_START_ADB_TIMEOUT_MILLIS,
-        TimeUnit.MILLISECONDS);
+      LOG.info("Terminating adb server");
+      terminate();
+
+      LOG.info("Restart adb server");
+      getAndroidDebugBridge(myAdbExecutableFile);
     }
   }
 }

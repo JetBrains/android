@@ -2,6 +2,24 @@ CompositeBuildMap             : IdeCompositeBuildMapImpl
     - builds                      : <ROOT> (IdeBuildImpl)
         buildName                     : :
     gradleSupportsDirectTaskInvocation      : true
+LIBRARY_TABLE
+    - library                     : <ROOT>::library@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :library
+        sourceSet                     : MAIN
+        variant                       : debug
+    - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :app
+        sourceSet                     : MAIN
+        variant                       : debug
+    - library                     : <ROOT>::library-remote@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :library-remote
+        sourceSet                     : MAIN
+        variant                       : debug
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
         name                          : project
@@ -13,8 +31,8 @@ MODULE                        : project
                 qName                         : :app
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/app
                 buildDir                      : <ROOT>/app/build [-]
                 buildFile                     : <ROOT>/app/build.gradle
@@ -132,8 +150,8 @@ MODULE                        : project
                 qName                         : :library
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/library
                 buildDir                      : <ROOT>/library/build [-]
                 buildFile                     : <ROOT>/library/build.gradle
@@ -251,8 +269,8 @@ MODULE                        : project
                 qName                         : :library-remote
                 group                         : com.example.google
                 version                       : 1.0
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/library-remote
                 buildDir                      : <ROOT>/library-remote/build [-]
                 buildFile                     : <ROOT>/library-remote/build.gradle
@@ -364,8 +382,8 @@ MODULE                        : project
                 qName                         : :lint
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lint
                 buildDir                      : <ROOT>/lint/build [-]
                 buildFile                     : <ROOT>/lint/build.gradle
@@ -452,8 +470,8 @@ MODULE                        : project
                             - files                       : <ROOT>/lint/build/classes/java/main [-]
                             - files                       : <ROOT>/lint/build/resources/main [-]
                         - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -472,8 +490,8 @@ MODULE                        : project
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/lint/build/classes/java/test [-]
                             - files                       : <ROOT>/lint/build/resources/test [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
                 artifactsByConfiguration
@@ -500,8 +518,8 @@ MODULE                        : project
                 qName                         : :lintpublish
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lintpublish
                 buildDir                      : <ROOT>/lintpublish/build [-]
                 buildFile                     : <ROOT>/lintpublish/build.gradle
@@ -555,8 +573,8 @@ MODULE                        : project
                             - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
                             - files                       : <ROOT>/lintpublish/build/resources/main [-]
                         - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -575,8 +593,8 @@ MODULE                        : project
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/lintpublish/build/classes/java/test [-]
                             - files                       : <ROOT>/lintpublish/build/resources/test [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                 artifactsByConfiguration
@@ -603,8 +621,8 @@ MODULE                        : project
                 qName                         : :lintpublish-remote
                 group                         : project
                 version                       : unspecified
-                sourceCompatibility           : 11
-                targetCompatibility           : 11
+                sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 projectDir                    : <ROOT>/lintpublish-remote
                 buildDir                      : <ROOT>/lintpublish-remote/build [-]
                 buildFile                     : <ROOT>/lintpublish-remote/build.gradle
@@ -658,8 +676,8 @@ MODULE                        : project
                             - files                       : <ROOT>/lintpublish-remote/build/classes/java/main [-]
                             - files                       : <ROOT>/lintpublish-remote/build/resources/main [-]
                         - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
                         sources
                             TEST                          : alljava (DefaultExternalSourceDirectorySet)
@@ -678,8 +696,8 @@ MODULE                        : project
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/lintpublish-remote/build/classes/java/test [-]
                             - files                       : <ROOT>/lintpublish-remote/build/resources/test [-]
-                        sourceCompatibility           : 11
-                        targetCompatibility           : 11
+                        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+                        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 externalSystemId              : GRADLE
                 - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                 artifactsByConfiguration
@@ -713,19 +731,8 @@ MODULE                        : project.app
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
-        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
-        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
-        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
-        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
-        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.AppPlugin
-        - gradlePlugins               : com.android.build.gradle.AppPlugin
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -742,9 +749,9 @@ MODULE                        : project.app
     ProjectPath                   : :app
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/app/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : true
     GroupId                       : project
     Namespace                     : com.example.app
@@ -780,6 +787,7 @@ MODULE                        : project.app
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
@@ -787,7 +795,7 @@ MODULE                        : project.app
         testApplicationId             : com.example.app.test
     - basicVariant:               : release
         applicationId                 : com.example.app
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DependenciesInfo
@@ -1007,17 +1015,10 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                                projectPath                   : :library
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:library-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:library-MAIN
                 ApplicationId                 : com.example.app
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1044,20 +1045,12 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                projectPath                   : :app
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:app-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:app-MAIN
                 ApplicationId                 : com.example.app.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1080,16 +1073,12 @@ MODULE                        : project.app
                 ClassesFolder                 : <ROOT>/app/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::app@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::app@debug (IdeModuleLibraryImpl) (*seen*)
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:app-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:library-MAIN
+                        module                        : <ROOT>-:app-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
 MODULE                        : project.app.androidTest
@@ -1103,19 +1092,8 @@ MODULE                        : project.library
         buildFile                     : <ROOT>/library/build.gradle
         buildFilePath                 : <ROOT>/library/build.gradle
         rootFolderPath                : <ROOT>
-        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
-        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
-        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
-        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
-        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
-        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -1132,9 +1110,9 @@ MODULE                        : project.library
     ProjectPath                   : :library
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/library/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : project
     Namespace                     : com.example.library
@@ -1170,12 +1148,13 @@ MODULE                        : project.library
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1381,8 +1360,8 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                    runtimeClasspath              : IdeDependenciesImpl
+                    compileClasspath
+                    runtimeClasspath
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -1402,12 +1381,10 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:library-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:library-MAIN
                 ApplicationId                 : com.example.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1430,12 +1407,10 @@ MODULE                        : project.library
                 ClassesFolder                 : <ROOT>/library/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:library-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:library-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :library (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-remote
@@ -1446,21 +1421,8 @@ MODULE                        : project.library-remote
         buildFile                     : <ROOT>/library-remote/build.gradle
         buildFilePath                 : <ROOT>/library-remote/build.gradle
         rootFolderPath                : <ROOT>
-        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
-        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.VersionCheckPlugin
-        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
-        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
-        - gradlePlugins               : com.android.build.gradle.api.AndroidBasePlugin
-        - gradlePlugins               : com.android.build.gradle.internal.plugins.LibraryPlugin
-        - gradlePlugins               : com.android.build.gradle.LibraryPlugin
-        - gradlePlugins               : org.gradle.api.publish.plugins.PublishingPlugin
-        - gradlePlugins               : org.gradle.api.publish.maven.plugins.MavenPublishPlugin
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
             ApiLevel                      : 16
@@ -1477,9 +1439,9 @@ MODULE                        : project.library-remote
     ProjectPath                   : :library-remote
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
-    CompileTarget                 : android-<SDK_VERSION>
+    CompileTarget                 : android-32
     BuildFolder                   : <ROOT>/library-remote/build [-]
-    buildToolsVersion             : <CURRENT_BUILD_TOOLS_VERSION>
+    buildToolsVersion             : 30.0.3
     IsBaseSplit                   : false
     GroupId                       : com.example.google
     Namespace                     : com.example.library
@@ -1515,12 +1477,13 @@ MODULE                        : project.library-remote
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : false
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : debug
         testApplicationId             : com.example.library.test
     - basicVariant:               : release
-    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-32/android.jar
     ViewBindingOptions
         Enabled                       : false
     DefaultConfig
@@ -1726,8 +1689,8 @@ MODULE                        : project.library-remote
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/javac/debug/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                    runtimeClasspath              : IdeDependenciesImpl
+                    compileClasspath
+                    runtimeClasspath
                 IsSigned                      : false
                 CodeShrinker                  : null
                 BuildTasksAndOutputInformation
@@ -1747,17 +1710,10 @@ MODULE                        : project.library-remote
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/javac/debugAndroidTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library-remote@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library-remote@debug (IdeModuleLibraryImpl)
-                                buildId                       : <ROOT>
-                                lintJar                       : <ROOT>/library-remote/build/intermediates/lint_publish_jar/global/lint.jar [-]
-                                projectPath                   : :library-remote
-                                sourceSet                     : MAIN
-                                variant                       : debug
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library-remote@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library-remote@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:library-remote-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:library-remote-MAIN
                 ApplicationId                 : com.example.library.test
                 SigningConfigName             : debug
                 IsSigned                      : true
@@ -1780,12 +1736,10 @@ MODULE                        : project.library-remote
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/library-remote/build/intermediates/javac/debugUnitTest/classes [-]
                 Dependencies
-                    compileClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library-remote@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library-remote@debug (IdeModuleLibraryImpl) (*seen*)
-                    runtimeClasspath              : IdeDependenciesImpl
-                        - moduleDependencies          : <ROOT>::library-remote@debug (IdeModuleDependencyImpl)
-                            target                        : <ROOT>::library-remote@debug (IdeModuleLibraryImpl) (*seen*)
+                    compileClasspath
+                        module                        : <ROOT>-:library-remote-MAIN
+                    runtimeClasspath
+                        module                        : <ROOT>-:library-remote-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :library-remote (DefaultExternalProject) (*seen*)
 MODULE                        : project.library-remote.androidTest
@@ -1801,18 +1755,8 @@ MODULE                        : project.lint
         buildFile                     : <ROOT>/lint/build.gradle
         buildFilePath                 : <ROOT>/lint/build.gradle
         rootFolderPath                : <ROOT>
-        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
-        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
-        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
-        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
-        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaLibraryPlugin
-        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
     externalProject               : :lint (DefaultExternalProject) (*seen*)
 MODULE                        : project.lint.main
 MODULE                        : project.lint.test
@@ -1823,18 +1767,8 @@ MODULE                        : project.lintpublish
         buildFile                     : <ROOT>/lintpublish/build.gradle
         buildFilePath                 : <ROOT>/lintpublish/build.gradle
         rootFolderPath                : <ROOT>
-        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
-        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
-        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
-        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
-        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaLibraryPlugin
-        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
     externalProject               : :lintpublish (DefaultExternalProject) (*seen*)
 MODULE                        : project.lintpublish-remote
     GradleModuleModel
@@ -1843,18 +1777,8 @@ MODULE                        : project.lintpublish-remote
         buildFile                     : <ROOT>/lintpublish-remote/build.gradle
         buildFilePath                 : <ROOT>/lintpublish-remote/build.gradle
         rootFolderPath                : <ROOT>
-        - gradlePlugins               : com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin
-        - gradlePlugins               : org.gradle.api.plugins.HelpTasksPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.BuildInitPlugin
-        - gradlePlugins               : org.gradle.buildinit.plugins.WrapperPlugin
-        - gradlePlugins               : org.gradle.language.base.plugins.LifecycleBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.BasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JvmEcosystemPlugin
-        - gradlePlugins               : org.gradle.api.plugins.ReportingBasePlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaBasePlugin$Inject
-        - gradlePlugins               : org.gradle.api.plugins.JavaPlugin
-        - gradlePlugins               : org.gradle.api.plugins.JavaLibraryPlugin
-        - gradlePlugins               : org.gradle.plugins.ide.idea.IdeaPlugin
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
     externalProject               : :lintpublish-remote (DefaultExternalProject) (*seen*)
 MODULE                        : project.lintpublish-remote.main
 MODULE                        : project.lintpublish-remote.test

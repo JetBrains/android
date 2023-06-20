@@ -19,12 +19,11 @@ import static com.android.SdkConstants.CONSTRUCTOR_NAME;
 import static com.android.SdkConstants.DOT_PNG;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.WIDGET_PKG_PREFIX;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
+import static com.android.tools.idea.rendering.ProblemSeverity.WARNING;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ILayoutLog;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -33,9 +32,7 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -52,6 +49,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -63,7 +61,7 @@ import org.xmlpull.v1.XmlPullParserException;
  * single summary at the end
  */
 public class RenderLogger implements IRenderLogger {
-  public static final RenderLogger NOP_RENDER_LOGGER = new RenderLogger(null, null, null) {
+  public static final RenderLogger NOP_RENDER_LOGGER = new RenderLogger() {
     @Override
     public void addMessage(@NotNull RenderProblem message) {}
 
@@ -118,19 +116,6 @@ public class RenderLogger implements IRenderLogger {
   static final Logger LOG = Logger.getInstance("#com.android.tools.idea.rendering.RenderLogger");
 
   /**
-   * Whether render errors should be sent to the IDE log. We generally don't want this, since if for
-   * example a custom view generates an error, it will go to the IDE log, which will interpret it as an
-   * IntelliJ error, and will blink the bottom right exception icon and offer to submit an exception
-   * etc. All these errors should be routed through the render error panel instead. However, since the
-   * render error panel does massage and collate the exceptions etc quite a bit, this flag is here
-   * in case we need to ask bug submitters to generate full, raw exceptions.
-   */
-  @SuppressWarnings("UseOfArchaicSystemPropertyAccessors")
-  private static final boolean LOG_ALL = Boolean.getBoolean("adt.renderLog") ||
-                                         (ApplicationManager.getApplication() != null &&
-                                          ApplicationManager.getApplication().isUnitTestMode());
-
-  /**
    * Maximum number of RenderProblems that the logger will save. After hitting this limit, no more errors will be added and an additional
    * "too many problems" RenderProblem will be added.
    */
@@ -150,8 +135,7 @@ public class RenderLogger implements IRenderLogger {
   private static boolean ourIgnoreAllFidelityWarnings;
   private static boolean ourIgnoreFragments;
 
-  private final Module myModule;
-  private final String myName;
+  private final Project myProject;
   private Set<String> myFidelityWarningStrings;
   private boolean myHaveExceptions;
   private Multiset<String> myTags;
@@ -170,20 +154,35 @@ public class RenderLogger implements IRenderLogger {
   private List<String> myMissingFragments;
   private Object myCredential;
 
-  /**
-   * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
-   */
-  public RenderLogger(@Nullable String name, @Nullable Module module, @Nullable Object credential) {
-    myName = name;
-    myModule = module;
+  private final boolean myLogFramework;
+
+  private final RenderProblem.RunnableFixFactory myFixFactory;
+
+  private final Supplier<HtmlLinkManager> myHtmlLinkManagerFactory;
+
+  public RenderLogger(
+    @Nullable Project project,
+    @Nullable Object credential,
+    boolean logFramework,
+    @NotNull RenderProblem.RunnableFixFactory fixFactory,
+    @NotNull Supplier<HtmlLinkManager> linkManagerFactory) {
+    myProject = project;
     myCredential = credential;
+    myLogFramework = logFramework;
+    myFixFactory = fixFactory;
+    myHtmlLinkManagerFactory = linkManagerFactory;
   }
 
   /**
    * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
    */
-  public RenderLogger(@Nullable String name, @Nullable Module module) {
-    this(name, module, null);
+  public RenderLogger(@Nullable Project project) {
+    this(project, null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY, () -> HtmlLinkManager.NOOP_LINK_MANAGER);
+  }
+
+  @VisibleForTesting
+  public RenderLogger() {
+    this(null);
   }
 
   /**
@@ -238,19 +237,11 @@ public class RenderLogger implements IRenderLogger {
     return false;
   }
 
-  @Nullable
-  public Module getModule() {
-    return myModule;
-  }
-
   // ---- extends ILayoutLog ----
 
   @Nullable
   public Project getProject() {
-    if (myModule != null) {
-      return myModule.getProject();
-    }
-    return null;
+    return myProject;
   }
 
   private void logMessageToIdeaLog(@NotNull String message, @Nullable Throwable t) {
@@ -524,7 +515,7 @@ public class RenderLogger implements IRenderLogger {
       addMessage(RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable));
     }
     else {
-      addMessage(RenderProblem.createPlain(ERROR, description, getProject(), getLinkManager(), throwable).tag(tag));
+      addMessage(RenderProblem.createPlain(ERROR, description, getProject(), getLinkManager(), throwable, myFixFactory).tag(tag));
     }
   }
 
@@ -681,7 +672,7 @@ public class RenderLogger implements IRenderLogger {
   @NotNull
   public HtmlLinkManager getLinkManager() {
     if (myLinkManager == null) {
-      myLinkManager = new HtmlLinkManager();
+      myLinkManager = myHtmlLinkManagerFactory.get();
     }
     return myLinkManager;
   }
@@ -784,7 +775,7 @@ public class RenderLogger implements IRenderLogger {
 
   @Override
   public void logAndroidFramework(int priority, String tag, @NotNull String message) {
-    if (StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()) {
+    if (myLogFramework) {
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
         String fullMessage = tag + ": " + message;

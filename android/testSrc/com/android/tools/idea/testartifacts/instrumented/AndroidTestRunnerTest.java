@@ -25,16 +25,22 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
-import com.android.tools.idea.run.ConsolePrinter;
-import com.android.tools.idea.run.editor.NoApksProvider;
+import com.android.tools.idea.run.DefaultStudioProgramRunner;
+import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.run.util.LaunchStatus;
-import com.android.tools.idea.run.util.ProcessHandlerLaunchStatus;
+import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
-import com.intellij.execution.process.NopProcessHandler;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.util.SystemInfo;
+import java.util.Arrays;
+import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -47,6 +53,15 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
   protected boolean shouldRunTest() {
     // Do not run tests on Windows (see http://b.android.com/222904)
     return !SystemInfo.isWindows && super.shouldRunTest();
+  }
+
+  public void testRunnerArgumentsSetByGradleWhenGradleTestRunnerDisabled() throws Exception {
+    loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS);
+    AndroidTestConfiguration.getInstance().RUN_ANDROID_TEST_USING_GRADLE = false;
+
+    RemoteAndroidTestRunner runner = createRemoteAndroidTestRunner("com.android.runnerarguments.ExampleInstrumentationTest");
+    assertThat(runner.getAmInstrumentCommand()).contains("-e size medium");
+    assertThat(runner.getAmInstrumentCommand()).contains("-e foo bar");
   }
 
   public void testTestOptionsSetByGradle() throws Exception {
@@ -90,21 +105,30 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertThat(runner).isInstanceOf(RemoteAndroidTestRunner.class);
   }
 
-  private RemoteAndroidTestRunner createRemoteAndroidTestRunner(@NotNull String className) {
+  private RemoteAndroidTestRunner createRemoteAndroidTestRunner(@NotNull String className) throws ApkProvisionException {
     return createRemoteAndroidTestRunner(createConfigFromClass(className));
   }
 
-  private RemoteAndroidTestRunner createRemoteAndroidTestRunner(AndroidTestRunConfiguration config) {
+  private RemoteAndroidTestRunner createRemoteAndroidTestRunner(AndroidTestRunConfiguration config) throws ApkProvisionException {
     IDevice mockDevice = mock(IDevice.class);
     when(mockDevice.getVersion()).thenReturn(new AndroidVersion(26));
-    ConsolePrinter mockPrinter = mock(ConsolePrinter.class);
 
     ApplicationIdProvider applicationIdProvider =
       getProjectSystem(myAndroidFacet.getModule().getProject()).getApplicationIdProvider(config);
-    LaunchStatus launchStatus = new ProcessHandlerLaunchStatus(new NopProcessHandler());
 
-    LaunchTask task = config.getApplicationLaunchTask(
-      applicationIdProvider, myAndroidFacet, "", false, launchStatus, new NoApksProvider(), mockPrinter, mockDevice);
+    final RunnerAndConfigurationSettings configuration =
+      RunManager.getInstance(getProject()).createConfiguration(config, AndroidTestRunConfigurationType.getInstance().getFactory());
+    ExecutionEnvironment env =
+      new ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), new DefaultStudioProgramRunner(), configuration, getProject());
+    LaunchTask task = null;
+    try {
+      task = ((AndroidTestRunConfigurationExecutor)config.getExecutor(env, myAndroidFacet,
+                                                                      DeviceFutures.forDevices(Arrays.asList(mockDevice)))).getApplicationLaunchTask(
+        mockDevice, applicationIdProvider.getTestPackageName());
+    }
+    catch (ExecutionException e) {
+      fail(e.getMessage());
+    }
     assertThat(task).isInstanceOf(AndroidTestApplicationLaunchTask.class);
 
     AndroidTestApplicationLaunchTask androidTestTask = (AndroidTestApplicationLaunchTask)task;

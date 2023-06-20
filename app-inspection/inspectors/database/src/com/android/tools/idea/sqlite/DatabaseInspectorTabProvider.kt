@@ -34,11 +34,11 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
+import javax.swing.Icon
+import javax.swing.JComponent
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
-import javax.swing.Icon
-import javax.swing.JComponent
 
 class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
   companion object {
@@ -49,13 +49,14 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
   override val displayName = "Database Inspector"
   override val icon: Icon = StudioIcons.Shell.ToolWindows.DATABASE_INSPECTOR
 
-  override val inspectorLaunchParams = FrameworkInspectorLaunchParams(
-    AppInspectorJar(
-      name = "sqlite-inspection.jar",
-      developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/sqlite/",
-      releaseDirectory = "plugins/android/resources/app-inspection/"
+  override val inspectorLaunchParams =
+    FrameworkInspectorLaunchParams(
+      AppInspectorJar(
+        name = "sqlite-inspection.jar",
+        developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/sqlite/",
+        releaseDirectory = "plugins/android/resources/app-inspection/"
+      )
     )
-  )
 
   override fun isApplicable(): Boolean {
     return true
@@ -73,34 +74,45 @@ class DatabaseInspectorTabProvider : SingleAppInspectorTabProvider() {
     return object : SingleAppInspectorTab(messenger) {
       private val taskExecutor = PooledThreadExecutor.INSTANCE
       private val errorsSideChannel = createErrorSideChannel(project)
-      private val databaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project)
-      private val openDatabase: (SqliteDatabaseId, LiveDatabaseConnection) -> Unit = { databaseId, databaseConnection ->
-        databaseInspectorProjectService.openSqliteDatabase(databaseId, databaseConnection)
-      }
+      private val databaseInspectorProjectService =
+        DatabaseInspectorProjectService.getInstance(project)
+      private val openDatabase: (SqliteDatabaseId, LiveDatabaseConnection) -> Unit =
+        { databaseId, databaseConnection ->
+          databaseInspectorProjectService.openSqliteDatabase(databaseId, databaseConnection)
+        }
 
-      private val handleError: (String) -> Unit = { databaseInspectorProjectService.handleError(it, null) }
-      private val onDatabasePossiblyChanged: () -> Unit = { databaseInspectorProjectService.databasePossiblyChanged() }
+      private val handleError: (String) -> Unit = {
+        databaseInspectorProjectService.handleError(it, null)
+      }
+      private val onDatabasePossiblyChanged: () -> Unit = {
+        databaseInspectorProjectService.databasePossiblyChanged()
+      }
       private val onDatabaseClosed: (SqliteDatabaseId) -> Unit = { databaseId ->
         databaseInspectorProjectService.handleDatabaseClosed(databaseId)
       }
 
-      private val dbClient = DatabaseInspectorClient(
-        messenger,
-        parentDisposable,
-        handleError,
-        openDatabase,
-        onDatabasePossiblyChanged,
-        onDatabaseClosed,
-        taskExecutor,
-        databaseInspectorProjectService.projectScope,
-        errorsSideChannel
-      )
+      private val dbClient =
+        DatabaseInspectorClient(
+          messenger,
+          parentDisposable,
+          handleError,
+          openDatabase,
+          onDatabasePossiblyChanged,
+          onDatabaseClosed,
+          taskExecutor,
+          databaseInspectorProjectService.projectScope,
+          errorsSideChannel
+        )
 
       override val component: JComponent = databaseInspectorProjectService.sqliteInspectorComponent
 
       init {
         databaseInspectorProjectService.projectScope.launch {
-          databaseInspectorProjectService.startAppInspectionSession(dbClient, ideServices, processDescriptor)
+          databaseInspectorProjectService.startAppInspectionSession(
+            dbClient,
+            ideServices,
+            processDescriptor
+          )
           dbClient.startTrackingDatabaseConnections()
           messenger.awaitForDisposal()
           withContext(AndroidDispatchers.uiThread) {
@@ -116,9 +128,7 @@ fun createErrorSideChannel(project: Project): ErrorsSideChannel = { command, err
   handleError(project, command, errorResponse.content, logger<DatabaseInspectorMessenger>())
 }
 
-/**
- * Interface used to send commands to on-device inspector
- */
+/** Interface used to send commands to on-device inspector */
 interface DatabaseInspectorClientCommandsChannel {
   fun keepConnectionsOpen(keepOpen: Boolean): ListenableFuture<Boolean?>
   fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?>

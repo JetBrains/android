@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="from_sublib">From sublib</string>
+    <declare-styleable name="styleable_from_sublib">
+        <attr name="Attr_from_sublib" format="string"/>
+    </declare-styleable>
+</resources>

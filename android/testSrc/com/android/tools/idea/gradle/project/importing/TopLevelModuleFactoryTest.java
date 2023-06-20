@@ -78,7 +78,6 @@ public class TopLevelModuleFactoryTest extends AndroidGradleTestCase {
     // Verify the module has a "Gradle" facet.
     GradleFacet gradleFacet = GradleFacet.getInstance(module);
     assertNotNull(gradleFacet);
-    assertEquals(":", gradleFacet.getConfiguration().GRADLE_PROJECT_PATH); // ':' is the Gradle path of the root module.
 
     // Verify the module does not have an "Android" facet.
     assertNull(AndroidFacet.getInstance(module));

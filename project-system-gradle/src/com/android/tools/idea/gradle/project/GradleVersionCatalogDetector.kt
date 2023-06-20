@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project
 import com.android.SdkConstants.FN_GRADLE_WRAPPER_PROPERTIES
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector.DetectorResult.EXPLICIT_CALL
@@ -48,7 +47,10 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import org.gradle.util.GradleVersion
+import org.jetbrains.android.util.AndroidSlowOperations
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
@@ -74,8 +76,8 @@ import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals
  *    b. it has a gradle/libs.versions.toml file relative to its base directory
  */
 class GradleVersionCatalogDetector(private val project: Project): Disposable {
-  var _gradleVersion: GradleVersion? = null
-  var _settingsVisitorResults: SettingsVisitorResults? = null
+  private var _gradleVersion: GradleVersion? = null
+  private var _settingsVisitorResults: SettingsVisitorResults? = null
 
   private val fileDocumentManager = FileDocumentManager.getInstance()
   init {
@@ -103,9 +105,9 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
         if(project.isDisposed) throw ProcessCanceledException() else project.getService(GradleVersionCatalogDetector::class.java)
       }
 
-    val MISSING_GRADLE_VERSION = GradleVersion.parse("0.0")
-    val PREVIEW_GRADLE_VERSION = GradleVersion.parse("7.0")
-    val STABLE_GRADLE_VERSION = GradleVersion.parse("7.4")
+    val MISSING_GRADLE_VERSION: GradleVersion = GradleVersion.version("0.0")
+    val PREVIEW_GRADLE_VERSION: GradleVersion = GradleVersion.version("7.0")
+    val STABLE_GRADLE_VERSION: GradleVersion = GradleVersion.version("7.4")
 
     val EMPTY_SETTINGS = object : SettingsVisitorResults {
       override val enableFeaturePreview = false
@@ -113,14 +115,16 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
     }
   }
 
-  val gradleVersion: GradleVersion
+  private val gradleVersion: GradleVersion
     get() {
       _gradleVersion?.let { return it }
       return runReadAction {
         if (project.isDisposed) throw ProcessCanceledException()
         val gradleWrapper = GradleWrapper.find(project)
         ProgressManager.checkCanceled()
-        val gradleVersion = gradleWrapper?.gradleVersion?.let { GradleVersion.tryParse(it) } ?: MISSING_GRADLE_VERSION
+        val gradleVersion = gradleWrapper?.gradleVersion
+                              ?.let { runCatching { GradleVersion.version(it) }.getOrNull() }
+                            ?: MISSING_GRADLE_VERSION
         return@runReadAction gradleVersion.also { _gradleVersion = gradleVersion }
       }
     }
@@ -132,7 +136,10 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
         if (project.isDisposed) throw ProcessCanceledException()
         val baseDir = project.baseDir ?: return@runReadAction EMPTY_SETTINGS.also { _settingsVisitorResults = it }
         val settingsFile = findGradleSettingsFile(baseDir) ?: return@runReadAction EMPTY_SETTINGS.also { _settingsVisitorResults = it }
-        val settingsVisitorResults = when (val settingsPsiFile = PsiManager.getInstance(project).findFile(settingsFile)) {
+        val settingsPsiFile = AndroidSlowOperations.allowSlowOperationsInIdea<PsiFile?, Throwable> {
+          PsiManager.getInstance(project).findFile(settingsFile)
+        }
+        val settingsVisitorResults = when (settingsPsiFile) {
           is GroovyFile -> visitGroovySettings(settingsPsiFile)
           is KtFile -> visitKtSettings(settingsPsiFile)
           else -> EMPTY_SETTINGS
@@ -141,7 +148,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       }
     }
 
-  private val _isVersionCatalogProject: DetectorResult
+  val versionCatalogDetectorResult: DetectorResult
     get() {
       val gradleVersion = gradleVersion
       if (gradleVersion < PREVIEW_GRADLE_VERSION) return OLD_GRADLE
@@ -158,7 +165,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
   private var shouldSendTrackerEvent = true
 
   val isVersionCatalogProject: Boolean
-    get() = _isVersionCatalogProject.run {
+    get() = versionCatalogDetectorResult.run {
       if (shouldSendTrackerEvent) {
         shouldSendTrackerEvent = false
         val thunk = {

@@ -15,113 +15,124 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.model.IdeSyncIssue
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.COMPOSITE_BUILD
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.project.messages.MessageType
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.gradleModule
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.UsefulTestCase.assertInstanceOf
+import com.intellij.testFramework.UsefulTestCase.assertSize
+import junit.framework.Assert.assertEquals
+import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
+import java.util.IdentityHashMap
 
-class CxxConfigurationIssuesReporterTest : AndroidGradleTestCase() {
-  private lateinit var syncMessages: GradleSyncMessagesStub
-  private lateinit var reporter: CxxConfigurationIssuesReporter
-  private lateinit var usageReporter: TestSyncIssueUsageReporter
+@RunsInEdt
+class CxxConfigurationIssuesReporterTest {
+  @get:Rule
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
-  override fun setUp() {
-    super.setUp()
-
-    syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
-    reporter = CxxConfigurationIssuesReporter()
-    usageReporter = TestSyncIssueUsageReporter()
-  }
+  private val reporter = CxxConfigurationIssuesReporter()
 
   @Test
   fun testWithSingleModule() {
-    syncMessages.removeAllMessages()
-    loadSimpleApplication()
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
 
-    val syncIssue = setUpMockSyncIssue("19.1.2")
+      val syncIssue = setUpMockSyncIssue("19.1.2")
 
-    reporter.report(syncIssue, getModule("app"), null, usageReporter)
-    val notifications = syncMessages.notifications
-    assertSize(1, notifications)
-    val notification = notifications[0]
 
-    assertEquals("Gradle Sync Issues", notification.title)
-    assertEquals(
-      "No version of NDK matched the requested version 19.1.2\n" +
-      "Affected Modules: app", notification.message)
-    assertEquals(NotificationCategory.WARNING, notification.notificationCategory)
+      val messages = reporter.report(syncIssue, project.gradleModule(":app")!!, null)
+      assertSize(1, messages)
+      val notification = messages[0]
 
-    val notificationUpdate = syncMessages.notificationUpdate
-    val quickFixes = notificationUpdate!!.fixes
-    assertSize(1, quickFixes)
-    assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
+      assertEquals("Gradle Sync Issues", notification.group)
+      assertEquals(
+        "No version of NDK matched the requested version 19.1.2\n" +
+          "<a href=\"install.ndk\">Install NDK '19.1.2' and sync project</a>\n" +
+          "Affected Modules: app",
+        notification.message
+      )
+      assertEquals(MessageType.WARNING, notification.type)
 
-    assertEquals(
-      listOf(
-        GradleSyncIssue
-          .newBuilder()
-          .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
-          .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK)
-          .build()),
-      usageReporter.collectedIssue)
+      val quickFixes = messages[0]!!.quickFixes
+      assertSize(1 + 1 /* affected modules */, quickFixes)
+      assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
+
+      assertEquals(
+        listOf(
+          GradleSyncIssue
+            .newBuilder()
+            .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
+            .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK)
+            .build()
+        ),
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION, messages)
+      )
+    }
   }
 
   @Test
   fun testWithCompositeBuild() {
-    syncMessages.removeAllMessages()
-    prepareProjectForImport(COMPOSITE_BUILD)
-    importProject()
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.COMPOSITE_BUILD)
+    preparedProject.open { project ->
 
-    val syncIssueOne = setUpMockSyncIssue("19.1.2")
-    val syncIssueTwo = setUpMockSyncIssue("19.1.1")
-    val syncIssueThree = setUpMockSyncIssue("19.1.2") // Intentional duplicate of syncIssueOne
+      val syncIssueOne = setUpMockSyncIssue("19.1.2")
+      val syncIssueTwo = setUpMockSyncIssue("19.1.1")
+      val syncIssueThree = setUpMockSyncIssue("19.1.2") // Intentional duplicate of syncIssueOne
 
+      val moduleMap = listOf(
+        syncIssueOne to project.gradleModule(":")!!,
+        syncIssueTwo to project.gradleModule(":TestCompositeLib1")!!,
+        syncIssueThree to project.gradleModule(":TestCompositeLib3")!!
+      ).toMap(IdentityHashMap())
 
-    val moduleMap = mapOf(
-      syncIssueOne to getModule("testWithCompositeBuild"),
-      syncIssueTwo to getModule("TestCompositeLib1"),
-      syncIssueThree to getModule("TestCompositeLib3")
-    )
+      val messages =
+        reporter
+          .reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf())
+          .filter { it.type == MessageType.WARNING }
+      assertSize(1, messages)
+      val notificationOne = messages[0]
 
-    reporter.reportAll(listOf(syncIssueOne, syncIssueTwo, syncIssueThree), moduleMap, mapOf(), usageReporter)
+      assertEquals("Gradle Sync Issues", notificationOne.group)
+      assertEquals(
+        "No version of NDK matched the requested version 19.1.2\n" +
+          "<a href=\"install.ndk\">Install NDK '19.1.2' and sync project</a>\n" +
+          "Affected Modules: TestCompositeLib1, TestCompositeLib3, project",
+        notificationOne.message
+      )
 
-    val notifications = syncMessages.notifications.filter { it.notificationCategory == NotificationCategory.WARNING }
-    assertSize(1, notifications)
-    val notificationOne = notifications[0]
+      val quickFixes = messages[0].quickFixes
+      assertSize(1 + 1 /* affected modules */, quickFixes)
+      assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
 
-    assertEquals("Gradle Sync Issues", notificationOne.title)
-    assertEquals(
-      "No version of NDK matched the requested version 19.1.2\n" +
-      "Affected Modules: TestCompositeLib1, TestCompositeLib3, testWithCompositeBuild", notificationOne.message)
-
-    val notificationUpdate = syncMessages.notificationUpdate
-    val quickFixes = notificationUpdate!!.fixes
-    assertSize(1, quickFixes)
-    assertInstanceOf(quickFixes[0], InstallNdkHyperlink::class.java)
-
-    val resultSyncIssue = GradleSyncIssue
-      .newBuilder()
-      .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
-      .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK)
-      .build()
-    assertEquals(
-      listOf(resultSyncIssue),
-      usageReporter.collectedIssue)
+      val resultSyncIssue = GradleSyncIssue
+        .newBuilder()
+        .setType(AndroidStudioEvent.GradleSyncIssueType.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
+        .addOfferedQuickFixes(AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK)
+        .build()
+      assertEquals(
+        listOf(resultSyncIssue),
+        SyncIssueUsageReporter.createGradleSyncIssues(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION, messages)
+      )
+    }
   }
 
   private fun setUpMockSyncIssue(revision: String): IdeSyncIssue {
-    val syncIssue = mock(IdeSyncIssue::class.java)
-    whenever(syncIssue.data).thenReturn(null)
-    whenever(syncIssue.message).thenReturn("No version of NDK matched the requested version $revision")
-    whenever(syncIssue.severity).thenReturn(IdeSyncIssue.SEVERITY_ERROR)
-    whenever(syncIssue.type).thenReturn(IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION)
-    return syncIssue
+    return IdeSyncIssueImpl(
+      severity = IdeSyncIssue.SEVERITY_ERROR,
+      type = IdeSyncIssue.TYPE_EXTERNAL_NATIVE_BUILD_CONFIGURATION,
+      data = null,
+      message = "No version of NDK matched the requested version $revision",
+      multiLineMessage = null
+    )
   }
 }

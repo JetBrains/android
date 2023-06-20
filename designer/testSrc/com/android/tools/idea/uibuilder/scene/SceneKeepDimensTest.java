@@ -106,7 +106,7 @@ public class SceneKeepDimensTest extends SceneTest {
     Configuration configuration = Mockito.mock(Configuration.class);
     when(configuration.getResourceResolver()).thenReturn(resolver);
     when(configuration.getDensity()).thenReturn(Density.XHIGH);
-    when(configuration.getConfigurationManager()).thenReturn(ConfigurationManager.getOrCreateInstance(myFacet));
+    when(configuration.getConfigurationManager()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
     when(configuration.getFullConfig()).thenReturn(FolderConfiguration.createDefault());
     myModel.setConfiguration(configuration);
   }

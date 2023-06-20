@@ -1,10 +1,10 @@
 <idea-plugin>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.gradleModelProvider"
-                    interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"/>
+                    interface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.gradle.dsl.transformerFactory"
                     interface="com.android.tools.idea.gradle.dsl.parser.GradleDslTransformerFactory"
-                    dynamic="true"/>
+                    dynamic="true" />
     <extensionPoint interface="com.android.tools.idea.gradle.dsl.model.GradleBlockModelMap$BlockModelProvider" dynamic="true"
                     qualifiedName="org.jetbrains.idea.gradle.dsl.blockModel"/>
   </extensionPoints>
@@ -14,7 +14,6 @@
     <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"
                         serviceImplementation="com.android.tools.idea.gradle.dsl.model.GradleModelSource"/>
   </extensions>
-
 
   <extensions defaultExtensionNs="org.jetbrains.idea.gradle.dsl">
     <blockModel implementation="com.android.tools.idea.gradle.dsl.model.GradleDefaultBlockModels"/>

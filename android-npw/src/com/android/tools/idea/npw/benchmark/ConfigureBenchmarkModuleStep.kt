@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.benchmark
 
 import com.android.AndroidProjectTypes
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor.MOBILE
 import com.android.tools.adtui.validation.Validator
@@ -29,6 +29,7 @@ import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.module.ConfigureModuleStep
+import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
@@ -39,7 +40,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Row
-import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
@@ -97,8 +97,8 @@ class ConfigureBenchmarkModuleStep(
       if (model.benchmarkModuleType.get() == MACROBENCHMARK) targetModuleValidator.validate(value) else OK
     }, model.benchmarkModuleType)
 
-    val minAgpVersion = GradleVersion.parse(MACRO_AGP_MIN_VERSION)
-    validatorPanel.registerValidator(gradleVersion, createValidator { version ->
+    val minAgpVersion = AgpVersion.parse(MACRO_AGP_MIN_VERSION)
+    validatorPanel.registerValidator(agpVersion, createValidator { version ->
       if (model.benchmarkModuleType.get() == MACROBENCHMARK &&
           version.isPresent && version.get().compareIgnoringQualifiers(minAgpVersion) < 0)
         Validator.Result.fromNullableMessage(message("android.wizard.validate.module.needs.new.agp.macro.benchmark", MACRO_AGP_MIN_VERSION))
@@ -135,10 +135,8 @@ class ConfigureBenchmarkModuleStep(
       cell(apiLevelCombo).align(AlignX.FILL)
     }
 
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
-      row {
-        cell(gradleKtsCheck)
-      }.topGap(TopGap.SMALL)
+    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get() || model.useGradleKts.get()) {
+      generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
     }
   }.withBorder(empty(6))
 

@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace "com.android.example.appwithdatabinding"
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
 

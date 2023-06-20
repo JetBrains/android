@@ -32,12 +32,12 @@ class WearPairingSettingsTest {
 
   @Before
   fun setUp() {
-    WearPairingManager.loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
+    WearPairingManager.getInstance().loadSettings(emptyList(), emptyList()) // Clean up any pairing data leftovers
   }
 
   @Test
   fun loadSettingsShouldSetPairedDevices() {
-    assertThat(WearPairingManager.getPairsForDevice(phoneDevice.deviceID)).isEmpty()
+    assertThat(WearPairingManager.getInstance().getPairsForDevice(phoneDevice.deviceID)).isEmpty()
 
     val pairedDevices = listOf(phoneDevice.toPairingDeviceState(), wearDevice.toPairingDeviceState())
     val pairedConnectionState = PairingConnectionsState().apply {
@@ -45,9 +45,9 @@ class WearPairingSettingsTest {
       wearDeviceIds.add(wearDevice.deviceID)
     }
 
-    WearPairingManager.loadSettings(pairedDevices, listOf(pairedConnectionState))
+    WearPairingManager.getInstance().loadSettings(pairedDevices, listOf(pairedConnectionState))
 
-    val phoneWearPairList = WearPairingManager.getPairsForDevice(phoneDevice.deviceID)
+    val phoneWearPairList = WearPairingManager.getInstance().getPairsForDevice(phoneDevice.deviceID)
     assertThat(phoneWearPairList).isNotEmpty()
     val phoneWearPair = phoneWearPairList[0]
     assertThat(phoneWearPair.phone.deviceID).isEqualTo(phoneDevice.deviceID)

@@ -47,6 +47,7 @@ import static java.util.Collections.singletonList;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
+import com.android.tools.dom.attrs.AttributeDefinition;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.util.xml.Converter;
@@ -74,7 +75,7 @@ import org.jetbrains.annotations.Nullable;
  *   <li><a href="https://developer.android.com/studio/build/manifest-merge.html#merge_rule_markers">manifest attributes</a></li>
  * </ul>
  */
-public final class ToolsAttributeUtil {
+public class ToolsAttributeUtil {
   private static final ResolvingConverter LAYOUT_REFERENCE_CONVERTER =
     new ResourceReferenceConverter(EnumSet.of(ResourceType.LAYOUT));
   private static final Converter ACTIVITY_CLASS_CONVERTER = new PackageClassConverter.Builder()

@@ -18,7 +18,7 @@ package com.android.tools.idea.welcome.wizard;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 
-public final class ConfirmFirstRunWizardCloseDialog {
+public class ConfirmFirstRunWizardCloseDialog {
   public enum Result {
     DoNotClose, Rerun, Skip
   }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.emulator.end2end
 
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.emulator.EmulatorView
+import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EmulatorToolWindowFixture
 import com.google.common.truth.Truth.assertThat

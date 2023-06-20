@@ -17,21 +17,20 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.LogcatOccurrenceNavigator.Companion.FOLLOWED_HYPERLINK_ATTRIBUTES
 import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
+import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.FakePsiShortNamesCache
-import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.ide.OccurenceNavigator
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.psi.search.PsiShortNamesCache
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,23 +48,20 @@ private val PROJECT_FILES = listOf(
 @RunsInEdt
 class LogcatOccurrenceNavigatorTest {
   private val projectRule = ProjectRule()
+  private val disposableRule = DisposableRule()
+  private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule(), disposableRule)
 
-  private val editor by lazy { createLogcatEditor(projectRule.project) }
+  private val editor get() = logcatEditorRule.editor
   private val editorHyperlinkDetector by lazy { EditorHyperlinkDetector(projectRule.project, editor) }
   private val editorHyperlinkSupport by lazy { EditorHyperlinkSupport.get(editor) }
 
   @Before
   fun setUp() {
-    val project = projectRule.project
-    project.replaceService(PsiShortNamesCache::class.java, FakePsiShortNamesCache(project, PROJECT_FILES), project)
-  }
-
-  @After
-  fun tearDown() {
-    EditorFactory.getInstance().releaseEditor(editor)
+    projectRule.project.replaceService(
+      PsiShortNamesCache::class.java, FakePsiShortNamesCache(projectRule.project, PROJECT_FILES), disposableRule.disposable)
   }
 
   @Test
@@ -352,7 +348,7 @@ class LogcatOccurrenceNavigatorTest {
 
   private fun setEditorText(editor: Editor, text: String) {
     editor.document.setText(text.replace(CARET, ""))
-    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1)
+    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
     editorHyperlinkSupport.waitForPendingFilters(/* timeoutMs */ 5000)
     val caret = text.indexOf(CARET)
     if (caret >= 0) {

@@ -1,0 +1,10 @@
+android {
+  buildTypes {
+    foo {
+      minifyEnabled true
+    }
+    bar {
+      initWith foo
+    }
+  }
+}

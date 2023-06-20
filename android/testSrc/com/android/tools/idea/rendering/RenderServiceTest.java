@@ -66,7 +66,9 @@ public class RenderServiceTest extends TestCase {
   public void testAsyncRenderAction() throws ExecutionException, InterruptedException {
     AtomicBoolean called = new AtomicBoolean(false);
     CountDownLatch countDownLatch = new CountDownLatch(1);
-    CompletableFuture<Void> future = RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+    RenderAsyncActionExecutor renderActionExecutor = RenderService.getRenderAsyncActionExecutor();
+    long renderActionCounter = renderActionExecutor.getExecutedRenderActionCount();
+    CompletableFuture<Void> future = renderActionExecutor.runAsyncAction(() -> {
       try {
         countDownLatch.await();
       }
@@ -80,6 +82,7 @@ public class RenderServiceTest extends TestCase {
     assertFalse(called.get());
     countDownLatch.countDown();
     future.get();
+    assertEquals(renderActionCounter + 1, renderActionExecutor.getExecutedRenderActionCount());
     assertTrue(called.get());
   }
 }

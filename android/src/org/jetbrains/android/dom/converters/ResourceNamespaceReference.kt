@@ -16,11 +16,11 @@
 package org.jetbrains.android.dom.converters
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.resolveResourceNamespace
+import com.android.tools.res.ResourceNamespacing
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
@@ -53,9 +53,9 @@ class ResourceNamespaceReference(
     val prefix = rangeInElement.substring(element.text).nullize(nullizeSpaces = true) ?: return null
     val prefixDeclaration = XmlExtension.getExtensionByElement(element)?.getPrefixDeclaration(element.parentOfType<XmlTag>(), prefix)
 
-    val repositoryManager = ResourceRepositoryManager.getInstance(element) ?: return null
+    val repositoryManager = StudioResourceRepositoryManager.getInstance(element) ?: return null
 
-    if (prefixDeclaration != null && repositoryManager.namespacing != Namespacing.DISABLED) {
+    if (prefixDeclaration != null && repositoryManager.namespacing != ResourceNamespacing.DISABLED) {
       // TODO(b/76409654): In non-namespaced projects, namespaced resource references cannot rely on XML namespace definitions.
       return prefixDeclaration
     }
@@ -87,7 +87,7 @@ class ResourceNamespaceFakePsiElement(
   private val resourceNamespace: ResourceNamespace,
   private val parent: XmlElement
 ) : FakePsiElement(), NavigatablePsiElement {
-  override fun getParent(): PsiElement = parent
+  override fun getParent(): PsiElement? = parent
   override fun canNavigate(): Boolean = true
 
   override fun getNavigationElement(): PsiElement {
@@ -98,7 +98,7 @@ class ResourceNamespaceFakePsiElement(
     return Manifest.getMainManifest(androidFacet)?.`package`?.xmlAttribute ?: this
   }
 
-  override fun getName(): String {
+  override fun getName(): String? {
     // An empty name makes the presentable text appear in the hover popup.
     return ""
   }

@@ -1,0 +1,9 @@
+apply plugin: 'com.android.library'
+
+android {
+  compileSdkVersion 19
+}
+// emulating here external dependency
+dependencies {
+  api "com.android.support:appcompat-v7:28.0.0"
+}

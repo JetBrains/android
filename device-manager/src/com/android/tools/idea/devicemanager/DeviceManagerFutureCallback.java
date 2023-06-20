@@ -22,10 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class DeviceManagerFutureCallback<V> implements FutureCallback<V> {
-  private final @NotNull Consumer<@Nullable V> myOnSuccess;
+  private final @NotNull Consumer<V> myOnSuccess;
   private final @NotNull Class<?> myClass;
 
-  public DeviceManagerFutureCallback(@NotNull Class<?> c, @NotNull Consumer<@Nullable V> onSuccess) {
+  public DeviceManagerFutureCallback(@NotNull Class<?> c, @NotNull Consumer<V> onSuccess) {
     myOnSuccess = onSuccess;
     myClass = c;
   }

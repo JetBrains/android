@@ -20,21 +20,20 @@ import com.android.tools.idea.wearpairing.AndroidWearPairingBundle;
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.android.tools.idea.wearpairing.WearPairingManager.PhoneWearPair;
+import com.android.tools.idea.wearpairing.WearPairingManagerKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.ui.PopupMenuListenerAdapter;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
-import kotlin.coroutines.CoroutineContext;
-import kotlinx.coroutines.BuildersKt;
-import kotlinx.coroutines.GlobalScope;
+import javax.swing.event.PopupMenuEvent;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCellEditor {
@@ -43,22 +42,29 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
 
   protected Device myDevice;
 
-  protected PopUpMenuButtonTableCellEditor(@NotNull DevicePanel panel) {
+  protected PopUpMenuButtonTableCellEditor(@NotNull DevicePanel panel, @NotNull WearPairingManager manager) {
     super(PopUpMenuValue.INSTANCE, AllIcons.Actions.More);
 
     myPanel = panel;
-    myManager = WearPairingManager.INSTANCE;
+    myManager = manager;
 
     myButton.addActionListener(event -> {
       JPopupMenu menu = new JBPopupMenu();
-
       newItems().forEach(menu::add);
+
+      menu.addPopupMenuListener(new PopupMenuListenerAdapter() {
+        @Override
+        public void popupMenuWillBecomeInvisible(@NotNull PopupMenuEvent event) {
+          fireEditingCanceled();
+        }
+      });
+
       menu.show(myButton, 0, myButton.getHeight());
     });
   }
 
   @VisibleForTesting
-  public abstract @NotNull List<@NotNull JComponent> newItems();
+  public abstract @NotNull List<JComponent> newItems();
 
   protected final @NotNull JComponent newPairWearableItem(@NotNull EventKind kind) {
     AbstractButton item = new JBMenuItem("Pair Wearable");
@@ -75,7 +81,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
     return item;
   }
 
-  protected final @NotNull Optional<@NotNull JComponent> newViewPairedDevicesItem(@NotNull EventKind kind) {
+  protected final @NotNull Optional<JComponent> newViewPairedDevicesItem(@NotNull EventKind kind) {
     String key = myDevice.getKey().toString();
     List<PhoneWearPair> pairs = myManager.getPairsForDevice(key);
 
@@ -100,14 +106,7 @@ public abstract class PopUpMenuButtonTableCellEditor extends IconButtonTableCell
         Object name = pairs.get(0).getPeerDevice(key).getDisplayName();
         item.setToolTipText(AndroidWearPairingBundle.message("wear.assistant.device.list.forget.connection", name));
 
-        try {
-          CoroutineContext context = GlobalScope.INSTANCE.getCoroutineContext();
-          BuildersKt.runBlocking(context, (scope, continuation) -> myManager.removeAllPairedDevices(key, true, continuation));
-        }
-        catch (InterruptedException exception) {
-          Thread.currentThread().interrupt();
-          Logger.getInstance(PopUpMenuButtonTableCellEditor.class).warn(exception);
-        }
+        WearPairingManagerKt.removeAllPairedDevicesAsync(myManager, key, true);
       }
     });
 

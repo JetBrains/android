@@ -24,8 +24,12 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 
 val DEVICE_SPEC_FILE_TYPE = IFileElementType(DeviceSpecLanguage)
+
 class DeviceSpecTokenType(debugName: String) : IElementType(debugName, DeviceSpecLanguage)
+
 class DeviceSpecElementType(debugName: String) : IElementType(debugName, DeviceSpecLanguage)
-class DeviceSpecPsiFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DeviceSpecLanguage) {
+
+class DeviceSpecPsiFile(viewProvider: FileViewProvider) :
+  PsiFileBase(viewProvider, DeviceSpecLanguage) {
   override fun getFileType(): FileType = DeviceSpecFileType
 }

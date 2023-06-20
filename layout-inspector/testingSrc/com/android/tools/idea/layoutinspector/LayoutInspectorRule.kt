@@ -16,21 +16,24 @@
 package com.android.tools.idea.layoutinspector
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.sdklib.AndroidVersion
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
-import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeParametersCache
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyTreeLoader
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
@@ -91,6 +94,7 @@ fun DeviceDescriptor.createProcess(
     override val device = device
     override val abiCpuArch = "x86_64"
     override val name = name
+    override val packageName = name
     override val isRunning = isRunning
     override val pid = pid
     override val streamId = streamId
@@ -111,14 +115,20 @@ fun interface InspectorClientProvider {
  * Simple, convenient provider for generating a real [LegacyClient]
  */
 fun LegacyClientProvider(
-  parentDisposable: Disposable,
+  getDisposable: () -> Disposable,
   treeLoaderOverride: LegacyTreeLoader? = Mockito.mock(LegacyTreeLoader::class.java).also {
     whenever(it.getAllWindowIds(ArgumentMatchers.any())).thenReturn(listOf("1"))
   }
 ) = InspectorClientProvider { params, inspector ->
-  LegacyClient(params.process, params.isInstantlyAutoConnected, inspector.layoutInspectorModel,
-               LayoutInspectorMetrics(inspector.layoutInspectorModel.project, params.process),
-               parentDisposable, treeLoaderOverride)
+  LegacyClient(
+    params.process,
+    params.isInstantlyAutoConnected,
+    inspector.inspectorModel,
+    LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),
+    AndroidCoroutineScope(getDisposable()),
+    getDisposable(),
+    treeLoaderOverride
+  )
 }
 
 /**
@@ -148,17 +158,19 @@ class LayoutInspectorRule(
 
   private var runningThreadCount = AtomicInteger(0)
 
+  private val asyncLauncherThreads = mutableListOf<Thread>()
+
   private val launcherExecutor = Executor { runnable ->
     if (launchSynchronously) {
       runnable.run()
     }
     else {
-      Thread {
+      asyncLauncherThreads.add(Thread {
         runningThreadCount.incrementAndGet()
         runnable.run()
         runningThreadCount.decrementAndGet()
         asyncLaunchLatch.countDown()
-      }.start()
+      }.apply { start() })
     }
   }
 
@@ -187,6 +199,8 @@ class LayoutInspectorRule(
    */
   val project get() = projectRule.project
 
+  val disposable get() = projectRule.testRootDisposable
+
   /**
    * A notifier which acts as a source of processes being externally connected.
    */
@@ -198,6 +212,7 @@ class LayoutInspectorRule(
    * property.
    */
   val processes = ProcessesModel(processNotifier, isPreferredProcess)
+  private lateinit var deviceModel: DeviceModel
 
   val adbRule = FakeAdbRule()
   val adbProperties: AdbDebugViewProperties = FakeShellCommandHandler().apply {
@@ -230,13 +245,19 @@ class LayoutInspectorRule(
   private fun before() {
     projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
 
+    val layoutInspectorCoroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+
+    deviceModel = DeviceModel(disposable, processes)
     inspectorModel = InspectorModel(projectRule.project)
-    launcher = InspectorClientLauncher(processes,
-                                       clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
-                                       project,
-                                       launcherDisposable,
-                                       executor = launcherExecutor)
-    Disposer.register(projectRule.fixture.testRootDisposable, launcherDisposable)
+    launcher = InspectorClientLauncher(
+      processes,
+      clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
+      project,
+      layoutInspectorCoroutineScope,
+      launcherDisposable,
+      executor = launcherExecutor
+    )
+    Disposer.register(projectRule.testRootDisposable, launcherDisposable)
     AndroidFacet.getInstance(projectRule.module)?.let { AndroidModel.set(it, TestAndroidModel("com.example")) }
 
     // Client starts disconnected, and will be updated after the ProcessesModel's selected process is updated
@@ -252,19 +273,42 @@ class LayoutInspectorRule(
 
     // This factory will be triggered when LayoutInspector is created
     val treeSettings = FakeTreeSettings()
-    inspector = LayoutInspector(launcher, inspectorModel, treeSettings, MoreExecutors.directExecutor())
+    inspector = LayoutInspector(
+      coroutineScope = layoutInspectorCoroutineScope,
+      processModel = processes,
+      deviceModel = deviceModel,
+      foregroundProcessDetection = null,
+      inspectorClientSettings = InspectorClientSettings(project),
+      launcher = launcher,
+      layoutInspectorModel = inspectorModel,
+      treeSettings = treeSettings,
+      executor = MoreExecutors.directExecutor()
+    )
     launcher.addClientChangedListener {
       inspectorClient = it
     }
 
-    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(dataProviderForLayoutInspector(inspector, mock()),
-                                                                           projectRule.fixture.testRootDisposable)
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(
+      dataProviderForLayoutInspector(inspector),
+      projectRule.fixture.testRootDisposable
+    )
+
+    DebugViewAttributes.reset()
   }
 
   fun disconnect() {
     // Disconnect the active client explicitly and block until it's done, since otherwise this
     // might happen on a background thread after the test framework is done tearing down.
     launcher.disconnectActiveClient(10, TimeUnit.SECONDS)
+
+    launchSynchronously = true // Do not start more threads, since that would cause ConcurrentModificationException below
+    asyncLauncherThreads.forEach {
+      it.join(1000) // Wait for the thread to finish
+      if (it.isAlive) {
+        it.interrupt() // Force the thread to finish
+        it.join()
+      }
+    }
   }
 
   private fun after() {

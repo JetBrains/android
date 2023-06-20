@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.mlkit.notifications;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -52,7 +52,7 @@ public class LowAgpVersionNotificationProvider implements EditorNotificationProv
     }
 
     AndroidPluginInfo androidPluginInfo = AndroidPluginInfo.findFromModel(project);
-    GradleVersion agpVersion = androidPluginInfo != null ? androidPluginInfo.getPluginVersion() : null;
+    AgpVersion agpVersion = androidPluginInfo != null ? androidPluginInfo.getPluginVersion() : null;
     if (agpVersion == null || agpVersion.compareTo(MIN_AGP_VERSION) >= 0) {
       return null;
     }

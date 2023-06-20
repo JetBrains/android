@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.npw.model
 
-import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.io.CancellableFileIo
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
 import com.android.tools.idea.npw.project.DomainToPackageExpression
@@ -82,8 +82,8 @@ interface ProjectModelData {
   val applicationName: StringProperty
   val packageName: StringProperty
   val projectLocation: StringProperty
-  val useAppCompat: BoolProperty
   val useGradleKts: BoolProperty
+  val useVersionCatalog: BoolProperty
   val viewBindingSupport: OptionalValueProperty<ViewBindingSupport>
   var project: Project
   val isNewProject: Boolean
@@ -97,8 +97,8 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val applicationName = StringValueProperty("My Application")
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
-  override val useAppCompat = BoolValueProperty()
   override val useGradleKts = BoolValueProperty()
+  override val useVersionCatalog = BoolValueProperty()
   // We can assume this is true for a new project because View binding is supported from AGP 3.6+
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(ViewBindingSupport.SUPPORTED_4_0_MORE)
   override lateinit var project: Project
@@ -109,7 +109,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       override fun run(indicator: ProgressIndicator) {
         val projectName = applicationName.get()
         val projectBaseDirectory = File(projectLocation.get())
-        val newProject = GradleProjectImporter.getInstance().createProject(projectName, projectBaseDirectory)
+        val newProject = GradleProjectImporter.getInstance()
+          .createProject(projectName, projectBaseDirectory, useDefaultProjectAsTemplate = true)
+
+        MakeBeforeRunTaskProviderUtil.ensureMakeBeforeRunTaskInConfigurationTemplate(newProject)
+
         this@NewProjectModel.project = newProject
 
         AndroidNewProjectInitializationStartupActivity.setProjectInitializer(newProject) {
@@ -121,7 +125,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
 
         val openProjectTask = OpenProjectTask {
           project = newProject
-          isNewProject = false  // We have already created a new project.
+          isNewProject = false
           forceOpenInNewFrame = true
         }
         ProjectManagerEx.getInstanceEx().openProject(projectBaseDirectory.toPath(), openProjectTask)
@@ -188,7 +192,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     override fun init() {
       projectTemplateDataBuilder.apply {
         topOut = File(project.basePath ?: "")
-        androidXSupport = !useAppCompat.get()
+        androidXSupport = true
 
         setProjectDefaults(project)
         language = this@NewProjectModel.language.value
@@ -228,9 +232,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         dryRun = dryRun,
         moduleRoot = null
       )
-      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
+      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else
+        DefaultRecipeExecutor(context, useVersionCatalog = useVersionCatalog.get())
       val recipe: Recipe = { data: TemplateData ->
-        androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, !useAppCompat.get(), useGradleKts.get())
+        androidProjectRecipe(data = data as ProjectTemplateData, appTitle = applicationName.get(), language = language.value,
+                             addAndroidXSupport = true, useGradleKts = useGradleKts.get(), useVersionCatalog = useVersionCatalog.get())
       }
 
       recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
@@ -242,7 +248,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         val rootLocation = File(projectLocation.get())
         val wrapperPropertiesFilePath = GradleWrapper.getDefaultPropertiesFilePath(rootLocation)
         try {
-          GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GRADLE_LATEST_VERSION)
+          GradleWrapper.get(wrapperPropertiesFilePath, project).updateDistributionUrl(GradleWrapper.getGradleVersionToUse())
         }
         catch (e: IOException) {
           // Unlikely to happen. Continue with import, the worst-case scenario is that sync fails and the error message has a "quick fix".
@@ -352,11 +358,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     fun nameToJavaPackage(name: String): String {
       val res = name.replace('-', '_').run {
         MODULE_NAME_GROUP.matcher(this).replaceAll("").run {
-          DISALLOWED_IN_DOMAIN.matcher(this).replaceAll("").toLowerCase(Locale.US)
+          DISALLOWED_IN_DOMAIN.matcher(this).replaceAll("").lowercase(Locale.US)
         }
       }
       if (res.isNotEmpty() && AndroidUtils.isReservedKeyword(res) != null) {
-        return StringUtil.fixVariableNameDerivedFromPropertyName(res).toLowerCase(Locale.US)
+        return StringUtil.fixVariableNameDerivedFromPropertyName(res).lowercase(Locale.US)
       }
       return res
     }

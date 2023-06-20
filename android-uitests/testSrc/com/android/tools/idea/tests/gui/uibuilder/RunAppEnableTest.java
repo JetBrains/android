@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -33,7 +34,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class RunAppEnableTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Activity";
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
 
   @Rule
   public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
@@ -58,7 +59,8 @@ public class RunAppEnableTest {
 
   @Before
   public void setUp() throws Exception {
-    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
+    // TODO: Change the build configuration language as KTS
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, BuildConfigurationLanguageForNewProject.Groovy); // Default projects are created with androidx dependencies
     guiTest.robot().waitForIdle();
   }
 

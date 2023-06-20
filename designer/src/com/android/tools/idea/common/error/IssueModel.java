@@ -196,6 +196,13 @@ public class IssueModel implements Disposable {
     updateErrorsList();
   }
 
+  public void removeAllIssueProviders() {
+    synchronized (myIssueProviders) {
+      myIssueProviders.forEach(provider -> provider.removeListener(myUpdateCallback));
+      myIssueProviders.clear();
+    }
+  }
+
   @NotNull
   public ImmutableList<Issue> getIssues() {
     return myIssues;

@@ -27,13 +27,15 @@ import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
+import javax.swing.Icon
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.GradleFileType
 import org.jetbrains.plugins.groovy.GroovyFileType
-import javax.swing.Icon
+import org.toml.lang.psi.TomlFileType
 
-/** Intention for adding a `@SuppressLint` annotation on the given element for the given id  */
-class SuppressLintIntentionAction(private val id: String, element: PsiElement) : IntentionAction, Iconable {
+/** Intention for adding a `@SuppressLint` annotation on the given element for the given id */
+class SuppressLintIntentionAction(private val id: String, element: PsiElement) :
+  IntentionAction, Iconable {
   private val label = SuppressLintQuickFix.displayName(element, id)
 
   constructor(issue: Issue, element: PsiElement) : this(issue.id, element)
@@ -50,9 +52,13 @@ class SuppressLintIntentionAction(private val id: String, element: PsiElement) :
 
   override fun isAvailable(project: Project, editor: Editor, file: PsiFile): Boolean {
     val type = file.fileType
-    return type === JavaFileType.INSTANCE || type === XmlFileType.INSTANCE ||
-           type === GroovyFileType.GROOVY_FILE_TYPE || type === GradleFileType ||
-           type === KotlinFileType.INSTANCE || file is PsiBinaryFile
+    return type === JavaFileType.INSTANCE ||
+      type === XmlFileType.INSTANCE ||
+      type === GroovyFileType.GROOVY_FILE_TYPE ||
+      type === GradleFileType ||
+      type === KotlinFileType.INSTANCE ||
+      file is PsiBinaryFile ||
+      type === TomlFileType
   }
 
   @Throws(IncorrectOperationException::class)
@@ -67,8 +73,7 @@ class SuppressLintIntentionAction(private val id: String, element: PsiElement) :
 
       val fix = SuppressLintQuickFix(id, element)
       fix.applyFix(element)
-    }
-    else {
+    } else {
       // For example, an icon file
       SuppressLintQuickFix(id, file).applyFix(file)
     }

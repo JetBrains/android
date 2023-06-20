@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.upgrade;
 
-import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.computeGradlePluginUpgradeState;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE;
 import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND;
+import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgrade.computeGradlePluginUpgradeState;
+import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND;
 import static org.junit.Assert.assertEquals;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.repository.AgpVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,7 +37,10 @@ import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
 public class ComputeGradlePluginUpgradeStateTest {
-  @Parameterized.Parameters
+
+  public static Object FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED = new Object();
+
+  @Parameterized.Parameters(name="current={0} latestKnown={1} published={2}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
       // Stable or RC to later stable should recommend an upgrade to the stable version.
@@ -65,6 +70,12 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"7.0.0", "7.1.0-beta01", Arrays.asList("7.0.1", "7.0.2"), RECOMMEND, "7.0.2"},
       {"7.0.0-rc01", "7.1.0-beta01", Arrays.asList("7.0.0", "7.0.1", "7.0.2"), RECOMMEND, "7.0.2"},
       {"7.0.0", "7.2.0-alpha01", Arrays.asList("7.1.0", "7.1.1", "7.0.0", "7.0.1", "7.0.2"), RECOMMEND, "7.1.1"},
+
+      // If there are published versions to upgrade to, don't suggest the latest version unless it is published
+      {"7.3.1", "7.4.1", Arrays.asList("7.3.0", "7.3.1", "7.4.0"), RECOMMEND, "7.4.0"},
+      {"7.3.1", "7.4.1", Arrays.asList("7.3.0", "7.3.1", "7.4.0", "7.4.1"), RECOMMEND, "7.4.1"},
+      // If there are no published versions to upgrade to, suggest the latest version
+      {"7.4.0", "7.4.1", Arrays.asList("7.3.0", "7.3.1", "7.4.0"), RECOMMEND, "7.4.1"},
 
       // Alpha or Beta to any later version should force an upgrade
       {"7.0.0-alpha01", "7.0.0-alpha02", Collections.emptyList(), FORCE, "7.0.0-alpha02"},
@@ -115,19 +126,19 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"7.0.0", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
       {"7.0.0-rc02", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc02"},
 
-      // If the latest known version is earlier than the current version, but they are not in the same rc/stable series, there should be
-      // a downgrade.
-      {"7.0.0-alpha02", "7.0.0-alpha01", Collections.emptyList(), FORCE, "7.0.0-alpha01"},
-      {"7.0.0-beta02", "7.0.0-beta01", Collections.emptyList(), FORCE, "7.0.0-beta01"},
-      {"7.0.0-beta01", "7.0.0-alpha02", Collections.emptyList(), FORCE, "7.0.0-alpha02"},
-      {"7.0.0-rc01", "7.0.0-beta02", Collections.emptyList(), FORCE, "7.0.0-beta02"},
-      {"7.0.0-rc01", "7.0.0-alpha02", Collections.emptyList(), FORCE, "7.0.0-alpha02"},
-      {"7.0.0", "7.0.0-beta01", Collections.emptyList(), FORCE, "7.0.0-beta01"},
-      {"7.0.0", "7.0.0-alpha01", Collections.emptyList(), FORCE, "7.0.0-alpha01"},
-      {"7.1.0-alpha01", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
-      {"7.1.0-beta02", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
-      {"7.1.0-rc03", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
-      {"7.1.0", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
+      // If the latest known version is earlier than the current version, but they are not in the same rc/stable series
+      // and the flag to support newer AGP versions is not enabled, there should be a downgrade.
+      {"7.0.0-alpha02", "7.0.0-alpha01", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-alpha01"},
+      {"7.0.0-beta02", "7.0.0-beta01", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-beta01"},
+      {"7.0.0-beta01", "7.0.0-alpha02", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-alpha02"},
+      {"7.0.0-rc01", "7.0.0-beta02", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-beta02"},
+      {"7.0.0-rc01", "7.0.0-alpha02", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-alpha02"},
+      {"7.0.0", "7.0.0-beta01", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-beta01"},
+      {"7.0.0", "7.0.0-alpha01", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-alpha01"},
+      {"7.1.0-alpha01", "7.0.4", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.4"},
+      {"7.1.0-beta02", "7.0.4", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.4"},
+      {"7.1.0-rc03", "7.0.4", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.4"},
+      {"7.1.0", "7.0.4", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.4"},
 
       // Versions earlier than our minimum supported version should force an upgrade.
       {"3.1.0", "7.0.0", Collections.emptyList(), FORCE, "7.0.0"},
@@ -139,35 +150,41 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"3.1.0", "7.0.0", Arrays.asList("3.2.0-alpha01", "3.2.0-beta02", "3.2.0", "3.2.1", "3.2.2", "3.3.0", "3.3.1"), FORCE, "3.2.2"},
       {"3.1.0", "3.2.1", Arrays.asList("3.2.0-alpha01", "3.2.0-beta02", "3.2.0", "3.2.1", "3.2.2", "3.3.0", "3.3.1"), FORCE, "3.2.1"},
 
-      // If we have no available published stable, we will always recommend the latest known version
+      // If we have no available published stable, we will always recommend the latest known version, strongly if the current version
+      // is deprecated and the latest known is not.
       {"3.5.0", "3.6.1", Collections.emptyList(), RECOMMEND, "3.6.1"},
-      {"3.5.0", "4.0.0", Collections.emptyList(), RECOMMEND, "4.0.0"},
-      {"3.5.0", "4.1.1", Collections.emptyList(), RECOMMEND, "4.1.1"},
-      {"3.5.0", "4.2.2", Collections.emptyList(), RECOMMEND, "4.2.2"},
-      {"3.5.0", "7.0.3", Collections.emptyList(), RECOMMEND, "7.0.3"},
-      {"3.5.0", "7.1.2", Collections.emptyList(), RECOMMEND, "7.1.2"},
-      {"3.5.0", "7.2.1", Collections.emptyList(), RECOMMEND, "7.2.1"},
-      {"3.5.0", "7.3.0", Collections.emptyList(), RECOMMEND, "7.3.0"},
-      {"3.5.0", "8.0.0", Collections.emptyList(), RECOMMEND, "8.0.0"},
+      {"3.5.0", "4.0.0", Collections.emptyList(), STRONGLY_RECOMMEND, "4.0.0"},
+      {"3.5.0", "4.1.1", Collections.emptyList(), STRONGLY_RECOMMEND, "4.1.1"},
+      {"3.5.0", "4.2.2", Collections.emptyList(), STRONGLY_RECOMMEND, "4.2.2"},
+      {"3.5.0", "7.0.3", Collections.emptyList(), STRONGLY_RECOMMEND, "7.0.3"},
+      {"3.5.0", "7.1.2", Collections.emptyList(), STRONGLY_RECOMMEND, "7.1.2"},
+      {"3.5.0", "7.2.1", Collections.emptyList(), STRONGLY_RECOMMEND, "7.2.1"},
+      {"3.5.0", "7.3.0", Collections.emptyList(), STRONGLY_RECOMMEND, "7.3.0"},
+      {"3.5.0", "8.0.0", Collections.emptyList(), STRONGLY_RECOMMEND, "8.0.0"},
+      {"4.0.0", "4.1.1", Collections.emptyList(), RECOMMEND, "4.1.1"},
+      {"4.0.0", "7.0.3", Collections.emptyList(), RECOMMEND, "7.0.3"},
+      {"4.0.0", "8.0.0", Collections.emptyList(), RECOMMEND, "8.0.0"},
 
       // If we have published stable versions between the current and the latest known, recommend going over at most one major version
-      // boundary (and that only if we are at the last known major.minor series before the boundary)
-      {"3.5.0", "4.0.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.0", "4.0.0", publishedVersions, RECOMMEND, "4.0.0"},
-      {"3.6.1", "4.0.0", publishedVersions, RECOMMEND, "4.0.0"},
-      {"3.5.0", "4.1.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.0", "4.1.0", publishedVersions, RECOMMEND, "4.1.0"},
-      {"3.6.1", "4.1.0", publishedVersions, RECOMMEND, "4.1.0"},
-      {"3.5.0", "4.2.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.0", "4.2.0", publishedVersions, RECOMMEND, "4.2.0"},
-      {"3.6.1", "4.2.0", publishedVersions, RECOMMEND, "4.2.0"},
-      {"3.5.0", "7.0.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.0", "7.0.0", publishedVersions, RECOMMEND, "4.2.2"},
-      {"3.6.1", "7.0.0", publishedVersions, RECOMMEND, "4.2.2"},
-      {"3.5.0", "7.3.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.1", "7.3.0", publishedVersions, RECOMMEND, "4.2.2"},
-      {"3.5.0", "8.0.0", publishedVersions, RECOMMEND, "3.6.1"},
-      {"3.6.0", "8.0.1", publishedVersions, RECOMMEND, "4.2.2"},
+      // boundary (and that only if we are at the last known major.minor series before the boundary).  If we start at a deprecated
+      // version, strongly recommend rather than recommend, but otherwise follow the same version suggestion (even if that version is
+      // also a deprecated one.)
+      {"3.5.0", "4.0.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.0", "4.0.0", publishedVersions, STRONGLY_RECOMMEND, "4.0.0"},
+      {"3.6.1", "4.0.0", publishedVersions, STRONGLY_RECOMMEND, "4.0.0"},
+      {"3.5.0", "4.1.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.0", "4.1.0", publishedVersions, STRONGLY_RECOMMEND, "4.1.0"},
+      {"3.6.1", "4.1.0", publishedVersions, STRONGLY_RECOMMEND, "4.1.0"},
+      {"3.5.0", "4.2.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.0", "4.2.0", publishedVersions, STRONGLY_RECOMMEND, "4.2.0"},
+      {"3.6.1", "4.2.0", publishedVersions, STRONGLY_RECOMMEND, "4.2.0"},
+      {"3.5.0", "7.0.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.0", "7.0.0", publishedVersions, STRONGLY_RECOMMEND, "4.2.2"},
+      {"3.6.1", "7.0.0", publishedVersions, STRONGLY_RECOMMEND, "4.2.2"},
+      {"3.5.0", "7.3.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.1", "7.3.0", publishedVersions, STRONGLY_RECOMMEND, "4.2.2"},
+      {"3.5.0", "8.0.0", publishedVersions, STRONGLY_RECOMMEND, "3.6.1"},
+      {"3.6.0", "8.0.1", publishedVersions, STRONGLY_RECOMMEND, "4.2.2"},
       {"4.0.0", "7.0.0", publishedVersions, RECOMMEND, "4.2.2"},
       {"4.2.0", "7.0.0", publishedVersions, RECOMMEND, "7.0.0"},
       {"4.2.1", "7.0.0", publishedVersions, RECOMMEND, "7.0.0"},
@@ -198,28 +215,43 @@ public class ComputeGradlePluginUpgradeStateTest {
     "8.0.0", "8.0.1", "8.1.0-rc02"
   );
 
-  private final GradleVersion current;
-  private final GradleVersion latestKnown;
-  private final Set<GradleVersion> published;
-  private final GradlePluginUpgradeState.Importance importance;
-  private final GradleVersion expectedTarget;
+  private final AgpVersion current;
+  private final AgpVersion latestKnown;
+  private final Set<AgpVersion> published;
+  private final GradlePluginUpgradeState.Importance importanceNoFutureCompatibility;
+  private final GradlePluginUpgradeState.Importance importanceWithFutureCompatibility;
+  private final AgpVersion expectedTarget;
 
   public ComputeGradlePluginUpgradeStateTest(@NotNull String current,
                                              @NotNull String latestKnown,
                                              @NotNull List<String> published,
-                                             @NotNull GradlePluginUpgradeState.Importance importance,
+                                             @NotNull Object importance,
                                              @NotNull String expectedTarget) {
-    this.current = GradleVersion.parse(current);
-    this.latestKnown = GradleVersion.parse(latestKnown);
-    this.published = published.stream().map(GradleVersion::parse).collect(Collectors.toSet());
-    this.importance = importance;
-    this.expectedTarget = GradleVersion.parse(expectedTarget);
+    this.current = AgpVersion.parse(current);
+    this.latestKnown = AgpVersion.parse(latestKnown);
+    this.published = published.stream().map(AgpVersion::parse).collect(Collectors.toSet());
+    if (importance == FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED) {
+      importanceNoFutureCompatibility = FORCE;
+      importanceWithFutureCompatibility = NO_UPGRADE;
+    } else {
+      importanceNoFutureCompatibility = (GradlePluginUpgradeState.Importance) importance;
+      importanceWithFutureCompatibility = (GradlePluginUpgradeState.Importance) importance;
+    }
+    this.expectedTarget = AgpVersion.parse(expectedTarget);
   }
 
   @Test
   public void testComputeGradlePluginUpgradeState() {
-    GradlePluginUpgradeState state = computeGradlePluginUpgradeState(current, latestKnown, published);
+    GradlePluginUpgradeState state = computeGradlePluginUpgradeState(current, latestKnown, published, false);
     assertEquals("computing upgrade state from " + current + " to " + latestKnown + " with published versions " + published,
-                 new GradlePluginUpgradeState(importance, expectedTarget), state);
+                 new GradlePluginUpgradeState(importanceNoFutureCompatibility, expectedTarget), state);
+  }
+
+  @Test
+  public void testComputeGradlePluginUpgradeStateWithNewerSupport() {
+    GradlePluginUpgradeState state = computeGradlePluginUpgradeState(current, latestKnown, published, true);
+    AgpVersion overriddenExpectedTarget = importanceWithFutureCompatibility == NO_UPGRADE ? current : expectedTarget;
+    assertEquals("computing upgrade state from " + current + " to " + latestKnown + " with published versions " + published,
+                 new GradlePluginUpgradeState(importanceWithFutureCompatibility, overriddenExpectedTarget), state);
   }
 }

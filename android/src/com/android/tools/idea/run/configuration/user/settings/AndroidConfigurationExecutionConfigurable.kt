@@ -27,6 +27,7 @@ import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
+import org.jetbrains.android.util.AndroidBundle
 
 class AndroidConfigurationExecutionConfigurableProvider : ConfigurableProvider() {
   override fun createConfigurable(): Configurable {
@@ -34,7 +35,7 @@ class AndroidConfigurationExecutionConfigurableProvider : ConfigurableProvider()
   }
 }
 
-class AndroidConfigurationExecutionConfigurable : BoundConfigurable("Android Configurations") {
+class AndroidConfigurationExecutionConfigurable : BoundConfigurable(AndroidBundle.message("configurable.AndroidConfigurations.displayName")) {
 
   private val settings = AndroidConfigurationExecutionSettings.getInstance()
 

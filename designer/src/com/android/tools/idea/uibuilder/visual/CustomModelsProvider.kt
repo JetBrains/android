@@ -81,7 +81,7 @@ private object CustomModelDataContext: DataContext {
  * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br>
  * The custom [Configuration] is added by [AddCustomConfigurationAction].
  */
-class CustomModelsProvider(private val customId: String,
+class CustomModelsProvider(val customId: String,
                            val customConfigSet: CustomConfigurationSet,
                            private val configurationSetListener: ConfigurationSetListener) : VisualizationModelsProvider {
 
@@ -115,7 +115,7 @@ class CustomModelsProvider(private val customId: String,
     }
 
     val currentFile = file.virtualFile ?: return emptyList()
-    val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val currentFileConfig = configurationManager.getConfiguration(currentFile)
 
     val models = mutableListOf<NlModel>()
@@ -123,9 +123,8 @@ class CustomModelsProvider(private val customId: String,
     // Default layout file. (Based on current configuration in Layout Editor)
     models.add(NlModel.builder(facet, currentFile, currentFileConfig)
       .withParentDisposable(parentDisposable)
-      .withModelDisplayName("Default (Current File)")
       .withComponentRegistrar(NlComponentRegistrar)
-      .build())
+      .build().apply { modelDisplayName = "Default (Current File)" })
 
     // Custom Configurations
     for (attributes in customConfigSet.customConfigAttributes) {
@@ -140,11 +139,11 @@ class CustomModelsProvider(private val customId: String,
 
       val model = NlModel.builder(facet, betterFile, config)
         .withParentDisposable(parentDisposable)
-        .withModelDisplayName(customConfig.name)
         .withModelTooltip(config.toHtmlTooltip())
         .withComponentRegistrar(NlComponentRegistrar)
         .withDataContext(CustomModelDataContext)
         .build()
+      model.modelDisplayName = customConfig.name
       models.add(model)
       Disposer.register(model, config)
       configurationToConfigurationAttributesMap[config] = attributes

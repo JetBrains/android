@@ -4,6 +4,10 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.guiTestFramework",
     srcs = ["src"],
+    data = [
+        "//tools/adt/idea/studio:default_user_jvm_args",
+        "//tools/adt/idea/studio:required_jvm_args",
+    ],
     iml_files = ["intellij.android.guiTestFramework.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = ["no_test_windows"],
@@ -44,12 +48,13 @@ iml_module(
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
-        "//tools/adt/idea/emulator:intellij.android.emulator[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module, test]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
+        "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
     ],
 )

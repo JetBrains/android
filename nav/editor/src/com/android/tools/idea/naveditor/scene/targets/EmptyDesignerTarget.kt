@@ -33,7 +33,10 @@ import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
 import org.intellij.lang.annotations.JdkConstants
 
 @SwingCoordinate
-val WIDTH = 240
+private val WIDTH = 240
+
+@SwingCoordinate
+private val MIN_X_OFFSET = 10
 
 class EmptyDesignerTarget(private val surface: DesignSurface<*>) : BaseTarget() {
   override fun getPreferenceLevel() = ACTION_LEVEL
@@ -45,10 +48,10 @@ class EmptyDesignerTarget(private val surface: DesignSurface<*>) : BaseTarget() 
     @NavCoordinate r: Int,
     @NavCoordinate b: Int
   ): Boolean {
-    @NavCoordinate val width = Coordinates.getAndroidDimension(surface, WIDTH)
-    @NavCoordinate val height = Coordinates.getAndroidDimension(surface, ADD_DESTINATION.iconHeight)
+    @NavCoordinate val width = minOf(Coordinates.getAndroidDimension(surface, WIDTH), r - l)
+    @NavCoordinate val height = minOf(Coordinates.getAndroidDimension(surface, ADD_DESTINATION.iconHeight), b - t)
 
-    myLeft = ((l + r - width) / 2).toFloat()
+    myLeft = maxOf(((l + r - width) / 2), Coordinates.getAndroidDimension(surface, MIN_X_OFFSET)).toFloat()
     myTop = ((t + b - height) / 2).toFloat()
     myRight = myLeft + width
     myBottom = myTop + height

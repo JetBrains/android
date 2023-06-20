@@ -40,6 +40,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -330,7 +331,8 @@ public class TransportPipelineDialog extends DialogWrapper {
             .setAttachAgent(
               Commands.AttachAgent.newBuilder()
                 .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
-                .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
+                .setAgentConfigPath(TransportFileManager.getAgentConfigFile())
+                .setPackageName(process.getPackageName()))
             .build();
           // TODO(b/150503095)
           Transport.ExecuteResponse response =

@@ -25,7 +25,7 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.getAppThemeName
 import com.android.tools.idea.res.LocalResourceRepository
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.text.StringUtil.trimStart
 
@@ -35,7 +35,7 @@ private const val DEFAULT_THEME_NAME = "Theme.App"
  * Theme utility class for use with templates.
  */
 class ThemeHelper(private val module: Module) {
-  private val projectRepository: LocalResourceRepository? = ResourceRepositoryManager.getProjectResources(module)
+  private val projectRepository: LocalResourceRepository? = StudioResourceRepositoryManager.getProjectResources(module)
   val appThemeName: String?
     get() {
       val manifestTheme = module.getAppThemeName()

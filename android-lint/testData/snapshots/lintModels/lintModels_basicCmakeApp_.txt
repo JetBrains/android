@@ -4,7 +4,7 @@ MODULE                        : project.app
     ModulePath                    : :app
     Type                          : APP
     MavenName                     : project:app:
-    GradleVersion                 : <AGP_VERSION>
+    AGPVersion                    : <AGP_VERSION>
     BuildFolder                   : <ROOT>/app/build
     - BootClassPath               : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
     JavaSourceLevel               : 1.8
@@ -24,11 +24,8 @@ MODULE                        : project.app
         MainArtifact
             ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long
             - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/debug [-]
-            - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/debug [-]
-            - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debug/out [-]
             - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debug/out [-]
-            - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/debug [-]
+            - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
             Dependencies
                 CompileDependencies
                 PackageDependencies
@@ -44,11 +41,8 @@ MODULE                        : project.app
             - ClassOutputs                : <ROOT>/app/build/intermediates/javac/debugUnitTest/classes [-]
         ApplicationId                 : com.example.basiccmakeapp.whose.name.is.at.least.seventy.characters.long.test
         - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/resValues/androidTest/debug [-]
-        - GeneratedResourceFolders    : <ROOT>/app/build/generated/res/rs/androidTest/debug [-]
-        - GeneratedSourceFolders      : <ROOT>/app/build/generated/aidl_source_output_dir/debugAndroidTest/out [-]
         - GeneratedSourceFolders      : <ROOT>/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/app/build/generated/renderscript_source_output_dir/debugAndroidTest/out [-]
-        - GeneratedSourceFolders      : <ROOT>/app/build/generated/source/buildConfig/androidTest/debug [-]
+        - DesugaredMethodFiles        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
         Dependencies
             CompileDependencies
                 artifacts::app                : null => :app@main
@@ -59,33 +53,33 @@ MODULE                        : project.app
         MinSdkVersion                 : API 16
         TargetSdkVersion              : API <SDK_VERSION>
         SourceProviders
-            ManifestFile                  : <ROOT>/app/src/main/AndroidManifest.xml
+            - ManifestFiles               : <ROOT>/app/src/main/AndroidManifest.xml
             - JavaDirectories             : <ROOT>/app/src/main/java
             - JavaDirectories             : <ROOT>/app/src/main/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/main/res
             - AssetsDirectories           : <ROOT>/app/src/main/assets [-]
-            ManifestFile                  : <ROOT>/app/src/debug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/app/src/debug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/debug/java [-]
             - JavaDirectories             : <ROOT>/app/src/debug/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/debug/res [-]
             - AssetsDirectories           : <ROOT>/app/src/debug/assets [-]
         TestSourceProviders
-            ManifestFile                  : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/app/src/androidTest/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/androidTest/java [-]
             - JavaDirectories             : <ROOT>/app/src/androidTest/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/androidTest/res [-]
             - AssetsDirectories           : <ROOT>/app/src/androidTest/assets [-]
-            ManifestFile                  : <ROOT>/app/src/test/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/app/src/test/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/test/java [-]
             - JavaDirectories             : <ROOT>/app/src/test/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/test/res [-]
             - AssetsDirectories           : <ROOT>/app/src/test/assets [-]
-            ManifestFile                  : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/app/src/androidTestDebug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/androidTestDebug/java [-]
             - JavaDirectories             : <ROOT>/app/src/androidTestDebug/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/androidTestDebug/res [-]
             - AssetsDirectories           : <ROOT>/app/src/androidTestDebug/assets [-]
-            ManifestFile                  : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
+            - ManifestFiles               : <ROOT>/app/src/testDebug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/testDebug/java [-]
             - JavaDirectories             : <ROOT>/app/src/testDebug/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/testDebug/res [-]

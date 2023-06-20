@@ -15,88 +15,107 @@
  */
 package com.android.tools.idea.profilers.profilingconfig;
 
+import static com.android.tools.profilers.cpu.config.ProfilingConfiguration.SYSTEM_TRACE_BUFFER_SIZE_MB;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
-import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
+import com.android.tools.profilers.cpu.config.ArtSampledConfiguration;
+import com.android.tools.profilers.cpu.config.AtraceConfiguration;
+import com.android.tools.profilers.cpu.config.PerfettoConfiguration;
+import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
+import com.android.tools.profilers.cpu.config.SimpleperfConfiguration;
+import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 
-public final class CpuProfilerConfigConverter {
+public class CpuProfilerConfigConverter {
 
-  private CpuProfilerConfigConverter() {}
-
-  /**
-   * Converts from list of {@link CpuProfilerConfig} to list of {@link Cpu.CpuTraceConfiguration}
-   */
-  public static List<Cpu.CpuTraceConfiguration.UserOptions> toProto(List<CpuProfilerConfig> configs, int deviceApi) {
-    return ContainerUtil.map(configs, config -> toProto(config, deviceApi));
-  }
+  private CpuProfilerConfigConverter() { }
 
   /**
-   * Converts from {@link CpuProfilerConfig} to {@link Cpu.CpuTraceConfiguration.UserOptions}
+   * Converts from a {@link ProfilingConfiguration} to a {@link CpuProfilerConfig}
    */
-  public static Cpu.CpuTraceConfiguration.UserOptions toProto(CpuProfilerConfig config, int deviceApi) {
-    Cpu.CpuTraceConfiguration.UserOptions.Builder protoBuilder = Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
-      .setName(config.getName())
-      .setBufferSizeInMb(config.getBufferSizeMb())
-      .setSamplingIntervalUs(config.getSamplingIntervalUs())
-      .setDisableLiveAllocation(config.isDisableLiveAllocation());
+  public static CpuProfilerConfig fromProfilingConfiguration(ProfilingConfiguration config) {
+    CpuProfilerConfig cpuProfilerConfig = null;
 
-    switch (config.getTechnology()) {
-      case SAMPLED_JAVA:
-        protoBuilder.setTraceType(Cpu.CpuTraceType.ART);
-        protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
-        break;
-      case INSTRUMENTED_JAVA:
-        protoBuilder.setTraceType(Cpu.CpuTraceType.ART);
-        protoBuilder.setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED);
-        break;
-      case SAMPLED_NATIVE:
-        protoBuilder.setTraceType(Cpu.CpuTraceType.SIMPLEPERF);
-        protoBuilder.setTraceMode(Cpu.CpuTraceMode.SAMPLED);
-        break;
-      case SYSTEM_TRACE:
-        if (deviceApi >= AndroidVersion.VersionCodes.P) {
-          protoBuilder.setTraceType(Cpu.CpuTraceType.PERFETTO);
-        } else {
-          protoBuilder.setTraceType(Cpu.CpuTraceType.ATRACE);
-        }
-        protoBuilder.setTraceMode(Cpu.CpuTraceMode.INSTRUMENTED);
-        break;
-    }
-
-    return protoBuilder.build();
-  }
-
-  /**
-   * Converts from {@link Cpu.CpuTraceConfiguration.UserOptions} to {@link CpuProfilerConfig}
-   */
-  public static CpuProfilerConfig fromProto(Cpu.CpuTraceConfiguration.UserOptions proto) {
-    CpuProfilerConfig config = new CpuProfilerConfig()
-      .setName(proto.getName())
-      .setSamplingIntervalUs(proto.getSamplingIntervalUs())
-      .setBufferSizeMb(proto.getBufferSizeInMb())
-      .setDisableLiveAllocation(proto.getDisableLiveAllocation());
-
-    switch (proto.getTraceType()) {
+    switch (config.getTraceType()) {
       case ART:
-        if (proto.getTraceMode() == Cpu.CpuTraceMode.SAMPLED) {
-          config.setTechnology(CpuProfilerConfig.Technology.SAMPLED_JAVA);
+        if (config instanceof ArtSampledConfiguration) {
+          ArtSampledConfiguration artSampledConfiguration = (ArtSampledConfiguration)config;
+          cpuProfilerConfig = new CpuProfilerConfig(artSampledConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA);
+          cpuProfilerConfig.setSamplingIntervalUs(artSampledConfiguration.getProfilingSamplingIntervalUs());
+          cpuProfilerConfig.setBufferSizeMb(artSampledConfiguration.getProfilingBufferSizeInMb());
         }
         else {
-          config.setTechnology(CpuProfilerConfig.Technology.INSTRUMENTED_JAVA);
+          ArtInstrumentedConfiguration artInstrumentedConfiguration = (ArtInstrumentedConfiguration)config;
+          cpuProfilerConfig = new CpuProfilerConfig(artInstrumentedConfiguration.getName(), CpuProfilerConfig.Technology.INSTRUMENTED_JAVA);
+          cpuProfilerConfig.setBufferSizeMb(artInstrumentedConfiguration.getProfilingBufferSizeInMb());
         }
         break;
       case SIMPLEPERF:
-        config.setTechnology(CpuProfilerConfig.Technology.SAMPLED_NATIVE);
+        SimpleperfConfiguration simpleperfConfiguration = (SimpleperfConfiguration)config;
+        cpuProfilerConfig = new CpuProfilerConfig(simpleperfConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_NATIVE);
+        cpuProfilerConfig.setSamplingIntervalUs(simpleperfConfiguration.getProfilingSamplingIntervalUs());
         break;
-      case ATRACE: // fall-through
+      case ATRACE:
+        AtraceConfiguration atraceConfiguration = (AtraceConfiguration)config;
+        cpuProfilerConfig = new CpuProfilerConfig(atraceConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
+        cpuProfilerConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
+        break;
       case PERFETTO:
-        config.setTechnology(CpuProfilerConfig.Technology.SYSTEM_TRACE);
+        PerfettoConfiguration perfettoConfiguration = (PerfettoConfiguration)config;
+        cpuProfilerConfig = new CpuProfilerConfig(perfettoConfiguration.getName(), CpuProfilerConfig.Technology.SYSTEM_TRACE);
+        cpuProfilerConfig.setBufferSizeMb(SYSTEM_TRACE_BUFFER_SIZE_MB);
         break;
-      default:
-        throw new IllegalArgumentException("Unsupported trace type: " + proto.getTraceType());
+      case UNSPECIFIED:
+        UnspecifiedConfiguration unspecifiedConfiguration = (UnspecifiedConfiguration)config;
+        cpuProfilerConfig = new CpuProfilerConfig(unspecifiedConfiguration.getName(), CpuProfilerConfig.Technology.SAMPLED_JAVA);
+        break;
     }
-    return config;
+
+    return cpuProfilerConfig;
+  }
+
+  /**
+   * Converts from a {@link CpuProfilerConfig} to a {@link ProfilingConfiguration}
+   */
+  public static ProfilingConfiguration toProfilingConfiguration(CpuProfilerConfig config, int deviceApi) {
+    ProfilingConfiguration configuration = null;
+
+    String name = config.getName();
+
+    switch (config.getTechnology()) {
+      case SAMPLED_JAVA:
+        configuration = new ArtSampledConfiguration(name);
+        ((ArtSampledConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
+        ((ArtSampledConfiguration)configuration).setProfilingSamplingIntervalUs(config.getSamplingIntervalUs());
+        break;
+      case INSTRUMENTED_JAVA:
+        configuration = new ArtInstrumentedConfiguration(name);
+        ((ArtInstrumentedConfiguration)configuration).setProfilingBufferSizeInMb(config.getBufferSizeMb());
+        break;
+      case SAMPLED_NATIVE:
+        configuration = new SimpleperfConfiguration(name);
+        ((SimpleperfConfiguration)configuration).setProfilingSamplingIntervalUs(config.getSamplingIntervalUs());
+        break;
+      case SYSTEM_TRACE:
+        if (deviceApi >= AndroidVersion.VersionCodes.P) {
+          configuration = new PerfettoConfiguration(name);
+        }
+        else {
+          configuration = new AtraceConfiguration(name);
+        }
+        break;
+    }
+
+    return configuration;
+  }
+
+  /**
+   * Converts from list of {@link CpuProfilerConfig} to a list of {@link ProfilingConfiguration}
+   */
+  public static List<ProfilingConfiguration> toProfilingConfiguration(List<CpuProfilerConfig> configs, int deviceApi) {
+    return ContainerUtil.map(configs, config -> toProfilingConfiguration(config, deviceApi));
   }
 }

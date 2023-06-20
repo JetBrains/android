@@ -70,7 +70,7 @@ final class Battery {
     myLevel = level;
   }
 
-  static @NotNull Optional<@NotNull Battery> newBattery(@NotNull List<@NotNull String> output) {
+  static @NotNull Optional<Battery> newBattery(@NotNull List<String> output) {
     Optional<Boolean> ac = parseBoolean(AC, output.get(1));
     Optional<Boolean> usb = parseBoolean(USB, output.get(2));
     Optional<Boolean> wireless = parseBoolean(WIRELESS, output.get(3));
@@ -84,7 +84,7 @@ final class Battery {
     return Optional.of(new Battery(ChargingType.valueOf(ac.get(), usb.get(), wireless.get()), 100 * level.getAsInt() / scale.getAsInt()));
   }
 
-  private static @NotNull Optional<@NotNull Boolean> parseBoolean(@NotNull Pattern pattern, @NotNull String string) {
+  private static @NotNull Optional<Boolean> parseBoolean(@NotNull Pattern pattern, @NotNull String string) {
     Matcher matcher = pattern.matcher(string);
 
     if (!matcher.matches()) {

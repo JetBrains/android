@@ -49,7 +49,7 @@ public final class ValidationError implements Comparable<ValidationError> {
   @NotNull private final Severity mySeverity;
   @NotNull private final String myMessage;
   @Nullable private final Category myCategory;
-  private final @Nullable ConfigurationQuickFix myQuickfix;
+  @Nullable private final ConfigurationQuickFix myQuickfix;
 
   private ValidationError(@NotNull Severity severity, @NotNull String message, @Nullable Category category, @Nullable ConfigurationQuickFix quickfix) {
     mySeverity = severity;
@@ -128,7 +128,8 @@ public final class ValidationError implements Comparable<ValidationError> {
     return myCategory;
   }
 
-  public @Nullable ConfigurationQuickFix getQuickfix() {
+  @Nullable
+  public ConfigurationQuickFix getQuickfix() {
     return myQuickfix;
   }
 

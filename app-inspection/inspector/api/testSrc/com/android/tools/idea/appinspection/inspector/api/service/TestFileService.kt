@@ -15,7 +15,8 @@ class TestFileService(cacheRoot: String, tmpRoot: String) : DiskFileService() {
 
   private val uniqueDir = UUID.randomUUID().toString()
 
-  override val cacheRoot: Path = Paths.get(cacheRoot).resolve(uniqueDir).also { createAndInitDir(it) }
+  override val cacheRoot: Path =
+    Paths.get(cacheRoot).resolve(uniqueDir).also { createAndInitDir(it) }
   override val tmpRoot: Path = Paths.get(tmpRoot).resolve(uniqueDir).also { createAndInitDir(it) }
 
   private fun createAndInitDir(path: Path) {
@@ -23,6 +24,4 @@ class TestFileService(cacheRoot: String, tmpRoot: String) : DiskFileService() {
     f.mkdirs()
     f.deleteOnExit()
   }
-
 }
-

@@ -40,7 +40,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ComponentHelpAction extends AnAction {
-  private static final String DEFAULT_ANDROID_REFERENCE_PREFIX = "https://developer.android.com/reference/";
+  private static final String ANDROID_REFERENCE_PREFIX = "https://developer.android.com/reference/";
+  private static final String GOOGLE_REFERENCE_PREFIX = "https://developers.google.com/android/reference/";
+
 
   private final Project myProject;
   private final Supplier<String> myTagNameSupplier;
@@ -102,9 +104,11 @@ public class ComponentHelpAction extends AnAction {
   private static String computeReferenceFromClassName(@NotNull String className) {
     if (className.startsWith(ANDROID_PKG_PREFIX) ||
         className.startsWith(ANDROID_SUPPORT_PKG_PREFIX) ||
-        className.startsWith(ANDROIDX_PKG_PREFIX) ||
-        className.startsWith(GOOGLE_SUPPORT_ARTIFACT_PREFIX)) {
-      return DEFAULT_ANDROID_REFERENCE_PREFIX + className.replace('.', '/') + ".html";
+        className.startsWith(ANDROIDX_PKG_PREFIX)) {
+      return ANDROID_REFERENCE_PREFIX + className.replace('.', '/') + ".html";
+    }
+    else if (className.startsWith(GOOGLE_SUPPORT_ARTIFACT_PREFIX)) {
+      return GOOGLE_REFERENCE_PREFIX + className.replace('.', '/');
     }
     return null;
   }

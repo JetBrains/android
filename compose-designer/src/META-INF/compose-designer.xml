@@ -94,12 +94,52 @@
                      key="inspection.update.transition.no.label.parameter.set.name"
                      level="WARNING"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.AnimatedContentLabelInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="messages.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.animated.content.no.label.parameter.set.name"
+                     level="WARNING"/>
+
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.InfiniteTransitionLabelInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="messages.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.remember.infinite.transition.no.label.parameter.set.name"
+                     level="WARNING"/>
+
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.AnimateAsStateLabelInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="messages.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.animate.as.state.no.label.parameter.set.name"
+                     level="WARNING"/>
+
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.CrossfadeLabelInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="messages.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.crossfade.no.label.parameter.set.name"
+                     level="WARNING"/>
+
     <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.TransitionPropertiesLabelInspection"
                      language="kotlin"
                      enabledByDefault="true"
                      bundle="messages.ComposePreviewBundle"
                      groupKey="inspection.group.name"
                      key="inspection.transition.properties.no.label.parameter.set.name"
+                     level="WARNING"/>
+
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.InfinitePropertiesLabelInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="messages.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.infinite.transition.properties.no.label.parameter.set.name"
                      level="WARNING"/>
 
     <localInspection implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerAnnotationInspection"
@@ -175,6 +215,12 @@
             use-shortcut-of="Android.Designer.IssueNotificationAction" />
     <action internal="true" id="FastRefresh.RestartProcess" class="com.android.tools.idea.compose.preview.actions.internal.ForcePreviewDaemonStop" />
     <action internal="true" id="FastRefresh.SimulateAutoDisable" class="com.android.tools.idea.compose.preview.actions.internal.SimulateFastPreviewAutoDisable" />
+
+    <action id="Android.Designer.CommonActions.ForceCompileAndRefreshActionForNotification"
+            class="com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshActionForNotification"
+            use-shortcut-of="ForceRefresh" >
+      <add-to-group group-id="Android.Designer.CommonActions" />
+    </action>
   </actions>
 
 </idea-plugin>

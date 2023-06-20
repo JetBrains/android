@@ -21,21 +21,34 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.openapi.wm.impl.TestWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
-import java.awt.*
+import java.awt.Component
+import java.awt.Container
+import java.awt.Graphics2D
+import java.awt.GraphicsConfiguration
+import java.awt.GraphicsDevice
+import java.awt.ImageCapabilities
+import java.awt.Point
+import java.awt.Rectangle
+import java.awt.Window
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.awt.image.ColorModel
+import java.awt.image.ImageObserver
+import java.awt.image.VolatileImage
 import java.util.function.Predicate
 import javax.swing.JLabel
 import javax.swing.JRootPane
@@ -46,8 +59,14 @@ import javax.swing.SwingUtilities
  *
  * @param root the top-level component
  * @param screenScale size of a virtual pixel in physical pixels; used for emulating a HiDPI screen
+ * @param parentDisposable if provided, FakeUi will use it to clean up
  */
-class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Double = 1.0, createFakeWindow: Boolean = false) {
+class FakeUi @JvmOverloads constructor(
+  val root: Component,
+  val screenScale: Double = 1.0,
+  createFakeWindow: Boolean = false,
+  parentDisposable: Disposable? = null,
+) {
 
   @JvmField
   val keyboard: FakeKeyboard = FakeKeyboard()
@@ -70,13 +89,15 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
         // Replace TestWindowManager with a more lenient version.
         application.registerServiceInstance(WindowManager::class.java, FakeUiWindowManager())
       }
-      wrapInFakeWindow(rootPane)
+      wrapInFakeWindow(rootPane, parentDisposable)
     }
 
     if (screenScale != 1.0) {
       ComponentAccessor.setGraphicsConfiguration(getTopLevelComponent(root), FakeGraphicsConfiguration(screenScale))
     }
-    root.preferredSize = root.size
+    if (!root.isPreferredSizeSet) {
+      root.preferredSize = root.size
+    }
     layout()
     if (SwingUtilities.isEventDispatchThread()) {
       // Allow resizing events to propagate.
@@ -152,7 +173,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     var c = component
     while (true) {
       if (!c.isVisible) {
-        return false;
+        return false
       }
       if (c == root) {
         break
@@ -205,7 +226,6 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
    * Returns the first component of the given type satisfying the given predicate by doing breadth-first
    * search starting from the root component, or null if no components satisfy the predicate.
    */
-  @Suppress("UNCHECKED_CAST")
   fun <T: Any> findComponent(type: Class<T>, predicate: (T) -> Boolean = { true }): T? = root.findDescendant(type, predicate)
 
   inline fun <reified T: Any> findComponent(crossinline predicate: (T) -> Boolean = { true }): T? = root.findDescendant(predicate)
@@ -285,6 +305,9 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
 
     override fun getDevice(): GraphicsDevice = device
 
+    override fun createCompatibleVolatileImage(width: Int, height: Int, caps: ImageCapabilities?, transparency: Int): VolatileImage =
+      FakeVolatileImage(width, height, caps)
+
     override fun getColorModel(): ColorModel = ColorModel.getRGBdefault()
 
     override fun getColorModel(transparency: Int): ColorModel = ColorModel.getRGBdefault()
@@ -294,6 +317,36 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
     override fun getNormalizingTransform(): AffineTransform = transform
 
     override fun getBounds(): Rectangle = Rectangle()
+  }
+
+  private class FakeVolatileImage(
+    private val width: Int,
+    private val height: Int,
+    private val capabilities: ImageCapabilities?,
+  ) : VolatileImage() {
+
+    @Suppress("UndesirableClassUsage")
+    private val bufferedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+
+    override fun getWidth(): Int = width
+
+    override fun getWidth(observer: ImageObserver?): Int = width
+
+    override fun getHeight(): Int = height
+
+    override fun getHeight(observer: ImageObserver?): Int = height
+
+    override fun getProperty(name: String, observer: ImageObserver?): Any? = null
+
+    override fun getCapabilities(): ImageCapabilities? = capabilities
+
+    override fun getSnapshot(): BufferedImage = bufferedImage
+
+    override fun createGraphics(): Graphics2D = bufferedImage.createGraphics()
+
+    override fun validate(gc: GraphicsConfiguration): Int = IMAGE_OK
+
+    override fun contentsLost(): Boolean = false
   }
 
   private class FakeGraphicsDevice constructor(private val defaultConfiguration: GraphicsConfiguration) : GraphicsDevice() {
@@ -308,7 +361,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   }
 }
 
-private fun wrapInFakeWindow(rootPane: JRootPane) {
+private fun wrapInFakeWindow(rootPane: JRootPane, parentDisposable: Disposable?) {
   // A mock is used here because in a headless environment it is not possible to instantiate
   // Window or any of its subclasses due to checks in the Window constructor.
   val mockWindow = mock(Window::class.java)
@@ -328,6 +381,9 @@ private fun wrapInFakeWindow(rootPane: JRootPane) {
   ComponentAccessor.setPeer(mockWindow, FakeWindowPeer())
   ComponentAccessor.setParent(rootPane, mockWindow)
   rootPane.addNotify()
+  if (parentDisposable != null) {
+    Disposer.register(parentDisposable) { runInEdtAndWait { rootPane.removeNotify() } }
+  }
 }
 
 private fun getTopLevelComponent(component: Component): Component {

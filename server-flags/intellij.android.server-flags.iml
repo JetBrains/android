@@ -12,22 +12,17 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library name="libserver-flag-test-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libserver-flag-test-proto:221.0.19.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libserver-flag-test-proto:223.0.1.0" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libserver-flag-test-proto/221.0.19.0/libserver-flag-test-proto-221.0.19.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libserver-flag-test-proto/223.0.1.0/libserver-flag-test-proto-223.0.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libserver-flag-test-proto/221.0.19.0/libserver-flag-test-proto-221.0.19.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="kotlin-stdlib" level="project" />
     <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="intellij.platform.extensions" />
-    <orderEntry type="module" module-name="intellij.platform.util" />
-    <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
   </component>
 </module>

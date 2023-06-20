@@ -207,7 +207,7 @@ public final class GradleDslMethodCall extends GradleDslSimpleExpression {
 
   private void setFileValue(@NotNull File file) {
     if (!myMethodName.equals("file")) {
-      LOG.error(new UnsupportedOperationException("Cannot set a file value to a method other than file(). Method name: " + myMethodName));
+      LOG.warn(new UnsupportedOperationException("Cannot set a file value to a method other than file(). Method name: " + myMethodName));
       return;
     }
 

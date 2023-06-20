@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.idea.devicemanager.DeviceTables;
 import com.android.tools.idea.devicemanager.PopUpMenuButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTable;
@@ -36,7 +37,8 @@ public final class PhysicalDevicePopUpMenuButtonTableCellEditorTest {
   private final @NotNull PopUpMenuButtonTableCellEditor myEditor;
 
   public PhysicalDevicePopUpMenuButtonTableCellEditorTest() {
-    myEditor = new PhysicalDevicePopUpMenuButtonTableCellEditor(Mockito.mock(PhysicalDevicePanel.class));
+    myEditor = new PhysicalDevicePopUpMenuButtonTableCellEditor(Mockito.mock(PhysicalDevicePanel.class),
+                                                                Mockito.mock(WearPairingManager.class));
   }
 
   @Test

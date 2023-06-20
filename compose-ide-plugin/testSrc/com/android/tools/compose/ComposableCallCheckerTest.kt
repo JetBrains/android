@@ -15,8 +15,6 @@
  */
 package com.android.tools.compose
 
-import com.android.flags.junit.SetFlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -36,9 +34,6 @@ import org.junit.Test
 class ComposableCallCheckerTest {
   @get:Rule
   val androidProject = AndroidProjectRule.inMemory()
-
-  @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.COMPOSE_EDITOR_SUPPORT, true)
 
   @Test
   fun testCfromNC() = doTest(
@@ -584,7 +579,7 @@ class ComposableCallCheckerTest {
       """
           import androidx.compose.runtime.*
 
-          fun composeInto(l: @Composable ()->Unit) { print(<error descr="[TYPE_MISMATCH] Type inference failed. Expected type mismatch: inferred type is @Composable () -> Unit but Any? was expected">l</error>) }
+          fun composeInto(l: @Composable ()->Unit) { print(l) }
 
           fun Foo() {
               composeInto {
@@ -1095,7 +1090,7 @@ class ComposableCallCheckerTest {
       """.trimIndent(),
       highlights
         .filter { (highlight, _) ->
-          highlight.severity == HighlightSeverity.INFORMATION && highlight.forcedTextAttributesKey == ComposableAnnotator.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
+          highlight.severity == HighlightSeverity.INFORMATION && highlight.forcedTextAttributesKey == ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY
         }
         .joinToString("\n") { (highlight, line) -> "${highlight.text}@$line" })
   }

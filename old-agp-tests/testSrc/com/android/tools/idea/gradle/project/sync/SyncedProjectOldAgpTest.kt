@@ -19,9 +19,11 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.tools.idea.gradle.project.sync.snapshots.SyncedProjectTest
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectTest
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_32
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_33
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_35_JDK_8
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_40
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_41
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_42
@@ -30,9 +32,12 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72_V1
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_80
 import com.android.tools.idea.testing.applicableAgpVersions
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.annotations.Contract
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
@@ -51,7 +56,7 @@ class SyncedProjectsAllAgpTest(agpVersion: AgpVersionSoftwareEnvironmentDescript
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
     fun testParameters(): Collection<*> {
-      return applicableAgpVersions().filter { it >= AGP_35 }.reversed().map { arrayOf(it) }
+      return applicableAgpVersions().filter { it >= AGP_33 && it != AGP_35_JDK_8 }.reversed().map { arrayOf(it) }
     }
   }
 }
@@ -59,7 +64,7 @@ class SyncedProjectsAllAgpTest(agpVersion: AgpVersionSoftwareEnvironmentDescript
 // Convenience test classes to run tests in the IDE. These classes are explicitly excluded from running in bazel in [OldAgpTests] since
 // it relies on [SyncedProjectsAllAgpTest] to run tests in the requested environment.
 
-class SyncProject_AGP_32Test: SyncedProjectTest(agpVersion = AGP_32)
+class SyncProject_AGP_33Test: SyncedProjectTest(agpVersion = AGP_33)
 class SyncProject_AGP_35Test: SyncedProjectTest(agpVersion = AGP_35)
 class SyncProject_AGP_40Test: SyncedProjectTest(agpVersion = AGP_40)
 class SyncProject_AGP_41Test: SyncedProjectTest(agpVersion =  AGP_41)
@@ -69,3 +74,20 @@ class SyncProject_AGP_71Test: SyncedProjectTest(agpVersion = AGP_71)
 class SyncProject_AGP_72_V1Test: SyncedProjectTest(agpVersion = AGP_72_V1)
 class SyncProject_AGP_72Test: SyncedProjectTest(agpVersion = AGP_72)
 class SyncProject_AGP_73Test: SyncedProjectTest(agpVersion = AGP_73)
+class SyncProject_AGP_74Test: SyncedProjectTest(agpVersion = AGP_74)
+class SyncProject_AGP_80Test: SyncedProjectTest(agpVersion = AGP_80)
+
+
+class OldAgpTestProjectTest: TestProjectTest() {
+  @Test
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  override fun testMigratePackageAttribute_agp71() {
+    super.testMigratePackageAttribute_agp71()
+  }
+
+  @Test
+  @OldAgpTest(agpVersions = ["8.0.0-beta04"], gradleVersions = ["8.0"])
+  override fun testMigratePackageAttribute_agp80() {
+    super.testMigratePackageAttribute_agp80()
+  }
+}

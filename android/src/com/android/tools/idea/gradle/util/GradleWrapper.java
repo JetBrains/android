@@ -27,9 +27,9 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByURL;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
-import com.android.SdkConstants;
+import com.android.ide.common.repository.AgpVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.wizard.template.TemplateData;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.io.Resources;
 import com.intellij.openapi.application.Application;
@@ -50,6 +50,7 @@ import java.net.URL;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,31 +80,17 @@ public final class GradleWrapper {
   }
 
   /**
-   * Creates the Gradle wrapper, using the latest supported version of Gradle, in the project at the given directory.
+   * Creates the Gradle wrapper in the project at the given directory.
    *
    * @param projectPath the project's root directory.
    * @param project     the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
+   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created.
    * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
-   */
-  @NotNull
-  public static GradleWrapper create(@NotNull VirtualFile projectPath, @Nullable Project project) throws IOException {
-    return create(projectPath, GRADLE_LATEST_VERSION, project);
-  }
-
-  /**
-   * Creates the Gradle wrapper, using the latest supported version of Gradle, in the project at the given directory.
-   *
-   * @param projectPath the project's root directory.
-   * @param project     the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
-   * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
+   * @see StudioFlags#AGP_VERSION_TO_USE
    */
   @NotNull
   public static GradleWrapper create(@NotNull File projectPath, @Nullable Project project) throws IOException {
-    return create(projectPath, GRADLE_LATEST_VERSION, project);
+    return create(projectPath, GradleWrapper.getGradleVersionToUse(), project);
   }
 
   /**
@@ -112,12 +99,11 @@ public final class GradleWrapper {
    * @param projectPath   the project's root directory.
    * @param gradleVersion the version of Gradle to use.
    * @param project       the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
+   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created.
    * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
    */
   @NotNull
-  public static GradleWrapper create(@NotNull File projectPath, @NotNull String gradleVersion, @Nullable Project project)
+  public static GradleWrapper create(@NotNull File projectPath, @NotNull GradleVersion gradleVersion, @Nullable Project project)
     throws IOException {
     VirtualFile projectDirVirtualFile = findFileByIoFile(projectPath, true);
     if (projectDirVirtualFile == null) throw new IOException("Not existent project path: " + projectPath);
@@ -130,13 +116,12 @@ public final class GradleWrapper {
    * @param projectPath   the project's root directory.
    * @param gradleVersion the version of Gradle to use.
    * @param project       the project, if available, or null if this is not in the context of an existing project.
-   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created;
+   * @return an instance of {@code GradleWrapper} if the project already has the wrapper or the wrapper was successfully created.
    * @throws IOException any unexpected I/O error.
-   * @see SdkConstants#GRADLE_LATEST_VERSION
    */
   @NotNull
   public static GradleWrapper create(@NotNull VirtualFile projectPath,
-                                     @NotNull String gradleVersion,
+                                     @NotNull GradleVersion gradleVersion,
                                      @Nullable Project project) throws IOException {
     WriteAction.computeAndWait(() -> {
       if (projectPath.findFileByRelativePath(FD_GRADLE_WRAPPER) == null) {
@@ -191,24 +176,29 @@ public final class GradleWrapper {
   }
 
   /**
-   * Updates the 'distributionUrl' in the Gradle wrapper properties file. An unexpected errors that occur while updating the file will be
+   * Updates the 'distributionUrl' in the Gradle wrapper properties file. Unexpected errors that occur while updating the file will be
    * displayed in an error dialog.
    *
-   * @param gradleVersion the Gradle version to update the property to.
+   * @param gradleVersionString a String representing the Gradle version to update the property to.
    * @return {@code true} if the property was updated, or {@code false} if no update was necessary because the property already had the
    * correct value.
    */
-  public boolean updateDistributionUrlAndDisplayFailure(@NotNull String gradleVersion) {
+  public boolean updateDistributionUrlAndDisplayFailure(@NotNull String gradleVersionString) {
     try {
-      boolean updated = updateDistributionUrl(gradleVersion);
+      boolean updated = updateDistributionUrl(GradleVersion.version(gradleVersionString));
       if (updated) {
         return true;
       }
     }
     catch (IOException e) {
-      String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", gradleVersion);
+      String msg = String.format("Unable to update Gradle wrapper to use Gradle %1$s\n", gradleVersionString);
       msg += e.getMessage();
       Messages.showErrorDialog(myProject, msg, "Unexpected Error");
+    }
+    catch (IllegalArgumentException e) {
+      String msg = String.format ("Invalid Gradle version %1$s\n", gradleVersionString);
+      msg += e.getMessage();
+      Messages.showErrorDialog(myProject, msg, "Invalid Gradle Version");
     }
     return false;
   }
@@ -221,7 +211,7 @@ public final class GradleWrapper {
    * correct value.
    * @throws IOException if something goes wrong when saving the file.
    */
-  public boolean updateDistributionUrl(@NotNull String gradleVersion) throws IOException {
+  public boolean updateDistributionUrl(@NotNull GradleVersion gradleVersion) throws IOException {
     Properties properties = getProperties();
     String distributionUrl = getDistributionUrl(gradleVersion, true);
     String property = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
@@ -231,6 +221,24 @@ public final class GradleWrapper {
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, distributionUrl);
     saveProperties(properties, myPropertiesFilePath, myProject);
     return true;
+  }
+
+  public static GradleVersion getGradleVersionToUse() {
+    String agpVersion = StudioFlags.AGP_VERSION_TO_USE.get();
+    if (agpVersion.isEmpty()) {
+      return GradleVersion.version(GRADLE_LATEST_VERSION);
+    }
+
+     try {
+      AgpVersion parsedVersion = AgpVersion.parse(agpVersion);
+      CompatibleGradleVersion gradleVersion = CompatibleGradleVersion.Companion.getCompatibleGradleVersion(parsedVersion);
+      return gradleVersion.getVersion();
+    } catch (IllegalArgumentException e) {
+       Logger.getInstance(GradleWrapper.class)
+         .warn("Unable to parse StudioFlags.AGP_VERSION_TO_USE: " + agpVersion
+               + ". Choosing GRADLE_LATEST_VERSION: " + GRADLE_LATEST_VERSION + "instead.");
+      return GradleVersion.version(GRADLE_LATEST_VERSION);
+    }
   }
 
   /**
@@ -302,12 +310,12 @@ public final class GradleWrapper {
    * Return the URL for the distribution of Gradle version indicated by {@code gradleVersion}, preserving as
    * much of the existing distributionUrl property, if any, as possible.
    *
-   * @param gradleVersion the version number to update to
+   * @param gradleVersion the Gradle version to update to
    * @param binOnlyIfCurrentlyUnknown indicates default -bin/-all suffix if the current URL is unparseable
    * @return a String denoting the new Gradle distribution URL.
    */
   @NotNull
-  public String getUpdatedDistributionUrl(String gradleVersion, boolean binOnlyIfCurrentlyUnknown) throws IOException {
+  public String getUpdatedDistributionUrl(GradleVersion gradleVersion, boolean binOnlyIfCurrentlyUnknown) throws IOException {
     String current = getDistributionUrl();
     if (current == null) {
       // No idea about the current URL: return the default URL.
@@ -330,7 +338,7 @@ public final class GradleWrapper {
         // Return the current URL with the new version number spliced in.
         StringBuilder sb = new StringBuilder();
         sb.append(current, 0, m.start(1));
-        sb.append(gradleVersion);
+        sb.append(gradleVersion.getVersion());
         sb.append(current, m.end(2) == -1 ? m.end(1) : m.end(2), current.length());
         return sb.toString();
       }
@@ -342,15 +350,17 @@ public final class GradleWrapper {
   }
 
   @NotNull
-  public static String getDistributionUrl(@NotNull String gradleVersion, boolean binOnly) {
-    // See https://code.google.com/p/android/issues/detail?id=357944
-    String folderName = isSnapshot(gradleVersion) ? "distributions-snapshots" : "distributions";
+  public static String getDistributionUrl(@NotNull GradleVersion gradleVersion, boolean binOnly) {
     String suffix = binOnly ? "bin" : "all";
-    return String.format("https://services.gradle.org/%1$s/gradle-%2$s-%3$s.zip", folderName, gradleVersion, suffix);
-  }
+    String filename = String.format("gradle-%1$s-%2$s.zip", gradleVersion.getVersion(), suffix);
 
-  @VisibleForTesting
-  static boolean isSnapshot(@NotNull String gradleVersion) {
-    return gradleVersion.indexOf('-') != -1 && gradleVersion.endsWith("+0000");
+    String localDistributionUrl = StudioFlags.GRADLE_LOCAL_DISTRIBUTION_URL.get();
+    if (!localDistributionUrl.isEmpty()) {
+      return localDistributionUrl + filename;
+    }
+
+    // See https://code.google.com/p/android/issues/detail?id=357944
+    String folderName = gradleVersion.isSnapshot() ? "distributions-snapshots" : "distributions";
+    return String.format("https://services.gradle.org/%1$s/%2$s", folderName, filename);
   }
 }

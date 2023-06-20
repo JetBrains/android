@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
 import org.jetbrains.android.util.AndroidBundle
@@ -34,5 +36,18 @@ class GradleUsageTypeProvider : UsageTypeProvider {
 
   companion object {
     private val GRADLE_USAGE_TYPE = UsageType(AndroidBundle.messagePointer("android.usageType.gradle.build.script"))
+  }
+}
+
+/**
+ * Recognizes gradle.properties
+ */
+class AndroidPropertiesUsageType : UsageTypeProvider {
+  companion object {
+    private val ANDROID_PROPERTIES_FILE = UsageType(AndroidBundle.messagePointer("android.usageType.gradle.properties.file"))
+  }
+
+  override fun getUsageType(element: PsiElement): UsageType? {
+    return if (element is PsiFile && element.name == SdkConstants.FN_GRADLE_PROPERTIES) ANDROID_PROPERTIES_FILE else null
   }
 }

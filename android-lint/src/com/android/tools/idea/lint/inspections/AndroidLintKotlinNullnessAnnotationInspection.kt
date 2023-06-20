@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.KotlinNullnessAnnotationDetector
 
-class AndroidLintKotlinNullnessAnnotationInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.kotlin.nullness.annotation"), KotlinNullnessAnnotationDetector.ISSUE
-)
+class AndroidLintKotlinNullnessAnnotationInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.kotlin.nullness.annotation"),
+    KotlinNullnessAnnotationDetector.ISSUE
+  )

@@ -44,7 +44,7 @@ class AndroidDynamicFeatureNavTest {
   val ruleChain = RuleChain.outerRule(projectRule).around(NavEditorRule(projectRule))
 
   val myFixture: JavaCodeInsightTestFixture
-    get() = projectRule.getTypedFixture()!!
+    get() = projectRule.fixture
 
   @Before
   fun setUp() {
@@ -123,6 +123,7 @@ class AndroidDynamicFeatureNavTest {
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly(
+      "mytest.navtest.AbstractFragment",
       "mytest.navtest.BlankFragment",
       "mytest.navtest.fragment1",
       "mytest.navtest.fragment2",
@@ -164,6 +165,7 @@ class AndroidDynamicFeatureNavTest {
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly(
+      "mytest.navtest.AbstractActivity",
       "mytest.navtest.MainActivity",
       "mytest.navtest.activity1"
     )

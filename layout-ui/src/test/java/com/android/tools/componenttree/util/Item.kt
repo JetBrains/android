@@ -34,7 +34,9 @@ class Item(
   var hover3: Icon? = null
   var canInsert: Boolean? = null
   var acceptInsert = true
-  val insertions = mutableListOf<Pair<Transferable, Any?>>()
+  var enabled = true
+  var deEmphasized = false
+  val insertions = mutableListOf<Insertion>()
 
   init {
     parent?.children?.add(this)
@@ -46,4 +48,6 @@ class Item(
   }
 
   override fun toString() = "$tagName ${id.orEmpty()}"
+
+  data class Insertion(val data: Transferable, val before: Any?, val isMove: Boolean, val draggedFromTree: List<Any>)
 }

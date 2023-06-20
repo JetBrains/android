@@ -8,7 +8,7 @@ apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion "30.0.2"
+
     defaultConfig {
         applicationId "com.example.mainactivity"
         minSdkVersion 16

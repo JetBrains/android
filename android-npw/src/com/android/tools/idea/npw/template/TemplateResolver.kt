@@ -31,14 +31,6 @@ class TemplateResolver {
     fun getAllTemplates(): List<Template> {
       return EP_NAME.extensions
         .flatMap { it.getTemplates() }
-        .filter {
-          return@filter when {
-            // Filter Material3 templates if disabled
-            it.constraints.contains(TemplateConstraint.Material3) && !StudioFlags.NPW_MATERIAL3_ENABLED.get() -> false
-            it.category == Category.Compose && !StudioFlags.COMPOSE_WIZARD_TEMPLATES.get() -> false
-            else -> true
-          }
-        }
     }
 
     fun getTemplateByName(name: String, category: Category? = null, formFactor: FormFactor? = null) =

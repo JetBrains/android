@@ -52,10 +52,10 @@ import javax.swing.tree.ExpandVetoException;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.iface.reference.TypeReference;
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
+import com.android.tools.smali.dexlib2.iface.reference.Reference;
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference;
 
 public class ShowReferencesAction extends AnAction {
   @NotNull private final Tree myTree;

@@ -15,36 +15,33 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectToSnapshotPaths
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
+import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.android.tools.idea.testing.requestSyncAndWait
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.util.PathUtil
 import com.intellij.util.text.nullize
-import org.jetbrains.android.AndroidTestBase
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
 
-class GradleProjectPathIntegrationTest : GradleIntegrationTest {
+class GradleProjectPathIntegrationTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
+  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   @Test
   fun gradleProjectPaths() {
-    val root = prepareGradleProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES, "project")
-    openPreparedProject("project") { project ->
-      assertThat(dumpModuleToGradlePathMapping(project, root)).isEqualTo(
+    val preparedProject = projectRule.prepareTestProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES)
+    preparedProject.open { project ->
+      assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root)).isEqualTo(
         """
             ==> :
             .aarWrapperLib ==> :aarWrapperLib
@@ -75,6 +72,18 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
             .javaLibrary.main ==> :javaLibrary/MAIN
             .javaLibrary.test ==> :javaLibrary/test
             .javaLibrary.testEnv ==> :javaLibrary/testEnv
+            .kmp-java ==> :kmp-java
+            .kmp-java.sample ==> :kmp-java:sample
+            .kmp-java.sample-test ==> :kmp-java:sample-test
+            .kmp-java.sample-test.androidTest ==> :kmp-java:sample-test/ANDROID_TEST
+            .kmp-java.sample-test.main ==> :kmp-java:sample-test/MAIN
+            .kmp-java.sample-test.unitTest ==> :kmp-java:sample-test/UNIT_TEST
+            .kmp-java.sample.commonMain ==> :kmp-java:sample/commonMain
+            .kmp-java.sample.commonTest ==> :kmp-java:sample/commonTest
+            .kmp-java.sample.jvmMain ==> :kmp-java:sample/jvmMain
+            .kmp-java.sample.jvmTest ==> :kmp-java:sample/jvmTest
+            .kmp-java.sample.main ==> :kmp-java:sample/MAIN
+            .kmp-java.sample.test ==> :kmp-java:sample/test
             .lib ==> :lib
             .lib.androidTest ==> :lib/ANDROID_TEST
             .lib.main ==> :lib/MAIN
@@ -87,9 +96,9 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun gradleProjectPaths_inComposites() {
-    val root = prepareGradleProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD, "project")
-    openPreparedProject("project") { project ->
-      assertThat(dumpModuleToGradlePathMapping(project, root)).isEqualTo(
+    val preparedProject = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD)
+    preparedProject.open { project ->
+      assertThat(dumpModuleToGradlePathMapping(project, preparedProject.root)).isEqualTo(
         """
             ==> :
             .app ==> :app
@@ -138,8 +147,8 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun rootBuildRelativeGradleProjectPaths_inComposites() {
-    val root = prepareGradleProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.COMPOSITE_BUILD)
+    preparedProject.open { project ->
       assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project)).isEqualTo(
         """
             ==> :
@@ -163,13 +172,13 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
 
   @Test
   fun updatesResolutionCache() {
-    val root = prepareGradleProject(TestProjectToSnapshotPaths.NON_STANDARD_SOURCE_SET_DEPENDENCIES, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES)
+    preparedProject.open { project ->
       assertThatProjectPathsCanBeResolved(project)
 
       // Move :app to :app:main and thus cause some modules to be re-created or at least new modules to be created. If the project wide
       // cache is not reset the expectation below fails.
-      moveAppToAppMain(root)
+      moveAppToAppMain(preparedProject.root)
       project.requestSyncAndWait()
 
       assertThatProjectPathsCanBeResolved(project)
@@ -224,9 +233,4 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
       if (gradlePath != null) assertThat(gradlePath.resolveIn(project)).isSameAs(module)
     }
   }
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
-  override fun getAdditionalRepos(): Collection<File> =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectToSnapshotPaths.PSD_SAMPLE_REPO)))
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.project.Project;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class MakeGradleProjectAction extends AndroidStudioGradleAction {
   public MakeGradleProjectAction() {
-    super("Make Project");
+    super("Make Project", "Build Entire Project", AllIcons.Actions.Compile);
   }
 
   @Override
@@ -42,6 +43,6 @@ public class MakeGradleProjectAction extends AndroidStudioGradleAction {
       // Reset info from the previous runs (if any).
       statusBar.setInfo(" ");
     }
-    GradleBuildInvoker.getInstance(project).assemble(TestCompileType.ALL);
+    GradleBuildInvoker.getInstance(project).assemble(TestCompileType.NONE);
   }
 }

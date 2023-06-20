@@ -61,7 +61,7 @@ class NlPaletteModelTest {
 
   @Before
   fun setUp() {
-    fixture = projectRule.getTypedFixture()
+    fixture = projectRule.fixture
     facet = AndroidFacet.getInstance(projectRule.module)
     model = NlPaletteModel.get(facet!!)
     projectSystem = TestProjectSystem(projectRule.project)

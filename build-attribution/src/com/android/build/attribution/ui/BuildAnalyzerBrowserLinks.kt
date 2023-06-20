@@ -60,5 +60,9 @@ enum class BuildAnalyzerBrowserLinks(
   DOWNLOADS(
     "https://d.android.com/r/tools/build-attribution/downloads",
     BuildAttributionUiEvent.OutgoingLinkTarget.DOWNLOADS_INFO
+  ),
+  NON_TRANSITIVE_R_CLASS(
+    "https://d.android.com/r/tools/build-attribution/non-transitive-r-classes",
+    BuildAttributionUiEvent.OutgoingLinkTarget.NON_TRANSITIVE_R_CLASS
   )
 }

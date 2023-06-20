@@ -17,36 +17,29 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.SdkConstants
-import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
+import com.android.SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION
 import com.android.annotations.concurrency.Slow
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
-import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_CODEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AgpUpgradeComponentNecessity.MANDATORY_INDEPENDENT
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.AFTER_MAXIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.BEFORE_MINIMUM
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.COMPATIBLE
+import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DEPRECATED
 import com.android.tools.idea.gradle.project.upgrade.AndroidGradlePluginCompatibility.DIFFERENT_PREVIEW
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.NO_UPGRADE
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
+import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.STRONGLY_RECOMMEND
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
-import com.android.tools.idea.project.messages.MessageType.ERROR
-import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationsManager
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState.nonModal
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
@@ -79,35 +72,33 @@ class RecommendedUpgradeReminder(
   }
 }
 
+/** [upgrade] is true if we recommend; [strongly] if we should recommend and the recommendation should be strong */
+data class Recommendation(val upgrade: Boolean, val strongly: Boolean)
+
 /**
  * Checks to see if we should be recommending an upgrade of the Android Gradle Plugin.
- *
- * Returns true if we should recommend an upgrade, false otherwise. We recommend an upgrade if any of the following conditions are met:
- * 1 - If the user has never been shown the upgrade (for that version) and the conditions in [shouldRecommendUpgrade] return true.
- * 2 - If the user picked "Remind me tomorrow" and a day has passed.
- *
- * [current] defaults to the value that is obtained from the [project], if it can't be found, false is returned.
+ * [current] defaults to the value that is obtained from the [project]; if it can't be found, do not recommend.
  */
 @Slow
-fun shouldRecommendPluginUpgrade(project: Project): Boolean {
+fun shouldRecommendPluginUpgrade(project: Project): Recommendation {
   // If we don't know the current plugin version then we don't upgrade.
-  val current = project.findPluginInfo()?.pluginVersion ?: return false
-  val latestKnown = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
-  val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+  val current = project.findPluginInfo()?.pluginVersion ?: return Recommendation(false, false)
+  val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  val published = IdeGoogleMavenRepository.getAgpVersions()
   return shouldRecommendPluginUpgrade(project, current, latestKnown, published)
 }
 
 @JvmOverloads
 fun shouldRecommendPluginUpgrade(
   project: Project,
-  current: GradleVersion,
-  latestKnown: GradleVersion,
-  published: Set<GradleVersion> = setOf()
-): Boolean {
+  current: AgpVersion,
+  latestKnown: AgpVersion,
+  published: Set<AgpVersion> = setOf()
+): Recommendation {
   // Needed internally for development of Android support lib.
-  if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return false
+  if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return Recommendation(false, false)
 
-  if (!RecommendedUpgradeReminder(project).shouldAsk()) return false
+  if (!RecommendedUpgradeReminder(project).shouldAsk()) return Recommendation(false, false)
   return shouldRecommendUpgrade(current, latestKnown, published)
 }
 
@@ -117,66 +108,49 @@ fun shouldRecommendPluginUpgrade(
  * If they choose to accept this recommendation [performRecommendedPluginUpgrade] will show them a dialog and the option
  * to try and update the version automatically. If accepted this method will trigger a re-sync to pick up the new version.
  */
-fun recommendPluginUpgrade(project: Project) {
+fun recommendPluginUpgrade(project: Project, current: AgpVersion, strongly: Boolean) {
   val existing = NotificationsManager
     .getNotificationsManager()
     .getNotificationsOfType(ProjectUpgradeNotification::class.java, project)
 
   if (existing.isEmpty()) {
-    val listener = NotificationListener { notification, _ ->
-      notification.expire()
-      ApplicationManager.getApplication().executeOnPooledThread { performRecommendedPluginUpgrade(project) }
+    val notification = when (strongly) {
+      false -> UpgradeSuggestion(
+        AndroidBundle.message("project.upgrade.notification.title"), AndroidBundle.message("project.upgrade.notification.body", current), project, current)
+      true -> DeprecatedAgpUpgradeWarning(
+        AndroidBundle.message("project.upgrade.deprecated.notification.title"),
+        AndroidBundle.message("project.upgrade.deprecated.notification.body", current, GRADLE_PLUGIN_NEXT_MINIMUM_VERSION),
+        project,
+        current
+      )
     }
-
-    val notification = ProjectUpgradeNotification(
-      AndroidBundle.message("project.upgrade.notification.title"), AndroidBundle.message("project.upgrade.notification.body"), listener)
     notification.notify(project)
   }
 }
 
 /**
- * Shows a [RecommendedPluginVersionUpgradeDialog] to the user prompting them to upgrade to a newer version of
- * the Android Gradle Plugin and Gradle. If the [currentVersion] is null this method always returns false, with
- * no action taken.
- *
- * If the user accepted the upgrade then the file are modified and the project is re-synced. This method uses
- * [AndroidPluginVersionUpdater] in order to perform these operations.
- *
- * Returns true if the project should be synced, false otherwise.
- *
- * Note: The [dialogFactory] argument should not be used outside of tests. It should only be used to mock the
- * result of the dialog.
- *
+ * Invokes the AGP Upgrade Assistant Tool Window, allowing the user to update the version of AGP used in their project.
+ * If the [currentVersion] is null this method always returns false, with no action taken.
  */
 @Slow
 @JvmOverloads
 fun performRecommendedPluginUpgrade(
   project: Project,
-  currentVersion: GradleVersion? = project.findPluginInfo()?.pluginVersion,
-  latestKnown: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
-  dialogFactory: RecommendedPluginVersionUpgradeDialog.Factory = RecommendedPluginVersionUpgradeDialog.Factory()
-) : Boolean {
-  if (currentVersion == null) return false
+  currentVersion: AgpVersion? = project.findPluginInfo()?.pluginVersion,
+  latestKnown: AgpVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+) {
+  if (currentVersion == null) return
 
   LOG.info("Gradle model version: $currentVersion, latest known version for IDE: $latestKnown")
 
-  val published = IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+  val published = IdeGoogleMavenRepository.getAgpVersions()
   val state = computeGradlePluginUpgradeState(currentVersion, latestKnown, published)
 
   LOG.info("Gradle upgrade state: $state")
-  if (state.importance != RECOMMEND) return false
+  if (!setOf(RECOMMEND, STRONGLY_RECOMMEND).contains(state.importance)) return
 
-  val userAccepted = invokeAndWaitIfNeeded(nonModal()) {
-    val updateDialog = dialogFactory.create(project, currentVersion, state.target)
-    updateDialog.showAndGet()
-  }
-
-  if (userAccepted) {
-    // The user accepted the upgrade
-    showAndInvokeAgpUpgradeRefactoringProcessor(project, currentVersion, state.target)
-  }
-
-  return false
+  showAndInvokeAgpUpgradeRefactoringProcessor(project, currentVersion, state.target)
+  return
 }
 
 // TODO(b/174543899): this is too weak; it doesn't catch modifications to:
@@ -198,8 +172,10 @@ internal fun isCleanEnoughProject(project: Project): Boolean {
 
 @VisibleForTesting
 @JvmOverloads
-fun shouldRecommendUpgrade(current: GradleVersion, latestKnown: GradleVersion, published: Set<GradleVersion> = setOf()) : Boolean {
-  return computeGradlePluginUpgradeState(current, latestKnown, published).importance == RECOMMEND
+fun shouldRecommendUpgrade(current: AgpVersion, latestKnown: AgpVersion, published: Set<AgpVersion> = setOf()) : Recommendation {
+  computeGradlePluginUpgradeState(current, latestKnown, published).importance.let { importance ->
+    return Recommendation(setOf(RECOMMEND, STRONGLY_RECOMMEND).contains(importance), importance == STRONGLY_RECOMMEND)
+  }
 }
 
 // **************************************************************************
@@ -214,10 +190,10 @@ fun shouldRecommendUpgrade(current: GradleVersion, latestKnown: GradleVersion, p
  * for action to get the project to a working state.
  */
 fun versionsAreIncompatible(
-  current: GradleVersion,
-  latestKnown: GradleVersion
+  current: AgpVersion,
+  latestKnown: AgpVersion
 ) : Boolean {
-  return computeAndroidGradlePluginCompatibility(current, latestKnown) != COMPATIBLE
+  return !setOf(COMPATIBLE, DEPRECATED).contains(computeAndroidGradlePluginCompatibility(current, latestKnown))
 }
 
 /**
@@ -230,71 +206,57 @@ fun versionsAreIncompatible(
 @Slow
 fun performForcedPluginUpgrade(
   project: Project,
-  currentPluginVersion: GradleVersion,
-  newPluginVersion: GradleVersion = computeGradlePluginUpgradeState(
+  currentPluginVersion: AgpVersion,
+  newPluginVersion: AgpVersion = computeGradlePluginUpgradeState(
     currentPluginVersion,
-    GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
-    IdeGoogleMavenRepository.getVersions("com.android.tools.build", "gradle")
+    AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
+    IdeGoogleMavenRepository.getAgpVersions()
   ).target
 ) {
-  val upgradeAccepted = invokeAndWaitIfNeeded(nonModal()) {
-    ForcedPluginPreviewVersionUpgradeDialog(project, currentPluginVersion, newPluginVersion).showAndGet()
+  // Note: we retrieve a RefactoringProcessorInstantiator as a project service for the convenience of tests.
+  val refactoringProcessorInstantiator = project.getService(RefactoringProcessorInstantiator::class.java)
+  val processor = refactoringProcessorInstantiator.createProcessor(project, currentPluginVersion, newPluginVersion)
+  // Enable only the minimum number of processors for a forced upgrade
+  processor.componentRefactoringProcessors.forEach { component ->
+    component.isEnabled = component.necessity().let { it == MANDATORY_CODEPENDENT || it == MANDATORY_INDEPENDENT }
   }
-
-  if (upgradeAccepted) {
-    // The user accepted the upgrade: show upgrade details and offer the action.
-    // Note: we retrieve a RefactoringProcessorInstantiator as a project service for the convenience of tests.
-    val refactoringProcessorInstantiator = project.getService(RefactoringProcessorInstantiator::class.java)
-    val processor = refactoringProcessorInstantiator.createProcessor(project, currentPluginVersion, newPluginVersion)
-    // Enable only the minimum number of processors for a forced upgrade
-    processor.componentRefactoringProcessors.forEach { component ->
-      component.isEnabled = component.necessity().let { it == MANDATORY_CODEPENDENT || it == MANDATORY_INDEPENDENT }
-    }
-    val runProcessor = refactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(processor)
-    if (runProcessor) {
-      DumbService.getInstance(project).smartInvokeLater { processor.run() }
-      // upgrade refactoring scheduled
-      return
-    }
+  val runProcessor = refactoringProcessorInstantiator.showAndGetAgpUpgradeDialog(processor)
+  if (runProcessor) {
+    DumbService.getInstance(project).smartInvokeLater { processor.run() }
+    // upgrade refactoring scheduled
+    return
   }
-
-  // The user has left the modal upgrade flow without completing an upgrade (maybe through cancel, maybe through preview).
-  val syncMessage = SyncMessage(
-    SyncMessage.DEFAULT_GROUP,
-    ERROR,
-    "The project is using an incompatible version of the ${AndroidPluginInfo.DESCRIPTION}.",
-    "Please update your project to use version $newPluginVersion."
-  )
-  val pluginName = GROUP_ID + GRADLE_PATH_SEPARATOR + ARTIFACT_ID
-  syncMessage.add(SearchInBuildFilesHyperlink(pluginName))
-
-  GradleSyncMessages.getInstance(project).report(syncMessage)
 }
 
 data class GradlePluginUpgradeState(
   val importance: Importance,
-  val target: GradleVersion,
+  val target: AgpVersion,
 ) {
   enum class Importance {
     NO_UPGRADE,
     RECOMMEND,
+    STRONGLY_RECOMMEND,
     FORCE,
   }
 }
 
 fun computeGradlePluginUpgradeState(
-  current: GradleVersion,
-  latestKnown: GradleVersion,
-  published: Set<GradleVersion>
+  current: AgpVersion,
+  latestKnown: AgpVersion,
+  published: Set<AgpVersion>,
+  supportFutureAgpVersions: Boolean = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
 ): GradlePluginUpgradeState {
-  when (computeAndroidGradlePluginCompatibility(current, latestKnown)) {
+  // When supportFutureAgpVersions=true, neither offer to upgrade to future versions nor force downgrades from future versions.
+  if (supportFutureAgpVersions && current > latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
+  val compatibility = computeAndroidGradlePluginCompatibility(current, latestKnown)
+  when (compatibility) {
     BEFORE_MINIMUM -> {
-      val minimum = GradleVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
+      val minimum = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
       val earliestStable = published
         .filter { !it.isPreview }
         .filter { it >= minimum }
         .filter { it <= latestKnown }
-        .groupBy { GradleVersion(it.major, it.minor) }
+        .groupBy { AgpVersion(it.major, it.minor) }
         .minByOrNull { it.key }
         ?.value
         ?.maxOrNull()
@@ -303,7 +265,7 @@ fun computeGradlePluginUpgradeState(
     DIFFERENT_PREVIEW -> {
       val seriesAcceptableStable = published
         .filter { !it.isPreview }
-        .filter { GradleVersion(it.major, it.minor) == GradleVersion(current.major, current.minor) }
+        .filter { AgpVersion(it.major, it.minor) == AgpVersion(current.major, current.minor) }
         .filter { it <= latestKnown }
         .maxOrNull()
       // For the forced upgrade of a preview, we prefer the latest stable release in the same series as the preview, if one exists.  If
@@ -312,11 +274,19 @@ fun computeGradlePluginUpgradeState(
       // X are released.)
       return GradlePluginUpgradeState(FORCE, seriesAcceptableStable ?: latestKnown)
     }
+    // Forced downgrade to latest supported
     AFTER_MAXIMUM -> return GradlePluginUpgradeState(FORCE, latestKnown)
-    COMPATIBLE -> Unit
+    COMPATIBLE, DEPRECATED -> Unit
+  }
+  // Don't recommend upgrade for future point releases (e.g. don't suggest 9.0.1 where latestKnown=9.0.0)
+  // TODO(b/274115496): Do we want to revisit the point-release behavior?
+  if (current >= latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
+  val recommendationStrength = when (compatibility) {
+    DEPRECATED -> STRONGLY_RECOMMEND
+    COMPATIBLE -> RECOMMEND
+    else -> throw IllegalStateException("Unreachable: forced upgrade state previously handled")
   }
 
-  if (current >= latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
   if (!current.isPreview || current.previewType == "rc") {
     val acceptableStables = published
       .asSequence()
@@ -325,7 +295,7 @@ fun computeGradlePluginUpgradeState(
       .filter { it <= latestKnown }
       // We use the fact that groupBy preserves order both of keys and of entries in the list value.
       .sorted()
-      .groupBy { GradleVersion(it.major, it.minor) }
+      .groupBy { AgpVersion(it.major, it.minor) }
       .asSequence()
       .groupBy { it.key.major }
 
@@ -333,8 +303,8 @@ fun computeGradlePluginUpgradeState(
       // The first two cases here are unlikely, but theoretically possible, if somehow our published information is out of date
       return when {
         // If our latestKnown is stable, recommend it.
-        !latestKnown.isPreview -> GradlePluginUpgradeState(RECOMMEND, latestKnown)
-        latestKnown.previewType == "rc" -> GradlePluginUpgradeState(RECOMMEND, latestKnown)
+        !latestKnown.isPreview -> GradlePluginUpgradeState(recommendationStrength, latestKnown)
+        latestKnown.previewType == "rc" -> GradlePluginUpgradeState(recommendationStrength, latestKnown)
         // Don't recommend upgrades from stable to preview.
         else -> GradlePluginUpgradeState(NO_UPGRADE, current)
       }
@@ -343,33 +313,33 @@ fun computeGradlePluginUpgradeState(
     if (!acceptableStables.containsKey(current.major)) {
       // We can't upgrade to a new version of our current series, but there are upgrade targets (acceptableStables is not empty).  We
       // must be at the end of a major series, so recommend the latest compatible in the next major series.
-      return GradlePluginUpgradeState(RECOMMEND, acceptableStables.first().value.last().value.last())
+      return GradlePluginUpgradeState(recommendationStrength, acceptableStables.first().value.last().value.last())
     }
 
     val currentSeriesCandidates = acceptableStables[current.major]!!
     val nextSeriesCandidates = acceptableStables.keys.firstOrNull { it > current.major }?.let { acceptableStables[it]!! }
 
-    if (currentSeriesCandidates.maxOf { it.key } == GradleVersion(current.major, current.minor)) {
+    if (currentSeriesCandidates.maxOf { it.key } == AgpVersion(current.major, current.minor)) {
       // We have a version of the most recent series of our current major, though not the most up-to-date version of that.  If there's a
       // later stable series, recommend upgrading to that, otherwise recommend upgrading our point release.
-      return GradlePluginUpgradeState(RECOMMEND, (nextSeriesCandidates ?: currentSeriesCandidates).last().value.last())
+      return GradlePluginUpgradeState(recommendationStrength, (nextSeriesCandidates ?: currentSeriesCandidates).last().value.last())
     }
 
     // Otherwise, we must have newer minor releases from our current major series.  Recommend upgrading to the latest minor release.
-    return GradlePluginUpgradeState(RECOMMEND, currentSeriesCandidates.last().value.last())
+    return GradlePluginUpgradeState(recommendationStrength, currentSeriesCandidates.last().value.last())
   }
   else if (current.previewType == "alpha" || current.previewType == "beta") {
     if (latestKnown.isSnapshot) {
       // If latestKnown is -dev and current is in the same series, leave it alone.
       if (latestKnown.compareIgnoringQualifiers(current) == 0) return GradlePluginUpgradeState(NO_UPGRADE, current)
       // If latestKnown is -dev and current is a preview from an earlier series, recommend an upgrade.
-      return GradlePluginUpgradeState(RECOMMEND, latestKnown)
+      return GradlePluginUpgradeState(recommendationStrength, latestKnown)
     }
-    throw IllegalStateException("Unreachable: handled by computeForcePluginUpgradeReason")
+    throw IllegalStateException("Unreachable: forced upgrade state previously handled")
   }
   else {
     // Current is a snapshot.
-    throw IllegalStateException("Unreachable: handled by computeForcePluginUpgradeReason")
+    throw IllegalStateException("Unreachable: forced upgrade state previously handled")
   }
 }
 
@@ -383,7 +353,7 @@ fun Project.findPluginInfo() : AndroidPluginInfo? {
   return pluginInfo
 }
 
-internal fun releaseNotesUrl(v: GradleVersion): String = when {
+internal fun releaseNotesUrl(v: AgpVersion): String = when {
   v.isPreview -> "https://developer.android.com/studio/preview/features#android_gradle_plugin_${v.major}${v.minor}"
   else -> "https://developer.android.com/studio/releases/gradle-plugin#${v.major}-${v.minor}-0"
 }

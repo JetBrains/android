@@ -17,6 +17,7 @@ package com.android.tools.adtui.common
 
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.JBColor
+import com.intellij.util.IconUtil
 import java.awt.Color
 import java.awt.image.RGBImageFilter
 import java.util.function.Supplier
@@ -49,11 +50,11 @@ object ColoredIconGenerator {
 
     override fun get(): Icon =
       cache.getOrPut(color.rgb) {
-        IconLoader.filterIcon(icon) {
+        IconUtil.filterIcon(icon, {
           object : RGBImageFilter() {
             override fun filterRGB(x: Int, y: Int, rgb: Int) = (rgb or 0xffffff) and color.rgb
           }
-        }
+        }, null)
       }
   })
 
@@ -61,17 +62,18 @@ object ColoredIconGenerator {
    * Generate an icon where all the alpha values are decreased thus giving a more faint version of the specified [icon].
    */
   fun generateDeEmphasizedIcon(icon: Icon): Icon = IconLoader.createLazy {
-    IconLoader.filterIcon(icon) {
+    IconUtil.filterIcon(icon, {
       object : RGBImageFilter() {
-        @Suppress("UseJBColor")
-        override fun filterRGB(x: Int, y: Int, rgb: Int): Int = Color(rgb, true).deEmphasize().rgb
+        override fun filterRGB(x: Int, y: Int, rgb: Int): Int {
+          val color = Color(rgb, true)
+          return color.deEmphasize().rgb
+        }
       }
-    }
+    }, null)
   }
 
   /**
    * Return a [Color] where the alpha value is decreased to make a more faint version of the given [Color].
    */
-  @Suppress("UseJBColor")
   fun Color.deEmphasize(): Color = Color(red, green, blue, (alpha + 1) / 2)
 }

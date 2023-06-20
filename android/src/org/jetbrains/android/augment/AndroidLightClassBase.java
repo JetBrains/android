@@ -1,4 +1,3 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.augment;
 
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -459,7 +458,7 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   /**
    * Encapsulates calls to Kotlin IDE plugin to prevent {@link NoClassDefFoundError} when Kotlin is not installed.
    */
-  private static final class KotlinRegistrationHelper {
+  private static class KotlinRegistrationHelper {
     static void setModuleInfo(@NotNull PsiFile file, boolean isTest) {
       KotlinProjectStructureCustomizationUtils.setCustomSourceRootType(file, isTest ? JavaSourceRootType.TEST_SOURCE : JavaSourceRootType.SOURCE);
     }

@@ -22,11 +22,9 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CustomEventProfiler
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.energy.FakeEnergyService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -42,8 +40,7 @@ class CustomEventProfilerStageTest {
   private lateinit var profilers: StudioProfilers
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CustomEventProfilerStageTest", transportService, FakeProfilerService(timer),
-                                    FakeEnergyService())
+  var grpcChannel = FakeGrpcChannel("CustomEventProfilerStageTest", transportService)
 
   @Before
   fun setUp() {

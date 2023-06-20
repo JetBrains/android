@@ -62,6 +62,8 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 
@@ -117,7 +119,7 @@ public class StudioInteractionService {
     while (elapsedTime < timeoutMillis) {
       SwingUtilities.invokeLater(() -> {
           Optional<Component> component = findComponentFromMatchers(matchers);
-          if (component.isPresent()) {
+          if (component.isPresent() && isComponentInvokable(component.get())) {
             foundComponent.set(true);
             invokeComponent(component.get());
           }
@@ -158,9 +160,9 @@ public class StudioInteractionService {
   public void waitForComponent(List<ASDriver.ComponentMatcher> matchers) throws InterruptedException, TimeoutException, InvocationTargetException {
     log("Attempting to wait for a component with matchers: " + matchers);
     // TODO(b/234067246): consider this timeout when addressing b/234067246. This particular
-    // timeout is so high because ComposePreviewKotlin performs a Gradle build, and that takes >3m
+    // timeout is so high because ComposePreviewKotlin performs a Gradle build, and that takes >10m
     // sometimes.
-    int timeoutMillis = 240000;
+    final long timeoutMillis = java.time.Duration.ofMinutes(10).toMillis();
     long msBetweenRetries = 300;
     long startTime = System.currentTimeMillis();
     long elapsedTime = 0;
@@ -194,6 +196,9 @@ public class StudioInteractionService {
     } else if (component instanceof NotificationComponent) {
       log("Invoking hyperlink in Notification: " + component);
       ((NotificationComponent)component).hyperlinkUpdate();
+    } else if (component instanceof JListItemComponent) {
+      log("Invoking JListItemComponent item: " + component);
+      ((JListItemComponent)component).invoke();
     } else if (component instanceof JButton) {
       log("Invoking JButton: " + component);
       invokeButton((JButton)component);
@@ -256,13 +261,25 @@ public class StudioInteractionService {
       StringBuilder sb = new StringBuilder();
       int index = 1;
       for (Component component : componentsFound) {
-        sb.append(String.format("\t#%d: %s%n", index++, component));
+        // Some components override toString(), which means the class isn't guaranteed to show.
+        // Given that most searches for components rely on the class name, we explicitly print it.
+        sb.append(String.format("\t#%d: class: [%s] toString: %s%n", index++, component.getClass(), component));
       }
       throw new IllegalStateException(String.format("Found %s component(s) but expected exactly one:%n%s%n\tPlease construct more specific match criteria.",
                                                     numComponentsFound, sb));
     }
 
     return componentsFound.stream().findFirst();
+  }
+
+  /**
+   * Checks if the component can be invoked. For example, suppose that a test calls
+   * {@code invokeComponent} on a button that is present but disabled. In that case, we want
+   * {@link StudioInteractionService#findAndInvokeComponent} to keep trying until it's enabled,
+   * otherwise the test will attempt to invoke an uninvokable component.
+   */
+  private boolean isComponentInvokable(Component c) {
+    return c.isEnabled();
   }
 
   /**
@@ -299,7 +316,32 @@ public class StudioInteractionService {
     // Notifications are searched separately because the text is embedded in an inaccessible way.
     componentsFound.addAll(findNotificationByDisplayId(text));
 
+    componentsFound.addAll(findJListItems(componentsToLookUnder, text));
+
     return componentsFound;
+  }
+
+  private List<JListItemComponent> findJListItems(Set<Component> componentsToLookUnder, String text) {
+    List<JListItemComponent> matchingComponents = new ArrayList<>();
+    for (Component component : componentsToLookUnder) {
+      if (!(component instanceof JList)) {
+        continue;
+      }
+
+      JList<?> jList = (JList<?>)component;
+      ListModel<?> model = jList.getModel();
+
+      int numItems = model.getSize();
+      for (int i = 0; i < numItems; i++) {
+        if (model.getElementAt(i).toString().equals(text)) {
+          JListItemComponent item = new JListItemComponent(jList, i);
+          matchingComponents.add(item);
+          break;
+        }
+      }
+    }
+
+    return matchingComponents;
   }
 
   private Collection<? extends Component> findNotificationByDisplayId(String displayId) {
@@ -340,6 +382,8 @@ public class StudioInteractionService {
         icon = ((ActionLink)c).getIcon();
       } else if (c instanceof ActionButton) {
         icon = ((ActionButton)c).getIcon();
+      } else if (c instanceof JButton) {
+        icon = ((JButton)c).getIcon();
       } else {
         continue;
       }
@@ -368,8 +412,13 @@ public class StudioInteractionService {
 
   private void invokeButton(JButton button) {
     Action action = button.getAction();
-    ActionEvent ae = new ActionEvent(button, 0, null);
-    action.actionPerformed(ae);
+    if (action == null) {
+      System.out.println("JButton had no associated action. Falling back to doClick.");
+      button.doClick();
+    } else {
+      ActionEvent ae = new ActionEvent(button, 0, null);
+      action.actionPerformed(ae);
+    }
   }
 
   /**
@@ -442,6 +491,20 @@ public class StudioInteractionService {
       catch (MalformedURLException ex) {
         ex.printStackTrace();
       }
+    }
+  }
+
+  private static class JListItemComponent extends Component {
+    private final JList<?> parent;
+    private final int itemIndex;
+
+    public JListItemComponent(JList<?> parent, int itemIndex) {
+      this.parent = parent;
+      this.itemIndex = itemIndex;
+    }
+
+    public void invoke() {
+      parent.setSelectedIndex(itemIndex);
     }
   }
 }

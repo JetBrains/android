@@ -18,20 +18,23 @@ package com.android.tools.idea.devicemanager.physicaltab;
 import static org.junit.Assert.assertEquals;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.device.Resolution;
 import com.android.tools.idea.devicemanager.CountDownLatchAssert;
 import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
 import com.android.tools.idea.devicemanager.DetailsPanel;
-import com.android.tools.idea.devicemanager.Resolution;
 import com.android.tools.idea.devicemanager.SerialNumber;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceDetailsPanel.SummarySection;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.DisposableRule;
 import java.awt.Container;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -40,6 +43,10 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class PhysicalDeviceDetailsPanelTest {
   private final @NotNull AsyncDetailsBuilder myBuilder = Mockito.mock(AsyncDetailsBuilder.class);
+  private final @NotNull WearPairingManager myManager = Mockito.mock(WearPairingManager.class);
+
+  @Rule
+  public final DisposableRule myRule = new DisposableRule();
 
   @Test
   public void summarySectionCallbackOnSuccess() throws InterruptedException {
@@ -60,8 +67,10 @@ public final class PhysicalDeviceDetailsPanelTest {
     // Act
     PhysicalDeviceDetailsPanel panel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.ONLINE_GOOGLE_PIXEL_3,
                                                                       myBuilder,
-                                                                      section -> newSummarySectionCallback(section, latch),
-                                                                      WearPairingManager.INSTANCE);
+                                                                      myManager,
+                                                                      section -> newSummarySectionCallback(section, latch));
+
+    Disposer.register(myRule.getDisposable(), panel);
 
     // Assert
     CountDownLatchAssert.await(latch);
@@ -74,8 +83,8 @@ public final class PhysicalDeviceDetailsPanelTest {
     assertEquals("arm64-v8a, armeabi-v7a, armeabi", section.myAbiListLabel.getText());
   }
 
-  private static @NotNull FutureCallback<@NotNull PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section,
-                                                                                            @NotNull CountDownLatch latch) {
+  @NotNull
+  private static FutureCallback<PhysicalDevice> newSummarySectionCallback(@NotNull SummarySection section, @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(PhysicalDeviceDetailsPanel.newSummarySectionCallback(section), latch);
   }
 
@@ -85,7 +94,7 @@ public final class PhysicalDeviceDetailsPanelTest {
     Mockito.when(myBuilder.buildAsync()).thenReturn(Futures.immediateFuture(TestPhysicalDevices.GOOGLE_PIXEL_3));
 
     // Act
-    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3, myBuilder);
+    DetailsPanel detailsPanel = new PhysicalDeviceDetailsPanel(TestPhysicalDevices.GOOGLE_PIXEL_3, myBuilder, myManager);
 
     // Assert
     Container sectionPanel = detailsPanel.getInfoSectionPanel();

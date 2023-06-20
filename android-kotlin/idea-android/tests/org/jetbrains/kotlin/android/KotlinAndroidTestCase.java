@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android;
 
-import static org.jetbrains.android.AndroidTestCase.addAndroidFacet;
+import static org.jetbrains.android.AndroidTestCase.addAndroidFacetAndSdk;
 import static org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen;
 
 import com.android.SdkConstants;
@@ -40,7 +40,6 @@ import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
-import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
 import java.io.IOException;
@@ -97,7 +96,7 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
-    myFacet = addAndroidFacet(myModule);
+    myFacet = addAndroidFacetAndSdk(myModule);
 
     AndroidTestCase.removeFacetOn(myFixture.getProjectDisposable(), myFacet);
 
@@ -129,11 +128,6 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
-      // Refresh PSI indices in order to avoid "Outdated stub in index" errors
-      // if a background thread accesses the index during tear-down. This is a
-      // workaround for the upstream issue https://youtrack.jetbrains.com/issue/IDEA-298870.
-      CodeInsightTestFixtureImpl.ensureIndexesUpToDate(getProject());
-
       // Finish dispatching any remaining events before shutting down everything
       UIUtil.dispatchAllInvocationEvents();
 

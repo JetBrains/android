@@ -16,17 +16,17 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction.Companion.findEmbeddedData
-import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
-import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.testing.LogcatEditorRule
+import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.json.JsonLanguage
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
-import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.MapDataContext
@@ -34,7 +34,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
-import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.fail
@@ -45,17 +44,19 @@ import kotlin.test.fail
 @RunsInEdt
 class CreateScratchFileActionTest {
   private val projectRule = ProjectRule()
+  private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
 
   private val project get() = projectRule.project
-  private val editor by lazy { createLogcatEditor(project) }
+  private val editor get() = logcatEditorRule.editor
 
-  @After
-  fun tearDown() {
-    EditorFactory.getInstance().releaseEditor(editor)
-  }
+  /**
+   * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as
+   * they are valid.
+   */
+  private val markers = mutableListOf<RangeMarker>()
 
   @Test
   fun update_noMetadata_notVisible() {
@@ -122,10 +123,13 @@ class CreateScratchFileActionTest {
       put(EDITOR, editor)
     })
   }
-}
 
-private fun EditorEx.putLogcatMessage(message: LogcatMessage) {
-  document.setText("foo") // it doesn't really matter what the text is
-  caretModel.moveToOffset(0)
-  document.createRangeMarker(0, 3).putUserData(LOGCAT_MESSAGE_KEY, message)
+  private fun EditorEx.putLogcatMessage(message: LogcatMessage) {
+    document.setText("foo") // it doesn't really matter what the text is
+    caretModel.moveToOffset(0)
+    document.createRangeMarker(0, 3).apply {
+      putUserData(LOGCAT_MESSAGE_KEY, message)
+      markers.add(this)
+    }
+  }
 }

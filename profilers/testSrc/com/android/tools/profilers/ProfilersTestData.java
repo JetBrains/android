@@ -34,6 +34,7 @@ import com.android.tools.profiler.proto.Memory.BatchAllocationEvents;
 import com.android.tools.profiler.proto.Memory.BatchJNIGlobalRefEvent;
 import com.android.tools.profiler.proto.Memory.JNIGlobalReferenceEvent;
 import com.android.tools.profiler.proto.Network;
+import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.cpu.config.ImportedConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
 import java.util.ArrayList;
@@ -62,7 +63,10 @@ public final class ProfilersTestData {
   public static final Common.AgentData DEFAULT_AGENT_ATTACHED_RESPONSE =
     Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build();
 
-  public static final Common.AgentData DEFAULT_AGENT_DETACHED_RESPONSE =
+  public static final Common.AgentData DEFAULT_AGENT_UNSPECIFIED_RESPONSE =
+    Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNSPECIFIED).build();
+
+  public static final Common.AgentData DEFAULT_AGENT_UNATTACHABLE_RESPONSE =
     Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNATTACHABLE).build();
 
   // For live allocation tracking tests - duration of each allocation event.
@@ -184,10 +188,10 @@ public final class ProfilersTestData {
   }
 
   @NotNull
-  public static Common.Event.Builder generateMemoryNativeSampleData(long groupId, long timestampUs, Memory.MemoryNativeSampleData info) {
+  public static Common.Event.Builder generateMemoryTraceData(long groupId, long timestampUs, Trace.TraceData traceData) {
     long timestampNs = TimeUnit.MICROSECONDS.toNanos(timestampUs);
-    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEMORY_NATIVE_SAMPLE_CAPTURE)
-      .setIsEnded(true).setMemoryNativeSample(info);
+    return Common.Event.newBuilder().setTimestamp(timestampNs).setGroupId(groupId).setKind(Common.Event.Kind.MEMORY_TRACE)
+      .setIsEnded(true).setTraceData(traceData);
   }
 
 
@@ -501,5 +505,14 @@ public final class ProfilersTestData {
         .setEnergyEvent(Energy.EnergyEventData.newBuilder().setJobFinished(Energy.JobFinished.getDefaultInstance()))
         .build()
     );
+  }
+
+  @NotNull
+  public static Common.Event.Builder generateTraceStatusEvent(long sessionId,
+                                                              int pid,
+                                                              long timestampNs,
+                                                              Trace.TraceStatusData traceStatusData) {
+    return Common.Event.newBuilder().setGroupId(sessionId).setPid(pid).setKind(Common.Event.Kind.TRACE_STATUS).setTimestamp(timestampNs)
+      .setCommandId(0).setTraceStatus(traceStatusData);
   }
 }

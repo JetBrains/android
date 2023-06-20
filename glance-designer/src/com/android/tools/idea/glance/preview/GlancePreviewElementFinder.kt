@@ -17,9 +17,9 @@ package com.android.tools.idea.glance.preview
 
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.annotations.hasAnnotations
+import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
@@ -73,15 +73,17 @@ private fun toGlancePreviewElements(
     .flatMap { method ->
       val uClass = method.uastParent as UClass
       val methodFqn = "${uClass.qualifiedName}.${method.name}"
-      method.uAnnotations.filter { it.isGlancePreview(surfaceName) }.map {
-        val displaySettings = PreviewDisplaySettings(method.name, null, false, false, null)
-        GlancePreviewElement(
-          displaySettings,
-          it.toSmartPsiPointer(),
-          method.uastBody.toSmartPsiPointer(),
-          methodFqn
-        )
-      }
+      method.uAnnotations
+        .filter { it.isGlancePreview(surfaceName) }
+        .map {
+          val displaySettings = PreviewDisplaySettings(method.name, null, false, false, null)
+          GlancePreviewElement(
+            displaySettings,
+            it.toSmartPsiPointer(),
+            method.uastBody.toSmartPsiPointer(),
+            methodFqn
+          )
+        }
     }
     .asSequence()
 
@@ -112,10 +114,7 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
       methodsToElements
     )
 
-  override fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
-    if (DumbService.isDumb(project)) {
-      return false
-    }
+  override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
     return hasAnnotations(
       project,
       vFile,

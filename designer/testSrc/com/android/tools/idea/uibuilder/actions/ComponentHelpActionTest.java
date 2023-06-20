@@ -15,12 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.intellij.ide.browsers.BrowserLauncher;
@@ -29,6 +23,10 @@ import com.intellij.openapi.actionSystem.DataContext;
 import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.*;
 
 public class ComponentHelpActionTest extends AndroidTestCase {
   @Mock
@@ -113,6 +111,6 @@ public class ComponentHelpActionTest extends AndroidTestCase {
   public void testGoogleLibraryTag() {
     myTagName = SdkConstants.AD_VIEW;
     myAction.actionPerformed(myEvent);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/com/google/android/gms/ads/AdView.html"), isNull(), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developers.google.com/android/reference/com/google/android/gms/ads/AdView"), isNull(), isNull());
   }
 }

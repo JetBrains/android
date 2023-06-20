@@ -126,7 +126,6 @@ public class CodeStyleTest {
    * <p>
    */
 
-  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void testModifyJavaCodeStyle() throws IOException, InterruptedException {
     IdeFrameFixture ideFrame = guiTest.ideFrame();

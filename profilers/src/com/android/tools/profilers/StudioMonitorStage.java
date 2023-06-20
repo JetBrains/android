@@ -34,6 +34,7 @@ public class StudioMonitorStage extends StreamingStage {
 
   @Override
   public void enter() {
+    logEnterStage();
     // Clear the selection
     getTimeline().getSelectionRange().clear();
 

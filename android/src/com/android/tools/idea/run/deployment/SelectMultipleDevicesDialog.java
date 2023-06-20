@@ -42,7 +42,7 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
   @NotNull
   private final Project myProject;
 
-  private final @NotNull List<@NotNull Device> myDevices;
+  private final @NotNull List<Device> myDevices;
   private final @NotNull TableModel myModel;
 
   @NotNull
@@ -60,9 +60,9 @@ final class SelectMultipleDevicesDialog extends DialogWrapper {
 
   @VisibleForTesting
   SelectMultipleDevicesDialog(@NotNull Project project,
-                              @NotNull List<@NotNull Device> devices,
+                              @NotNull List<Device> devices,
                               @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet,
-                              @NotNull Function<@NotNull Project, @NotNull DevicesSelectedService> devicesSelectedServiceGetInstance) {
+                              @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
     super(project);
 
     myProject = project;

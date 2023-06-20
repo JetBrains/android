@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.npw.module.recipes.benchmarkModule
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
@@ -31,7 +31,8 @@ fun buildGradle(
   targetApiString: String,
   language: Language,
   gradlePluginVersion: GradlePluginVersion,
-  useGradleKts: Boolean
+  useGradleKts: Boolean,
+  useVersionCatalog: Boolean
 ): String {
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
     """
@@ -41,7 +42,7 @@ fun buildGradle(
   """
   }
 
-  val isNewAGP = GradleVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("3.6.0") >= 0
+  val isNewAGP = AgpVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("3.6.0") >= 0
 
   val testBuildTypeBlock = renderIf(isNewAGP) { """testBuildType = "release"""" }
 
@@ -55,7 +56,7 @@ fun buildGradle(
   }
 
   return """
-${emptyPluginsBlock()}
+${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)}
 
 android {
     namespace '$packageName'

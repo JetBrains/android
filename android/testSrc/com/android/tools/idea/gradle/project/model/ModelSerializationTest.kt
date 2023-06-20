@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
@@ -39,6 +38,7 @@ import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
+import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
@@ -56,6 +56,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
@@ -64,10 +65,13 @@ import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth
+import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.serialization.ObjectSerializer
 import com.intellij.serialization.ReadConfiguration
 import com.intellij.serialization.SkipNullAndEmptySerializationFilter
 import com.intellij.serialization.WriteConfiguration
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
 import java.io.File
 import java.io.Serializable
@@ -95,10 +99,12 @@ class ModelSerializationTest : AndroidGradleTestCase() {
     GradleModuleModel(
       "testName",
       gradleProject,
-      listOf("plugin1", "plugin2"),
+
       null,
       "4.1.10",
-      "3.6.0-dev"
+      "3.6.0-dev",
+      false,
+      false,
     )
   }
 
@@ -116,7 +122,18 @@ class ModelSerializationTest : AndroidGradleTestCase() {
     val module = project.gradleModule(":moduleName")
     Truth.assertThat(module).isNotNull()
 
-    (GradleAndroidModel.get(module!!)!!.data as GradleAndroidModelDataImpl)
+    val externalInfo = ProjectDataManager.getInstance().getExternalProjectData(
+      project, GradleConstants.SYSTEM_ID, projectFolderPath.path
+    )
+    assertNotNull("Initial import failed", externalInfo)
+    val projectStructure = externalInfo!!.externalProjectStructure
+    assertNotNull("No project structure was found", projectStructure)
+
+    val androidModelNode = ExternalSystemApiUtil.findFirstRecursively(projectStructure!!) { node ->
+      AndroidProjectKeys.ANDROID_MODEL == node.key
+    }
+
+    androidModelNode!!.data as GradleAndroidModelDataImpl
   }
 
   @Test
@@ -169,6 +186,9 @@ class ModelSerializationTest : AndroidGradleTestCase() {
       "renderscriptFolder",
       "prouardRules",
       "lintJar",
+      "srcJar",
+      "docJar",
+      "samplesJar",
       "externalAnnotations",
       "publicResources",
       File("artifactFile"),
@@ -195,6 +215,9 @@ class ModelSerializationTest : AndroidGradleTestCase() {
         "renderscriptFolder",
         "prouardRules",
         "lintJar",
+        "docJar",
+        "srcJar",
+        "samplesJar",
         "externalAnnotations",
         "publicResources",
         File("artifactFile"),
@@ -313,15 +336,14 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   }
 
   @Test
-  fun testSerializableIdeSourceProviderContainer() {
-    Truth.assertThat(IdeSourceProviderContainerImpl::class.java).isAssignableTo(Serializable::class.java)
+  fun testSerializableIdeExtraSourceProvider() {
+    Truth.assertThat(IdeExtraSourceProviderImpl::class.java).isAssignableTo(Serializable::class.java)
   }
 
   @Test
-  fun testGradleVersion() = assertSerializable {
-    GradleVersion.parse("4.1.10")
+  fun testSerializableIdeSourceProviderContainer() {
+    Truth.assertThat(IdeSourceProviderContainerImpl::class.java).isAssignableTo(Serializable::class.java)
   }
-
 
   /*
    * END OTHER SHARED (IDE + LINT) MODELS

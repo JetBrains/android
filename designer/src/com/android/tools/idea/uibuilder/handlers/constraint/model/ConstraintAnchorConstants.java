@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.model;
 
-public final class ConstraintAnchorConstants {
+public class ConstraintAnchorConstants {
   /**
    * Type of creator
    */

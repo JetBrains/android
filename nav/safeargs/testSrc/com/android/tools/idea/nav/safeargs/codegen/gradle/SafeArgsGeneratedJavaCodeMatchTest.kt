@@ -16,7 +16,7 @@
 
 package com.android.tools.idea.nav.safeargs.codegen.gradle
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
@@ -41,6 +41,7 @@ import org.jetbrains.uast.UClass
 import org.jetbrains.uast.toUElement
 import org.jetbrains.uast.visitor.AbstractUastVisitor
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -59,7 +60,7 @@ class SafeArgsGeneratedJavaCodeMatchTest {
   val expect: Expect = Expect.create()
 
   @get:Rule
-  val enableSafeArgsCodeGen = RestoreFlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
+  val enableSafeArgsCodeGen = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
 
   @get:Rule
   val temporaryFolder = TemporaryFolder()
@@ -117,6 +118,7 @@ class SafeArgsGeneratedJavaCodeMatchTest {
     return allGeneratedCode
   }
 
+  @Ignore("b/246884723")
   @Test
   @RunsInEdt
   fun compiledJavaCodeMatchesInMemoryPsi() {

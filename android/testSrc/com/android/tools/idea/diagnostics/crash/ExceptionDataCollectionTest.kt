@@ -23,6 +23,7 @@ import com.android.tools.idea.serverflags.protos.ExceptionFilter
 import com.android.tools.idea.serverflags.protos.ExceptionSeverity
 import com.android.tools.idea.serverflags.protos.LogFilter
 import com.android.tools.idea.serverflags.protos.MessageFilter
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -30,10 +31,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.replaceService
 import org.apache.log4j.LogManager
-import org.hamcrest.Matchers.hasSize
-import org.hamcrest.core.Is.`is`
-import org.hamcrest.core.IsEqual.equalTo
-import org.junit.Assert.assertThat
 import java.util.Calendar
 import java.util.GregorianCalendar
 
@@ -117,17 +114,17 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
 
   fun testGetExceptionUploadFields() {
     val uploadFieldsEx1 = service.getExceptionUploadFields(ex1, forceExceptionMessage = false, includeLogs = false)
-    assertThat(uploadFieldsEx1.description.replace("\r\n", "\n"), equalTo(ex1DescriptionWithoutMessage))
-    assertThat(uploadFieldsEx1.logs.size, `is`(0))
+    assertThat(uploadFieldsEx1.description.replace("\r\n", "\n")).isEqualTo(ex1DescriptionWithoutMessage)
+    assertThat(uploadFieldsEx1.logs.size).isEqualTo(0)
     val uploadFieldsEx2 = service.getExceptionUploadFields(ex2, forceExceptionMessage = false, includeLogs = false)
-    assertThat(uploadFieldsEx2.description.replace("\r\n", "\n"), equalTo(ex2Description))
-    assertThat(uploadFieldsEx2.logs.size, `is`(0))
+    assertThat(uploadFieldsEx2.description.replace("\r\n", "\n")).isEqualTo(ex2Description)
+    assertThat(uploadFieldsEx2.logs.size).isEqualTo(0)
   }
 
   fun testRegisteringAppenders() {
     val registeredAppenders = service.registeredAppenders
-    assertThat(registeredAppenders, hasSize(1))
-    assertThat(registeredAppenders[0].logger.name, equalTo("#com.android.tools.idea.diagnostics.crash.ExceptionDataCollectionTest"))
+    assertThat(registeredAppenders).hasSize(1)
+    assertThat(registeredAppenders[0].logger.name).isEqualTo("#com.android.tools.idea.diagnostics.crash.ExceptionDataCollectionTest")
   }
 
   fun testLogCollection() {
@@ -147,41 +144,41 @@ internal class ExceptionDataCollectionTest : LightPlatformTestCase() {
     var result = exceptionUploadFields.logs["test_3"]!!
     // remove time information
     result = result.replace(Regex("^\\[[ 0-9]+\\]", RegexOption.MULTILINE), "[<time>]")
-    assertThat(result.trimEnd(), equalTo("""
+    assertThat(result.trimEnd()).isEqualTo("""
 [<time>] W [sh.ExceptionDataCollectionTest] warn message #4
 [<time>] S [sh.ExceptionDataCollectionTest] severe message #4
 [<time>] I [sh.ExceptionDataCollectionTest] info message #5
 [<time>] W [sh.ExceptionDataCollectionTest] warn message #5
 [<time>] S [sh.ExceptionDataCollectionTest] severe message #5
-    """.trimIndent()))
+    """.trimIndent())
   }
 
   fun testCalculateSignature() {
     val sig1 = service.calculateSignature(ex1)
-    assertThat(sig1, equalTo(ex1Sig))
+    assertThat(sig1).isEqualTo(ex1Sig)
 
     val sig2 = service.calculateSignature(ex2)
-    assertThat(sig2, equalTo(ex2Sig))
+    assertThat(sig2).isEqualTo(ex2Sig)
 
     val sig3 = service.calculateSignature(ex3)
-    assertThat(sig3, equalTo(ex3Sig))
+    assertThat(sig3).isEqualTo(ex3Sig)
   }
 
   fun testCalculateSignatueMissingStack() {
     val sig3 = service.calculateSignature(exNoStack)
-    assertThat(sig3, equalTo(exNoStackSig))
+    assertThat(sig3).isEqualTo(exNoStackSig)
   }
 
   fun testGetDescription() {
     val messageRemoved = service.getDescription(ex1, stripMessage = true, includeFullStack = true)
-    assertThat(messageRemoved.replace("\r\n", "\n"), equalTo(ex1DescriptionWithoutMessage))
+    assertThat(messageRemoved.replace("\r\n", "\n")).isEqualTo(ex1DescriptionWithoutMessage)
     val withMessage = service.getDescription(ex1, stripMessage = false, includeFullStack = true)
-    assertThat(withMessage.replace("\r\n", "\n"), equalTo(ex1Description))
+    assertThat(withMessage.replace("\r\n", "\n")).isEqualTo(ex1Description)
   }
 
   fun testRequiresConfirmation() {
-    assertThat(service.requiresConfirmation(ex1), `is`(false))
-    assertThat(service.requiresConfirmation(ex2), `is`(true))
+    assertThat(service.requiresConfirmation(ex1)).isFalse()
+    assertThat(service.requiresConfirmation(ex2)).isTrue()
   }
 
   companion object {

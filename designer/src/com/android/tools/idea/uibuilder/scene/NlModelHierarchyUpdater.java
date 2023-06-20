@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -23,6 +25,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
@@ -41,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility class for updating NlModel hierarchy from various sources
  */
-public final class NlModelHierarchyUpdater {
+public class NlModelHierarchyUpdater {
 
   @AndroidCoordinate private static final int VISUAL_EMPTY_COMPONENT_SIZE = 1;
 
@@ -49,22 +52,25 @@ public final class NlModelHierarchyUpdater {
    * Update the hierarchy based on the render/inflate result.
    * @param result result after inflation. Must contain a valid ViewInfo.
    * @param model to be updated.
+   * @return whether update in component hierarchy caused a reverse update in the view hierarchy
    */
-  public static void updateHierarchy(@NotNull RenderResult result,
+  public static boolean updateHierarchy(@NotNull RenderResult result,
                                      @NotNull NlModel model) {
-    updateHierarchy(getRootViews(result, model.getType()), model);
+    return updateHierarchy(getRootViews(result, model.getType()), model);
   }
 
   /**
    * Update the hierarchy based on the inflated rootViews.
    * @param views list of views inflated that matches model file
    * @param model to be updated
+   * @return whether update in component hierarchy caused a reverse update in the view hierarchy
    */
-  public static void updateHierarchy(@NotNull List<ViewInfo> views, @NotNull NlModel model) {
+  public static boolean updateHierarchy(@NotNull List<ViewInfo> views, @NotNull NlModel model) {
     XmlTag root = getRootTag(model);
     if (root != null) {
-      updateHierarchy(root, views, model);
+      return updateHierarchy(root, views, model);
     }
+    return false;
   }
 
   /**
@@ -72,10 +78,17 @@ public final class NlModelHierarchyUpdater {
    * @param rootTag xml tag of the root view from PsiFile (from model)
    * @param views list of views inflated that matches model file
    * @param model to be updated
+   * @return whether update in component hierarchy caused a reverse update in the view hierarchy
    */
-  public static void updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> views, @NotNull NlModel model) {
+  public static boolean updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> views, @NotNull NlModel model) {
     model.syncWithPsi(rootTag, ContainerUtil.map(views, ViewInfoTagSnapshotNode::new));
+    model.updateAccessibility(views);
     updateBounds(views, model);
+    ImmutableList<NlComponent> components = model.getComponents();
+    if (!components.isEmpty()) {
+      return updateScroll(components.get(0));
+    }
+    return false;
   }
 
   /**
@@ -104,11 +117,13 @@ public final class NlModelHierarchyUpdater {
     Map<TagSnapshot, NlComponent> snapshotToComponent =
       model.flattenComponents().collect(Collectors.toMap(NlComponent::getSnapshot, Function.identity(), (n1, n2) -> n1));
     Map<XmlTag, NlComponent> tagToComponent =
-      model.flattenComponents().collect(Collectors.toMap(NlComponent::getTagDeprecated, Function.identity()));
+      model.flattenComponents().collect(Collectors.toMap(NlComponent::getTagDeprecated, Function.identity(), (n1, n2) -> n1));
+    Map<Long, NlComponent> sourceIdToComponent =
+      model.flattenComponents().collect(Collectors.toMap(NlComponent::getAccessibilityId, Function.identity(), (n1, n2) -> n1));
 
     // Update the bounds. This is based on the ViewInfo instances.
     for (ViewInfo view : rootViews) {
-      updateBounds(view, 0, 0, snapshotToComponent, tagToComponent);
+      updateBounds(view, 0, 0, snapshotToComponent, tagToComponent, sourceIdToComponent);
     }
 
     ImmutableList<NlComponent> components = model.getComponents();
@@ -119,38 +134,74 @@ public final class NlModelHierarchyUpdater {
     }
   }
 
+  /**
+   * Update the scroll in the View hierarchy from the saved scroll in the components' hierarchy. Returns whether there was any scroll
+   * update required or not.
+   */
+  private static boolean updateScroll(@NotNull NlComponent component) {
+    boolean scrollHasChanged = false;
+    ViewInfo viewInfo = NlComponentHelperKt.getViewInfo(component);
+    Object viewObject = viewInfo != null ? viewInfo.getViewObject() : null;
+
+    if (viewObject instanceof ViewGroup) {
+      ViewGroup viewGroup = (ViewGroup)viewObject;
+      int savedScrollX = NlComponentHelperKt.getScrollX(component);
+      int savedScrollY = NlComponentHelperKt.getScrollY(component);
+      if (savedScrollX != viewGroup.getScrollX() || savedScrollY != viewGroup.getScrollY()) {
+        scrollHasChanged = true;
+        viewGroup.setScrollX(savedScrollX);
+        viewGroup.setScrollY(savedScrollY);
+      }
+    }
+
+    List<NlComponent> children = component.getChildren();
+    for (NlComponent child : children) {
+      scrollHasChanged = scrollHasChanged || updateScroll(child);
+    }
+    return scrollHasChanged;
+  }
+
   private static void updateBounds(@NotNull ViewInfo view,
                                    @AndroidCoordinate int parentX,
                                    @AndroidCoordinate int parentY,
                                    Map<TagSnapshot, NlComponent> snapshotToComponent,
-                                   Map<XmlTag, NlComponent> tagToComponent) {
+                                   Map<XmlTag, NlComponent> tagToComponent,
+                                   Map<Long, NlComponent> sourceIdToComponent) {
     ViewInfo bounds = RenderService.getSafeBounds(view);
     Object cookie = view.getCookie();
-    NlComponent component;
-    if (cookie != null) {
-      if (cookie instanceof TagSnapshot) {
-        TagSnapshot snapshot = (TagSnapshot)cookie;
-        component = snapshotToComponent.get(snapshot);
-        if (component == null) {
-          component = tagToComponent.get(snapshot.tag);
-        }
-        if (component != null && NlComponentHelperKt.getViewInfo(component) == null) {
-          NlComponentHelperKt.setViewInfo(component, view);
-          int left = parentX + bounds.getLeft();
-          int top = parentY + bounds.getTop();
-          int width = bounds.getRight() - bounds.getLeft();
-          int height = bounds.getBottom() - bounds.getTop();
-
-          NlComponentHelperKt.setBounds(component, left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE),
-                                        Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
-        }
+    NlComponent component = null;
+    if (cookie instanceof TagSnapshot) {
+      TagSnapshot snapshot = (TagSnapshot)cookie;
+      component = snapshotToComponent.get(snapshot);
+      if (component == null) {
+        PsiXmlTag psiXmlTag = (PsiXmlTag)snapshot.tag;
+        component = tagToComponent.get(psiXmlTag != null ? psiXmlTag.getPsiXmlTag() : null);
       }
+    }
+    else {
+      Object accessibilityObject = view.getAccessibilityObject();
+      if (accessibilityObject != null) {
+        AccessibilityNodeInfo nodeInfo = (AccessibilityNodeInfo)accessibilityObject;
+        component = sourceIdToComponent.get(nodeInfo.getSourceNodeId());
+      }
+    }
+
+    if (component != null && NlComponentHelperKt.getViewInfo(component) == null) {
+      NlComponentHelperKt.setViewInfo(component, view);
+
+      int left = parentX + bounds.getLeft();
+      int top = parentY + bounds.getTop();
+      int width = bounds.getRight() - bounds.getLeft();
+      int height = bounds.getBottom() - bounds.getTop();
+
+      NlComponentHelperKt.setBounds(component, left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE),
+                                    Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
     }
     parentX += bounds.getLeft();
     parentY += bounds.getTop();
 
     for (ViewInfo child : view.getChildren()) {
-      updateBounds(child, parentX, parentY, snapshotToComponent, tagToComponent);
+      updateBounds(child, parentX, parentY, snapshotToComponent, tagToComponent, sourceIdToComponent);
     }
   }
 

@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
@@ -39,7 +40,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.awt.Rectangle
-import com.android.tools.idea.layoutinspector.properties.PropertyType as Type
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 
 abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidProjectRule) {
   protected val fileOpenCaptureRule = FileOpenCaptureRule(projectRule)
@@ -64,40 +65,40 @@ abstract class InspectorPropertyItemTestBase(protected val projectRule: AndroidP
 
   protected fun dimensionDpPropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(ANDROID_URI, "x", Type.DIMENSION_DP, value, PropertySection.DECLARED, null, nodeId, model!!)
+    return InspectorPropertyItem(ANDROID_URI, "x", PropertyType.DIMENSION_DP, value, PropertySection.DECLARED, null, nodeId, model!!)
   }
 
   protected fun dimensionSpPropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(ANDROID_URI, "textSize", Type.DIMENSION_SP, value, PropertySection.DECLARED, null, nodeId, model!!)
+    return InspectorPropertyItem(ANDROID_URI, "textSize", PropertyType.DIMENSION_SP, value, PropertySection.DECLARED, null, nodeId, model!!)
   }
 
   protected fun dimensionEmPropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = fakeComposeNode.drawId
-    return InspectorPropertyItem(ANDROID_URI, "lineSpacing", Type.DIMENSION_EM, value, PropertySection.DECLARED, null, nodeId, model!!)
+    return InspectorPropertyItem(ANDROID_URI, "lineSpacing", PropertyType.DIMENSION_EM, value, PropertySection.DECLARED, null, nodeId, model!!)
   }
 
   protected fun dimensionPropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION, value, PropertySection.DECLARED, null, nodeId, model!!)
+    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, PropertyType.DIMENSION, value, PropertySection.DECLARED, null, nodeId, model!!)
   }
 
   protected fun dimensionFloatPropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, nodeId,
+    return InspectorPropertyItem(ANDROID_URI, ATTR_PADDING_TOP, PropertyType.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, nodeId,
                                  model!!)
   }
 
   protected fun textSizePropertyOf(value: String?): InspectorPropertyItem {
     val nodeId = model!!["title"]!!.drawId
-    return InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, Type.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, nodeId, model!!)
+    return InspectorPropertyItem(ANDROID_URI, ATTR_TEXT_SIZE, PropertyType.DIMENSION_FLOAT, value, PropertySection.DECLARED, null, nodeId, model!!)
   }
 
   private val fakeComposeNode: ComposeViewNode =
     ComposeViewNode(-2L, "Text", null, Rectangle(20, 20, 600, 200), null, "",
                     0, 0, 0, "Text.kt", composePackageHash = 1777, composeOffset = 420, composeLineNumber = 17, 0, 0)
 
-  protected fun browseProperty(attrName: String, type: Type, source: ResourceReference?) {
+  protected fun browseProperty(attrName: String, type: PropertyType, source: ResourceReference?) {
     val node = model!!["title"]!!
     val property = InspectorPropertyItem(
       ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED, source ?: node.layout, node.drawId, model!!)
@@ -132,7 +133,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     assertThat(dimensionPropertyOf("84").value).isEqualTo("24dp")
     assertThat(dimensionPropertyOf("2168").value).isEqualTo("619dp")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionPropertyOf("").value).isEqualTo("")
     assertThat(dimensionPropertyOf("-1").value).isEqualTo("-1")
     assertThat(dimensionPropertyOf("-2147483648").value).isEqualTo("-2147483648")
@@ -148,7 +149,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     assertThat(dimensionFloatPropertyOf("0.499999999").value).isEqualTo("0.5px")
     assertThat(dimensionFloatPropertyOf("0.1234567").value).isEqualTo("0.123px")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionFloatPropertyOf("").value).isEqualTo("")
     assertThat(dimensionFloatPropertyOf("0").value).isEqualTo("0px")
     assertThat(dimensionFloatPropertyOf("0.5").value).isEqualTo("0.5px")
@@ -165,7 +166,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     assertThat(dimensionFloatPropertyOf("1.749").value).isEqualTo("0.5dp")
     assertThat(dimensionFloatPropertyOf("1.234567").value).isEqualTo("0.353dp")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionFloatPropertyOf("").value).isEqualTo("")
     assertThat(dimensionFloatPropertyOf("0").value).isEqualTo("0px")
     assertThat(dimensionFloatPropertyOf("0.5").value).isEqualTo("0.5px")
@@ -180,7 +181,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 0.9f
     assertThat(textSizePropertyOf("44.0").value).isEqualTo("44.0px")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(textSizePropertyOf("").value).isEqualTo("")
     assertThat(textSizePropertyOf("49.0").value).isEqualTo("49.0px")
     model!!.resourceLookup.fontScale = 0.9f
@@ -198,7 +199,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 1.3f
     assertThat(textSizePropertyOf("64.0").value).isEqualTo("14.1sp")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(textSizePropertyOf("").value).isEqualTo("")
     assertThat(textSizePropertyOf("49.0").value).isEqualTo("49.0px")
     model!!.resourceLookup.fontScale = 0.9f
@@ -214,7 +215,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     assertThat(dimensionDpPropertyOf("1.74978").value).isEqualTo("1.75dp")
     assertThat(dimensionDpPropertyOf("1.234567").value).isEqualTo("1.235dp")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionDpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionDpPropertyOf("0").value).isEqualTo("0dp")
     assertThat(dimensionDpPropertyOf("0.5").value).isEqualTo("0.5dp")
@@ -231,7 +232,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     assertThat(dimensionDpPropertyOf("0.4999").value).isEqualTo("1.75px")
     assertThat(dimensionDpPropertyOf("1.23456").value).isEqualTo("4.321px")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionDpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionDpPropertyOf("0").value).isEqualTo("0dp")
     assertThat(dimensionDpPropertyOf("0.5").value).isEqualTo("0.5dp")
@@ -247,7 +248,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 0.9f
     assertThat(dimensionSpPropertyOf("12.0").value).isEqualTo("12.0sp")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionSpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionSpPropertyOf("12.0").value).isEqualTo("12.0sp")
     model!!.resourceLookup.fontScale = 0.9f
@@ -265,7 +266,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 1.3f
     assertThat(dimensionSpPropertyOf("14.0").value).isEqualTo("63.7px")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionSpPropertyOf("").value).isEqualTo("")
     assertThat(dimensionSpPropertyOf("14.0").value).isEqualTo("14.0sp")
     model!!.resourceLookup.fontScale = 0.9f
@@ -280,7 +281,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 0.9f
     assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionEmPropertyOf("").value).isEqualTo("")
     assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
     model!!.resourceLookup.fontScale = 0.9f
@@ -294,7 +295,7 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
     model!!.resourceLookup.fontScale = 0.9f
     assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
 
-    model!!.resourceLookup.dpi = -1
+    model!!.resourceLookup.dpi = null
     assertThat(dimensionEmPropertyOf("").value).isEqualTo("")
     assertThat(dimensionEmPropertyOf("1.5").value).isEqualTo("1.5em")
     model!!.resourceLookup.fontScale = 0.9f
@@ -303,17 +304,22 @@ class InspectorPropertyItemTest: InspectorPropertyItemTestBase(AndroidProjectRul
 
   @Test
   fun testBrowseBackgroundInLayout() {
-    browseProperty(ATTR_BACKGROUND, Type.DRAWABLE, null)
+    browseProperty(ATTR_BACKGROUND, PropertyType.DRAWABLE, null)
     fileOpenCaptureRule.checkEditor("demo.xml", 14, "framework:background=\"@drawable/battery\"")
   }
 }
 
 @RunsInEdt
-class InspectorPropertyItemTestWithSdk: InspectorPropertyItemTestBase(AndroidProjectRule.withSdk()) {
+class InspectorPropertyItemTestWithSdk: InspectorPropertyItemTestBase(
+  AndroidProjectRule.withAndroidModel(
+    createAndroidProjectBuilderForDefaultTestProjectStructure()
+      .copy(applicationIdFor = { variant -> "com.example" })
+  ).named(InspectorPropertyItemTestWithSdk::class.simpleName)
+) {
   @Test
   fun testBrowseTextSizeFromTextAppearance() {
     val textAppearance = ResourceReference.style(ResourceNamespace.ANDROID, "TextAppearance.Material.Body1")
-    browseProperty(ATTR_TEXT_SIZE, Type.INT32, textAppearance)
+    browseProperty(ATTR_TEXT_SIZE, PropertyType.INT32, textAppearance)
     fileOpenCaptureRule.checkEditor("styles_material.xml", 228, "<item name=\"textSize\">@dimen/text_size_body_1_material</item>")
   }
 }

@@ -26,11 +26,10 @@ import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConf
 import com.android.tools.idea.gradle.structure.configurables.BuildVariantsPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.ModulesPerspectiveConfigurableKt;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.module.DeclaredDependenciesPanelKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.BuildVariantsPanelKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypesPanelKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorsPanelKt;
-import com.android.tools.idea.gradle.structure.configurables.ui.modules.ModulePanelKt;
-import com.android.tools.idea.gradle.structure.configurables.ui.modules.SigningConfigsPanelKt;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
@@ -126,16 +125,6 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   }
 
   @Override
-  public void openSigningConfiguration(@NotNull Module module) {
-    showNewPsd(
-      new Place()
-        .putPath(ProjectStructureConfigurable.CATEGORY_NAME, ModulesPerspectiveConfigurableKt.MODULES_PERSPECTIVE_DISPLAY_NAME)
-        .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleIdentityPathOrNull(module))
-        .putPath(ModulePanelKt.MODULE_PLACE_NAME, SigningConfigsPanelKt.SIGNING_CONFIGS_DISPLAY_NAME)
-    );
-  }
-
-  @Override
   public void openSdkSettings() {
     showNewPsd(
       new Place()
@@ -162,7 +151,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
       new Place()
         .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
         .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleIdentityPathOrNull(module))
-        .putPath(String.format("dependencies.%s.place", getGradleIdentityPathOrNull(module)), dependency.toString())
+        .putPath(DeclaredDependenciesPanelKt.MODULE_DEPENDENCIES_PLACE_NAME, dependency.toString())
     );
   }
 

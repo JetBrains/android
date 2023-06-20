@@ -16,10 +16,18 @@
 package com.android.tools.idea.testing
 
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
+import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
+import com.android.tools.idea.gradle.project.importing.withAfterCreate
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.testing.AgpIntegrationTestUtil.maybeCreateJdkOverride
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.facet.AndroidFacet
@@ -86,24 +94,16 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
   @JvmOverloads
   fun load(
     projectPath: String,
-    kotlinVersion: String? = null,
-    gradleVersion: String? = null,
-    agpVersion: String? = null,
+    agpVersion: AgpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     ndkVersion: String? = null,
     preLoad: ((projectRoot: File) -> Unit)? = null
-  ) {
-    if (preLoad != null) {
-      val rootFile = delegateTestCase.prepareProjectForImport(projectPath, gradleVersion, agpVersion, kotlinVersion, ndkVersion, null)
-
-      preLoad(rootFile)
-      delegateTestCase.importProject()
-      delegateTestCase.prepareProjectForTest(project, null)
-    }
-    else {
-      delegateTestCase.loadProject(
-        projectPath, null, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
-    }
-  }
+  ) = loadProject(
+    projectPath = projectPath,
+    chosenModuleName = null,
+    agpVersion = agpVersion,
+    ndkVersion = ndkVersion,
+    preLoad = preLoad
+  )
 
   /**
    * Triggers loading the target Android Gradle project. Be sure to call [fixture]'s
@@ -116,9 +116,42 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
    * @param ndkVersion If specified, which NDK version will be used.
    */
   @JvmOverloads
-  fun loadProject(projectPath: String, chosenModuleName: String? = null, gradleVersion: String? = null, agpVersion: String? = null,
-                  kotlinVersion: String? = null, ndkVersion: String? = null) {
-      delegateTestCase.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
+  fun loadProject(
+    projectPath: String,
+    chosenModuleName: String? = null,
+    agpVersion: AgpVersionSoftwareEnvironment = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
+    ndkVersion: String? = null,
+    preLoad: ((projectRoot: File) -> Unit)? = null
+  ) {
+    val resolvedAgpVersion = agpVersion.resolve()
+    val jdkOverride: Sdk? = maybeCreateJdkOverride(resolvedAgpVersion.jdkVersion)
+    if (jdkOverride != null) {
+      Disposer.register(delegateTestCase.testRootDisposable) {
+        runWriteActionAndWait {
+          ProjectJdkTable.getInstance().removeJdk(jdkOverride)
+        }
+      }
+    }
+
+    fun afterCreate(project: Project) {
+      if (jdkOverride != null) {
+        runWriteActionAndWait {
+          ProjectRootManager.getInstance(project).projectSdk = jdkOverride
+        }
+      }
+    }
+
+    GradleProjectImporter.withAfterCreate(afterCreate = ::afterCreate) {
+      if (preLoad != null) {
+        val rootFile = delegateTestCase.prepareProjectForImport(projectPath, resolvedAgpVersion, ndkVersion)
+
+        preLoad(rootFile)
+        delegateTestCase.importProject(resolvedAgpVersion.jdkVersion)
+        delegateTestCase.prepareProjectForTest(project, chosenModuleName)
+      } else {
+        delegateTestCase.loadProject(projectPath, chosenModuleName, resolvedAgpVersion, ndkVersion)
+      }
+    }
   }
 
   fun requestSyncAndWait() {
@@ -126,8 +159,7 @@ class AndroidGradleProjectRule(val workspaceRelativeTestDataPath: @SystemIndepen
   }
 
   fun requestSyncAndWait(request: GradleSyncInvoker.Request) {
-    val syncListener = delegateTestCase.requestSync(request)
-    AndroidGradleTests.checkSyncStatus(project, syncListener)
+    delegateTestCase.requestSyncAndWait(request)
   }
 
   fun generateSources() {
@@ -160,11 +192,9 @@ class EdtAndroidGradleProjectRule(val projectRule: AndroidGradleProjectRule) :
   fun loadProject(
     projectPath: String,
     chosenModuleName: String? = null,
-    gradleVersion: String? = null,
-    agpVersion: String? = null,
-    kotlinVersion: String? = null,
+    agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     ndkVersion: String? = null
-  ) = projectRule.loadProject(projectPath, chosenModuleName, gradleVersion, agpVersion, kotlinVersion, ndkVersion)
+  ) = projectRule.loadProject(projectPath, chosenModuleName, agpVersion, ndkVersion)
 }
 
 fun AndroidGradleProjectRule.onEdt(): EdtAndroidGradleProjectRule = EdtAndroidGradleProjectRule(this)

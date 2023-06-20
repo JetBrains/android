@@ -266,6 +266,48 @@ class DesignSurfaceTest : LayoutTestCase() {
     surface.magnificationFinished(0.0)
     TestCase.assertEquals(10.0, surface.scale)
   }
+
+  fun testCanZoom() {
+    val surface = TestDesignSurface(project, testRootDisposable)
+
+    // Test min
+    surface.setScale(0.104)
+    assertFalse(surface.canZoomOut())
+    surface.setScale(0.11)
+    assertTrue(surface.canZoomOut())
+
+    // Test max
+    surface.setScale(9.996)
+    assertFalse(surface.canZoomIn())
+    surface.setScale(9.99)
+    assertTrue(surface.canZoomIn())
+
+    // Test some normal cases.
+    surface.setScale(0.25)
+    surface.canZoomIn()
+    surface.canZoomOut()
+    surface.setScale(0.5)
+    surface.canZoomIn()
+    surface.canZoomOut()
+    surface.setScale(1.0)
+    surface.canZoomIn()
+    surface.canZoomOut()
+    surface.setScale(2.0)
+    surface.canZoomIn()
+    surface.canZoomOut()
+  }
+
+  fun testSetScale() {
+    val surface = TestDesignSurface(project, testRootDisposable)
+
+    surface.setScale(1.0)
+
+    // Setting scale is restricted between min and max
+    surface.setScale(0.01)
+    assertEquals(0.1, surface.scale)
+    surface.setScale(20.0)
+    assertEquals(10.0, surface.scale)
+  }
 }
 
 class TestInteractionHandler(surface: DesignSurface<*>) : InteractionHandlerBase(surface) {
@@ -279,6 +321,12 @@ class TestLayoutManager(private val surface: DesignSurface<*>) : PositionableCon
 
   override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension =
     surface.sceneViews.map { it.getContentSize(null) }.firstOrNull() ?: Dimension(0, 0)
+
+  override fun getMeasuredPositionableContentPosition(content: Collection<PositionableContent>,
+                                                      availableWidth: Int,
+                                                      availableHeight: Int): Map<PositionableContent, Point> {
+    return content.firstOrNull()?.let { mapOf(it to Point(0, 0)) } ?: emptyMap()
+  }
 }
 
 class TestActionHandler(surface: DesignSurface<*>) : DesignSurfaceActionHandler(surface) {
@@ -306,6 +354,8 @@ class TestDesignSurface(project: Project, disposible: Disposable) :
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
+  override fun getFitScale(): Double = 1.0
+
   override fun createSceneManager(model: NlModel) = TestSceneManager(model, this).apply { updateSceneView() }
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
@@ -316,9 +366,7 @@ class TestDesignSurface(project: Project, disposible: Disposable) :
 
   override fun getMaxScale() = 10.0
 
-  override fun getDefaultOffset() = Dimension()
-
-  override fun getPreferredContentSize(availableWidth: Int, availableHeight: Int) = Dimension()
+  override fun getScrollToVisibleOffset() = Dimension()
 
   override fun isLayoutDisabled() = true
 

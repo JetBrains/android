@@ -39,25 +39,34 @@ import javax.swing.Icon
 const val MINIMUM_WORKMANAGER_VERSION = "2.5.0"
 
 class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
-  override val launchConfigs = listOf(
-    AppInspectorLaunchConfig(
-      "backgroundtask.inspection",
-      FrameworkInspectorLaunchParams(
-        AppInspectorJar("backgroundtask-inspection.jar",
-                        developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/backgroundtask",
-                        releaseDirectory = "plugins/android/resources/app-inspection/"),
+  override val launchConfigs =
+    listOf(
+      AppInspectorLaunchConfig(
+        "backgroundtask.inspection",
+        FrameworkInspectorLaunchParams(
+          AppInspectorJar(
+            "backgroundtask-inspection.jar",
+            developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/backgroundtask",
+            releaseDirectory = "plugins/android/resources/app-inspection/"
+          ),
+        ),
       ),
-    ),
-    AppInspectorLaunchConfig(
-      "androidx.work.inspection",
-      LibraryInspectorLaunchParams(
-        AppInspectorJar("workmanager-inspection.jar",
-                        developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"),
-        ArtifactCoordinate("androidx.work", "work-runtime", MINIMUM_WORKMANAGER_VERSION, ArtifactCoordinate.Type.AAR)
+      AppInspectorLaunchConfig(
+        "androidx.work.inspection",
+        LibraryInspectorLaunchParams(
+          AppInspectorJar(
+            "workmanager-inspection.jar",
+            developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"
+          ),
+          ArtifactCoordinate(
+            "androidx.work",
+            "work-runtime",
+            MINIMUM_WORKMANAGER_VERSION,
+            ArtifactCoordinate.Type.AAR
+          )
+        )
       )
     )
-  )
-
 
   override val displayName = "Background Task Inspector"
   override val icon: Icon = StudioIcons.LayoutEditor.Palette.LIST_VIEW
@@ -67,29 +76,49 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
     return StudioFlags.ENABLE_BACKGROUND_TASK_INSPECTOR_TAB.get()
   }
 
-  override fun createTab(project: Project,
-                         ideServices: AppInspectionIdeServices,
-                         processDescriptor: ProcessDescriptor,
-                         messengerTargets: List<AppInspectorMessengerTarget>,
-                         parentDisposable: Disposable): AppInspectorTab {
+  override fun createTab(
+    project: Project,
+    ideServices: AppInspectionIdeServices,
+    processDescriptor: ProcessDescriptor,
+    messengerTargets: List<AppInspectorMessengerTarget>,
+    parentDisposable: Disposable
+  ): AppInspectorTab {
 
     val btiMessenger = (messengerTargets[0] as AppInspectorMessengerTarget.Resolved).messenger
-    val wmiMessengerTarget = when (val target = messengerTargets[1]) {
-      is AppInspectorMessengerTarget.Resolved -> WmiMessengerTarget.Resolved(target.messenger)
-      is AppInspectorMessengerTarget.Unresolved -> WmiMessengerTarget.Unresolved(target.error)
-    }
+    val wmiMessengerTarget =
+      when (val target = messengerTargets[1]) {
+        is AppInspectorMessengerTarget.Resolved -> WmiMessengerTarget.Resolved(target.messenger)
+        is AppInspectorMessengerTarget.Unresolved -> WmiMessengerTarget.Unresolved(target.error)
+      }
     val scope = AndroidCoroutineScope(parentDisposable)
-    val client = BackgroundTaskInspectorClient(btiMessenger, wmiMessengerTarget, scope, IdeBackgroundTaskInspectorTracker(project))
+    val client =
+      BackgroundTaskInspectorClient(
+        btiMessenger,
+        wmiMessengerTarget,
+        scope,
+        IdeBackgroundTaskInspectorTracker(project)
+      )
 
     return object : AppInspectorTab {
-      override val messengers = messengerTargets.mapNotNull { target -> (target as? AppInspectorMessengerTarget.Resolved)?.messenger }
-      override val component = BackgroundTaskInspectorTab(client, ideServices, IntellijUiComponentsProvider(project), scope,
-                                                          AndroidDispatchers.uiThread).component
+      override val messengers =
+        messengerTargets.mapNotNull { target ->
+          (target as? AppInspectorMessengerTarget.Resolved)?.messenger
+        }
+      override val component =
+        BackgroundTaskInspectorTab(
+            client,
+            ideServices,
+            IntellijUiComponentsProvider(project),
+            scope,
+            AndroidDispatchers.uiThread
+          )
+          .component
     }
   }
 
   override fun compareTo(other: AppInspectorTabProvider): Int {
-    // TODO(b/183624170): This is a temporary patch to make sure WMI doesn't show up before DBI for now, while
+    // TODO(b/183624170): This is a temporary patch to make sure WMI doesn't show up before DBI for
+    // now, while
     //  the UI is still mostly barren (this should not be true in a later version of Studio)
     return 1
   }

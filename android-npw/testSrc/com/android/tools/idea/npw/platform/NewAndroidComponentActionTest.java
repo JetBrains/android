@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.npw.actions.NewAndroidComponentAction;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.wizard.template.Category;
@@ -62,7 +63,7 @@ public final class NewAndroidComponentActionTest {
     when(mockAndroidModuleInfo.getMinSdkVersion()).thenReturn(new AndroidVersion(1));
     when(mockAndroidModuleInfo.getBuildSdkVersion()).thenReturn(new AndroidVersion(1));
 
-    AndroidModuleInfo.setInstanceForTest(mySelectedAndroidFacet, mockAndroidModuleInfo);
+    StudioAndroidModuleInfo.setInstanceForTest(mySelectedAndroidFacet, mockAndroidModuleInfo);
 
     FacetManager mockFacetManager = mock(FacetManager.class);
     when(mockFacetManager.getFacetByType(AndroidFacet.ID)).thenReturn(mySelectedAndroidFacet);

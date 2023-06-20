@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.model
 
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.pom.Navigatable
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
@@ -41,12 +42,6 @@ interface NlComponentBackend {
    * Has to be called with read access allowed.
    */
   val tag: XmlTag?
-
-  // TODO: remove
-  fun getTagPointer(): SmartPsiElementPointer<XmlTag>
-
-  // TODO: remove
-  fun setTagName(name: String)
 
   // TODO: remove
   fun getTagName(): String
@@ -75,4 +70,6 @@ interface NlComponentBackend {
   fun reformatAndRearrange()
 
   fun isValid(): Boolean
+
+  fun getDefaultNavigatable(): Navigatable?
 }

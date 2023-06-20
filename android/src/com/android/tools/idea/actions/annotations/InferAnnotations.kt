@@ -24,6 +24,7 @@ import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.inheritParameterAnnotation
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.transferArgumentToParameter
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.transferReturnToMethod
+import com.android.tools.idea.lint.common.findAnnotation
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
 import com.android.tools.lint.checks.ObjectAnimatorDetector.Companion.KEEP_ANNOTATION
 import com.android.tools.lint.checks.PermissionDetector.Companion.handlesException
@@ -66,6 +67,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiForeachStatement
 import com.intellij.psi.PsiLambdaExpression
 import com.intellij.psi.PsiLocalVariable
+import com.intellij.psi.PsiMember
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiModifierListOwner
@@ -81,12 +83,8 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.analysis.decompiled.light.classes.KtLightClassForDecompiledDeclarationBase
-import org.jetbrains.kotlin.analysis.decompiled.light.classes.KtLightFieldForDecompiledDeclaration
-import org.jetbrains.kotlin.analysis.decompiled.light.classes.KtLightMethodForDecompiledDeclaration
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
-import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
@@ -731,16 +729,14 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
     }
 
     fun PsiElement.isGeneralCode(): Boolean {
-      when (this) {
-        is PsiCompiledElement -> {
-          val clz = getParentOfType<PsiClass>(true)?.qualifiedName ?: return false
-          return clz.startsWith("kotlin.") || clz.startsWith("java.") || clz.startsWith("android.") ||
-            clz.contains(".math.") || clz.contains(".Math")
-        }
-        is KtLightMethodForDecompiledDeclaration -> return (containingClass as KtLightClassForDecompiledDeclarationBase).clsDelegate.isGeneralCode()
-        is KtLightFieldForDecompiledDeclaration -> return (containingClass as KtLightClassForDecompiledDeclarationBase).clsDelegate.isGeneralCode()
-        else -> return false
+      val psiClass = when (this) {
+        is PsiClass -> this
+        is PsiMember -> containingClass
+        else -> null
       }
+      val className = psiClass?.qualifiedName ?: return false
+      return className.startsWith("kotlin.") || className.startsWith("java.") || className.startsWith("android.") ||
+             className.contains(".math.") || className.contains(".Math")
     }
 
     fun isResourceField(field: PsiField?): Boolean {
@@ -1217,7 +1213,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
       }
     }
 
-    private val signatureSorter = Comparator<String> { o1, o2 ->
+    val signatureSorter = Comparator<String> { o1, o2 ->
       // Sort outer classes higher than inner classes; this means that "}" beats other characters
       val l1 = o1.length
       val l2 = o2.length

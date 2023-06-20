@@ -16,10 +16,10 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.RenderSession
-import com.android.tools.idea.compose.preview.navigation.parseViewInfo
+import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.compose.preview.renderer.createRenderTaskFuture
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
-import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.application.ApplicationManager
@@ -38,8 +38,7 @@ class SimpleComposeProjectScenarios {
           PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
         }
       }
-      // Modify the file to make sure a change is done
-      Assert.assertTrue(projectRule.invokeTasks("compileDebugKotlin").isBuildSuccessful)
+      projectRule.buildAndAssertSuccess("compileDebugKotlin")
     }
 
     fun baselineRenderScenario(projectRule: AndroidGradleProjectRule): RenderResult {
@@ -111,8 +110,7 @@ class SimpleComposeProjectScenarios {
         val finalRenderResult = renderTask.render().get(5, TimeUnit.SECONDS)
         val clickPixel = finalRenderResult.renderedImage.getPixel(clickX, clickY)
         // Not the same as in the initial render (there is a ripple)
-        // TODO(b/189093606): re-enable the assertion once ripples are fixed in layoutlib
-        //Assert.assertNotEquals(clickPixel, firstRenderPixel)
+        Assert.assertNotEquals(clickPixel, firstRenderPixel)
         // Not black and not white
         Assert.assertNotEquals(clickPixel or 0xFFFFFF, 0)
         Assert.assertNotEquals(clickPixel, 0xFFFFFFFF)

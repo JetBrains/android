@@ -29,6 +29,7 @@ import javax.swing.AbstractAction
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JSeparator
+import javax.swing.UIManager
 import javax.swing.event.DocumentEvent
 
 private const val CUSTOM_SET_NAME = "Create a Custom Category"
@@ -38,6 +39,7 @@ private const val FIELD_VERTICAL_BORDER_PX = 3
 class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit)
   : AdtPrimaryPanel(BorderLayout()) {
   private var customSetName: String = "Custom"
+  private val addButton: JButton
 
   private var defaultFocusComponent: JComponent? = null
 
@@ -57,11 +59,15 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit)
       border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, 0, FIELD_VERTICAL_BORDER_PX, HORIZONTAL_BORDER_PX)
     })
 
-    add(createAddButtonPanel(), BorderLayout.SOUTH)
+    addButton = JButton()
+    add(createAddButtonPanel(addButton), BorderLayout.SOUTH)
 
     isFocusCycleRoot = true
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = DefaultFocusTraversalPolicy()
+
+    // initial state
+    addButton.isEnabled = customSetName.isNotBlank()
   }
 
   private fun createHeader(): JComponent {
@@ -80,6 +86,7 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit)
     editTextField.document.addDocumentListener(object : DocumentAdapter() {
       override fun textChanged(e: DocumentEvent) {
         customSetName = e.document.getText(0, e.document.length) ?: ""
+        addButton.isEnabled = customSetName.isNotBlank()
       }
     })
 
@@ -87,16 +94,24 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit)
     panel.add(editTextField, BorderLayout.CENTER)
 
     defaultFocusComponent = editTextField
-
     return panel
   }
 
-  private fun createAddButtonPanel(): JComponent {
+  private fun createAddButtonPanel(button: JButton): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
     panel.border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, 50, FIELD_VERTICAL_BORDER_PX * 3, 50)
-    val addButton = JButton(object : AbstractAction() {
-      override fun actionPerformed(e: ActionEvent) = onCreated(customSetName)
-    })
+    val action = object : AbstractAction() {
+      override fun actionPerformed(e: ActionEvent) {
+        val setName = customSetName
+        if (setName.isBlank()) {
+          // Logically this should not happen. This is added in case the UI is not updated immediately.
+          UIManager.getLookAndFeel().provideErrorFeedback(addButton)
+          return
+        }
+        onCreated(setName)
+      }
+    }
+    button.action = action
 
     addButton.text = "Add"
 

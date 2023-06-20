@@ -25,7 +25,7 @@ import com.android.build.attribution.ui.BuildAnalyzerBrowserLinks
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.htmlTextLabelWithLinesWrap
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.ide.common.attribution.FullDependencyPath
+import com.android.buildanalyzer.common.FullDependencyPath
 import com.intellij.ide.ui.laf.darcula.ui.DarculaButtonUI.DEFAULT_STYLE_KEY
 import com.intellij.ide.util.treeView.NodeRenderer
 import com.intellij.openapi.Disposable
@@ -306,7 +306,7 @@ class JetifierWarningDetailsView(
       }
     }.run()
     // Also refresh right away on page reopening, otherwise there will be 30s lag until next alarm triggers.
-    UiNotifyConnector.installOn(pagePanel, object : Activatable {
+    UiNotifyConnector(pagePanel, object : Activatable {
       override fun showNotify() {
         refreshUi()
       }

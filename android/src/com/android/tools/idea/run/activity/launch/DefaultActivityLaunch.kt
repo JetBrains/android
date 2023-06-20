@@ -46,7 +46,7 @@ class DefaultActivityLaunch : ActivityLaunchOption<DefaultActivityLaunch.State>(
       profilerState: ProfilerState,
       apkProvider: ApkProvider
     ): AppLaunchTask {
-      return DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(apkProvider), startActivityFlagsProvider)
+      return DefaultActivityLaunchTask(applicationId, getActivityLocatorForLaunch(apkProvider, applicationId), startActivityFlagsProvider)
     }
 
     override fun launch(device: IDevice,
@@ -57,7 +57,7 @@ class DefaultActivityLaunch : ActivityLaunchOption<DefaultActivityLaunch.State>(
                         console: ConsoleView) {
       ProgressManager.checkCanceled()
       val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
-      val activityQualifiedName = getActivityLocatorForLaunch(apkProvider).getQualifiedActivityName(device)
+      val activityQualifiedName = getActivityLocatorForLaunch(apkProvider, app.appId).getQualifiedActivityName(device)
       val receiver: IShellOutputReceiver = AndroidBackgroundTaskReceiver(console)
       app.activateComponent(ComponentType.ACTIVITY, activityQualifiedName, extraFlags, mode, receiver)
     }
@@ -67,8 +67,8 @@ class DefaultActivityLaunch : ActivityLaunchOption<DefaultActivityLaunch.State>(
     }
 
     companion object {
-      private fun getActivityLocatorForLaunch(apkProvider: ApkProvider): ActivityLocator {
-        return DefaultApkActivityLocator(apkProvider)
+      private fun getActivityLocatorForLaunch(apkProvider: ApkProvider, applicationId: String): ActivityLocator {
+        return DefaultApkActivityLocator(apkProvider, applicationId)
       }
     }
   }

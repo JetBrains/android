@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Methods for creating and dealing with visual representation nodes for include folders.
  */
-public final class IncludeViewNodes {
+public class IncludeViewNodes {
 
   /**
    * Method that produces a collection of folders and files that represents a set of includes in order.

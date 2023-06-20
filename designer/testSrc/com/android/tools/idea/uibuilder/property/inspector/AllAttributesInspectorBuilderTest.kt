@@ -17,21 +17,26 @@ package com.android.tools.idea.uibuilder.property.inspector
 
 import com.android.AndroidXConstants
 import com.android.SdkConstants
+import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.inspector.groups.CONSTRAINT_GROUP_NAME
 import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
 import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.ptable.PTableGroupItem
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 private const val CONSTRAINT_LAYOUT_ID = "constraint"
 
@@ -54,10 +59,10 @@ class AllAttributesInspectorBuilderTest {
     builder.attachToInspector(util.inspector, util.properties)
     util.checkTitle(0, InspectorSection.ALL.title)
     val items = util.checkTable(1).tableModel.items
-    Truth.assertThat(util.inspector.lines).hasSize(2)
+    assertThat(util.inspector.lines).hasSize(2)
 
     // Check that these 6 attributes are present in alphabetical order:
-    Truth.assertThat(items.map { it.name })
+    assertThat(items.map { it.name })
       .containsAllOf(
         SdkConstants.ATTR_CONTENT_DESCRIPTION,
         SdkConstants.ATTR_LAYOUT_HEIGHT,
@@ -71,7 +76,7 @@ class AllAttributesInspectorBuilderTest {
 
     // Layout Margin is a group:
     val margin = items.find { it.name == SdkConstants.ATTR_LAYOUT_MARGIN } as PTableGroupItem
-    Truth.assertThat(margin.children.map { it.name })
+    assertThat(margin.children.map { it.name })
       .containsExactly(
         SdkConstants.ATTR_LAYOUT_MARGIN,
         SdkConstants.ATTR_LAYOUT_MARGIN_START,
@@ -84,7 +89,7 @@ class AllAttributesInspectorBuilderTest {
 
     // Padding is a group:
     val padding = items.find { it.name == SdkConstants.ATTR_PADDING } as PTableGroupItem
-    Truth.assertThat(padding.children.map { it.name })
+    assertThat(padding.children.map { it.name })
       .containsExactly(
         SdkConstants.ATTR_PADDING,
         SdkConstants.ATTR_PADDING_START,
@@ -97,7 +102,7 @@ class AllAttributesInspectorBuilderTest {
 
     // Constraints is a group:
     val constraints = items.find { it.name == CONSTRAINT_GROUP_NAME } as PTableGroupItem
-    Truth.assertThat(constraints.children.map { it.name })
+    assertThat(constraints.children.map { it.name })
       .containsExactly(
         SdkConstants.ATTR_BARRIER_ALLOWS_GONE_WIDGETS,
         SdkConstants.ATTR_BARRIER_DIRECTION,
@@ -179,11 +184,50 @@ class AllAttributesInspectorBuilderTest {
         SdkConstants.ATTR_MIN_WIDTH
       ).inOrder()
   }
+}
 
-  private fun createBuilder(model: NlPropertiesModel): AllAttributesInspectorBuilder {
-    val enumSupportProvider = NlEnumSupportProvider(model)
-    val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
-    val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
-    return AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider)
+@RunsInEdt
+class AllAttributesInspectorBuilderVisibilityTest {
+  private val projectRule = AndroidProjectRule.inMemory()
+
+  @get:Rule
+  val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  @Before
+  fun before() {
+    projectRule.replaceService(PropertiesComponent::class.java, PropertiesComponentMock())
   }
+
+  @Test
+  fun testVisible() {
+    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName())
+    util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
+    val builder = createBuilder(util.model)
+    InspectorSection.ALL.visible = true
+    builder.attachToInspector(util.inspector, util.properties)
+    assertThat(util.checkTitle(0, InspectorSection.ALL.title).hidden).isFalse()
+    assertThat(util.checkTable(1).hidden).isFalse()
+  }
+
+  @Test
+  fun testHidden() {
+    val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW, parentTag = AndroidXConstants.CONSTRAINT_LAYOUT.oldName())
+    util.addProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
+    val builder = createBuilder(util.model)
+    InspectorSection.ALL.visible = false
+    builder.attachToInspector(util.inspector, util.properties)
+    val model = util.checkTable(0)
+    assertThat(model.hidden).isTrue()
+    model.filter = "t"
+    assertThat(model.hidden).isFalse()
+    model.filter = ""
+    assertThat(model.hidden).isTrue()
+  }
+}
+
+private fun createBuilder(model: NlPropertiesModel): AllAttributesInspectorBuilder {
+  val enumSupportProvider = NlEnumSupportProvider(model)
+  val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
+  val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
+  return AllAttributesInspectorBuilder(model, controlTypeProvider, editorProvider)
 }

@@ -19,8 +19,8 @@ import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiModifier;
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier;
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidTargetData;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,7 +91,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
     @Override
     @NotNull
     protected PsiField[] doGetFields() {
-      AndroidTargetData targetData = myPlatform.getSdkData().getTargetData(myPlatform.getTarget());
+      AndroidTargetData targetData = AndroidTargetData.get(myPlatform.getSdkData(), myPlatform.getTarget());
       ResourceRepository repository = targetData.getFrameworkResources(ImmutableSet.of());
       if (repository == null) {
         return PsiField.EMPTY_ARRAY;

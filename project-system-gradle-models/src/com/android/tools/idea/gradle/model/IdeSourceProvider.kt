@@ -31,4 +31,5 @@ interface IdeSourceProvider {
   val shadersDirectories: Collection<File>
   val mlModelsDirectories: Collection<File>
   val customSourceDirectories: Collection<IdeCustomSourceDirectory>
+  val baselineProfileDirectories: Collection<File>
 }

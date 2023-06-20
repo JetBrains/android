@@ -17,13 +17,19 @@ package com.android.tools.idea.lang.com.android.tools.idea.lang.androidSql
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlAnnotator
 import com.android.tools.idea.lang.androidSql.AndroidSqlFileType
-import com.android.tools.idea.lang.androidSql.RoomLightTestCase
+import com.android.tools.idea.lang.androidSql.createStubRoomClasses
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
+import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 
-class AndroidSqlAnnotatorTest : RoomLightTestCase() {
+class AndroidSqlAnnotatorTest : LightJavaCodeInsightFixtureAdtTestCase() {
+  override fun setUp() {
+    super.setUp()
+    createStubRoomClasses(myFixture)
+  }
+
   fun testAnnotatorOnKeyword() {
     myFixture.configureByText(AndroidSqlFileType.INSTANCE, "REPLACE INTO books VALUES(1,2,3)")
 

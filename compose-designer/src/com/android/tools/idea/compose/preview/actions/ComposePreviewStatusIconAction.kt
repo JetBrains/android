@@ -25,16 +25,19 @@ import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.editors.fast.fastPreviewManager
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
+import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
-/**
- * [AnAction] that can be used to show an icon according to the Compose Preview status
- */
-internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?) : AnAction() {
-  override fun update(e: AnActionEvent) {
+/** [AnAction] that can be used to show an icon according to the Compose Preview status */
+internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?) :
+  AnActionButton() {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+
+  override fun updateButton(e: AnActionEvent) {
     val composePreviewManager = e.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val project = e.project ?: return
     val previewStatus = composePreviewManager.status()
@@ -44,8 +47,7 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
         isEnabled = true
         icon = StudioIcons.Common.WARNING
         text = message("action.open.issues.panel.title")
-      }
-      else {
+      } else {
         isVisible = false
         isEnabled = false
         text = null
@@ -54,7 +56,9 @@ internal class ComposePreviewStatusIconAction(private val sceneView: SceneView?)
   }
 
   private fun isLoading(project: Project, previewStatus: ComposePreviewManager.Status): Boolean =
-    previewStatus.interactiveMode.isStartingOrStopping() || previewStatus.isRefreshing || project.fastPreviewManager.isCompiling
+    previewStatus.interactiveMode.isStartingOrStopping() ||
+      previewStatus.isRefreshing ||
+      project.fastPreviewManager.isCompiling
 
   override fun actionPerformed(e: AnActionEvent) {
     e.getData(DESIGN_SURFACE)?.setIssuePanelVisibility(show = true, userInvoked = true) {

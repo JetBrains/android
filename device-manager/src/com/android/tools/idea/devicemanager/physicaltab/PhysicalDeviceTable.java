@@ -21,12 +21,15 @@ import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButt
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
 import com.android.tools.idea.devicemanager.ApiTableCellRenderer;
 import com.android.tools.idea.devicemanager.Device;
+import com.android.tools.idea.devicemanager.DeviceIconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.DeviceTable;
+import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
 import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
+import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind;
 import com.intellij.icons.AllIcons;
@@ -52,12 +55,12 @@ import javax.swing.table.TableRowSorter;
 import org.jetbrains.annotations.NotNull;
 
 public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
-  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel) {
-    this(panel, new PhysicalDeviceTableModel());
+  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull WearPairingManager manager) {
+    this(panel, manager, new PhysicalDeviceTableModel());
   }
 
   @VisibleForTesting
-  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull PhysicalDeviceTableModel model) {
+  PhysicalDeviceTable(@NotNull PhysicalDevicePanel panel, @NotNull WearPairingManager manager, @NotNull PhysicalDeviceTableModel model) {
     super(model, PhysicalDevice.class);
 
     Project project = panel.getProject();
@@ -69,9 +72,10 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
                                                                                  EventKind.PHYSICAL_DEVICE_FILE_EXPLORER_ACTION));
 
     setDefaultEditor(RemoveValue.class, new RemoveButtonTableCellEditor(panel));
-    setDefaultEditor(PopUpMenuValue.class, new PhysicalDevicePopUpMenuButtonTableCellEditor(panel));
+    setDefaultEditor(PopUpMenuValue.class, new PhysicalDevicePopUpMenuButtonTableCellEditor(panel, manager));
 
-    setDefaultRenderer(Device.class, new PhysicalDeviceTableCellRenderer());
+    setDefaultRenderer(DeviceType.class, new DeviceIconButtonTableCellRenderer<>(this));
+    setDefaultRenderer(Device.class, new PhysicalDeviceTableCellRenderer(manager));
     setDefaultRenderer(AndroidVersion.class, new ApiTableCellRenderer());
     setDefaultRenderer(Collection.class, new TypeTableCellRenderer());
 
@@ -79,7 +83,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
                        new ActivateDeviceFileExplorerWindowButtonTableCellRenderer<>(project, this));
 
     setDefaultRenderer(RemoveValue.class, new RemoveButtonTableCellRenderer());
-    setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More));
+    setDefaultRenderer(PopUpMenuValue.class, new IconButtonTableCellRenderer(AllIcons.Actions.More, "More Actions"));
 
     setRowSorter(newRowSorter(model));
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -88,7 +92,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     getEmptyText().setText("No physical devices added. Connect a device via USB cable.");
   }
 
-  private static @NotNull RowSorter<@NotNull TableModel> newRowSorter(@NotNull TableModel model) {
+  private static @NotNull RowSorter<TableModel> newRowSorter(@NotNull TableModel model) {
     DefaultRowSorter<TableModel, Integer> sorter = new TableRowSorter<>(model);
 
     sorter.setComparator(PhysicalDeviceTableModel.DEVICE_MODEL_COLUMN_INDEX,
@@ -103,7 +107,8 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
     return sorter;
   }
 
-  @NotNull Optional<@NotNull PhysicalDevice> getSelectedDevice() {
+  @NotNull
+  Optional<PhysicalDevice> getSelectedDevice() {
     int viewRowIndex = getSelectedRow();
 
     if (viewRowIndex == -1) {
@@ -117,6 +122,7 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
   protected @NotNull JTableHeader createDefaultTableHeader() {
     TableColumnModel model = new DefaultTableColumnModel();
 
+    model.addColumn(columnModel.getColumn(deviceIconViewColumnIndex()));
     model.addColumn(columnModel.getColumn(deviceViewColumnIndex()));
     model.addColumn(columnModel.getColumn(apiViewColumnIndex()));
     model.addColumn(columnModel.getColumn(typeViewColumnIndex()));
@@ -140,6 +146,9 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
 
   @Override
   public void doLayout() {
+    Tables.setWidths(columnModel.getColumn(deviceIconViewColumnIndex()),
+                     DeviceIconButtonTableCellRenderer.getPreferredWidth(this, DeviceType.class));
+
     columnModel.getColumn(deviceViewColumnIndex()).setMinWidth(JBUIScale.scale(200));
 
     Tables.setWidths(columnModel.getColumn(apiViewColumnIndex()),
@@ -160,6 +169,10 @@ public final class PhysicalDeviceTable extends DeviceTable<PhysicalDevice> {
                      IconButtonTableCellRenderer.getPreferredWidth(this, PopUpMenuValue.class));
 
     super.doLayout();
+  }
+
+  private int deviceIconViewColumnIndex() {
+    return convertColumnIndexToView(PhysicalDeviceTableModel.DEVICE_ICON_MODEL_COLUMN_INDEX);
   }
 
   @Override

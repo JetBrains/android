@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
-import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
+import com.android.tools.idea.gradle.model.IdeDebugInfo
 import com.android.tools.idea.gradle.model.impl.IdeBuildImpl
 import com.android.tools.idea.gradle.model.impl.IdeCompositeBuildMapImpl
+import com.android.tools.idea.gradle.model.impl.IdeDebugInfoImpl
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
+import java.io.File
+import java.net.URLClassLoader
 
 /**
  * An entry point for Android Gradle sync.
@@ -63,6 +67,16 @@ private class BuildModelsAndMap(val models: Set<GradleBuild>, val map: IdeCompos
  * initializers (without having these values serialized).
  */
 private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionOptions) {
+  init {
+    if (!syncOptions.flags.studioHeapAnalysisLightweightMode) {
+      if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
+        captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "before_sync")
+      }
+      if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
+        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "before_sync", false)
+      }
+    }
+  }
 
   private var buildModelsAndMap: BuildModelsAndMap? = null
   private val seenBuildModels: MutableSet<GradleBuild> = mutableSetOf()
@@ -108,6 +122,15 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
       if (syncOptions.flags.studioFlagOutputSyncStats) {
         println(syncCounters)
       }
+      if (syncOptions.flags.studioHprofOutputDirectory.isNotEmpty()) {
+        captureSnapshot(syncOptions.flags.studioHprofOutputDirectory, "after_sync")
+      }
+      if (syncOptions.flags.studioHeapAnalysisOutputDirectory.isNotEmpty()) {
+        analyzeCurrentProcessHeap(syncOptions.flags.studioHeapAnalysisOutputDirectory, "after_sync", syncOptions.flags.studioHeapAnalysisLightweightMode)
+      }
+      if (syncOptions.flags.studioDebugMode) {
+        populateDebugInfo(buildModel, consumer)
+      }
    }
   }
 
@@ -118,6 +141,17 @@ private class AndroidExtraModelProviderImpl(private val syncOptions: SyncActionO
   ) {
     controller.findModel(projectModel, GradlePluginModel::class.java)
       ?.also { pluginModel -> modelConsumer.consume(pluginModel, GradlePluginModel::class.java) }
+  }
+
+  private fun populateDebugInfo(buildModel: GradleBuild,
+                                consumer: ProjectImportModelProvider.BuildModelConsumer) {
+    val classLoader = javaClass.classLoader
+    if(classLoader is URLClassLoader) {
+      val classpath = classLoader.urLs.joinToString { url -> url.toURI()?.let { File(it).absolutePath }.orEmpty() }
+      consumer.consume(buildModel,
+                       IdeDebugInfoImpl(mapOf(AndroidExtraModelProvider::class.java.simpleName to classpath)),
+                       IdeDebugInfo::class.java)
+    }
   }
 }
 
@@ -166,8 +200,8 @@ private fun checkGradleVersionIsAtLeast(controller: BuildController,
                                         version: String): Boolean {
   val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java)
                          ?: error("Cannot get BuildEnvironment model")
-  val parsedGradleVersion = GradleVersion.parse(buildEnvironment.gradle.gradleVersion)
-  return parsedGradleVersion.compareIgnoringQualifiers(version) >= 0
+  val parsedGradleVersion = GradleVersion.version(buildEnvironment.gradle.gradleVersion)
+  return parsedGradleVersion.baseVersion >= GradleVersion.version(version)
 }
 
 private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {

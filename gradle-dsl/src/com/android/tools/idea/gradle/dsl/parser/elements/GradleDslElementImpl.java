@@ -31,6 +31,8 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslContextModel;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
@@ -68,6 +70,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -398,7 +401,6 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         results.putAll(element.getVariableElements());
       }
     }
-
     // Get Ext properties from the GradleDslFile, and the EXT properties from the buildscript.
     if (currentElement instanceof GradleBuildFile) {
       GradleBuildFile file = (GradleBuildFile)currentElement;
@@ -426,6 +428,13 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         }
 
         file = file.getParentModuleBuildFile();
+      }
+    } else if (currentElement instanceof GradleVersionCatalogFile) {
+      GradleDslExpressionMap map = ((GradleVersionCatalogFile)currentElement).getPropertyElement(GradleDslExpressionMap.VERSIONS);
+      if (map != null) {
+        Map<String, GradleDslElement> versions = map.getPropertyElements();
+        results.putAll(versions.entrySet().stream().collect(Collectors.toMap(e -> "versions."+e.getKey(),
+                                                                             Map.Entry::getValue)));
       }
     }
 
@@ -829,22 +838,28 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     return propertiesDslFile != null ? propertiesDslFile.getPropertyElement(referenceText) : null;
   }
 
-  private static @Nullable GradleDslElement resolveReferenceInVersionCatalogs(@NotNull GradleBuildFile buildFile, @NotNull String text) {
-    List<String> referenceParts = GradleNameElement.split(text);
+  private static @Nullable GradleDslElement resolveReferenceInVersionCatalogs(@NotNull BuildModelContext context, @NotNull List<String> referenceParts) {
     if (referenceParts.size() < 2) return null;
     String catalog = referenceParts.get(0);
-    GradleDslElement result1;
-    GradleDslElement result2;
-    for (GradleVersionCatalogFile versionCatalogFile : buildFile.getVersionCatalogFiles()) {
+    for (GradleVersionCatalogFile versionCatalogFile : context.getVersionCatalogFiles()) {
       if (!catalog.equals(versionCatalogFile.getCatalogName())) continue;
-      result1 = versionCatalogFile;
-      result2 = versionCatalogFile.getElement("libraries");
-      for (String part : referenceParts.subList(1, referenceParts.size())) {
-        result1 = (result1 instanceof GradlePropertiesDslElement) ? ((GradlePropertiesDslElement)result1).getElement(part) : null;
-        result2 = (result2 instanceof GradlePropertiesDslElement) ? ((GradlePropertiesDslElement)result2).getElement(part) : null;
+      String tableName = referenceParts.get(1);
+      Pattern pattern;
+      GradleDslElement table;
+      if ("plugins".equals(tableName) || "bundles".equals(tableName) || "versions".equals(tableName)) {
+        pattern = Pattern.compile(String.join("[-_.]", referenceParts.subList(2, referenceParts.size())));
+        table = versionCatalogFile.getElement(tableName);
       }
-      if (result2 != null) return result2;
-      if (result1 != null) return result1;
+      else {
+        pattern = Pattern.compile(String.join("[-_.]", referenceParts.subList(1, referenceParts.size())));
+        table = versionCatalogFile.getElement("libraries");
+      }
+      if (table == null) return null;
+      for (GradleDslElement element : table.getChildren()) {
+        if (pattern.matcher(element.getName()).matches()) {
+          return element;
+        }
+      }
     }
     return null;
   }
@@ -896,13 +911,22 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
                                                                boolean resolveWithOrder) {
     GradleDslElement element;
 
-    // References within Version Catalog files must be version.ref
+    // References within Version Catalog files can be version.ref or bundle reference to libraries
     if (startElement.getDslFile() instanceof GradleVersionCatalogFile && referenceText.size() == 1) {
       GradleDslExpressionMap versions = startElement.getDslFile().getPropertyElement("versions", GradleDslExpressionMap.class);
       if (versions != null) {
         element = resolveReferenceOnElement(versions, referenceText, converter, false, false, -1);
         if (element != null) {
           return element;
+        }
+      }
+      else {
+        GradleDslExpressionMap libraries = startElement.getDslFile().getPropertyElement("libraries", GradleDslExpressionMap.class);
+        if (libraries != null) {
+          element = resolveReferenceOnElement(libraries, referenceText, converter, false, false, -1);
+          if (element != null) {
+            return element;
+          }
         }
       }
     }
@@ -937,20 +961,14 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         }
       }
 
-      GradleBuildFile rootProjectBuildFile = buildFile;
-      while (true) {
-        GradleBuildFile parentModuleDslFile = rootProjectBuildFile.getParentModuleBuildFile();
-        if (parentModuleDslFile == null) {
-          break;
-        }
-        rootProjectBuildFile = parentModuleDslFile;
-      }
-
-      GradleDslElement versionCatalogElement = resolveReferenceInVersionCatalogs(rootProjectBuildFile, text);
+      GradleDslElement versionCatalogElement = resolveReferenceInVersionCatalogs(buildFile.getContext(), referenceText);
       if (versionCatalogElement != null) return versionCatalogElement;
 
-      if (buildFile == rootProjectBuildFile) {
-        return null; // This is the root project build.gradle file and there is no further path to look up.
+      GradleBuildFile rootProjectBuildFile = buildFile.getContext().getRootProjectFile();
+      if (rootProjectBuildFile == null || buildFile == rootProjectBuildFile) {
+        // This is the root project build.gradle file (or there is no root build file at all)
+        // and there is no further path to look up.
+        return null;
       }
 
       // Try to resolve in the root project gradle.properties file.
@@ -963,9 +981,12 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Override
   public GradleDslElement resolveExternalSyntaxReference(@NotNull String referenceText, boolean resolveWithOrder) {
     GradleDslElement searchStartElement = this;
-    if (searchStartElement.getDslFile() instanceof GradleVersionCatalogFile && referenceText.startsWith("versions.")) {
-      referenceText = "\"" + referenceText.substring("versions.".length()) + "\"";
-    }
+    if (searchStartElement.getDslFile() instanceof GradleVersionCatalogFile)
+        if(referenceText.startsWith("versions.")) {
+          referenceText = "\"" + referenceText.substring("versions.".length()) + "\"";
+        } else if(referenceText.startsWith("libraries.")) {
+          referenceText = "\"" + referenceText.substring("libraries.".length()) + "\"";
+        }
     GradleDslParser parser = getDslFile().getParser();
     referenceText = parser.convertReferenceText(searchStartElement, referenceText);
 

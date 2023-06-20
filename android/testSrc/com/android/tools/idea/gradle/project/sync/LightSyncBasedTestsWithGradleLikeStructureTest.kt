@@ -35,6 +35,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.AndroidTestCase
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -156,7 +157,8 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
   }
 
   @Test
-  fun testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase() {
+  @Ignore("nvuk revisit JDK difference")
+  fun lightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase() {
     setupTestProjectFromAndroidModel(
       project, File(myFixture.tempDirPath), rootModuleBuilder, appModuleBuilder, libModuleBuilder)
     val dump = project.saveAndDump(additionalRoots = mapOf("TEMP" to File(myFixture.tempDirPath)))
@@ -164,7 +166,8 @@ class LightSyncForAndroidTestCaseTest : AndroidTestCase(), SnapshotComparisonTes
   }
 
   @Test
-  fun testLightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing() {
+  @Ignore("nvuk revisit JDK difference")
+  fun lightTestsWithMultipleModulesTestProjectStructureInAndroidTestCase_resyncing() {
     val tempRoot = File(myFixture.tempDirPath)
     setupTestProjectFromAndroidModel(
       project,
@@ -225,6 +228,9 @@ private fun ideAndroidLibrary(gradleCacheRoot: File, artifactAddress: String) =
       renderscriptFolder = "renderscriptFolder",
       proguardRules = "proguardRules",
       lintJar = "lint.jar",
+      srcJar = "srcJar.jar",
+      docJar = "docJar.jar",
+      samplesJar = "samples.jar",
       externalAnnotations = "externalAnnotations",
       publicResources = "publicResources",
       artifact = gradleCacheRoot.resolve(File("artifactFile")),

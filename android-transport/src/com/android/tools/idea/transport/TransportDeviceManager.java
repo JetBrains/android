@@ -171,7 +171,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
   /**
    * Disconnect both the proxy -> device and datastore -> proxy connections.
    *
-   * This method doesn't clear myConnectedAgents and myPidToAbiMap because they should be preserved
+   * This method doesn't clear myConnectedAgents and myPidToProcessMap because they should be preserved
    * when the daemon is killed while the device remains connected. These records will be used to
    * reconnect to the agents that are last known connected when the daemon restarts.
    *
@@ -258,34 +258,42 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         // Keep starting the daemon in case it's killed, as long as this thread is running (which should be the case
         // as long as the device is connected). The execution may exit this loop only via exceptions.
         long lastDaemonStartTime = System.currentTimeMillis();  // initialized as current time
+        int attemptCounter = 0;
         for (boolean reconnectAgents = false; ; reconnectAgents = true) {
           long currentTimeMs = System.currentTimeMillis();
           reportTransportDaemonStarted(reconnectAgents, currentTimeMs - lastDaemonStartTime);
           // Start transport daemon and block until it is terminated or an exception is thrown.
-          startTransportDaemon(transportDevice, reconnectAgents);
+          startTransportDaemon(transportDevice, reconnectAgents, attemptCounter);
           getLogger().info("Daemon stopped running; will try to restart it");
           // Disconnect the proxy and datastore before attempting to reconnect to agents.
           disconnect(mySerialToDeviceContextMap.get(myDevice.getSerialNumber()), myDataStore);
           lastDaemonStartTime = currentTimeMs;
+          attemptCounter += 1;
+          // wait some time between attempts
+          Thread.sleep(TimeUnit.SECONDS.toMillis(2));
         }
       }
       catch (ShellCommandUnresponsiveException | SyncException e) {
-        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
+        myMessageBus.syncPublisher(TOPIC).onTransportDaemonException(transportDevice, e);
         getLogger().error("Error when trying to spawn Transport daemon", e);
       }
       catch (AdbCommandRejectedException | IOException e) {
         // AdbCommandRejectedException and IOException happen when unplugging the device shortly after plugging it in.
         // We don't want to crash in this case.
         getLogger().warn("Error when trying to spawn Transport", e);
-        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
+        myMessageBus.syncPublisher(TOPIC).onTransportDaemonException(transportDevice, e);
       }
       catch (TimeoutException | InterruptedException e) {
         // These happen when users unplug their devices or if studio is closed. We don't need to surface the exceptions here.
-        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
+        myMessageBus.syncPublisher(TOPIC).onTransportDaemonException(transportDevice, e);
+      }
+      catch (FailedToStartServerException e) {
+        getLogger().warn("Error when trying to spawn Transport", e);
+        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonServerFail(transportDevice, e);
       }
       catch (RuntimeException e) {
         getLogger().warn("Error when trying to spawn Transport", e);
-        myMessageBus.syncPublisher(TOPIC).onStartTransportDaemonFail(transportDevice, e);
+        myMessageBus.syncPublisher(TOPIC).onTransportDaemonException(transportDevice, e);
       }
     }
 
@@ -295,31 +303,42 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
      * @param transportDevice The device on which the daemon is going to be running.
      * @param reconnectAgents True if attempting to reconnect to the agents that are last known connected (assuming the device stays
      *                        connected).
+     * @param attemptNumber the number of times the transport tried to start the daemon.
      * @throws TimeoutException
      * @throws AdbCommandRejectedException
      * @throws ShellCommandUnresponsiveException
      * @throws IOException
      */
-    private void startTransportDaemon(@NotNull Common.Device transportDevice, boolean reconnectAgents)
+    private void startTransportDaemon(@NotNull Common.Device transportDevice, boolean reconnectAgents, int attemptNumber)
       throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
       String command = TransportFileManager.getTransportExecutablePath() + " -config_file=" + TransportFileManager.getDaemonConfigPath();
       getLogger().info("[Transport]: Executing " + command);
       myDevice.executeShellCommand(command, new IShellOutputReceiver() {
         @Override
         public void addOutput(byte[] data, int offset, int length) {
-          String s = new String(data, offset, length, StandardCharsets.UTF_8);
-          if (s.contains("Perfd Segmentation Fault:")) {
-            reportTransportSegmentationFault(s);
+          String startGrpcServerOutput = new String(data, offset, length, StandardCharsets.UTF_8);
+          if (startGrpcServerOutput.contains("Perfd Segmentation Fault:")) {
+            reportTransportSegmentationFault(startGrpcServerOutput);
           }
-          getLogger().info("[Transport]: " + s);
+          getLogger().info("[Transport]: " + startGrpcServerOutput);
 
-          // On supported API levels (Lollipop+), we should only start the proxy once Transport has successfully launched the grpc server.
+          // We should only start the proxy once Transport has successfully launched the grpc server.
           // This is indicated by a "Server listening on ADDRESS" printout from Transport (ADDRESS can vary depending on pre-O vs JVMTI).
-          // The reason for this check is because we get linker warnings when starting Transport on pre-M devices (an issue which would not
-          // be fixed by now), and we need to avoid starting the proxy in those cases.
-          if (myDevice.getVersion().getApiLevel() >= AndroidVersion.VersionCodes.LOLLIPOP &&
-              !s.startsWith("Server listening on")) {
-            return;
+          // If starting the grpc server returns an output different from "Server listening on ADDRESS", we should not continue.
+          // Known instances of when this happens are:
+          //  1. we get linker warnings when starting Transport on pre-M devices
+          //  2. we try to start the server, but another version of Studio already started it.
+          //     (Note that it's ok to have multiple instances of the same version of Studio, as they are one single application.)
+          if (!startGrpcServerOutput.startsWith("Server listening on")) {
+            if (attemptNumber >= 3) {
+              // By throwing an exception we stop the transport from keep trying to start the server forever.
+              // An `onStartTransportDaemonServerFail` is published to the `TransportDeviceManager.TOPIC`.
+              throw new FailedToStartServerException(startGrpcServerOutput);
+            }
+            else {
+              // By returning the transport will try to connect again.
+              return;
+            }
           }
 
           boolean[] alreadyExists = new boolean[]{false};
@@ -362,8 +381,9 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
               .setType(Commands.Command.CommandType.ATTACH_AGENT)
               .setAttachAgent(
                 Commands.AttachAgent.newBuilder()
-                  .setAgentLibFileName(String.format("libjvmtiagent_%s.so", context.myPidToAbiMap.get(pid)))
-                  .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
+                  .setAgentLibFileName(String.format("libjvmtiagent_%s.so", context.myPidToProcessMap.get(pid).getAbiCpuArch()))
+                  .setAgentConfigPath(TransportFileManager.getAgentConfigFile())
+                  .setPackageName(context.myPidToProcessMap.get(pid).getPackageName()))
               .build();
             // TODO(b/150503095)
             Transport.ExecuteResponse response =
@@ -541,7 +561,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
      * when it's killed unexpectedly, for example, by Live-LocK Daemon in Android OS.
      */
     @NotNull public final Set<Long> myConnectedAgents = new TreeSet<>();
-    @NotNull public final Map<Long, String> myPidToAbiMap = new HashMap<>();
+    @NotNull public final Map<Long, Common.Process> myPidToProcessMap = new HashMap<>();
   }
 
   private static class ConnectedAgentPreprossor implements TransportEventPreprocessor {
@@ -574,13 +594,13 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
         case PROCESS:
           long pid = event.getGroupId();
           if (event.getProcess().hasProcessStarted()) {
-            myContext.myPidToAbiMap.put(pid, event.getProcess().getProcessStarted().getProcess().getAbiCpuArch());
+            myContext.myPidToProcessMap.put(pid, event.getProcess().getProcessStarted().getProcess());
           }
           else {
             // Note that the "end event" of remaining open groups generated by TransportServiceProxy.getEvents() when the
             // connection between the proxy and the device is lost do not go through event preprocessors. Therefore, those
             // "generated" PROCESS stopped event should not confuse |myConnectedAgents| here.
-            myContext.myPidToAbiMap.remove(pid);
+            myContext.myPidToProcessMap.remove(pid);
             myContext.myConnectedAgents.remove(pid);
           }
           break;
@@ -598,14 +618,19 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
     void onPreTransportDaemonStart(@NotNull Common.Device device);
 
     /**
-     * Callback for when the transport daemon fails to start.
+     * Callback for when the transport daemon throws an exception.
      */
-    void onStartTransportDaemonFail(@NotNull Common.Device device, @NotNull Exception exception);
+    void onTransportDaemonException(@NotNull Common.Device device, @NotNull Exception exception);
 
     /**
      * Callback for when the device manager fails to initialize the proxy layer that connects between the datastore and the daemon.
      */
     void onTransportProxyCreationFail(@NotNull Common.Device device, @NotNull Exception exception);
+
+    /**
+     * Callback for when the transport daemon fails to start the server.
+     */
+    void onStartTransportDaemonServerFail(@NotNull Common.Device device, @NotNull FailedToStartServerException exception);
 
     /**
      * void onTransportThreadStarts(@NotNull IDevice device, @NotNull Common.Device transportDevice);

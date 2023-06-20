@@ -24,7 +24,8 @@ fun convertToDeviceSpecDimension(floatNumber: Float): Number {
   val decimalsMultiplier: Float = 10f.pow(SUPPORTED_DECIMALS)
   val significantDecimalsMultiplier: Float = decimalsMultiplier.times(10)
 
-  // If the decimal part is not significant (< .05 or >= .95) return the rounded integer, otherwise round to 1 decimal
+  // If the decimal part is not significant (< .05 or >= .95) return the rounded integer, otherwise
+  // round to 1 decimal
   val roundedNumber = floatNumber.roundToInt()
   val decimalDiff = (floatNumber - roundedNumber).times(significantDecimalsMultiplier).roundToInt()
   if (decimalDiff >= -5 && decimalDiff < 5) { // Better to compare the decimals as integers

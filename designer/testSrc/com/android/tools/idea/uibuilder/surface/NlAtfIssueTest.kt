@@ -124,10 +124,7 @@ class NlAtfIssueTest : LayoutTestCase() {
     // Simulate ignore button click
     ignore.action.run()
 
-    assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
-    assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
-    assertEquals(srcClass, testSrc.setAttrArgCaptor.value)
-    verify(mockEventListener).onIgnoreButtonClicked(result)
+    assertEquals("set: namespace=http://schemas.android.com/tools, attribute=ignore, value=SrcClass", testSrc.callsString())
   }
 
   @Test
@@ -149,10 +146,9 @@ class NlAtfIssueTest : LayoutTestCase() {
     // Simulate ignore button click
     ignore.action.run()
 
-    assertEquals(TOOLS_URI, testSrc.setAttrArgCaptor.namespace)
-    assertEquals(ATTR_IGNORE, testSrc.setAttrArgCaptor.attribute)
-    val expected = "$getAttrResult,$srcClass"
-    assertEquals(expected, testSrc.setAttrArgCaptor.value)
+    assertEquals(
+      "set: namespace=http://schemas.android.com/tools, attribute=ignore, value=hardcodedText,someOtherLintToIgnore,test,SrcClass",
+      testSrc.callsString())
   }
 
   @Test
@@ -188,10 +184,9 @@ class NlAtfIssueTest : LayoutTestCase() {
     val result = ScannerTestHelper.createTestIssueBuilder(setAttributeFix).build()
     val atfIssue = NlAtfIssue(result, testSrc, mockModel, mockEventListener)
 
-    val component = Mockito.mock(NlComponent::class.java)
-    atfIssue.applyFixImpl(setAttributeFix, component)
+    atfIssue.applyFixImpl(setAttributeFix, testSrc)
 
-    verify(component).setAttribute(ANDROID_URI, attributeName, suggestedValue)
+    assertEquals("set: namespace=http://schemas.android.com/apk/res/android, attribute=textColor, value=#FFFFFF", testSrc.callsString())
   }
 
 
@@ -222,10 +217,9 @@ class NlAtfIssueTest : LayoutTestCase() {
     val result = ScannerTestHelper.createTestIssueBuilder(removeAttributeFix).build()
     val atfIssue = NlAtfIssue(result, testSrc, mockModel)
 
-    val component = Mockito.mock(NlComponent::class.java)
-    atfIssue.applyFixImpl(removeAttributeFix, component)
+    atfIssue.applyFixImpl(removeAttributeFix, testSrc)
 
-    verify(component).removeAttribute(ANDROID_URI, attributeName)
+    assertEquals("remove: namespace=http://schemas.android.com/apk/res/android, name=contentDescription", testSrc.callsString())
   }
 
   @Test
@@ -265,11 +259,12 @@ class NlAtfIssueTest : LayoutTestCase() {
     val result = ScannerTestHelper.createTestIssueBuilder(compoundFix).build()
     val atfIssue = NlAtfIssue(result, testSrc, mockModel)
 
-    val component = Mockito.mock(NlComponent::class.java)
-    atfIssue.applyFixImpl(compoundFix, component)
+    atfIssue.applyFixImpl(compoundFix, testSrc)
 
-    verify(component).setAttribute(ANDROID_URI, setAttributeName, suggestedValue)
-    verify(component).removeAttribute(ANDROID_URI, removeAttributeName)
+    assertEquals("""
+      set: namespace=http://schemas.android.com/apk/res/android, attribute=textColor, value=#FFFFFF
+      remove: namespace=http://schemas.android.com/apk/res/android, name=contentDescription
+    """.trimIndent(), testSrc.callsString())
   }
 
   class TestSource : IssueSource, NlAttributesHolder {
@@ -281,12 +276,17 @@ class NlAtfIssueTest : LayoutTestCase() {
       return getAttrResult
     }
 
-    data class SetAttributeArgumentCaptor(var namespace: String? = null, var attribute: String = "", var value: String? = null)
-    val setAttrArgCaptor = SetAttributeArgumentCaptor()
+    private val savedCalls = mutableListOf<String>()
+
     override fun setAttribute(namespace: String?, attribute: String, value: String?) {
-      setAttrArgCaptor.namespace = namespace
-      setAttrArgCaptor.attribute = attribute
-      setAttrArgCaptor.value = value
+      savedCalls.add("set: namespace=$namespace, attribute=$attribute, value=$value")
     }
+
+    override fun removeAttribute(namespace: String, name: String) {
+      savedCalls.add("remove: namespace=$namespace, name=$name")
+    }
+
+    fun callsString(): String =
+      savedCalls.joinToString("\n")
   }
 }

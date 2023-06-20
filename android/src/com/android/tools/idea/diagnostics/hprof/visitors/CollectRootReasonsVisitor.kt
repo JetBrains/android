@@ -19,10 +19,9 @@ import com.android.tools.idea.diagnostics.hprof.classstore.ThreadInfo
 import com.android.tools.idea.diagnostics.hprof.navigator.RootReason
 import com.android.tools.idea.diagnostics.hprof.parser.HProfVisitor
 import com.android.tools.idea.diagnostics.hprof.parser.HeapDumpRecordType
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 
-class CollectRootReasonsVisitor(private val threadsMap: Long2ObjectMap<ThreadInfo>) : HProfVisitor() {
+class CollectRootReasonsVisitor(private val threadsMap: Long2ObjectOpenHashMap<ThreadInfo>) : HProfVisitor() {
   val roots = Long2ObjectOpenHashMap<RootReason>()
 
   override fun preVisit() {

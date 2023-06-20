@@ -15,31 +15,46 @@
  */
 package com.android.tools.idea.appinspection.ide.resolver.moduleSystem
 
-import com.android.tools.idea.appinspection.api.toGradleCoordinate
+import com.android.tools.idea.appinspection.ide.resolver.INSPECTOR_JAR
+import com.android.tools.idea.appinspection.ide.resolver.ModuleSystemArtifactFinder
+import com.android.tools.idea.appinspection.ide.resolver.createRandomTempDir
+import com.android.tools.idea.appinspection.ide.resolver.extractZipIfNeeded
+import com.android.tools.idea.appinspection.ide.resolver.resolveExistsOrNull
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
-import com.android.tools.idea.projectsystem.getProjectSystem
-import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.io.FileService
 import java.nio.file.Path
+import kotlinx.coroutines.withContext
 
 /**
  * This resolver uses the IDE's module system to look for inspector artifacts.
  *
- * This is not the preferred way to resolve artifacts as it looks at local artifacts
- * which could be modified by the user. However, it is useful in situations in which
- * the artifact can't be resolved any other way.
+ * This is not the preferred way to resolve artifacts as it looks at local artifacts which could be
+ * modified by the user. However, it is useful in situations in which the artifact can't be resolved
+ * any other way.
  *
- * In blaze projects, this resolver looks at artifacts located inside google3's
- * third_party repository.
+ * In blaze projects, this resolver looks at artifacts located inside google3's third_party
+ * repository.
  */
-class ModuleSystemArtifactResolver(private val project: Project) : ArtifactResolver {
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
-    val projectSystem = project.getProjectSystem()
-    return project.allModules().asSequence()
-      .map { module -> projectSystem.getModuleSystem(module) }
-      .mapNotNull { moduleSystem -> moduleSystem.getDependencyPath(artifactCoordinate.toGradleCoordinate()) }
-      .firstOrNull() ?: throw AppInspectionArtifactNotFoundException("Artifact $artifactCoordinate could not be found in module system.")
-  }
+class ModuleSystemArtifactResolver(
+  private val fileService: FileService,
+  private val moduleSystemArtifactFinder: ModuleSystemArtifactFinder
+) : ArtifactResolver {
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path =
+    withContext(AndroidDispatchers.diskIoThread) {
+      val libraryPath =
+        moduleSystemArtifactFinder.findLibrary(artifactCoordinate)
+          ?: throw AppInspectionArtifactNotFoundException(
+            "Artifact $artifactCoordinate could not be found in module system.",
+            artifactCoordinate
+          )
+      val extractedPath = extractZipIfNeeded(fileService.createRandomTempDir(), libraryPath)
+      extractedPath.resolveExistsOrNull(INSPECTOR_JAR)
+        ?: throw AppInspectionArtifactNotFoundException(
+          "inspector jar could not be found in $libraryPath",
+          artifactCoordinate
+        )
+    }
 }

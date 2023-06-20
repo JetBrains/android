@@ -19,6 +19,7 @@ import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
 import static com.android.tools.profilers.ProfilerLayout.ROW_HEIGHT_PADDING;
 import static com.android.tools.profilers.ProfilerLayout.TABLE_ROW_BORDER;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
+import static com.intellij.ui.ExperimentalUI.isNewUI;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
@@ -54,9 +55,9 @@ import com.google.common.base.Strings;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.IconManager;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
@@ -103,6 +104,8 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
   private static final String HELP_TIP_HEADER_EXPLICIT_CAPTURE = "Selected capture has no contents";
   private static final String HELP_TIP_DESCRIPTION_EXPLICIT_CAPTURE = "There are no allocations in the selected capture.";
   private static final String HELP_TIP_HEADER_FILTER_NO_MATCH = "Selected filters have no match";
+  private static final String HELP_TIP_HEADER_FILTER_NO_RESULTS = "The filter term provided returned no results";
+  private static final String HELP_TIP_DESCRIPTION_FILTER_NO_RESULTS = "You can modify your filter term or filter settings to try again.";
 
   @NotNull private final MemoryCaptureSelection mySelection;
 
@@ -434,7 +437,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.H3_FONT), header),
       new NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
       new TextInstruction(UIUtilities.getFontMetrics(myClassifierPanel, ProfilerFonts.STANDARD_FONT), desc))
-      .setColors(JBColor.foreground(), null)
+      .setColors(NamedColorUtil.getInactiveTextColor(), null)
       .build();
   }
 
@@ -472,6 +475,10 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
                                    filterNames.size() > 1 ? "s" : "",
                                    String.join(", ", filterNames));
         myClassifierPanel.add(makeInstructionsPanel(HELP_TIP_HEADER_FILTER_NO_MATCH, msg), BorderLayout.CENTER);
+      }
+      else if (myHeapSet != null && myHeapSet.isFiltered()) {
+        myClassifierPanel.add(makeInstructionsPanel(HELP_TIP_HEADER_FILTER_NO_RESULTS, HELP_TIP_DESCRIPTION_FILTER_NO_RESULTS),
+                              BorderLayout.CENTER);
       }
       else {
         myClassifierPanel.add(myHelpTipPanel, BorderLayout.CENTER);
@@ -759,7 +766,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
           ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
           int textWidth = g.getFontMetrics().stringWidth(text);
 
-          Icon i = mySelected && isFocused()
+          Icon i = mySelected && isFocused() && !isNewUI()
                    ? ColoredIconGenerator.generateWhiteIcon(StudioIcons.Common.WARNING)
                    : StudioIcons.Common.WARNING;
           int iconWidth = i.getIconWidth();
@@ -773,7 +780,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
       }
 
       private void setIconColorized(Icon icon) {
-        setIcon(mySelected && isFocused() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
+        setIcon(mySelected && isFocused() && !isNewUI() ? ColoredIconGenerator.generateWhiteIcon(icon) : icon);
       }
 
       @Override
@@ -794,7 +801,7 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
 
           setIconColorized(((ClassSet)node.getAdapter()).hasStackInfo()
                            ? StudioIcons.Profiler.Overlays.CLASS_STACK
-                           : IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Class));
+                           : IconManager.getInstance().getPlatformIcon(PlatformIcons.Class));
 
           String className = classSet.getClassEntry().getSimpleClassName();
           String packageName = classSet.getClassEntry().getPackageName();
@@ -808,13 +815,12 @@ public final class MemoryClassifierView extends AspectObserver implements Captur
         }
         else if (node.getAdapter() instanceof PackageSet) {
           ClassifierSet set = (ClassifierSet)node.getAdapter();
-          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : IconManager.getInstance().getPlatformIcon(
-                      PlatformIcons.Package));
+          setIconColorized(set.hasStackInfo() ? StudioIcons.Profiler.Overlays.PACKAGE_STACK : IconManager.getInstance().getPlatformIcon(PlatformIcons.Package));
           String name = set.getName();
           append(name, SimpleTextAttributes.REGULAR_ATTRIBUTES, name);
         }
         else if (node.getAdapter() instanceof MethodSet) {
-          setIconColorized(IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Method));
+          setIconColorized(IconManager.getInstance().getPlatformIcon(PlatformIcons.Method));
 
           MethodSet methodObject = (MethodSet)node.getAdapter();
           String name = methodObject.getMethodName();

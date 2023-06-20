@@ -33,7 +33,7 @@ import com.android.tools.property.panel.api.EnumSupportProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock

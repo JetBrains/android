@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
-import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
@@ -29,6 +29,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -50,7 +53,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
    */
   public ProjectBuildModelImpl(@NotNull Project project, @Nullable VirtualFile file, @NotNull BuildModelContext buildModelContext) {
     myBuildModelContext = buildModelContext;
-    myProjectBuildFile = myBuildModelContext.parseProjectBuildFile(project, file);
+    myProjectBuildFile = myBuildModelContext.initializeContext(project, file);
   }
 
   @Override
@@ -148,7 +151,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
 
   @NotNull
   @Override
-  public List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<@NotNull Integer, @Nullable Integer> func) {
+  public List<GradleBuildModel> getAllIncludedBuildModels(@NotNull BiConsumer<Integer, Integer> func) {
     final Integer[] nModelsSeen = {0};
     List<GradleBuildModel> allModels = new ArrayList<>();
     if (myProjectBuildFile != null) {
@@ -193,15 +196,10 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   }
 
   @Override
-  public @Nullable GradleVersionCatalogModel getVersionCatalogModel() {
-    if (!GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled()) return null;
-    // TODO(b/238981516): actually compute the set of version catalog files to read from the settings model.
-    VirtualFile versionCatalogVirtualFile = myBuildModelContext.getVersionCatalogFile("libs");
-    if (versionCatalogVirtualFile == null) return null;
-    GradleVersionCatalogFile versionCatalogFile = myBuildModelContext.getOrCreateVersionCatalogFile(versionCatalogVirtualFile, "libs");
-    // TODO(b/238981516): when we support multiple files, should we have one Catalog model per file?  One Catalog model?  How should the
-    //  internals be organized?  How does this change when we support multiple catalogs?
-    return new GradleVersionCatalogModelImpl(versionCatalogFile);
+  public @NotNull GradleVersionCatalogsModel getVersionCatalogsModel() {
+    Collection<GradleVersionCatalogFile> files;
+    files = getContext().getVersionCatalogFiles();
+    return new GradleVersionCatalogsModelImpl(files);
   }
 
   private void runOverProjectTree(@NotNull Consumer<GradleDslFile> func) {

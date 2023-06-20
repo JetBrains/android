@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.snapshots
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSnapshotInfo
 import com.intellij.openapi.application.ApplicationInfo
 import layoutinspector.snapshots.Metadata
+import java.awt.Dimension
 
 /**
  * Metadata about a layout inspector snapshot that's included in the snapshot itself. Can be used for metrics logging.
@@ -31,7 +32,10 @@ class SnapshotMetadata(
     val source: Metadata.Source? = null,
     val sourceVersion: String? = null,
     var saveDuration: Long? = null,
-    var loadDuration: Long? = null
+    var loadDuration: Long? = null,
+    var dpi: Int? = null,
+    var fontScale: Float? = null,
+    var screenDimension: Dimension? = null
 ) {
   /**
    * Convert to the proto used by metrics.
@@ -61,6 +65,12 @@ class SnapshotMetadata(
       this@SnapshotMetadata.liveDuringCapture?.let { liveDuringCapture = it }
       source = this@SnapshotMetadata.source
       sourceVersion = ApplicationInfo.getInstance().fullVersion
+      this@SnapshotMetadata.dpi?.let { dpi = it }
+      this@SnapshotMetadata.fontScale?.let { fontScale = it }
+      this@SnapshotMetadata.screenDimension?.let {
+        screenWidth = it.width
+        screenHeight = it.height
+      }
     }.build()
 }
 
@@ -74,7 +84,10 @@ fun Metadata.convert(version: ProtocolVersion) = SnapshotMetadata(
   containsCompose,
   liveDuringCapture,
   source,
-  sourceVersion
+  sourceVersion,
+  dpi = dpi,
+  fontScale = fontScale,
+  screenDimension = if (screenWidth > 0 && screenHeight > 0) Dimension(screenWidth, screenHeight) else null
 )
 
 fun ProtocolVersion.toInt() = when(this) {

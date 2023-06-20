@@ -16,11 +16,10 @@
 package com.android.tools.idea.tests.gui.framework
 
 import com.android.tools.idea.bleak.BleakOptions
-import com.android.tools.idea.bleak.DisposerCheck
-import com.android.tools.idea.bleak.IgnoreList
-import com.android.tools.idea.bleak.IgnoreListEntry
 import com.android.tools.idea.bleak.LeakInfo
 import com.android.tools.idea.bleak.MainBleakCheck
+import com.android.tools.idea.bleak.IgnoreList
+import com.android.tools.idea.bleak.IgnoreListEntry
 import com.android.tools.idea.bleak.expander.SmartFMapExpander
 import com.android.tools.idea.bleak.expander.SmartListExpander
 import gnu.trove.TObjectHash
@@ -100,5 +99,9 @@ object UiTestBleakOptions {
   // a fresh copy of the default options are provided with each access, to facilitate local modifications (e.g. test-specific ignore lists)
   val defaults: BleakOptions
     get() = BleakOptions().withCheck(MainBleakCheck(globalIgnoreList, knownIssues, customExpanders, listOf(TObjectHash.REMOVED)))
-      .withCheck(DisposerCheck())
+
+  fun defaultsWithAdditionalIgnoreList(additionalIgnoreList: IgnoreList<LeakInfo>): BleakOptions {
+    return BleakOptions().withCheck(
+      MainBleakCheck(globalIgnoreList + additionalIgnoreList, knownIssues, customExpanders, listOf(TObjectHash.REMOVED)))
+  }
 }

@@ -19,7 +19,6 @@ import com.android.builder.model.PROPERTY_APK_SELECT_CONFIG
 import com.android.builder.model.PROPERTY_BUILD_ABI
 import com.android.builder.model.PROPERTY_BUILD_API
 import com.android.builder.model.PROPERTY_BUILD_API_CODENAME
-import com.android.builder.model.PROPERTY_BUILD_DENSITY
 import com.android.builder.model.PROPERTY_BUILD_WITH_STABLE_IDS
 import com.android.builder.model.PROPERTY_DEPLOY_AS_INSTANT_APP
 import com.android.builder.model.PROPERTY_EXTRACT_INSTANT_APK
@@ -27,6 +26,9 @@ import com.android.builder.model.PROPERTY_INJECTED_DYNAMIC_MODULES_LIST
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
+import com.android.tools.idea.flags.StudioFlags.INJECT_DEVICE_SERIAL_ENABLED
+import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
@@ -47,7 +49,6 @@ import com.android.tools.idea.projectsystem.gradle.RunConfigurationGradleContext
 import com.android.tools.idea.projectsystem.gradle.getGradleContext
 import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.run.AndroidDeviceSpec
-import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.GradleApkProvider
 import com.android.tools.idea.run.PreferGradleMake
@@ -74,8 +75,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.util.io.FileUtil
 import icons.StudioIcons
+import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import java.io.FileOutputStream
@@ -228,7 +231,6 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     env: ExecutionEnvironment,
     task: MakeBeforeRunTask
   ): Boolean {
-    val androidRunConfiguration = if (configuration is AndroidRunConfigurationBase) configuration else null
     if (!configuration.project.requiresAndroidModel()) {
       val regularMake = CompileStepBeforeRun(configuration.project)
       return regularMake.executeTask(context, configuration, env, CompileStepBeforeRun.MakeBeforeRunTask())
@@ -239,7 +241,6 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
     val targetDevices = deviceFutures?.devices ?: emptyList()
     val targetDeviceSpec = createSpec(targetDevices)
-
 
     // Some configurations (e.g. native attach) don't require a build while running the configuration
     if (configuration is RunProfileWithCompileBeforeLaunchOption &&
@@ -253,7 +254,7 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
     //   Profile as debuggable -> DEBUGGABLE
     //   Other (Run, Debug, legacy Profile) -> NOT_SET
     val profilingMode = if (StudioFlags.PROFILEABLE_BUILDS.get()) {
-      AbstractProfilerExecutorGroup.getInstance()?.getRegisteredSettings(env.executor.id)?.profilingMode ?: ProfilingMode.NOT_SET
+      AbstractProfilerExecutorGroup.getExecutorSetting(env.executor.id)?.profilingMode ?: ProfilingMode.NOT_SET
     }
     else {
       ProfilingMode.NOT_SET
@@ -271,10 +272,10 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
       }
     val targetDeviceVersion = targetDeviceSpec?.commonVersion
     val buildResult = build(modules, runConfigurationGradleContext, targetDeviceVersion, task.goal, cmdLineArgs)
-    if (androidRunConfiguration != null && buildResult != null) {
+    if (configuration is UserDataHolderEx && buildResult != null) {
       val model = buildResult.invocationResult.models.firstOrNull()
       if (model is PostBuildProjectModels) {
-        androidRunConfiguration.putUserData(GradleApkProvider.POST_BUILD_MODEL, PostBuildModel(model))
+        configuration.putUserData(GradleApkProvider.POST_BUILD_MODEL, PostBuildModel(model))
       } else {
         log.info("Couldn't get post build models.")
       }
@@ -357,20 +358,24 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
       } else {
         // For non bundle tool deploy tasks, we have one argument per device spec property
         val version = deviceSpec.commonVersion
-        if (version != null) {
+        val deviceApiOptimization = API_OPTIMIZATION_ENABLE.get() && GradleExperimentalSettings.getInstance().ENABLE_GRADLE_API_OPTIMIZATION
+        if (version != null && deviceApiOptimization) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API, version.apiLevel.toString()))
           if (version.codename != null) {
             properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_API_CODENAME, version.codename!!))
           }
-        }
-        if (deviceSpec.density != null) {
-          properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_DENSITY, deviceSpec.density!!.resourceValue))
         }
         if (deviceSpec.abis.isNotEmpty()) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.abis)))
         }
         if (configuration.deployAsInstant) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_DEPLOY_AS_INSTANT_APP, true))
+        }
+        if (INJECT_DEVICE_SERIAL_ENABLED.get() && deviceSpec.deviceSerials.isNotEmpty()) {
+          // This is an internal, opt-in flag to Sys-UI. See http://b/234033515 for more details.
+          val deviceSerials = deviceSpec.deviceSerials.joinToString(separator = ",")
+          val injectedProperty = AndroidGradleSettings.createProjectProperty("internal.android.inject.device.serials", deviceSerials)
+          properties.add(injectedProperty)
         }
       }
       return properties

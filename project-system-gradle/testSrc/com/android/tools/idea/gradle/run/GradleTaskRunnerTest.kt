@@ -15,35 +15,32 @@
  */
 package com.android.tools.idea.gradle.run
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.GradleIntegrationTest
-import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.fileUnderGradleRoot
 import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.testing.openPreparedProject
-import com.android.tools.idea.testing.prepareGradleProject
 import com.google.common.truth.Expect
 import com.intellij.openapi.application.runWriteActionAndWait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.File
 
 @RunWith(JUnit4::class)
-class GradleTaskRunnerTest : GradleIntegrationTest {
+class GradleTaskRunnerTest {
 
   @get:Rule
   val expect: Expect = Expect.createAndEnableStackTrace()
 
   @Test
   fun `successful and failed build`() {
-    val projectRoot = prepareGradleProject(TestProjectPaths.SIMPLE_APPLICATION, "project")
-    openPreparedProject("project") { project ->
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
       val appModule = project.gradleModule(":app")!!
       val tasksToRun =
-        mapOf(projectRoot.toPath() to listOf(":app:assembleDebug"))
+        mapOf(preparedProject.root.toPath() to listOf(":app:assembleDebug"))
 
       expect.that(
         GradleTaskRunner.run(
@@ -74,9 +71,5 @@ class GradleTaskRunnerTest : GradleIntegrationTest {
   }
 
   @get:Rule
-  val projectRule = AndroidProjectRule.withAndroidModels()
-
-  override fun getBaseTestPath(): String = projectRule.fixture.tempDirPath
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = TestProjectPaths.TEST_DATA_PATH
-  override fun getAdditionalRepos(): Collection<File> = listOf()
+  val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 }

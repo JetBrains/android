@@ -23,13 +23,10 @@ import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
-import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -39,8 +36,8 @@ public class SdkSyncTest extends PlatformTestCase {
   private LocalProperties myLocalProperties;
   private File myAndroidSdkPath;
   private IdeSdks myIdeSdks;
+
   private SdkSync mySdkSync;
-  private Sdk myJdk;
 
   @Override
   protected void setUp() throws Exception {
@@ -52,16 +49,12 @@ public class SdkSyncTest extends PlatformTestCase {
     ApplicationManager.getApplication().runWriteAction(() -> AndroidSdkPathStore.getInstance().setAndroidSdkPath(null));
     mySdkSync = new SdkSync();
     assertNull(myIdeSdks.getAndroidSdkPath());
-
-    Path jdk11 = TestUtils.getJava11Jdk();
-    VfsRootAccess.allowRootAccess(getTestRootDisposable(), jdk11.toAbsolutePath().toString());
-    myJdk = IdeSdks.getInstance().getOrCreateJdk(jdk11);
     IdeSdks.removeJdksOn(getTestRootDisposable());
   }
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndLocalPropertiesExistsAndNoProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
-      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, myJdk, null);
+      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath);
     });
 
     createEmptyLocalPropertiesFile();
@@ -72,7 +65,7 @@ public class SdkSyncTest extends PlatformTestCase {
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndNoLocalPropertiesExistsAndNoProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
-      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, myJdk, null);
+      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath);
     });
 
     assertNoLocalPropertiesExists();
@@ -89,7 +82,7 @@ public class SdkSyncTest extends PlatformTestCase {
 
   public void testSyncIdeAndProjectAndroidHomesWithIdeSdkAndInvalidProjectSdk() throws Exception {
     ApplicationManager.getApplication().runWriteAction(() -> {
-      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath, myJdk, null);
+      myIdeSdks.setAndroidSdkPath(myAndroidSdkPath);
     });
 
     myLocalProperties.setAndroidSdkPath(new File("randomPath"));

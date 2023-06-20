@@ -59,6 +59,7 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls public static final ModelPropertyDescription CONSUMER_PROGUARD_FILES =
     // see comment by specification of PROGUARD_FILES
     new ModelPropertyDescription("mConsumerProguardFiles", UNSPECIFIED_FOR_NOW);
+  @NonNls public static final String INIT_WITH = "mInitWith";
   @NonNls public static final ModelPropertyDescription MANIFEST_PLACEHOLDERS =
     new ModelPropertyDescription("mManifestPlaceholders", MUTABLE_MAP);
   @NonNls public static final ModelPropertyDescription MATCHING_FALLBACKS =
@@ -146,6 +147,11 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
     return GradlePropertyModelBuilder.create(myDslElement, CONSUMER_PROGUARD_FILES)
       .addTransform(new ListOrVarargsTransform(CONSUMER_PROGUARD_FILES, "setConsumerProguardFiles", "consumerProguardFiles"))
       .buildResolved();
+  }
+
+  @NotNull
+  public ResolvedPropertyModel initWith() {
+    return getModelForProperty(INIT_WITH);
   }
 
   @Override

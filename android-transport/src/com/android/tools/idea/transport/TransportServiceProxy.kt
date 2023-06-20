@@ -322,6 +322,7 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
       .setStartTimestampNs(timestampNs)
       .setAbiCpuArch(processAbiCpuArch)
       .setExposureLevel(level)
+      .setPackageName(client.packageName)
       .build()
     cachedProcesses[client.pid] = newProcess
     // New pipeline event - create a ProcessStarted event for each process.
@@ -362,26 +363,30 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
      * @return
      */
     @JvmStatic
-    fun transportDeviceFromIDevice(device: IDevice): Common.Device = Common.Device.newBuilder()
-      .setDeviceId(device.getId())
-      .setSerial(device.serialNumber)
-      .setModel(getDeviceModel(device))
-      .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
-      .setCodename(StringUtil.notNullize(device.version.codename))
-      .setApiLevel(device.version.apiLevel)
-      .setFeatureLevel(device.version.featureLevel)
-      .setManufacturer(getDeviceManufacturer(device))
-      .setIsEmulator(device.isEmulator)
-      .setBuildTags(device.getProperty(IDevice.PROP_BUILD_TAGS))
-      .setBuildType(device.getProperty(IDevice.PROP_BUILD_TYPE))
-      .setCpuAbi(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI))
-      .setState(convertState(device.state))
-      .setUnsupportedReason(getDeviceUnsupportedReason(device))
-      .build()
+    fun transportDeviceFromIDevice(device: IDevice): Common.Device {
+      val bootId = device.getBootId()
+      return Common.Device.newBuilder()
+        .setDeviceId(device.getId(bootId))
+        .setBootId(bootId)
+        .setSerial(device.serialNumber)
+        .setModel(getDeviceModel(device))
+        .setVersion(StringUtil.notNullize(device.getProperty(IDevice.PROP_BUILD_VERSION)))
+        .setCodename(StringUtil.notNullize(device.version.codename))
+        .setApiLevel(device.version.apiLevel)
+        .setFeatureLevel(device.version.featureLevel)
+        .setManufacturer(getDeviceManufacturer(device))
+        .setIsEmulator(device.isEmulator)
+        .setBuildTags(device.getProperty(IDevice.PROP_BUILD_TAGS))
+        .setBuildType(device.getProperty(IDevice.PROP_BUILD_TYPE))
+        .setCpuAbi(device.getProperty(IDevice.PROP_DEVICE_CPU_ABI))
+        .setState(convertState(device.state))
+        .setUnsupportedReason(getDeviceUnsupportedReason(device))
+        .build()
+    }
 
-    private fun IDevice.getId() = try {
+    private fun IDevice.getId(bootId: String) = try {
       val digest = MessageDigest.getInstance("SHA-256")
-      digest.update(getBootId().toByteArray())
+      digest.update(bootId.toByteArray())
       digest.update(serialNumber.toByteArray())
       ByteBuffer.wrap(digest.digest()).long
     } catch (e: NoSuchAlgorithmException) {
@@ -397,7 +402,12 @@ class TransportServiceProxy(private val ddmlibDevice: IDevice,
           override fun processNewLines(lines: Array<String>) {
             // There should only be one-line here.
             assert(lines.size == 1)
-            bootId = lines[0]
+            // check for empty string because processNewLines() could be called twice.
+            // For example if the output of the command terminates with new line,
+            // it will be called once with the boot id, then with an empty string. We don't want to overwrite the first value.
+            if (lines[0].isNotEmpty()) {
+              bootId = lines[0]
+            }
           }
           override fun isCancelled() = false
         })
@@ -453,12 +463,15 @@ private fun startThread(f: Runnable) = Thread(f).apply { start() }
 
 /**
  * Adapter for `Client` and `ProfileableClient`
+ *
+ * Package name is empty  for profileable processes because it comes from JDWP's HELO.
  */
-private data class ClientSummary(val pid: Int, val name: String, val abi: String?) {
+private data class ClientSummary(val pid: Int, val name: String, val packageName: String, val abi: String?) {
   companion object {
-    fun of(client: Client) = with (client.clientData) { of(pid, clientDescription, abi) }
+    fun of(client: Client) = with(client.clientData) { of(pid, clientDescription, packageName, abi) }
     fun of(client: ProfileableClient) =
-      with (client.profileableClientData) { of(pid, processName.takeUnless { it.isEmpty() }, abi ) }
-    fun of(pid: Int, name: String?, abi: String?) = name?.let { ClientSummary(pid, it, abi) }
+      with(client.profileableClientData) { of(pid, processName.takeUnless { it.isEmpty() }, null, abi) }
+
+    fun of(pid: Int, name: String?, packageName: String?, abi: String?) = name?.let { ClientSummary(pid, it, packageName ?: "", abi) }
   }
 }

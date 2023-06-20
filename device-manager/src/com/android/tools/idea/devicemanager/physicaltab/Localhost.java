@@ -29,7 +29,7 @@ final class Localhost extends Key {
     myValue = value;
   }
 
-  static @NotNull Optional<@NotNull Key> parse(@NotNull String value) {
+  static @NotNull Optional<Key> parse(@NotNull String value) {
     if (value.matches("localhost:\\d+")) {
       return Optional.of(new Localhost(value));
     }

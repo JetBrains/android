@@ -40,6 +40,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.DoubleClickListener;
 import com.intellij.ui.IconManager;
+import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
@@ -227,8 +228,9 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     myListView.clearSelection();
   }
 
+  @NotNull
   @Override
-  public @NotNull ActionUpdateThread getActionUpdateThread() {
+  public ActionUpdateThread getActionUpdateThread() {
     return ActionUpdateThread.BGT;
   }
 
@@ -307,7 +309,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     }
 
     private void renderJavaStackFrame(@NotNull CodeElement codeElement, boolean selected) {
-      setIcon(IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Method));
+      setIcon(IconManager.getInstance().getPlatformIcon(PlatformIcons.Method));
       SimpleTextAttributes textAttribute =
         selected || codeElement.isInUserCode() ? SimpleTextAttributes.REGULAR_ATTRIBUTES : SimpleTextAttributes.GRAY_ATTRIBUTES;
       CodeLocation location = codeElement.getCodeLocation();
@@ -326,7 +328,7 @@ public class IntelliJStackTraceView extends AspectObserver implements StackTrace
     }
 
     private void renderNativeStackFrame(@NotNull CodeElement codeElement, boolean selected) {
-      setIcon(IconManager.getInstance().getPlatformIcon(com.intellij.ui.PlatformIcons.Method));
+      setIcon(IconManager.getInstance().getPlatformIcon(PlatformIcons.Method));
       CodeLocation location = codeElement.getCodeLocation();
 
       StringBuilder methodBuilder = new StringBuilder();

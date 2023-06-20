@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -42,7 +43,7 @@ public class AndroidSdkDataTest extends AndroidTestCase {
 
     ApplicationManager.getApplication().runWriteAction(() -> {
       IdeSdks ideSdks = IdeSdks.getInstance();
-      ideSdks.setAndroidSdkPath(sdkDir, null);
+      ideSdks.setAndroidSdkPath(sdkDir);
       IdeSdks.removeJdksOn(myFixture.getProjectDisposable());
       ProjectRootManager.getInstance(getProject()).setProjectSdk(ideSdks.getEligibleAndroidSdks().get(0));
     });
@@ -77,12 +78,12 @@ public class AndroidSdkDataTest extends AndroidTestCase {
   }
 
   public void testGetSdkDataByProject() throws Exception {
-    AndroidSdkData sdkFromProject = AndroidSdkData.getSdkData(getProject());
+    AndroidSdkData sdkFromProject = StudioAndroidSdkData.getSdkData(getProject());
     assertEquals(sdkData, sdkFromProject);
   }
 
   public void testGetSdkDataByModule() throws Exception {
-    AndroidSdkData actual = AndroidSdkData.getSdkData(myModule);
+    AndroidSdkData actual = StudioAndroidSdkData.getSdkData(myModule);
     assertEquals(sdkData, actual);
   }
 

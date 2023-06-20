@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.model.argumentName
 import com.android.tools.idea.naveditor.model.defaultValue
 import com.android.tools.idea.naveditor.model.isArgument
+import com.android.tools.idea.naveditor.model.nullable
 import com.android.tools.idea.naveditor.model.typeAttr
 import com.android.tools.idea.uibuilder.model.createChild
 import com.intellij.openapi.command.WriteCommandAction
@@ -30,6 +31,7 @@ private const val ADD_ARGUMENT_GROUP_ID = "ADD_ARGUMENT_GROUP_ID"
 class DefaultValueModel(argument: NlComponent, private val parent: NlComponent) {
   val name = argument.argumentName
   val type = argument.typeAttr
+  private val nullableValue = argument.nullable
   var defaultValue: String
     get() = getComponent()?.defaultValue ?: ""
     set(newValue) {
@@ -44,10 +46,22 @@ class DefaultValueModel(argument: NlComponent, private val parent: NlComponent) 
           parent.createChild(TAG_ARGUMENT)?.apply {
             argumentName = name
             defaultValue = newValue
+            if (newValue == "@null") {
+              typeAttr = type
+              nullable = true
+            } else {
+              nullable = nullableValue
+            }
           }
         }
         else {
           component.defaultValue = newValue
+          if (newValue == "@null") {
+            component.typeAttr = type
+            component.nullable = true
+          } else {
+            component.nullable = nullableValue
+          }
         }
       })
     }

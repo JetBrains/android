@@ -301,7 +301,7 @@ class PropertyDependencyTest : GradleFileModelTestCase() {
     assertDependencyBetween(keyPass, filesModel.toMap()!!["key"]!!, "prop2['key']")
 
     // Add a property that something depends on and check dependencies are correct.
-    val key3 = filesModel.getMapValue("key3")
+    val key3 = filesModel.getMapValue("key3")!!
     key3.setValue("boo")
     assertDependencyNumbers(key3, 0, 0, 0, 1)
     val storePass = buildModel.android().signingConfigs()[1]!!.storePassword()

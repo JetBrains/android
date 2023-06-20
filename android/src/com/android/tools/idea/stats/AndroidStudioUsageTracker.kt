@@ -26,7 +26,6 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.report.DefaultMetricsLogFileProvider
-import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
@@ -41,6 +40,7 @@ import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DisplayDetails
 import com.google.wireless.android.sdk.stats.IdePlugin
 import com.google.wireless.android.sdk.stats.IdePluginInfo
+import com.google.wireless.android.sdk.stats.IntelliJNewUIState
 import com.google.wireless.android.sdk.stats.MachineDetails
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
@@ -56,12 +56,15 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel.Factory.BUFFERED
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
+import org.jetbrains.android.AndroidPluginDisposable
 import java.io.File
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
@@ -195,6 +198,7 @@ object AndroidStudioUsageTracker {
   private fun runShutdownReports() {
     TypingLatencyTracker.reportTypingLatency()
     CompletionStats.reportCompletionStats()
+    ManifestMergerStatsTracker.reportMergerStats()
   }
 
   private fun reportEnabledPlugins() {
@@ -221,6 +225,7 @@ object AndroidStudioUsageTracker {
 
   private fun runDailyReports() {
     processUserSentiment()
+    logNewUI()
   }
 
   private fun studioPing() {
@@ -231,6 +236,23 @@ object AndroidStudioUsageTracker {
         .setProductDetails(productDetails)
         .setMachineDetails(getMachineDetails(File(PathManager.getHomePath())))
         .setJvmDetails(CommonMetricsData.jvmDetails))
+  }
+
+  private fun logNewUI() {
+    val newUI: Boolean
+    try {
+      newUI = ExperimentalUI.isNewUI()
+    } catch (_: Throwable) {
+      // Don't send the message if the new UI check fails
+      return
+    }
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = EventKind.INTELLIJ_NEW_UI_STATE_EVENT
+        intellijNewUiStateEvent = IntelliJNewUIState.newBuilder().apply {
+          isEnabled = newUI
+        }.build()
+      })
   }
 
   private fun processUserSentiment() {
@@ -334,6 +356,7 @@ object AndroidStudioUsageTracker {
 
     TypingLatencyTracker.reportTypingLatency()
     CompletionStats.reportCompletionStats()
+    ManifestMergerStatsTracker.reportMergerStats()
   }
 
   /**
@@ -367,7 +390,7 @@ object AndroidStudioUsageTracker {
       UIUtil.isUnderDarcula() ->
         // IJ's custom theme are based off of Darcula. We look at the LafManager to determine whether the actual selected theme is
         // darcular, high contrast, or some other custom theme
-        when (LafManager.getInstance().currentLookAndFeel?.name?.toLowerCase(Locale.US)) {
+        when (LafManager.getInstance().currentLookAndFeel?.name?.lowercase(Locale.US)) {
           "darcula" -> ProductDetails.IdeTheme.DARCULA
           "high contrast" -> ProductDetails.IdeTheme.HIGH_CONTRAST
           else -> ProductDetails.IdeTheme.CUSTOM
@@ -410,8 +433,7 @@ object AndroidStudioUsageTracker {
   }
 
   private fun setupMetricsListener() {
-    // Create a coroutine scope tied to a disposable application service
-    val scope = AndroidCoroutineScope(MavenClassRegistryManager.getInstance())
+    val scope = AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
     UsageTracker.listener = { event ->
       scope.launch {
         channel.send(event)

@@ -41,7 +41,7 @@ class GradleTaskEmptyContributor: ExternalSystemViewContributor() {
   companion object {
     private const val LABEL_TEXT = "Task list not built..."
     private const val TOOLTIP_TEXT = """
-      Gradle task list not built during sync. Building the task list can impact Gradle sync performance on large projects.
+      Only test tasks are configured during Gradle Sync. Configuring all tasks can impact Gradle Sync performance on large projects.
     """
     private const val TOOLTIP_LINK_TEXT = "Show experimental settings..."
   }

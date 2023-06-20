@@ -17,6 +17,8 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.util.LOGGER
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.DocumentEx
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
@@ -27,7 +29,6 @@ import com.intellij.openapi.util.Key
 import org.jetbrains.annotations.VisibleForTesting
 import kotlin.math.max
 
-internal val LOGCAT_FILTER_HINT_KEY = Key.create<TextAccumulator.FilterHint>("LogcatHint")
 internal val LOGCAT_MESSAGE_KEY = Key.create<LogcatMessage>("LogcatMessage")
 
 internal class DocumentAppender(project: Project, private val document: DocumentEx, private var maxDocumentSize: Int) {
@@ -40,8 +41,13 @@ internal class DocumentAppender(project: Project, private val document: Document
   @VisibleForTesting
   internal val ranges = ArrayDeque<RangeMarker>()
 
+  fun reset() {
+    ranges.clear()
+  }
+
   @UiThread
   fun appendToDocument(buffer: TextAccumulator) {
+    LOGGER.debug { "Appending ${buffer.text.length} bytes to document" }
     val text = buffer.text
     if (text.length >= maxDocumentSize) {
       document.setText("")
@@ -51,6 +57,8 @@ internal class DocumentAppender(project: Project, private val document: Document
       document.insertString(document.textLength, text)
       trimToSize()
     }
+
+    LOGGER.debug {"Document text.length: ${document.text.length} immutableCharSequence.length: ${document.immutableCharSequence.length}" }
 
     // Document has a cyclic buffer, so we need to get document.textLength again after inserting text.
     val offset = document.textLength - text.length
@@ -62,13 +70,6 @@ internal class DocumentAppender(project: Project, private val document: Document
     for (range in buffer.textAttributesKeyRanges) {
       range.applyRange(offset) { start, end, textAttributesKey ->
         markupModel.addRangeHighlighter(textAttributesKey, start, end, HighlighterLayer.SYNTAX, HighlighterTargetArea.EXACT_RANGE)
-      }
-    }
-    for (range in buffer.filterHintRanges) {
-      range.applyRange(offset) { start, end, hint ->
-        ranges.add(document.createRangeMarker(start, end).apply {
-          putUserData(LOGCAT_FILTER_HINT_KEY, hint)
-        })
       }
     }
 

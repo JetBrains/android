@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.util.ActionToolbarUtil;
@@ -246,6 +247,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   @Override
+  @UiThread
   public void modelChanged(@NotNull DesignSurface<?> surface, @Nullable NlModel model) {
     if (myModel != null) {
       myModel.removeListener(this);

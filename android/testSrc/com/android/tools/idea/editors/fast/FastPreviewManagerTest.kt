@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.editors.fast
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.flags.junit.FlagRule
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockPsiFile
 import com.intellij.openapi.diagnostic.Logger
@@ -48,7 +51,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
-private val TEST_VERSION = GradleVersion.parse("0.0.1-test")
+private val TEST_VERSION = Version.parse("0.0.1-test")
 
 private object NopCompilerDaemonClient : CompilerDaemonClient {
   override val isRunning: Boolean = true
@@ -75,6 +78,9 @@ internal class FastPreviewManagerTest {
   val chainRule: RuleChain = RuleChain
     .outerRule(projectRule)
     .around(FastPreviewRule())
+
+  @get:Rule
+  val autoDisableFlagRule = FlagRule(COMPOSE_FAST_PREVIEW_AUTO_DISABLE)
 
   private val testTracker = TestFastPreviewTrackerManager(showTimes = false)
 
@@ -358,6 +364,8 @@ internal class FastPreviewManagerTest {
 
   @Test
   fun `auto disable on failure`(): Unit = runBlocking {
+    COMPOSE_FAST_PREVIEW_AUTO_DISABLE.override(true)
+
     val file = projectRule.fixture.addFileToProject("test.kt", """
       fun empty() {}
     """.trimIndent())
@@ -410,6 +418,8 @@ internal class FastPreviewManagerTest {
 
   @Test
   fun `do not auto disable on syntax error`(): Unit = runBlocking {
+    COMPOSE_FAST_PREVIEW_AUTO_DISABLE.override(true)
+
     val file = projectRule.fixture.addFileToProject("test.kt", """
       fun empty) { // Syntax error
     """.trimIndent())

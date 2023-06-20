@@ -43,6 +43,24 @@ sealed interface IdeArtifactLibrary : IdeLibrary {
    * The name to be used to represent the library in the IDE.
    */
   val name: String
+
+  /**
+   * Returns the location of the sources jar.
+   * This is only available from AGP version 8.1.0-alpha08.
+   */
+  val srcJar: File?
+
+  /**
+   * Returns the location of the java doc jar.
+   * This is only available from AGP version 8.1.0-alpha08.
+   */
+  val docJar: File?
+
+  /**
+   * Returns the location of the samples jar.
+   * This is only available from AGP version 8.1.0-alpha08.
+   */
+  val samplesJar: File?
 }
 
 interface IdeAndroidLibrary : IdeArtifactLibrary {
@@ -167,52 +185,6 @@ enum class IdeModuleWellKnownSourceSet(
   }
 }
 
-interface IdePreResolvedModuleLibrary : IdeLibrary {
-  /**
-   * Returns the gradle path.
-   */
-  val projectPath: String
-
-  /**
-   * Returns an optional variant name if the consumed artifact of the library is associated to
-   * one.
-   */
-  val variant: String?
-
-  /**
-   * Returns the build id.
-   */
-  val buildId: String
-
-  /**
-   * Returns the sourceSet associated with the library.
-   */
-  val sourceSet: IdeModuleSourceSet
-}
-
-interface IdeUnresolvedModuleLibrary : IdeLibrary {
-  /**
-   * Returns the gradle path.
-   */
-  val projectPath: String
-
-  /**
-   * Returns an optional variant name if the consumed artifact of the library is associated to
-   * one.
-   */
-  val variant: String?
-
-  /**
-   * Returns the build id.
-   */
-  val buildId: String
-
-  /**
-   * The artifact that this module dependency is targeting, this is only populated when V2 models are used
-   */
-  val artifact: File
-}
-
 interface IdeModuleLibrary : IdeLibrary {
   /**
    * Returns the gradle path.
@@ -234,5 +206,9 @@ interface IdeModuleLibrary : IdeLibrary {
    * Returns the sourceSet associated with the library.
    */
   val sourceSet: IdeModuleSourceSet
+}
+
+interface IdeUnknownLibrary: IdeLibrary {
+  val key: String
 }
 

@@ -15,9 +15,12 @@
  */
 package com.android.tools.asdriver.tests;
 
+import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS;
+
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
+import com.android.utils.FileUtils;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
@@ -39,12 +42,20 @@ public class AndroidStudioInstallation {
   private final LogFile stdout;
   private final LogFile stderr;
   private final LogFile ideaLog;
+
+  // File for storing memory usage statistics. The file is written by calling the `CollectMemoryUsageStatisticsInternalAction` action.
+  // After migrating to gRPC API should be removed as a part of b/256132435.
+  private final LogFile memoryReportFile;
   private final Path studioDir;
   private final Path vmOptionsPath;
   private final Path configDir;
   private final Path logsDir;
 
   public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem) throws IOException {
+    return fromZip(testFileSystem, AndroidStudioFlavor.FOR_EXTERNAL_USERS);
+  }
+
+  public static AndroidStudioInstallation fromZip(TestFileSystem testFileSystem, AndroidStudioFlavor androidStudioFlavor) throws IOException {
     Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "android-studio");
     System.out.println("workDir: " + workDir);
     String platform = "linux";
@@ -57,18 +68,29 @@ public class AndroidStudioInstallation {
       studioDir = "android-studio";
     }
 
-    Path studioZip = TestUtils.getBinPath(String.format("tools/adt/idea/studio/android-studio.%s.zip", platform));
+    String zipPath;
+    switch (androidStudioFlavor) {
+      case FOR_EXTERNAL_USERS:
+        zipPath = String.format("tools/adt/idea/studio/android-studio.%s.zip", platform);
+        break;
+      case ASWB:
+        zipPath = String.format("tools/vendor/google/aswb/aswb.%s.zip", platform);
+        break;
+      default:
+        throw new IllegalArgumentException("A valid AndroidStudioFlavor must be passed in. Got: " + androidStudioFlavor);
+    }
+    Path studioZip = TestUtils.getBinPath(zipPath);
     unzip(studioZip, workDir);
 
-    return new AndroidStudioInstallation(testFileSystem, workDir, workDir.resolve(studioDir));
+    return new AndroidStudioInstallation(testFileSystem, workDir, workDir.resolve(studioDir), androidStudioFlavor);
   }
 
   static public AndroidStudioInstallation fromDir(TestFileSystem testFileSystem, Path studioDir) throws IOException {
     Path workDir = Files.createTempDirectory(testFileSystem.getRoot(), "android-studio");
-    return new AndroidStudioInstallation(testFileSystem, workDir, studioDir);
+    return new AndroidStudioInstallation(testFileSystem, workDir, studioDir, AndroidStudioFlavor.UNKNOWN);
   }
 
-  private AndroidStudioInstallation(TestFileSystem testFileSystem, Path workDir, Path studioDir) throws IOException {
+  private AndroidStudioInstallation(TestFileSystem testFileSystem, Path workDir, Path studioDir, AndroidStudioFlavor androidStudioFlavor) throws IOException {
     this.fileSystem = testFileSystem;
     this.workDir = workDir;
     this.studioDir = studioDir;
@@ -76,6 +98,8 @@ public class AndroidStudioInstallation {
     logsDir = Files.createTempDirectory(TestUtils.getTestOutputDir(), "logs");
     ideaLog = new LogFile(logsDir.resolve("idea.log"));
     Files.createFile(ideaLog.getPath());
+    memoryReportFile = new LogFile(logsDir.resolve("memory_usage_report.log"));
+    Files.createFile(memoryReportFile.getPath());
     stdout = new LogFile(logsDir.resolve("stdout.txt"));
     stderr = new LogFile(logsDir.resolve("stderr.txt"));
 
@@ -85,6 +109,8 @@ public class AndroidStudioInstallation {
 
     setConsentGranted(true);
     createVmOptionsFile();
+
+    System.out.println("AndroidStudioInstallation created with androidStudioFlavor==" + androidStudioFlavor);
   }
 
   private void createVmOptionsFile() throws IOException {
@@ -99,17 +125,30 @@ public class AndroidStudioInstallation {
       throw new IllegalStateException("Threading checker agent not found at " + threadingCheckerAgentZip);
     }
 
-    String vmOptions = String.format("-javaagent:%s%n", agentZip) +
-                       String.format("-javaagent:%s%n", threadingCheckerAgentZip) +
-                       // Need to disable android first run checks, or we get stuck in a modal dialog complaining about lack of web access.
-                       String.format("-Ddisable.android.first.run=true%n") +
-                       String.format("-Dgradle.ide.save.log.to.file=true%n") +
-                       String.format("-Didea.config.path=%s%n", configDir) +
-                       String.format("-Didea.plugins.path=%s/plugins%n", configDir) +
-                       String.format("-Didea.system.path=%s/system%n", workDir) +
-                       String.format("-Didea.log.path=%s%n", logsDir) +
-                       String.format("-Duser.home=%s%n", fileSystem.getHome());
-    Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
+    StringBuilder vmOptions = new StringBuilder();
+    vmOptions.append(String.format("-javaagent:%s%n", agentZip));
+    vmOptions.append(String.format("-javaagent:%s%n", threadingCheckerAgentZip));
+    // Need to disable android first run checks, or we get stuck in a modal dialog complaining about lack of web access.
+    vmOptions.append(String.format("-Ddisable.android.first.run=true%n"));
+    vmOptions.append(String.format("-Dgradle.ide.save.log.to.file=true%n"));
+    vmOptions.append(String.format("-Didea.config.path=%s%n", configDir));
+    vmOptions.append(String.format("-Didea.plugins.path=%s/plugins%n", configDir));
+    vmOptions.append(String.format("-Didea.system.path=%s/system%n", workDir));
+    // Prevent our crash metrics from going to the production URL
+    vmOptions.append(String.format("-Duse.staging.crash.url=true%n"));
+    // Work around b/247532990, which is that libnotify.so.4 is missing on our
+    // test machines.
+    vmOptions.append(String.format("-Dide.libnotify.enabled=false%n"));
+    vmOptions.append(String.format("-Didea.log.path=%s%n", logsDir));
+    vmOptions.append(String.format("-Duser.home=%s%n", fileSystem.getHome()));
+    // Enabling this flag is required for connecting all the Java Instrumentation agents needed for memory statistics.
+    vmOptions.append(String.format("-Dstudio.run.under.integration.test=true%n"));
+    vmOptions.append(String.format("-Djdk.attach.allowAttachSelf=true%n"));
+    if (Boolean.getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS)) {
+      vmOptions.append(String.format("-D%s=true%n", COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS));
+    }
+
+    Files.writeString(vmOptionsPath, vmOptions.toString());
 
     // Handy utility to allow run configurations to force debugging
     if (Sets.newHashSet("true", "1").contains(System.getenv("AS_TEST_DEBUG"))) {
@@ -174,6 +213,35 @@ public class AndroidStudioInstallation {
     Files.createDirectories(consentOptions.getParent());
     Files.writeString(consentOptions, combinedString);
   }
+
+  /**
+   * Sets the SDK for the entire IDE rather than for a single project. Projects will then inherit
+   * this value.
+   */
+  public void setGlobalSdk(AndroidSdk sdk) throws IOException {
+    Path filetypePaths = configDir.resolve("options/other.xml");
+
+    if (filetypePaths.toFile().exists()) {
+      throw new IllegalStateException(
+        String.format("%s already exists, which means this method should be changed to merge with it rather than overwriting it.",
+                      filetypePaths));
+    }
+
+    Files.createDirectories(filetypePaths.getParent());
+
+    // Make sure backslashes don't show up in the path on Windows since the blob below must be valid JSON
+    String sdkPath = sdk.getSourceDir().toString().replaceAll("\\\\", "/");
+    String filetypeContents = String.format(
+      "<application>%n" +
+      "  <component name=\"PropertyService\"><![CDATA[{%n" +
+      "  \"keyToString\": {%n" +
+      "    \"android.sdk.path\": \"%s\"%n" +
+      "  }%n" +
+      "}]]></component>%n" +
+      "</application>", sdkPath);
+    Files.writeString(filetypePaths, filetypeContents, StandardCharsets.UTF_8);
+  }
+
   /**
    * Prevents a notification about {@code .pro} files and "Shrinker Config" from popping up. This
    * notification occurs as a result of two plugins trying to register the {@code .pro} file type.
@@ -236,7 +304,7 @@ public class AndroidStudioInstallation {
    * @throws IOException If the file can't be created.
    */
   public void createFirstRunXml() throws IOException {
-    Path dest = workDir.resolve("config/options/androidStudioFirstRun.xml");
+    Path dest = configDir.resolve("options/androidStudioFirstRun.xml");
     System.out.println("Creating " + dest);
 
     Files.createDirectories(dest.getParent());
@@ -281,6 +349,10 @@ public class AndroidStudioInstallation {
     return workDir;
   }
 
+  public Path getConfigDir() {
+    return configDir;
+  }
+
   public Path getStudioDir() {
     return studioDir;
   }
@@ -295,6 +367,10 @@ public class AndroidStudioInstallation {
 
   public LogFile getIdeaLog() {
     return ideaLog;
+  }
+
+  public LogFile getMemoryReportFile() {
+    return memoryReportFile;
   }
 
   public void addVmOption(String line) throws IOException {
@@ -326,6 +402,22 @@ public class AndroidStudioInstallation {
 
   public AndroidStudio run(Display display, Map<String, String> env) throws IOException, InterruptedException {
     return run(display, env, new String[] {});
+  }
+
+  /**
+   * Run from an APK project, which is different from an {@link AndroidProject} in that it doesn't
+   * have Gradle files or a {@code local.properties} file.
+   *
+   * Running from the "File" → "Profile or Debug APK" flow would also work, but that requires more
+   * automation to set up.
+   */
+  public AndroidStudio runFromExistingProject(Display display, HashMap<String, String> env, String path) throws IOException, InterruptedException {
+    Path project = TestUtils.resolveWorkspacePath(path);
+    Path targetProject = Files.createTempDirectory(fileSystem.getRoot(), "project");
+    FileUtils.copyDirectory(project.toFile(), targetProject.toFile());
+
+    trustPath(targetProject);
+    return run(display, env, new String[]{ targetProject.toString() });
   }
 
   public AndroidStudio run(Display display, Map<String, String> env, AndroidProject project, Path sdkDir) throws IOException, InterruptedException {
@@ -377,5 +469,18 @@ public class AndroidStudioInstallation {
       throw new RuntimeException("One or more methods called on a wrong thread. " +
                                  "See go/android-studio-threading-checks for more info.");
     }
+  }
+
+  public enum AndroidStudioFlavor {
+    // This is the most common version of Android Studio and is what can be found on
+    // https://developer.android.com/studio.
+    FOR_EXTERNAL_USERS,
+
+    // Android Studio with Blaze.
+    ASWB,
+
+    // This indicates that some operation will need to be performed to determine which flavor is
+    // being used.
+    UNKNOWN,
   }
 }

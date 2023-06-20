@@ -31,7 +31,6 @@ ext {
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "19.1.0"
 
     dynamicFeatures = [":dyn_feature"]
 

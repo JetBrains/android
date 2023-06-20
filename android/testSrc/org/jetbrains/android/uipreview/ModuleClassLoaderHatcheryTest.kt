@@ -15,14 +15,11 @@
  */
 package org.jetbrains.android.uipreview
 
-import com.android.tools.idea.flags.StudioFlags.COMPOSE_CLASSLOADERS_PRELOADING
 import com.android.tools.idea.rendering.classloading.FirewalledResourcesClassLoader
 import com.android.tools.idea.rendering.classloading.toClassTransform
 import com.android.tools.idea.testing.AndroidProjectRule
-import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -33,29 +30,18 @@ class ModuleClassLoaderHatcheryTest {
   @get:Rule
   val project = AndroidProjectRule.inMemory()
 
-  @Before
-  fun setUp() {
-    // Disabling internal ModuleClassLoaderManagerHatchery
-    COMPOSE_CLASSLOADERS_PRELOADING.override(false)
-  }
-
-  @After
-  fun tearDown() {
-    COMPOSE_CLASSLOADERS_PRELOADING.clearOverride()
-  }
-
   @Test
   fun `incubates only when needed`() {
     val hatchery = ModuleClassLoaderHatchery(1, 2)
 
-    val donor = ModuleClassLoaderManager.get().getPrivate(
+    val donor = StudioModuleClassLoaderManager.get().getPrivate(
         null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderHatcheryTest)
 
     var requests = 0
 
-    val cloner: (ModuleClassLoader) -> ModuleClassLoader? = { d ->
+    val cloner: (StudioModuleClassLoader) -> StudioModuleClassLoader? = { d ->
       requests++
-      ModuleClassLoaderManager.get().createCopy(d)
+      StudioModuleClassLoaderManager.get().createCopy(d)
     }
 
     // Was not requested before => not needed
@@ -72,23 +58,23 @@ class ModuleClassLoaderHatcheryTest {
       null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
     assertEquals(3, requests)
 
-    ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
+    StudioModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
   }
 
   @Test
   fun `hatchery maintains capacity`() {
     val hatchery = ModuleClassLoaderHatchery(1, 2)
 
-    val donor = ModuleClassLoaderManager.get().getPrivate(
+    val donor = StudioModuleClassLoaderManager.get().getPrivate(
       null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderHatcheryTest)
 
     val projectTransformations = toClassTransform(
       { TestClassVisitorWithId("project-id1") },
     )
-    val donor2 = ModuleClassLoaderManager.get().getPrivate(
+    val donor2 = StudioModuleClassLoaderManager.get().getPrivate(
       null, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderHatcheryTest, projectTransformations)
 
-    val cloner = ModuleClassLoaderManager.get()::createCopy
+    val cloner = StudioModuleClassLoaderManager.get()::createCopy
 
     // Nothing at the beginning, provide donor, check that request is successful
     assertNull(hatchery.requestClassLoader(
@@ -106,17 +92,17 @@ class ModuleClassLoaderHatcheryTest {
     assertNull(hatchery.requestClassLoader(
       null, donor.projectClassesTransform, donor.nonProjectClassesTransform))
 
-    ModuleClassLoaderManager.get().release(donor2, this@ModuleClassLoaderHatcheryTest)
-    ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
+    StudioModuleClassLoaderManager.get().release(donor2, this@ModuleClassLoaderHatcheryTest)
+    StudioModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
   }
 
   @Test
   fun `hatchery correctly identifies different parent class loaders`() {
     val hatchery = ModuleClassLoaderHatchery(1, 2)
     val parent1 = FirewalledResourcesClassLoader(null)
-    val donor = ModuleClassLoaderManager.get().getPrivate(
+    val donor = StudioModuleClassLoaderManager.get().getPrivate(
       parent1, ModuleRenderContext.forModule(project.module), this@ModuleClassLoaderHatcheryTest)
-    val cloner = ModuleClassLoaderManager.get()::createCopy
+    val cloner = StudioModuleClassLoaderManager.get()::createCopy
     // Create a request for a new class loader and incubate it
     assertNull(hatchery.requestClassLoader(
       parent1, donor.projectClassesTransform, donor.nonProjectClassesTransform))
@@ -129,6 +115,6 @@ class ModuleClassLoaderHatcheryTest {
     assertNull(hatchery.requestClassLoader(
       parent2, donor.projectClassesTransform, donor.nonProjectClassesTransform))
 
-    ModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
+    StudioModuleClassLoaderManager.get().release(donor, this@ModuleClassLoaderHatcheryTest)
   }
 }

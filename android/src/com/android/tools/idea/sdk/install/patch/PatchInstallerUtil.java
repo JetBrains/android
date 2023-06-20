@@ -24,9 +24,9 @@ import com.android.repository.api.RemotePackage;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.manager.LocalRepoLoaderImpl;
-import com.android.repository.io.FileOpUtils;
 import com.android.repository.util.InstallerUtil;
 import com.android.utils.FileUtils;
+import com.android.utils.PathUtils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ModalityState;
@@ -49,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utilities for creating and installing binary diff packages.
  */
-public final class PatchInstallerUtil {
+public class PatchInstallerUtil {
 
   /**
    * Repo-style path prefix for patcher packages.
@@ -75,6 +75,11 @@ public final class PatchInstallerUtil {
    * The actual patch file itself, inside the patch jar.
    */
   private static final String PATCH_ZIP_FN = "patch-file.zip";
+
+  /**
+   * Name of the patcher jar file from the patcher package.
+   */
+  private static final String PATCHER_JAR_FN = "patcher.jar";
 
   /**
    * Gets the installed patcher package required by our package.
@@ -143,7 +148,10 @@ public final class PatchInstallerUtil {
     }
 
     // The patcher won't expect this to be in the target directory, so delete it beforehand.
-    FileOpUtils.deleteFileOrFolder(op.getLocation(progress).resolve(InstallerUtil.INSTALLER_DIR_FN));
+    try {
+      PathUtils.deleteRecursivelyIfExists(op.getLocation(progress).resolve(InstallerUtil.INSTALLER_DIR_FN));
+    }
+    catch (IOException ignore) {}
 
     // Move the package.xml away, since the installer won't expect that either. But we want to be able to move it back if need be.
     Path tempPath = patch.getParent();
@@ -161,7 +169,7 @@ public final class PatchInstallerUtil {
       result = patcher.run(op.getLocation(progress), patch, progress);
     }
     catch (PatchRunner.RestartRequiredException e) {
-      askAboutRestart(patcher, op, patch, progress);
+      askAboutRestart(getPatcherFile(patcherPackage), op, patch, progress);
       result = false;
     }
     if (!result) {
@@ -179,11 +187,17 @@ public final class PatchInstallerUtil {
     return true;
   }
 
+  @Nullable
+  static Path getPatcherFile(@Nullable LocalPackage patcherPackage) {
+    Path patcherFile = patcherPackage == null ? null : patcherPackage.getLocation().resolve(PATCHER_JAR_FN);
+    return patcherFile != null && CancellableFileIo.exists(patcherFile) ? patcherFile : null;
+  }
+
   /**
    * If a patch fails to install because Studio is locking some of the files, we have to restart studio. Ask if the user wants
    * to, and then move things into place so they can be picked up on restart.
    */
-  private static void askAboutRestart(@NotNull PatchRunner patchRunner,
+  private static void askAboutRestart(@NotNull Path patcherFile,
                                       @NotNull PatchOperation op,
                                       @NotNull final Path patchFile,
                                       @NotNull final ProgressIndicator progress) {
@@ -217,7 +231,7 @@ public final class PatchInstallerUtil {
         progress.logInfo("Cancelled");
       }
       else {
-        if (setupPatchDir(patchFile, patchRunner.getPatcherJar(), op.getPackage(), op.getRepoManager(), progress)) {
+        if (setupPatchDir(patchFile, patcherFile, op.getPackage(), op.getRepoManager(), progress)) {
           if (result == 1 && restartable) {
             progress.logInfo("Installation will continue after restart");
           }

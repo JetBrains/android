@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters
 
-import com.android.flags.junit.RestoreFlagRule
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.FakeAndroidProjectDetector
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.FakePackageNamesProvider
@@ -32,6 +32,7 @@ import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
+import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent.TermVariants
@@ -43,22 +44,23 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 import java.time.Clock
+import kotlin.test.fail
 
-private val KEYS = mapOf(
+private val keys = mapOf(
   "tag" to TAG,
   "package" to APP,
   "message" to MESSAGE,
   "line" to LINE,
 )
 
-private val AGE_VALUES = listOf(
+private val ageValues = listOf(
   "10s",
   "10m",
   "10h",
   "10d",
 )
 
-private val INVALID_AGES = listOf(
+private val invalidAges = listOf(
   "10",
   "10f",
   "broom",
@@ -76,7 +78,7 @@ class LogcatFilterParserTest {
   private val project by lazy(projectRule::project)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule(), RestoreFlagRule(StudioFlags.LOGCAT_IS_FILTER))
+  val rule = RuleChain(projectRule, EdtRule(), LogcatFilterLanguageRule(), FlagRule(StudioFlags.LOGCAT_IS_FILTER))
 
   @Test
   fun parse_emptyFilter() {
@@ -91,7 +93,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_stringKey() {
-    for ((key, field) in KEYS) {
+    for ((key, field) in keys) {
       assertThat(logcatFilterParser().parse("$key: Foo")).isEqualTo(StringFilter("Foo", field, "$key: Foo".asRange()))
       assertThat(logcatFilterParser().parse("$key:Foo")).isEqualTo(StringFilter("Foo", field, "$key:Foo".asRange()))
     }
@@ -99,7 +101,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_stringKey_escapeChars() {
-    for ((key, field) in KEYS) {
+    for ((key, field) in keys) {
       val filterString = """
         $key:foo\ bar
         $key:'foobar'
@@ -125,7 +127,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_negatedStringKey() {
-    for ((key, field) in KEYS) {
+    for ((key, field) in keys) {
       assertThat(logcatFilterParser().parse("-$key: Foo")).isEqualTo(NegatedStringFilter("Foo", field, "-$key: Foo".asRange()))
       assertThat(logcatFilterParser().parse("-$key:Foo")).isEqualTo(NegatedStringFilter("Foo", field, "-$key:Foo".asRange()))
     }
@@ -133,7 +135,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_regexKey() {
-    for ((key, field) in KEYS) {
+    for ((key, field) in keys) {
       assertThat(logcatFilterParser().parse("$key~: Foo")).isEqualTo(RegexFilter("Foo", field, "$key~: Foo".asRange()))
       assertThat(logcatFilterParser().parse("$key~:Foo")).isEqualTo(RegexFilter("Foo", field, "$key~:Foo".asRange()))
     }
@@ -141,7 +143,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_negatedRegexKey() {
-    for ((key, field) in KEYS) {
+    for ((key, field) in keys) {
       assertThat(logcatFilterParser().parse("-$key~: Foo")).isEqualTo(NegatedRegexFilter("Foo", field, "-$key~: Foo".asRange()))
       assertThat(logcatFilterParser().parse("-$key~:Foo")).isEqualTo(NegatedRegexFilter("Foo", field, "-$key~:Foo".asRange()))
     }
@@ -159,7 +161,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_exactKey() {
-    for ((key, field) in KEYS) {
+    for ((key, field) in keys) {
       assertThat(logcatFilterParser().parse("$key=: Foo")).isEqualTo(ExactStringFilter("Foo", field, "$key=: Foo".asRange()))
       assertThat(logcatFilterParser().parse("$key=:Foo")).isEqualTo(ExactStringFilter("Foo", field, "$key=:Foo".asRange()))
     }
@@ -167,7 +169,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_negatedExactKey() {
-    for ((key, field) in KEYS) {
+    for ((key, field) in keys) {
       assertThat(logcatFilterParser().parse("-$key=: Foo")).isEqualTo(NegatedExactStringFilter("Foo", field, "-$key=: Foo".asRange()))
       assertThat(logcatFilterParser().parse("-$key=:Foo")).isEqualTo(NegatedExactStringFilter("Foo", field, "-$key=:Foo".asRange()))
     }
@@ -190,7 +192,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_age() {
-    for (key in AGE_VALUES) {
+    for (key in ageValues) {
       val clock = Clock.systemUTC()
       assertThat(logcatFilterParser(clock = clock).parse("age: $key")).isEqualTo(AgeFilter(key, clock, "age: $key".asRange()))
       assertThat(logcatFilterParser(clock = clock).parse("age:$key")).isEqualTo(AgeFilter(key, clock, "age:$key".asRange()))
@@ -199,7 +201,7 @@ class LogcatFilterParserTest {
 
   @Test
   fun parse_age_invalid() {
-    for (age in INVALID_AGES) {
+    for (age in invalidAges) {
       val query = "age: $age"
 
       assertThat(logcatFilterParser().parse(query)).isEqualTo(StringFilter(query, IMPLICIT_LINE, query.asRange()))
@@ -208,10 +210,10 @@ class LogcatFilterParserTest {
 
   @Test
   fun isValidLogAge() {
-    for (age in AGE_VALUES) {
+    for (age in ageValues) {
       assertThat(age.isValidLogAge()).named(age).isTrue()
     }
-    for (age in INVALID_AGES) {
+    for (age in invalidAges) {
       assertThat(age.isValidLogAge()).named(age).isFalse()
     }
   }
@@ -228,6 +230,17 @@ class LogcatFilterParserTest {
   fun parse_isCrash() {
     StudioFlags.LOGCAT_IS_FILTER.override(true)
     assertThat(logcatFilterParser().parse("is:crash")).isEqualTo(CrashFilter("is:crash".asRange()))
+  }
+
+  @Test
+  fun parse_isFirebase() {
+    StudioFlags.LOGCAT_IS_FILTER.override(true)
+    val filter = logcatFilterParser().parse("is:firebase") as? RegexFilter ?: fail("Expected a RegexFilter")
+
+    assertThat(filter.field).isEqualTo(TAG)
+    // No need to test all the tags, just test a single tag and make sure we don't match substrings
+    assertThat(filter.matches(LogcatMessageWrapper(logcatMessage(tag = "FA")))).isTrue()
+    assertThat(filter.matches(LogcatMessageWrapper(logcatMessage(tag = "FAQ")))).isFalse()
   }
 
   @Test
@@ -351,6 +364,18 @@ class LogcatFilterParserTest {
           StringFilter("foo", TAG, query.rangeOf("tag: foo")),
           StringFilter("bar", TAG, query.rangeOf("tag: 'bar'")),
         ),
+        StringFilter("f4", IMPLICIT_LINE, query.rangeOf("f4")),
+      )
+    )
+  }
+
+  @Test
+  fun parse_emptyParens() {
+    val query = "f1 & () & f4"
+    assertThat(logcatFilterParser().parse(query)).isEqualTo(
+      AndLogcatFilter(
+        StringFilter("f1", IMPLICIT_LINE, query.rangeOf("f1")),
+        EmptyFilter,
         StringFilter("f4", IMPLICIT_LINE, query.rangeOf("f4")),
       )
     )
