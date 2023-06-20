@@ -1690,6 +1690,7 @@ MODULE                        : Kotlin_Multiplatform.androidLib
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedTypeoneModetwoDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileTypeoneModetwoDebugUnitTestSources
@@ -2108,6 +2109,7 @@ MODULE                        : Kotlin_Multiplatform.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -2428,6 +2430,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedAndroidInstrumentedTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileAndroidUnitTest

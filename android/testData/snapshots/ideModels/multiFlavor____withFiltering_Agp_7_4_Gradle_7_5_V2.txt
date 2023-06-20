@@ -857,6 +857,7 @@ MODULE                        : MultiFlavor.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedFirstAbcSecondAbcDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileFirstAbcSecondAbcDebugUnitTestSources

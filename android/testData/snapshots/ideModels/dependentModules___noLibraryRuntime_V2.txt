@@ -1722,6 +1722,7 @@ MODULE                        : project.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedBasicDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileBasicDebugUnitTestSources
@@ -2743,6 +2744,7 @@ MODULE                        : project.lib
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources

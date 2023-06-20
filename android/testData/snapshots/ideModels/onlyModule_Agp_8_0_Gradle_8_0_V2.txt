@@ -1261,6 +1261,7 @@ MODULE                        : project.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
             UnitTestArtifact
                 Name                          : UNIT_TEST
                 CompileTaskName               : compileDebugUnitTestSources
@@ -1745,6 +1746,7 @@ MODULE                        : project.benchmark
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedBenchmarkAndroidTest
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createBenchmarkVariantModel
@@ -2205,6 +2207,7 @@ MODULE                        : project.test
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel
@@ -2664,6 +2667,7 @@ MODULE                        : project.test2
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
                 ModelSyncFile
                     Type                          : BASIC
                     TaskName                      : createDebugVariantModel

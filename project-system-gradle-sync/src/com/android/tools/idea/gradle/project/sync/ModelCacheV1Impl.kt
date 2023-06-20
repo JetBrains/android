@@ -782,7 +782,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun testOptionsFrom(testOptions: TestOptions): IdeTestOptionsImpl {
     return IdeTestOptionsImpl(
       animationsDisabled = testOptions.animationsDisabled,
-      execution = convertExecution(testOptions.execution)
+      execution = convertExecution(testOptions.execution),
+      instrumentedTestTaskName = null
     )
   }
 

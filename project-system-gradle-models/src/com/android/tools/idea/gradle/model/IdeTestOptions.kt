@@ -31,4 +31,9 @@ interface IdeTestOptions {
   val animationsDisabled: Boolean
 
   val execution: Execution?
+
+  /**
+   * The name of the task running instrumentation tests.
+   */
+  val instrumentedTestTaskName: String?
 }

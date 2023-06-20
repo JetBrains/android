@@ -133,7 +133,8 @@ class KotlinModelConverter {
       }
     return IdeTestOptionsImpl(
       animationsDisabled = animationsDisabled,
-      execution = executionOption
+      execution = executionOption,
+      instrumentedTestTaskName = instrumentedTestTaskName.deduplicate()
     )
   }
 

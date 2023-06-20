@@ -472,6 +472,7 @@ MODULE                        : project.app
                 TestOptions
                     AnimationsDisabled            : false
                     Execution                     : HOST
+                    InstrumentedTestTaskName      : connectedDebugAndroidTest
                 AbiFilters                    : x86
             UnitTestArtifact
                 Name                          : UNIT_TEST

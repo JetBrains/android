@@ -111,13 +111,9 @@ class GradleAndroidModel(
     }
   }
 
-  // TODO(b/284152933): Get this directly from the build model
   fun getGradleConnectedTestTaskNameForSelectedVariant(): String {
-    return if (androidProject.projectType == IdeAndroidProjectType.PROJECT_TYPE_KOTLIN_MULTIPLATFORM) {
-      ":connectedAndroidInstrumentedTest"
-    } else {
-      ":connected${selectedVariantName.usLocaleCapitalize()}AndroidTest"
-    }
+    return selectedVariantCore.androidTestArtifact?.testOptions?.instrumentedTestTaskName
+           ?: "connected${selectedVariantName.usLocaleCapitalize()}AndroidTest" // fallback for v1 models
   }
 
   val selectedMainCompileDependencies: IdeDependencies get() = this.mainArtifact.compileClasspath

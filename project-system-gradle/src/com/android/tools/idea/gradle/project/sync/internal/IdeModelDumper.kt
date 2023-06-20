@@ -829,6 +829,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       nest {
         prop("AnimationsDisabled") { testOptions.animationsDisabled.toString() }
         prop("Execution") { testOptions.execution?.toString() }
+        prop("InstrumentedTestTaskName") { testOptions.instrumentedTestTaskName }
       }
     }
 

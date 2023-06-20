@@ -261,6 +261,8 @@ private val PROPERTIES_TO_SKIP = setOf(
   "MODULE/IdeVariants/IdeVariant/DeprecatedPreMergedTestApplicationId",
   "MODULE/IdeVariants/IdeVariant/MainArtifact/DesugaredMethodFiles",
   "MODULE/IdeVariants/IdeVariant/AndroidTestArtifact/DesugaredMethodFiles",
+  "MODULE/IdeVariants/IdeVariant/MainArtifact/TestOptions/InstrumentedTestTaskName",
+  "MODULE/IdeVariants/IdeVariant/AndroidTestArtifact/TestOptions/InstrumentedTestTaskName",
 )
 
 private val ENTITIES_TO_SKIP = setOf(

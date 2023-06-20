@@ -1860,6 +1860,7 @@ IdeVariants
             TestOptions
                 AnimationsDisabled            : false
                 Execution                     : HOST
+                InstrumentedTestTaskName      : connectedBasicBarDebugAndroidTest
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicBarDebugUnitTestSources
@@ -2800,6 +2801,7 @@ IdeVariants
             TestOptions
                 AnimationsDisabled            : false
                 Execution                     : HOST
+                InstrumentedTestTaskName      : connectedBasicOtherBarDebugAndroidTest
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compileBasicOtherBarDebugUnitTestSources
@@ -3741,6 +3743,7 @@ IdeVariants
             TestOptions
                 AnimationsDisabled            : false
                 Execution                     : HOST
+                InstrumentedTestTaskName      : connectedPaidBarDebugAndroidTest
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidBarDebugUnitTestSources
@@ -4685,6 +4688,7 @@ IdeVariants
             TestOptions
                 AnimationsDisabled            : false
                 Execution                     : HOST
+                InstrumentedTestTaskName      : connectedPaidOtherBarDebugAndroidTest
         UnitTestArtifact
             Name                          : UNIT_TEST
             CompileTaskName               : compilePaidOtherBarDebugUnitTestSources
