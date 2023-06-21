@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.modes.essentials
 
-import com.android.tools.idea.flags.StudioFlags
-import com.intellij.ide.EssentialHighlightingMode
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -39,9 +37,6 @@ class EssentialsMode : ProjectActivity {
     fun setEnabled(value: Boolean) {
       val beforeSet = isEnabled()
       RegistryManager.getInstance().get("ide.essentials.mode").setValue(value)
-
-      // defensive case if EssentialHighlighting was enabled without the flag being enabled (e.g. prior registry value)
-      if (!value || StudioFlags.ESSENTIALS_HIGHLIGHTING_MODE.get()) EssentialHighlightingMode.setEnabled(value)
 
       // send message if the value changed
       if (beforeSet != value) {
