@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.instantapp
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt
@@ -59,7 +60,7 @@ import org.mockito.Mockito.`when`
 import java.io.File
 
 class RunInstantAppTest {
-  private val device = mockDeviceFor(26, listOf(Abi.X86_64, Abi.X86))
+  private val device = mockDeviceFor(AndroidVersion(AndroidVersion.VersionCodes.O), listOf(Abi.X86_64, Abi.X86))
   private val applicationDeployer = mock(ApplicationDeployer::class.java)
 
   private lateinit var runHandler: RunHandler

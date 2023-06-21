@@ -46,7 +46,6 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.model.IdeAndroidArtifactOutput;
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeBasicVariant;
-import com.android.tools.idea.gradle.model.IdePrivacySandboxSdkInfo;
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant;
 import com.android.tools.idea.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
@@ -155,19 +154,31 @@ public final class GradleApkProvider implements ApkProvider {
       getLogger().warn("Android model is null. Sync might have failed");
       return Collections.emptyList();
     }
-    return getApks(device.getAbis(),
-                   device.getVersion(),
-                   androidModel,
-                   androidModel.getSelectedVariant(),
-                   getOutputKind(myFacet.getModule(), myAlwaysDeployApkFromBundle, myTest, device.getVersion()));
+
+    boolean supportsPrivacySandbox = device.services().containsKey("sdk_sandbox");
+
+    return getApks(
+      device.getAbis(),
+      device.getVersion(),
+      supportsPrivacySandbox,
+      androidModel,
+      androidModel.getSelectedVariant(),
+      getOutputKind(
+        myFacet.getModule(),
+        myAlwaysDeployApkFromBundle,
+        myTest,
+        device.getVersion()));
   }
 
   @NotNull
-  public List<ApkInfo> getApks(@NotNull List<String> deviceAbis,
-                               @NotNull AndroidVersion deviceVersion,
-                               @NotNull GradleAndroidModel androidModel,
-                               @NotNull IdeVariant variant,
-                               @NotNull OutputKind outputKind) throws ApkProvisionException {
+  public List<ApkInfo> getApks(
+    @NotNull List<String> deviceAbis,
+    @NotNull AndroidVersion deviceVersion,
+    @NotNull boolean deviceSupportsPrivacySandbox,
+    @NotNull GradleAndroidModel androidModel,
+    @NotNull IdeVariant variant,
+    @NotNull OutputKind outputKind)
+    throws ApkProvisionException {
     List<ApkInfo> apkList = new ArrayList<>();
 
     IdeAndroidProjectType projectType = androidModel.getAndroidProject().getProjectType();
@@ -198,12 +209,30 @@ public final class GradleApkProvider implements ApkProvider {
                                           )));
           apkFileList.addAll(collectDependentFeaturesApks(androidModel, deviceAbis, deviceVersion));
           if (variant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
-            apkList.addAll(getApksForPrivacySandboxSdks(
-              variant.getName(),
-              variant.getMainArtifact().getPrivacySandboxSdkInfo(),
-              variant.getMainArtifact().getAbiFilters(),
-              deviceAbis
-            ));
+            if (deviceSupportsPrivacySandbox) {
+              // Each Privacy Sandbox SDK must be installed independently.
+              apkList.addAll(
+                getApksForPrivacySandboxSdks(
+                  variant.getName(),
+                  variant.getMainArtifact()
+                    .getPrivacySandboxSdkInfo()
+                    .getOutputListingFile(),
+                  variant.getMainArtifact().getAbiFilters(),
+                  deviceAbis));
+            }
+            else {
+              // Legacy Privacy Sandbox APKs need to be installed together and with
+              // the base APK.
+              apkFileList.addAll(
+                getApksFromLegacyPrivacySandboxSdks(
+                  variant.getName(),
+                  androidModel.getModuleName(),
+                  variant.getMainArtifact()
+                    .getPrivacySandboxSdkInfo()
+                    .getOutputListingLegacyFile(),
+                  variant.getMainArtifact().getAbiFilters(),
+                  deviceAbis));
+            }
           }
           apkList.add(new ApkInfo(apkFileList, pkgName));
           break;
@@ -223,13 +252,18 @@ public final class GradleApkProvider implements ApkProvider {
             else {
               // Privacy sandbox SDKs should be installed before the app itself.
               IdeVariant baseVariant = baseAndroidModel.getSelectedVariant();
-              if (baseVariant.getMainArtifact().getPrivacySandboxSdkInfo() != null) {
-                apkList.addAll(getApksForPrivacySandboxSdks(
-                  baseVariant.getName(),
-                  baseVariant.getMainArtifact().getPrivacySandboxSdkInfo(),
-                  baseVariant.getMainArtifact().getAbiFilters(),
-                  deviceAbis
-                ));
+              if (deviceSupportsPrivacySandbox
+                  && baseVariant.getMainArtifact().getPrivacySandboxSdkInfo()
+                     != null) {
+                apkList.addAll(
+                  getApksForPrivacySandboxSdks(
+                    baseVariant.getName(),
+                    baseVariant
+                      .getMainArtifact()
+                      .getPrivacySandboxSdkInfo()
+                      .getOutputListingFile(),
+                    baseVariant.getMainArtifact().getAbiFilters(),
+                    deviceAbis));
               }
               ApkInfo apkInfo = collectAppBundleOutput(baseAndroidModel, baseAppModule, myOutputModelProvider, pkgName);
               if (apkInfo != null) {
@@ -394,24 +428,56 @@ public final class GradleApkProvider implements ApkProvider {
   @NotNull
   private List<ApkInfo> getApksForPrivacySandboxSdks(
     @NotNull String variantName,
-    @NotNull IdePrivacySandboxSdkInfo privacySandboxSdkInfo,
+    @NotNull File outputListingFile,
     @NotNull Set<String> abiFilters,
-    @NotNull List<String> deviceAbis) throws ApkProvisionException {
+    @NotNull List<String> deviceAbis)
+    throws ApkProvisionException {
 
-    File outputFile = privacySandboxSdkInfo.getOutputListingFile();
-    List<GenericBuiltArtifacts> builtArtifacts = GenericBuiltArtifactsLoader.loadListFromFile(outputFile, new LogWrapper(getLogger()));
+    List<GenericBuiltArtifacts> builtArtifacts =
+      GenericBuiltArtifactsLoader.loadListFromFile(
+        outputListingFile, new LogWrapper(getLogger()));
     if (builtArtifacts.isEmpty()) {
-      throw new ApkProvisionException(String.format("Error loading build artifacts from: %s", outputFile));
+      throw new ApkProvisionException(
+        String.format("Error loading build artifacts from: %s", outputListingFile));
     }
 
     List<ApkInfo> list = new ArrayList<>();
     for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
-      ApkInfo unit = new ApkInfo(findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact), builtArtifact.getApplicationId(), ImmutableSet.of(), true);
+      ApkInfo unit =
+        new ApkInfo(findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact), builtArtifact.getApplicationId(), ImmutableSet.of(),
+                    true);
       list.add(unit);
     }
     return list;
   }
 
+  @NotNull
+  static List<ApkFileUnit> getApksFromLegacyPrivacySandboxSdks(
+    @NotNull String variantName,
+    @NotNull String moduleName,
+    @NotNull File outputListingForLegacyPrivacySandboxFile,
+    @NotNull Set<String> abiFilters,
+    @NotNull List<String> deviceAbis)
+    throws ApkProvisionException {
+    List<GenericBuiltArtifacts> builtArtifacts =
+      GenericBuiltArtifactsLoader.loadListFromFile(
+        outputListingForLegacyPrivacySandboxFile, new LogWrapper(getLogger()));
+    if (builtArtifacts.isEmpty()) {
+      throw new ApkProvisionException(
+        String.format(
+          "Error loading build artifacts from: %s",
+          outputListingForLegacyPrivacySandboxFile));
+    }
+
+    List<ApkFileUnit> list = new ArrayList<>();
+    for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
+      list.add(
+        new ApkFileUnit(
+          moduleName,
+          findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact)));
+    }
+    return list;
+  }
 
   @NotNull
   public static IdeAndroidArtifact getAndroidTestArtifact(@NotNull IdeVariant variant) throws ApkProvisionException {

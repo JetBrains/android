@@ -199,13 +199,14 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       .getApks(
         emptyList(),
         AndroidVersion(30),
+        this.supportsProfilingMode(),
         androidModel,
         androidModel.selectedVariant,
         when (assembleResult.buildMode) {
           BuildMode.APK_FROM_BUNDLE -> GradleApkProvider.OutputKind.AppBundleOutputModel
           BuildMode.ASSEMBLE -> GradleApkProvider.OutputKind.Default
           else -> error("Unsupported build mode: ${assembleResult.buildMode}")
-        }
+        },
       )
   }
 

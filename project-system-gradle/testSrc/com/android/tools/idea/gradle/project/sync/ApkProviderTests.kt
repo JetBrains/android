@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
 import com.android.tools.idea.gradle.project.sync.Target.ManuallyAssembled
 import com.android.tools.idea.gradle.project.sync.Target.NamedAppTargetRunConfiguration
@@ -359,7 +360,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        device = 19,
+        device = AndroidVersion(19),
         testProject = AndroidCoreTestProject.DYNAMIC_APP,
       ),
       IGNORE = { TODO("b/189190337") },
@@ -393,7 +394,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                 simpleApplication.dependsOnFeature1 -> project/dependsOnFeature1/build/outputs/apk/debug/dependsOnFeature1-debug.apk
                 simpleApplication.feature1 -> project/feature1/build/outputs/apk/debug/feature1-debug.apk
               RequiredInstallationOptions: []
-              
+
               ApplicationId: google.simpleapplication.test
               Files:
                  -> project/app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
@@ -417,7 +418,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
     def(
       stackMarker = { it() },
       TestScenario(
-        device = 19,
+        device = AndroidVersion(19),
         testProject = AndroidCoreTestProject.DYNAMIC_APP,
         target = TestTargetRunConfiguration("google.simpleapplication.ApplicationTest"),
       ),
@@ -650,6 +651,23 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(
         testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
+        device = AndroidVersion(21)
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           project.app -> project/app/build/intermediates/apk/debug/app-debug.apk
+           project.app -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
+        device = AndroidVersion(33, "TiramisuPrivacySandbox", 4, true)
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
@@ -669,6 +687,24 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(
         testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
         target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
+        device = AndroidVersion(21)
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
+           project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
+           project.feature -> project/feature/build/intermediates/apk/debug/feature-debug.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
+        device = AndroidVersion(33, "TiramisuPrivacySandbox", 4, true)
       ),
       IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
       expectApks = mapOf(AGP_CURRENT to """
@@ -676,7 +712,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
          Files:
             -> project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
-
+         
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk

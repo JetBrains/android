@@ -1003,8 +1003,10 @@ internal fun modelCacheV2Impl(
       codeShrinker = convertCodeShrinker(artifact.codeShrinker),
       isTestArtifact = name == IdeArtifactName.ANDROID_TEST,
       modelSyncFiles = artifact.modelSyncFiles.map { modelSyncFileFrom(it) },
-      privacySandboxSdkInfo = if (agpVersion.isAtLeast(7, 4, 0, "alpha", 10, false))
-        artifact.privacySandboxSdkInfo?.let { IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile) }
+      privacySandboxSdkInfo = if (agpVersion.isAtLeast(8, 2, 0, "alpha", 14, false))
+        artifact.privacySandboxSdkInfo?.let {
+          IdePrivacySandboxSdkInfoImpl(it.task, it.outputListingFile, it.taskLegacy, it.outputListingLegacyFile)
+        }
       else
         null,
       desugaredMethodsFiles = getDesugaredMethodsList(artifact, fallbackDesugaredMethodsFiles),

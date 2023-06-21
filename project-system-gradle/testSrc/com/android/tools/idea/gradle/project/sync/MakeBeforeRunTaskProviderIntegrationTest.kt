@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.sdklib.devices.Abi.ARMEABI_V7A
 import com.android.sdklib.devices.Abi.X86
@@ -53,7 +54,7 @@ class MakeBeforeRunTaskProviderIntegrationTest {
         // Note: This is verified to still work in MakeBeforeRunTaskProviderIntegration35Test.
         withSimulatedSyncError(errorMessage) {
           val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(23, listOf(abi)))))
+          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
         }
       }
 
@@ -76,7 +77,7 @@ class MakeBeforeRunTaskProviderIntegrationTest {
         // Note: This is verified to still work in MakeBeforeRunTaskProviderIntegration35Test.
         withSimulatedSyncError(errorMessage) {
           val runConfiguration = RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidRunConfiguration>().single()
-          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(23, listOf(abi)))))
+          runConfiguration.executeMakeBeforeRunStepInTest(DeviceFutures.forDevices(listOf(mockDeviceFor(AndroidVersion(23), listOf(abi)))))
         }
       }
 

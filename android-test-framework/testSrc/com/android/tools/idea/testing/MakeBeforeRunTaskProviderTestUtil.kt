@@ -159,12 +159,17 @@ private fun createRunConfigurationFromPsiElement(
 }
 
 @JvmOverloads
-fun mockDeviceFor(androidVersion: Int, abis: List<Abi>, density: Int? = null): IDevice {
+fun mockDeviceFor(androidVersion: AndroidVersion, abis: List<Abi>, density: Int? = null): IDevice {
   val device = MockitoKt.mock<IDevice>()
   whenever(device.abis).thenReturn(abis.map { it.toString() })
-  whenever(device.version).thenReturn(AndroidVersion(androidVersion))
+  whenever(device.version).thenReturn(androidVersion)
   whenever(device.serialNumber).thenReturn("1234")
   whenever(device.isOnline).thenReturn(true)
+  whenever(device.services()).thenReturn(
+    if (androidVersion.apiLevel >= 33 && androidVersion.extensionLevel != null && androidVersion.extensionLevel!! >= 4)
+      mapOf("sdk_sandbox" to null)
+    else emptyMap()
+  )
   density?.let { whenever(device.density).thenReturn(density) }
   return device
 }

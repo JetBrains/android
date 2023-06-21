@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync
 
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.devices.Abi
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
@@ -80,7 +81,7 @@ data class TestScenario(
   val executeMakeBeforeRun: Boolean = true,
   val target: Target = Target.AppTargetRunConfiguration,
   val variant: Pair<String, String>? = null,
-  val device: Int = 30
+  val device: AndroidVersion = AndroidVersion(AndroidVersion.VersionCodes.R)
 ) {
   val name: String
     get() {
@@ -99,7 +100,7 @@ data class TestScenario(
              viaBundle.prefixed("via-bundle") +
              (!executeMakeBeforeRun).prefixed("before-build") +
              target.prefixed() +
-             device.takeUnless { it == 30 }.prefixed() +
+             device.takeUnless { it.apiLevel == 30 }.prefixed() +
              variant.prefixed()
     }
 }
