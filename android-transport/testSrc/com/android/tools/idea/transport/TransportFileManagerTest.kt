@@ -20,7 +20,6 @@ import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.ProjectRule
 import com.intellij.util.messages.MessageBus
 import org.junit.Before
 import org.junit.Rule
@@ -39,11 +38,8 @@ import org.mockito.Mockito.verify
 import java.io.File
 
 class TransportFileManagerTest {
-  @get:Rule(order = 0)
-  val timeout = Timeout.seconds(10)
-
   @get:Rule
-  val projectRule = ProjectRule()
+  val timeout = Timeout.seconds(10)
 
   @JvmField
   @Rule
@@ -283,7 +279,12 @@ class TransportFileManagerTest {
   private fun testNumberOfFilesToCopy(traceboxFlag: Boolean, apiLevel: Int, expectedNumberOfFiles: Int) {
     StudioFlags.PROFILER_TRACEBOX.override(traceboxFlag)
     val device = mock(IDevice::class.java, Mockito.RETURNS_DEEP_STUBS)
-    val fileManagerSpy = spy(TransportFileManager(device, projectRule.project.messageBus))
+    val mockMessageBus = mock(MessageBus::class.java, Mockito.RETURNS_DEEP_STUBS)
+    val transportDeviceManagerListener =
+      mock(TransportDeviceManager.TransportDeviceManagerListener::class.java, Mockito.RETURNS_DEEP_STUBS)
+
+    doReturn(transportDeviceManagerListener).whenever(mockMessageBus).syncPublisher(TransportDeviceManager.TOPIC)
+    val fileManagerSpy = spy(TransportFileManager(device, mockMessageBus))
 
     doReturn(ArrayList<String>()).whenever(fileManagerSpy).copyFileToDevice(any(DeployableFile::class.java))
     whenever(device.version.featureLevel).thenReturn(apiLevel)
