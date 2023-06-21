@@ -18,6 +18,5 @@ package com.android.tools.idea.vitals.ui.icons
 import com.intellij.openapi.util.IconLoader
 
 object VitalsIcons {
-  val PLAY_CONSOLE_ICON =
-    IconLoader.getIcon("/icons/google_play_console.png", VitalsIcons::class.java)
+  val PLAY_CONSOLE_ICON = IconLoader.getIcon("/icons/play-console.svg", VitalsIcons::class.java)
 }
