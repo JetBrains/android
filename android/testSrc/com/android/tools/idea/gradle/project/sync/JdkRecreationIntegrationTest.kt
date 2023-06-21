@@ -25,7 +25,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.openPreparedProject
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
-import com.intellij.idea.Bombed
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl
@@ -43,7 +42,6 @@ class JdkRecreationIntegrationTest {
   @get:Rule
   val expect = Expect.createAndEnableStackTrace()!!
 
-  @Bombed(description = "Hangs in IDEA 2022.3", year = 2023, month = 11, day = 12, user="Andrei.Kuznetsov")
   @Suppress("UnstableApiUsage")
   @Test
   fun `Corrupted Jdk is recreated after sync`() {
