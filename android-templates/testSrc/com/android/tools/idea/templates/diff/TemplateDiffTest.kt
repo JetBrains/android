@@ -215,9 +215,9 @@ class TemplateDiffTest(private val testMode: TestMode) {
     }
 
   /*
-   * Tests for individual templates go below here. Each test method should only test one template
-   * parameter combination, because the test method name is used as the directory name for the
-   * golden files.
+   * Tests for individual activity templates go below here. Each test method should only test one
+   * template parameter combination, because the test method name is used as the directory name for
+   * the golden files.
    */
   @Test
   fun testNewEmptyViewsActivity() {
@@ -479,5 +479,110 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @Test
   fun testNewNativeCppActivityWithKotlin() {
     checkCreateTemplate("Native C++", withKotlin)
+  }
+
+  /*
+   * Tests for individual fragment templates go below here. Each test method should only test one
+   * template parameter combination, because the test method name is used as the directory name for
+   * the golden files.
+   */
+  @Test
+  fun testNewListFragment() {
+    checkCreateTemplate("Fragment (List)")
+  }
+
+  @Test
+  fun testNewListFragmentWithKotlin() {
+    checkCreateTemplate("Fragment (List)", withKotlin)
+  }
+
+  @Test
+  fun testNewModalBottomSheet() {
+    checkCreateTemplate("Modal Bottom Sheet")
+  }
+
+  @Test
+  fun testNewModalBottomSheetWithKotlin() {
+    checkCreateTemplate("Modal Bottom Sheet", withKotlin)
+  }
+
+  @Test
+  fun testNewBlankFragment() {
+    checkCreateTemplate("Fragment (Blank)")
+  }
+
+  @Test
+  fun testNewBlankFragmentWithKotlin() {
+    checkCreateTemplate("Fragment (Blank)", withKotlin)
+  }
+
+  @Test
+  fun testNewSettingsFragment() {
+    checkCreateTemplate("Settings Fragment")
+  }
+
+  @Test
+  fun testNewSettingsFragmentWithKotlin() {
+    checkCreateTemplate("Settings Fragment", withKotlin)
+  }
+
+  @Test
+  fun testNewViewModelFragment() {
+    checkCreateTemplate("Fragment (with ViewModel)")
+  }
+
+  @Test
+  fun testNewViewModelFragmentWithKotlin() {
+    checkCreateTemplate("Fragment (with ViewModel)", withKotlin)
+  }
+
+  @Test
+  fun testNewScrollingFragment() {
+    checkCreateTemplate("Scrolling Fragment")
+  }
+
+  @Test
+  fun testNewScrollingFragmentWithKotlin() {
+    checkCreateTemplate("Scrolling Fragment", withKotlin)
+  }
+
+  @Test
+  fun testNewFullscreenFragment() {
+    checkCreateTemplate("Fullscreen Fragment")
+  }
+
+  @Test
+  fun testNewFullscreenFragmentWithKotlin() {
+    checkCreateTemplate("Fullscreen Fragment", withKotlin)
+  }
+
+  @Test
+  fun testNewGoogleMapsFragment() {
+    checkCreateTemplate("Google Maps Fragment")
+  }
+
+  @Test
+  fun testNewGoogleMapsFragmentWithKotlin() {
+    checkCreateTemplate("Google Maps Fragment", withKotlin)
+  }
+
+  @Test
+  fun testNewGoogleAdMobFragment() {
+    checkCreateTemplate("Google AdMob Ads Fragment")
+  }
+
+  @Test
+  fun testNewGoogleAdMobFragmentWithKotlin() {
+    checkCreateTemplate("Google AdMob Ads Fragment", withKotlin)
+  }
+
+  @Test
+  fun testLoginFragment() {
+    checkCreateTemplate("Login Fragment")
+  }
+
+  @Test
+  fun testLoginFragmentWithKotlin() {
+    checkCreateTemplate("Login Fragment", withKotlin)
   }
 }

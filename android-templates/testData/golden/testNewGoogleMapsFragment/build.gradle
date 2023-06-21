@@ -1,0 +1,15 @@
+buildscript {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:+'
+        classpath 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1'
+    }
+}
+
+allprojects {
+    repositories {
+        // This will be populated by AndroidGradleTestCase
+    }
+}
