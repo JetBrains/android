@@ -182,13 +182,13 @@ public class FlagManagerTest {
     assertNotNull(icon);
     assertSame(StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG, icon);
 
-    icon = IconLoader.performStrictly(() -> FlagManager.get().getFlag("AQ"));
+    icon = FlagManager.get().getFlag("AQ");
     assertNotNull(icon);
-      assertSame(StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG, icon);
+    assertSame(StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG, icon);
 
-    icon = IconLoader.performStrictly(() -> FlagManager.get().getFlag("WO")); // Not used in ISO 3166-1
+    icon = FlagManager.get().getFlag("WO"); // Not used in ISO 3166-1
     assertNotNull(icon);
-      assertSame(StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG, icon);
+    assertSame(StudioIcons.LayoutEditor.Toolbar.EMPTY_FLAG, icon);
   }
 
   @Test
