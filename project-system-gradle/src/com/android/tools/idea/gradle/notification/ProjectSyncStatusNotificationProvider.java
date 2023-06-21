@@ -205,7 +205,7 @@ public class ProjectSyncStatusNotificationProvider implements EditorNotification
       },
       SYNC_NEEDED() {
         @Override
-        @NotNull
+        @Nullable
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           if (!IdeInfo.getInstance().isAndroidStudio()) return null;
           boolean buildFilesModified = GradleFiles.getInstance(project).areExternalBuildFilesModified();
