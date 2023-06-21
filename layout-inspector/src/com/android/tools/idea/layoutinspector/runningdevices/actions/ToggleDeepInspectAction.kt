@@ -25,12 +25,7 @@ import icons.StudioIcons
 class ToggleDeepInspectAction(
   private val isSelected: () -> Boolean,
   private val setSelected: (Boolean) -> Unit
-) :
-  ToggleAction(
-    { LayoutInspectorBundle.message("toggle.deep.inspect") },
-    StudioIcons.Compose.Toolbar.INSPECT_PREVIEW
-  ),
-  TooltipDescriptionProvider {
+) : ToggleAction({ "" }, StudioIcons.Compose.Toolbar.INSPECT_PREVIEW), TooltipDescriptionProvider {
   override fun isSelected(e: AnActionEvent) = isSelected()
   override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected(state)
 
