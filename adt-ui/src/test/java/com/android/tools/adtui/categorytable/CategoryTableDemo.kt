@@ -90,7 +90,9 @@ object DemoCategoryRowMouseClickListener : DefaultCategoryRowMouseClickListener<
   ) {
     when {
       SwingUtilities.isLeftMouseButton(e) && e.clickCount == 2 ->
-        table.removeGrouping(path.last().attribute)
+        table.columns
+          .find { it.attribute == path.last().attribute }
+          ?.let { table.removeGrouping(it) }
       else -> super.categoryRowClicked(e, table, path)
     }
   }
@@ -105,7 +107,7 @@ object DemoCategoryTableHeaderClickListener : DefaultCategoryTableHeaderClickLis
     when {
       SwingUtilities.isLeftMouseButton(e) && e.clickCount == 2 ->
         if (column.attribute.isGroupable) {
-          table.addGrouping(column.attribute)
+          table.addGrouping(column)
         }
       else -> super.columnHeaderClicked(e, table, column)
     }
@@ -128,11 +130,11 @@ fun main(args: Array<String>) {
   frame.contentPane = scroll
   table.addToScrollPane(scroll)
 
-  table.addGrouping(Status.attribute)
-  table.addGrouping(Api.attribute)
-  table.addGrouping(Type.attribute)
-  table.removeGrouping(Api.attribute)
-  table.removeGrouping(Type.attribute)
+  table.addGrouping(Status)
+  table.addGrouping(Api)
+  table.addGrouping(Type)
+  table.removeGrouping(Api)
+  table.removeGrouping(Type)
 
   frame.preferredSize = Dimension(600, 800)
   frame.pack()

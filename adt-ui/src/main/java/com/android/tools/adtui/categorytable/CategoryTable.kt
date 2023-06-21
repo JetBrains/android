@@ -106,8 +106,8 @@ class CategoryTable<T : Any>(
 
   private val hiddenRows = mutableSetOf<Any>()
 
-  /** The attributes we are grouping by, in order. */
-  var groupByAttributes: AttributeList<T> = emptyList()
+  /** The columns we are grouping by, in order. */
+  var groupByColumns: ColumnList<T> = emptyList()
     private set
 
   /** We sort groups of leaf rows in the table by these sorters, in order. */
@@ -258,19 +258,19 @@ class CategoryTable<T : Any>(
     }
   }
 
-  fun <C> addGrouping(attribute: Attribute<T, C>) {
-    header.removeColumn(attribute)
-    groupByAttributes = groupByAttributes + attribute
+  fun <C> addGrouping(column: Column<T, C, *>) {
+    header.removeColumn(column.attribute)
+    groupByColumns = groupByColumns + column
     groupAndSortValues()
     updateComponents()
   }
 
-  fun <C> removeGrouping(attribute: Attribute<T, C>) {
-    groupByAttributes = groupByAttributes - attribute
+  fun <C> removeGrouping(column: Column<T, C, *>) {
+    groupByColumns = groupByColumns - column
     groupAndSortValues()
     updateComponents()
 
-    header.restoreColumn(attribute)
+    header.restoreColumn(column.attribute)
   }
 
   /**
@@ -340,7 +340,7 @@ class CategoryTable<T : Any>(
 
   /** Unconditionally updates the categorized values by re-grouping and sorting them. */
   private fun groupAndSortValues() {
-    values = groupAndSort(values, groupByAttributes, columnSorters)
+    values = groupAndSort(values, groupByColumns, columnSorters)
   }
 
   private fun updateValues(updater: (List<T>) -> List<T>) {
@@ -376,9 +376,9 @@ class CategoryTable<T : Any>(
       }
 
       // Add new categories until we have fully categorized the current value.
-      while (categoryList.size < groupByAttributes.size) {
+      while (categoryList.size < groupByColumns.size) {
 
-        val newCategory = groupByAttributes[categoryList.size].withValue(value)
+        val newCategory = groupByColumns[categoryList.size].attribute.withValue(value)
 
         categoryList = categoryList + newCategory
         val categoryRow = oldCategoryRows.remove(categoryList) ?: addCategoryRow(categoryList)
@@ -494,7 +494,7 @@ class CategoryTable<T : Any>(
 
     // Subtract the indent from the available width to distribute to the columns, then allocate it
     // to the first column.
-    val totalIndent = scaledCategoryIndent * groupByAttributes.size
+    val totalIndent = scaledCategoryIndent * groupByColumns.size
     val valueWidth = width - totalIndent
     SizeRequirements.calculateTiledPositions(valueWidth, null, sizeRequirements, offsets, spans)
 
@@ -640,13 +640,15 @@ open class DefaultCategoryTableHeaderClickListener<T : Any> : CategoryTableHeade
  */
 internal fun <T> groupAndSort(
   values: List<T>,
-  groupByAttributes: List<Attribute<T, *>>,
+  groupByColumns: List<Column<T, *, *>>,
   attributeSorters: List<ColumnSortOrder<T>>
 ): List<T> =
-  (groupByAttributes.map { attribute ->
+  (groupByColumns.map { column ->
       val sortOrder =
-        attributeSorters.find { it.attribute == attribute }?.sortOrder ?: SortOrder.ASCENDING
-      checkNotNull(attribute.valueSorter(sortOrder)) { "Groupable attributes must be sortable" }
+        attributeSorters.find { it.attribute == column.attribute }?.sortOrder ?: SortOrder.ASCENDING
+      checkNotNull(column.attribute.valueSorter(sortOrder)) {
+        "Groupable attributes must be sortable"
+      }
     } + attributeSorters.mapNotNull { it.attribute.valueSorter(it.sortOrder) })
     .reduceOrNull { a, b -> a.then(b) }
     ?.let { values.sortedWith(it) }

@@ -28,15 +28,15 @@ internal class GroupingAction(
   override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return table.groupByAttributes.contains(column.attribute)
+    return table.groupByColumns.contains(column)
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     if (state) {
-      table.groupByAttributes.forEach { table.removeGrouping(it) }
-      table.addGrouping(column.attribute)
+      table.groupByColumns.forEach { table.removeGrouping(it) }
+      table.addGrouping(column)
     } else {
-      table.removeGrouping(column.attribute)
+      table.removeGrouping(column)
     }
   }
 }
@@ -44,9 +44,9 @@ internal class GroupingAction(
 internal class GroupByNoneAction(val table: CategoryTable<DeviceRowData>) : ToggleAction("None") {
   override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
-  override fun isSelected(e: AnActionEvent) = table.groupByAttributes.isEmpty()
+  override fun isSelected(e: AnActionEvent) = table.groupByColumns.isEmpty()
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    table.groupByAttributes.forEach { table.removeGrouping(it) }
+    table.groupByColumns.forEach { table.removeGrouping(it) }
   }
 }

@@ -50,7 +50,7 @@ class CategoryTableTest {
   @Test
   fun group() {
     val values = CategoryTableDemo.devices
-    val sorted = groupAndSort(values, listOf(Status.attribute), emptyList())
+    val sorted = groupAndSort(values, listOf(Status), emptyList())
     assertThat(sorted.map { it.status })
       .containsExactly("Offline", "Offline", "Offline", "Online", "Online", "Online")
   }
@@ -58,7 +58,7 @@ class CategoryTableTest {
   @Test
   fun nestedGroup() {
     val values = CategoryTableDemo.devices
-    val sorted = groupAndSort(values, listOf(Status.attribute, Type.attribute), emptyList())
+    val sorted = groupAndSort(values, listOf(Status, Type), emptyList())
     assertThat(sorted.map { it.type })
       .containsExactly("Phone", "Phone", "Tablet", "Phone", "Phone", "Tablet")
   }
@@ -66,7 +66,7 @@ class CategoryTableTest {
   @Test
   fun addOrUpdateRow() {
     val table = CategoryTable(CategoryTableDemo.columns)
-    table.addGrouping(Type.attribute)
+    table.addGrouping(Type)
     val device = CategoryTableDemo.devices[0]
 
     assertThat(table.addOrUpdateRow(device)).isTrue()
@@ -80,7 +80,7 @@ class CategoryTableTest {
   @Test
   fun addOrUpdateRow_withPrimaryKey() {
     val table = CategoryTable(CategoryTableDemo.columns, { it.name })
-    table.addGrouping(Type.attribute)
+    table.addGrouping(Type)
     val offlineNexus7 = CategoryTableDemo.devices[4]
     val onlineNexus7 = CategoryTableDemo.devices[5]
 
@@ -117,7 +117,7 @@ class CategoryTableTest {
   @Test
   fun removeRow() {
     val table = CategoryTable(CategoryTableDemo.columns)
-    table.addGrouping(Type.attribute)
+    table.addGrouping(Type)
     val device = CategoryTableDemo.devices[0]
 
     assertThat(table.addOrUpdateRow(device)).isTrue()
@@ -128,7 +128,7 @@ class CategoryTableTest {
   @Test
   fun removeRowByKey() {
     val table = CategoryTable(CategoryTableDemo.columns, { it.name })
-    table.addGrouping(Type.attribute)
+    table.addGrouping(Type)
     val offlineNexus7 = CategoryTableDemo.devices[4]
     val onlineNexus7 = CategoryTableDemo.devices[5]
 
@@ -145,7 +145,7 @@ class CategoryTableTest {
     assertThat(table.rowComponents).hasSize(6)
 
     table.toggleSortOrder(Name.attribute)
-    table.addGrouping(Api.attribute)
+    table.addGrouping(Api)
 
     assertThat(table.rowComponents.map { it.stringValue() })
       .containsExactly(
@@ -162,7 +162,7 @@ class CategoryTableTest {
         "Pixel 7"
       )
 
-    table.addGrouping(Type.attribute)
+    table.addGrouping(Type)
 
     assertThat(table.rowComponents.map { it.stringValue() })
       .containsExactly(
@@ -184,7 +184,7 @@ class CategoryTableTest {
         "Pixel 7"
       )
 
-    table.removeGrouping(Api.attribute)
+    table.removeGrouping(Api)
 
     assertThat(table.rowComponents.map { it.stringValue() })
       .containsExactly(
@@ -341,7 +341,7 @@ class CategoryTableTest {
     val fakeUi = FakeUi(scrollPane)
 
     CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
-    table.addGrouping(Status.attribute)
+    table.addGrouping(Status)
 
     fakeUi.layout()
 
@@ -420,7 +420,7 @@ class CategoryTableTest {
     val fakeUi = FakeUi(scrollPane)
 
     CategoryTableDemo.devices.forEach { table.addOrUpdateRow(it) }
-    table.addGrouping(Status.attribute)
+    table.addGrouping(Status)
     fakeUi.layout()
 
     val categoryRow = table.rowComponents[0] as CategoryRowComponent<CategoryTableDemo.Device>
