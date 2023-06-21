@@ -54,18 +54,15 @@ class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspecto
   }
 
   private fun onStopInspector() {
-    _isLoading.set(false)
-    listeners.forEach { it.onStopLoading() }
+    setIsLoading(false)
   }
 
   private fun onSelectedProcess() {
     if (layoutInspector.processModel?.selectedProcess?.isRunning == true) {
-      _isLoading.set(true)
-      listeners.forEach { it.onStartLoading() }
+      setIsLoading(true)
     }
     if (layoutInspector.processModel?.selectedProcess == null) {
-      _isLoading.set(false)
-      listeners.forEach { it.onStopLoading() }
+      setIsLoading(false)
     }
   }
 
@@ -74,7 +71,16 @@ class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspecto
     newWindow: AndroidWindow?,
     isStructuralChange: Boolean
   ) {
-    _isLoading.set(false)
-    listeners.forEach { it.onStopLoading() }
+    setIsLoading(false)
+  }
+
+  private fun setIsLoading(isLoading: Boolean) {
+    _isLoading.set(isLoading)
+
+    if (isLoading) {
+      listeners.forEach { it.onStartLoading() }
+    } else {
+      listeners.forEach { it.onStopLoading() }
+    }
   }
 }
