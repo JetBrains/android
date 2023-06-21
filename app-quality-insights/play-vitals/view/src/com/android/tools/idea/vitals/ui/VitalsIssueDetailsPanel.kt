@@ -16,7 +16,6 @@
 package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.common.primaryContentBackground
-import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsIssue
@@ -24,7 +23,6 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.Device
-import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.MultiSelection
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.TimeIntervalFilter
@@ -33,33 +31,22 @@ import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsStatusText
+import com.android.tools.idea.insights.ui.DetailsPanelHeader
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.StackTraceConsole
 import com.android.tools.idea.insights.ui.dateFormatter
-import com.android.tools.idea.insights.ui.getDisplayTitle
 import com.android.tools.idea.insights.ui.ifZero
 import com.android.tools.idea.insights.ui.transparentPanel
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.IdeActions
-import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.editor.actions.AbstractToggleUseSoftWrapsAction
-import com.intellij.openapi.editor.impl.softwrap.SoftWrapAppliancePlaces
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
-import com.intellij.ui.SimpleColoredComponent
-import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TitledSeparator
-import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.StartupUiUtil
 import icons.StudioIcons
@@ -171,8 +158,10 @@ class VitalsIssueDetailsPanel(
       }
       .stateIn(scope, SharingStarted.Eagerly, DefaultVitalsDetailsState)
 
+  @VisibleForTesting val stackTraceConsole = StackTraceConsole(controller, project, tracker)
+
   // Title
-  private val titleLabel = SimpleColoredComponent()
+  private val header = DetailsPanelHeader(stackTraceConsole.consoleView.editor)
 
   // Events, users, affected api levels, device
   private val eventsCountLabel = JLabel(StudioIcons.AppQualityInsights.ISSUE)
@@ -223,7 +212,6 @@ class VitalsIssueDetailsPanel(
       }
 
   private val scrollPane: JScrollPane
-  @VisibleForTesting val stackTraceConsole = StackTraceConsole(controller, project, tracker)
 
   init {
     minimumSize = Dimension(90, 0)
@@ -238,7 +226,7 @@ class VitalsIssueDetailsPanel(
             mainPanel,
             if (issue != null) MAIN_CARD else EMPTY_CARD
           )
-          updateHeaderSection(issue)
+          header.updateWithIssue(issue)
         }
     }
 
@@ -286,7 +274,6 @@ class VitalsIssueDetailsPanel(
         }
     scrollPane.border = IdeBorderFactory.createBorder(SideBorder.NONE)
     stackTraceConsole.onStackPrintedListener = { scrollPane.verticalScrollBar.value = 0 }
-    val header = createHeaderSection()
     header.addComponentListener(
       object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent?) {
@@ -353,53 +340,6 @@ class VitalsIssueDetailsPanel(
       add(Box.createVerticalStrut(5))
       add(add(insightsPanel))
     }
-
-  private fun createHeaderSection() =
-    JPanel(BorderLayout()).apply {
-      add(titleLabel, BorderLayout.WEST)
-      val wrapAction =
-        object : AbstractToggleUseSoftWrapsAction(SoftWrapAppliancePlaces.CONSOLE, false) {
-          init {
-            ActionUtil.copyFrom(this, IdeActions.ACTION_EDITOR_USE_SOFT_WRAPS)
-          }
-          override fun getEditor(e: AnActionEvent) = stackTraceConsole.consoleView.editor
-        }
-      val toolbar =
-        ActionManager.getInstance()
-          .createActionToolbar("StackTraceToolbar", DefaultActionGroup(wrapAction), true)
-      toolbar.targetComponent = this
-      toolbar.layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
-      toolbar.setReservePlaceAutoPopupIcon(false)
-      ActionToolbarUtil.makeToolbarNavigable(toolbar)
-      toolbar.component.apply { isOpaque = false }
-      add(toolbar.component, BorderLayout.EAST)
-      border = JBUI.Borders.empty(0, 8)
-      preferredSize = Dimension(0, JBUIScale.scale(28))
-    }
-
-  private fun updateHeaderSection(issue: AppInsightsIssue?) {
-    titleLabel.clear()
-
-    if (issue == null) return
-
-    titleLabel.icon = issue.issueDetails.fatality.getIcon()
-    val (className, methodName) = issue.issueDetails.getDisplayTitle()
-    val style =
-      when (issue.state) {
-        IssueState.OPEN,
-        IssueState.OPENING -> SimpleTextAttributes.STYLE_PLAIN
-        IssueState.CLOSED,
-        IssueState.CLOSING -> SimpleTextAttributes.STYLE_STRIKEOUT
-      }
-    titleLabel.append(className, SimpleTextAttributes(style, null))
-    if (methodName.isNotEmpty()) {
-      titleLabel.append(".", SimpleTextAttributes(style, null))
-      titleLabel.append(
-        methodName,
-        SimpleTextAttributes(style or SimpleTextAttributes.STYLE_BOLD, null)
-      )
-    }
-  }
 
   private fun updateBodySection(issue: AppInsightsIssue) {
     deviceLabel.text = issue.sampleEvent.eventData.device.let { "${it.manufacturer} ${it.model}" }
