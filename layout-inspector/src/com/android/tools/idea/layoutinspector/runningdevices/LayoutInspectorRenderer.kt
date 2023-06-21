@@ -67,6 +67,13 @@ class LayoutInspectorRenderer(
 ) : JPanel(), Disposable {
 
   var interceptClicks = false
+    set(value) {
+      field = value
+
+      if (!interceptClicks) {
+        renderModel.clearSelection()
+      }
+    }
 
   private val repaintDisplayView = { refresh() }
 

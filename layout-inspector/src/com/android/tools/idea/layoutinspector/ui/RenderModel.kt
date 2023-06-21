@@ -136,6 +136,10 @@ class RenderModel(
     return view
   }
 
+  fun clearSelection() {
+    model.setSelection(null, SelectionOrigin.INTERNAL)
+  }
+
   /**
    * Find all the views drawn under the given point, in order from closest to farthest from the
    * front, except if the view is an image drawn by a parent at a different depth, the depth of the
