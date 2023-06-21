@@ -18,7 +18,11 @@ package com.android.tools.idea.gradle.project
 import com.android.SdkConstants
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.UpgradeAndroidStudioDialogStats
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
@@ -81,10 +85,31 @@ class AndroidSdkCompatibilityChecker {
       )
 
       when (selection) {
-        UPDATE_STUDIO_BUTTON.first -> UpdateChecker.updateAndShowResult(project)
-        DO_NOT_ASK_FOR_PROJECT_BUTTON.first -> StudioUpgradeReminder(project).doNotAskForProject = true
+        UPDATE_STUDIO_BUTTON.first -> {
+          logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.UPGRADE_STUDIO)
+          UpdateChecker.updateAndShowResult(project)
+        }
+        DO_NOT_ASK_FOR_PROJECT_BUTTON.first -> {
+          logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.DO_NOT_ASK_AGAIN)
+          StudioUpgradeReminder(project).doNotAskForProject = true
+        }
+        CANCEL_BUTTON -> logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.CANCEL)
+        else -> logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.UNKNOWN_USER_ACTION)
       }
     }
+  }
+
+  private fun logEvent(project: Project, action: UpgradeAndroidStudioDialogStats.UserAction) {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .withProjectId(project)
+        .setKind(AndroidStudioEvent.EventKind.UPGRADE_ANDROID_STUDIO_DIALOG)
+        .setUpgradeAndroidStudioDialog(
+          UpgradeAndroidStudioDialogStats.newBuilder().apply {
+            userAction = action
+          }
+        )
+    )
   }
 
   private fun getAffectedModules(modules: List<Pair<String, AndroidVersion>>): String {
@@ -108,6 +133,7 @@ class AndroidSdkCompatibilityChecker {
     val MAX_RECOMMENDED_COMPILE_SDK_VERSION: AndroidVersion = SdkConstants.MAX_SUPPORTED_ANDROID_PLATFORM_VERSION
     val UPDATE_STUDIO_BUTTON = 0 to "Upgrade Android Studio"
     val DO_NOT_ASK_FOR_PROJECT_BUTTON = 1 to "Don't ask for this project"
+    const val CANCEL_BUTTON = -1
     const val MAX_NUM_OF_MODULES = 5
 
     fun getInstance(): AndroidSdkCompatibilityChecker {
