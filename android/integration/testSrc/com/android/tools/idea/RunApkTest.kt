@@ -19,6 +19,7 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
 class RunApkTest {
@@ -38,29 +39,36 @@ class RunApkTest {
     system.installation.addVmOption("-Dtesting.android.platform.to.autocreate=31")
 
     system.runAdb { adb ->
-      system.runEmulator(Emulator.SystemImage.API_31) { emulator ->
+      system.runEmulator(Emulator.SystemImage.API_33) { emulator ->
+        println("Waiting for boot")
+        emulator.waitForBoot()
+
+        // If you try to run the app too early, you'll see this error in Android Studio: "Error
+        // while waiting for device: emu0 is already running. If that is not the case, delete
+        // <testtemppath>/home/.android/avd/emu0.avd/*.lock and try again."
+        println("Waiting for device")
+        adb.waitForDevice(emulator)
+
         system.runStudioFromApk(project) { studio ->
           studio.waitForIndex()
+          println("Finished waiting for index");
 
-          println("Waiting for boot")
-          emulator.waitForBoot()
-          // If you try to run the app too early, you'll see this error in Android Studio: "Error
-          // while waiting for device: emu0 is already running. If that is not the case, delete
-          // <testtemppath>/home/.android/avd/emu0.avd/*.lock and try again."
-          println("Waiting for device")
+          //Both waits are needed in order for app to launch
+          system.installation.ideaLog
+            .waitForMatchingLine(".*UnindexedFilesIndexer - Finished for.*", 180, TimeUnit.SECONDS)
+          system.installation.ideaLog.reset()
+          system.installation.ideaLog
+            .waitForMatchingLine(".*\\[Building Activity\\] Saving symbols.*", 180, TimeUnit.SECONDS)
 
-          // TODO: Tue 11/22/2022 - this sometimes just fails, perhaps because the device is never ready?
-          adb.waitForDevice(emulator)
-
-          // TODO: figure out how to definitively tell that the emulator is ready to run the app
-          println("Waiting for 10000 seconds before running the app so that the emulator is ready")
-          Thread.sleep(10000)
+          //Need to wait for the device to be ready
+          println("Wait for ActionToolBar")
+          studio.waitForComponentByClass("MyNavBarWrapperPanel", "ActionToolbarImpl", "DeviceAndSnapshotComboBoxAction")
 
           println("Running the app")
           studio.executeAction("Run")
 
           adb.runCommand("logcat") {
-            waitForLog(".*Hello Minimal World!.*", 600.seconds);
+            waitForLog(".*Hello Minimal World!.*", 300.seconds);
           }
         }
       }
