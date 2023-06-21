@@ -52,6 +52,7 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
         WipeDataAction(),
         DeleteAction(),
         Separator.create(),
+        OpenDeviceExplorerAction(),
         ViewDetailsAction(),
         ShowAction(),
       )
@@ -66,7 +67,7 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
           DataManager.getInstance().getDataContext(this@OverflowButton),
           true,
           null,
-          10
+          15
         )
         .showUnderneathOf(this@OverflowButton)
     }

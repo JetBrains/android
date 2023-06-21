@@ -135,6 +135,7 @@ internal object DeviceTableColumns {
   class Actions(private val project: Project?, val coroutineScope: CoroutineScope) :
     Column<DeviceRowData, Unit, ActionButtonsPanel> {
     override val name = DeviceManagerBundle.message("column.title.actions")
+    override val columnHeaderName = "" // no room for a name
     override val attribute = Attribute.Unit
 
     override fun updateValue(rowValue: DeviceRowData, component: ActionButtonsPanel, value: Unit) {
@@ -151,7 +152,7 @@ internal object DeviceTableColumns {
     // TODO: Precomputing this is a hack... can we base it on the panel after it has been
     // constructed?
     override val widthConstraint =
-      Column.SizeConstraint.exactly((StudioIcons.Avd.RUN.iconWidth + 7) * 3)
+      Column.SizeConstraint.exactly((StudioIcons.Avd.RUN.iconWidth + 7) * 2)
   }
 
   fun columns(project: Project?, coroutineScope: CoroutineScope) =
