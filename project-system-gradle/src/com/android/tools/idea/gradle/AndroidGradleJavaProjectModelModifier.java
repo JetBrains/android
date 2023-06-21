@@ -206,7 +206,7 @@ public class AndroidGradleJavaProjectModelModifier extends JavaProjectModelModif
       return null;
     }
 
-    List<String> pluginNames = PluginModel.extractNames(buildModel.plugins());
+    List<String> pluginNames = PluginModel.extractNames(buildModel.appliedPlugins());
     List<String> androidPluginNames = new ArrayList<>(pluginNames);
     androidPluginNames.retainAll(ANDROID_PLUGIN_IDENTIFIERS);
     List<String> javaPluginNames = new ArrayList<>(pluginNames);
