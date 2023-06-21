@@ -29,7 +29,7 @@ private const val HIGHLIGHT_COLOR_KEY = "live.layout.inspector.highlight.color"
 interface RenderSettings {
   val modificationListeners: MutableList<() -> Unit>
 
-  /** Scale of the view in percentage: 100 = 100% */
+  /** Scale of the view in percentage. Used to scale borders thickness, labels size etc. */
   var scalePercent: Int
 
   /** Scale of the view as a fraction: 1 = 100% */

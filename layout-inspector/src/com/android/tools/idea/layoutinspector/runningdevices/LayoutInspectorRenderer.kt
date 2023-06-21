@@ -80,10 +80,6 @@ class LayoutInspectorRenderer(
     Disposer.register(disposable, this)
     isOpaque = false
 
-    // TODO(b/265150325) when running devices the zoom does not affect the scale. Move this
-    // somewhere else.
-    renderLogic.renderSettings.scalePercent = 30
-
     // Events are not dispatched to the parent if the child has a mouse listener. So we need to
     // manually forward them.
     ForwardingMouseListener({ parent }, { !interceptClicks }).also {
@@ -135,6 +131,9 @@ class LayoutInspectorRenderer(
 
     val scale = calculateScaleDifference(displayRectangle, layoutInspectorDisplayRectangle)
     val orientationQuadrant = orientationQuadrantProvider()
+
+    // Make sure that borders and labels are scaled accordingly to the size of the render.
+    renderLogic.renderSettings.scalePercent = (scale * 100).toInt()
 
     val transform = AffineTransform()
 
