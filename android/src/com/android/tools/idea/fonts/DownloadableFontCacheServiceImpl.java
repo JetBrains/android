@@ -60,7 +60,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
 
   private final SystemFonts mySystemFonts;
   @GuardedBy("getLock()")
-  private final Map<String, FontDirectoryDownloadService> myDownloadServiceMap;
+  private final Map<String, FontDirectoryDownloader> myDownloadServiceMap;
 
   @NotNull
   static DownloadableFontCacheServiceImpl getInstance() {
@@ -203,7 +203,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
 
   @Override
   public void refresh(@Nullable Runnable success, @Nullable Runnable failure) {
-    Collection<FontDirectoryDownloadService> services;
+    Collection<FontDirectoryDownloader> services;
     synchronized (getLock()) {
       if (updateSdkHome()) {
         updateDownloadServices();
@@ -211,8 +211,8 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
       services = myDownloadServiceMap.values();
     }
 
-    for (FontDirectoryDownloadService service : services) {
-      service.refresh(success, failure);
+    for (FontDirectoryDownloader service : services) {
+      service.refreshFonts(success, failure);
     }
   }
 

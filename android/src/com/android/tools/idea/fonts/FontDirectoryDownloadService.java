@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.fonts;
 
-import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.tools.idea.downloads.DownloadService;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Comparator;
-import java.util.List;
 
 import static com.android.ide.common.fonts.FontLoaderKt.FONT_DIRECTORY_FILENAME;
 import static com.android.ide.common.fonts.FontLoaderKt.FONT_DIRECTORY_FOLDER;
@@ -33,27 +31,31 @@ import static com.android.ide.common.fonts.FontLoaderKt.FONT_DIRECTORY_FOLDER;
  * {@link FontDirectoryDownloadService} is a download service for downloading a font directory
  * i.e. a list of font families.
  */
-class FontDirectoryDownloadService extends DownloadService {
+class FontDirectoryDownloadService implements FontDirectoryDownloader {
   private static final String SERVICE_POSTFIX = " Downloadable Fonts";
   private static final String TEMPORARY_FONT_DIRECTORY_FILENAME = "temp_font_directory.xml";
 
+  private final DownloadService myDownloadService;
   private final FontProvider myProvider;
-  private final DownloadableFontCacheServiceImpl myFontService;
 
   public FontDirectoryDownloadService(@NotNull DownloadableFontCacheServiceImpl fontService, @NotNull FontProvider provider, @NotNull File fontCachePath) {
-    super(provider.getName() + SERVICE_POSTFIX,
-          provider.getUrl(),
-          getFallbackResourceUrl(provider),
-          getCachePath(provider, fontCachePath),
-          TEMPORARY_FONT_DIRECTORY_FILENAME,
-          FONT_DIRECTORY_FILENAME);
-    myFontService = fontService;
+    myDownloadService = new DownloadService(provider.getName() + SERVICE_POSTFIX,
+                                            provider.getUrl(),
+                                            getFallbackResourceUrl(provider),
+                                            getCachePath(provider, fontCachePath),
+                                            TEMPORARY_FONT_DIRECTORY_FILENAME,
+                                            FONT_DIRECTORY_FILENAME) {
+      @Override
+      public void loadFromFile(@NotNull URL url) {
+        fontService.loadDirectory(myProvider, url);
+      }
+    };
     myProvider = provider;
   }
 
   @Override
-  public void loadFromFile(@NotNull URL url) {
-    myFontService.loadDirectory(myProvider, url);
+  public void refreshFonts(@Nullable Runnable success, @Nullable Runnable failure) {
+    myDownloadService.refresh(success, failure);
   }
 
   @NotNull
