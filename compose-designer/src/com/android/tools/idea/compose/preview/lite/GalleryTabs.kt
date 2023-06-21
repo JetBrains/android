@@ -42,6 +42,8 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Adjustable
 import java.awt.BorderLayout
 import java.awt.Point
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
@@ -77,7 +79,19 @@ class GalleryTabs<Key : TitledKey>(
           ActionPlaces.TOOLBAR,
           ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
         )
-        .apply { font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL) }
+        .apply {
+          font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+
+          addFocusListener(
+            object : FocusListener {
+              override fun focusGained(e: FocusEvent) {
+                (e.component as? ActionButtonWithText)?.let { focusOnComponent(it) }
+              }
+
+              override fun focusLost(e: FocusEvent) {}
+            },
+          )
+        }
 
     override fun actionPerformed(e: AnActionEvent) {
       updateSelectedKey(e, key)
@@ -87,17 +101,20 @@ class GalleryTabs<Key : TitledKey>(
         previousToolbar?.components?.filterIsInstance<ActionButtonWithText>()?.firstOrNull {
           (it.action as? GalleryTabs<*>.TabLabelAction)?.key == this.key
         }
-      sameTabInToolbar?.let {
-        when {
-          // If tab is not visible and on the left side - move it to the most left visible side.
-          it.location.x < -centerPanel.location.x -> scrollBar.value = it.location.x
+      sameTabInToolbar?.let { focusOnComponent(it) }
+    }
 
-          // If tab is not visible and on the right side - move it to the most right visible side.
-          it.location.x + it.bounds.width > -centerPanel.location.x + scrollBar.bounds.width ->
-            scrollBar.value = it.location.x + it.bounds.width - scrollBar.bounds.width
-        }
-        it.requestFocus()
+    private fun focusOnComponent(button: ActionButtonWithText) {
+      when {
+        // If tab is not visible and on the left side - move it to the most left visible side.
+        button.location.x < -centerPanel.location.x -> scrollBar.value = button.location.x
+
+        // If tab is not visible and on the right side - move it to the most right visible side.
+        button.location.x + button.bounds.width >
+          -centerPanel.location.x + scrollBar.bounds.width ->
+          scrollBar.value = button.location.x + button.bounds.width - scrollBar.bounds.width
       }
+      button.requestFocus()
     }
 
     override fun isSelected(e: AnActionEvent): Boolean {
