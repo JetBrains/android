@@ -1665,6 +1665,8 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
             Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
+            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :kmpJvmOnly:assemble, :kmpJvmOnly:testClasses
@@ -1833,6 +1835,8 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
             Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
+            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :kmpJvmOnly:assemble, :kmpJvmOnly:testClasses
