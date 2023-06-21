@@ -104,6 +104,7 @@ internal object DeviceTableColumns {
   object Status : Column<DeviceRowData, DeviceRowData.Status, IconLabel> {
     override val name = "Status"
     override val columnHeaderName = "" // no room for a name
+    override val visibleWhenGrouped = true
     override val attribute =
       object : Attribute<DeviceRowData, DeviceRowData.Status> {
         override val sorter: Comparator<DeviceRowData.Status> =

@@ -161,6 +161,8 @@ class CategoryTableTest {
         "33",
         "Pixel 7"
       )
+    assertThat(table.header.columnModel.columnList.map { it.headerValue })
+      .containsExactly("Name", "Status", "Type", "Actions")
 
     table.addGrouping(Type)
 
@@ -183,6 +185,8 @@ class CategoryTableTest {
         "33, Phone",
         "Pixel 7"
       )
+    assertThat(table.header.columnModel.columnList.map { it.headerValue })
+      .containsExactly("Name", "Status", "Actions")
 
     table.removeGrouping(Api)
 
@@ -197,6 +201,12 @@ class CategoryTableTest {
         "Pixel 6a",
         "Pixel 7"
       )
+    assertThat(table.header.columnModel.columnList.map { it.headerValue })
+      .containsExactly("Name", "Api", "Status", "Actions")
+
+    table.addGrouping(Status)
+    assertThat(table.header.columnModel.columnList.map { it.headerValue })
+      .containsExactly("Name", "Api", "Status", "Actions")
   }
 
   private fun RowComponent<CategoryTableDemo.Device>.stringValue() =

@@ -166,6 +166,7 @@ constructor(
 
     add(toolbar.component, BorderLayout.NORTH)
 
+    deviceTable.categoryIndent = 0
     deviceTable.toggleSortOrder(DeviceTableColumns.nameAttribute)
     deviceTable.addToScrollPane(scrollPane)
 

@@ -56,7 +56,14 @@ val Api = LabelColumn<Device>("Api", SizeConstraint(min = 20, max = 80), stringA
 val Type =
   LabelColumn<Device>("Type", SizeConstraint(min = 20, max = 80), stringAttribute { it.type })
 val Status =
-  LabelColumn<Device>("Status", SizeConstraint(min = 20, max = 80), stringAttribute { it.status })
+  object :
+    LabelColumn<Device>(
+      "Status",
+      SizeConstraint(min = 20, max = 80),
+      stringAttribute { it.status }
+    ) {
+    override val visibleWhenGrouped = true
+  }
 
 object Actions : Column<Device, Unit, JPanel> {
   override val name = "Actions"

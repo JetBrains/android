@@ -36,6 +36,10 @@ interface Column<T, C, U : JComponent> {
   /** Provides the value of this column for a given row value. */
   val attribute: Attribute<T, C>
 
+  /** If true, the column remains displayed even when the table is grouped by this column. */
+  val visibleWhenGrouped: Boolean
+    get() = false
+
   /** Creates the JComponent for this column for a particular row. */
   fun createUi(rowValue: T): U
 

@@ -259,7 +259,9 @@ class CategoryTable<T : Any>(
   }
 
   fun <C> addGrouping(column: Column<T, C, *>) {
-    header.removeColumn(column.attribute)
+    if (!column.visibleWhenGrouped) {
+      header.removeColumn(column.attribute)
+    }
     groupByColumns = groupByColumns + column
     groupAndSortValues()
     updateComponents()
@@ -270,7 +272,9 @@ class CategoryTable<T : Any>(
     groupAndSortValues()
     updateComponents()
 
-    header.restoreColumn(column.attribute)
+    if (!column.visibleWhenGrouped) {
+      header.restoreColumn(column.attribute)
+    }
   }
 
   /**
