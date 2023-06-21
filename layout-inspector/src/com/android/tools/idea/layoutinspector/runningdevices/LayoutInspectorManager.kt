@@ -94,6 +94,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
   /** Tabs on which Layout Inspector is enabled. */
   private var tabsWithLayoutInspector = setOf<TabId>()
     set(value) {
+      ApplicationManager.getApplication().assertIsDispatchThread()
       if (value == field) {
         return
       }
@@ -111,6 +112,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
   /** The tab on which Layout Inspector is running */
   private var selectedTab: SelectedTabState? = null
     set(value) {
+      ApplicationManager.getApplication().assertIsDispatchThread()
       if (field == value) {
         return
       }
@@ -194,6 +196,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
   }
 
   private fun createTabState(tabId: TabId): SelectedTabState {
+    ApplicationManager.getApplication().assertIsDispatchThread()
     val runningDevicesContentManager = project.getRunningDevicesContentManager()
     val selectedTabContent = runningDevicesContentManager?.contents?.find { it.tabId == tabId }
     val selectedTabDataProvider = selectedTabContent?.component as? DataProvider
@@ -255,6 +258,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
   private fun updateListeners(
     listenersToUpdate: List<LayoutInspectorManager.StateListener> = stateListeners
   ) {
+    ApplicationManager.getApplication().assertIsDispatchThread()
     listenersToUpdate.forEach { listener -> listener.onStateUpdate(tabsWithLayoutInspector) }
   }
 
@@ -288,6 +292,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
    * @param tabComponents The components of the selected tab.
    * @param wrapLogic The logic used to wrap the tab in a workbench.
    */
+  @UiThread
   private data class SelectedTabState(
     val project: Project,
     val disposable: Disposable,
@@ -317,6 +322,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
       )
   ) {
     fun enableLayoutInspector() {
+      ApplicationManager.getApplication().assertIsDispatchThread()
       wrapLogic.wrapComponent { centerPanel ->
         val mainPanel = BorderLayoutPanel()
         val subPanel = BorderLayoutPanel()
@@ -357,6 +363,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
     }
 
     fun disableLayoutInspector() {
+      ApplicationManager.getApplication().assertIsDispatchThread()
       wrapLogic.unwrapComponent()
       tabComponents.displayView.remove(layoutInspectorRenderer)
       layoutInspector.inspectorModel.selectionListeners.remove(selectionChangedListener)
@@ -418,6 +425,7 @@ private fun createLayoutInspectorWorkbench(
   layoutInspector: LayoutInspector,
   centerPanel: JComponent
 ): WorkBench<LayoutInspector> {
+  ApplicationManager.getApplication().assertIsDispatchThread()
   val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, parentDisposable)
   val toolsDefinition =
     listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition())

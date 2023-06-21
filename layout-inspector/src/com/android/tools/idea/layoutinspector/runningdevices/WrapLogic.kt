@@ -26,7 +26,7 @@ class WrapLogic(
   private var newContainer: JComponent? = null
 
   fun wrapComponent(wrap: (JComponent) -> JComponent) {
-    check(newContainer == null) { "Component is not wrapped" }
+    check(newContainer == null) { "Can't wrap, component is already wrapped" }
 
     container.remove(component)
     newContainer = wrap(component)
@@ -34,7 +34,7 @@ class WrapLogic(
   }
 
   fun unwrapComponent() {
-    val newContainer = checkNotNull(newContainer) { "Component is not wrapped" }
+    val newContainer = checkNotNull(newContainer) { "Can't unwrap, component is not wrapped" }
 
     newContainer.remove(component)
     container.remove(newContainer)
