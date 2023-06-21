@@ -48,10 +48,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.ui.content.Content
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.Container
-import java.util.concurrent.Executors.newSingleThreadExecutor
 import javax.swing.JComponent
 
 private const val WORKBENCH_NAME = "Layout Inspector"
@@ -357,7 +357,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
 
       layoutInspector.inspectorModel.selectionListeners.add(selectionChangedListener)
       layoutInspector.processModel?.addSelectedProcessListeners(
-        newSingleThreadExecutor(),
+        EdtExecutorService.getInstance(),
         selectedProcessListener
       )
     }
