@@ -579,7 +579,7 @@ class ComposePreviewRepresentation(
   private val dataProvider = DataProvider { dataId ->
     when  {
       COMPOSE_PREVIEW_MANAGER.`is`(dataId) -> this@ComposePreviewRepresentation
-      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> DataProvider { slowId -> getSlowData(slowId, psiFilePointer) }
+      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> DataProvider { slowId -> getSlowData(slowId) }
       CommonDataKeys.PROJECT.`is`(dataId)-> project
       else -> null
     }
@@ -1522,7 +1522,7 @@ class ComposePreviewRepresentation(
     previewElementsFlow.filter { it.isNotEmpty() }.take(1).collect()
   }
 
-  private fun getSlowData(dataId: String, psiFilePointer: SmartPsiElementPointer<PsiFile>): Any? {
+  private fun getSlowData(dataId: String): Any? {
     return when {
       // The Compose preview NlModels do not point to the actual file but to a synthetic file
       // generated for Layoutlib. This ensures we return the right file.
