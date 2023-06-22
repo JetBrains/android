@@ -86,6 +86,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -103,6 +104,7 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import java.io.File
@@ -574,13 +576,11 @@ class ComposePreviewRepresentation(
 
   override var atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get()
 
-  private val dataProvider = DataProvider {
-    when (it) {
-      COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
-      // The Compose preview NlModels do not point to the actual file but to a synthetic file
-      // generated for Layoutlib. This ensures we return the right file.
-      CommonDataKeys.VIRTUAL_FILE.name -> psiFilePointer.virtualFile
-      CommonDataKeys.PROJECT.name -> project
+  private val dataProvider = DataProvider { dataId ->
+    when  {
+      COMPOSE_PREVIEW_MANAGER.`is`(dataId) -> this@ComposePreviewRepresentation
+      PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId) -> DataProvider { slowId -> getSlowData(slowId, psiFilePointer) }
+      CommonDataKeys.PROJECT.`is`(dataId)-> project
       else -> null
     }
   }
@@ -1520,5 +1520,14 @@ class ComposePreviewRepresentation(
   @TestOnly
   suspend fun waitForAnyPreviewToBeAvailable() {
     previewElementsFlow.filter { it.isNotEmpty() }.take(1).collect()
+  }
+
+  private fun getSlowData(dataId: String, psiFilePointer: SmartPsiElementPointer<PsiFile>): Any? {
+    return when {
+      // The Compose preview NlModels do not point to the actual file but to a synthetic file
+      // generated for Layoutlib. This ensures we return the right file.
+      CommonDataKeys.VIRTUAL_FILE.`is`(dataId) -> psiFilePointer.virtualFile
+      else -> null
+    }
   }
 }
