@@ -20,18 +20,14 @@ import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.client.Interval
 import com.android.tools.idea.vitals.TEST_CONNECTION_1
 import com.android.tools.idea.vitals.TEST_ISSUE1
-import com.android.tools.idea.vitals.client.grpc.API_LEVEL
 import com.android.tools.idea.vitals.client.grpc.CRASH
-import com.android.tools.idea.vitals.client.grpc.DEVICE_BRAND
-import com.android.tools.idea.vitals.client.grpc.DEVICE_MODEL
 import com.android.tools.idea.vitals.client.grpc.DISTINCT_USERS
 import com.android.tools.idea.vitals.client.grpc.ERROR_REPORT_COUNT
-import com.android.tools.idea.vitals.client.grpc.REPORT_TYPE
-import com.android.tools.idea.vitals.client.grpc.VERSION_CODE
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClientImpl
 import com.android.tools.idea.vitals.client.grpc.VitalsGrpcConnectionRule
 import com.android.tools.idea.vitals.client.grpc.createIssueRequest
 import com.android.tools.idea.vitals.client.grpc.toProtoDateTime
+import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.TimeGranularity
 import com.google.common.truth.Truth.assertThat
 import com.google.play.developer.reporting.AggregationPeriod
@@ -105,17 +101,23 @@ class VitalsClientRequestProtoTest {
         events.filterIsInstance<QueryErrorCountMetricSetRequest>()
       assertThat(queryErrorCountMetricSetRequests).hasSize(3)
       assertQueryErrorCountMetricSetRequest(
-        queryErrorCountMetricSetRequests.first { it.dimensionsList.contains(API_LEVEL) },
+        queryErrorCountMetricSetRequests.first {
+          it.dimensionsList.contains(DimensionType.API_LEVEL.value)
+        },
         request.filters.interval,
         ERROR_REPORT_COUNT
       )
       assertQueryErrorCountMetricSetRequest(
-        queryErrorCountMetricSetRequests.first { it.dimensionsList.contains(DEVICE_MODEL) },
+        queryErrorCountMetricSetRequests.first {
+          it.dimensionsList.contains(DimensionType.DEVICE_MODEL.value)
+        },
         request.filters.interval,
         ERROR_REPORT_COUNT
       )
       assertQueryErrorCountMetricSetRequest(
-        queryErrorCountMetricSetRequests.first { it.dimensionsList.contains(VERSION_CODE) },
+        queryErrorCountMetricSetRequests.first {
+          it.dimensionsList.contains(DimensionType.VERSION_CODE.value)
+        },
         request.filters.interval,
         ERROR_REPORT_COUNT
       )
@@ -150,13 +152,13 @@ class VitalsClientRequestProtoTest {
       val queryRequests = events.filterIsInstance<QueryErrorCountMetricSetRequest>()
       assertThat(queryRequests).hasSize(2)
       assertQueryErrorCountMetricSetRequest(
-        queryRequests.first { it.dimensionsList.contains(DEVICE_MODEL) },
+        queryRequests.first { it.dimensionsList.contains(DimensionType.DEVICE_MODEL.value) },
         request.filters.interval,
         DISTINCT_USERS,
         TEST_ISSUE1.id.value
       )
       assertQueryErrorCountMetricSetRequest(
-        queryRequests.first { it.dimensionsList.contains(API_LEVEL) },
+        queryRequests.first { it.dimensionsList.contains(DimensionType.API_LEVEL.value) },
         request.filters.interval,
         DISTINCT_USERS,
         TEST_ISSUE1.id.value
@@ -180,12 +182,20 @@ class VitalsClientRequestProtoTest {
           }
           .build()
       )
-    if (request.dimensionsList.contains(API_LEVEL)) {
-      assertThat(request.dimensionsList).containsExactly(REPORT_TYPE, API_LEVEL)
-    } else if (request.dimensionsList.contains(DEVICE_MODEL)) {
-      assertThat(request.dimensionsList).containsExactly(REPORT_TYPE, DEVICE_BRAND, DEVICE_MODEL)
-    } else if (request.dimensionsList.contains(VERSION_CODE)) {
-      assertThat(request.dimensionsList).containsExactly(REPORT_TYPE, VERSION_CODE)
+    if (request.dimensionsList.contains(DimensionType.API_LEVEL.value)) {
+      assertThat(request.dimensionsList)
+        .containsExactly(DimensionType.REPORT_TYPE.value, DimensionType.API_LEVEL.value)
+    } else if (request.dimensionsList.contains(DimensionType.DEVICE_MODEL.value)) {
+      assertThat(request.dimensionsList)
+        .containsExactly(
+          DimensionType.REPORT_TYPE.value,
+          DimensionType.DEVICE_BRAND.value,
+          DimensionType.DEVICE_MODEL.value,
+          DimensionType.DEVICE_TYPE.value
+        )
+    } else if (request.dimensionsList.contains(DimensionType.VERSION_CODE.value)) {
+      assertThat(request.dimensionsList)
+        .containsExactly(DimensionType.REPORT_TYPE.value, DimensionType.VERSION_CODE.value)
     } else {
       throw AssertionError("Unexpected dimensions in: ${request.dimensionsList}")
     }

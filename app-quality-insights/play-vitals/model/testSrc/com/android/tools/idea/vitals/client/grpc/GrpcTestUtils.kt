@@ -26,14 +26,9 @@ import com.android.tools.idea.vitals.createVitalsFilters
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import java.time.Clock
 
-const val API_LEVEL = "apiLevel"
 const val ERROR_REPORT_COUNT = "errorReportCount"
 const val CRASH = "CRASH"
-const val DEVICE_BRAND = "deviceBrand"
-const val DEVICE_MODEL = "deviceModel"
 const val DISTINCT_USERS = "distinctUsers"
-const val REPORT_TYPE = "reportType"
-const val VERSION_CODE = "versionCode"
 
 fun createIssueRequest(connection: VitalsConnection = TEST_CONNECTION_1, clock: Clock) =
   AppInsightsState(

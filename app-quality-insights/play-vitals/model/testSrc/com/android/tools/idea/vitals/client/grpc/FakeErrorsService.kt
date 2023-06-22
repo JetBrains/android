@@ -18,6 +18,7 @@ package com.android.tools.idea.vitals.client.grpc
 import com.android.tools.idea.io.grpc.stub.StreamObserver
 import com.android.tools.idea.protobuf.GeneratedMessageV3
 import com.android.tools.idea.protobuf.TextFormat
+import com.android.tools.idea.vitals.datamodel.DimensionType
 import com.android.tools.idea.vitals.datamodel.VitalsConnection
 import com.google.play.developer.reporting.AggregationPeriod
 import com.google.play.developer.reporting.ErrorCountMetricSet
@@ -120,6 +121,11 @@ private val SAMPLE_DEVICE_DISTRIBUTION =
       string_value: "samsung/a32"
       value_label: "samsung a32 (Galaxy A32)"
     }
+    dimensions {
+      dimension: "deviceType"
+      string_value: "PHONE"
+      value_label: "Phone"
+    }
     metrics {
       metric: "___METRIC_TYPE___"
       decimal_value {
@@ -150,6 +156,11 @@ private val SAMPLE_DEVICE_DISTRIBUTION =
       dimension: "deviceModel"
       string_value: "samsung/greatlte"
       value_label: "samsung greatlte (Galaxy Note8)"
+    }
+    dimensions {
+      dimension: "deviceType"
+      string_value: "TABLET"
+      value_label: "Tablet"
     }
     metrics {
       metric: "___METRIC_TYPE___"
@@ -293,11 +304,11 @@ class FakeErrorsService(
   ) {
     requestChannel?.trySend(request)
     val responseText =
-      if (request.dimensionsList.contains(API_LEVEL)) {
+      if (request.dimensionsList.contains(DimensionType.API_LEVEL.value)) {
         SAMPLE_OS_LEVEL_DISTRIBUTION
-      } else if (request.dimensionsList.contains(VERSION_CODE)) {
+      } else if (request.dimensionsList.contains(DimensionType.VERSION_CODE.value)) {
         SAMPLE_VERSIONS
-      } else if (request.dimensionsList.contains(DEVICE_MODEL)) {
+      } else if (request.dimensionsList.contains(DimensionType.DEVICE_MODEL.value)) {
         SAMPLE_DEVICE_DISTRIBUTION
       } else ""
     val metricType = request.getMetrics(0)

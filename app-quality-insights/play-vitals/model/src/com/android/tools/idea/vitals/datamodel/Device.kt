@@ -16,6 +16,7 @@
 package com.android.tools.idea.vitals.datamodel
 
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.DeviceType
 import com.google.play.developer.reporting.DeviceModelSummary
 
 fun Device.Companion.fromProto(proto: DeviceModelSummary): Device {
@@ -33,6 +34,7 @@ fun Device.Companion.fromDimensions(dimensions: List<Dimension>): Device {
   var deviceModel = ""
   var displayName = ""
   var manufacturer = ""
+  var deviceType = ""
 
   dimensions.map {
     when (it.type) {
@@ -43,9 +45,17 @@ fun Device.Companion.fromDimensions(dimensions: List<Dimension>): Device {
         deviceModel = (it.value as DimensionValue.StringValue).value
         displayName = it.displayValue
       }
+      DimensionType.DEVICE_TYPE -> {
+        deviceType = it.displayValue
+      }
       else -> Unit
     }
   }
 
-  return Device(manufacturer = manufacturer, model = deviceModel, displayName = displayName)
+  return Device(
+    manufacturer = manufacturer,
+    model = deviceModel,
+    displayName = displayName,
+    deviceType = DeviceType(deviceType)
+  )
 }

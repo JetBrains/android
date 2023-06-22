@@ -103,11 +103,20 @@ data class StacktraceGroup(
   val exceptions: List<ExceptionStack> = listOf()
 )
 
+data class DeviceType(val name: String) : GroupAware<DeviceType> {
+  override fun compareTo(other: DeviceType) = name.compareTo(other.name)
+  override val groupName = name
+  companion object {
+    val UNKNOWN = DeviceType("")
+  }
+}
+
 /** Metadata about the device running an app. */
 data class Device(
   val manufacturer: String,
   val model: String,
-  val displayName: String = "$manufacturer $model"
+  val displayName: String = "$manufacturer $model",
+  val deviceType: DeviceType = DeviceType.UNKNOWN
 ) : Comparable<Device> {
   companion object {
     val ALL = Device(manufacturer = "", model = "")

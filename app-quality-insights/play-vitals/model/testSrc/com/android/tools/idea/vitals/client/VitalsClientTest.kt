@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DataPoint
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.DeviceType
 import com.android.tools.idea.insights.FAKE_50_DAYS_AGO
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FakeTimeProvider
@@ -249,8 +250,19 @@ class VitalsClientTest {
 
       assertThat(value.devices)
         .containsExactly(
-          WithCount(3, Device("samsung", "samsung/a32", "samsung a32 (Galaxy A32)")),
-          WithCount(2, Device("samsung", "samsung/greatlte", "samsung greatlte (Galaxy Note8)"))
+          WithCount(
+            3,
+            Device("samsung", "samsung/a32", "samsung a32 (Galaxy A32)", DeviceType("Phone"))
+          ),
+          WithCount(
+            2,
+            Device(
+              "samsung",
+              "samsung/greatlte",
+              "samsung greatlte (Galaxy Note8)",
+              DeviceType("Tablet")
+            )
+          )
         )
 
       assertThat(value.operatingSystems)

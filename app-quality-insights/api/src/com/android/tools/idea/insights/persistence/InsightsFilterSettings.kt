@@ -18,6 +18,7 @@ package com.android.tools.idea.insights.persistence
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.DeviceType
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Filters
 import com.android.tools.idea.insights.MultiSelection
@@ -112,9 +113,10 @@ data class ConnectionSetting(
 data class DeviceSetting(
   var manufacturer: String = "",
   var model: String = "",
-  var displayName: String = ""
+  var displayName: String = "",
+  var deviceType: String = ""
 ) {
-  fun toDevice() = Device(manufacturer, model, displayName)
+  fun toDevice() = Device(manufacturer, model, displayName, DeviceType(deviceType))
 }
 
 data class OperatingSystemSetting(var displayVersion: String = "", var displayName: String = "") {
@@ -147,7 +149,7 @@ data class VersionSetting(
 internal fun Connection.toSetting() =
   ConnectionSetting(appId, projectId, projectNumber, mobileSdkAppId)
 
-internal fun Device.toSetting() = DeviceSetting(manufacturer, model, displayName)
+internal fun Device.toSetting() = DeviceSetting(manufacturer, model, displayName, deviceType.name)
 
 internal fun OperatingSystemInfo.toSetting() = OperatingSystemSetting(displayVersion, displayName)
 
