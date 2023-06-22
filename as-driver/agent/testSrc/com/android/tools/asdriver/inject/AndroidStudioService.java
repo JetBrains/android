@@ -420,20 +420,13 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
                                 Document document,
                                 Collection<HighlightInfo> highlightInfoList) {
     for (HighlightInfo info : highlightInfoList) {
-      String severityName = info.getSeverity().getName();
-      ASDriver.AnalysisResult.HighlightSeverity highlightSeverity;
-      try {
-        highlightSeverity = ASDriver.AnalysisResult.HighlightSeverity.valueOf(severityName);
-      }
-      catch (IllegalArgumentException e) {
-        System.err.printf("Unrecognized HighlightSeverity: %s%n", severityName);
-        // This is intentionally thrown so that the proto can be updated if HighlightSeverity
-        // ever changes.
-        throw e;
-      }
+      ASDriver.AnalysisResult.HighlightSeverity severity = ASDriver.AnalysisResult.HighlightSeverity.newBuilder()
+        .setName(info.getSeverity().getName())
+        .setValue(info.getSeverity().myVal)
+        .build();
 
       ASDriver.AnalysisResult.Builder resultBuilder = ASDriver.AnalysisResult.newBuilder()
-        .setSeverity(highlightSeverity)
+        .setSeverity(severity)
         .setText(info.getText())
         .setLineNumber(document.getLineNumber(info.getStartOffset()));
 

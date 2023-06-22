@@ -189,16 +189,10 @@ message AnalyzeFileResponse {
 }
 
 message AnalysisResult {
-  // See com.intellij.lang.annotation.HighlightSeverity for a
-  // description of all of these.
-  enum HighlightSeverity {
-    INFORMATION = 0;
-    TEXT_ATTRIBUTES = 1;
-    GENERIC_SERVER_ERROR_OR_WARNING = 2;
-    INFO = 3;
-    WEAK_WARNING = 4;
-    WARNING = 5;
-    ERROR = 6;
+  // Serialized version of com.intellij.lang.annotation.HighlightSeverity.
+  message HighlightSeverity {
+    string name = 1;
+    int32 value = 2;
   }
 
   HighlightSeverity severity = 1;
