@@ -16,19 +16,35 @@
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
 import com.android.tools.adtui.actions.createTestActionEvent
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.layoutinspector.MODERN_DEVICE
+import com.android.tools.idea.layoutinspector.createProcess
+import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
+import com.android.tools.idea.layoutinspector.properties.PropertiesProvider
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import java.nio.file.Path
 import org.junit.Rule
 import org.junit.Test
 
 class ToggleDeepInspectActionTest {
   @get:Rule val projectRule = ProjectRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun testActionClick() {
     var isSelected = false
     val toggleDeepInspectAction =
-      ToggleDeepInspectAction({ isSelected }, { isSelected = !isSelected })
+      ToggleDeepInspectAction({ isSelected }, { isSelected = !isSelected }, { DisconnectedClient })
 
     toggleDeepInspectAction.actionPerformed(createTestActionEvent(toggleDeepInspectAction))
     assertThat(isSelected).isTrue()
@@ -39,7 +55,7 @@ class ToggleDeepInspectActionTest {
 
   @Test
   fun testTitleAndDescription() {
-    val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, {})
+    val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, {}, { DisconnectedClient })
 
     val event = createTestActionEvent(toggleDeepInspectAction)
     toggleDeepInspectAction.update(event)
@@ -47,4 +63,58 @@ class ToggleDeepInspectActionTest {
     assertThat(event.presentation.description)
       .isEqualTo("Select a component in the device to view inspection information.")
   }
+
+  @Test
+  fun testDeepInspectActionIsDisabledWhenClientIsNotConnected() {
+    val inspectorClient =
+      FakeInspectorClient(
+        projectRule.project,
+        MODERN_DEVICE.createProcess(),
+        disposableRule.disposable
+      )
+    val toggleDeepInspectAction = ToggleDeepInspectAction({ false }, {}, { inspectorClient })
+
+    val event = createTestActionEvent(toggleDeepInspectAction)
+    toggleDeepInspectAction.update(event)
+
+    assertThat(event.presentation.isEnabled).isFalse()
+
+    inspectorClient.state = InspectorClient.State.CONNECTED
+    toggleDeepInspectAction.update(event)
+
+    assertThat(event.presentation.isEnabled).isTrue()
+  }
+}
+
+private open class FakeInspectorClient(
+  project: Project,
+  process: ProcessDescriptor,
+  parentDisposable: Disposable
+) :
+  AbstractInspectorClient(
+    DynamicLayoutInspectorAttachToProcess.ClientType.APP_INSPECTION_CLIENT,
+    project,
+    NotificationModel(project),
+    process,
+    isInstantlyAutoConnected = true,
+    DisconnectedClient.stats,
+    AndroidCoroutineScope(parentDisposable),
+    parentDisposable
+  ) {
+  override suspend fun startFetching() = throw NotImplementedError()
+  override suspend fun stopFetching() = throw NotImplementedError()
+  override fun refresh() = throw NotImplementedError()
+  override fun saveSnapshot(path: Path) = throw NotImplementedError()
+
+  override suspend fun doConnect() {}
+  override suspend fun doDisconnect() {}
+
+  override val capabilities
+    get() = throw NotImplementedError()
+  override val treeLoader: TreeLoader
+    get() = throw NotImplementedError()
+  override val isCapturing: Boolean
+    get() = false
+  override val provider: PropertiesProvider
+    get() = throw NotImplementedError()
 }

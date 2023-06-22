@@ -330,7 +330,8 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
         val toggleDeepInspectAction =
           ToggleDeepInspectAction(
             { layoutInspectorRenderer.interceptClicks },
-            { layoutInspectorRenderer.interceptClicks = it }
+            { layoutInspectorRenderer.interceptClicks = it },
+            { layoutInspector.currentClient }
           )
 
         val processPicker =

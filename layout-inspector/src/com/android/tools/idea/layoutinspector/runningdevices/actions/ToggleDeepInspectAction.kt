@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.runningdevices.actions
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
@@ -24,7 +25,8 @@ import icons.StudioIcons
 /** Action used to toggle Deep Inspect on and off. */
 class ToggleDeepInspectAction(
   private val isSelected: () -> Boolean,
-  private val setSelected: (Boolean) -> Unit
+  private val setSelected: (Boolean) -> Unit,
+  private val connectedClientProvider: () -> InspectorClient
 ) : ToggleAction({ "" }, StudioIcons.Compose.Toolbar.INSPECT_PREVIEW), TooltipDescriptionProvider {
   override fun isSelected(e: AnActionEvent) = isSelected()
   override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected(state)
@@ -32,5 +34,8 @@ class ToggleDeepInspectAction(
   override fun update(event: AnActionEvent) {
     super.update(event)
     event.presentation.description = LayoutInspectorBundle.message("deep.inspect.description")
+
+    val currentClient = connectedClientProvider()
+    event.presentation.isEnabled = currentClient.isConnected
   }
 }
