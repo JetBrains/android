@@ -62,6 +62,8 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   @GuardedBy("getLock()")
   private final Map<String, FontDirectoryDownloader> myDownloadServiceMap;
 
+  private final FontDownloader myFontDownloader;
+
   @NotNull
   static DownloadableFontCacheServiceImpl getInstance() {
     return (DownloadableFontCacheServiceImpl)DownloadableFontCacheService.getInstance();
@@ -167,7 +169,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   @Override
   public CompletableFuture<Boolean> download(@NotNull FontFamily family) {
     CompletableFuture<Boolean> success = new CompletableFuture<>();
-    FontDownloadService.download(Collections.singletonList(family), false, () -> success.complete(true), () -> success.complete(false));
+    myFontDownloader.download(Collections.singletonList(family), false, () -> success.complete(true), () -> success.complete(false));
     return success;
   }
 
@@ -216,9 +218,9 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
     }
   }
 
-  @VisibleForTesting
-  public DownloadableFontCacheServiceImpl() {
+  protected DownloadableFontCacheServiceImpl(@NotNull FontDownloader fontDownloader) {
     myDownloadServiceMap = new HashMap<>();
+    myFontDownloader = fontDownloader;
     init();
     mySystemFonts = new SystemFonts(this);
 
@@ -348,7 +350,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
       File fontPath = getFontPath();
       if (fontPath != null) {
         for (FontProvider provider : getProviders().values()) {
-          myDownloadServiceMap.put(provider.getAuthority(), new FontDirectoryDownloadService(this, provider, fontPath));
+          myDownloadServiceMap.put(provider.getAuthority(), myFontDownloader.createFontDirectoryDownloader(this, provider, fontPath));
         }
       }
     }

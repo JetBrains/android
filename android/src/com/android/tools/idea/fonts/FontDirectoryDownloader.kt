@@ -19,4 +19,11 @@ package com.android.tools.idea.fonts
 interface FontDirectoryDownloader {
   /** Downloads the fonts in the font directory if needed, executing [success] on success and [failure] otherwise. */
   fun refreshFonts(success: Runnable?, failure: Runnable?)
+
+  companion object {
+    @JvmField
+    val NOOP_FONT_DIRECTORY_DOWNLOADER = object : FontDirectoryDownloader {
+      override fun refreshFonts(success: Runnable?, failure: Runnable?) {}
+    }
+  }
 }

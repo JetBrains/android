@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontLoader;
+import com.android.ide.common.fonts.FontProvider;
 import com.android.tools.fonts.DownloadableFontCacheService;
 import com.intellij.openapi.util.io.FileUtil;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class FontTestCase extends AndroidTestCase {
   protected File myFontPath;
@@ -45,6 +50,10 @@ public abstract class FontTestCase extends AndroidTestCase {
 
   private static class FontCache extends DownloadableFontCacheServiceImpl {
     private File mySdkFontPath;
+
+    public FontCache() {
+      super(FontDownloader.NOOP_FONT_DOWNLOADER);
+    }
 
     @NotNull
     @Override
