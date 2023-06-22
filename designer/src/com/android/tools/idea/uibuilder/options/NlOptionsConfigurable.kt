@@ -148,6 +148,15 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
       group("Compose Preview") {
         if (StudioFlags.COMPOSE_PREVIEW_LITE_MODE.get()) {
           buttonsGroup("Resource Usage:") {
+            if (EssentialsMode.isEnabled()) {
+              row {
+                comment(
+                  "Note: Resource usage cannot be changed when Android Studio Essentials Mode is enabled. In this case, Compose Preview " +
+                  "resource usage will be overridden to Essentials."
+                )
+              }
+            }
+
             lateinit var defaultModeRadioButton: Cell<JBRadioButton>
             row {
               defaultModeRadioButton =
@@ -155,7 +164,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                   .bindSelected({ !state.isComposePreviewLiteModeEnabled }) {
                     state.isComposePreviewLiteModeEnabled = !it
                   }
-            }
+            }.enabled(!EssentialsMode.isEnabled())
             indent {
               row {
                 checkBox("Enable live updates")
@@ -164,7 +173,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                   }
                   .enabledIf(defaultModeRadioButton.selected)
               }
-            }
+            }.enabled(!EssentialsMode.isEnabled())
             row {
               val liteModeHint = "Preview will preserve resources by inflating previews on demand, and disabling live updates and " +
                                  "preview modes. <a href=\"https://developer.android.com/jetpack/compose/tooling/previews\">Learn more</a>"
@@ -174,17 +183,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                 .bindSelected(state::isComposePreviewLiteModeEnabled) {
                   state.isComposePreviewLiteModeEnabled = it
                 }
-            }
-          }.enabled(!EssentialsMode.isEnabled())
-          if (EssentialsMode.isEnabled()) {
-            row {
-              label(
-                "Note: Resource usage cannot be changed when Android Studio Essentials Mode is enabled. In this case, Compose Preview " +
-                "resource usage will be overridden to Essentials."
-
-              )
-                .component.isEnabled = false
-            }
+            }.enabled(!EssentialsMode.isEnabled())
           }
         }
         else {
