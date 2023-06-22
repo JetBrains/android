@@ -28,9 +28,11 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.util.preferredWidth
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.SortOrder
+import javax.swing.SwingUtilities.convertPoint
 import org.junit.Rule
 import org.junit.Test
 
@@ -254,6 +256,54 @@ class CategoryTableTest {
     assertThat(table.header.tableColumns.map { it.width })
       .containsExactly(200, 20, 20, 20, 150)
       .inOrder()
+  }
+
+  @Test
+  fun hover() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    val scrollPane = createScrollPane(table)
+    scrollPane.setBounds(0, 0, 400, 400)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+
+    table.addOrUpdateRow(
+      CategoryTableDemo.Device(
+        "Copy 3 of Google Pixel 7 Pro API 34 arm64 Google Play",
+        "34",
+        "Phone",
+        "Offline"
+      ),
+    )
+    fakeUi.layout()
+
+    // Hover over the first component.
+    val firstRowCells =
+      (table.rowComponents[0] as ValueRowComponent<*>).componentList.map { it.component }
+    fakeUi.mouse.moveTo(convertPoint(firstRowCells[0], 5, 5, scrollPane))
+    fakeUi.layout()
+
+    // It should expand to its preferred width.  Other components retain their normal width.
+    assertThat(firstRowCells[0].preferredWidth).isGreaterThan(200)
+    assertThat(firstRowCells.map { it.width })
+      .containsExactly(firstRowCells[0].preferredWidth, 20, 20, 20, 150)
+      .inOrder()
+
+    // Move the mouse to the next cell.
+    fakeUi.mouse.moveTo(convertPoint(firstRowCells[1], 5, 5, scrollPane))
+    fakeUi.layout()
+
+    // Its contents fit, so its width shouldn't be affected. The first cell should return to its
+    // original size (even though we are still within its expanded-width bounds).
+    assertThat(firstRowCells[1].preferredWidth).isLessThan(20)
+    assertThat(firstRowCells.map { it.width }).containsExactly(200, 20, 20, 20, 150).inOrder()
+
+    // Move the mouse back to the first cell to expand it, then move it mouse out of the table,
+    // causing a MOUSE_EXITED event. It should return to original size.
+    fakeUi.mouse.moveTo(convertPoint(firstRowCells[0], 5, 5, scrollPane))
+    fakeUi.layout()
+    fakeUi.mouse.moveTo(0, 0)
+    fakeUi.layout()
+
+    assertThat(firstRowCells.map { it.width }).containsExactly(200, 20, 20, 20, 150).inOrder()
   }
 
   @Test

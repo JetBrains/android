@@ -16,6 +16,7 @@
 package com.android.tools.adtui.categorytable
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.adtui.event.DelegateMouseEventHandler
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -327,6 +328,8 @@ class CategoryTable<T : Any>(
 
   private fun addRowComponent(rowComponent: RowComponent<T>) {
     add(rowComponent)
+    // We need to receive mouse events on children to handle row selection.
+    DelegateMouseEventHandler.delegateTo(this).installListenerOn(rowComponent)
     tablePresentationManager.applyPresentation(rowComponent, unselectedPresentation)
   }
 
@@ -421,9 +424,6 @@ class CategoryTable<T : Any>(
         object : MouseAdapter() {
           override fun mouseClicked(e: MouseEvent) {
             categoryRowMouseClickListener.categoryRowClicked(e, this@CategoryTable, categoryList)
-
-            // Forward the event to the Table, whose mouse handler will select the row clicked.
-            e.forward(from = it, to = this@CategoryTable)
           }
         }
       )

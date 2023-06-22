@@ -19,11 +19,14 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
+import com.intellij.ui.util.preferredWidth
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.LayoutManager
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
@@ -33,6 +36,7 @@ import javax.swing.SizeRequirements
 import javax.swing.SwingConstants
 import javax.swing.UIManager
 import javax.swing.table.JTableHeader
+import kotlin.math.max
 
 /** An identifier for a table row, either a value row or a category row. */
 sealed interface RowKey<T> {
@@ -61,7 +65,6 @@ internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>(), TableCompone
     rowSelected = presentation.rowSelected
     manager.defaultApplyPresentation(this, presentation)
   }
-
 
   abstract var indent: Int
 
@@ -132,6 +135,28 @@ internal class ValueRowComponent<T>(
   init {
     layout = ValueRowLayout(header)
     componentList.forEach { add(it.component) }
+
+    addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseExited(e: MouseEvent) {
+          hoveredComponent = null
+        }
+      }
+    )
+    addMouseMotionListener(
+      object : MouseAdapter() {
+        override fun mouseMoved(e: MouseEvent) {
+          for (i in 0 until componentList.size - 1) {
+            // We need to use the next component's x coordinate
+            if (componentList[i].component.isVisible && e.x < componentList[i + 1].component.x) {
+              hoveredComponent = componentList[i].component
+              return
+            }
+          }
+          hoveredComponent = componentList.lastOrNull()?.component
+        }
+      }
+    )
   }
 
   private val valueRowLayout: ValueRowLayout
@@ -143,6 +168,20 @@ internal class ValueRowComponent<T>(
     set(value) {
       field = value
       componentList.forEach { it.updateValue(value) }
+    }
+
+  internal var hoveredComponent: JComponent? = null
+    set(value) {
+      if (field != value) {
+        field?.isOpaque = false
+        field = value
+        field?.isOpaque = true
+        if (value != null) {
+          // Paint this component after all others.
+          setComponentZOrder(value, 0)
+        }
+        revalidate()
+      }
     }
 
   override val rowKey = RowKey.ValueRowKey<T>(primaryKey)
@@ -232,7 +271,15 @@ private class ValueRowLayout(val header: JTableHeader) : LayoutManager {
     xpos.forEachIndexed { i, x ->
       val component = row.componentList[i].component
       if (x >= 0) {
-        component.setBounds(xpos[i], 0, width[i], parent.height)
+        component.setBounds(
+          xpos[i],
+          0,
+          when {
+            component == row.hoveredComponent -> max(width[i], component.preferredWidth)
+            else -> width[i]
+          },
+          parent.height
+        )
         component.isVisible = true
       } else {
         component.isVisible = false
