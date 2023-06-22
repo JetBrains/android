@@ -139,7 +139,7 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:androidx.appcompat.appcompat_1.3.0",
-        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.0-alpha15",
+        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.0-alpha16",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.1",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",  # TODO(b/273872043) Remove once tests pass without 2.1.3

@@ -37,7 +37,7 @@ import java.io.File
 
 private const val EXAMPLE_BENCHMARK_NAME = "ExampleStartupBenchmark"
 private const val BENCHMARK_BUILD_TYPE_NAME = "benchmark"
-private const val MACROBENCHMARK_MIN_REV = "1.2.0-alpha15"
+private const val MACROBENCHMARK_MIN_REV = "1.2.0-alpha16"
 
 fun RecipeExecutor.generateMacrobenchmarkModule(
   newModule: ModuleTemplateData,

@@ -61,7 +61,7 @@ public class $className {
 
     @Test
     public void generate() {
-        baselineProfileRule.collectBaselineProfile("$targetPackageName", scope -> {
+        baselineProfileRule.collect("$targetPackageName", scope -> {
             // This block defines the app's critical user journey. Here we are interested in
             // optimizing for app startup. But you can also navigate and scroll
             // through your most important UI.
