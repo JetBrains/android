@@ -91,7 +91,7 @@ object InspectorPainter {
 
   /** Thumb displayed in animation timeline. */
   object Thumb {
-    private val THUMB_COLOR = JBColor(0x4A81FF, 0xB4D7FF)
+    private val THUMB_COLOR = JBUI.CurrentTheme.EditorTabs.underlineColor()
 
     /** Half width of the shape used as the handle of the timeline scrubber. */
     private const val HANDLE_HALF_WIDTH = 5

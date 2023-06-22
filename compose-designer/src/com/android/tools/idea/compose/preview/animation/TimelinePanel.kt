@@ -161,6 +161,8 @@ open class TimelinePanel(
  */
 open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timeline) {
 
+  private data class VerticalTick(val x: Int, val y1: Int, val y2: Int)
+
   val positionProxy =
     object : PositionProxy {
       override fun valueForXPosition(value: Int): Int =
@@ -229,9 +231,11 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
   final override fun paintTrack(g: Graphics) {
     g as Graphics2D
+    val frozenLines = getFrozenLines()
     paintMajorTicks(g)
+    paintVerticalFrozenTicks(g, frozenLines)
     paintElements(g)
-    paintFreezeLines(g)
+    paintFreezeLines(g, frozenLines)
   }
 
   final override fun paintFocus(g: Graphics?) {
@@ -281,8 +285,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       }
     // Add vertical ticks.
     g.color = InspectorColors.TIMELINE_TICK_COLOR
-    val tickIncrement = max(1, slider.majorTickSpacing / InspectorLayout.TIMELINE_TICKS_PER_LABEL)
-    for (tick in 0..slider.maximum step tickIncrement) {
+    getMajorTicksSpacing().forEach { tick ->
       val xPos = xPositionForValue(tick)
       g.drawLine(xPos, InspectorLayout.timelineHeaderHeightScaled(), xPos, tickRect.height)
     }
@@ -295,24 +298,26 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       }
   }
 
+  private fun getMajorTicksSpacing(): List<Int> {
+    val tickIncrement = max(1, slider.majorTickSpacing / InspectorLayout.TIMELINE_TICKS_PER_LABEL)
+    return (0..slider.maximum step tickIncrement).toList()
+  }
+
   /**
-   * Paint vertical freeze lines for all frozen elements. If [separateElements] is not true, the
-   * line will have the height of the panel.
+   * Get vertical freeze lines for all frozen elements. If [separateElements] is not true, the line
+   * will have the height of the panel.
    */
-  private fun paintFreezeLines(g: Graphics2D) {
-    g.color = InspectorColors.FREEZE_LINE_COLOR
-    g.stroke = InspectorLayout.freezeLineStroke
+  private fun getFrozenLines(): List<VerticalTick> {
+    val frozenTicks = mutableListOf<VerticalTick>()
     var totalHeight = InspectorLayout.timelineHeaderHeightScaled()
     if (separateElements())
       elements.forEach { element ->
         if (element.frozen) {
           val frozenValue = element.state.frozenValue
-          g.drawLine(
-            xPositionForValue(frozenValue),
-            totalHeight + 2,
-            xPositionForValue(frozenValue),
-            totalHeight + element.heightScaled() - 2
-          )
+          val x = xPositionForValue(frozenValue)
+          val y1 = totalHeight + 2
+          val y2 = totalHeight + element.heightScaled() - 2
+          frozenTicks.add(VerticalTick(x, y1, y2))
         }
         totalHeight += element.heightScaled()
       }
@@ -320,14 +325,33 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       elements.firstOrNull()?.also {
         if (it.frozen) {
           val frozenValue = it.state.frozenValue
-          g.drawLine(
-            xPositionForValue(frozenValue),
-            InspectorLayout.timelineHeaderHeightScaled() + 2,
-            xPositionForValue(frozenValue),
-            slider.height - 2
-          )
+          val x = xPositionForValue(frozenValue)
+          val y1 = InspectorLayout.timelineHeaderHeightScaled() + 2
+          val y2 = slider.height - 2
+          frozenTicks.add(VerticalTick(x, y1, y2))
         }
       }
+
+    return frozenTicks
+  }
+
+  /**
+   * Paint vertical freeze lines for all frozen elements. If [separateElements] is not true, the
+   * line will have the height of the panel.
+   */
+  private fun paintFreezeLines(g: Graphics2D, lines: List<VerticalTick>) {
+    g.color = InspectorColors.FREEZE_LINE_COLOR
+    g.stroke = InspectorLayout.freezeLineStroke
+    lines.forEach { g.drawLine(it.x, it.y1, it.x, it.y2) }
+  }
+
+  private fun paintVerticalFrozenTicks(g: Graphics2D, ticks: List<VerticalTick>) {
+    g.color = InspectorColors.TIMELINE_FROZEN_TICK_COLOR
+    g.stroke = InspectorLayout.simpleStroke
+    getMajorTicksSpacing().forEach { tick ->
+      val xPos = xPositionForValue(tick)
+      ticks.forEach { g.drawLine(xPos, it.y1, xPos, it.y2) }
+    }
   }
 
   /** [TrackListener] to allow setting [slider] value when clicking and scrubbing the timeline. */
