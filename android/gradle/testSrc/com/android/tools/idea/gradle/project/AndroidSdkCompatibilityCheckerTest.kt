@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.buildAndroidProjectStub
 import com.android.tools.idea.testing.onEdt
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -130,6 +131,81 @@ class AndroidSdkCompatibilityCheckerTest {
     assertThat(dialogMessages[0]).contains("(and 1 more)")
   }
 
+  @Test
+  fun `test ide and project level properties are set when do not show again action is run`() {
+    var ideLevel = PropertiesComponent.getInstance().getBoolean("studio.upgrade.do.not.show.again")
+    var projectLevel = PropertiesComponent.getInstance(projectRule.project).getBoolean("studio.upgrade.do.not.show.again")
+    assertThat(ideLevel).isFalse()
+    assertThat(projectLevel).isFalse()
+
+    projectRule.setupProjectFrom(
+      JavaModuleModelBuilder.rootModuleBuilder,
+      appModuleBuilder(compileSdk = "android-35"),
+      appModuleBuilder(compileSdk = "android-35"),
+      appModuleBuilder(compileSdk = "android-35"),
+      libModuleBuilder(compileSdk = "android-35"),
+      libModuleBuilder(compileSdk = "android-35"),
+      libModuleBuilder(compileSdk = "android-35"),
+    )
+    val androidModels = getGradleAndroidModels(projectRule.project)
+    responseToDialog(true, replyWith = 1) {
+      checker.checkAndroidSdkVersion(androidModels, projectRule.project)
+    }
+
+    ideLevel = PropertiesComponent.getInstance().getBoolean("studio.upgrade.do.not.show.again")
+    projectLevel = PropertiesComponent.getInstance(projectRule.project).getBoolean("studio.upgrade.do.not.show.again")
+    assertThat(ideLevel).isTrue()
+    assertThat(projectLevel).isTrue()
+  }
+
+  @Test
+  fun `test dialog shown when only doNotAskAgainIdeLevel is set`() {
+    projectRule.setupProjectFrom(
+      JavaModuleModelBuilder.rootModuleBuilder,
+      appModuleBuilder(compileSdk = "android-35"),
+    )
+    AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainIdeLevel = true
+    AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = false
+
+    val androidModels = getGradleAndroidModels(projectRule.project)
+    responseToDialog(true) {
+      checker.checkAndroidSdkVersion(androidModels, projectRule.project)
+    }
+    assertThat(dialogMessages).hasSize(1)
+  }
+
+  @Test
+  fun `test dialog shown when only doNotAskAgainProjectLevel is set`() {
+    projectRule.setupProjectFrom(
+      JavaModuleModelBuilder.rootModuleBuilder,
+      appModuleBuilder(compileSdk = "android-35"),
+    )
+    AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainIdeLevel = false
+    AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = true
+
+    val androidModels = getGradleAndroidModels(projectRule.project)
+    responseToDialog(true) {
+      checker.checkAndroidSdkVersion(androidModels, projectRule.project)
+    }
+    assertThat(dialogMessages).hasSize(1)
+  }
+
+  @Test
+  fun `test dialog not shown when both properties are set`() {
+    projectRule.setupProjectFrom(
+      JavaModuleModelBuilder.rootModuleBuilder,
+      appModuleBuilder(compileSdk = "android-35"),
+    )
+    AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainIdeLevel = true
+    AndroidSdkCompatibilityChecker.StudioUpgradeReminder(projectRule.project).doNotAskAgainProjectLevel = true
+
+    val androidModels = getGradleAndroidModels(projectRule.project)
+    responseToDialog(false) {
+      checker.checkAndroidSdkVersion(androidModels, projectRule.project)
+    }
+    assertThat(dialogMessages).hasSize(0)
+  }
+
   private fun getGradleAndroidModels(project: Project): List<DataNode<GradleAndroidModelData>> {
     val externalInfo = ProjectDataManager.getInstance().getExternalProjectData(
       project, GradleConstants.SYSTEM_ID, project.basePath!!
@@ -180,11 +256,11 @@ class AndroidSdkCompatibilityCheckerTest {
       ).androidProject
   }
 
-  private fun responseToDialog(expectedToBeShown: Boolean, action: () -> Unit) {
+  private fun responseToDialog(expectedToBeShown: Boolean, replyWith: Int = 0, action: () -> Unit) {
     val myTestDialog = TestDialog {message ->
       if (!expectedToBeShown) throw AssertionError("This should not be invoked")
       dialogMessages.add(message.trim())
-      0
+      replyWith
     }
     val oldDialog = TestDialogManager.setTestDialog(myTestDialog)
     try {

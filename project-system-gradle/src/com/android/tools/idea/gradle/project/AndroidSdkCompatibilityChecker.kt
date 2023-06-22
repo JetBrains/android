@@ -91,7 +91,8 @@ class AndroidSdkCompatibilityChecker {
         }
         DO_NOT_ASK_FOR_PROJECT_BUTTON.first -> {
           logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.DO_NOT_ASK_AGAIN)
-          StudioUpgradeReminder(project).doNotAskForProject = true
+          StudioUpgradeReminder(project).doNotAskAgainProjectLevel = true
+          StudioUpgradeReminder(project).doNotAskAgainIdeLevel = true
         }
         CANCEL_BUTTON -> logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.CANCEL)
         else -> logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.UNKNOWN_USER_ACTION)
@@ -140,15 +141,19 @@ class AndroidSdkCompatibilityChecker {
       return ApplicationManager.getApplication().getService(AndroidSdkCompatibilityChecker::class.java)
     }
   }
-}
 
-private class StudioUpgradeReminder(val project: Project) {
-  private val doNotAskForProjectPropertyString = "studio.upgrade.do.not.ask.for.project"
-  var doNotAskForProject: Boolean
-    get() =  PropertiesComponent.getInstance(project).getBoolean(doNotAskForProjectPropertyString, false)
-    set(value) = PropertiesComponent.getInstance(project).setValue(doNotAskForProjectPropertyString, value)
+  class StudioUpgradeReminder(val project: Project) {
+    private val doNotShowAgainPropertyString = "studio.upgrade.do.not.show.again"
 
-  fun shouldAsk(): Boolean {
-    return doNotAskForProject.not()
+    var doNotAskAgainIdeLevel: Boolean
+      get() = PropertiesComponent.getInstance().getBoolean(doNotShowAgainPropertyString, false)
+      set(value) = PropertiesComponent.getInstance().setValue(doNotShowAgainPropertyString, value)
+    var doNotAskAgainProjectLevel: Boolean
+      get() = PropertiesComponent.getInstance(project).getBoolean(doNotShowAgainPropertyString, false)
+      set(value) = PropertiesComponent.getInstance(project).setValue(doNotShowAgainPropertyString, value)
+
+    fun shouldAsk(): Boolean {
+      return doNotAskAgainProjectLevel.not() || doNotAskAgainIdeLevel.not()
+    }
   }
 }
