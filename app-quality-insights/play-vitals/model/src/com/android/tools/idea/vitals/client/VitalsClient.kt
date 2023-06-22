@@ -54,16 +54,20 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 private val LOG = Logger.getInstance(VitalsClient::class.java)
 private const val NOT_SUPPORTED_ERROR_MSG = "Vitals doesn't support this."
+private const val MAX_CONCURRENT_CALLS = 10
 
-// TODO(b/265153845): implement vitals client.
 class VitalsClient(
   parentDisposable: Disposable,
   private val cache: AppInsightsCache,
   private val grpcClient: VitalsGrpcClient = VitalsGrpcClientImpl.create(parentDisposable)
 ) : AppInsightsClient {
+  private val concurrentCallLimit = Semaphore(MAX_CONCURRENT_CALLS)
+
   override suspend fun listConnections(): LoadingState.Done<List<AppConnection>> = supervisorScope {
     runGrpcCatching(notFoundFallbackValue = LoadingState.Ready(emptyList())) {
       LoadingState.Ready(grpcClient.listAccessibleApps())
@@ -223,12 +227,17 @@ class VitalsClient(
       requestIssues
         .map { issueDetails ->
           async {
-            grpcClient
-              .searchErrorReports(request.connection, request.filters, issueDetails.id, 1)
-              .firstOrNull()
-              ?: throw IllegalStateException(
-                "No sample report got for $issueDetails by request: $request."
-              )
+            // Here we restrict number of concurrent calls as a short-term fix while waiting for
+            // b/287461357 being resolved. Limiting calls are to address high chances of
+            // 'UNAVAILABLE' errors to some extent.
+            concurrentCallLimit.withPermit {
+              grpcClient
+                .searchErrorReports(request.connection, request.filters, issueDetails.id, 1)
+                .firstOrNull()
+                ?: throw IllegalStateException(
+                  "No sample report got for $issueDetails by request: $request."
+                )
+            }
           }
         }
         .awaitAll()
