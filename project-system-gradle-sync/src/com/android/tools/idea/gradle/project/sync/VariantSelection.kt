@@ -87,7 +87,7 @@ internal fun SyncVariantResultCoreSuccess.getModuleDependencyConfigurations(
     // Make sure the variant name we guessed in fact exists.
     if (dependencyModule.allVariantNames?.contains(newSelectedVariantDetails.name) != true) return null
 
-    return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToPropagate)
+    return ModuleConfiguration(dependencyModuleId, newSelectedVariantDetails.name, abiToPropagate, isRoot = false)
   }
 
   fun generateDirectModuleDependencies(libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary): List<ModuleConfiguration> {
@@ -103,7 +103,7 @@ internal fun SyncVariantResultCoreSuccess.getModuleDependencyConfigurations(
         val dependencyModuleId = Modules.createUniqueModuleId(moduleDependency.buildId, dependencyProject)
         val dependencyVariant = moduleDependency.variant
         if (dependencyVariant != null) {
-          ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToPropagate)
+          ModuleConfiguration(dependencyModuleId, dependencyVariant, abiToPropagate, isRoot = false)
         }
         else {
           propagateVariantSelectionChangeFallback(dependencyModuleId)

@@ -86,15 +86,25 @@ internal fun BuildController.findVariantModel(
   }
 }
 
+internal fun getClasspathConfigForProject(
+  skipRuntimeClasspathForLibrariesFlag: Boolean,
+  projectType: IdeAndroidProjectType,
+  hasNoInboundDependencies: Boolean
+): ClasspathParameterConfig = when {
+  hasNoInboundDependencies -> ClasspathParameterConfig.ALL
+  skipRuntimeClasspathForLibrariesFlag && projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY ->
+    ClasspathParameterConfig.ANDROID_TEST_ONLY
+  else -> ClasspathParameterConfig.ALL
+}
+
 /**
  * Valid only for [VariantDependencies] using model parameter for the given [BasicGradleProject] using .
  */
 internal fun BuildController.findVariantDependenciesV2Model(
   project: BasicGradleProject,
   variantName: String,
-  projectType: IdeAndroidProjectType,
-  skipRuntimeClasspathForLibraries: Boolean,
-  useNewDependencyGraphModel: Boolean
+  useNewDependencyGraphModel: Boolean,
+  classpathConfig: ClasspathParameterConfig
 ): VariantDependenciesCompat? {
   fun <T> findModel(clazz: Class<T>, classpathConfig: ClasspathParameterConfig) = findModel(
     project,
@@ -105,11 +115,6 @@ internal fun BuildController.findVariantDependenciesV2Model(
     classpathConfig.applyTo(it)
   }
 
-  val classpathConfig = if (skipRuntimeClasspathForLibraries && projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY) {
-    ClasspathParameterConfig.ANDROID_TEST_ONLY
-  } else {
-    ClasspathParameterConfig.ALL
-  }
   return if (useNewDependencyGraphModel) {
     findModel(VariantDependenciesAdjacencyList::class.java, classpathConfig)?.let {
       VariantDependenciesCompat.AdjacencyList(it)

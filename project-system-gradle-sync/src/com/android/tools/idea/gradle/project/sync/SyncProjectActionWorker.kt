@@ -135,7 +135,7 @@ internal class SyncProjectActionWorker(
       actionRunner
         .runActions(inputModules.flatMap { module ->
           module.allVariantNames.orEmpty().map { variant ->
-            getVariantAction(ModuleConfiguration(module.id, variant, abi = null), androidProjectPathResolver)
+            getVariantAction(ModuleConfiguration(module.id, variant, abi = null, isRoot = true), androidProjectPathResolver)
           }
         })
         .mapNotNull { it.ignoreExceptionsAndGet()?.let { result -> result.module to it } }
@@ -464,10 +464,10 @@ internal class SyncProjectActionWorker(
             }
         } ?: selectedVariantName
         val selectedAbi = requestedAbi.takeIf { module.getVariantAbiNames(selectedVariantName)?.contains(it) == true } ?: selectedAbi
-        ModuleConfiguration(module.id, selectedVariantName, selectedAbi)
+        ModuleConfiguration(module.id, selectedVariantName, selectedAbi, isRoot = true)
       }
       else -> {
-        ModuleConfiguration(module.id, selectedVariantName, selectedAbi)
+        ModuleConfiguration(module.id, selectedVariantName, selectedAbi, isRoot = true)
       }
     }
   }

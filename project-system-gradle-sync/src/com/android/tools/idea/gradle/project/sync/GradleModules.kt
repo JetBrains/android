@@ -312,7 +312,15 @@ private fun List<IdeVariantCoreImpl>.patchForKapt(kaptModel: KaptGradleModel?): 
   }
 }
 
-data class ModuleConfiguration(val id: String, val variant: String, val abi: String?)
+data class ModuleConfiguration(
+  val id: String,
+  val variant: String,
+  val abi: String?,
+  // Whether this configuration was requested as the root of a request.
+  // Here root means that this Gradle project is not depended upon by any other Gradle projects.
+  // This is used to determine whether to fetch the runtime classpath for libraries.
+  val isRoot: Boolean,
+)
 
 class NativeVariantsAndroidModule private constructor(
   gradleProject: BasicGradleProject,

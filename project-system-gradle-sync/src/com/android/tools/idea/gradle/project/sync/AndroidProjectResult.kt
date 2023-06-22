@@ -233,9 +233,8 @@ private fun v2VariantFetcher(
     val variantDependencies = controller.findVariantDependenciesV2Model(
       module.gradleProject,
       configuration.variant,
-      module.projectType,
-      skipRuntimeClasspathForLibraries,
-      useNewDependencyGraphModel
+      useNewDependencyGraphModel,
+      getClasspathConfigForProject(skipRuntimeClasspathForLibraries, module.projectType, configuration.isRoot)
     ) ?: return ModelResult.create { null }
     return modelCache.variantFrom(
       BuildId(module.gradleProject.projectIdentifier.buildIdentifier.rootDir),
