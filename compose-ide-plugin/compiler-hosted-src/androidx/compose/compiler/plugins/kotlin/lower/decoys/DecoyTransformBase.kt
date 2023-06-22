@@ -19,8 +19,6 @@ package androidx.compose.compiler.plugins.kotlin.lower.decoys
 import androidx.compose.compiler.plugins.kotlin.lower.hasAnnotationSafe
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
-import org.jetbrains.kotlin.ir.util.isTopLevel
-import org.jetbrains.kotlin.ir.util.remapTypeParameters
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.IrElement
@@ -48,7 +46,9 @@ import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.TypeRemapper
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.getAnnotation
+import org.jetbrains.kotlin.ir.util.isTopLevel
 import org.jetbrains.kotlin.ir.util.module
+import org.jetbrains.kotlin.ir.util.remapTypeParameters
 
 internal interface DecoyTransformBase {
     val context: IrPluginContext
@@ -115,7 +115,8 @@ internal interface DecoyTransformBase {
             packageFqName = signature[0],
             declarationFqName = signature[1],
             id = signature[2].toLongOrNull(),
-            mask = signature[3].toLong()
+            mask = signature[3].toLong(),
+            description = null,
         )
 
         val linker = (context as IrPluginContextImpl).linker
