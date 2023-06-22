@@ -2,6 +2,8 @@ import enum
 import filecmp
 import os
 import platform
+import shutil
+import stat
 import subprocess
 import tempfile
 import unittest
@@ -107,7 +109,7 @@ class UpdaterTests(unittest.TestCase):
     Raises:
       AssertionError: some part of the process failed.
     """
-    print("Validating that the patcher works on \"%s\" → \"%s\"" %
+    print("Validating that the patcher works on \"%s\" -> \"%s\"" %
           (old_zip, new_zip))
 
     with tempfile.TemporaryDirectory() as tempdir:
@@ -176,11 +178,30 @@ class UpdaterTests(unittest.TestCase):
         self.fail("Running the updater (args=%s) failed. Return code: %s" %
                   (str(args), return_code))
 
+      # We'll use the bundled Java for running the patcher, so make a copy of the JBR first
+      if get_current_platform() in [Platform.MAC, Platform.MAC_ARM]:
+        jbr_path = "Contents/jbr"
+        java_path = "Contents/Home/bin/java"
+      elif get_current_platform() == Platform.WIN:
+        jbr_path = "jbr"
+        java_path = "bin\\java.exe"
+      else:
+        jbr_path = "jbr"
+        java_path = "bin/java"
+
+      jbr_dest = os.path.join(tempdir, "jbr")
+      jbr_src = os.path.join(old_folder_path, os.listdir(old_folder_path)[0], jbr_path)
+      shutil.copytree(jbr_src, jbr_dest)
+
+      jbr_java = os.path.join(jbr_dest, java_path)
+      # ZipFile extraction didn't preserve permissions, set executable bit back on.
+      os.chmod(jbr_java, stat.S_IEXEC)
+
       # The patcher runs in-place, meaning the old folder will have its contents
       # directly modified rather than producing a copy.
       print("Running the patcher")
       args = [
-          "java",
+          jbr_java,
           "-jar",
           patch_file_path,
           old_folder_path,
@@ -202,11 +223,11 @@ class UpdaterTests(unittest.TestCase):
   def test_patch_platforms(self):
     current_platform = get_current_platform()
 
-    if current_platform == Platform.LINUX or current_platform == Platform.MAC_ARM:
-      self.validate_patcher(current_platform.get_path_to_zip(),
-                            Platform.WIN.get_path_to_zip())
+    if current_platform == Platform.WIN:
+      self.validate_patcher(Platform.WIN.get_path_to_zip(),
+                            Platform.MAC.get_path_to_zip())
     else:
-      self.validate_patcher(Platform.MAC.get_path_to_zip(),
+      self.validate_patcher(current_platform.get_path_to_zip(),
                             Platform.WIN.get_path_to_zip())
 
 
