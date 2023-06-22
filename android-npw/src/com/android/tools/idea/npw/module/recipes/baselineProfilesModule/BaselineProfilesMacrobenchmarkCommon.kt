@@ -141,7 +141,7 @@ object BaselineProfilesMacrobenchmarkCommon {
     )
 }
 
-data class GmdSpec(val deviceName: String, val apiLevel: Int) {
+data class GmdSpec(val deviceName: String, val apiLevel: Int, val systemImageSource: String) {
 
   val identifier: String = buildString {
     // Pixel 6 -> pixel6

@@ -40,7 +40,8 @@ import org.jetbrains.plugins.gradle.service.execution.GradleRunConfiguration
 import java.io.File
 
 const val GMD_DEVICE = "Pixel 6"
-const val GMD_API = 31
+const val GMD_API = 34
+const val GMD_SYSTEM_IMAGE_SOURCE = "google"
 const val GENERATOR_CLASS_NAME = "BaselineProfileGenerator"
 const val MACROBENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val BENCHMARKS_CLASS_NAME = "StartupBenchmarks"
@@ -63,7 +64,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
 
   addClasspathDependency("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
-  val gmdSpec = if (useGmd) GmdSpec(GMD_DEVICE, GMD_API) else null
+  val gmdSpec = if (useGmd) GmdSpec(GMD_DEVICE, GMD_API, GMD_SYSTEM_IMAGE_SOURCE) else null
 
   val flavors = getTargetModelProductFlavors(targetModuleGradleModel)
   val variants = generateBuildVariants(flavors, "release")
