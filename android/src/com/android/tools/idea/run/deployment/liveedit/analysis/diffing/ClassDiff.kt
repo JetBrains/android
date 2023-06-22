@@ -304,12 +304,12 @@ private fun toString(old: IrInstructionList, new: IrInstructionList) = buildStri
   while (insn != null || otherInsn != null) {
     if (insn != otherInsn) {
       appendLine("\t$insn -> $otherInsn")
-    }
-    else {
-      appendLine("\t$insn")
+    } else {
+       appendLine("\t$insn")
     }
 
     insn = insn?.next
     otherInsn = otherInsn?.next
   }
+  appendLine("line range: [${new.lines.firstOrNull()}, ${new.lines.lastOrNull()}]")
 }.trimEnd()

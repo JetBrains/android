@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.DeployableToDevice
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
@@ -49,16 +50,25 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.Executor
 
 /**
@@ -117,7 +127,28 @@ class LiveEditServiceImpl(val project: Project,
     // TODO: Deactivate this when not needed.
     val listener = PsiListener(this::onPsiChanged)
     PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
+
     deployMonitor = LiveEditProjectMonitor(this, project)
+
+    EditorFactory.getInstance().eventMulticaster.addDocumentListener(object : DocumentListener {
+      override fun documentChanged(event: DocumentEvent) {
+        if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
+          return
+        }
+
+        // Ensure that we have the original, VirtualFile-backed version of the file, since sometimes an event is generated with a
+        // non-physical version of a given file, which will cause some Live Edit checks that assume a non-null VirtualFile to fail.
+        val file = PsiDocumentManager.getInstance(project).getPsiFile(event.document)?.originalFile
+        if (file !is KtFile) {
+          return
+        }
+
+        // Create a "fake" edit event until we refactor away the PSI event detection path.
+        val editEvent = EditEvent(file, file)
+        executor.execute { deployMonitor.onPsiChanged(editEvent) }
+      }
+    }, this)
+
     // TODO: Delete if it turns our we don't need Hard-refresh trigger.
     //bindKeyMapShortcut(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
 
@@ -150,6 +181,11 @@ class LiveEditServiceImpl(val project: Project,
           showMultiDeployNotification = false
         }
       }
+    })
+
+    // Listen for when a new Kotlin file opens.
+    project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      override fun fileOpened(source: FileEditorManager, file: VirtualFile) = deployMonitor.notifyFileOpen(file)
     })
   }
 
@@ -218,6 +254,10 @@ class LiveEditServiceImpl(val project: Project,
 
   @com.android.annotations.Trace
   private fun onPsiChanged(event: EditEvent) {
+    // Disable PSI event detection if the class differ path is enabled.
+    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
+      return
+    }
     executor.execute { deployMonitor.onPsiChanged(event) }
   }
 

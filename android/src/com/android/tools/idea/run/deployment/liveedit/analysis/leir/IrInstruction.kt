@@ -25,6 +25,14 @@ class IrInstruction(val type: Type, val opcode: Int, val params: List<Any?>, val
   var next: IrInstruction? = null
     private set
 
+  val nextInsn: IrInstruction? get() {
+    var cur = next
+    while (cur != null && cur.type != Type.INSTRUCTION) {
+      cur = cur.next
+    }
+    return cur
+  }
+
   init {
     if (prev != null) {
       prev.next = this

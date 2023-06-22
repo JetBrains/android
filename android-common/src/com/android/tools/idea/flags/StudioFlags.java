@@ -1261,6 +1261,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER = Flag.create(
+    COMPOSE, "deploy.live.edit.deploy.differ",
+    "LiveEdit: Resolve changed classes and group IDs with the class differ.",
+    "If enabled, the class differ will be used inside of the LE compiler",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR = Flag.create(
     COMPOSE, "deploy.live.edit.deploy.desugar.r8",
     "LiveEdit: Desugar kotlinc outputs with R8",
