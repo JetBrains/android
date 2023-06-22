@@ -1,4 +1,3 @@
-
 buildscript {
     val kotlin_version by extra("$VERSION$")
     dependencies {
@@ -33,6 +32,9 @@ android {
             isMinifyEnabled = false
             proguardFiles("proguard-rules.pro")
         }
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }
 

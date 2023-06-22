@@ -49,6 +49,9 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 dependencies {

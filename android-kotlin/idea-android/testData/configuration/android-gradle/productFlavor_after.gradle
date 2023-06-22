@@ -24,6 +24,9 @@ android {
             packageName = 'com.example.android.gradle.productflavors.amazonappstore'
         }
     }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 dependencies {

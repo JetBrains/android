@@ -16,6 +16,9 @@ apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
     target = 'android-16'
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 dependencies {

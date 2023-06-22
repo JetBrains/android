@@ -4,6 +4,9 @@ apply plugin: 'org.jetbrains.kotlin.android'
 android {
     compileSdkVersion 15
     buildToolsVersion "17.0"
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 //

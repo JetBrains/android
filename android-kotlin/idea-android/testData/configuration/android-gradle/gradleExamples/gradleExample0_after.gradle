@@ -10,6 +10,9 @@ android {
 
     deviceProvider project.ext.fakeProvider
     testServer project.ext.fakeServer
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 project.afterEvaluate {

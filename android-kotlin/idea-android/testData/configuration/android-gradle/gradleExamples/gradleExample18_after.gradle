@@ -63,4 +63,7 @@ android {
         noCompress 'txt'
         ignoreAssetsPattern "!.svn:!.git:!.ds_store:!*.scc:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"
     }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }

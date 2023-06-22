@@ -60,6 +60,9 @@ android {
         //main.resources.srcDir 'src'
         //instrumentTest.java.srcDir 'tests/src'
     }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 dependencies {
