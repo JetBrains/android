@@ -20,6 +20,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.LoadingDecorator
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.panels.NonOpaquePanel
+import com.intellij.util.ui.AnimatedIcon
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBEmptyBorder
 import com.intellij.util.ui.JBUI
@@ -67,9 +68,9 @@ class StreamingLoadingPanel(
     panel: JPanel,
     parentDisposable: Disposable,
     startDelayMs: Int = 0
-  ) : LoadingDecorator(panel, parentDisposable, startDelayMs, false, AsyncProcessIcon.Big("Loading")) {
+  ) : LoadingDecorator(panel, parentDisposable, startDelayMs, false, AsyncProcessIcon.createBig("Loading")) {
 
-    override fun customizeLoadingLayer(parent: JPanel, text: JLabel, icon: AsyncProcessIcon): NonOpaquePanel {
+    override fun customizeLoadingLayer(parent: JPanel, text: JLabel, icon: AnimatedIcon): NonOpaquePanel {
       val roundedPanel = RoundedPanel(FlowLayout(FlowLayout.CENTER, JLabel().iconTextGap * 3, 0), 8).apply {
         border = JBEmptyBorder(8)
         background = primaryPanelBackground
