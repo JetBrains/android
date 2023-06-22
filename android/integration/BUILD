@@ -64,6 +64,21 @@ iml_studio_test(
     test_class = "com.android.tools.idea.ShowUsagesTest",
 )
 
+iml_studio_test(
+    name = "LanguageHighlightingTest",
+    timeout = "long",
+    data = [
+        ":languagehighlighting",
+        ":languagehighlighting_deps",
+        INTEGRATION_TEST_GRADLE_VERSION,
+        INTEGRATION_TEST_SYSTEM_IMAGE,
+    ],
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.LanguageHighlightingTest",
+)
+
 iml_test(
     name = "EmulatorTest",
     data = [
@@ -521,6 +536,22 @@ maven_repository(
 )
 
 maven_repository(
+    name = "languagehighlighting_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:com.android.tools.build.aapt2_7.1.0-7984345",
+        "@maven//:com.android.tools.build.gradle_7.1.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler_1.9.0-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.9.0-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.9.0-Beta",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.9.0-Beta",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.markdown_0.2.1",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+maven_repository(
     name = "debug_junit_test_deps",
     # keep sorted: for buildifier
     artifacts = [
@@ -567,4 +598,10 @@ filegroup(
 filegroup(
     name = "debugjunittest",
     srcs = glob(["testData/JUnitTestApp/**"]),
+)
+
+filegroup(
+    name = "languagehighlighting",
+    srcs = glob(["testData/languagehighlighting/**"]),
+    visibility = ["//visibility:public"],
 )

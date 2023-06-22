@@ -18,6 +18,8 @@ package com.android.tools.asdriver.tests;
 import com.android.tools.asdriver.proto.ASDriver;
 import com.intellij.lang.annotation.HighlightSeverity;
 import java.util.Arrays;
+import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -25,7 +27,9 @@ import org.jetbrains.annotations.Nullable;
  * accessible to test classes anyway.
  */
 public class AnalysisResult {
+  @NotNull
   HighlightSeverity severity;
+  @NotNull
   String text;
   @Nullable
   String description;
@@ -33,7 +37,7 @@ public class AnalysisResult {
   String toolId;
   int lineNumber;
 
-  public AnalysisResult(HighlightSeverity severity, String text, @Nullable String description, @Nullable String toolId, int lineNumber) {
+  public AnalysisResult(@NotNull HighlightSeverity severity, @NotNull String text, @Nullable String description, @Nullable String toolId, int lineNumber) {
     this.severity = severity;
     this.text = text;
     this.description = description;
@@ -41,10 +45,12 @@ public class AnalysisResult {
     this.lineNumber = lineNumber;
   }
 
+  @NotNull
   public HighlightSeverity getSeverity() {
     return severity;
   }
 
+  @NotNull
   public String getText() {
     return text;
   }
@@ -72,6 +78,23 @@ public class AnalysisResult {
            ", toolId='" + toolId + '\'' +
            ", lineNumber=" + lineNumber +
            '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof AnalysisResult other)) return false;
+
+    return other.severity == severity &&
+           Objects.equals(other.text, text) &&
+           Objects.equals(other.description, description) &&
+           Objects.equals(other.toolId, toolId) &&
+           other.lineNumber == lineNumber;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(severity, text, description, toolId, lineNumber);
   }
 
   public static AnalysisResult fromProto(ASDriver.AnalysisResult protoResult) {
