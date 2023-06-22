@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.ide.common.fonts.FontLoader;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.tools.idea.downloads.DownloadService;
 import com.intellij.openapi.util.io.FileUtil;
@@ -38,7 +39,7 @@ class FontDirectoryDownloadService implements FontDirectoryDownloader {
   private final DownloadService myDownloadService;
   private final FontProvider myProvider;
 
-  public FontDirectoryDownloadService(@NotNull DownloadableFontCacheServiceImpl fontService, @NotNull FontProvider provider, @NotNull File fontCachePath) {
+  public FontDirectoryDownloadService(@NotNull FontLoader fontLoader, @NotNull FontProvider provider, @NotNull File fontCachePath) {
     myDownloadService = new DownloadService(provider.getName() + SERVICE_POSTFIX,
                                             provider.getUrl(),
                                             getFallbackResourceUrl(provider),
@@ -47,7 +48,7 @@ class FontDirectoryDownloadService implements FontDirectoryDownloader {
                                             FONT_DIRECTORY_FILENAME) {
       @Override
       public void loadFromFile(@NotNull URL url) {
-        fontService.loadDirectory(myProvider, url);
+        fontLoader.loadDirectory(myProvider, url);
       }
     };
     myProvider = provider;

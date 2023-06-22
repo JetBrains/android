@@ -35,8 +35,8 @@ class SystemFonts {
 
   private final Map<String, FontFamily> myFonts;
 
-  public SystemFonts(@NotNull DownloadableFontCacheServiceImpl service) {
-    myFonts = createFonts(service);
+  public SystemFonts(@NotNull FontLoader fontLoader) {
+    myFonts = createFonts(fontLoader);
   }
 
   @NotNull
@@ -49,10 +49,10 @@ class SystemFonts {
     return myFonts.get(name);
   }
 
-  private static Map<String, FontFamily> createFonts(@NotNull DownloadableFontCacheServiceImpl service) {
+  private static Map<String, FontFamily> createFonts(@NotNull FontLoader fontLoader) {
     Map<String, FontFamily> fonts = new TreeMap<>();
     for (String fontName : AndroidDomUtil.AVAILABLE_FAMILIES) {
-      FontFamily family = createFont(service, fontName);
+      FontFamily family = createFont(fontLoader, fontName);
       if (family != null) {
         fonts.put(fontName, family);
       }
@@ -61,49 +61,49 @@ class SystemFonts {
   }
 
   @Nullable
-  private static FontFamily createFont(@NotNull DownloadableFontCacheServiceImpl service, @NotNull String systemFontName) {
+  private static FontFamily createFont(@NotNull FontLoader fontLoader, @NotNull String systemFontName) {
     switch (systemFontName) {
       case "sans-serif-thin":
-        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 100, 400);
+        return findFont(fontLoader, systemFontName, "Roboto", DEFAULT_WIDTH, 100, 400);
       case "sans-serif-light":
-        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 300, 700);
+        return findFont(fontLoader, systemFontName, "Roboto", DEFAULT_WIDTH, 300, 700);
       case "sans-serif":
-        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 400, 700);
+        return findFont(fontLoader, systemFontName, "Roboto", DEFAULT_WIDTH, 400, 700);
       case "sans-serif-medium":
-        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 500, 900);
+        return findFont(fontLoader, systemFontName, "Roboto", DEFAULT_WIDTH, 500, 900);
       case "sans-serif-black":
-        return findFont(service, systemFontName, "Roboto", DEFAULT_WIDTH, 900);
+        return findFont(fontLoader, systemFontName, "Roboto", DEFAULT_WIDTH, 900);
       case "sans-serif-condensed-light":
-        return findFont(service, systemFontName, "Roboto", CONDENSED_WIDTH, 300, 700);
+        return findFont(fontLoader, systemFontName, "Roboto", CONDENSED_WIDTH, 300, 700);
       case "sans-serif-condensed":
-        return findFont(service, systemFontName, "Roboto", CONDENSED_WIDTH, 400, 700);
+        return findFont(fontLoader, systemFontName, "Roboto", CONDENSED_WIDTH, 400, 700);
       case "sans-serif-condensed-medium":
         // Should be (500, 700) but 500 doesn't exist on fonts.google.com
-        return findFont(service, systemFontName, "Roboto", CONDENSED_WIDTH, 400, 700);
+        return findFont(fontLoader, systemFontName, "Roboto", CONDENSED_WIDTH, 400, 700);
       case "serif":
-        return findFont(service, systemFontName, "Noto Serif", DEFAULT_WIDTH, 400, 700);
+        return findFont(fontLoader, systemFontName, "Noto Serif", DEFAULT_WIDTH, 400, 700);
       case "monospace":
-        return findFont(service, systemFontName, "Droid Sans Mono", DEFAULT_WIDTH, 400);
+        return findFont(fontLoader, systemFontName, "Droid Sans Mono", DEFAULT_WIDTH, 400);
       case "serif-monospace":
-        return findFont(service, systemFontName, "Cutive Mono", DEFAULT_WIDTH, 400);
+        return findFont(fontLoader, systemFontName, "Cutive Mono", DEFAULT_WIDTH, 400);
       case "casual":
-        return findFont(service, systemFontName, "Coming Soon", DEFAULT_WIDTH, 400);
+        return findFont(fontLoader, systemFontName, "Coming Soon", DEFAULT_WIDTH, 400);
       case "cursive":
-        return findFont(service, systemFontName, "Dancing Script", DEFAULT_WIDTH, 400, 700);
+        return findFont(fontLoader, systemFontName, "Dancing Script", DEFAULT_WIDTH, 400, 700);
       case "sans-serif-smallcaps":
-        return findFont(service, systemFontName, "Carrois Gothic SC", DEFAULT_WIDTH, 400);
+        return findFont(fontLoader, systemFontName, "Carrois Gothic SC", DEFAULT_WIDTH, 400);
       default:
         return null;
     }
   }
 
   @Nullable
-  private static FontFamily findFont(@NotNull DownloadableFontCacheServiceImpl service,
+  private static FontFamily findFont(@NotNull FontLoader fontLoader,
                                      @NotNull String systemFontName,
                                      @NotNull String name,
                                      int width,
                                      int... weights) {
-    FontFamily family = service.findFont(FontProvider.GOOGLE_PROVIDER, name);
+    FontFamily family = fontLoader.findFont(FontProvider.GOOGLE_PROVIDER, name);
     if (family == null) {
       return null;
     }
