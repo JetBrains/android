@@ -585,4 +585,119 @@ class TemplateDiffTest(private val testMode: TestMode) {
   fun testLoginFragmentWithKotlin() {
     checkCreateTemplate("Login Fragment", withKotlin)
   }
+
+  /*
+   * Tests for individual miscellaneous templates go below here. Each test method should only test
+   * one template parameter combination, because the test method name is used as the directory name
+   * for the golden files.
+   */
+  @Test
+  fun testNewAppWidget() {
+    checkCreateTemplate("App Widget")
+  }
+
+  @Test
+  fun testNewBroadcastReceiver() {
+    checkCreateTemplate("Broadcast Receiver")
+  }
+
+  @Test
+  fun testNewBroadcastReceiverWithKotlin() {
+    checkCreateTemplate("Broadcast Receiver", withKotlin)
+  }
+
+  @Test
+  fun testNewContentProvider() {
+    checkCreateTemplate("Content Provider")
+  }
+
+  @Test
+  fun testNewContentProviderWithKotlin() {
+    checkCreateTemplate("Content Provider", withKotlin)
+  }
+
+  @Test
+  fun testNewSliceProvider() {
+    checkCreateTemplate("Slice Provider")
+  }
+
+  @Test
+  fun testNewSliceProviderWithKotlin() {
+    checkCreateTemplate("Slice Provider", withKotlin)
+  }
+
+  @Test
+  fun testNewCustomView() {
+    checkCreateTemplate("Custom View")
+  }
+
+  @Test
+  fun testNewIntentService() {
+    checkCreateTemplate("Service (IntentService)")
+  }
+
+  @Test
+  fun testNewIntentServiceWithKotlin() {
+    checkCreateTemplate("Service (IntentService)", withKotlin)
+  }
+
+  @Test
+  fun testNewService() {
+    checkCreateTemplate("Service")
+  }
+
+  @Test
+  fun testNewServiceWithKotlin() {
+    checkCreateTemplate("Service", withKotlin)
+  }
+
+  @Test
+  fun testAndroidManifest() {
+    checkCreateTemplate("Android Manifest File")
+  }
+
+  @Test
+  fun testNewAidlFile() {
+    checkCreateTemplate("AIDL File")
+  }
+
+  @Test
+  fun testNewAppActionsXmlFile() {
+    checkCreateTemplate("App Actions XML File (deprecated)")
+  }
+
+  @Test
+  fun testNewLayoutXmlFile() {
+    checkCreateTemplate("Layout XML File")
+  }
+
+  @Test
+  fun testNewValuesXmlFile() {
+    checkCreateTemplate("Values XML File")
+  }
+
+  @Test
+  fun testNewShortcutsXmlFile() {
+    checkCreateTemplate("Shortcuts XML File")
+  }
+
+  @Test
+  fun testAutomotiveMessagingService() {
+    checkCreateTemplate("Messaging Service")
+  }
+
+  @Test
+  fun testAutomotiveMessagingServiceWithKotlin() {
+    checkCreateTemplate("Messaging Service", withKotlin)
+  }
+
+  @Test
+  fun testAutomotiveMediaService() {
+    checkCreateTemplate("Media Service")
+  }
+
+  @Test
+  fun testAutomotiveMediaServiceWithKotlin() {
+    checkCreateTemplate("Media Service", withKotlin)
+  }
 }
