@@ -314,7 +314,7 @@ class PsProjectImplTest {
         // Change file: to https: to workaround GradleWrapper not making changes to a local distribution.
         val wrapper = GradleWrapper.find(project.ideProject)!!
         val properties = wrapper.properties
-        val property = properties.getProperty(DISTRIBUTION_URL_PROPERTY).orEmpty()
+        val property = wrapper.distributionUrl.orEmpty()
         properties.setProperty(DISTRIBUTION_URL_PROPERTY, property.replace("file:", "https:"))
         savePropertiesToFile(properties, wrapper.propertiesFilePath, null)
       }

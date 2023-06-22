@@ -24,7 +24,6 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtilRt.extensionEquals;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByURL;
-import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_SHA_256_SUM;
 import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.ide.common.repository.AgpVersion;
@@ -212,12 +211,12 @@ public final class GradleWrapper {
    * @throws IOException if something goes wrong when saving the file.
    */
   public boolean updateDistributionUrl(@NotNull GradleVersion gradleVersion) throws IOException {
-    Properties properties = getProperties();
     String distributionUrl = getDistributionUrl(gradleVersion, true);
-    String property = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
-    if (property != null && (property.equals(distributionUrl) || property.equals(getDistributionUrl(gradleVersion, true)))) {
+    String property = getDistributionUrl();
+    if (property != null && property.equals(distributionUrl)) {
       return false;
     }
+    Properties properties = getProperties();
     properties.setProperty(DISTRIBUTION_URL_PROPERTY, distributionUrl);
     saveProperties(properties, myPropertiesFilePath, myProject);
     return true;
@@ -280,7 +279,7 @@ public final class GradleWrapper {
 
   @Nullable
   public String getGradleVersion() throws IOException {
-    String url = getProperties().getProperty(DISTRIBUTION_URL_PROPERTY);
+    String url = getDistributionUrl();
     if (url != null) {
       Matcher m = GRADLE_DISTRIBUTION_URL_PATTERN.matcher(url);
       if (m.matches()) {
@@ -288,11 +287,6 @@ public final class GradleWrapper {
       }
     }
     return null;
-  }
-
-  @Nullable
-  public String getDistributionSha256Sum() throws IOException {
-    return getProperties().getProperty(DISTRIBUTION_SHA_256_SUM);
   }
 
   @Nullable

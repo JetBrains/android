@@ -36,13 +36,12 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ArrayUtil.toStringArray;
 import static java.util.Objects.requireNonNullElseGet;
-import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.BUNDLED;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 
 import com.android.ide.common.gradle.Version;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.AgpVersion;
+import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -70,7 +69,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Properties;
 import java.util.Set;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -351,8 +349,7 @@ public final class GradleUtil {
       if (gradleWrapper != null) {
         String gradleVersion = null;
         try {
-          Properties properties = gradleWrapper.getProperties();
-          String url = properties.getProperty(DISTRIBUTION_URL_PROPERTY);
+          String url = gradleWrapper.getDistributionUrl();
           gradleVersion = getGradleWrapperVersionOnlyIfComingForGradleDotOrg(url);
         }
         catch (IOException e) {
@@ -377,26 +374,33 @@ public final class GradleUtil {
   @VisibleForTesting
   @Nullable
   static String getGradleWrapperVersionOnlyIfComingForGradleDotOrg(@Nullable String url) {
-    if (url != null) {
-      int foundIndex = url.indexOf("://");
-      if (foundIndex != -1) {
-        String protocol = url.substring(0, foundIndex);
-        if (protocol.equals("http") || protocol.equals("https")) {
-          String expectedPrefix = protocol + "://services.gradle.org/distributions/gradle-";
-          if (url.startsWith(expectedPrefix)) {
-            // look for "-" before "bin" or "all"
-            foundIndex = url.indexOf('-', expectedPrefix.length());
-            if (foundIndex != -1) {
-              String version = url.substring(expectedPrefix.length(), foundIndex);
-              if (isNotEmpty(version)) {
-                return version;
-              }
-            }
-          }
-        }
-      }
+    if (url == null) {
+      return null;
     }
-    return null;
+
+    int foundIndex = url.indexOf("://");
+    if (foundIndex == -1) {
+      return null;
+    }
+
+    String protocol = url.substring(0, foundIndex);
+    if (!protocol.equals("http") && !protocol.equals("https")) {
+      return null;
+    }
+
+    String expectedPrefix = protocol + "://services.gradle.org/distributions/gradle-";
+    if (!url.startsWith(expectedPrefix)) {
+      return null;
+    }
+
+    // look for "-" before "bin" or "all"
+    foundIndex = url.indexOf('-', expectedPrefix.length());
+    if (foundIndex == -1) {
+      return null;
+    }
+
+    String version = url.substring(expectedPrefix.length(), foundIndex);
+    return isNotEmpty(version) ? version : null;
   }
 
   private static boolean isCompatibleWithEmbeddedGradleVersion(@NotNull String gradleVersion) {
