@@ -17,22 +17,16 @@ package com.android.tools.idea.avdmanager;
 
 import static org.junit.Assert.assertEquals;
 
-import com.android.sdklib.devices.Device;
-import com.android.sdklib.devices.Hardware;
-import com.android.sdklib.devices.Screen;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class CategoryTest {
   @Test
   public void valueOfDefinitionPhone() {
     // Arrange
-    var definition = mockDefinition(null, mockHardware(0));
+    var definition = Definitions.mockPhone();
 
     // Act
     var category = Category.valueOfDefinition(definition);
@@ -44,7 +38,7 @@ public final class CategoryTest {
   @Test
   public void valueOfDefinitionTablet() {
     // Arrange
-    var definition = mockDefinition(null, mockHardware(10.055));
+    var definition = Definitions.mockTablet();
 
     // Act
     var category = Category.valueOfDefinition(definition);
@@ -56,7 +50,7 @@ public final class CategoryTest {
   @Test
   public void valueOfDefinitionWearOs() {
     // Arrange
-    var definition = mockDefinition("android-wear", mockHardware(0));
+    var definition = Definitions.mockWearOsDefinition();
 
     // Act
     var category = Category.valueOfDefinition(definition);
@@ -68,7 +62,7 @@ public final class CategoryTest {
   @Test
   public void valueOfDefinitionDesktop() {
     // Arrange
-    var definition = mockDefinition("android-desktop", null);
+    var definition = Definitions.mockDesktop();
 
     // Act
     var category = Category.valueOfDefinition(definition);
@@ -80,7 +74,7 @@ public final class CategoryTest {
   @Test
   public void valueOfDefinitionTv() {
     // Arrange
-    var definition = mockDefinition("android-tv", mockHardware(0));
+    var definition = Definitions.mockTv();
 
     // Act
     var category = Category.valueOfDefinition(definition);
@@ -92,7 +86,7 @@ public final class CategoryTest {
   @Test
   public void valueOfDefinitionAutomotive() {
     // Arrange
-    var definition = mockDefinition("android-automotive", mockHardware(0));
+    var definition = Definitions.mockAutomotiveDefinition();
 
     // Act
     var category = Category.valueOfDefinition(definition);
@@ -104,34 +98,12 @@ public final class CategoryTest {
   @Test
   public void valueOfDefinitionLegacy() {
     // Arrange
-    var definition = mockDefinition(null, null);
-    Mockito.when(definition.getIsDeprecated()).thenReturn(true);
+    var definition = Definitions.mockLegacyDefinition();
 
     // Act
     var category = Category.valueOfDefinition(definition);
 
     // Assert
     assertEquals(Category.LEGACY, category);
-  }
-
-  @NotNull
-  private static Device mockDefinition(@Nullable String id, @Nullable Hardware hardware) {
-    var definition = Mockito.mock(Device.class);
-
-    Mockito.when(definition.getTagId()).thenReturn(id);
-    Mockito.when(definition.getDefaultHardware()).thenReturn(hardware);
-
-    return definition;
-  }
-
-  @NotNull
-  private static Hardware mockHardware(double length) {
-    var screen = Mockito.mock(Screen.class);
-    Mockito.when(screen.getDiagonalLength()).thenReturn(length);
-
-    var hardware = Mockito.mock(Hardware.class);
-    Mockito.when(hardware.getScreen()).thenReturn(screen);
-
-    return hardware;
   }
 }
