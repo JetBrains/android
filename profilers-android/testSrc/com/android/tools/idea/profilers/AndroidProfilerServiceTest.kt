@@ -54,6 +54,7 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
     // We need to clear any override we use inside tests here.
     // We should do this during tear down, in case any test case fails or throws an exception.
     StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.clearOverride()
+    StudioFlags.PROFILER_TRACEBOX.clearOverride()
   }
 
   fun testProfilerServiceTriggeredOnceForMultipleToolWindows() {
@@ -73,10 +74,27 @@ class AndroidProfilerServiceTest : HeavyPlatformTestCase() {
   }
 
   fun testCustomizeDaemonConfig() {
-    val configBuilder = Transport.DaemonConfig.newBuilder()
-    AndroidProfilerService.getInstance().customizeDaemonConfig(configBuilder)
+    val configBuilder = getCustomizeDaemonConfig()
     assertThat(configBuilder.hasCommon()).isTrue()
     assertThat(configBuilder.hasCpu()).isTrue()
+  }
+
+  fun testCustomizeDaemonConfigTraceboxflag() {
+    StudioFlags.PROFILER_TRACEBOX.override(true)
+    val configBuilderTraceboxTrue = getCustomizeDaemonConfig()
+    assertTrue(configBuilderTraceboxTrue.hasCpu())
+    assertTrue(configBuilderTraceboxTrue.cpu.useTracebox)
+
+    StudioFlags.PROFILER_TRACEBOX.override(false)
+    val configBuilderTraceboxFalse = getCustomizeDaemonConfig()
+    assertTrue(configBuilderTraceboxFalse.hasCpu())
+    assertFalse(configBuilderTraceboxFalse.cpu.useTracebox)
+  }
+
+  private fun getCustomizeDaemonConfig(): Transport.DaemonConfig.Builder {
+    val configBuilder = Transport.DaemonConfig.newBuilder()
+    AndroidProfilerService.getInstance().customizeDaemonConfig(configBuilder)
+    return configBuilder
   }
 
   fun testCustomizeAgentConfigNoRunConfig() {

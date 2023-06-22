@@ -135,7 +135,8 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       .setCpu(
         Transport.DaemonConfig.CpuConfig.newBuilder()
           .setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC)
-          .setUsePerfetto(true));
+          .setUsePerfetto(true)
+          .setUseTracebox(StudioFlags.PROFILER_TRACEBOX.get()));
   }
 
   @Override
