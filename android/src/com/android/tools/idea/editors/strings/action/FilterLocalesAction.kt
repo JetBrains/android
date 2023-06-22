@@ -30,6 +30,10 @@ import javax.swing.JComponent
 /** Action to allow the user to filter [Locale]s in the Translations Editor. */
 class FilterLocalesAction : ComboBoxAction() {
 
+  init {
+    templatePresentation.text = NO_FILTER_TITLE // Prevents UI pop-in.
+  }
+
   override fun update(event: AnActionEvent) {
     val editor = event.getData(PlatformDataKeys.FILE_EDITOR) as? StringResourceEditor ?: return
     val filter = editor.panel.table.columnFilter

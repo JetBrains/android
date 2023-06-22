@@ -121,6 +121,11 @@ class FilterLocalesActionTest {
   }
 
   @Test
+  fun initialState() {
+    assertThat(filterLocalesAction.templateText).isEqualTo("Show All Locales")
+  }
+
+  @Test
   fun update_noEditor() {
     mapDataContext.put(PlatformDataKeys.FILE_EDITOR, null)
 

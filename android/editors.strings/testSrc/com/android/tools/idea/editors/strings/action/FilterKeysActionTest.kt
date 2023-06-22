@@ -129,6 +129,11 @@ class FilterKeysActionTest {
   }
 
   @Test
+  fun initialState() {
+    assertThat(filterKeysAction.templateText).isEqualTo("Show All Keys")
+  }
+
+  @Test
   fun update_noEditor() {
     mapDataContext.put(PlatformDataKeys.FILE_EDITOR, null)
 
