@@ -110,7 +110,7 @@ class ShowLayoutInspectorActionTest {
     verify(fakeNotificationGroupManager.mockNotificationGroup)
       .createNotification(
         "Layout Inspector is now embedded in the Running Devices window.",
-        "Launch or connect a device to start inspecting.",
+        "Launch, connect, or mirror a device to start inspecting.",
         NotificationType.INFORMATION
       )
     verify(fakeNotificationGroupManager.mockNotification).notify(any())
