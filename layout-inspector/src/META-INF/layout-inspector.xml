@@ -26,8 +26,7 @@
         text="Toggle Layout Inspector"
         description="Toggles Layout Inspection on and off for this device."
         icon="StudioIcons.Shell.ToolWindows.CAPTURES" >
-      <add-to-group group-id="StreamingToolbarVirtualDevice" anchor="before" relative-to-action="android.emulator.extended.controls"/>
-      <add-to-group group-id="StreamingToolbarPhysicalDevice" anchor="last"/>
+      <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
     </action>
 
 
