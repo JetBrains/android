@@ -371,7 +371,7 @@ class LambdaResolver(project: Project) : ComposeResolver(project) {
       val call = argument.getStrictParentOfType<KtCallExpression>() ?: return false
       if (this != null) {
         // K2 plugin - use Analysis API in existing analysis session.
-        return call.resolveCall().singleFunctionCallOrNull()
+        return call.resolveCall()?.singleFunctionCallOrNull()
           ?.argumentMapping
           ?.get(argument.getArgumentExpression())
           ?.symbol
