@@ -147,14 +147,13 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     }
 
     override fun addElementsToFiles(file: PsiFile, isTopLevelProjectFile: Boolean, originalVersion: IdeKotlinVersion,
-                                    addVersion: Boolean, useJDK1_6forTests: Boolean) : ChangedFiles {
+                                    jvmTarget: String?, addVersion: Boolean): ChangedFiles {
         val changedFiles = HashSet<PsiFile>()
         val module = ModuleUtil.findModuleForPsiElement(file) ?: return changedFiles
         val project = module.project
         val projectBuildModel = ProjectBuildModel.get(project)
         val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
         val sdk = getFirstValidJavaSdkFromModule(module)
-        val jvmTarget = getJvmTarget(sdk, originalVersion)
         val version = originalVersion.rawVersion // FIXME-ank
 
         if (isTopLevelProjectFile) {
