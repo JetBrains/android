@@ -32,6 +32,7 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
     hideRarelyUsedIntellijActions(actionManager);
     setupResourceManagerActions(actionManager);
     setUpCodeMenuActions(actionManager);
+    setUpGradleActions(actionManager);
   }
 
   private static void setupResourceManagerActions(ActionManager actionManager) {
@@ -61,6 +62,12 @@ public class AndroidStudioActionCustomizer implements ActionConfigurationCustomi
   // Remove code menu actions that we don't use
   private static void setUpCodeMenuActions(ActionManager actionManager) {
     Actions.hideAction(actionManager, "GenerateModuleDescriptors");
+  }
+
+  // Remove gradle actions
+  private static void setUpGradleActions(ActionManager actionManager) {
+    // Hide unsupported link project gradle
+    Actions.hideAction(actionManager, "Gradle.ImportExternalProject");
   }
 
   private static void hideRarelyUsedIntellijActions(ActionManager actionManager) {
