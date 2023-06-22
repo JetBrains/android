@@ -67,7 +67,7 @@ abstract class CollectionPropertyEditor<out ModelPropertyT : ModelCollectionProp
   override val component: JPanel = JPanel(BorderLayout()).apply {
     isFocusable = false
   }
-  val statusComponent: JComponent? = null
+  open val statusComponent: JComponent? = null
 
   private var beingLoaded = false
   protected var tableModel: DefaultTableModel? = null; private set

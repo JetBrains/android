@@ -49,6 +49,8 @@ class MapPropertyEditor<ValueT : Any, ModelPropertyT : ModelMapPropertyCore<Valu
     loadValue()
   }
 
+  override val statusComponent: SimpleColoredComponent = SimpleColoredComponent()
+
   override fun updateProperty() = throw UnsupportedOperationException()
 
   override fun reload() = loadValue()
