@@ -685,7 +685,9 @@
           "multi-preview.svg": "studio/icons/shell/tool-windows/multi-preview.svg",
           "palette.svg": "studio/icons/shell/tool-windows/palette.svg",
           "structure.svg": "studio/icons/shell/tool-windows/structure.svg",
-          "visual-assets.svg": "studio/icons/shell/tool-windows/visual-assets.svg"
+          "visual-assets.svg": "studio/icons/shell/tool-windows/visual-assets.svg",
+          "agp-upgrade-assistant.svg": "studio/icons/shell/tool-windows/agp-upgrade-assistant.svg",
+          "app-links-assistant.svg": "studio/icons/shell/tool-windows/app-links-assistant.svg"
         },
         "toolbar": {
           "apply-all-changes.svg": "studio/icons/shell/toolbar/apply-all-changes.svg",
