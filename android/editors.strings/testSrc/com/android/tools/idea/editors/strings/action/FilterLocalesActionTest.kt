@@ -26,7 +26,6 @@ import com.android.tools.idea.editors.strings.table.StringResourceTable
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
 import com.android.tools.idea.editors.strings.table.filter.LocaleColumnFilter
 import com.android.tools.idea.editors.strings.table.filter.StringResourceTableColumnFilter
-import com.android.tools.idea.rendering.FlagManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
@@ -181,23 +180,23 @@ class FilterLocalesActionTest {
 
     var selectedAction = popup.actions[1]
     assertThat(selectedAction.templateText).isEqualTo("Show Arabic (ar)")
-    assertThat(selectedAction.templatePresentation.icon).isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
+    assertThat(selectedAction.templatePresentation.icon).isNull()
 
     selectedAction.actionPerformed(event)
 
     assertThat(columnFilter).isInstanceOf(LocaleColumnFilter::class.java)
     assertThat(columnFilter!!.getDescription()).isEqualTo("Arabic (ar)")
-    assertThat(columnFilter!!.getIcon()).isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
+    assertThat(columnFilter!!.getIcon()).isNull()
 
     selectedAction = popup.actions[2]
     assertThat(selectedAction.templateText).isEqualTo("Show Spanish (es) in United States (US)")
-    assertThat(selectedAction.templatePresentation.icon).isEqualTo(FlagManager.getFlagImage(US_SPANISH_LOCALE))
+    assertThat(selectedAction.templatePresentation.icon).isNull()
 
     selectedAction.actionPerformed(event)
 
     assertThat(columnFilter).isInstanceOf(LocaleColumnFilter::class.java)
     assertThat(columnFilter!!.getDescription()).isEqualTo("Spanish (es) in United States (US)")
-    assertThat(columnFilter!!.getIcon()).isEqualTo(FlagManager.getFlagImage(US_SPANISH_LOCALE))
+    assertThat(columnFilter!!.getIcon()).isNull()
   }
 
   companion object {

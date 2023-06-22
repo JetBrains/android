@@ -23,7 +23,6 @@ import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationsRowF
 import com.android.tools.idea.editors.strings.table.filter.StringResourceTableRowFilter
 import com.android.tools.idea.editors.strings.table.filter.TextRowFilter
 import com.android.tools.idea.editors.strings.table.filter.TranslatableRowFilter
-import com.android.tools.idea.rendering.FlagManager
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -31,7 +30,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction
 import com.intellij.openapi.ui.DialogBuilder
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JTextField
 
@@ -93,7 +91,7 @@ class FilterKeysAction : ComboBoxAction() {
      */
     private fun newShowKeysNeedingTranslationForLocaleAction(locale: Locale): PanelAction {
       val text = "Show Keys Needing a Translation for ${Locale.getLocaleLabel(locale, /* brief= */false)}"
-      return rowFilterUpdatingAction(text, icon = FlagManager.getFlagImage(locale)) {
+      return rowFilterUpdatingAction(text) {
         NeedsTranslationForLocaleRowFilter(locale)
       }
     }
@@ -102,10 +100,9 @@ class FilterKeysAction : ComboBoxAction() {
     private fun rowFilterUpdatingAction(
         text: String,
         description: String? = null,
-        icon: Icon? = null,
         rowFilterSupplier: () -> StringResourceTableRowFilter?
     ) =
-        object : PanelAction(text, description, icon) {
+        object : PanelAction(text, description) {
           override fun doUpdate(event: AnActionEvent): Boolean = true
           override fun actionPerformed(event: AnActionEvent) {
             event.panel.table.rowFilter = rowFilterSupplier.invoke()

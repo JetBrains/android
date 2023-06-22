@@ -16,7 +16,6 @@
 package com.android.tools.idea.editors.strings.table.filter
 
 import com.android.ide.common.resources.Locale
-import com.android.tools.idea.rendering.FlagManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -41,9 +40,8 @@ class LocaleColumnFilterTest {
 
   @Test
   fun getIcon() {
-    assertThat(localeColumnFilterAr.getIcon()).isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
-    assertThat(localeColumnFilterEs.getIcon())
-        .isEqualTo(FlagManager.getFlagImage(US_SPANISH_LOCALE))
+    assertThat(localeColumnFilterAr.getIcon()).isNull()
+    assertThat(localeColumnFilterEs.getIcon()).isNull()
   }
 
   @Test

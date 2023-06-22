@@ -32,7 +32,6 @@ import com.android.tools.idea.editors.strings.table.filter.NeedsTranslationsRowF
 import com.android.tools.idea.editors.strings.table.filter.StringResourceTableRowFilter
 import com.android.tools.idea.editors.strings.table.filter.TextRowFilter
 import com.android.tools.idea.editors.strings.table.filter.TranslatableRowFilter
-import com.android.tools.idea.rendering.FlagManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
@@ -280,23 +279,23 @@ class FilterKeysActionTest {
 
     var selectedAction = popup.actions[4]
     assertThat(selectedAction.templateText).isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
-    assertThat(selectedAction.templatePresentation.icon).isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
+    assertThat(selectedAction.templatePresentation.icon).isNull()
 
     selectedAction.actionPerformed(event)
 
     assertThat(rowFilter).isInstanceOf(NeedsTranslationForLocaleRowFilter::class.java)
     assertThat(rowFilter!!.getDescription()).isEqualTo("Show Keys Needing a Translation for Arabic (ar)")
-    assertThat(rowFilter!!.getIcon()).isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
+    assertThat(rowFilter!!.getIcon()).isNull()
 
     selectedAction = popup.actions[5]
     assertThat(selectedAction.templateText).isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
-    assertThat(selectedAction.templatePresentation.icon).isEqualTo(FlagManager.getFlagImage(US_SPANISH_LOCALE))
+    assertThat(selectedAction.templatePresentation.icon).isNull()
 
     selectedAction.actionPerformed(event)
 
     assertThat(rowFilter).isInstanceOf(NeedsTranslationForLocaleRowFilter::class.java)
     assertThat(rowFilter!!.getDescription()).isEqualTo("Show Keys Needing a Translation for Spanish (es) in United States (US)")
-    assertThat(rowFilter!!.getIcon()).isEqualTo(FlagManager.getFlagImage(US_SPANISH_LOCALE))
+    assertThat(rowFilter!!.getIcon()).isNull()
   }
 
   companion object {

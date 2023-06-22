@@ -20,7 +20,6 @@ import com.android.ide.common.resources.LocaleManager
 import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.tools.idea.editors.strings.StringResourceData
 import com.android.tools.idea.editors.strings.model.StringResourceKey
-import com.android.tools.idea.rendering.FlagManager
 import com.android.tools.idea.res.StringResourceWriter
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ui.popup.JBPopupFactory

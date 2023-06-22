@@ -30,6 +30,4 @@ class NeedsTranslationForLocaleRowFilter(private val locale: Locale) :
 
   override fun getDescription(): String =
       "Show Keys Needing a Translation for ${Locale.getLocaleLabel(locale, /* brief= */false)}"
-
-  override fun getIcon(): Icon = FlagManager.getFlagImage(locale)
 }

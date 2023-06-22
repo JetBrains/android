@@ -20,7 +20,6 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResource
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel
-import com.android.tools.idea.rendering.FlagManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -62,10 +61,8 @@ class NeedsTranslationForLocaleRowFilterTest {
 
   @Test
   fun getIcon() {
-    assertThat(needsTranslationForLocaleRowFilterAr.getIcon())
-        .isEqualTo(FlagManager.getFlagImage(ARABIC_LOCALE))
-    assertThat(needsTranslationForLocaleRowFilterEs.getIcon())
-        .isEqualTo(FlagManager.getFlagImage(US_SPANISH_LOCALE))
+    assertThat(needsTranslationForLocaleRowFilterAr.getIcon()).isNull()
+    assertThat(needsTranslationForLocaleRowFilterEs.getIcon()).isNull()
   }
 
   @Test
