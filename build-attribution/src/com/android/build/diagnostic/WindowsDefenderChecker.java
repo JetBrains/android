@@ -61,17 +61,13 @@ import static java.util.Objects.requireNonNull;
  */
 @SuppressWarnings("MethodMayBeStatic")
 public class WindowsDefenderChecker {
-  private static final Logger LOG = Logger.getInstance(com.intellij.diagnostic.WindowsDefenderChecker.class);
+  private static final Logger LOG = Logger.getInstance(WindowsDefenderChecker.class);
 
   private static final String IGNORE_STATUS_CHECK = "ignore.virus.scanning.warn.message";
   private static final String HELPER_SCRIPT_NAME = "defender-exclusions.ps1";
   private static final String SIG_MARKER = "# SIG # Begin signature block";
   private static final int WMIC_COMMAND_TIMEOUT_MS = 10_000, POWERSHELL_COMMAND_TIMEOUT_MS = 30_000;
   private static final ExtensionPointName<com.intellij.diagnostic.WindowsDefenderChecker.Extension> EP_NAME = ExtensionPointName.create("com.intellij.defender.config");
-
-  public interface Extension {
-    @NotNull Collection<Path> getPaths(@NotNull Project project);
-  }
 
   public static WindowsDefenderChecker getInstance() {
     return ApplicationManager.getApplication().getService(WindowsDefenderChecker.class);
@@ -98,7 +94,7 @@ public class WindowsDefenderChecker {
            PropertiesComponent.getInstance(project).isTrueValue(IGNORE_STATUS_CHECK);
   }
 
-  public final void ignoreStatusCheck(@Nullable Project project, boolean ignore) {
+  final void ignoreStatusCheck(@Nullable Project project, boolean ignore) {
     var component = project == null ? PropertiesComponent.getInstance() : PropertiesComponent.getInstance(project);
     if (ignore) {
       component.setValue(IGNORE_STATUS_CHECK, true);
@@ -160,14 +156,14 @@ public class WindowsDefenderChecker {
     }
   }
 
-  public final boolean canRunScript() {
+  final boolean canRunScript() {
     return myHelper.getValue() != null;
   }
 
   private enum AntivirusProduct {DisplayName, ProductState}
   private enum MpComputerStatus {RealTimeProtectionEnabled}
 
-  public final @NotNull List<Path> getImportantPaths(@NotNull Project project) {
+  final @NotNull List<Path> getImportantPaths(@NotNull Project project) {
     var paths = new TreeSet<Path>();
 
     var projectDir = ProjectUtil.guessProjectDir(project);
@@ -184,7 +180,7 @@ public class WindowsDefenderChecker {
     return new ArrayList<>(paths);
   }
 
-  public final boolean excludeProjectPaths(@NotNull List<Path> paths) {
+  final boolean excludeProjectPaths(@NotNull List<Path> paths) {
     try {
       var script = requireNonNull(myHelper.getValue(), "missing/dysfunctional helper");
 
