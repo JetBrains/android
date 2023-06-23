@@ -883,6 +883,14 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region Streaming
+  private static final FlagGroup STREAMING = new FlagGroup(FLAGS, "streaming", "Streaming");
+  public static final Flag<Boolean> STREAMING_INPUT_FORWARDING_BUTTON = Flag.create(
+    STREAMING, "input.forwarding.button", "Show Input Forwarding Button",
+    "Shows the input forwarding button on the running device toolbar", false);
+
+  //endregion
+
   //region Embedded Emulator
   private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
   public static final Flag<Boolean> EMBEDDED_EMULATOR_SCREENSHOT_STATISTICS = Flag.create(
