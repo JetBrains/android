@@ -21,14 +21,18 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
+import com.android.tools.idea.insights.AppInsightsState
+import com.android.tools.idea.insights.CancellableTimeoutException
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.NoDevicesSelectedException
 import com.android.tools.idea.insights.NoOperatingSystemsSelectedException
 import com.android.tools.idea.insights.NoTypesSelectedException
 import com.android.tools.idea.insights.NoVersionsSelectedException
+import com.android.tools.idea.insights.RevertibleException
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.TableSpeedSearch
@@ -37,11 +41,10 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.table.TableView
 import com.intellij.util.containers.Convertor
 import com.intellij.util.ui.StartupUiUtil
+import com.intellij.util.ui.TimerUtil
 import com.intellij.util.ui.UIUtil
-import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JComponent
-import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 import javax.swing.UIManager
 import javax.swing.event.ListSelectionListener
@@ -53,9 +56,8 @@ import org.jetbrains.annotations.TestOnly
 
 class AppInsightsIssuesTableView(
   model: AppInsightsIssuesTableModel,
-  controller: AppInsightsProjectLevelController,
-  private val renderer: AppInsightsTableCellRenderer,
-  private val handleException: (LoadingState.Failure) -> Boolean = { false }
+  private val controller: AppInsightsProjectLevelController,
+  private val renderer: AppInsightsTableCellRenderer
 ) : Disposable {
   val component: JComponent
   private val speedSearch: TableSpeedSearch
@@ -67,8 +69,7 @@ class AppInsightsIssuesTableView(
   private val scope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
 
   init {
-    val containerPanel = JPanel(TabularLayout("*", "Fit,*"))
-    loadingPanel = JBLoadingPanel(BorderLayout(), this)
+    loadingPanel = JBLoadingPanel(TabularLayout("*", "Fit,*"), this)
     table = IssuesTableView(model)
     speedSearch =
       TableSpeedSearch(
@@ -77,8 +78,8 @@ class AppInsightsIssuesTableView(
       )
     tableHeader = table.tableHeader
     tableHeader.reorderingAllowed = false
-    containerPanel.add(table.tableHeader, TabularLayout.Constraint(0, 0))
-    containerPanel.add(
+    loadingPanel.add(table.tableHeader, TabularLayout.Constraint(0, 0))
+    loadingPanel.add(
       ScrollPaneFactory.createScrollPane(table, true),
       TabularLayout.Constraint(1, 0)
     )
@@ -88,7 +89,6 @@ class AppInsightsIssuesTableView(
       }
     }
     table.selectionModel.addListSelectionListener(changeListener)
-    loadingPanel.add(containerPanel)
     loadingPanel.setLoadingText("Loading")
     loadingPanel.startLoading()
     loadingPanel.minimumSize = Dimension(JBUIScale.scale(90), 0)
@@ -170,7 +170,7 @@ class AppInsightsIssuesTableView(
               loadingPanel.stopLoading()
             }
             is LoadingState.Failure -> {
-              when (val cause = issues.cause) {
+              when (issues.cause) {
                 is NoTypesSelectedException -> {
                   table.tableEmptyText.apply {
                     clear()
@@ -218,15 +218,16 @@ class AppInsightsIssuesTableView(
                     )
                   }
                 }
+                is RevertibleException -> {
+                  handleRevertibleException(issues)
+                }
                 else -> {
-                  if (!handleException(issues)) {
-                    table.tableEmptyText.apply {
-                      clear()
-                      appendText(
-                        issues.message ?: "An unknown failure occurred",
-                        EMPTY_STATE_TITLE_FORMAT
-                      )
-                    }
+                  table.tableEmptyText.apply {
+                    clear()
+                    appendText(
+                      issues.message ?: "An unknown failure occurred",
+                      EMPTY_STATE_TITLE_FORMAT
+                    )
                   }
                 }
               }
@@ -256,13 +257,26 @@ class AppInsightsIssuesTableView(
 
   inner class IssuesTableView(model: AppInsightsIssuesTableModel) :
     TableView<AppInsightsIssue>(model) {
-    val tableEmptyText = AppInsightsStatusText(this) { isEmpty && !loadingPanel.isLoading }
+    val tableEmptyText =
+      AppInsightsStatusText(this) { (isEmpty && !loadingPanel.isLoading).also { updateTimer(it) } }
+
+    // This is required to force the spinner icon to animate in the status text.
+    private val repaintTimer =
+      TimerUtil.createNamedTimer("AppInsightsIssuesTableView", 10) { repaint() }
 
     init {
       selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
       setShowGrid(false)
       isFocusable = true
       background = primaryContentBackground
+    }
+
+    private fun updateTimer(isEmptyTextVisible: Boolean) {
+      if (isEmptyTextVisible && tableEmptyText.component.icon is AnimatedIcon) {
+        repaintTimer.restart()
+      } else {
+        repaintTimer.stop()
+      }
     }
 
     override fun getEmptyText() = tableEmptyText
@@ -284,6 +298,45 @@ class AppInsightsIssuesTableView(
     }
 
     @TestOnly fun isLoading() = loadingPanel.isLoading
+  }
+
+  /** Returns true if loading should be stopped. */
+  private fun handleRevertibleException(failure: LoadingState.Failure) {
+    val cause = failure.cause as RevertibleException
+    when (val revertibleCause = cause.cause) {
+      is CancellableTimeoutException -> {
+        table.tableEmptyText.apply {
+          clear()
+          appendLine(
+            AnimatedIcon.Default(),
+            "Fetching issues is taking longer than expected.",
+            EMPTY_STATE_TITLE_FORMAT,
+            null
+          )
+          appendSecondaryText("You can wait, ", EMPTY_STATE_TEXT_FORMAT, null)
+          appendSecondaryText("retry", EMPTY_STATE_LINK_FORMAT) { controller.refresh() }
+          appendSecondaryText(" or ", EMPTY_STATE_TEXT_FORMAT, null)
+          appendSecondaryText("enter offline mode", EMPTY_STATE_LINK_FORMAT) {
+            controller.enterOfflineMode()
+          }
+          appendSecondaryText(" to see cached data.", EMPTY_STATE_TEXT_FORMAT, null)
+        }
+      }
+      else -> {
+        table.tableEmptyText.apply {
+          clear()
+          appendText(
+            failure.message ?: revertibleCause?.message ?: "An unknown failure occurred",
+            EMPTY_STATE_TITLE_FORMAT
+          )
+          if (cause.snapshot != null) {
+            appendSecondaryText("Go Back", EMPTY_STATE_LINK_FORMAT) {
+              controller.revertToSnapshot(cause.snapshot as AppInsightsState)
+            }
+          }
+        }
+      }
+    }
   }
 
   companion object {

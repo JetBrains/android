@@ -18,10 +18,6 @@ package com.android.tools.idea.insights.ui
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.CancellableTimeoutException
-import com.android.tools.idea.insights.LoadingState
-import com.android.tools.idea.insights.RevertibleException
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ThreeComponentsSplitter
@@ -33,7 +29,7 @@ import java.lang.Integer.min
 import javax.swing.JPanel
 
 class AppInsightsContentPanel(
-  private val projectController: AppInsightsProjectLevelController,
+  projectController: AppInsightsProjectLevelController,
   project: Project,
   parentDisposable: Disposable,
   cellRenderer: AppInsightsTableCellRenderer,
@@ -45,13 +41,7 @@ class AppInsightsContentPanel(
   init {
     Disposer.register(parentDisposable, this)
     val issuesModel = AppInsightsIssuesTableModel(cellRenderer)
-    issuesTableView =
-      AppInsightsIssuesTableView(
-        issuesModel,
-        projectController,
-        cellRenderer,
-        this::handleException
-      )
+    issuesTableView = AppInsightsIssuesTableView(issuesModel, projectController, cellRenderer)
     Disposer.register(this, issuesTableView)
     val mainContentPanel = JPanel(BorderLayout())
     mainContentPanel.add(createCenterPanel(issuesTableView::setHeaderHeight))
@@ -70,44 +60,6 @@ class AppInsightsContentPanel(
     workBench.init(splitter, AppInsightsToolWindowContext(), secondaryToolWindows, false)
 
     add(workBench)
-  }
-
-  private fun handleException(failure: LoadingState.Failure): Boolean {
-    val cause = failure.cause
-    if (cause is RevertibleException) {
-      when (val revertibleCause = cause.cause) {
-        is CancellableTimeoutException -> {
-          // TODO: Add loading spinner
-          issuesTableView.table.tableEmptyText.apply {
-            clear()
-            appendText("Fetching issues is taking longer than expected.", EMPTY_STATE_TITLE_FORMAT)
-            appendSecondaryText("You can wait, ", EMPTY_STATE_TEXT_FORMAT, null)
-            appendSecondaryText("retry", EMPTY_STATE_LINK_FORMAT) { projectController.refresh() }
-            appendSecondaryText(" or ", EMPTY_STATE_TEXT_FORMAT, null)
-            appendSecondaryText("enter offline mode", EMPTY_STATE_LINK_FORMAT) {
-              projectController.enterOfflineMode()
-            }
-            appendSecondaryText(" to see cached data.", EMPTY_STATE_TEXT_FORMAT, null)
-          }
-        }
-        else -> {
-          issuesTableView.table.tableEmptyText.apply {
-            clear()
-            appendText(
-              failure.message ?: revertibleCause?.message ?: "An unknown failure occurred",
-              EMPTY_STATE_TITLE_FORMAT
-            )
-            if (cause.snapshot != null) {
-              appendSecondaryText("Go Back", EMPTY_STATE_LINK_FORMAT) {
-                projectController.revertToSnapshot(cause.snapshot as AppInsightsState)
-              }
-            }
-          }
-        }
-      }
-      return true
-    }
-    return false
   }
 
   override fun dispose() = Unit
