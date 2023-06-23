@@ -28,54 +28,56 @@ final class Definitions {
 
   @NotNull
   static Device mockPhone() {
-    return mockDefinition(null, mockHardware(0));
+    return mockDefinition(null, mockHardware(0), "Pixel Fold", "pixel_fold");
   }
 
   @NotNull
   static Device mockTablet() {
-    return mockDefinition(null, mockHardware(10.055));
+    return mockDefinition(null, mockHardware(10.055), "Pixel Tablet", "pixel_tablet");
   }
 
   @NotNull
   static Device mockWearOsDefinition() {
-    return mockDefinition("android-wear", mockHardware(0));
+    return mockDefinition("android-wear", mockHardware(0), "Wear OS Square", "wearos_square");
   }
 
   @NotNull
   static Device mockDesktop() {
-    return mockDefinition("android-desktop", null);
+    return mockDefinition("android-desktop", null, "Medium Desktop", "desktop_medium");
   }
 
   @NotNull
   static Device mockTv() {
-    return mockDefinition("android-tv", mockHardware(0));
+    return mockDefinition("android-tv", mockHardware(0), "Television (1080p)", "tv_1080p");
   }
 
   @NotNull
   static Device mockAutomotiveDefinition() {
-    return mockDefinition("android-automotive", mockHardware(0));
+    return mockDefinition("android-automotive", mockHardware(0), "Automotive (1024p landscape)", "automotive_1024p_landscape");
   }
 
   @NotNull
   static Device mockLegacyDefinition() {
-    var definition = mockDefinition(null, null);
+    var definition = mockDefinition(null, null, "Nexus S", "Nexus S");
     Mockito.when(definition.getIsDeprecated()).thenReturn(true);
 
     return definition;
   }
 
   @NotNull
-  private static Device mockDefinition(@Nullable String id, @Nullable Hardware hardware) {
+  static Device mockDefinition(@Nullable String tagId, @Nullable Hardware hardware, @NotNull String name, @NotNull String id) {
     var definition = Mockito.mock(Device.class);
 
-    Mockito.when(definition.getTagId()).thenReturn(id);
+    Mockito.when(definition.getTagId()).thenReturn(tagId);
     Mockito.when(definition.getDefaultHardware()).thenReturn(hardware);
+    Mockito.when(definition.getDisplayName()).thenReturn(name);
+    Mockito.when(definition.getId()).thenReturn(id);
 
     return definition;
   }
 
   @NotNull
-  private static Hardware mockHardware(double length) {
+  static Hardware mockHardware(double length) {
     var screen = Mockito.mock(Screen.class);
     Mockito.when(screen.getDiagonalLength()).thenReturn(length);
 

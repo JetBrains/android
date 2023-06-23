@@ -22,19 +22,17 @@ import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 enum Category {
-  PHONE("Phone", "Pixel Fold", definition ->
+  PHONE("Phone", "pixel_fold", definition ->
     !definition.getIsDeprecated() && definition.getTagId() == null && !hasTabletScreen(definition)),
 
-  TABLET("Tablet", "Pixel Tablet", definition ->
+  TABLET("Tablet", "pixel_tablet", definition ->
     !definition.getIsDeprecated() && definition.getTagId() == null && hasTabletScreen(definition)),
 
-  WEAR_OS("Wear OS", "Wear OS Square", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isWear(definition)),
-  DESKTOP("Desktop", "Medium Desktop", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isDesktop(definition)),
+  WEAR_OS("Wear OS", "wearos_square", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isWear(definition)),
+  DESKTOP("Desktop", "desktop_medium", definition -> !definition.getIsDeprecated() && HardwareConfigHelper.isDesktop(definition)),
+  TV("TV", "tv_1080p", definition -> !definition.getIsDeprecated() && (HardwareConfigHelper.isTv(definition) || hasTvScreen(definition))),
 
-  TV("TV", "Television (1080p)", definition ->
-    !definition.getIsDeprecated() && (HardwareConfigHelper.isTv(definition) || hasTvScreen(definition))),
-
-  AUTOMOTIVE("Automotive", "Automotive (1024p landscape)", definition ->
+  AUTOMOTIVE("Automotive", "automotive_1024p_landscape", definition ->
     !definition.getIsDeprecated() && HardwareConfigHelper.isAutomotive(definition)),
 
   LEGACY("Legacy", "Nexus S", Device::getIsDeprecated);
@@ -43,7 +41,7 @@ enum Category {
   private final String myName;
 
   @NotNull
-  private final String myDefaultDefinitionName;
+  private final String myDefaultDefinitionId;
 
   @NotNull
   private final Predicate<Device> myPredicate;
@@ -57,15 +55,15 @@ enum Category {
     return definition.getDefaultHardware().getScreen().getDiagonalLength() >= Device.MINIMUM_TV_SIZE;
   }
 
-  Category(@NotNull String name, @NotNull String defaultDefinitionName, @NotNull Predicate<Device> predicate) {
+  Category(@NotNull String name, @NotNull String defaultDefinitionId, @NotNull Predicate<Device> predicate) {
     myName = name;
-    myDefaultDefinitionName = defaultDefinitionName;
+    myDefaultDefinitionId = defaultDefinitionId;
     myPredicate = predicate;
   }
 
   @NotNull
-  final String getDefaultDefinitionName() {
-    return myDefaultDefinitionName;
+  final String getDefaultDefinitionId() {
+    return myDefaultDefinitionId;
   }
 
   @NotNull

@@ -17,6 +17,7 @@ package com.android.tools.idea.avdmanager;
 
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
@@ -97,10 +98,21 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private final List<DeviceDefinitionSelectionListener> myListeners = new ArrayList<>();
   private final List<DeviceCategorySelectionListener> myCategoryListeners = new ArrayList<>();
   private Collection<Device> myDevices;
+
+  @NotNull
+  private final DeviceSupplier mySupplier;
+
   private Device myDefaultDevice;
 
-  public DeviceDefinitionList() {
+  @SuppressWarnings("unused")
+  DeviceDefinitionList() {
+    this(new DeviceSupplier());
+  }
+
+  @VisibleForTesting
+  DeviceDefinitionList(@NotNull DeviceSupplier supplier) {
     super(new BorderLayout());
+    mySupplier = supplier;
 
     refreshDeviceProfiles();
     setDefaultDevices();
@@ -143,10 +155,10 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
 
   @NotNull
   private Device getDefaultDefinition(@NotNull Category category) {
-    var definition = category.getDefaultDefinitionName();
+    var id = category.getDefaultDefinitionId();
 
     return myCategoryToDefinitionMultimap.get(category).stream()
-      .filter(d -> d.getDisplayName().equals(definition))
+      .filter(definition -> definition.getId().equals(id))
       .findFirst()
       .orElseThrow();
   }
@@ -270,7 +282,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void refreshDeviceProfiles() {
-    myDevices = new DeviceSupplier().get();
+    myDevices = mySupplier.get();
 
     myCategoryToDefinitionMultimap = myDevices.stream()
       .collect(Multimaps.toMultimap(Category::valueOfDefinition,
