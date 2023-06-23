@@ -204,15 +204,12 @@ private object CompileScopeImpl : CompileScope {
       }
     }
 
-    val useComposeIR = LiveEditAdvancedConfiguration.getInstance().useEmbeddedCompiler
-    if (useComposeIR) {
-      // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
-      compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
+    // Not 100% sure what causes the issue but not seeing this in the IR backend causes exceptions.
+    compilerConfiguration.put(JVMConfigurationKeys.DO_NOT_CLEAR_BINDING_CONTEXT, true)
 
-      // We don't support INVOKE_DYNAMIC in the interpreter at the moment.
-      compilerConfiguration.put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
-      compilerConfiguration.put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
-    }
+    // We don't support INVOKE_DYNAMIC in the interpreter at the moment.
+    compilerConfiguration.put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
+    compilerConfiguration.put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
 
     val generationStateBuilder = GenerationState.Builder(project,
                                                          ClassBuilderFactories.BINARIES,
@@ -221,20 +218,18 @@ private object CompileScopeImpl : CompileScope {
                                                          input,
                                                          compilerConfiguration)
 
-    if (useComposeIR) {
-      generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
-        compilerConfiguration,
-        PhaseConfig(org.jetbrains.kotlin.backend.jvm.jvmPhases),
-        jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
-          override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
-            val psiSourceFile =
-              descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
-            return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
-          }
+    generationStateBuilder.codegenFactory(JvmIrCodegenFactory(
+      compilerConfiguration,
+      PhaseConfig(org.jetbrains.kotlin.backend.jvm.jvmPhases),
+      jvmGeneratorExtensions = object : JvmGeneratorExtensionsImpl(compilerConfiguration) {
+        override fun getContainerSource(descriptor: DeclarationDescriptor): DeserializedContainerSource? {
+          val psiSourceFile =
+            descriptor.toSourceElement.containingFile as? PsiSourceFile ?: return super.getContainerSource(descriptor)
+          return FacadeClassSourceShimForFragmentCompilation(psiSourceFile)
+        }
         },
-        ideCodegenSettings = JvmIrCodegenFactory.IdeCodegenSettings(shouldStubAndNotLinkUnboundSymbols = true),
-      ))
-    }
+      ideCodegenSettings = JvmIrCodegenFactory.IdeCodegenSettings(shouldStubAndNotLinkUnboundSymbols = true),
+    ))
 
     val generationState = generationStateBuilder.build()
     inlineClassRequest?.forEach {

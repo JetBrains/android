@@ -37,11 +37,6 @@ class LiveEditAdvancedSettingsConfigurable : BoundSearchableConfigurable(
     // https://plugins.jetbrains.com/docs/intellij/kotlin-ui-dsl-version-2.html
     return panel {
       row {
-        checkBox(AndroidBundle.message("live.edit.configurable.enable.embedded.compiler"))
-          .bindSelected(liveEditSettings::useEmbeddedCompiler)
-          .comment(AndroidBundle.message("live.edit.configurable.enable.embedded.compiler.comment"))
-      }
-      row {
         checkBox(AndroidBundle.message("live.edit.configurable.enable.debug.mode"))
           .bindSelected(liveEditSettings::useDebugMode)
           .comment(AndroidBundle.message("live.edit.configurable.enable.debug.mode.comment"))
