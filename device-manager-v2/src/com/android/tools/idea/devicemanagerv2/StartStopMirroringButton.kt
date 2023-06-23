@@ -59,14 +59,17 @@ internal class StartStopMirroringButton(
     when {
       mirroringHandle == null -> {
         isVisible = false
+        toolTipText = null
         baseIcon = EmptyIcon.ICON_16
       }
       mirroringHandle.mirroringState == MirroringState.INACTIVE -> {
         isVisible = true
+        toolTipText = "Start Mirroring"
         baseIcon = START_MIRRORING_ICON
       }
       mirroringHandle.mirroringState == MirroringState.ACTIVE -> {
         isVisible = true
+        toolTipText = "Stop Mirroring"
         baseIcon = STOP_MIRRORING_ICON
       }
     }
