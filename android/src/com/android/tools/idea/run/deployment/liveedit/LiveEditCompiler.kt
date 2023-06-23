@@ -230,11 +230,7 @@ class LiveEditCompiler(val project: Project) {
           if (desc.hasComposableAnnotation()) {
             // When a Composable is a lambda, we actually need to take into account of all the parent groups of that Composable
             val parentGroup = input.parentGroups.takeIf { element !is KtNamedFunction }
-            val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose) {
-              getGroupKey(compilerOutput, element, parentGroup)
-            } else {
-              null
-            }
+            val group = getGroupKey(compilerOutput, element, parentGroup)
             group?.let { output.addGroupId(group) }
           } else {
             output.resetState = true

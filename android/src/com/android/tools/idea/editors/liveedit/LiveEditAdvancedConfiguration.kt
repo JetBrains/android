@@ -29,7 +29,6 @@ class LiveEditAdvancedConfiguration : SimplePersistentStateComponent<LiveEditAdv
     var useEmbeddedCompiler by property(true)
     var useDebugMode by property(false)
     var useInlineAnalysis by property(true)
-    var usePartialRecompose by property(true)
     var refreshRateMs by property(MIN_REFRESH_RATE_MS)
   }
 
@@ -49,12 +48,6 @@ class LiveEditAdvancedConfiguration : SimplePersistentStateComponent<LiveEditAdv
     get() = state.useInlineAnalysis
     set(value) {
       state.useInlineAnalysis= value
-    }
-
-  var usePartialRecompose
-    get() = state.usePartialRecompose
-    set(value) {
-      state.usePartialRecompose= value
     }
 
   var refreshRateMs

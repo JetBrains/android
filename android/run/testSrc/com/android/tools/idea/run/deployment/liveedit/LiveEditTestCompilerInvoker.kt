@@ -31,8 +31,6 @@ internal fun compile(file: PsiFile, function: KtNamedFunction) =
   compile(listOf(LiveEditCompilerInput(file, function)))
 
 internal fun compile(inputs: List<LiveEditCompilerInput>) : LiveEditCompilerOutput {
-  LiveEditAdvancedConfiguration.getInstance().usePartialRecompose = true
-
   // The real Live Edit / Fast Preview has a retry system should the compilation got cancelled.
   // We are going to use a simplified version of that here and continue to try until
   // compilation succeeds.

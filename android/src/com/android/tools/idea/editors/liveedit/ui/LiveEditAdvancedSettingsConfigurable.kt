@@ -51,11 +51,6 @@ class LiveEditAdvancedSettingsConfigurable : BoundSearchableConfigurable(
           .bindSelected(liveEditSettings::useInlineAnalysis)
           .comment(AndroidBundle.message("live.edit.configurable.enable.inline.analysis.comment"))
       }
-      row {
-        checkBox(AndroidBundle.message("live.edit.configurable.enable.partial.recompose"))
-          .bindSelected(liveEditSettings::usePartialRecompose)
-          .comment(AndroidBundle.message("live.edit.configurable.enable.partial.recompose.comment"))
-      }
       row(AndroidBundle.message("live.edit.configurable.refresh.rate")) {
         intTextField(LiveEditAdvancedConfiguration.REFRESH_RATE_RANGE)
           .bindIntText(liveEditSettings::refreshRateMs)

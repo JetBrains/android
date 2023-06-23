@@ -123,15 +123,6 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
       val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.FIELD_CHANGES)
       handleEvent(event)
     }
-
-    // This is a workaround to experiment with partial recomposition. Right now any simple edit would create multiple
-    // edit events and one of them is usually a spurious whole file event that will trigger an unnecessary whole recompose.
-    // For now we just ignore that event until Live Edit becomes better at diff'ing changes.
-    if (!LiveEditAdvancedConfiguration.getInstance().usePartialRecompose) {
-      // If there's no Kotlin construct to use as a parent for this event, use the KtFile itself as the parent.
-      val event = EditEvent(file, file)
-      handleEvent(event)
-    }
   }
 
   private fun handleEvent(event: EditEvent) {

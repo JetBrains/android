@@ -613,7 +613,6 @@ public class LiveEditProjectMonitor implements Disposable {
 
     boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
     boolean resetState = update.resetState();
-    boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() && !resetState;
 
     int apiLevel = liveEditDevices.getInfo(device).getApp().getMinAPI();
     LiveUpdateDeployer.UpdateLiveEditsParam param =
@@ -621,7 +620,7 @@ public class LiveEditProjectMonitor implements Disposable {
         update.classes(apiLevel),
         update.supportClasses(apiLevel),
         update.groupIds(),
-        usePartialRecompose,
+        !resetState,
         useDebugMode);
 
     LiveUpdateDeployer.UpdateLiveEditResult result = deployer.updateLiveEdit(installer, adb, applicationId, param);
