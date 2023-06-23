@@ -94,7 +94,7 @@ class GradleJdkPathEditComboBox(
   }
 
   fun resetSelection() {
-    jdkComboBox.selectedItem = initialSelectionJdkPath
+    jdkComboBox.editor.item = initialSelectionJdkPath
   }
 
   @VisibleForTesting
@@ -149,7 +149,7 @@ class GradleJdkPathEditComboBox(
       AndroidBundle.message("gradle.settings.jdk.browse.button.tooltip.text")
     ) {
       SdkConfigurationUtil.selectSdkHome(JavaSdk.getInstance()) { jdkPath ->
-        jdkComboBox.selectedItem = jdkPath
+        jdkComboBox.editor.item = jdkPath
       }
     }
   }
