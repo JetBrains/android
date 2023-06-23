@@ -24,6 +24,7 @@ import com.android.tools.idea.testartifacts.createGradleConfigurationFromPsiElem
 import com.android.tools.idea.testartifacts.getPsiElement
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.TestProjectPaths.ANDROID_KOTLIN_MULTIPLATFORM
 import com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION_WITH_DUPLICATES
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN
 import com.android.tools.idea.testing.TestProjectPaths.TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM
@@ -242,6 +243,51 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
       }
 
     assertThat(needToRebuild).isFalse()
+  }
+
+  fun testKotlinMultiplatformUnitTestRunConfigurationFromDirectory() {
+    loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
+    val configuration = createAndroidGradleConfigurationFromDirectory(project, "kmpFirstLib/src/androidUnitTest")
+    assertThat(configuration).isNotNull()
+    assertThat(configuration!!.settings.taskNames).containsExactly(
+      ":kmpFirstLib:cleanTestAndroidUnitTest",
+      ":kmpFirstLib:testAndroidUnitTest",
+    )
+  }
+
+  fun testKotlinMultiplatformUnitTestRunConfigurationFromClass() {
+    loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
+    val configuration = createAndroidGradleTestConfigurationFromClass(project, "com.example.kmpfirstlib.KmpAndroidFirstLibClassTest")
+    assertThat(configuration).isNotNull()
+    assertThat(configuration!!.settings.taskNames).containsExactly(
+      ":kmpFirstLib:cleanTestAndroidUnitTest",
+      ":kmpFirstLib:testAndroidUnitTest",
+      "--tests", "\"com.example.kmpfirstlib.KmpAndroidFirstLibClassTest\""
+    )
+  }
+
+  fun testKotlinMultiplatformUnitTestRunConfigurationFromMethod() {
+    loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
+    val psiMethod = myFixture.findClass("com.example.kmpfirstlib.KmpAndroidFirstLibClassTest")
+      .findMethodsByName("testThatPasses", false).first()
+    val configuration = createGradleConfigurationFromPsiElement(project, psiMethod)
+    assertThat(configuration).isNotNull()
+    assertThat(configuration!!.settings.taskNames).containsExactly(
+      ":kmpFirstLib:cleanTestAndroidUnitTest",
+      ":kmpFirstLib:testAndroidUnitTest",
+      "--tests", "\"com.example.kmpfirstlib.KmpAndroidFirstLibClassTest.testThatPasses\""
+    )
+  }
+
+  fun testKotlinMultiplatformCommonUnitTestRunConfigurationFromClass() {
+    loadProject(ANDROID_KOTLIN_MULTIPLATFORM)
+    val configuration = createAndroidGradleTestConfigurationFromClass(project, "com.example.kmpfirstlib.KmpCommonFirstLibClassTest")
+    assertThat(configuration).isNotNull()
+    assertThat(configuration!!.settings.taskNames).containsExactly(
+      ":kmpFirstLib:cleanTestAndroidUnitTest",
+      ":kmpFirstLib:testAndroidUnitTest",
+      "--tests", "\"com.example.kmpfirstlib.KmpCommonFirstLibClassTest\""
+    )
   }
 
   private fun createConfigurationFromContext(psiFile: PsiElement): ConfigurationFromContextImpl? {

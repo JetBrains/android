@@ -27,15 +27,20 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.io.FilePaths
+import com.android.utils.appendCapitalized
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.AbstractDependencyData
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
+import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.android.models.KotlinModelConverter
+import org.jetbrains.kotlin.config.ExternalSystemTestRunTask
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
+import org.jetbrains.kotlin.idea.gradle.configuration.KotlinSourceSetData
 import org.jetbrains.kotlin.idea.gradleJava.configuration.KotlinMppGradleProjectResolver.Context
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinMppGradleProjectResolverExtension
 import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.KotlinProjectArtifactDependencyResolver
@@ -43,6 +48,7 @@ import org.jetbrains.kotlin.idea.gradleJava.configuration.mpp.findLibraryDepende
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinComponent
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
+import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
@@ -141,13 +147,24 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
 
   override fun afterResolveFinished(context: Context) {
     try {
-      val targetInfo = context.mppModel.targets.firstNotNullOfOrNull { it.extras[androidTargetKey] }?.invoke() ?: return
+      val androidTarget = context.mppModel.targets.find { it.extras[androidTargetKey] != null } ?: return
+      val targetInfo = androidTarget.extras[androidTargetKey]?.invoke() ?: return
       val compilationInfo = compilationModelMap[context.moduleDataNode.data.id] ?: return
       val sourceSetDependencies = sourceSetDependenciesMap[context.moduleDataNode.data.id] ?: return
 
       modelConverter.maybeCreateLibraryTable(
         context.projectDataNode
       )
+
+      compilationInfo[CompilationType.UNIT_TEST]?.let {
+        fixUnitTestGradleTasksInKotlinSourceSets(
+          moduleNode = context.moduleDataNode,
+          gradleModule = context.gradleModule,
+          androidTarget = androidTarget,
+          unitTestKotlinCompilation = it.first,
+          unitTestAndroidCompilation = it.second
+        )
+      }
 
       createAndAttachModelsToDataNode(
         moduleNode = context.moduleDataNode,
@@ -159,6 +176,53 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       // cleanup
       compilationModelMap.remove(context.moduleDataNode.data.id)
       sourceSetDependenciesMap.remove(context.moduleDataNode.data.id)
+    }
+  }
+
+  /**
+   * KotlinModuleUtils associates test tasks with a compilation based on the compilation name associated with the task data. However, the
+   * compilation name is always set to "test" in case of android target. Which then leads to populateExternalSystemRunTasks not populating
+   * KotlinSourceSetInfo.externalSystemRunTasks with any gradle test tasks for the android unit test sourceSet.
+   *
+   * This is a workaround to override `externalSystemRunTasks` with the android unitTest run gradle task.
+   */
+  private fun fixUnitTestGradleTasksInKotlinSourceSets(
+    moduleNode: DataNode<ModuleData>,
+    gradleModule: IdeaModule,
+    androidTarget: KotlinTarget,
+    unitTestKotlinCompilation: KotlinCompilation,
+    unitTestAndroidCompilation: AndroidCompilation,
+  ) {
+    val allKotlinSourceSets = ExternalSystemApiUtil.findAllRecursively(moduleNode, KotlinSourceSetData.KEY).map {
+      it.data.sourceSetInfo
+    }
+
+    val runUnitTestTask = ExternalSystemTestRunTask(
+      unitTestAndroidCompilation.unitTestInfo.unitTestTaskName,
+      gradleModule.gradleProject.path,
+      androidTarget.name,
+      androidTarget.platform.id
+    )
+
+    allKotlinSourceSets.forEach { kotlinSourceSetInfo ->
+      // Check if this is the android unitTest compilation.
+      if (kotlinSourceSetInfo.kotlinComponent is KotlinCompilation &&
+          kotlinSourceSetInfo.kotlinComponent.name == unitTestKotlinCompilation.name &&
+          (kotlinSourceSetInfo.kotlinComponent as KotlinCompilation).extras[androidCompilationKey] != null) {
+        kotlinSourceSetInfo.externalSystemRunTasks = listOf(runUnitTestTask)
+      }
+      // Check if this is a sourceSet that is included in the android unitTest compilation, meaning that any tests inside will also run.
+      // (e.g. commonTest).
+      else if (kotlinSourceSetInfo.kotlinComponent is KotlinSourceSet &&
+               unitTestKotlinCompilation.allSourceSets.any { it.name == kotlinSourceSetInfo.kotlinComponent.name }) {
+
+        // In that case, add the android unitTest task to the existing list, in case there is another target (e.g. jvm) that also runs this
+        // test.
+        kotlinSourceSetInfo.externalSystemRunTasks = listOf(
+          runUnitTestTask,
+          *kotlinSourceSetInfo.externalSystemRunTasks.toTypedArray()
+        )
+      }
     }
   }
 
