@@ -219,15 +219,17 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
       myLogger = myThrottleProgress ? new ThrottledProgressWrapper(customLogger) : customLogger;
     }
 
-    @NotNull Project[] projects = ProjectManager.getInstance().getOpenProjects();
+    Project[] projects = ProjectManager.getInstance().getOpenProjects();
     Function<List<RepoPackage>, Void> completeCallback = failures -> {
       ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
         myProgressBar.setValue(100);
         myProgressOverallLabel.setText("");
 
         for (Project project : projects) {
-          project.getMessageBus().syncPublisher(SdkInstallListener.TOPIC)
-            .installCompleted(myInstallRequests, myUninstallRequests);
+          if (!project.isDisposed()) {
+            project.getMessageBus().syncPublisher(SdkInstallListener.TOPIC)
+              .installCompleted(myInstallRequests, myUninstallRequests);
+          }
         }
 
         if (!failures.isEmpty()) {
