@@ -208,7 +208,7 @@ interface InspectorClient: Disposable {
   val process: ProcessDescriptor
 
   /**
-   * Weather the process was auto connected or was manually selected.
+   * Whether the process was auto connected or was manually selected.
    */
   val isInstantlyAutoConnected: Boolean
 

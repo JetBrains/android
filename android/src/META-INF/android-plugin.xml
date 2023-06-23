@@ -226,8 +226,11 @@
                  restartRequired="false"/>
 
     <groupConfigurable id="build.android" parentId="build"
-                       displayNameKey="configurable.group.build.android.settings.display.name"
+                       displayNameKey="configurable.group.android.settings.display.name"
                        descriptionKey="configurable.group.build.android.settings.description"/>
+    <groupConfigurable id="tools.android" parentId="tools"
+                       displayNameKey="configurable.group.android.settings.display.name"
+                       descriptionKey="configurable.group.tools.android.settings.description"/>
 
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidFileChangeListener" />
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidFileChangeListener$MyStartupActivity"/>

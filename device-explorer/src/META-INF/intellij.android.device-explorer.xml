@@ -17,7 +17,7 @@
   <extensions defaultExtensionNs="com.intellij">
     <notificationGroup id="Device Explorer" displayType="BALLOON"/>
 
-    <applicationConfigurable groupId="tools" id="device.file.explorer"
+    <applicationConfigurable groupId="tools.android" id="device.file.explorer"
                              provider="com.android.tools.idea.device.explorer.files.options.DeviceFileExplorerConfigurableProvider"
                              bundle="messages.DeviceFileExplorerBundle"
                              key="configurable.name.android.device.file.explorer"/>
