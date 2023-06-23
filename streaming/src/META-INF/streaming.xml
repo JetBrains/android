@@ -17,11 +17,11 @@
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog"/>
 
-    <applicationConfigurable groupId="tools" id="emulator"
+    <applicationConfigurable groupId="tools.android" id="emulator"
                              provider="com.android.tools.idea.streaming.emulator.settings.EmulatorConfigurableProvider"
                              bundle="messages.StreamingBundle"
                              key="android.configurable.EmulatorConfigurable.displayName"/>
-    <applicationConfigurable groupId="tools" id="device.mirroring"
+    <applicationConfigurable groupId="tools.android" id="device.mirroring"
                              provider="com.android.tools.idea.streaming.device.settings.DeviceMirroringConfigurableProvider"
                              bundle="messages.StreamingBundle"
                              key="android.configurable.DeviceMirroringConfigurable.displayName"/>
