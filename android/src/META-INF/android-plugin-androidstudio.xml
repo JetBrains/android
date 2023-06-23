@@ -16,12 +16,6 @@
  *
   -->
 <idea-plugin>
-  <application-components>
-    <component>
-      <implementation-class>com.android.tools.idea.AndroidInitialConfigurator</implementation-class>
-    </component>
-  </application-components>
-
   <extensions defaultExtensionNs="com.intellij">
     <applicationInitializedListener id="Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.AndroidStudioInitializer" />
     <actionConfigurationCustomizer id="Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.AndroidStudioActionCustomizer"/>
