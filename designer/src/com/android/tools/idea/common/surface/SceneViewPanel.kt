@@ -428,24 +428,20 @@ class SceneViewPeerPanel(val sceneView: SceneView,
     }
     val isEmptyContent = positionableAdapter.scaledContentSize.let { it.height == 0 && it.width == 0 }
     val leftSectionWidth = sceneViewLeftPanel.preferredSize.width
-    val centerPanelWidth = width + insets.horizontal - leftSectionWidth
+    val centerPanelHeight = if (isEmptyContent) {
+      sceneViewCenterPanel.preferredSize.height
+    } else {
+      positionableAdapter.scaledContentSize.height
+    }
     sceneViewCenterPanel.setBounds(
       leftSectionWidth,
       sceneViewTopPanel.preferredSize.height,
-      centerPanelWidth,
-      sceneViewCenterPanel.preferredSize.height
-    )
-
-    val bottomPanelYOffset = if (isEmptyContent) sceneViewCenterPanel.preferredSize.height else positionableAdapter.scaledContentSize.height
-    sceneViewBottomPanel.setBounds(
-      0,
-      sceneViewTopPanel.preferredSize.height + bottomPanelYOffset,
-      width + insets.horizontal,
-      sceneViewBottomPanel.preferredSize.height
+      width + insets.horizontal - leftSectionWidth,
+      centerPanelHeight
     )
     sceneViewBottomPanel.setBounds(
       0,
-      sceneViewTopPanel.preferredSize.height + positionableAdapter.scaledContentSize.height,
+      sceneViewTopPanel.preferredSize.height + centerPanelHeight,
       width + insets.horizontal,
       sceneViewBottomPanel.preferredSize.height
     )
@@ -453,13 +449,13 @@ class SceneViewPeerPanel(val sceneView: SceneView,
       0,
       sceneViewTopPanel.preferredSize.height,
       sceneViewLeftPanel.preferredSize.width,
-      height
+      centerPanelHeight
     )
     sceneViewRightPanel.setBounds(
-      sceneViewLeftPanel.preferredSize.width + positionableAdapter.scaledContentSize.width,
+      sceneViewLeftPanel.preferredSize.width + sceneViewCenterPanel.width,
       sceneViewTopPanel.preferredSize.height,
       sceneViewRightPanel.preferredSize.width,
-      sceneViewRightPanel.preferredSize.height
+      centerPanelHeight
     )
     super.doLayout()
   }
