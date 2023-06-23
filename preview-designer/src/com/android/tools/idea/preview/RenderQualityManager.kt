@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.util.Disposer
 import java.awt.Rectangle
@@ -131,10 +132,11 @@ class DefaultRenderQualityManager(
     return myPolicy.getTargetQuality(mySurface.scale, isSceneManagerVisible(sceneManager))
   }
 
-  override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean {
-    return abs(sceneManager.lastRenderQuality - getTargetQuality(sceneManager)) >
-      myPolicy.acceptedErrorMargin
-  }
+  override fun needsQualityChange(sceneManager: LayoutlibSceneManager): Boolean =
+    sceneManager.let {
+      !it.hasRenderErrors() &&
+        abs(it.lastRenderQuality - getTargetQuality(it)) > myPolicy.acceptedErrorMargin
+    }
 }
 
 /**

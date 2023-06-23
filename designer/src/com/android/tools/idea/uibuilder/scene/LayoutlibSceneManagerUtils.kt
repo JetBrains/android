@@ -31,6 +31,8 @@ suspend fun LayoutlibSceneManager.executeCallbacks(): ExecuteCallbacksResult = e
  * Note that cancellations are not considered to be an error.
  */
 fun SceneView.hasRenderErrors(): Boolean =
-  (sceneManager as? LayoutlibSceneManager)?.renderResult?.let {
-    it.logger.hasErrors() && it.renderResult.exception !is CancellationException
-  } == true
+  (sceneManager as? LayoutlibSceneManager).hasRenderErrors()
+
+fun LayoutlibSceneManager?.hasRenderErrors(): Boolean = this?.renderResult?.let {
+  it.logger.hasErrors() && it.renderResult.exception !is CancellationException
+} == true
