@@ -184,16 +184,6 @@
       <add-to-group group-id="AnalyzeActions" anchor="after" relative-to-action="InferNullity"/>
     </action>
     <action
-        id="SendFeedback"
-        class="com.android.tools.idea.actions.SendFeedbackAction"
-        overrides="true"/>
-    <action
-        id="CollectZippedLogs"
-        class="com.android.tools.idea.actions.CreateDiagnosticReportAction"
-        overrides="true"
-        text="Collect Logs and Diagnostic Data"
-        description="Collect logs and diagnostic data"/>
-    <action
       id="LayoutEditor.AddSampleData"
       class="com.android.tools.idea.sampledata.AddSampleDataFileAction">
     </action>

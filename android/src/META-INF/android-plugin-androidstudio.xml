@@ -170,6 +170,16 @@
     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
     </action>
+    <action
+            id="SendFeedback"
+            class="com.android.tools.idea.actions.SendFeedbackAction"
+            overrides="true"/>
+    <action
+            id="CollectZippedLogs"
+            class="com.android.tools.idea.actions.CreateDiagnosticReportAction"
+            overrides="true"
+            text="Collect Logs and Diagnostic Data"
+            description="Collect logs and diagnostic data"/>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
