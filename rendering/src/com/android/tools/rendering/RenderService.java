@@ -22,11 +22,11 @@ import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.layoutlib.LayoutlibFactory;
-import com.android.tools.rendering.api.RenderConfiguration;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.classloading.ClassTransform;
 import com.android.tools.rendering.imagepool.ImagePool;
@@ -132,7 +132,7 @@ final public class RenderService implements Disposable {
    */
   @NotNull
   public RenderTaskBuilder taskBuilder(@NotNull RenderModelModule module,
-                                       @NotNull RenderConfiguration configuration,
+                                       @NotNull Configuration configuration,
                                        @NotNull RenderLogger logger) {
     RenderTaskBuilder builder = new RenderTaskBuilder(module, configuration, myImagePool, myCredential, logger);
     myConfigureBuilder.accept(builder);
@@ -295,7 +295,7 @@ final public class RenderService implements Disposable {
     @NotNull private RenderingTopic myTopic = RenderingTopic.NOT_SPECIFIED;
 
     private RenderTaskBuilder(@NotNull RenderModelModule module,
-                              @NotNull RenderConfiguration configuration,
+                              @NotNull Configuration configuration,
                               @NotNull ImagePool defaultImagePool,
                               @NotNull Object credential,
                               @NotNull RenderLogger logger) {

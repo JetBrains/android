@@ -46,11 +46,11 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
+import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.dom.ActivityAttributesSnapshot;
 import com.android.tools.rendering.api.IncludeReference;
-import com.android.tools.rendering.api.RenderConfiguration;
 import com.android.tools.rendering.api.RenderModelManifest;
 import com.android.tools.rendering.api.RenderModelModule;
 import com.android.tools.rendering.classloading.ClassTransform;
@@ -446,7 +446,7 @@ public class RenderTask {
    * the {@link #setRenderingMode(RenderingMode)} is {@link RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
-   * {@link RenderConfiguration#getDevice()} object.
+   * {@link Configuration#getDevice()} object.
    *
    * @param overrideRenderWidth  the width in pixels of the layout to be rendered
    * @param overrideRenderHeight the height in pixels of the layout to be rendered
@@ -464,7 +464,7 @@ public class RenderTask {
    * the {@link #setRenderingMode(RenderingMode)} is {@link RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
-   * {@link RenderConfiguration#getDevice()} object.
+   * {@link Configuration#getDevice()} object.
    *
    * @param maxRenderWidth  the max width in pixels of the layout to be rendered
    * @param maxRenderHeight the max height in pixels of the layout to be rendered
@@ -602,7 +602,7 @@ public class RenderTask {
       return null;
     }
 
-    RenderConfiguration configuration = context.getConfiguration();
+    Configuration configuration = context.getConfiguration();
     ResourceResolver resolver = ResourceResolver.copy(configuration.getResourceResolver());
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
@@ -1181,7 +1181,7 @@ public class RenderTask {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     RenderContext context = getContext();
-    RenderConfiguration configuration = context.getConfiguration();
+    Configuration configuration = context.getConfiguration();
     DrawableParams params =
       new DrawableParams(drawableResourceValue, context.getModule().getModuleKey(), hardwareConfig, configuration.getResourceResolver(),
                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
@@ -1312,7 +1312,7 @@ public class RenderTask {
   @Nullable
   private RenderSession measure(ILayoutPullParser parser) {
     RenderContext context = getContext();
-    RenderConfiguration configuration = context.getConfiguration();
+    Configuration configuration = context.getConfiguration();
     ResourceResolver resolver = configuration.getResourceResolver();
 
     myLayoutlibCallback.reset();

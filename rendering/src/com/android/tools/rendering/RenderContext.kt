@@ -16,15 +16,15 @@
 package com.android.tools.rendering
 
 import com.android.resources.ResourceFolderType
-import com.android.tools.rendering.api.RenderConfiguration
+import com.android.tools.configurations.Configuration
 import com.android.tools.rendering.api.RenderModelModule
 
 /**
- * Information required for rendering. Currently, this is [RenderModelModule] and [RenderConfiguration].
+ * Information required for rendering. Currently, this is [RenderModelModule] and [Configuration].
  */
 class RenderContext(
   val module: RenderModelModule,
-  val configuration: RenderConfiguration,
+  val configuration: Configuration,
 ) {
   val minSdkVersion = module.info.minSdkVersion
   val targetSdkVersion = module.info.targetSdkVersion

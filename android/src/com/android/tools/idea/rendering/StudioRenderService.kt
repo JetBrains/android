@@ -78,7 +78,7 @@ fun RenderService.createLogger(project: Project?): RenderLogger {
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration, logger: RenderLogger): RenderService.RenderTaskBuilder =
-  taskBuilder(AndroidFacetRenderModelModule(facet), StudioRenderConfiguration(configuration), logger)
+  taskBuilder(AndroidFacetRenderModelModule(facet), configuration, logger)
 
 /**
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].

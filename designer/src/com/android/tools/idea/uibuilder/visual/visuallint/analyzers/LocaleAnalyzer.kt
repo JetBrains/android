@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 import android.graphics.Rect
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
@@ -25,7 +26,6 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIs
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
-import com.android.tools.rendering.api.RenderConfiguration
 import com.android.utils.HtmlBuilder
 
 /**
@@ -77,7 +77,7 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   }
 
   /** Returns true if the configuration is the base configuration. */
-  private fun isBaseConfig(config: RenderConfiguration?): Boolean {
+  private fun isBaseConfig(config: Configuration?): Boolean {
     // TODO: Follow up and investigate if there's better way to detect base config.
     return config?.locale?.toString() == "__"
   }
