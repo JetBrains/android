@@ -22,7 +22,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ProjectViewSelectionChangeEvent
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.ProjectViewPane
-import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowId
@@ -30,6 +30,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
+import com.intellij.util.ModalityUiUtil.invokeLaterIfNeeded
 import com.intellij.util.concurrency.EdtExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -109,8 +110,9 @@ class ProjectViewListener(
       firstRemovedId = BEFORE_INIT_STATE
       scheduler.schedule(ReportingRunnable(currentTime), COOL_DOWN_PERIOD_MS, TimeUnit.MILLISECONDS)
 
-      runInEdt {
-        toolWindowManager.getToolWindow(ToolWindowId.PROJECT_VIEW)?.contentManager?.addContentManagerListener(contentManagerListener)
+      invokeLaterIfNeeded(ModalityState.defaultModalityState(), project.disposed) {
+        toolWindowManager.getToolWindow(ToolWindowId.PROJECT_VIEW)?.contentManager
+          ?.addContentManagerListener(contentManagerListener)
       }
     }
   }
