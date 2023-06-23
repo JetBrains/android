@@ -41,11 +41,6 @@ class LiveEditAdvancedSettingsConfigurable : BoundSearchableConfigurable(
           .bindSelected(liveEditSettings::useDebugMode)
           .comment(AndroidBundle.message("live.edit.configurable.enable.debug.mode.comment"))
       }
-      row {
-        checkBox(AndroidBundle.message("live.edit.configurable.enable.inline.analysis"))
-          .bindSelected(liveEditSettings::useInlineAnalysis)
-          .comment(AndroidBundle.message("live.edit.configurable.enable.inline.analysis.comment"))
-      }
       row(AndroidBundle.message("live.edit.configurable.refresh.rate")) {
         intTextField(LiveEditAdvancedConfiguration.REFRESH_RATE_RANGE)
           .bindIntText(liveEditSettings::refreshRateMs)

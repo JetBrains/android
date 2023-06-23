@@ -27,7 +27,6 @@ import com.intellij.openapi.components.StoragePathMacros
 class LiveEditAdvancedConfiguration : SimplePersistentStateComponent<LiveEditAdvancedConfiguration.State>(State()) {
   class State: BaseState() {
     var useDebugMode by property(false)
-    var useInlineAnalysis by property(true)
     var refreshRateMs by property(MIN_REFRESH_RATE_MS)
   }
 
@@ -35,12 +34,6 @@ class LiveEditAdvancedConfiguration : SimplePersistentStateComponent<LiveEditAdv
     get() = state.useDebugMode
     set(value) {
       state.useDebugMode= value
-    }
-
-  var useInlineAnalysis
-    get() = state.useInlineAnalysis
-    set(value) {
-      state.useInlineAnalysis= value
     }
 
   var refreshRateMs

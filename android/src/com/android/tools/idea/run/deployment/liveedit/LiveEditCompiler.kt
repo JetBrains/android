@@ -168,26 +168,20 @@ class LiveEditCompiler(val project: Project) {
 
         // 2.1) Add any extra source file this compilation need in order to support the input file calling an inline function
         //      from another source file then perform a compilation again.
-        if (LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis) {
-          inputFiles = performInlineSourceDependencyAnalysis(resolution, file, analysisResult.bindingContext)
+        inputFiles = performInlineSourceDependencyAnalysis(resolution, file, analysisResult.bindingContext)
 
-          // We need to perform the analysis once more with the new set of input files.
-          val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
+        // We need to perform the analysis once more with the new set of input files.
+        val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
 
-          // We will need to start using the new analysis for code gen.
-          generationState = tracker.record(
-            {
-              backendCodeGen(project,
-                             newAnalysisResult,
-                             inputFiles,
-                             inputFiles.first().module!!,
-                             inlineCandidates)
-            },
-            "codegen_inline")
-        }
-        else {
-          throw e
-        }
+        // We will need to start using the new analysis for code gen.
+        generationState = tracker.record(
+        {
+          backendCodeGen(project,
+            newAnalysisResult,
+            inputFiles,
+            inputFiles.first().module!!,
+            inlineCandidates)
+        }, "codegen_inline")
       } catch (p : ProcessCanceledException) {
         throw p
       } catch (t : Throwable) {

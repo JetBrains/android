@@ -129,21 +129,7 @@ internal class EmbeddedCompilerClientImplTest {
         }
       """.trimIndent())
 
-    // Test with inline analysis enabled. This should fail when using inline methods in other files.
-    run {
-      val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
-                                                log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java), false)
-      val outputDirectory = Files.createTempDirectory("out")
-      runBlocking {
-        val result = compiler.compileRequest(listOf(file), projectRule.module, outputDirectory, EmptyProgressIndicator())
-        assertTrue(result.toString(), result is CompilationResult.RequestException)
-        assertEquals(
-          "Unable to update function that references an inline function from another source file: public final fun inlineMethod (): kotlin.Unit [inline] declared in <root>.InlineKt",
-          (result as CompilationResult.RequestException).e?.message?.trim())
-      }
-    }
-
-    // Test with inline analysis disabled. This should pass when using inline methods in other files.
+    // Test with inline analysis enabled. This should pass when using inline methods in other files.
     run {
       val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
                                                 log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java), true)
@@ -236,7 +222,6 @@ internal class EmbeddedCompilerClientImplTest {
     run {
       val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
                                                 log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
-                                                useInlineAnalysis = LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis,
                                                 isKotlinPluginBundled = false,
                                                 { throw IllegalStateException("Message") })
       val outputDirectory = Files.createTempDirectory("out")
@@ -253,7 +238,6 @@ internal class EmbeddedCompilerClientImplTest {
     run {
       val compiler = EmbeddedCompilerClientImpl(project = projectRule.project,
                                                 log = Logger.getInstance(EmbeddedCompilerClientImplTest::class.java),
-                                                useInlineAnalysis = LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis,
                                                 isKotlinPluginBundled = true,
                                                 { throw IllegalStateException("Message") })
       val outputDirectory = Files.createTempDirectory("out")

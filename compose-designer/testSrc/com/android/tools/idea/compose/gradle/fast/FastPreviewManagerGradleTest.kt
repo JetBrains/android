@@ -28,7 +28,6 @@ import com.android.tools.idea.editors.fast.CompilerDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.toFileNameSet
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
@@ -311,31 +310,6 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
     previewThread.join()
     deviceThread.join()
-  }
-
-  @Test
-  fun testInlineMethodsCompileSuccessfully() {
-    val originalUseInlineAnalysis = LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis
-    LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = true
-    try {
-      val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
-      typeAndSaveDocument("inlineCall()\n")
-      runWriteActionAndWait { projectRule.fixture.moveCaret("|@Preview") }
-      runInEdtAndWait {
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Consume editor events
-      }
-      typeAndSaveDocument("inline fun inlineCall() {}\n\n")
-
-      runBlocking {
-        val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
-        assertTrue(
-          "Compilation must pass, failed with $result",
-          result == CompilationResult.Success
-        )
-      }
-    } finally {
-      LiveEditAdvancedConfiguration.getInstance().useInlineAnalysis = originalUseInlineAnalysis
-    }
   }
 
   private fun typeAndSaveDocument(typedString: String) {
