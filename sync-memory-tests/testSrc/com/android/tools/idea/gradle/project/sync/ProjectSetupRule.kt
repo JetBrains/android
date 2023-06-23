@@ -50,7 +50,7 @@ enum class BenchmarkProject(val projectPath: String, val maxHeapMB: Int, val dif
   STANDARD_100(STANDARD_PATH, maxHeapMB = 600, listOf("diff-100")),
   STANDARD_200(STANDARD_PATH, maxHeapMB = 1300, listOf("diff-200")),
   STANDARD_500(STANDARD_PATH, maxHeapMB = 4000, listOf("diff-500")),
-  STANDARD_1000(STANDARD_PATH, maxHeapMB = 8000, listOf("diff-1000")),
+  STANDARD_1000(STANDARD_PATH, maxHeapMB = 7400, listOf("diff-1000")),
   STANDARD_2000(STANDARD_PATH, maxHeapMB = 22000, listOf("diff-app")),
   STANDARD_4200(STANDARD_PATH, maxHeapMB = 60000, emptyList());
 }
