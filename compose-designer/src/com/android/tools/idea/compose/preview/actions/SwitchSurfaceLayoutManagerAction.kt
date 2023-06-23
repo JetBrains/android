@@ -62,7 +62,7 @@ class SwitchSurfaceLayoutManagerAction(
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) :
     ToggleAction(option.displayName) {
-    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       layoutManagerSwitcher.setLayoutManager(option.layoutManager, option.sceneViewAlignment)
