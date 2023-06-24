@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.imports
 
+import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
+import com.intellij.openapi.extensions.ExtensionNotApplicableException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.Disposer
@@ -63,7 +66,18 @@ class MavenClassRegistryManager : Disposable {
 }
 
 class AutoRefresherForMavenClassRegistry : ProjectActivity {
+  init {
+    val app = ApplicationManager.getApplication()
+    if (app.isUnitTestMode || app.isHeadlessEnvironment) {
+      throw ExtensionNotApplicableException.create()
+    }
+  }
   override suspend fun execute(project: Project) {
+    if (!IdeInfo.getInstance().isAndroidStudio
+        && !IdeSdks.getInstance().hasConfiguredAndroidSdk()) {
+      // IDE must not hit network on startup
+      return
+    }
     // Start refresher in GMavenIndexRepository at project start-up.
     MavenClassRegistryManager.getInstance()
   }
