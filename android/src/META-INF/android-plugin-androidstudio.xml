@@ -236,6 +236,10 @@
   <projectListeners>
     <listener class="com.android.tools.idea.stats.ToolWindowTrackerService$Companion$LazyListener"
               topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
+    <listener class="com.android.tools.idea.navigator.ProjectViewListener"
+              activeInHeadlessMode="false"
+              activeInTestMode="false"
+              topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
   </projectListeners>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
