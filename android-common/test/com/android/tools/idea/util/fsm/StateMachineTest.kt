@@ -514,20 +514,8 @@ class StateMachineTest {
 
     override fun isDebugEnabled(): Boolean = true
 
-    override fun debug(message: String) {
-      debugLogs.add(message)
-    }
-
-    override fun debug(t: Throwable?) {
-      throw NotImplementedError()
-    }
-
     override fun debug(message: String, t: Throwable?) {
       debugLogs.add(message)
-    }
-
-    override fun info(message: String) {
-      throw NotImplementedError()
     }
 
     override fun info(message: String, t: Throwable?) {

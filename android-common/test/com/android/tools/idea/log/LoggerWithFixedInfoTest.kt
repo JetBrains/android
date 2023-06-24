@@ -32,10 +32,6 @@ private class StringLogger: DefaultLogger("") {
     }
   }
 
-  override fun debug(message: String) {
-    log(message, null)
-  }
-
   override fun debug(message: String, t: Throwable?) {
     log(message, t)
   }
@@ -52,11 +48,7 @@ private class StringLogger: DefaultLogger("") {
     log(message, t)
   }
 
-  override fun info(message: String) {
-    log(message, null)
-  }
-
-  override fun info(message: String, t: Throwable?) {
+ override fun info(message: String, t: Throwable?) {
     log(message, t)
   }
 }
