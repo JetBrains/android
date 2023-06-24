@@ -767,10 +767,6 @@
     <listener class="com.android.tools.idea.stats.ProjectSizeUsageTrackerListener"
               activeInTestMode="false"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
-    <listener class="com.android.tools.idea.navigator.ProjectViewListener"
-              activeInHeadlessMode="false"
-              activeInTestMode="false"
-              topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
   </projectListeners>
 
   <xi:include href="/META-INF/android-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
