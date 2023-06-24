@@ -29,20 +29,8 @@ class LoggerWithFixedInfo(delegate: Logger, information: Map<String, String>): D
     "[" + information.entries.joinToString(" ") { "${it.key}=${it.value}" } + "] "
   else ""
 
-  override fun debug(message: String) {
-    super.debug("$prefix$message")
-  }
-
-  override fun debug(t: Throwable?) {
-    debug("", t)
-  }
-
   override fun debug(message: String, t: Throwable?) {
     super.debug("$prefix$message", t)
-  }
-
-  override fun info(message: String) {
-    super.info("$prefix$message")
   }
 
   override fun info(message: String, t: Throwable?) {

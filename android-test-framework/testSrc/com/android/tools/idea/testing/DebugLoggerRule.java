@@ -85,26 +85,16 @@ public class DebugLoggerRule extends ExternalResource {
         }
 
         @Override
-        public void debug(String message) {
+        public void debug(String message, @Nullable Throwable t) {
           System.out.println(message);
-        }
-
-        @Override
-        public void debug(@Nullable Throwable t) {
           if (t != null) {
             t.printStackTrace(System.out);
           }
         }
 
         @Override
-        public void debug(String message, @Nullable Throwable t) {
-          debug(message);
-          debug(t);
-        }
-
-        @Override
-        public void info(String message) {
-          debug(message);
+        public void info(String message, Throwable t) {
+          debug(message, t);
         }
       };
     }
