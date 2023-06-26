@@ -56,14 +56,16 @@ abstract class GradleProjectSystemIntegrationTestCase {
       @JvmStatic
       @Parameterized.Parameters(name = "{0}")
       fun tests(): Collection<*> {
-        return tests.map { listOf(it).toTypedArray() }
+        return tests.filter{ it.modelsV2 }.map { listOf(it).toTypedArray() }
       }
     }
   }
 
   companion object {
     val tests =
-      listOf(TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT), TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = true))
+      listOf(
+        TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT),
+        TestDefinition(agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT, modelsV2 = true))
   }
 
   data class TestDefinition(

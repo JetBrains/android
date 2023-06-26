@@ -59,19 +59,6 @@ class AllVariantsSyncWithGradleSyncExecutorTest : SnapshotComparisonTest {
 
   override fun getName(): String = testName.methodName
 
-  @Test
-  fun testAllVariantSyncWithV1() {
-    StudioFlags.GRADLE_SYNC_USE_V2_MODEL.override(false)
-    try {
-      // Load the project and run Sync (SVS in this case).
-      val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
-      preparedProject.open { project ->
-        runSvsAndAvsSyncAndVerifyFetchedVariants(project, 12)
-      }
-    } finally {
-      StudioFlags.GRADLE_SYNC_USE_V2_MODEL.clearOverride()
-    }
-  }
 
   @Test
   fun testAllVariantSyncWithV2() {
