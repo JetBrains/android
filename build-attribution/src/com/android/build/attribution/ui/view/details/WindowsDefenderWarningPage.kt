@@ -26,6 +26,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.BrowserLink
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -76,13 +77,13 @@ class WindowsDefenderWarningPage(
   val warningSuppressedMessage = JLabel(
     DiagnosticBundle.message("defender.config.restore",ActionsBundle.message("action.ResetWindowsDefenderNotification.text"))
   )
-  val suppressWarningLink = ActionLink("Ignore this warning for this project") {
+  val suppressWarningLink = ActionLink("ignore this warning for this project") {
     pageHandler.ignoreCheckForProject()
     warningSuppressedMessage.isVisible = true
   }
 
   val manualInstructionsLink = BrowserLink(
-    "Manually configure active-scanning",
+    "these instructions",
     WindowsDefenderCheckService.manualInstructionsLink
   ).apply {
     addActionListener { pageHandler.trackShowingManualInstructions() }
@@ -92,13 +93,27 @@ class WindowsDefenderWarningPage(
     autoExcludeLink.isVisible = data.canRunExclusionScript
     warningSuppressedMessage.isVisible = false
 
+    val manualInstructionsLine = JPanel(HorizontalLayout(0)).apply {
+      // Required to compensate 2px left insets in 'autoExcludeLink'
+      border = JBUI.Borders.emptyLeft(2)
+      add(JLabel("You can configure active scanning manually following "), HorizontalLayout.LEFT)
+      add(manualInstructionsLink, HorizontalLayout.LEFT)
+    }
+    val suppressLine = JPanel(HorizontalLayout(0)).apply {
+      // Required to compensate 2px left insets in 'autoExcludeLink'
+      border = JBUI.Borders.emptyLeft(2)
+      add(JLabel("Once configured manually, you can "), HorizontalLayout.LEFT)
+      add(suppressWarningLink, HorizontalLayout.LEFT)
+      add(JLabel(" to no longer see it."), HorizontalLayout.LEFT)
+    }
+
     layout = VerticalLayout(0, SwingConstants.LEFT)
     add(htmlTextLabelWithFixedLines(contentHtml, linksHandler).apply { border = JBUI.Borders.emptyLeft(2) })
     add(JLabel(" ")) // Add an empty line spacing before controls.
     add(autoExcludeLink)
     add(autoExcludeStatus)
-    add(manualInstructionsLink)
-    add(suppressWarningLink)
+    add(manualInstructionsLine)
+    add(suppressLine)
     add(warningSuppressedMessage)
   }
 }
