@@ -120,63 +120,46 @@ def _module_deps(ctx, jar_names, modules):
         res_files += [(j, jar_file)]
     return res_files
 
-# TODO: unify get_linux with raw_get_linux
-def _get_linux(dep):
-    return dep.files.to_list() + dep.files_linux.to_list()
-
-def _raw_get_linux(x):
+def _get_linux(x):
     return x.linux
 
 LINUX = struct(
     name = "linux",
     jre = "jbr/",
     get = _get_linux,
-    raw_get = _raw_get_linux,
     base_path = "",
     resource_path = "",
 )
 
-def _get_mac(dep):
-    return dep.files.to_list() + dep.files_mac.to_list()
-
-def _raw_get_mac(x):
+def _get_mac(x):
     return x.mac
 
 MAC = struct(
     name = "mac",
-    raw_get = _raw_get_mac,
     jre = "jbr/",
     get = _get_mac,
     base_path = "Contents/",
     resource_path = "Contents/Resources/",
 )
 
-def _get_mac_arm(dep):
-    return dep.files.to_list() + dep.files_mac_arm.to_list()
-
-def _raw_get_mac_arm(x):
+def _get_mac_arm(x):
     return x.mac_arm
 
 MAC_ARM = struct(
     name = "mac_arm",
     jre = "jbr/",
-    raw_get = _raw_get_mac_arm,
     get = _get_mac_arm,
     base_path = "Contents/",
     resource_path = "Contents/Resources/",
 )
 
-def _get_win(dep):
-    return dep.files.to_list() + dep.files_win.to_list()
-
-def _raw_get_win(x):
+def _get_win(x):
     return x.win
 
 WIN = struct(
     name = "win",
     jre = "jbr/",
     get = _get_win,
-    raw_get = _raw_get_win,
     base_path = "",
     resource_path = "",
 )
@@ -185,7 +168,7 @@ def _resource_deps(res_dirs, res, platform):
     files = []
     for dir, dep in zip(res_dirs, res):
         if hasattr(dep, "mappings"):
-            files += [(dir + "/" + dep.mappings[f], f) for f in platform.get(dep)]
+            files += [(dir + "/" + dep.mappings[f], f) for f in platform.get(dep).to_list()]
         else:
             files += [(dir + "/" + f.basename, f) for f in dep.files.to_list()]
     return files
@@ -403,36 +386,33 @@ def _studio_data_impl(ctx):
     win = []
     linux = []
     mappings = {}
-    to_map = []
     for dep in ctx.attr.files:
-        files += [dep.files]
         if hasattr(dep, "mappings"):
-            linux += [dep.files_linux]
-            mac += [dep.files_mac]
-            mac_arm += [dep.files_mac_arm]
-            win += [dep.files_win]
+            linux += [dep.linux]
+            mac += [dep.mac]
+            mac_arm += [dep.mac_arm]
+            win += [dep.win]
             mappings.update(dep.mappings)
         else:
-            to_map += dep.files.to_list()
+            files += dep[DefaultInfo].files.to_list()
 
     for prefix, destination in ctx.attr.mappings.items():
-        for src in to_map + ctx.files.files_mac + ctx.files.files_mac_arm + ctx.files.files_linux + ctx.files.files_win:
+        for src in files + ctx.files.files_mac + ctx.files.files_mac_arm + ctx.files.files_linux + ctx.files.files_win:
             if src not in mappings and src.short_path.startswith(prefix):
                 mappings[src] = destination + src.short_path[len(prefix):]
 
-    dfiles = depset(order = "preorder", transitive = files)
-    dlinux = depset(ctx.files.files_linux, order = "preorder", transitive = linux)
-    dmac = depset(ctx.files.files_mac, order = "preorder", transitive = mac)
-    dmac_arm = depset(ctx.files.files_mac_arm, order = "preorder", transitive = mac_arm)
-    dwin = depset(ctx.files.files_win, order = "preorder", transitive = win)
+    dlinux = depset(files + ctx.files.files_linux, order = "preorder", transitive = linux)
+    dmac = depset(files + ctx.files.files_mac, order = "preorder", transitive = mac)
+    dmac_arm = depset(files + ctx.files.files_mac_arm, order = "preorder", transitive = mac_arm)
+    dwin = depset(files + ctx.files.files_win, order = "preorder", transitive = win)
 
     return struct(
-        files = dfiles,
-        files_linux = dlinux,
-        files_mac = dmac,
-        files_mac_arm = dmac_arm,
-        files_win = dwin,
+        linux = dlinux,
+        mac = dmac,
+        mac_arm = dmac_arm,
+        win = dwin,
         mappings = mappings,
+        providers = [DefaultInfo(files = depset(files))],
     )
 
 _studio_data = rule(
@@ -662,11 +642,11 @@ def _android_studio_os(ctx, platform, out):
 
     platform_prefix = _android_studio_prefix(ctx, platform)
 
-    platform_files = platform.raw_get(ctx.attr.platform[IntellijInfo].base)
-    plugin_files = platform.raw_get(ctx.attr.platform[IntellijInfo].plugins)
+    platform_files = platform.get(ctx.attr.platform[IntellijInfo].base)
+    plugin_files = platform.get(ctx.attr.platform[IntellijInfo].plugins)
 
     if ctx.attr.jre:
-        jre_files = [(ctx.attr.jre.mappings[f], f) for f in platform.get(ctx.attr.jre)]
+        jre_files = [(ctx.attr.jre.mappings[f], f) for f in platform.get(ctx.attr.jre).to_list()]
         all_files.update({platform_prefix + platform.base_path + platform.jre + k: v for k, v in jre_files})
 
         # b/235325129 workaround: keep `jre\` directory for windows patcher
@@ -706,7 +686,7 @@ def _android_studio_os(ctx, platform, out):
     licenses = []
     for p in ctx.attr.plugins + ctx.attr.platform.extra_plugins:
         pkey = p[PluginInfo].directory
-        this_plugin_files = platform.raw_get(p[PluginInfo].plugin_files)
+        this_plugin_files = platform.get(p[PluginInfo].plugin_files)
 
         this_plugin_files = _stamp_plugin(ctx, platform, platform_files, this_plugin_files, p[PluginInfo].overwrite_plugin_version)
 
@@ -955,7 +935,7 @@ def intellij_plugin_import(name, files_root_dir, target_dir, exports, **kwargs):
     )
 
 def _intellij_platform_impl_os(ctx, platform, data, zip_out):
-    files = platform.get(data)
+    files = platform.get(data).to_list()
     plugin_dir = "%splugins/" % platform.base_path
     base = []
     plugins = {}
