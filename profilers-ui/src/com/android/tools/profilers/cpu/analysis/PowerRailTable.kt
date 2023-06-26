@@ -24,7 +24,7 @@ import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StringFormattingUtils.formatLongValueWithCommas
 import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG
-import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeCumulativePowerUsageInRange
+import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeCumulativeEnergyUsageInRange
 import com.android.tools.profilers.cpu.systemtrace.PowerCounterData
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.POWER_RAIL_UNIT
 import com.google.common.annotations.VisibleForTesting
@@ -187,7 +187,7 @@ class PowerRailTable(val profilers: StudioProfilers,
 
     private fun computePowerSummary() {
       dataRows = powerRailCounters.map {
-        PowerRailRow(it.key, computeCumulativePowerUsageInRange(it.value.cumulativeData, selectionRange))
+        PowerRailRow(it.key, computeCumulativeEnergyUsageInRange(it.value.cumulativeData, selectionRange))
       }
       fireTableDataChanged()
     }

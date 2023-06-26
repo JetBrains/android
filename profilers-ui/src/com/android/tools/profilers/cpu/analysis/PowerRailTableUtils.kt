@@ -21,15 +21,15 @@ import com.google.common.annotations.VisibleForTesting
 
 object PowerRailTableUtils {
   /**
-   * Computes and returns the cumulative power used in the passed-in range.
+   * Computes and returns the cumulative energy used in the passed-in range.
    */
-  fun computeCumulativePowerUsageInRange(cumulativeData: List<SeriesData<Long>>, selectionRange: Range): Long {
+  fun computeCumulativeEnergyUsageInRange(cumulativeData: List<SeriesData<Long>>, selectionRange: Range): Long {
     val lowerBound = getLowerBoundDataInRange(cumulativeData, selectionRange.min)
     val upperBound = getUpperBoundDataInRange(cumulativeData, selectionRange.max)
     // When the range selection only contains one or zero data points, it is possible for the
     // upper bound's timestamp (x) to be less than or equal to the lower bound's timestamp (x).
     // Thus, in this case, the cumulative value should be 0 as there is no positive difference
-    // in start and end power values.
+    // in start and end energy values.
     return if (upperBound.x > lowerBound.x) (upperBound.value - lowerBound.value) else 0
   }
 
@@ -116,7 +116,7 @@ object PowerRailTableUtils {
   }
 
   const val POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG = "Power data is sampled in 250ms intervals.<br><br>" +
-                                                          "The total power number represented<br>" +
+                                                          "The total energy number represented<br>" +
                                                           "contains an <b><i>error margin of up to +/- 0.5<br>" +
                                                           "seconds (500ms)</i></b> of power data due to the<br>" +
                                                           "sampling interval."

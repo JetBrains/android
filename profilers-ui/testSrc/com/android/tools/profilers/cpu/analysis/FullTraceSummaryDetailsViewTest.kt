@@ -76,6 +76,7 @@ class FullTraceSummaryDetailsViewTest {
 
     assertThat(view.timeRangeLabel.text).isEqualTo("00:01.000 - 00:01:00.000")
     assertThat(view.durationLabel.text).isEqualTo("59 s")
+    assertThat(view.energyUsedLabel.text).isEqualTo("0 µWs")
   }
 
   @Test
@@ -88,10 +89,12 @@ class FullTraceSummaryDetailsViewTest {
 
     assertThat(view.timeRangeLabel.text).isEqualTo("00:00.000 - 00:00.000")
     assertThat(view.durationLabel.text).isEqualTo("0 μs")
+    assertThat(view.energyUsedLabel.text).isEqualTo("0 µWs")
 
     selectionRange.set(TimeUnit.MILLISECONDS.toMicros(1).toDouble(), TimeUnit.MILLISECONDS.toMicros(2).toDouble())
     assertThat(view.timeRangeLabel.text).isEqualTo("00:00.001 - 00:00.002")
     assertThat(view.durationLabel.text).isEqualTo("1 ms")
+    assertThat(view.energyUsedLabel.text).isEqualTo("0 µWs")
 
   }
 
