@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
@@ -28,7 +29,6 @@ import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.systemtrace.CounterModel
 import com.android.tools.profilers.cpu.systemtrace.ProcessModel
-import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCapture
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCaptureBuilder
 import com.android.tools.profilers.cpu.systemtrace.SystemTraceCpuCaptureBuilderTest
 import com.android.tools.profilers.cpu.systemtrace.ThreadModel
@@ -153,5 +153,17 @@ class FullTraceSummaryDetailsViewTest {
     assertThat(view.commonSection.componentCount).isEqualTo(6)
     // Three components expected: the common section, the power table section, and the help text section.
     assertThat(view.components.size).isEqualTo(3)
+
+    // Assert that the power rail table section is a {@link HideablePanel}
+    assertThat(view.components[1]).isInstanceOf(HideablePanel::class.java)
+
+    // Assert that the power rail table has the correct dimensions and column headers.
+    assertThat(view.powerRailTable).isNotNull()
+    assertThat(view.powerRailTable!!.table.columnCount).isEqualTo(3)
+    // Note: header is not included in the row count.
+    assertThat(view.powerRailTable!!.table.rowCount).isEqualTo(1)
+    assertThat(view.powerRailTable!!.table.tableHeader.columnModel.getColumn(0).headerValue).isEqualTo("Rail name")
+    assertThat(view.powerRailTable!!.table.tableHeader.columnModel.getColumn(1).headerValue).isEqualTo("Average power (mW)")
+    assertThat(view.powerRailTable!!.table.tableHeader.columnModel.getColumn(2).headerValue).isEqualTo("Cumulative consumption (µWs)")
   }
 }

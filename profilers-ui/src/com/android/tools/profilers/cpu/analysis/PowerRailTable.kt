@@ -24,7 +24,9 @@ import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StringFormattingUtils.formatLongValueWithCommas
 import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG
-import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeCumulativeEnergyUsageInRange
+import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeAveragePowerInRange
+import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeCumulativeEnergyInRange
+import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computePowerUsageRange
 import com.android.tools.profilers.cpu.systemtrace.PowerCounterData
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.POWER_RAIL_UNIT
 import com.google.common.annotations.VisibleForTesting
@@ -33,22 +35,22 @@ import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import java.awt.Component
 import java.awt.FlowLayout
+import java.text.DecimalFormat
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTable
-import javax.swing.SwingConstants
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.TableCellRenderer
 import javax.swing.table.TableRowSorter
 
 /**
- * UI component for a table presenting the power consumption per power rail in the user-selected range.
+ * UI component for a table presenting the average power and cumulative energy consumption per power rail in the user-selected range.
  * Takes a map of power rail names to their respective [PowerCounterData] and generates [PowerRailRow]s.
  * The table will look like this:
- * | Power Rail |      Cumulative consumption (µWs) |
- * | Foo        |                       123,456,789 |
- * | Bar        |                       987,654,321 |
+ * | Power Rail | Average power (mW) | Cumulative consumption (µWs) |
+ * | Foo        | 20.0               | 123,456,789                  |
+ * | Bar        | 50.0               | 987,654,321                  |
  *
  * @param powerRailCounters map of [String] to [PowerCounterData], where [PowerCounterData] includes the cumulative power series data
  * @param range a range to query power data on
@@ -69,14 +71,24 @@ class PowerRailTable(val profilers: StudioProfilers,
       autoCreateRowSorter = true
       showVerticalLines = true
       showHorizontalLines = false
-      columnModel.getColumn(Column.RAIL_NAME.ordinal).cellRenderer = CustomBorderTableCellRenderer().apply {
-        horizontalAlignment = SwingConstants.LEFT
+
+      columnModel.getColumn(Column.RAIL_NAME.ordinal).cellRenderer = CustomBorderTableCellRenderer()
+      val avgPowerColumnRenderer = object : CustomBorderTableCellRenderer() {
+        override fun getTableCellRendererComponent(table: JTable?,
+                                                   value: Any?,
+                                                   isSelected: Boolean,
+                                                   hasFocus: Boolean,
+                                                   row: Int,
+                                                   column: Int): Component {
+          val decimalFormat = DecimalFormat("#.##")
+          val newValue = decimalFormat.format(value)
+          return super.getTableCellRendererComponent(table, newValue, isSelected, hasFocus, row, column)
+        }
       }
+      columnModel.getColumn(Column.AVERAGE.ordinal).cellRenderer = avgPowerColumnRenderer
 
       // The following is an override of the non-header cells of the Cumulative column's rendering behavior.
-      // This override will fulfill the following desired properties for the cumulative values:
-      // (1) Formatting with commas to be more readable
-      // (2) Right justification
+      // This override formats the cumulative values with commas to be more readable.
       val cumulativeColumnRenderer = object : CustomBorderTableCellRenderer() {
         override fun getTableCellRendererComponent(table: JTable?,
                                                    value: Any?,
@@ -84,37 +96,37 @@ class PowerRailTable(val profilers: StudioProfilers,
                                                    hasFocus: Boolean,
                                                    row: Int,
                                                    column: Int): Component {
-          val newValue = if (value is Long) formatLongValueWithCommas(value) else value
+          val newValue = if (value is Long && column == Column.CONSUMPTION.ordinal) formatLongValueWithCommas(value) else value
           return super.getTableCellRendererComponent(table, newValue, isSelected, hasFocus, row, column)
-        }
-
-        override fun getHorizontalAlignment(): Int {
-          return SwingConstants.RIGHT
         }
       }
       columnModel.getColumn(Column.CONSUMPTION.ordinal).cellRenderer = cumulativeColumnRenderer
     }
 
     // The following is an override of the default table header rendering behavior.
-    // This override will enable the Cumulative column header to have the following desires properties:
-    // (1) Right justification
-    // (2) Containing an info icon
-    // (3) Containing a tooltip warning user about the data's accuracy
+    // This override will create a custom JLabel component to host the Cumulative column header with the following properties:
+    // (1) Contains an info icon
+    // (2) Contains a tooltip warning user about the data's accuracy
     table.tableHeader.columnModel.getColumn(
       Column.CONSUMPTION.ordinal).headerRenderer = TableCellRenderer { table, value, isSelected, hasFocus, row, column ->
       val headerComponent: Component = table.tableHeader.defaultRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus,
                                                                                                        row, column)
-      JPanel().apply {
-        // By default, table header for a JBTable is left justified. By wrapping the new header rendering into a panel
-        // with a FlowLayout with RIGHT positioning, we can right justify the header content.
-        layout = FlowLayout(FlowLayout.RIGHT)
+      JLabel().apply {
+        // All other table headers are left justified by default, so we left justify this custom table header as well.
+        layout = FlowLayout(FlowLayout.LEFT)
+        border = JBUI.Borders.empty()
 
+        if (headerComponent is JComponent) {
+          // This customer header component does not have the default margin that other table header's get, so we add it.
+          headerComponent.border = JBUI.Borders.emptyLeft(2)
+        }
         // Add the header label/text.
         add(headerComponent)
 
         // Add the info icon.
         val iconComp = JLabel()
         iconComp.icon = StudioIcons.Common.INFO_INLINE
+        iconComp.border = JBUI.Borders.empty()
         add(iconComp)
 
         // Add the info tooltip regarding the data's accuracy.
@@ -187,7 +199,14 @@ class PowerRailTable(val profilers: StudioProfilers,
 
     private fun computePowerSummary() {
       dataRows = powerRailCounters.map {
-        PowerRailRow(it.key, computeCumulativeEnergyUsageInRange(it.value.cumulativeData, selectionRange))
+        val powerUsageRange = computePowerUsageRange(it.value.cumulativeData, selectionRange)
+        // When the range selection only contains one or zero data points, it is possible for the
+        // upper bound's timestamp (x) to be less than or equal to the lower bound's timestamp (x).
+        // Thus, in this case, the cumulative value should be 0 as there is no positive difference
+        // in start and end power values.
+        val consumption = computeCumulativeEnergyInRange(powerUsageRange)
+        val average = computeAveragePowerInRange(powerUsageRange)
+        PowerRailRow(it.key, consumption, average)
       }
       fireTableDataChanged()
     }
@@ -209,6 +228,11 @@ class PowerRailTable(val profilers: StudioProfilers,
         return data.name
       }
     },
+    AVERAGE("Average power (mW)", java.lang.Double::class.java) {
+      override fun getValueFrom(data: PowerRailRow): Double {
+        return data.average
+      }
+    },
     CONSUMPTION("Cumulative consumption ($POWER_RAIL_UNIT)", java.lang.Long::class.java) {
       override fun getValueFrom(data: PowerRailRow): Long {
         return data.consumption
@@ -224,5 +248,6 @@ class PowerRailTable(val profilers: StudioProfilers,
  */
 private data class PowerRailRow(
   val name: String,
-  val consumption: Long
+  val consumption: Long,
+  val average: Double
 )

@@ -21,7 +21,8 @@ import com.android.tools.adtui.ui.HideablePanel
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.StringFormattingUtils.formatLongValueWithCommas
 import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG
-import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeCumulativeEnergyUsageInRange
+import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeCumulativeEnergyInRange
+import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computePowerUsageRange
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.POWER_RAIL_UNIT
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.ui.JBUI
@@ -39,6 +40,9 @@ class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
   @get: VisibleForTesting
   val energyUsedLabel = JLabel()
 
+  @get: VisibleForTesting
+  var powerRailTable: PowerRailTable? = null
+
   init {
     addRowToCommonSection("Time Range", timeRangeLabel)
     addRowToCommonSection("Duration", durationLabel)
@@ -47,8 +51,9 @@ class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
     cpuCapture.systemTraceData?.powerRailCounters?.let { powerRailCounters ->
       if (powerRailCounters.isNotEmpty()) {
         addRowToCommonSectionWithInfoIcon("Total Energy Used in Range", energyUsedLabel, POWER_RAIL_TOTAL_VALUE_IN_RANGE_TOOLTIP_MSG)
-        addSection(
-          PowerRailTable(profilersView.studioProfilers, powerRailCounters, tabModel.selectionRange, tabModel.captureRange).component)
+        powerRailTable = PowerRailTable(profilersView.studioProfilers, powerRailCounters, tabModel.selectionRange,
+                                            tabModel.captureRange)
+        addSection(powerRailTable!!.component)
       }
     }
     // Add a collapsible Help Text section containing Navigation and Analysis instructions (initially collapsed)
@@ -70,7 +75,8 @@ class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
     val cpuCapture = tabModel.dataSeries[0]
     val powerRailCounters = cpuCapture.systemTraceData?.powerRailCounters
     powerRailCounters?.forEach {
-      totalEnergyUws += computeCumulativeEnergyUsageInRange(it.value.cumulativeData, selectionRange)
+      val powerUsageRange = computePowerUsageRange(it.value.cumulativeData, selectionRange)
+      totalEnergyUws += computeCumulativeEnergyInRange(powerUsageRange)
     }
 
     energyUsedLabel.text = "${formatLongValueWithCommas(totalEnergyUws)} $POWER_RAIL_UNIT"

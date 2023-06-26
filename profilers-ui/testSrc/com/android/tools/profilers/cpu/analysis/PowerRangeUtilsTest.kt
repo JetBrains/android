@@ -17,7 +17,9 @@ package com.android.tools.profilers.com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
-import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeCumulativeEnergyUsageInRange
+import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeAveragePowerInRange
+import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computeCumulativeEnergyInRange
+import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.computePowerUsageRange
 import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.getLowerBoundDataInRange
 import com.android.tools.profilers.cpu.analysis.PowerRailTableUtils.getUpperBoundDataInRange
 import org.junit.Assert
@@ -26,39 +28,51 @@ import org.junit.Test
 
 class PowerRangeUtilsTest {
   @Test
-  fun testComputeCumulativePowerUsageInRangeEntireRange() {
-    // Test case: Range encapsulates all data, expect first elements value subtracted from last elements value
-    val dataList = listOf(SeriesData(10L, 10L), SeriesData(12L, 20L), SeriesData(15L, 30L))
+  fun testComputedPowerUsageInRangeEntireRange() {
+    // Test case: Range encapsulates all data, expect first element and last element used to compute energy and avg power
+    val dataList = listOf(SeriesData(1000L, 10000L), SeriesData(12000L, 20000L), SeriesData(26000L, 35000L))
 
-    val powerUsedInRange = computeCumulativeEnergyUsageInRange(dataList, Range(9.0, 16.0))
-    Assert.assertEquals(powerUsedInRange, 20L)
+    val powerUsageRange = computePowerUsageRange(dataList, Range(0.0, 27000.0))
+    val energyUsedInRange = computeCumulativeEnergyInRange(powerUsageRange)
+    val avgPowerInRange = computeAveragePowerInRange(powerUsageRange)
+    Assert.assertEquals(energyUsedInRange, 25000L)
+    Assert.assertEquals(1000.0, avgPowerInRange, 0.000000000001)
   }
 
   @Test
-  fun testComputeCumulativePowerUsageInRangeSubsetRange() {
-    // Test case: Range encapsulates last two data points, expect second to last's elements value subtracted from last elements value
-    val dataList = listOf(SeriesData(10L, 10L), SeriesData(12L, 20L), SeriesData(15L, 30L))
+  fun testComputedPowerUsageInRangeSubsetRange() {
+    // Test case: Range encapsulates last two data points, expect second element and last element used to compute energy and avg power
+    val dataList = listOf(SeriesData(10000L, 10000L), SeriesData(12000L, 20000L), SeriesData(26000L, 35000L))
 
-    val powerUsedInRange = computeCumulativeEnergyUsageInRange(dataList, Range(11.0, 16.0))
-    Assert.assertEquals(powerUsedInRange, 10L)
+    val powerUsageRange = computePowerUsageRange(dataList, Range(11000.0, 27000.0))
+    val energyUsedInRange = computeCumulativeEnergyInRange(powerUsageRange)
+    val avgPowerInRange = computeAveragePowerInRange(powerUsageRange)
+    Assert.assertEquals(energyUsedInRange, 15000L)
+    Assert.assertEquals(15000 / (14000.0 / 1000.0), avgPowerInRange, 0.000000000001)
   }
 
   @Test
-  fun testComputeCumulativePowerUsageInRangeUpperBoundLessThanLower() {
-    // Test case: Range's upper bound timestamp is less than lower bound's timestamp, expect power used to be 0
-    val dataList = listOf(SeriesData(10L, 10L), SeriesData(12L, 20L), SeriesData(15L, 30L))
+  fun testComputedPowerUsageInRangeUpperBoundLessThanLower() {
+    // Test case: Range's upper bound timestamp is less than lower bound's timestamp, expect total energy and avg power used to be 0
+    val dataList = listOf(SeriesData(10000L, 10000L), SeriesData(12000L, 20000L), SeriesData(26000L, 35000L))
 
-    val powerUsedInRange = computeCumulativeEnergyUsageInRange(dataList, Range(12.0, 11.0))
-    Assert.assertEquals(powerUsedInRange, 0L)
+    val powerUsageRange = computePowerUsageRange(dataList, Range(12000.0, 11000.0))
+    val energyUsedInRange = computeCumulativeEnergyInRange(powerUsageRange)
+    val avgPowerInRange = computeAveragePowerInRange(powerUsageRange)
+    Assert.assertEquals(energyUsedInRange, 0)
+    Assert.assertEquals(avgPowerInRange, 0.0, 0.000000000001)
   }
 
   @Test
-  fun testComputeCumulativePowerUsageInRangeUpperBoundEqualToLower() {
-    // Test case: Range's upper bound timestamp is equal to lower bound's timestamp, expect power used to be 0
-    val dataList = listOf(SeriesData(10L, 10L), SeriesData(12L, 20L), SeriesData(15L, 30L))
+  fun testComputedPowerUsageInRangeUpperBoundEqualToLower() {
+    // Test case: Range's upper bound timestamp is equal to lower bound's timestamp, expect total energy and avg power used to be 0
+    val dataList = listOf(SeriesData(10000L, 10000L), SeriesData(12000L, 20000L), SeriesData(26000L, 35000L))
 
-    val powerUsedInRange = computeCumulativeEnergyUsageInRange(dataList, Range(11.0, 11.0))
-    Assert.assertEquals(powerUsedInRange, 0L)
+    val powerUsageRange = computePowerUsageRange(dataList, Range(11000.0, 11000.0))
+    val energyUsedInRange = computeCumulativeEnergyInRange(powerUsageRange)
+    val avgPowerInRange = computeAveragePowerInRange(powerUsageRange)
+    Assert.assertEquals(energyUsedInRange, 0)
+    Assert.assertEquals(avgPowerInRange, 0.0, 0.000000000001)
   }
 
   @Test

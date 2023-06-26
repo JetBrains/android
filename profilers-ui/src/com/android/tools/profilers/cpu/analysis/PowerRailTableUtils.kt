@@ -18,19 +18,56 @@ package com.android.tools.profilers.cpu.analysis
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.google.common.annotations.VisibleForTesting
+import java.util.concurrent.TimeUnit
 
 object PowerRailTableUtils {
+  private fun isPowerRangeInvalid(lowerBoundTs: Long, upperBoundTs: Long) = lowerBoundTs >= upperBoundTs
+
+  fun computeCumulativeEnergyInRange(powerUsageRange: PowerUsageRange) : Long {
+    val lowerBound = powerUsageRange.lowerBound
+    val upperBound = powerUsageRange.upperBound
+    val lowerBoundTs = lowerBound.x
+    val upperBoundTs = upperBound.x
+    return if (isPowerRangeInvalid(lowerBoundTs, upperBoundTs)) {
+      0
+    }
+    else {
+      upperBound.value - lowerBound.value
+    }
+  }
+
+  fun computeAveragePowerInRange(powerUsageRange: PowerUsageRange) : Double {
+    val lowerBound = powerUsageRange.lowerBound
+    val upperBound = powerUsageRange.upperBound
+    val lowerBoundTs = lowerBound.x
+    val upperBoundTs = upperBound.x
+    val durationMs = TimeUnit.MICROSECONDS.toMillis(upperBoundTs - lowerBoundTs)
+    return if (isPowerRangeInvalid(lowerBoundTs, upperBoundTs) || durationMs == 0L) {
+      0.0
+    }
+    else {
+      val cumulativeEnergy = computeCumulativeEnergyInRange(powerUsageRange)
+      // The time is in micro-seconds, so this converts it to milliseconds.
+      cumulativeEnergy / durationMs.toDouble()
+    }
+  }
+
+  data class PowerUsageRange(
+    val lowerBound: SeriesData<Long>,
+    val upperBound: SeriesData<Long>
+  )
+
   /**
-   * Computes and returns the cumulative energy used in the passed-in range.
+   * Computes and returns the cumulative power used in the passed-in range.
    */
-  fun computeCumulativeEnergyUsageInRange(cumulativeData: List<SeriesData<Long>>, selectionRange: Range): Long {
+  fun computePowerUsageRange(cumulativeData: List<SeriesData<Long>>, selectionRange: Range): PowerUsageRange {
     val lowerBound = getLowerBoundDataInRange(cumulativeData, selectionRange.min)
     val upperBound = getUpperBoundDataInRange(cumulativeData, selectionRange.max)
     // When the range selection only contains one or zero data points, it is possible for the
     // upper bound's timestamp (x) to be less than or equal to the lower bound's timestamp (x).
     // Thus, in this case, the cumulative value should be 0 as there is no positive difference
-    // in start and end energy values.
-    return if (upperBound.x > lowerBound.x) (upperBound.value - lowerBound.value) else 0
+    // in start and end power values.
+    return PowerUsageRange(lowerBound, upperBound)
   }
 
   /**
