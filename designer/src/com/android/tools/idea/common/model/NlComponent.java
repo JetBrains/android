@@ -17,13 +17,20 @@ package com.android.tools.idea.common.model;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.ATTR_STYLE;
 import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
 import static com.android.SdkConstants.XMLNS;
 import static com.android.SdkConstants.XMLNS_PREFIX;
 import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
@@ -502,9 +509,37 @@ public class NlComponent implements NlAttributesHolder {
       // The LayoutPsiPullParser.TAG_SNAPSHOT_DECORATOR may add a synthetic id to a List_VIEW. Ignore this id:
       if (ID_DYNAMIC.equals(value) && attribute.equals(ATTR_ID) && getTagName().equals(LIST_VIEW) &&
           myBackend.getAttribute(attribute, namespace) == null) {
-        value = null;
+        return null;
       }
-      return value;
+
+      if (value != null) {
+        return value;
+      }
+
+      // Check if the component has an associated style that contains this attribute
+      String style = snapshot.getAttribute(ATTR_STYLE, "");
+      if (style == null) {
+        return null;
+      }
+      ResourceUrl url = ResourceUrl.parse(style);
+      if (url == null) {
+        return null;
+      }
+      ResourceReference styleRef = url.resolve(ResourceNamespace.RES_AUTO, ResourceNamespace.Resolver.EMPTY_RESOLVER);
+      if (styleRef == null) {
+        return null;
+      }
+      ResourceResolver resolver = myModel.getConfiguration().getResourceResolver();
+      StyleResourceValue styleResValue = resolver.getStyle(styleRef);
+      if (styleResValue == null) {
+        return null;
+      }
+      ResourceNamespace resNamespace = namespace != null ? ResourceNamespace.fromNamespaceUri(namespace) : ResourceNamespace.TODO();
+      if (resNamespace == null) {
+        return null;
+      }
+      StyleItemResourceValue item = resolver.findItemInStyle(styleResValue, ResourceReference.attr(resNamespace, attribute));
+      return item != null ? item.getValue() : null;
     }
 
     return myBackend.getAttribute(attribute, namespace);

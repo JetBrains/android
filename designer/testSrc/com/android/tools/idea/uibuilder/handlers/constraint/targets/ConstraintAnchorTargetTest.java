@@ -28,6 +28,7 @@ import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.scene.SceneTest;
 import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
+import com.intellij.psi.PsiFile;
 import java.awt.Point;
 import java.awt.event.InputEvent;
 import java.util.Optional;
@@ -421,6 +422,20 @@ public class ConstraintAnchorTargetTest extends SceneTest {
     Mockito.verify(listener, Mockito.never()).over(ArgumentMatchers.eq(leftEdge), ArgumentMatchers.anyDouble());
   }
 
+  public void testAttributesInStyle() {
+    PsiFile file = myFixture.addFileToProject("res/values/styles.xml", """
+        <resources>
+          <style name="CustomStyle">
+              <item name="layout_constraintBottom_toBottomOf">parent</item>
+          </style>
+        </resources>
+      """);
+    myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+    SceneComponent component = myScene.getSceneComponent("textview");
+    String attribute = component.getNlComponent().getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF);
+    assertEquals("parent", attribute);
+  }
+
   @Override
   public ModelBuilder createModel() {
     return model("model.xml", component(CONSTRAINT_LAYOUT.defaultName())
@@ -454,6 +469,7 @@ public class ConstraintAnchorTargetTest extends SceneTest {
                       .withBounds(300, 300, 100, 50)
                       .width("50dp")
                       .height("25dp")
+                      .withAttribute(SdkConstants.ATTR_STYLE, "@style/CustomStyle")
                       .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "50dp")
                       .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "50dp")
       ))
