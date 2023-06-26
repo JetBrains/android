@@ -18,6 +18,7 @@ package com.android.tools.idea.stats
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DebuggerEvent
 import com.google.wireless.android.sdk.stats.FileType
 import com.google.wireless.android.sdk.stats.FileUsage
 import com.google.wireless.android.sdk.stats.KotlinGradlePerformance
@@ -50,6 +51,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
       "kotlin.project.configuration" -> logKotlinProjectConfiguration(eventId, data)
       "run.configuration.exec" -> logRunConfigurationExec(eventId, data)
       "vfs" -> logVfsEvent(eventId, data)
+      "debugger.breakpoints.usage" -> logDebuggerBreakpointsUsage(eventId, data)
     }
     return CompletableFuture.completedFuture(null)
   }
@@ -214,6 +216,32 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
                          .setVfsRefresh(VfsRefresh.newBuilder().setDurationMs(durationMs)))
     }
   }
+
+  private fun logDebuggerBreakpointsUsage(eventId: String, data: Map<String, Any>) {
+    when (eventId) {
+      "breakpoint.added" -> {
+        val type = data["type"] as? String ?: return
+        val pluginType = data["plugin_type"] as? String ?: return
+        val withinSession = data["within_session"] as? Boolean ?: return
+
+        val studioEvent = AndroidStudioEvent.newBuilder()
+          .setKind(AndroidStudioEvent.EventKind.DEBUGGER_EVENT)
+          .setDebuggerEvent(
+            DebuggerEvent.newBuilder()
+              .setType(DebuggerEvent.Type.BREAKPOINT_ADDED_EVENT)
+              .setBreakpointAdded(
+                DebuggerEvent.BreakpointAdded.newBuilder()
+                  .setType(type)
+                  .setPluginType(pluginType)
+                  .setInSession(withinSession)
+              )
+          )
+
+        UsageTracker.log(studioEvent)
+      }
+    }
+  }
+
 
   /**
    * Adds the associated project from the IntelliJ anonymization project id to the builder
