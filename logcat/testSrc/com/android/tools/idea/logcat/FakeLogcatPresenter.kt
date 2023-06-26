@@ -22,6 +22,7 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.FormattingOptions
 import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
+import java.nio.file.Path
 
 /*
  * Copyright (C) 2021 The Android Open Source Project
@@ -78,6 +79,10 @@ internal class FakeLogcatPresenter : LogcatPresenter {
   override fun getConnectedDevice() = attachedDevice
 
   override fun isShowing() = showing
+
+  override fun openLogcatFile(path: Path) {
+    TODO("Not yet implemented")
+  }
 
   override fun getBacklogMessages(): List<LogcatMessage> = messageBatches.flatten()
 

@@ -24,6 +24,7 @@ import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
+import java.nio.file.Path
 
 /**
  * Encapsulates the presentation of Logcat messages.
@@ -98,6 +99,8 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
   suspend fun enterInvisibleMode()
 
   fun isShowing() : Boolean
+
+  fun openLogcatFile(path: Path)
 
   companion object {
     val LOGCAT_PRESENTER_ACTION = DataKey.create<LogcatPresenter>("LogcatPresenter")

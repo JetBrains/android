@@ -20,19 +20,10 @@ import com.android.testutils.file.createInMemoryFileSystem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
-import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.ImportItem
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
-import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.fileChooser.FileChooserDescriptor
-import com.intellij.openapi.fileChooser.FileChooserDialog
-import com.intellij.openapi.fileChooser.FileChooserFactory
-import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.ui.CollectionComboBoxModel
@@ -45,9 +36,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.spy
-import java.awt.Component
-import java.nio.file.Path
-import kotlin.io.path.name
 import kotlin.io.path.writeText
 
 /**
@@ -57,13 +45,12 @@ import kotlin.io.path.writeText
 class DeviceComboBoxTest {
   private val projectRule = ProjectRule()
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
-  private val fakeFileChooserFactory = FakeFileChooserFactory()
 
   @get:Rule
   val rule = RuleChain(
     projectRule,
     ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
-    ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory))
+  )
 
   private val selectionEvents = mutableListOf<Any?>()
 
@@ -100,7 +87,6 @@ class DeviceComboBoxTest {
     assertThat(deviceComboBox.getItems()).containsExactly(
       DeviceItem(device1),
       DeviceItem(device2),
-      ImportItem,
     ).inOrder()
   }
 
@@ -122,7 +108,6 @@ class DeviceComboBoxTest {
     assertThat(deviceComboBox.getItems()).containsExactly(
       DeviceItem(device1),
       DeviceItem(device2),
-      ImportItem,
     ).inOrder()
   }
 
@@ -146,7 +131,6 @@ class DeviceComboBoxTest {
     assertThat(selectedItems.await()).isEqualTo(selectionEvents)
     assertThat(deviceComboBox.getItems()).containsExactly(
       DeviceItem(device2.offline()),
-      ImportItem,
     ).inOrder()
   }
 
@@ -169,7 +153,6 @@ class DeviceComboBoxTest {
     assertThat(deviceComboBox.getItems()).containsExactly(
       DeviceItem(device1),
       DeviceItem(device2.offline()),
-      ImportItem,
     ).inOrder()
   }
 
@@ -227,20 +210,23 @@ class DeviceComboBoxTest {
   }
 
   @Test
-  fun browseItem(): Unit = runTest(dispatchTimeoutMs = 5_000) {
+  fun addOrSelectFile(): Unit = runTest(dispatchTimeoutMs = 5_000) {
+    val fileSystem = createInMemoryFileSystem()
+    val path = fileSystem.getPath("file.logcat").apply {
+      writeText("")
+    }
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
     val selectedItems = async { deviceComboBox.trackSelected().toList() }
     advanceUntilIdle()
 
-    deviceComboBox.selectedItem = ImportItem
+    deviceComboBox.addOrSelectFile(path)
     advanceUntilIdle()
     deviceTracker.close()
 
-    assertThat(selectionEvents).containsExactly(FileItem(fakeFileChooserFactory.virtualFile.toNioPath()))
+    assertThat(selectionEvents).containsExactly(FileItem(path))
     assertThat(selectedItems.await()).isEqualTo(selectionEvents)
     assertThat(deviceComboBox.getItems()).containsExactly(
-      FileItem(fakeFileChooserFactory.virtualFile.toNioPath()),
-      ImportItem,
+      FileItem(path),
     ).inOrder()
   }
 
@@ -255,27 +241,6 @@ class DeviceComboBoxTest {
       whenever(it.model.setSelectedItem(any())).thenAnswer { invocation ->
         invocation.callRealMethod()
         selectionEvents.add(invocation.arguments[0])
-      }
-    }
-  }
-
-  private class FakeFileChooserFactory : FileChooserFactoryImpl() {
-    private val fileSystem = createInMemoryFileSystem()
-    private val path = this@FakeFileChooserFactory.fileSystem.getPath("file.logcat").apply {
-      writeText("")
-    }
-    val virtualFile = object : LightVirtualFile(path.name) {
-      override fun toNioPath(): Path = this@FakeFileChooserFactory.fileSystem.getPath(name)
-    }
-
-    override fun createFileChooser(descriptor: FileChooserDescriptor, project: Project?, parent: Component?): FileChooserDialog {
-      return object : FileChooserDialog {
-        @Deprecated("Deprecated in Java", ReplaceWith("NA"))
-        override fun choose(toSelect: VirtualFile?, project: Project?) = TODO("Not yet implemented")
-
-        override fun choose(project: Project?, vararg toSelect: VirtualFile?): Array<VirtualFile> {
-          return arrayOf(virtualFile)
-        }
       }
     }
   }

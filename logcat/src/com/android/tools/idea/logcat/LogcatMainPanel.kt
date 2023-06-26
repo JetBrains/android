@@ -37,6 +37,7 @@ import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.CopyMessageTextAction
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction
 import com.android.tools.idea.logcat.actions.IgnoreTagAction
+import com.android.tools.idea.logcat.actions.ImportLogcatAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
 import com.android.tools.idea.logcat.actions.LogcatScrollToTheEndToolbarAction
@@ -158,6 +159,7 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
+import java.nio.file.Path
 import java.time.ZoneId
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
@@ -622,13 +624,15 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(ClearLogcatAction())
       add(PauseLogcatAction())
       add(RestartLogcatAction())
-        if (StudioFlags.LOGCAT_EXPORT_IMPORT_ENABLED.get()) {
-        add(SaveLogcatAction())
-      }
       add(LogcatScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(LogcatToggleUseSoftWrapsToolbarAction())
+      if (StudioFlags.LOGCAT_EXPORT_IMPORT_ENABLED.get()) {
+        add(Separator.create())
+        add(ImportLogcatAction())
+        add(SaveLogcatAction())
+      }
       add(Separator.create())
       add(LogcatFormatAction(project, this@LogcatMainPanel))
       add(Separator.create())
@@ -637,6 +641,10 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(ScreenshotAction())
       add(ScreenRecorderAction())
     }
+  }
+
+  override fun openLogcatFile(path: Path) {
+    deviceComboBox.addOrSelectFile(path)
   }
 
   @UiThread

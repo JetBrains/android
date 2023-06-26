@@ -45,7 +45,8 @@ private const val SAVE_PATH_KEY = "Logcat.SavePath"
 
 private const val LOGCAT_EXT = "logcat"
 
-internal class SaveLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.save.log.action.text"), null, AllIcons.Actions.MenuSaveall) {
+internal class SaveLogcatAction :
+  DumbAwareAction(LogcatBundle.message("logcat.save.log.action.text"), null, AllIcons.ToolbarDecorator.Export) {
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = e.getLogcatPresenter()?.let {

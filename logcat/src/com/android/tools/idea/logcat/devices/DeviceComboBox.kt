@@ -15,19 +15,15 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
-import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.ImportItem
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.util.LOGGER
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
-import com.intellij.openapi.fileChooser.FileChooserDescriptor
-import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.MessageDialogBuilder
@@ -51,8 +47,6 @@ import javax.swing.JList
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.pathString
-
-private val LOGCAT_FILE_EXTENSIONS = setOf("logcat", "txt")
 
 /**
  * A [ComboBox] for selecting a device.
@@ -81,11 +75,6 @@ internal class DeviceComboBox(
 
   override fun setSelectedItem(item: Any?) {
     when (item) {
-      ImportItem -> {
-        importItemSelected()
-        return
-      }
-
       is FileItem -> {
         if (!item.path.exists()) {
           val itemRemoved = handleItemError(item, LogcatBundle.message("logcat.device.combo.error.message", item.path))
@@ -166,18 +155,7 @@ internal class DeviceComboBox(
     (model as DeviceComboModel).replaceDevice(device, device.deviceId == (item as? DeviceItem)?.device?.deviceId)
   }
 
-  private fun importItemSelected() {
-    val descriptor = FileChooserDescriptor(true, false, false, false, false, false)
-      .withTitle(LogcatBundle.message("logcat.device.combo.file.chooser.title"))
-      .withFileFilter { it.name.substringAfterLast('.') in LOGCAT_FILE_EXTENSIONS }
-    val path = FileChooserFactory.getInstance()
-                 .createFileChooser(descriptor, project, this)
-                 .choose(project)
-                 .firstOrNull()
-                 ?.toNioPath()
-                 ?.normalize()
-               ?: return
-
+  fun addOrSelectFile(path: Path) {
     val fileItem = deviceComboModel.items.find { it is FileItem && it.path.pathString == path.pathString } ?: deviceComboModel.addFile(path)
     selectedItem = fileItem
   }
@@ -207,7 +185,6 @@ internal class DeviceComboBox(
       when (item) {
         is DeviceItem -> renderDevice(item.device)
         is FileItem -> renderFile(item.path, (list.model as DeviceComboModel).items)
-        ImportItem -> renderImport()
       }
     }
 
@@ -230,34 +207,20 @@ internal class DeviceComboBox(
       val name = if (sameName > 1) path.pathString else path.name
       append(name)
     }
-
-    private fun renderImport() {
-      icon = AllIcons.ToolbarDecorator.Import
-      append(LogcatBundle.message("logcat.device.combo.import"))
-    }
   }
 
   private class DeviceComboModel : CollectionComboBoxModel<DeviceComboItem>() {
 
-    init {
-      if (StudioFlags.LOGCAT_EXPORT_IMPORT_ENABLED.get()) {
-        add(ImportItem)
-      }
-    }
-
     fun addDevice(device: Device): DeviceItem {
-      val item = DeviceItem(device)
-      when (items.contains(ImportItem)) {
-        true -> add(size - 1, item)
-        false -> add(item)
+      return DeviceItem(device).also {
+        add(it)
       }
-      return item
     }
 
     fun addFile(path: Path): FileItem {
-      val item = FileItem(path)
-      add(size - 1, item)
-      return item
+      return FileItem(path).also {
+        add(it)
+      }
     }
 
     fun replaceDevice(device: Device, setSelected: Boolean) {
@@ -279,6 +242,5 @@ internal class DeviceComboBox(
   sealed class DeviceComboItem {
     data class DeviceItem(val device: Device) : DeviceComboItem()
     data class FileItem(val path: Path) : DeviceComboItem()
-    object ImportItem : DeviceComboItem()
   }
 }
