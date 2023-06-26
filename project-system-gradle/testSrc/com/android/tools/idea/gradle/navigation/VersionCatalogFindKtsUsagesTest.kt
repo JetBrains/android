@@ -18,10 +18,16 @@ package com.android.tools.idea.gradle.navigation
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.psi.PsiManager
+import com.intellij.psi.search.LocalSearchScope
+import com.intellij.psi.search.SearchScope
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Test
+import java.io.File
 
 class VersionCatalogFindKtsUsagesTest: AndroidTestCase()  {
 
@@ -34,9 +40,29 @@ class VersionCatalogFindKtsUsagesTest: AndroidTestCase()  {
       dependencies {
         implementation(libs.groovy.core)
       }
-    """.trimIndent()) {
+    """.trimIndent(), { null }) {
       assertThat(it).hasSize(1)
       assertThat(it.first().file ).isInstanceOf(KtFile::class.java)
+    }
+  }
+
+  // regression test for b/287647449
+  // We reproduce situation when editor highlights words that are the same as
+  // what cursor is at. Scope is LocalSearchScope for this case.
+  @Test
+  fun testNoUsagesInCatalogFileScope(){
+    testVersionCatalogFindUsages("""
+      [versions]
+      groovy = "2.7.3"
+      [libraries]
+      groov${caret}y = { module = "org.codehaus.groovy:groovy", version.ref = "groovy"}
+    """.trimIndent(), """
+      dependencies {
+        implementation(libs.groovy)
+      }
+    """.trimIndent(), getCatalogFileScope
+    ) {
+      assertThat(it).hasSize(0)
     }
   }
 
@@ -49,12 +75,19 @@ class VersionCatalogFindKtsUsagesTest: AndroidTestCase()  {
       dependencies {
         implementation(libs.groovy)
       }
-    """.trimIndent()) {
+    """.trimIndent(), { null } ) {
       assertThat(it).isEmpty()
     }
   }
 
-  private fun testVersionCatalogFindUsages(versionCatalogText: String, buildGradleText: String,
+  private val getCatalogFileScope: () -> SearchScope = {
+    val virtualFile = VfsUtil.findFileByIoFile(File(project.basePath!!,"gradle/libs.versions.toml"),true)!!
+    LocalSearchScope(PsiManager.getInstance(project).findFile(virtualFile)!!)
+  }
+
+  private fun testVersionCatalogFindUsages(versionCatalogText: String,
+                                           buildGradleText: String,
+                                           getScope: () -> SearchScope?, // null is a default global scope
                                            checker: (Collection<UsageInfo>) -> Unit) {
     val buildFile = myFixture.addFileToProject("build.gradle.kts", buildGradleText)
     myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
@@ -67,7 +100,15 @@ class VersionCatalogFindKtsUsagesTest: AndroidTestCase()  {
     myFixture.openFileInEditor(psiFile.virtualFile)
     AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(project)
 
-    val usages = myFixture.findUsages(myFixture.elementAtCaret)
+    val scope: SearchScope? = getScope()
+    val usages =
+      if (scope == null) {
+        // global scope
+        myFixture.findUsages(myFixture.elementAtCaret)
+      }
+      else {
+        (myFixture as CodeInsightTestFixtureImpl).findUsages(myFixture.elementAtCaret, scope)
+      }
     checker(usages)
   }
 }
