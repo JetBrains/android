@@ -37,6 +37,9 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private const val SAVE_PATH_KEY = "Logcat.SavePath"
 
@@ -58,7 +61,11 @@ internal class SaveLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.s
     val dialog = FileChooserFactory.getInstance().createSaveFileDialog(
       FileSaverDescriptor(LogcatBundle.message("logcat.save.log.dialog.title"), "", LOGCAT_EXT),
       project)
-    val filename = "${device.name.replace(' ', '-')}-Android-${device.release}".adjustedForMac()
+
+    val timestamp = SimpleDateFormat("yyyy-MM-dd_HHmmss", Locale.ROOT).format(Date())
+    val deviceName = device.name.replace(' ', '-')
+    val systemInfo = "Android-${device.release}"
+    val filename = "${deviceName}-${systemInfo}_${timestamp}".adjustedForMac()
     val file = dialog.save(getSavePath(project), filename)?.file ?: return
     PropertiesComponent.getInstance(project).setValue(SAVE_PATH_KEY, file.parent)
 
