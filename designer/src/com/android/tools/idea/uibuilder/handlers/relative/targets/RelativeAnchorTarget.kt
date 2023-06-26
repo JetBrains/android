@@ -27,6 +27,7 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.target.AnchorTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor
+import com.android.tools.idea.uibuilder.model.ensureLiveId
 
 /** Target offers the anchors in RelativeLayout. */
 class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
@@ -227,8 +228,14 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
       alignmentValue = VALUE_TRUE
     } else {
       alignmentAttribute = SIBLING_CONNECTION_TYPES[typePair] ?: return
-      // TODO: handle no id case?
-      alignmentValue = NEW_ID_PREFIX + other.myComponent.id
+      val id =
+        if (other.myComponent.id == null) {
+          // If the destination component does not have an ID, assign one
+          other.myComponent.nlComponent.ensureLiveId()
+        } else {
+          other.myComponent.id
+        }
+      alignmentValue = NEW_ID_PREFIX + id
     }
 
     clearAssociatedAttribute(transaction)

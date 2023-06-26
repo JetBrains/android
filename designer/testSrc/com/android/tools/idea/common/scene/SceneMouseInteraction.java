@@ -294,16 +294,27 @@ public class SceneMouseInteraction {
    * Simulate releasing the mouse above the given {@link AnchorTarget} of the component
    * with the given componentId
    *
+   * @param component   the {@link SceneComponent} of the component we will release the mouse above
+   * @param type        the type of anchor we need to be above
+   */
+  public void mouseRelease(@NotNull SceneComponent component, AnchorTarget.Type type) {
+    AnchorTarget target = AnchorTarget.findAnchorTarget(component, type);
+    float x = target.getCenterX();
+    float y = target.getCenterY();
+    mouseRelease(x, y);
+  }
+
+  /**
+   * Simulate releasing the mouse above the given {@link AnchorTarget} of the component
+   * with the given componentId
+   *
    * @param componentId the id of the component we will release the mouse above
    * @param type        the type of anchor we need to be above
    */
   public void mouseRelease(String componentId, AnchorTarget.Type type) {
     SceneComponent component = myScene.getSceneComponent(componentId);
     if (component != null) {
-      AnchorTarget target = AnchorTarget.findAnchorTarget(component, type);
-      float x = target.getCenterX();
-      float y = target.getCenterY();
-      mouseRelease(x, y);
+      mouseRelease(component, type);
     }
   }
 

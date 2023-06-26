@@ -106,6 +106,9 @@ public class ScreenFixture {
   @Nullable
   public ComponentFixture findById(@NotNull String id) {
     List<NlComponent> components = findAllById(id);
+    if (components.isEmpty()) {
+      return null;
+    }
     ensureAtMostOneMatch("id = " + id, components);
     return new ComponentFixture(this, components.get(0));
   }
@@ -121,12 +124,15 @@ public class ScreenFixture {
   @Nullable
   public ComponentFixture findByTag(@NotNull String tag) {
     List<NlComponent> components = findAllByTag(tag);
+    if (components.isEmpty()) {
+      return null;
+    }
     ensureAtMostOneMatch("Tag = " + tag, components);
     return new ComponentFixture(this, components.get(0));
   }
 
   private void ensureAtMostOneMatch(@NotNull String match, List<NlComponent> components) {
-    if (components.size() != 1) {
+    if (components.size() > 1) {
       fail("Found multiple components with matcher " +
            match +
            ": component hierarchy is " +

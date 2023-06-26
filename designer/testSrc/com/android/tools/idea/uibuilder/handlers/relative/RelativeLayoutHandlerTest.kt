@@ -490,6 +490,37 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
       )
   }
 
+  fun testCreateLinkToComponentWithoutIdCreatesANewId() {
+    assertNull("TextView should not have an id yet", myScreen.findById("@+id/textView"))
+    // TextView does not have an id. Attaching the checkbox will generate one.
+    val textView = myScreen.findByTag("TextView")?.sceneComponent!!
+    myInteraction.select("checkbox", true)
+    myInteraction.mouseDown("checkbox", AnchorTarget.Type.TOP)
+    myInteraction.mouseRelease(textView, AnchorTarget.Type.BOTTOM)
+    myScreen
+      .findById("@+id/textView")!!
+      .expectXml(
+        "<TextView\n" +
+          "         android:id=\"@+id/textView\"\n" +
+          "         android:layout_width=\"20dp\"\n" +
+          "         android:layout_height=\"20dp\"\n" +
+          "         android:layout_marginLeft=\"50dp\"\n" +
+          "         android:layout_marginTop=\"50dp\" />"
+      )
+    myScreen
+      .get("@id/checkbox")
+      .expectXml(
+        "<CheckBox\n" +
+          "         android:id=\"@id/checkbox\"\n" +
+          "         android:layout_width=\"20dp\"\n" +
+          "         android:layout_height=\"20dp\"\n" +
+          "         android:layout_below=\"@+id/textView\"\n" +
+          "         android:layout_marginLeft=\"50dp\"\n" +
+          "         android:layout_marginTop=\"-160dp\"\n" +
+          "         android:layout_toRightOf=\"@id/button\" />\n"
+      )
+  }
+
   override fun createModel(): ModelBuilder {
     val builder =
       model(
@@ -521,6 +552,15 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
               .withAttribute("android:layout_below", "@id/button")
               .withAttribute("android:layout_toRightOf", "@id/button")
               .withAttribute("android:layout_marginLeft", "50dp")
+              .withAttribute("android:layout_marginTop", "50dp"),
+
+            // Checkbox without id
+            component(TEXT_VIEW)
+              .withBounds(300, 600, 20, 20)
+              .viewObject(mockViewWithBaseline(17))
+              .width("20dp")
+              .height("20dp")
+              .withAttribute("android:layout_marginLeft", "50dp")
               .withAttribute("android:layout_marginTop", "50dp")
           )
       )
@@ -529,7 +569,8 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     assertEquals(
       "NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
         "    NlComponent{tag=<Button>, bounds=[100,100:100x100}\n" +
-        "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}",
+        "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}\n" +
+        "    NlComponent{tag=<TextView>, bounds=[300,600:20x20}",
       NlTreeDumper.dumpTree(model.components)
     )
 
@@ -557,6 +598,12 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
         "        android:layout_height=\"20dp\"\n" +
         "        android:layout_below=\"@id/button\"\n" +
         "        android:layout_toRightOf=\"@id/button\"\n" +
+        "        android:layout_marginLeft=\"50dp\"\n" +
+        "        android:layout_marginTop=\"50dp\" />\n" +
+        "\n" +
+        "    <TextView\n" +
+        "        android:layout_width=\"20dp\"\n" +
+        "        android:layout_height=\"20dp\"\n" +
         "        android:layout_marginLeft=\"50dp\"\n" +
         "        android:layout_marginTop=\"50dp\" />\n" +
         "\n" +
