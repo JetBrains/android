@@ -28,14 +28,11 @@ import com.android.tools.idea.common.scene.target.AnchorTarget
 import com.android.tools.idea.common.scene.target.Target
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawAnchor
 
-/**
- * Target offers the anchors in RelativeLayout.
- */
-class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTarget(type, isParent) {
+/** Target offers the anchors in RelativeLayout. */
+class RelativeAnchorTarget(type: Type, private val isParent: Boolean) :
+  AnchorTarget(type, isParent) {
 
-  /**
-   * Used to record the aligned component ids.
-   */
+  /** Used to record the aligned component ids. */
   private val alignedComponentIds = mutableSetOf<String>()
 
   override fun setComponent(component: SceneComponent) {
@@ -47,22 +44,29 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     alignedComponentIds.clear()
     val nlComponent = component.authoritativeNlComponent
 
-    SIBLING_ALIGNMENT_ATTRIBUTES
-      .mapNotNull { nlComponent.getLiveAttribute(ANDROID_URI, it) }
+    SIBLING_ALIGNMENT_ATTRIBUTES.mapNotNull { nlComponent.getLiveAttribute(ANDROID_URI, it) }
       .mapNotNull { NlComponent.extractId(it) }
       .toCollection(alignedComponentIds)
   }
 
-  override fun isConnected() = findRelatedAlignmentAttributes()
-    .flatMap { getProperAttributesForLayout(it) }
-    .any { myComponent.authoritativeNlComponent.getLiveAttribute(ANDROID_URI, it) != null }
+  override fun isConnected() =
+    findRelatedAlignmentAttributes()
+      .flatMap { getProperAttributesForLayout(it) }
+      .any { myComponent.authoritativeNlComponent.getLiveAttribute(ANDROID_URI, it) != null }
 
   override fun render(list: DisplayList, sceneContext: SceneContext) {
     if (!isParent) {
       super.render(list, sceneContext)
 
       if (myIsDragging) {
-        list.addConnection(sceneContext, centerX, centerY, myLastX.toFloat(), myLastY.toFloat(), type.ordinal)
+        list.addConnection(
+          sceneContext,
+          centerX,
+          centerY,
+          myLastX.toFloat(),
+          myLastY.toFloat(),
+          type.ordinal
+        )
       }
     }
   }
@@ -92,7 +96,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
         if (mIsOver) DrawAnchor.Mode.OVER else DrawAnchor.Mode.NORMAL
       } else DrawAnchor.Mode.DO_NOT_DRAW
     } else if (mIsOver) {
-       if (isConnected) DrawAnchor.Mode.DELETE else DrawAnchor.Mode.OVER
+      if (isConnected) DrawAnchor.Mode.DELETE else DrawAnchor.Mode.OVER
     } else {
       DrawAnchor.Mode.NORMAL
     }
@@ -102,23 +106,28 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     if (dest !is RelativeAnchorTarget) {
       return false
     }
-    val sameDirection = when (myType) {
-      Type.LEFT, Type.RIGHT -> dest.type == Type.LEFT || dest.type == Type.RIGHT
-      Type.TOP, Type.BOTTOM -> dest.type == Type.TOP || dest.type == Type.BOTTOM
-      Type.BASELINE -> dest.type == Type.BASELINE
-    }
+    val sameDirection =
+      when (myType) {
+        Type.LEFT,
+        Type.RIGHT -> dest.type == Type.LEFT || dest.type == Type.RIGHT
+        Type.TOP,
+        Type.BOTTOM -> dest.type == Type.TOP || dest.type == Type.BOTTOM
+        Type.BASELINE -> dest.type == Type.BASELINE
+      }
     if (!sameDirection) {
       return false
     }
-    return if (dest.isEdge) component.parent === dest.component else component.parent === dest.component.parent
+    return if (dest.isEdge) component.parent === dest.component
+    else component.parent === dest.component.parent
   }
 
   /**
-   * If this target can become the destination of current dragging anchor.
-   * Returns true if this is not dragging but aligning to the dragging component.
+   * If this target can become the destination of current dragging anchor. Returns true if this is
+   * not dragging but aligning to the dragging component.
    */
   private fun isConnectible(filterType: Scene.FilterType): Boolean {
-    val draggingAnchorTarget = myComponent.scene.interactingTarget as? RelativeAnchorTarget ?: return false
+    val draggingAnchorTarget =
+      myComponent.scene.interactingTarget as? RelativeAnchorTarget ?: return false
     if (isAlignedTo(draggingAnchorTarget.myComponent)) {
       return false
     }
@@ -129,11 +138,14 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     }
   }
 
-  fun getPreferredFilterType() = when (type) {
-    Type.LEFT, Type.RIGHT -> Scene.FilterType.HORIZONTAL_ANCHOR
-    Type.TOP, Type.BOTTOM -> Scene.FilterType.VERTICAL_ANCHOR
-    Type.BASELINE -> Scene.FilterType.BASELINE_ANCHOR
-  }
+  fun getPreferredFilterType() =
+    when (type) {
+      Type.LEFT,
+      Type.RIGHT -> Scene.FilterType.HORIZONTAL_ANCHOR
+      Type.TOP,
+      Type.BOTTOM -> Scene.FilterType.VERTICAL_ANCHOR
+      Type.BASELINE -> Scene.FilterType.BASELINE_ANCHOR
+    }
 
   override fun mouseDown(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int) {
     super.mouseDown(x, y)
@@ -155,7 +167,11 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     myIsDragging = true
   }
 
-  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
+  override fun mouseRelease(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    closestTargets: List<Target>
+  ) {
     super.mouseRelease(x, y, closestTargets)
     if (isParent) {
       return
@@ -166,9 +182,10 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
       val transactions = myComponent.authoritativeNlComponent.startAttributeTransaction()
       if (this in closestTargets) {
         handleConstraintDeletion(transactions)
-      }
-      else {
-        closestTargets.filterIsInstance<RelativeAnchorTarget>().firstOrNull()?.let { handleConstraintConnection(transactions, it) }
+      } else {
+        closestTargets.filterIsInstance<RelativeAnchorTarget>().firstOrNull()?.let {
+          handleConstraintConnection(transactions, it)
+        }
       }
     }
 
@@ -184,10 +201,14 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     updateAlignedComponentIds()
   }
 
-  private fun handleConstraintConnection(attributesTransaction: AttributesTransaction, target: RelativeAnchorTarget) {
+  private fun handleConstraintConnection(
+    attributesTransaction: AttributesTransaction,
+    target: RelativeAnchorTarget
+  ) {
     val nlComponent = myComponent.authoritativeNlComponent
     connectTo(target, attributesTransaction)
-    val message = "Create constraint between ${myType.name} of ${nlComponent.tagName} " +
+    val message =
+      "Create constraint between ${myType.name} of ${nlComponent.tagName} " +
         "and ${target.myType} of ${target.myComponent.authoritativeNlComponent.tagName}"
     NlWriteCommandActionUtil.run(nlComponent, message) { attributesTransaction.commit() }
     myComponent.scene.markNeedsLayout(Scene.ANIMATED_LAYOUT)
@@ -204,8 +225,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     if (other.myComponent == myComponent.parent) {
       alignmentAttribute = PARENT_CONNECTION_TYPES[typePair] ?: return
       alignmentValue = VALUE_TRUE
-    }
-    else {
+    } else {
       alignmentAttribute = SIBLING_CONNECTION_TYPES[typePair] ?: return
       // TODO: handle no id case?
       alignmentValue = NEW_ID_PREFIX + other.myComponent.id
@@ -213,10 +233,14 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
 
     clearAssociatedAttribute(transaction)
 
-    getProperAttributesForLayout(alignmentAttribute).forEach { transaction.setAndroidAttribute(it, alignmentValue) }
+    getProperAttributesForLayout(alignmentAttribute).forEach {
+      transaction.setAndroidAttribute(it, alignmentValue)
+    }
 
     val (marginAttribute, marginValue) = calculateMargin(other, alignmentAttribute) ?: return
-    getProperAttributesForLayout(marginAttribute).forEach { transaction.setAndroidAttribute(it, marginValue) }
+    getProperAttributesForLayout(marginAttribute).forEach {
+      transaction.setAndroidAttribute(it, marginValue)
+    }
   }
 
   /**
@@ -228,108 +252,137 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
       .flatMap { getProperAttributesForLayout(it) }
       .forEach { transaction.removeAndroidAttribute(it) }
     // Remove margin attribute(s)
-    getProperAttributesForLayout(findRelatedMarginAttribute()).forEach { transaction.removeAndroidAttribute(it) }
+    getProperAttributesForLayout(findRelatedMarginAttribute()).forEach {
+      transaction.removeAndroidAttribute(it)
+    }
   }
 
-  private fun findRelatedAlignmentAttributes() = when (type) {
-    Type.TOP -> arrayOf(
-      ATTR_LAYOUT_CENTER_IN_PARENT,
-      ATTR_LAYOUT_CENTER_VERTICAL,
-      ATTR_LAYOUT_ALIGN_PARENT_TOP,
-      ATTR_LAYOUT_ALIGN_TOP,
-      ATTR_LAYOUT_BELOW
-    )
-    Type.LEFT -> arrayOf(
-      ATTR_LAYOUT_CENTER_IN_PARENT,
-      ATTR_LAYOUT_CENTER_HORIZONTAL,
-      ATTR_LAYOUT_ALIGN_PARENT_LEFT,
-      ATTR_LAYOUT_ALIGN_LEFT,
-      ATTR_LAYOUT_TO_RIGHT_OF
-    )
-    Type.BOTTOM -> arrayOf(
-      ATTR_LAYOUT_CENTER_IN_PARENT,
-      ATTR_LAYOUT_CENTER_VERTICAL,
-      ATTR_LAYOUT_ALIGN_PARENT_BOTTOM,
-      ATTR_LAYOUT_ALIGN_BOTTOM,
-      ATTR_LAYOUT_ABOVE
-    )
-    Type.RIGHT -> arrayOf(
-      ATTR_LAYOUT_CENTER_IN_PARENT,
-      ATTR_LAYOUT_CENTER_HORIZONTAL,
-      ATTR_LAYOUT_ALIGN_PARENT_RIGHT,
-      ATTR_LAYOUT_ALIGN_RIGHT,
-      ATTR_LAYOUT_TO_LEFT_OF
-    )
-    Type.BASELINE -> arrayOf(ATTR_LAYOUT_ALIGN_BASELINE)
-  }
-
-  private fun findRelatedMarginAttribute() = when (type) {
-    Type.TOP -> ATTR_LAYOUT_MARGIN_TOP
-    Type.LEFT -> ATTR_LAYOUT_MARGIN_LEFT
-    Type.BOTTOM -> ATTR_LAYOUT_MARGIN_BOTTOM
-    Type.RIGHT -> ATTR_LAYOUT_MARGIN_RIGHT
-    Type.BASELINE -> null
-  }
-
-  private fun getEdgeCoordinate() = when (type) {
-    Type.TOP -> myComponent.drawY
-    Type.LEFT -> myComponent.drawX
-    Type.BOTTOM -> myComponent.drawY + myComponent.drawHeight
-    Type.RIGHT -> myComponent.drawX + myComponent.drawWidth
-    Type.BASELINE -> myComponent.drawY + myComponent.baseline
-  }
-
-  private fun calculateMargin(other: RelativeAnchorTarget, alignAttribute: String): Pair<String, String>? {
-    val marginAttribute = when (alignAttribute) {
-      ATTR_LAYOUT_ALIGN_TOP, ATTR_LAYOUT_BELOW, ATTR_LAYOUT_ALIGN_PARENT_TOP -> ATTR_LAYOUT_MARGIN_TOP
-      ATTR_LAYOUT_ALIGN_LEFT, ATTR_LAYOUT_TO_RIGHT_OF, ATTR_LAYOUT_ALIGN_PARENT_LEFT -> ATTR_LAYOUT_MARGIN_LEFT
-      ATTR_LAYOUT_ALIGN_BOTTOM, ATTR_LAYOUT_ABOVE, ATTR_LAYOUT_ALIGN_PARENT_BOTTOM -> ATTR_LAYOUT_MARGIN_BOTTOM
-      ATTR_LAYOUT_ALIGN_RIGHT, ATTR_LAYOUT_TO_LEFT_OF, ATTR_LAYOUT_ALIGN_PARENT_RIGHT -> ATTR_LAYOUT_MARGIN_RIGHT
-      else -> return null
+  private fun findRelatedAlignmentAttributes() =
+    when (type) {
+      Type.TOP ->
+        arrayOf(
+          ATTR_LAYOUT_CENTER_IN_PARENT,
+          ATTR_LAYOUT_CENTER_VERTICAL,
+          ATTR_LAYOUT_ALIGN_PARENT_TOP,
+          ATTR_LAYOUT_ALIGN_TOP,
+          ATTR_LAYOUT_BELOW
+        )
+      Type.LEFT ->
+        arrayOf(
+          ATTR_LAYOUT_CENTER_IN_PARENT,
+          ATTR_LAYOUT_CENTER_HORIZONTAL,
+          ATTR_LAYOUT_ALIGN_PARENT_LEFT,
+          ATTR_LAYOUT_ALIGN_LEFT,
+          ATTR_LAYOUT_TO_RIGHT_OF
+        )
+      Type.BOTTOM ->
+        arrayOf(
+          ATTR_LAYOUT_CENTER_IN_PARENT,
+          ATTR_LAYOUT_CENTER_VERTICAL,
+          ATTR_LAYOUT_ALIGN_PARENT_BOTTOM,
+          ATTR_LAYOUT_ALIGN_BOTTOM,
+          ATTR_LAYOUT_ABOVE
+        )
+      Type.RIGHT ->
+        arrayOf(
+          ATTR_LAYOUT_CENTER_IN_PARENT,
+          ATTR_LAYOUT_CENTER_HORIZONTAL,
+          ATTR_LAYOUT_ALIGN_PARENT_RIGHT,
+          ATTR_LAYOUT_ALIGN_RIGHT,
+          ATTR_LAYOUT_TO_LEFT_OF
+        )
+      Type.BASELINE -> arrayOf(ATTR_LAYOUT_ALIGN_BASELINE)
     }
 
-    val marginValue = when (alignAttribute) {
-      ATTR_LAYOUT_ALIGN_PARENT_TOP, ATTR_LAYOUT_ALIGN_PARENT_LEFT,
-      ATTR_LAYOUT_ALIGN_TOP, ATTR_LAYOUT_ALIGN_LEFT,
-      ATTR_LAYOUT_BELOW, ATTR_LAYOUT_TO_RIGHT_OF -> getEdgeCoordinate() - other.getEdgeCoordinate()
-      else -> other.getEdgeCoordinate() - getEdgeCoordinate()
+  private fun findRelatedMarginAttribute() =
+    when (type) {
+      Type.TOP -> ATTR_LAYOUT_MARGIN_TOP
+      Type.LEFT -> ATTR_LAYOUT_MARGIN_LEFT
+      Type.BOTTOM -> ATTR_LAYOUT_MARGIN_BOTTOM
+      Type.RIGHT -> ATTR_LAYOUT_MARGIN_RIGHT
+      Type.BASELINE -> null
     }
+
+  private fun getEdgeCoordinate() =
+    when (type) {
+      Type.TOP -> myComponent.drawY
+      Type.LEFT -> myComponent.drawX
+      Type.BOTTOM -> myComponent.drawY + myComponent.drawHeight
+      Type.RIGHT -> myComponent.drawX + myComponent.drawWidth
+      Type.BASELINE -> myComponent.drawY + myComponent.baseline
+    }
+
+  private fun calculateMargin(
+    other: RelativeAnchorTarget,
+    alignAttribute: String
+  ): Pair<String, String>? {
+    val marginAttribute =
+      when (alignAttribute) {
+        ATTR_LAYOUT_ALIGN_TOP,
+        ATTR_LAYOUT_BELOW,
+        ATTR_LAYOUT_ALIGN_PARENT_TOP -> ATTR_LAYOUT_MARGIN_TOP
+        ATTR_LAYOUT_ALIGN_LEFT,
+        ATTR_LAYOUT_TO_RIGHT_OF,
+        ATTR_LAYOUT_ALIGN_PARENT_LEFT -> ATTR_LAYOUT_MARGIN_LEFT
+        ATTR_LAYOUT_ALIGN_BOTTOM,
+        ATTR_LAYOUT_ABOVE,
+        ATTR_LAYOUT_ALIGN_PARENT_BOTTOM -> ATTR_LAYOUT_MARGIN_BOTTOM
+        ATTR_LAYOUT_ALIGN_RIGHT,
+        ATTR_LAYOUT_TO_LEFT_OF,
+        ATTR_LAYOUT_ALIGN_PARENT_RIGHT -> ATTR_LAYOUT_MARGIN_RIGHT
+        else -> return null
+      }
+
+    val marginValue =
+      when (alignAttribute) {
+        ATTR_LAYOUT_ALIGN_PARENT_TOP,
+        ATTR_LAYOUT_ALIGN_PARENT_LEFT,
+        ATTR_LAYOUT_ALIGN_TOP,
+        ATTR_LAYOUT_ALIGN_LEFT,
+        ATTR_LAYOUT_BELOW,
+        ATTR_LAYOUT_TO_RIGHT_OF -> getEdgeCoordinate() - other.getEdgeCoordinate()
+        else -> other.getEdgeCoordinate() - getEdgeCoordinate()
+      }
 
     return Pair(marginAttribute, String.format(VALUE_N_DP, marginValue))
   }
 
-  private fun getProperAttributesForLayout(attribute: String?) = getProperAttributesForLayout(myComponent, attribute)
+  private fun getProperAttributesForLayout(attribute: String?) =
+    getProperAttributesForLayout(myComponent, attribute)
 }
 
-private val SIBLING_ALIGNMENT_ATTRIBUTES = listOf(
-  ATTR_LAYOUT_ALIGN_TOP,
-  ATTR_LAYOUT_ALIGN_LEFT,
-  ATTR_LAYOUT_ALIGN_BOTTOM,
-  ATTR_LAYOUT_ALIGN_RIGHT,
-  ATTR_LAYOUT_BELOW,
-  ATTR_LAYOUT_ABOVE,
-  ATTR_LAYOUT_TO_LEFT_OF,
-  ATTR_LAYOUT_TO_RIGHT_OF,
-  ATTR_LAYOUT_ALIGN_START,
-  ATTR_LAYOUT_ALIGN_END,
-  ATTR_LAYOUT_TO_START_OF,
-  ATTR_LAYOUT_TO_END_OF
-)
+private val SIBLING_ALIGNMENT_ATTRIBUTES =
+  listOf(
+    ATTR_LAYOUT_ALIGN_TOP,
+    ATTR_LAYOUT_ALIGN_LEFT,
+    ATTR_LAYOUT_ALIGN_BOTTOM,
+    ATTR_LAYOUT_ALIGN_RIGHT,
+    ATTR_LAYOUT_BELOW,
+    ATTR_LAYOUT_ABOVE,
+    ATTR_LAYOUT_TO_LEFT_OF,
+    ATTR_LAYOUT_TO_RIGHT_OF,
+    ATTR_LAYOUT_ALIGN_START,
+    ATTR_LAYOUT_ALIGN_END,
+    ATTR_LAYOUT_TO_START_OF,
+    ATTR_LAYOUT_TO_END_OF
+  )
 
-private val PARENT_CONNECTION_TYPES = mapOf(
-  Pair(AnchorTarget.Type.TOP, AnchorTarget.Type.TOP) to ATTR_LAYOUT_ALIGN_PARENT_TOP,
-  Pair(AnchorTarget.Type.LEFT, AnchorTarget.Type.LEFT) to ATTR_LAYOUT_ALIGN_PARENT_LEFT,
-  Pair(AnchorTarget.Type.BOTTOM, AnchorTarget.Type.BOTTOM) to ATTR_LAYOUT_ALIGN_PARENT_BOTTOM,
-  Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_ALIGN_PARENT_RIGHT
-)
+private val PARENT_CONNECTION_TYPES =
+  mapOf(
+    Pair(AnchorTarget.Type.TOP, AnchorTarget.Type.TOP) to ATTR_LAYOUT_ALIGN_PARENT_TOP,
+    Pair(AnchorTarget.Type.LEFT, AnchorTarget.Type.LEFT) to ATTR_LAYOUT_ALIGN_PARENT_LEFT,
+    Pair(AnchorTarget.Type.BOTTOM, AnchorTarget.Type.BOTTOM) to ATTR_LAYOUT_ALIGN_PARENT_BOTTOM,
+    Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_ALIGN_PARENT_RIGHT
+  )
 
-private val SIBLING_CONNECTION_TYPES = mapOf(
-  Pair(AnchorTarget.Type.TOP, AnchorTarget.Type.TOP) to ATTR_LAYOUT_ALIGN_TOP,
-  Pair(AnchorTarget.Type.TOP, AnchorTarget.Type.BOTTOM) to ATTR_LAYOUT_BELOW,
-  Pair(AnchorTarget.Type.BOTTOM, AnchorTarget.Type.TOP) to ATTR_LAYOUT_ABOVE,
-  Pair(AnchorTarget.Type.BOTTOM, AnchorTarget.Type.BOTTOM) to ATTR_LAYOUT_ALIGN_BOTTOM,
-  Pair(AnchorTarget.Type.LEFT, AnchorTarget.Type.LEFT) to ATTR_LAYOUT_ALIGN_LEFT,
-  Pair(AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_TO_RIGHT_OF,
-  Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.LEFT) to ATTR_LAYOUT_TO_LEFT_OF,
-  Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_ALIGN_RIGHT
-)
+private val SIBLING_CONNECTION_TYPES =
+  mapOf(
+    Pair(AnchorTarget.Type.TOP, AnchorTarget.Type.TOP) to ATTR_LAYOUT_ALIGN_TOP,
+    Pair(AnchorTarget.Type.TOP, AnchorTarget.Type.BOTTOM) to ATTR_LAYOUT_BELOW,
+    Pair(AnchorTarget.Type.BOTTOM, AnchorTarget.Type.TOP) to ATTR_LAYOUT_ABOVE,
+    Pair(AnchorTarget.Type.BOTTOM, AnchorTarget.Type.BOTTOM) to ATTR_LAYOUT_ALIGN_BOTTOM,
+    Pair(AnchorTarget.Type.LEFT, AnchorTarget.Type.LEFT) to ATTR_LAYOUT_ALIGN_LEFT,
+    Pair(AnchorTarget.Type.LEFT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_TO_RIGHT_OF,
+    Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.LEFT) to ATTR_LAYOUT_TO_LEFT_OF,
+    Pair(AnchorTarget.Type.RIGHT, AnchorTarget.Type.RIGHT) to ATTR_LAYOUT_ALIGN_RIGHT
+  )

@@ -16,10 +16,10 @@
 package com.android.tools.idea.uibuilder.handlers.relative
 
 import com.android.SdkConstants.*
+import com.android.tools.idea.common.LayoutTestUtilities.mockViewWithBaseline
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.target.AnchorTarget
 import com.android.tools.idea.common.util.NlTreeDumper
-import com.android.tools.idea.common.LayoutTestUtilities.mockViewWithBaseline
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 
@@ -29,92 +29,108 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.LEFT_TOP)
     myInteraction.mouseRelease(110f, 130f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"50dp\"\n" +
-            "        android:layout_height=\"30dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_marginLeft=\"10dp\"\n" +
-            "        android:layout_marginTop=\"30dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+    myScreen
+      .get("@id/checkbox")
+      .expectXml(
+        "<CheckBox\n" +
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"50dp\"\n" +
+          "        android:layout_height=\"30dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_marginLeft=\"10dp\"\n" +
+          "        android:layout_marginTop=\"30dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
+      )
   }
 
   fun testResizeFromTopRight() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.RIGHT_TOP)
     myInteraction.mouseRelease(220f, 130f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"70dp\"\n" +
-            "        android:layout_height=\"30dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"30dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+    myScreen
+      .get("@id/checkbox")
+      .expectXml(
+        "<CheckBox\n" +
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"70dp\"\n" +
+          "        android:layout_height=\"30dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"30dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
+      )
   }
 
   fun testResizeFromBottomLeft() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.LEFT_BOTTOM)
     myInteraction.mouseRelease(110f, 230f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"50dp\"\n" +
-            "        android:layout_height=\"80dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_marginLeft=\"10dp\"\n" +
-            "        android:layout_marginTop=\"50dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+    myScreen
+      .get("@id/checkbox")
+      .expectXml(
+        "<CheckBox\n" +
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"50dp\"\n" +
+          "        android:layout_height=\"80dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_marginLeft=\"10dp\"\n" +
+          "        android:layout_marginTop=\"50dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
+      )
   }
 
   fun testResizeFromBottomRight() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", ResizeBaseTarget.Type.RIGHT_BOTTOM)
     myInteraction.mouseRelease(220f, 230f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"70dp\"\n" +
-            "        android:layout_height=\"80dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"50dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+    myScreen
+      .get("@id/checkbox")
+      .expectXml(
+        "<CheckBox\n" +
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"70dp\"\n" +
+          "        android:layout_height=\"80dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"50dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
+      )
   }
 
   fun testDraggingComponentUpdatesConstraints() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox")
     myInteraction.mouseRelease(150f, 150f)
-    myScreen.get("@id/checkbox")
-        .expectXml("<CheckBox\n" +
-                   "        android:id=\"@id/checkbox\"\n" +
-                   "        android:layout_width=\"20dp\"\n" +
-                   "        android:layout_height=\"20dp\"\n" +
-                   "        android:layout_below=\"@id/button\"\n" +
-                   "        android:layout_marginLeft=\"45dp\"\n" +
-                   "        android:layout_marginTop=\"45dp\"\n" +
-                   "        android:layout_toRightOf=\"@id/button\" />")
+    myScreen
+      .get("@id/checkbox")
+      .expectXml(
+        "<CheckBox\n" +
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_marginLeft=\"45dp\"\n" +
+          "        android:layout_marginTop=\"45dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
+      )
   }
-
 
   fun testCreateAlignmentToParentLeft() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.LEFT)
     myInteraction.mouseRelease("root", AnchorTarget.Type.LEFT)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_alignParentLeft=\"true\"\n" +
-            "        android:layout_marginLeft=\"150dp\"\n" +
-            "        android:layout_marginTop=\"50dp\" />")
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_alignParentLeft=\"true\"\n" +
+          "        android:layout_marginLeft=\"150dp\"\n" +
+          "        android:layout_marginTop=\"50dp\" />"
+      )
   }
 
   fun testCreateAlignmentToParentTop() {
@@ -122,56 +138,63 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.TOP)
     myInteraction.mouseRelease("root", AnchorTarget.Type.TOP)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignParentTop=\"true\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"150dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_alignParentTop=\"true\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"150dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
+      )
   }
 
   fun testCreateAlignmentToParentRight() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.RIGHT)
     myInteraction.mouseRelease("root", AnchorTarget.Type.RIGHT)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_alignParentRight=\"true\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"50dp\"\n" +
-            "        android:layout_marginRight=\"340dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_alignParentRight=\"true\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"50dp\"\n" +
+          "        android:layout_marginRight=\"340dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
+      )
   }
 
   fun testCreateAlignmentToParentBottom() {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.BOTTOM)
     myInteraction.mouseRelease("root", AnchorTarget.Type.BOTTOM)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_alignParentBottom=\"true\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"50dp\"\n" +
-            "        android:layout_marginBottom=\"340dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />")
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_alignParentBottom=\"true\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"50dp\"\n" +
+          "        android:layout_marginBottom=\"340dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
+      )
   }
 
   fun testCreateIllegalAlignmentToParent() {
-    val originalXml = "<CheckBox\n" +
+    val originalXml =
+      "<CheckBox\n" +
         "        android:id=\"@id/checkbox\"\n" +
         "        android:layout_width=\"20dp\"\n" +
         "        android:layout_height=\"20dp\"\n" +
@@ -180,20 +203,21 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
         "        android:layout_marginTop=\"50dp\"\n" +
         "        android:layout_toRightOf=\"@id/button\" />"
 
-    val illegalChildToParentEdgePairs = mapOf(
-      AnchorTarget.Type.TOP to AnchorTarget.Type.LEFT,
-      AnchorTarget.Type.TOP to AnchorTarget.Type.RIGHT,
-      AnchorTarget.Type.TOP to AnchorTarget.Type.BOTTOM,
-      AnchorTarget.Type.LEFT to AnchorTarget.Type.TOP,
-      AnchorTarget.Type.LEFT to AnchorTarget.Type.RIGHT,
-      AnchorTarget.Type.LEFT to AnchorTarget.Type.BOTTOM,
-      AnchorTarget.Type.BOTTOM to AnchorTarget.Type.TOP,
-      AnchorTarget.Type.BOTTOM to AnchorTarget.Type.LEFT,
-      AnchorTarget.Type.BOTTOM to AnchorTarget.Type.RIGHT,
-      AnchorTarget.Type.RIGHT to AnchorTarget.Type.TOP,
-      AnchorTarget.Type.RIGHT to AnchorTarget.Type.LEFT,
-      AnchorTarget.Type.RIGHT to AnchorTarget.Type.BOTTOM
-    )
+    val illegalChildToParentEdgePairs =
+      mapOf(
+        AnchorTarget.Type.TOP to AnchorTarget.Type.LEFT,
+        AnchorTarget.Type.TOP to AnchorTarget.Type.RIGHT,
+        AnchorTarget.Type.TOP to AnchorTarget.Type.BOTTOM,
+        AnchorTarget.Type.LEFT to AnchorTarget.Type.TOP,
+        AnchorTarget.Type.LEFT to AnchorTarget.Type.RIGHT,
+        AnchorTarget.Type.LEFT to AnchorTarget.Type.BOTTOM,
+        AnchorTarget.Type.BOTTOM to AnchorTarget.Type.TOP,
+        AnchorTarget.Type.BOTTOM to AnchorTarget.Type.LEFT,
+        AnchorTarget.Type.BOTTOM to AnchorTarget.Type.RIGHT,
+        AnchorTarget.Type.RIGHT to AnchorTarget.Type.TOP,
+        AnchorTarget.Type.RIGHT to AnchorTarget.Type.LEFT,
+        AnchorTarget.Type.RIGHT to AnchorTarget.Type.BOTTOM
+      )
 
     for ((childEdge, parentEdge) in illegalChildToParentEdgePairs) {
       myInteraction.select("checkbox", true)
@@ -207,16 +231,17 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.TOP)
     myInteraction.mouseRelease("button", AnchorTarget.Type.TOP)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_alignTop=\"@+id/button\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"100dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />"
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_alignTop=\"@+id/button\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"100dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
       )
   }
 
@@ -224,16 +249,17 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.TOP)
     myInteraction.mouseRelease("button", AnchorTarget.Type.BOTTOM)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@+id/button\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"50dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />"
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@+id/button\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"50dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
       )
   }
 
@@ -241,16 +267,17 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.LEFT)
     myInteraction.mouseRelease("button", AnchorTarget.Type.LEFT)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_alignLeft=\"@+id/button\"\n" +
-            "        android:layout_marginLeft=\"100dp\"\n" +
-            "        android:layout_marginTop=\"50dp\" />"
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_alignLeft=\"@+id/button\"\n" +
+          "        android:layout_marginLeft=\"100dp\"\n" +
+          "        android:layout_marginTop=\"50dp\" />"
       )
   }
 
@@ -259,16 +286,17 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.LEFT)
     myInteraction.mouseRelease("button", AnchorTarget.Type.RIGHT)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"50dp\"\n" +
-            "        android:layout_toRightOf=\"@+id/button\" />"
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"50dp\"\n" +
+          "        android:layout_toRightOf=\"@+id/button\" />"
       )
   }
 
@@ -276,18 +304,19 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.BOTTOM)
     myInteraction.mouseRelease("button", AnchorTarget.Type.TOP)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_above=\"@+id/button\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"50dp\"\n" +
-            "        android:layout_marginBottom=\"-110dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />"
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_above=\"@+id/button\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"50dp\"\n" +
+          "        android:layout_marginBottom=\"-110dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
       )
   }
 
@@ -295,18 +324,19 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.BOTTOM)
     myInteraction.mouseRelease("button", AnchorTarget.Type.BOTTOM)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_alignBottom=\"@+id/button\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"50dp\"\n" +
-            "        android:layout_marginBottom=\"-60dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />"
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_alignBottom=\"@+id/button\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"50dp\"\n" +
+          "        android:layout_marginBottom=\"-60dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
       )
   }
 
@@ -314,18 +344,19 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.RIGHT)
     myInteraction.mouseRelease("button", AnchorTarget.Type.LEFT)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"50dp\"\n" +
-            "        android:layout_marginRight=\"-110dp\"\n" +
-            "        android:layout_toLeftOf=\"@+id/button\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />"
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"50dp\"\n" +
+          "        android:layout_marginRight=\"-110dp\"\n" +
+          "        android:layout_toLeftOf=\"@+id/button\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
       )
   }
 
@@ -333,23 +364,25 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.RIGHT)
     myInteraction.mouseRelease("button", AnchorTarget.Type.RIGHT)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_alignRight=\"@+id/button\"\n" +
-            "        android:layout_marginLeft=\"50dp\"\n" +
-            "        android:layout_marginTop=\"50dp\"\n" +
-            "        android:layout_marginRight=\"-60dp\"\n" +
-            "        android:layout_toRightOf=\"@id/button\" />"
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_alignRight=\"@+id/button\"\n" +
+          "        android:layout_marginLeft=\"50dp\"\n" +
+          "        android:layout_marginTop=\"50dp\"\n" +
+          "        android:layout_marginRight=\"-60dp\"\n" +
+          "        android:layout_toRightOf=\"@id/button\" />"
       )
   }
 
   fun testCreateIllegalAlignmentToAnotherWidget() {
-    val originalXml = "<CheckBox\n" +
+    val originalXml =
+      "<CheckBox\n" +
         "    android:id=\"@id/checkbox\"\n" +
         "    android:layout_width=\"20dp\"\n" +
         "    android:layout_height=\"20dp\"\n" +
@@ -358,16 +391,17 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
         "    android:layout_marginLeft=\"50dp\"\n" +
         "    android:layout_marginTop=\"50dp\"/>"
 
-    val illegalWidgetToWidgetEdgePairs = mapOf(
-      AnchorTarget.Type.TOP to AnchorTarget.Type.LEFT,
-      AnchorTarget.Type.TOP to AnchorTarget.Type.RIGHT,
-      AnchorTarget.Type.LEFT to AnchorTarget.Type.TOP,
-      AnchorTarget.Type.LEFT to AnchorTarget.Type.BOTTOM,
-      AnchorTarget.Type.BOTTOM to AnchorTarget.Type.LEFT,
-      AnchorTarget.Type.BOTTOM to AnchorTarget.Type.RIGHT,
-      AnchorTarget.Type.RIGHT to AnchorTarget.Type.TOP,
-      AnchorTarget.Type.RIGHT to AnchorTarget.Type.BOTTOM
-    )
+    val illegalWidgetToWidgetEdgePairs =
+      mapOf(
+        AnchorTarget.Type.TOP to AnchorTarget.Type.LEFT,
+        AnchorTarget.Type.TOP to AnchorTarget.Type.RIGHT,
+        AnchorTarget.Type.LEFT to AnchorTarget.Type.TOP,
+        AnchorTarget.Type.LEFT to AnchorTarget.Type.BOTTOM,
+        AnchorTarget.Type.BOTTOM to AnchorTarget.Type.LEFT,
+        AnchorTarget.Type.BOTTOM to AnchorTarget.Type.RIGHT,
+        AnchorTarget.Type.RIGHT to AnchorTarget.Type.TOP,
+        AnchorTarget.Type.RIGHT to AnchorTarget.Type.BOTTOM
+      )
 
     for ((childEdge, parentEdge) in illegalWidgetToWidgetEdgePairs) {
       myInteraction.select("checkbox", true)
@@ -382,16 +416,17 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.LEFT)
     myInteraction.mouseRelease("button", AnchorTarget.Type.LEFT)
-    myScreen.get("@id/checkbox")
+    myScreen
+      .get("@id/checkbox")
       .expectXml(
         "<CheckBox\n" +
-            "        android:id=\"@id/checkbox\"\n" +
-            "        android:layout_width=\"20dp\"\n" +
-            "        android:layout_height=\"20dp\"\n" +
-            "        android:layout_below=\"@id/button\"\n" +
-            "        android:layout_alignLeft=\"@+id/button\"\n" +
-            "        android:layout_marginLeft=\"100dp\"\n" +
-            "        android:layout_marginTop=\"50dp\" />"
+          "        android:id=\"@id/checkbox\"\n" +
+          "        android:layout_width=\"20dp\"\n" +
+          "        android:layout_height=\"20dp\"\n" +
+          "        android:layout_below=\"@id/button\"\n" +
+          "        android:layout_alignLeft=\"@+id/button\"\n" +
+          "        android:layout_marginLeft=\"100dp\"\n" +
+          "        android:layout_marginTop=\"50dp\" />"
       )
   }
 
@@ -400,29 +435,37 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
     myInteraction.select("checkbox", true)
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.LEFT)
     myInteraction.mouseRelease("checkbox", AnchorTarget.Type.LEFT)
-    myScreen.get("@id/checkbox")
-      .expectXml("<CheckBox\n" +
+    myScreen
+      .get("@id/checkbox")
+      .expectXml(
+        "<CheckBox\n" +
           "        android:id=\"@id/checkbox\"\n" +
           "        android:layout_width=\"20dp\"\n" +
           "        android:layout_height=\"20dp\"\n" +
           "        android:layout_below=\"@id/button\"\n" +
-          "        android:layout_marginTop=\"50dp\" />")
+          "        android:layout_marginTop=\"50dp\" />"
+      )
 
     myInteraction.mouseDown("checkbox", AnchorTarget.Type.TOP)
     myInteraction.mouseRelease("checkbox", AnchorTarget.Type.TOP)
-    myScreen.get("@id/checkbox")
-      .expectXml("<CheckBox\n" +
+    myScreen
+      .get("@id/checkbox")
+      .expectXml(
+        "<CheckBox\n" +
           "        android:id=\"@id/checkbox\"\n" +
           "        android:layout_width=\"20dp\"\n" +
-          "        android:layout_height=\"20dp\" />")
+          "        android:layout_height=\"20dp\" />"
+      )
   }
 
   fun testCannotCreateCycleAlignments() {
     myInteraction.select("button", true)
     myInteraction.mouseDown("button", AnchorTarget.Type.LEFT)
     myInteraction.mouseRelease("checkbox", AnchorTarget.Type.LEFT)
-    myScreen.get("@id/button")
-      .expectXml("<Button\n" +
+    myScreen
+      .get("@id/button")
+      .expectXml(
+        "<Button\n" +
           "    android:id=\"@id/button\"\n" +
           "    android:layout_width=\"100dp\"\n" +
           "    android:layout_height=\"100dp\"\n" +
@@ -431,59 +474,68 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
           "    android:layout_alignParentStart=\"true\"\n" +
           "    android:layout_marginTop=\"50dp\"\n" +
           "    android:layout_marginLeft=\"50dp\"\n" +
-          "    android:layout_marginStart=\"50dp\"/>")
-    myScreen.get("@id/checkbox")
-      .expectXml("<CheckBox\n" +
+          "    android:layout_marginStart=\"50dp\"/>"
+      )
+    myScreen
+      .get("@id/checkbox")
+      .expectXml(
+        "<CheckBox\n" +
           "    android:id=\"@id/checkbox\"\n" +
           "    android:layout_width=\"20dp\"\n" +
           "    android:layout_height=\"20dp\"\n" +
           "    android:layout_below=\"@id/button\"\n" +
           "    android:layout_toRightOf=\"@id/button\"\n" +
           "    android:layout_marginLeft=\"50dp\"\n" +
-          "    android:layout_marginTop=\"50dp\"/>")
+          "    android:layout_marginTop=\"50dp\"/>"
+      )
   }
 
   override fun createModel(): ModelBuilder {
-    val builder = model("relative_kt.xml",
+    val builder =
+      model(
+        "relative_kt.xml",
         component(RELATIVE_LAYOUT)
-            .withBounds(0, 0, 1000, 1000)
-            .id("@id/root")
-            .matchParentWidth()
-            .matchParentHeight()
-            .children(
-                component(BUTTON)
-                    .withBounds(100, 100, 100, 100)
-                    .viewObject(mockViewWithBaseline(17))
-                    .id("@id/button")
-                    .width("100dp")
-                    .height("100dp")
-                    .withAttribute("android:layout_alignParentTop", "true")
-                    .withAttribute("android:layout_alignParentLeft", "true")
-                    .withAttribute("android:layout_alignParentStart", "true")
-                    .withAttribute("android:layout_marginTop", "50dp")
-                    .withAttribute("android:layout_marginLeft", "50dp")
-                    .withAttribute("android:layout_marginStart", "50dp"),
-
-                component(CHECK_BOX)
-                    .withBounds(300, 300, 20, 20)
-                    .viewObject(mockViewWithBaseline(17))
-                    .id("@id/checkbox")
-                    .width("20dp")
-                    .height("20dp")
-                    .withAttribute("android:layout_below", "@id/button")
-                    .withAttribute("android:layout_toRightOf", "@id/button")
-                    .withAttribute("android:layout_marginLeft", "50dp")
-                    .withAttribute("android:layout_marginTop", "50dp")
-            ))
+          .withBounds(0, 0, 1000, 1000)
+          .id("@id/root")
+          .matchParentWidth()
+          .matchParentHeight()
+          .children(
+            component(BUTTON)
+              .withBounds(100, 100, 100, 100)
+              .viewObject(mockViewWithBaseline(17))
+              .id("@id/button")
+              .width("100dp")
+              .height("100dp")
+              .withAttribute("android:layout_alignParentTop", "true")
+              .withAttribute("android:layout_alignParentLeft", "true")
+              .withAttribute("android:layout_alignParentStart", "true")
+              .withAttribute("android:layout_marginTop", "50dp")
+              .withAttribute("android:layout_marginLeft", "50dp")
+              .withAttribute("android:layout_marginStart", "50dp"),
+            component(CHECK_BOX)
+              .withBounds(300, 300, 20, 20)
+              .viewObject(mockViewWithBaseline(17))
+              .id("@id/checkbox")
+              .width("20dp")
+              .height("20dp")
+              .withAttribute("android:layout_below", "@id/button")
+              .withAttribute("android:layout_toRightOf", "@id/button")
+              .withAttribute("android:layout_marginLeft", "50dp")
+              .withAttribute("android:layout_marginTop", "50dp")
+          )
+      )
     val model = builder.build()
     assertEquals(1, model.components.size)
-    assertEquals("NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
+    assertEquals(
+      "NlComponent{tag=<RelativeLayout>, bounds=[0,0:1000x1000}\n" +
         "    NlComponent{tag=<Button>, bounds=[100,100:100x100}\n" +
         "    NlComponent{tag=<CheckBox>, bounds=[300,300:20x20}",
-        NlTreeDumper.dumpTree(model.components))
+      NlTreeDumper.dumpTree(model.components)
+    )
 
     format(model.file)
-    assertEquals("<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+    assertEquals(
+      "<RelativeLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
         "    android:id=\"@id/root\"\n" +
         "    android:layout_width=\"match_parent\"\n" +
         "    android:layout_height=\"match_parent\">\n" +
@@ -508,7 +560,9 @@ class RelativeLayoutHandlerTest : SceneTest(false) {
         "        android:layout_marginLeft=\"50dp\"\n" +
         "        android:layout_marginTop=\"50dp\" />\n" +
         "\n" +
-        "</RelativeLayout>\n", model.file.text)
+        "</RelativeLayout>\n",
+      model.file.text
+    )
     return builder
   }
 }
