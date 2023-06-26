@@ -21,8 +21,8 @@ import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
-import com.android.tools.idea.flags.overrides.BuildSettingFlagOverrides;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
+import com.android.tools.idea.flags.overrides.BuildSettingFlagOverrides;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
 import com.intellij.openapi.application.Application;
@@ -632,6 +632,14 @@ public final class StudioFlags {
     "ignore.studio.tags",
     "Ignore tags that Studio itself is responsible for",
     "Ignore tags that Studio itself is responsible for",
+    true
+  );
+
+  public static final Flag<Boolean> LOGCAT_EXPORT_IMPORT_ENABLED = Flag.create(
+    LOGCAT,
+    "export.import.enable",
+    "Enable Export/Import feature",
+    "Enable Export/Import feature",
     true
   );
   //endregion

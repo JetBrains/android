@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.logcat.devices
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem
-import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.ImportItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
+import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.ImportItem
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.util.LOGGER
@@ -239,12 +240,17 @@ internal class DeviceComboBox(
   private class DeviceComboModel : CollectionComboBoxModel<DeviceComboItem>() {
 
     init {
-      add(ImportItem)
+      if (StudioFlags.LOGCAT_EXPORT_IMPORT_ENABLED.get()) {
+        add(ImportItem)
+      }
     }
 
     fun addDevice(device: Device): DeviceItem {
       val item = DeviceItem(device)
-      add(size - 1, item)
+      when (items.contains(ImportItem)) {
+        true -> add(size - 1, item)
+        false -> add(item)
+      }
       return item
     }
 

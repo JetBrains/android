@@ -622,7 +622,9 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(ClearLogcatAction())
       add(PauseLogcatAction())
       add(RestartLogcatAction())
-      add(SaveLogcatAction())
+        if (StudioFlags.LOGCAT_EXPORT_IMPORT_ENABLED.get()) {
+        add(SaveLogcatAction())
+      }
       add(LogcatScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
