@@ -19,6 +19,8 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.DeviceFutures
 import com.intellij.execution.ExecutionListener
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
@@ -75,20 +77,14 @@ class AppInspectionExecutionListener : ExecutionListener {
     val recentProcess = RecentProcess(device, applicationId)
     RecentProcess.set(project, recentProcess)
 
-    // TODO(b/288332719) Disable resetting of RecentProcess since a bug in
-    // SingleDeviceAndroidProcessMonitor
-    // will cause the process termination callbacks to be called by mistake while the process is
-    // starting up.
-    // Uncomment the following code when b/288332719 is fixed.
-
-    // handler.addProcessListener(
-    //  object : ProcessAdapter() {
-    //    override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-    //      if (recentProcess === RecentProcess.get(project)) {
-    //        RecentProcess.set(project, null)
-    //      }
-    //    }
-    //  }
-    // )
+    handler.addProcessListener(
+      object : ProcessAdapter() {
+        override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+          if (recentProcess === RecentProcess.get(project)) {
+            RecentProcess.set(project, null)
+          }
+        }
+      }
+    )
   }
 }
