@@ -20,7 +20,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 
 class ViewDetailsAction : AnAction("View Details") {
   override fun actionPerformed(e: AnActionEvent) {
-    val handle = e.deviceHandle() ?: return
-    e.deviceManagerPanel()?.showDeviceDetails(handle)
+    val row = e.deviceRowData() ?: return
+    e.deviceManagerPanel()?.showDeviceDetails(row)
   }
 }

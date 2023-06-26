@@ -285,39 +285,47 @@ constructor(
     return toolbar
   }
 
-  var deviceDetailsPanel: DeviceDetailsPanel?
+  internal var deviceDetailsPanelRow: DeviceRowData? = null
+    set(row) {
+      if (field != row) {
+        field = row
+        deviceDetailsPanel = row?.let { createDetailsPanel(it) }
+      }
+    }
+
+  internal var deviceDetailsPanel: DeviceDetailsPanel?
     get() = splitter.secondComponent as? DeviceDetailsPanel
     set(panel) {
       deviceDetailsPanel?.dispose()
       splitter.secondComponent = panel
     }
 
-  fun showDeviceDetails(handle: DeviceHandle) {
-    getOrCreateDetailsPanelForHandle(handle).showDeviceInfo()
+  fun showDeviceDetails(row: DeviceRowData) {
+    getOrCreateDetailsPanelForDevice(row).showDeviceInfo()
   }
 
-  fun showPairedDevices(handle: DeviceHandle) {
-    getOrCreateDetailsPanelForHandle(handle).showPairedDevices()
+  fun showPairedDevices(row: DeviceRowData) {
+    getOrCreateDetailsPanelForDevice(row).showPairedDevices()
   }
 
-  private fun getOrCreateDetailsPanelForHandle(handle: DeviceHandle): DeviceDetailsPanel {
-    var panel = deviceDetailsPanel
-    if (panel?.handle != handle) {
-      panel = createDetailsPanel(handle)
-      deviceDetailsPanel = panel
-    }
-    return panel
+  private fun getOrCreateDetailsPanelForDevice(row: DeviceRowData): DeviceDetailsPanel {
+    deviceDetailsPanelRow = row
+    return deviceDetailsPanel!!
   }
 
-  private fun createDetailsPanel(handle: DeviceHandle): DeviceDetailsPanel =
-    DeviceDetailsPanel.create(
-        project,
-        panelScope.createChildScope(isSupervisor = true),
-        handle,
-        devices,
-        pairedDevicesFlow
-      )
-      .apply { addCloseActionListener { deviceDetailsPanel = null } }
+  private fun createDetailsPanel(row: DeviceRowData): DeviceDetailsPanel =
+    when (row.handle) {
+      null ->
+        DeviceDetailsPanel.create(panelScope.createChildScope(isSupervisor = true), row.template!!)
+      else ->
+        DeviceDetailsPanel.create(
+          project,
+          panelScope.createChildScope(isSupervisor = true),
+          row.handle,
+          devices,
+          pairedDevicesFlow
+        )
+    }.apply { addCloseActionListener { deviceDetailsPanelRow = null } }
 
   override fun getData(dataId: String): Any? =
     when {

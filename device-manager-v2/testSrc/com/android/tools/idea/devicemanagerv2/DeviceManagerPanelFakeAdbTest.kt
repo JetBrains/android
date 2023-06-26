@@ -36,6 +36,7 @@ class DeviceManagerPanelFakeAdbTest {
   fun viewDetails() {
     val device1 = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice()
     val device2 = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice()
+    val template = FakeDeviceTemplate("device1")
 
     val deviceManager =
       DeviceManagerPanel(projectRule.project, deviceProvisionerRule.deviceProvisioner)
@@ -44,14 +45,19 @@ class DeviceManagerPanelFakeAdbTest {
     deviceProvisionerRule.deviceProvisionerPlugin.addDevice(device2)
 
     // Select device 1
-    ViewDetailsAction().actionPerformed(actionEvent(dataContext(deviceManager, device1)))
+    deviceManager.invokeViewDetails(DeviceRowData.create(device1, emptyList()))
 
-    assertThat(deviceManager.deviceDetailsPanel?.handle).isEqualTo(device1)
+    assertThat(deviceManager.deviceDetailsPanelRow?.handle).isEqualTo(device1)
 
     // Select device 2
-    ViewDetailsAction().actionPerformed(actionEvent(dataContext(deviceManager, device2)))
+    deviceManager.invokeViewDetails(DeviceRowData.create(device2, emptyList()))
 
-    assertThat(deviceManager.deviceDetailsPanel?.handle).isEqualTo(device2)
+    assertThat(deviceManager.deviceDetailsPanelRow?.handle).isEqualTo(device2)
+
+    // Select template
+    deviceManager.invokeViewDetails(DeviceRowData.create(template))
+
+    assertThat(deviceManager.deviceDetailsPanelRow?.template).isEqualTo(template)
 
     // Close panel
     val scope = deviceManager.deviceDetailsPanel?.scope
@@ -59,5 +65,9 @@ class DeviceManagerPanelFakeAdbTest {
 
     assertThat(deviceManager.deviceDetailsPanel).isNull()
     assertThat(scope!!.isActive).isFalse()
+  }
+
+  private fun DeviceManagerPanel.invokeViewDetails(row: DeviceRowData) {
+    ViewDetailsAction().actionPerformed(actionEvent(dataContext(this, deviceRowData = row)))
   }
 }

@@ -65,9 +65,8 @@ internal class DeviceTemplateButtonsPanel(
   coroutineScope: CoroutineScope,
   deviceTemplate: DeviceTemplate
 ) : ActionButtonsPanel() {
-  private val activateTemplateButton = ActivateTemplateButton(coroutineScope, deviceTemplate)
 
   init {
-    setUp(activateTemplateButton)
+    setUp(ActivateTemplateButton(coroutineScope, deviceTemplate), OverflowButton())
   }
 }

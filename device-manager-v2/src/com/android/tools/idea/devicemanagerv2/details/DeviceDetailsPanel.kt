@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanagerv2.details
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanagerv2.DeviceManagerPanel
 import com.android.tools.idea.devicemanagerv2.PairingStatus
@@ -38,10 +39,10 @@ import kotlinx.coroutines.launch
 internal class DeviceDetailsPanel
 private constructor(
   val scope: CoroutineScope,
-  val handle: DeviceHandle,
+  heading: String,
   mainComponent: JComponent,
   private val tabbedPane: JBTabbedPane?,
-) : CloseablePanel(handle.state.properties.title, mainComponent), Disposable {
+) : CloseablePanel(heading, mainComponent), Disposable {
 
   fun showDeviceInfo() {
     tabbedPane?.let { it.selectedIndex = DEVICE_INFO_TAB_INDEX }
@@ -56,6 +57,14 @@ private constructor(
   }
 
   companion object {
+    fun create(scope: CoroutineScope, template: DeviceTemplate): DeviceDetailsPanel {
+      val deviceInfoPanel = DeviceInfoPanel()
+      deviceInfoPanel.populateDeviceInfo(template.properties)
+      deviceInfoPanel.powerLabel.isVisible = false
+      deviceInfoPanel.availableStorageLabel.isVisible = false
+      return DeviceDetailsPanel(scope, template.properties.title, deviceInfoPanel, null)
+    }
+
     fun create(
       project: Project?,
       scope: CoroutineScope,
@@ -80,7 +89,7 @@ private constructor(
       val tabbedPane =
         pairedDevicesPanel?.let { createTabbedPane(deviceInfoPanel, pairedDevicesPanel) }
       val mainComponent = tabbedPane ?: JBScrollPane(deviceInfoPanel)
-      return DeviceDetailsPanel(scope, handle, mainComponent, tabbedPane)
+      return DeviceDetailsPanel(scope, handle.state.properties.title, mainComponent, tabbedPane)
     }
 
     private fun createTabbedPane(

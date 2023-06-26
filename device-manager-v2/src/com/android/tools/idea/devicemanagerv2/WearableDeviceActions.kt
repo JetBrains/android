@@ -69,8 +69,8 @@ class ViewPairedDevicesAction : AnAction("View Paired Device(s)") {
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    val handle = e.deviceHandle() ?: return
-    e.deviceManagerPanel()?.showPairedDevices(handle)
+    val row = e.deviceRowData() ?: return
+    e.deviceManagerPanel()?.showPairedDevices(row)
   }
 }
 

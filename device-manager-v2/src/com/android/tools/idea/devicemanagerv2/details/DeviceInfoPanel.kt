@@ -22,6 +22,7 @@ import com.android.adblib.selector
 import com.android.adblib.shellAsLines
 import com.android.adblib.shellAsText
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.tools.adtui.device.ScreenDiagram
 import com.ibm.icu.number.NumberFormatter
 import com.ibm.icu.util.MeasureUnit
@@ -155,18 +156,22 @@ class LabeledValue(label: String) {
     }
 }
 
+internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
+  apiLevel = properties.androidVersion?.apiStringWithExtension ?: "Unknown"
+  abiList = properties.abi?.toString() ?: "Unknown"
+  resolution = properties.resolution?.toString() ?: "Unknown"
+  val resolutionDp = properties.resolutionDp
+  this.resolutionDp = resolutionDp?.toString() ?: "Unknown"
+  screenDiagram.setDimensions(resolutionDp?.width ?: 0, resolutionDp?.height ?: 0)
+}
+
 internal suspend fun populateDeviceInfo(deviceInfoPanel: DeviceInfoPanel, handle: DeviceHandle) =
   coroutineScope {
     val state = handle.state
     val properties = state.properties
     val device = state.connectedDevice?.takeIf { it.isOnline }
 
-    deviceInfoPanel.apiLevel = properties.androidVersion?.apiStringWithExtension ?: "Unknown"
-    deviceInfoPanel.abiList = properties.abi?.toString() ?: "Unknown"
-    deviceInfoPanel.resolution = properties.resolution?.toString() ?: "Unknown"
-    val resolutionDp = properties.resolutionDp
-    deviceInfoPanel.resolutionDp = resolutionDp?.toString() ?: "Unknown"
-    deviceInfoPanel.screenDiagram.setDimensions(resolutionDp?.width ?: 0, resolutionDp?.height ?: 0)
+    deviceInfoPanel.populateDeviceInfo(properties)
 
     launch {
       if (device != null && properties.isVirtual == false) {
