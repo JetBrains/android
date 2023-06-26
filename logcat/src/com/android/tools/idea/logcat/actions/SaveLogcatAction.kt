@@ -32,12 +32,15 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private const val SAVE_PATH_KEY = "Logcat.SavePath"
+
+private const val LOGCAT_EXT = "logcat"
 
 internal class SaveLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.save.log.action.text"), null, AllIcons.Actions.MenuSaveall) {
 
@@ -53,9 +56,9 @@ internal class SaveLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.s
     val device = logcatPresenter.getSelectedDevice() ?: return
 
     val dialog = FileChooserFactory.getInstance().createSaveFileDialog(
-      FileSaverDescriptor(LogcatBundle.message("logcat.save.log.dialog.title"), "", "logcat"),
+      FileSaverDescriptor(LogcatBundle.message("logcat.save.log.dialog.title"), "", LOGCAT_EXT),
       project)
-    val filename = "${device.name.replace(' ', '-')}-Android-${device.release}"
+    val filename = "${device.name.replace(' ', '-')}-Android-${device.release}".adjustedForMac()
     val file = dialog.save(getSavePath(project), filename)?.file ?: return
     PropertiesComponent.getInstance(project).setValue(SAVE_PATH_KEY, file.parent)
 
@@ -87,4 +90,10 @@ internal class SaveLogcatAction : DumbAwareAction(LogcatBundle.message("logcat.s
     }
     else project.guessProjectDir()
   }
+
+}
+
+private fun String.adjustedForMac(): String {
+  // Add extension to filename on Mac only see: http://b/38447816.
+  return if (SystemInfo.isMac) "$this.$LOGCAT_EXT" else this
 }
