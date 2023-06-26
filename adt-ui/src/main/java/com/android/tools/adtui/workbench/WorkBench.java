@@ -160,8 +160,8 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     addToolsToModel(minimizedWindows);
     if (!isDisposed) {
       myWorkBenchManager.register(this);
+      KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
     }
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", myMyPropertyChangeListener);
   }
 
   @Override
