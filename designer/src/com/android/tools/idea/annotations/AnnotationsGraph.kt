@@ -51,7 +51,7 @@ interface NodeInfo<S> {
    * `this` -> [child], for every traversed edge.
    * At this point [subtreeInfo] is usually not set, and this method's main purpose is to provide
    * some contextual information from `this` to [child].
-   * This could be use, for example, to count the number of specific child annotations already
+   * This could be used, for example, to count the number of specific child annotations already
    * visited (e.g. @Preview).
    */
   fun onBeforeChildTraversal(child: NodeInfo<S>)
@@ -61,7 +61,7 @@ interface NodeInfo<S> {
    * after the whole subtree rooted at [child] was already traversed.
    * At this point, the [child]'s [subtreeInfo] should be already set, and this method's main
    * purpose is to provide some contextual information from the [child]'s subtree to `this`.
-   * This could be use, for example, for metrics collection (e.g. to accumulate the total number
+   * This could be used, for example, for metrics collection (e.g. to accumulate the total number
    * of direct and indirect @Preview found under this annotation)
    */
   fun onAfterChildTraversal(child: NodeInfo<S>)
@@ -71,7 +71,7 @@ interface NodeInfo<S> {
    * where the [child] has already been visited earlier during the graph traversal.
    * At this point, the [child]'s [subtreeInfo] should be already set, and this method's could be
    * useful in some cases to provide some contextual information from the [child]'s subtree to `this`.
-   * This could be use, for example, to detect cycles.
+   * This could be used, for example, to detect cycles.
    */
   fun onSkippedChildTraversal(child: NodeInfo<S>)
 }
