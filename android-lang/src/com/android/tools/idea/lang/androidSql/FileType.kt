@@ -36,4 +36,5 @@ class AndroidSqlFileType private constructor() : LanguageFileType(AndroidSqlLang
 /**
  * Icon used for all things related to our SQL support.
  */
-val ANDROID_SQL_ICON: Icon = StudioIcons.DeviceExplorer.DATABASE_FOLDER
+val ANDROID_SQL_ICON: Icon
+  get() = StudioIcons.DeviceExplorer.DATABASE_FOLDER
