@@ -237,7 +237,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     fun doConfigure(project: Project, modules: List<Module>, version: IdeKotlinVersion): NotificationMessageCollector {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = NotificationMessageCollector.create(project)
-            val changedFiles = configureWithVersion(project, modules, version, collector)
+            val changedFiles = configureWithVersion(project, modules, version, collector, emptyMap())
 
             for (file in changedFiles) {
                 OpenFileAction.openFile(file.virtualFile, project)
@@ -312,6 +312,11 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         moduleBuildModel.android().kotlinOptions().freeCompilerArgs().psiElement?.let {
             OpenFileDescriptor(project, it.containingFile.virtualFile, it.textRange.startOffset).navigate(true)
         }
+    }
+
+    override fun configureSettingsFile(file: PsiFile, version: IdeKotlinVersion, filesToOpen: MutableCollection<PsiFile>): Boolean {
+        // This is just a stub, for Android its own implementation is done in the fun addToPluginsManagementBlock
+        return false
     }
 
     companion object {
