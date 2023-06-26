@@ -15,12 +15,19 @@
  */
 package com.android.tools.idea.insights
 
-// TODO(b/275438349): add logging for this type
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.VisibilityFilter
+
 enum class VisibilityType(val displayName: String) {
   ALL("All visibility") {
     override fun toString() = displayName
   },
   USER_PERCEIVED("User-perceived") {
     override fun toString() = displayName
-  }
+  };
+
+  fun toLogProto() =
+    when (this) {
+      ALL -> VisibilityFilter.ALL_VISIBILITY
+      USER_PERCEIVED -> VisibilityFilter.USER_PERCEIVED
+    }
 }

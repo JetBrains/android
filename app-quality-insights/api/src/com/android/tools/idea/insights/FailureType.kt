@@ -16,7 +16,6 @@
 package com.android.tools.idea.insights
 
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.intellij.openapi.diagnostic.Logger
 import icons.StudioIcons
 import javax.swing.Icon
 
@@ -41,12 +40,6 @@ enum class FailureType {
       FATAL -> AppQualityInsightsUsageEvent.CrashType.FATAL
       NON_FATAL -> AppQualityInsightsUsageEvent.CrashType.NON_FATAL
       ANR -> AppQualityInsightsUsageEvent.CrashType.UNKNOWN_TYPE
-      // TODO(b/275438349): add vitals error types
-      else -> {
-        Logger.getInstance(FailureType::class.java)
-          .warn("Unrecognized app insights usage event crash type: $this")
-        AppQualityInsightsUsageEvent.CrashType.UNKNOWN_TYPE
-      }
     }
 }
 

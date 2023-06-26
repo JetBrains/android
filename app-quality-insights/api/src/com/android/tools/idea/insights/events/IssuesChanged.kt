@@ -64,6 +64,7 @@ data class IssuesChanged(
             deviceFilter = !request.filters.devices.contains(Device.ALL)
             osFilter = !request.filters.operatingSystems.contains(OperatingSystemInfo.ALL)
             signalFilter = request.filters.signal.toLogProto()
+            visibilityFilter = request.filters.visibilityType.toLogProto()
             defaultProject = false
             fetchSource?.let { this.fetchSource = it }
             numRetries = 0
