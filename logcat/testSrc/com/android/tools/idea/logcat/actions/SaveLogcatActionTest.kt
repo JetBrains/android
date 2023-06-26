@@ -9,9 +9,12 @@ import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.android.tools.idea.testing.ApplicationServiceRule
+import com.android.tools.idea.testing.NotificationRule
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.actions.RevealFileAction
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
@@ -27,6 +30,7 @@ import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
+import com.intellij.testFramework.runInEdtAndWait
 import com.jetbrains.rd.generator.nova.fail
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +44,7 @@ class SaveLogcatActionTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
   private val temporaryDirectoryRule = TemporaryDirectoryRule()
+  private val notificationRule = NotificationRule(projectRule)
   private val project get() = projectRule.project
   private val disposable get() = disposableRule.disposable
   private val fakeFileChooserFactory = FakeFileChooserFactory()
@@ -56,6 +61,7 @@ class SaveLogcatActionTest {
     projectRule,
     disposableRule,
     temporaryDirectoryRule,
+    notificationRule,
     ApplicationServiceRule(FileChooserFactory::class.java, fakeFileChooserFactory),
     ProjectServiceRule(projectRule, ProjectApplicationIdsProvider::class.java) { fakeProjectApplicationIdsProvider }
   )
@@ -122,7 +128,7 @@ class SaveLogcatActionTest {
   }
 
   @Test
-  fun actionPerformed() {
+  fun actionPerformed_savesFile() {
     val action = SaveLogcatAction()
     fakeLogcatPresenter.device = device
     fakeLogcatPresenter.logcatFilter = "filter"
@@ -131,11 +137,10 @@ class SaveLogcatActionTest {
     val event = createEvent(project, fakeLogcatPresenter)
 
     action.actionPerformed(event)
-    waitForCondition { FileEditorManager.getInstance(project).hasOpenFiles() }
+    waitForCondition { notificationRule.notifications.isNotEmpty() }
 
     assertThat(fakeFileChooserFactory.files).hasSize(1)
     assertThat(fakeFileChooserFactory.files[0].name).contains("_Google-Pixel-Android-10_")
-    assertThat(FileEditorManager.getInstance(project).openFiles[0].name).isEqualTo(fakeFileChooserFactory.files[0].name)
     val data = LogcatFileIo().readLogcat(fakeFileChooserFactory.files[0].toPath())
     assertThat(data.logcatMessages).containsExactly(
       logcatMessage(message = "message1"),
@@ -144,6 +149,51 @@ class SaveLogcatActionTest {
     assertThat(data.metadata?.device).isEqualTo(device)
     assertThat(data.metadata?.filter).isEqualTo("filter")
     assertThat(data.metadata?.projectApplicationIds).containsExactly("appId1", "appId2")
+  }
+
+  @Test
+  fun actionPerformed_showsNotification() {
+    val action = SaveLogcatAction()
+    fakeLogcatPresenter.device = device
+    fakeLogcatPresenter.logcatFilter = "filter"
+    fakeLogcatPresenter.messageBatches.add(listOf(logcatMessage(message = "message1"), logcatMessage(message = "message2")))
+    fakeProjectApplicationIdsProvider.setApplicationIds("appId1", "appId2")
+    val event = createEvent(project, fakeLogcatPresenter)
+
+    action.actionPerformed(event)
+    waitForCondition { notificationRule.notifications.isNotEmpty() }
+
+    assertThat(notificationRule.notifications).hasSize(1)
+    val notification = notificationRule.notifications.first()
+
+    assertThat(notification.groupId).isEqualTo("Logcat")
+    assertThat(notification.type).isEqualTo(NotificationType.INFORMATION)
+    assertThat(notification.content).isEqualTo("Log exported successfully")
+    assertThat(notification.actions.map { it.templateText }).containsExactly(
+      "Open in Editor",
+      RevealFileAction.getActionName(),
+    )
+  }
+
+  @Test
+  fun actionPerformed_openInEditor() {
+    val action = SaveLogcatAction()
+    fakeLogcatPresenter.device = device
+    fakeLogcatPresenter.logcatFilter = "filter"
+    fakeLogcatPresenter.messageBatches.add(listOf(logcatMessage(message = "message1"), logcatMessage(message = "message2")))
+    fakeProjectApplicationIdsProvider.setApplicationIds("appId1", "appId2")
+    val event = createEvent(project, fakeLogcatPresenter)
+    action.actionPerformed(event)
+    waitForCondition { notificationRule.notifications.isNotEmpty() }
+    assertThat(notificationRule.notifications).hasSize(1)
+    val openInEditorAction = notificationRule.notifications.first().actions.find { it.templateText == "Open in Editor" }
+                             ?: fail("Expected action not found")
+
+    runInEdtAndWait {
+      openInEditorAction.actionPerformed(event)
+    }
+
+    assertThat(FileEditorManager.getInstance(project).openFiles[0].name).isEqualTo(fakeFileChooserFactory.files[0].name)
   }
 
   private fun createEvent(

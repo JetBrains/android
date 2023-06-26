@@ -77,6 +77,8 @@
     <annotator language="LogcatFilter" implementationClass="com.android.tools.idea.logcat.filters.LogcatFilterErrorAnnotator"/>
 
     <keymapExtension implementation="com.android.tools.idea.logcat.actions.LogcatKeymapExtension"/>
+
+    <notificationGroup id="Logcat" displayType="BALLOON"/>
   </extensions>
 
   <actions>

@@ -22,7 +22,11 @@ import com.android.tools.idea.logcat.files.LogcatFileIo
 import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.intellij.icons.AllIcons
+import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -36,7 +40,6 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -82,9 +85,10 @@ internal class SaveLogcatAction :
         LOGGER.warn("Failed to save Logcat file: $file")
         return@launch
       }
-      withContext(AndroidDispatchers.uiThread) {
-        FileEditorManager.getInstance(project).openFile(virtualFile, true)
-      }
+      val notification = Notification("Logcat", LogcatBundle.message("logcat.save.log.notification.text"), NotificationType.INFORMATION)
+        .addAction(OpenInEditorAction(virtualFile))
+        .addAction(RevealLogcatFileAction(virtualFile))
+      Notifications.Bus.notify(notification, project)
     }
   }
 
@@ -99,6 +103,24 @@ internal class SaveLogcatAction :
     else project.guessProjectDir()
   }
 
+  private class OpenInEditorAction(val file: VirtualFile) : DumbAwareAction(
+    LogcatBundle.message("logcat.save.log.notification.open.in.editor")) {
+    override fun getActionUpdateThread() = EDT
+
+    override fun actionPerformed(e: AnActionEvent) {
+      val project = e.project ?: return
+      FileEditorManager.getInstance(project).openFile(file, true)
+    }
+  }
+
+  private class RevealLogcatFileAction(val file: VirtualFile) : DumbAwareAction(
+    RevealFileAction.getActionName()) {
+    override fun getActionUpdateThread() = EDT
+
+    override fun actionPerformed(e: AnActionEvent) {
+      RevealFileAction.openFile(file.toNioPath())
+    }
+  }
 }
 
 private fun String.adjustedForMac(): String {
