@@ -16,6 +16,8 @@
 package com.android.build.attribution.ui.view
 
 import com.android.build.attribution.analyzers.ConfigurationCachingTurnedOn
+import com.android.build.attribution.analyzers.JetifierNotUsed
+import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult
 import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.MockUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
@@ -166,6 +168,7 @@ class WarningsPageViewTest {
         override val nonIncrementalProcessors = emptyList<AnnotationProcessorUiData>()
       }
       confCachingData = ConfigurationCachingTurnedOn
+      jetifierData = JetifierUsageAnalyzerResult(JetifierNotUsed)
     }
     val model = WarningsDataPageModelImpl(data)
     view = WarningsPageView(model, mockHandlers, disposableRule.disposable).apply {

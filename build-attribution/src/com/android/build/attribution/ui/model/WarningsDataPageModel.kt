@@ -153,12 +153,7 @@ class WarningsDataPageModelImpl(
     get() = treeStructure.pageIdToNode[selectedPageId]
 
   override val isEmpty: Boolean
-    get() = reportData.issues.sumOf { it.warningCount } +
-      reportData.annotationProcessors.issueCount +
-      reportData.confCachingData.warningsCount() +
-      (reportData.criticalPathTaskCategories?.entries ?: emptyList()).sumOf { category ->
-        category.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true).size
-      } == 0
+    get() = reportData.countTotalWarnings() == 0
 
   override fun selectNode(warningsTreeNode: WarningsTreeNode?) {
     selectedPageId = warningsTreeNode?.descriptor?.pageId ?: WarningsPageId.emptySelection
