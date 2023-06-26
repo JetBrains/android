@@ -380,7 +380,10 @@ internal class LogcatMainPanel @TestOnly constructor(
           LogcatPanelEvent.newBuilder()
             .setIsRestored(state != null)
             .setFilter(logcatFilterParser.getUsageTrackingEvent(headerPanel.filter, headerPanel.filterMatchCase))
-            .setFormatConfiguration(state?.formattingConfig.toUsageTracking())))
+            .setFormatConfiguration(state?.formattingConfig.toUsageTracking())
+            .setBufferSize(logcatSettings.bufferSize)
+        )
+    )
 
     project.messageBus.let { messageBus ->
       messageBus.connect(this).subscribe(ClearLogcatListener.TOPIC, ClearLogcatListener {
