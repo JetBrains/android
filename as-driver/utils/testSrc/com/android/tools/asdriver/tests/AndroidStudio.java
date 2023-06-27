@@ -284,7 +284,7 @@ public class AndroidStudio implements AutoCloseable {
 
   public void waitForNativeBreakpointHit() throws IOException, InterruptedException {
     System.out.println("Waiting for native breakpoint to hit");
-    install.getIdeaLog().waitForMatchingLine(".*Native breakpoint hit.*", 1, TimeUnit.MINUTES);
+    install.getIdeaLog().waitForMatchingLine(".*Native breakpoint hit.*", 3, TimeUnit.MINUTES);
   }
 
   /**
@@ -380,6 +380,17 @@ public class AndroidStudio implements AutoCloseable {
                                                     requestBuilder, formatErrorMessage(response.getErrorMessage())));
       default -> throw new IllegalStateException(String.format("Unhandled response: %s", response.getResult()));
     }
+  }
+
+  public void waitForProjectInit() throws IOException, InterruptedException{
+    // Both waits are needed in order for app to launch
+    install.getIdeaLog().waitForMatchingLine(".*UnindexedFilesIndexer - Finished for.*", 180, TimeUnit.SECONDS);
+    install.getIdeaLog().reset();
+    install.getIdeaLog().waitForMatchingLine(".*\\[Building Activity\\] Saving symbols.*", 180, TimeUnit.SECONDS);
+
+    // Need to wait for the device selector to be ready
+    System.out.println("Wait for ActionToolBar");
+    this.waitForComponentByClass("MyNavBarWrapperPanel", "ActionToolbarImpl", "DeviceAndSnapshotComboBoxAction");
   }
 
   public List<AnalysisResult> analyzeFile(String file) {

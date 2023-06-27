@@ -38,20 +38,21 @@ class DebugNativeApkTest {
     system.installation.addVmOption("-Dtesting.android.platform.to.autocreate=31")
 
     system.runAdb { adb ->
-      system.runEmulator(Emulator.SystemImage.API_31) { emulator ->
+      system.runEmulator(Emulator.SystemImage.API_33) { emulator ->
+        println("Waiting for boot")
+        emulator.waitForBoot()
+
+        // If you try to run the app too early, you'll see this error in Android Studio: "Error
+        // while waiting for device: emu0 is already running. If that is not the case, delete
+        // <testtemppath>/home/.android/avd/emu0.avd/*.lock and try again."
+        println("Waiting for device")
+        adb.waitForDevice(emulator)
+
         system.runStudioFromApk(project) { studio ->
           studio.waitForIndex()
+          println("Finished waiting for index");
 
-          println("Waiting for boot")
-          emulator.waitForBoot()
-
-          // If you try to run the app too early, you'll see this error in Android Studio: "Error
-          // while waiting for device: emu0 is already running. If that is not the case, delete
-          // <testtemppath>/home/.android/avd/emu0.avd/*.lock and try again."
-          println("Waiting for device")
-
-          // TODO: Tue 11/22/2022 - this sometimes just fails, perhaps because the device is never ready?
-          adb.waitForDevice(emulator)
+          studio.waitForProjectInit();
 
           println("Opening a file")
           val srcPath: Path = project.targetProject.resolve("minnativeapp/src/main/cpp/minnativeapp.cpp")
@@ -60,10 +61,6 @@ class DebugNativeApkTest {
 
           println("Setting a breakpoint")
           studio.executeAction("ToggleLineBreakpoint")
-
-          // TODO: figure out how to definitively tell that the emulator is ready to run the app
-          println("Waiting for 10000 seconds before running the app so that the emulator is ready")
-          Thread.sleep(10000)
 
           println("Running the app")
           studio.executeAction("Debug")

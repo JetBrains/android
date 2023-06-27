@@ -360,14 +360,14 @@ iml_studio_test(
 
 iml_studio_test(
     name = "DebugNativeApkTest",
-    timeout = "moderate",
+    timeout = "long",
     data = [
         ":minnativeapp-apk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/android-31",
-        "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
+        "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     ],
     module = ":intellij.android.core.integration",
     tags_linux = [

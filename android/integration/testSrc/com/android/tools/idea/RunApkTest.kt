@@ -19,7 +19,6 @@ import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.Emulator
 import org.junit.Rule
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.seconds
 
 class RunApkTest {
@@ -53,16 +52,7 @@ class RunApkTest {
           studio.waitForIndex()
           println("Finished waiting for index");
 
-          //Both waits are needed in order for app to launch
-          system.installation.ideaLog
-            .waitForMatchingLine(".*UnindexedFilesIndexer - Finished for.*", 180, TimeUnit.SECONDS)
-          system.installation.ideaLog.reset()
-          system.installation.ideaLog
-            .waitForMatchingLine(".*\\[Building Activity\\] Saving symbols.*", 180, TimeUnit.SECONDS)
-
-          //Need to wait for the device to be ready
-          println("Wait for ActionToolBar")
-          studio.waitForComponentByClass("MyNavBarWrapperPanel", "ActionToolbarImpl", "DeviceAndSnapshotComboBoxAction")
+          studio.waitForProjectInit()
 
           println("Running the app")
           studio.executeAction("Run")
