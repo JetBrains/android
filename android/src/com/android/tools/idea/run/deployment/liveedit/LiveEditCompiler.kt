@@ -150,9 +150,8 @@ class LiveEditCompiler(val project: Project) {
       //    This is the one of the most time-consuming step with 80 to 500ms turnaround, depending on
       //    the complexity of the input .kt file.
       ProgressManager.checkCanceled()
-      var generationState : GenerationState? = null
-      try {
-        generationState = tracker.record(
+      val generationState = try {
+        tracker.record(
           {
             backendCodeGen(project,
                            analysisResult,
@@ -174,7 +173,7 @@ class LiveEditCompiler(val project: Project) {
         val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
 
         // We will need to start using the new analysis for code gen.
-        generationState = tracker.record(
+        tracker.record(
         {
           backendCodeGen(project,
             newAnalysisResult,
@@ -191,7 +190,7 @@ class LiveEditCompiler(val project: Project) {
       // 3) From the information we gather at the PSI changes and the output classes of Step 2, we
       //    decide which classes we want to send to the device along with what extra meta-information the
       //    agent need.
-      return@runWithCompileLock getGeneratedCode(inputs, generationState!!, output)
+      return@runWithCompileLock getGeneratedCode(inputs, generationState, output)
     }
   }
 
