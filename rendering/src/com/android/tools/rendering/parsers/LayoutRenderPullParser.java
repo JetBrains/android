@@ -248,30 +248,19 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
    *
    * @param file         The {@link RenderXmlFile} containing the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
-   * @param explodeNodes A set of individual nodes that should be assigned a fixed amount of
-   *                     padding ({@link PaddingLayoutRenderPullParser#FIXED_PADDING_VALUE}).
-   *                     This is intended for use with nodes that (without padding) would be
-   *                     invisible.
    * @param navGraphResolver Optional {@link NavGraphResolver}.
-   * @param density      the density factor for the screen.
    * @param useToolsPositionAndVisibility When false, 'visibility', 'layout_editor_absoluteX' and 'layout_editor_absoluteY' tools namespaced
    *                                     attributes will be ignored by the parser.
    */
   @NotNull
   public static LayoutRenderPullParser create(@NotNull RenderXmlFile file,
                                               @NotNull IRenderLogger logger,
-                                              @Nullable Set<RenderXmlTag> explodeNodes,
-                                              @NotNull Density density,
                                               @Nullable NavGraphResolver navGraphResolver,
                                               @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                               @NotNull Boolean useToolsPositionAndVisibility) {
-    if (explodeNodes != null && !explodeNodes.isEmpty()) {
-      return new PaddingLayoutRenderPullParser(file, logger, explodeNodes, density, resourceRepositoryManager);
-    } else {
-      // This method is only called to create layouts from the preview/editor (not inflated by custom components) so we always honor
-      // the tools:parentTag
-      return new LayoutRenderPullParser(file, logger, true, navGraphResolver, resourceRepositoryManager, useToolsPositionAndVisibility);
-    }
+    // This method is only called to create layouts from the preview/editor (not inflated by custom components) so we always honor
+    // the tools:parentTag
+    return new LayoutRenderPullParser(file, logger, true, navGraphResolver, resourceRepositoryManager, useToolsPositionAndVisibility);
   }
 
   @NotNull

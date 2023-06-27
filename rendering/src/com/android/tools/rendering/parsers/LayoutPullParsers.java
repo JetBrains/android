@@ -163,12 +163,10 @@ public class LayoutPullParsers {
     switch (folderType) {
       case LAYOUT: {
         IRenderLogger logger = renderTask.getLogger();
-        HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
         ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
         NavGraphResolver navGraphResolver = renderTask.getContext().getModule().getEnvironment().getNavGraphResolver(resourceResolver);
         boolean useToolsNamespace = renderTask.getShowWithToolsVisibilityAndPosition();
-        return LayoutRenderPullParser
-          .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), navGraphResolver, manager, useToolsNamespace);
+        return LayoutRenderPullParser.create(file, logger, navGraphResolver, manager, useToolsNamespace);
       }
       case DRAWABLE:
       case MIPMAP:
@@ -190,10 +188,9 @@ public class LayoutPullParsers {
           else if (tag.equals(PREFERENCE_SCREEN) ||
                    CLASS_PREFERENCE_SCREEN_ANDROIDX.isEquals(tag)) {
             IRenderLogger logger = renderTask.getLogger();
-            HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
             NavGraphResolver navGraphResolver = renderTask.getContext().getModule().getEnvironment().getNavGraphResolver(resourceResolver);
-            return LayoutRenderPullParser.create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), navGraphResolver, manager, true);
+            return LayoutRenderPullParser.create(file, logger, navGraphResolver, manager, true);
           }
         }
         return null;
