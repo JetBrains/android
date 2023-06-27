@@ -25,8 +25,6 @@ import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
-import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
-import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.pickers.preview.property.referenceDeviceIds
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
@@ -65,7 +63,7 @@ import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
-import com.android.tools.idea.preview.interactive.FpsCalculator
+import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
@@ -84,7 +82,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
-import com.android.tools.rendering.RenderService
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent
 import com.intellij.ide.ActivityTracker
@@ -300,7 +297,7 @@ class ComposePreviewRepresentation(
       onDeactivate = {
         log.debug("onDeactivate")
         if (interactiveModeFlow.value.isStartingOrReady()) {
-          pauseInteractivePreview()
+          interactiveManager.pause()
         }
         // The editor is scheduled to be deactivated, deactivate its issue model to avoid
         // updating publish the issue update event.
@@ -361,9 +358,6 @@ class ComposePreviewRepresentation(
         }
       }
     )
-
-  /** Frames per second limit for interactive preview. */
-  private var fpsLimit = StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
 
   /**
    * [UniqueTaskCoroutineLauncher] for ensuring that only one fast preview request is launched at a
@@ -438,13 +432,12 @@ class ComposePreviewRepresentation(
   }
 
   private fun updateFpsForCurrentMode() {
-    fpsLimit =
+    interactiveManager.fpsLimit =
       if (EssentialsMode.isEnabled()) {
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
       } else {
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
       }
-    fpsCounter.resetAndStart()
   }
 
   /** Whether the preview needs a full refresh or not. */
@@ -506,8 +499,6 @@ class ComposePreviewRepresentation(
 
   private val navigationHandler = ComposePreviewNavigationHandler()
 
-  private val fpsCounter = FpsCalculator { System.nanoTime() }
-
   private val issueListener: TreeSelectionListener = TreeSelectionListener {
     val selectedNode = it?.newLeadSelectionPath?.lastPathComponent ?: return@TreeSelectionListener
     (selectedNode as? IssueNode)?.issue?.let { issue ->
@@ -555,9 +546,7 @@ class ComposePreviewRepresentation(
       // Currently it will re-create classloader and will be slower that switch from static
       InteractivePreviewUsageTracker.getInstance(surface)
         .logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
-      fpsCounter.resetAndStart()
-      ticker.start()
-      delegateInteractionHandler.delegate = interactiveInteractionHandler
+      interactiveManager.start()
       requestVisibilityAndNotificationsUpdate()
 
       // While in interactive mode, display a small ripple when clicking
@@ -614,22 +603,9 @@ class ComposePreviewRepresentation(
   private fun onInteractivePreviewStop() {
     interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.STOPPING
     surface.disableMouseClickDisplay()
-    delegateInteractionHandler.delegate = staticPreviewInteractionHandler
     requestVisibilityAndNotificationsUpdate()
-    ticker.stop()
+    interactiveManager.stop()
     filterFlow.value = ComposePreviewElementsModel.Filter.Disabled
-    logInteractiveSessionMetrics()
-  }
-
-  private fun pauseInteractivePreview() {
-    ticker.stop()
-    surface.sceneManagers.forEach { it.pauseSessionClock() }
-  }
-
-  private fun resumeInteractivePreview() {
-    fpsCounter.resetAndStart()
-    surface.sceneManagers.forEach { it.resumeSessionClock() }
-    ticker.start()
   }
 
   private val animationInspection = AtomicBoolean(false)
@@ -763,8 +739,16 @@ class ComposePreviewRepresentation(
         )
       )
       .also { delegateInteractionHandler.delegate = it }
-  private val interactiveInteractionHandler =
-    LayoutlibInteractionHandler(composeWorkBench.mainSurface)
+
+  private val interactiveManager =
+    InteractivePreviewManager(
+        composeWorkBench.mainSurface,
+        StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get(),
+        { surface.sceneManagers },
+        { InteractivePreviewUsageTracker.getInstance(surface) },
+        delegateInteractionHandler
+      )
+      .also { Disposer.register(this@ComposePreviewRepresentation, it) }
 
   @get:VisibleForTesting
   val surface: NlDesignSurface
@@ -783,22 +767,10 @@ class ComposePreviewRepresentation(
    */
   private var onRestoreState: (() -> Unit)? = null
 
-  private val ticker =
-    ControllableTicker(
-      {
-        if (!RenderService.isBusy() && fpsCounter.getFps() <= fpsLimit) {
-          fpsCounter.incrementFrameCounter()
-          surface.sceneManagers.first().executeCallbacksAndRequestRender(null)
-        }
-      },
-      Duration.ofMillis(5)
-    )
-
   private val psiCodeFileChangeDetectorService =
     PsiCodeFileChangeDetectorService.getInstance(project)
 
   init {
-    Disposer.register(this, ticker)
     updateEssentialsMode()
   }
 
@@ -1100,7 +1072,7 @@ class ComposePreviewRepresentation(
     surface.activate()
 
     if (interactiveModeFlow.value.isStartingOrReady()) {
-      resumeInteractivePreview()
+      interactiveManager.resume()
     }
 
     val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
@@ -1150,16 +1122,10 @@ class ComposePreviewRepresentation(
     }
   }
 
-  private fun logInteractiveSessionMetrics() {
-    val touchEvents = surface.sceneManagers.map { it.interactiveEventsCount }.sum()
-    InteractivePreviewUsageTracker.getInstance(surface)
-      .logInteractiveSession(fpsCounter.getFps(), fpsCounter.getDurationMs(), touchEvents)
-  }
-
   override fun dispose() {
     isDisposed.set(true)
     if (interactiveModeFlow.value == ComposePreviewManager.InteractiveMode.READY) {
-      logInteractiveSessionMetrics()
+      interactiveManager.stop()
     }
     animationInspectionPreviewElementInstance = null
   }

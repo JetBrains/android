@@ -111,7 +111,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
@@ -132,7 +131,7 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * {@link SceneManager} that creates a Scene from an NlModel representing a layout using layoutlib.
  */
-public class LayoutlibSceneManager extends SceneManager {
+public class LayoutlibSceneManager extends SceneManager implements InteractiveSceneManager {
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
 
   @VisibleForTesting
@@ -961,8 +960,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
   /**
    * If true, register the {@link com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener} which calls
-   * {@link #resourcesChanged(Set)} when any resource is changed.
-   * By default it is enabled.
+   * {@link #resourcesChanged(ImmutableSet)} when any resource is changed.
+   * By default, it is enabled.
    */
   public void setListenResourceChange(boolean enabled) {
     myListenResourceChange = enabled;
@@ -1624,6 +1623,7 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Pauses session clock, so that session time stops advancing.
    */
+  @Override
   public void pauseSessionClock() {
     synchronized (myRenderingTaskLock) {
       mySessionClock.pause();
@@ -1633,6 +1633,7 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Resumes session clock, so that session time keeps advancing.
    */
+  @Override
   public void resumeSessionClock() {
     synchronized (myRenderingTaskLock) {
       mySessionClock.resume();
@@ -1685,6 +1686,7 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Executes the given {@link Runnable} callback synchronously with a 30ms timeout.
    */
+  @Override
   public boolean executeCallbacksAndRequestRender(@Nullable Runnable callback) {
     return executeCallbacksAndRequestRender(30, TimeUnit.MILLISECONDS, callback);
   }
@@ -1793,6 +1795,7 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Resets the counter of user events received by this scene to 0.
    */
+  @Override
   public void resetInteractiveEventsCounter() {
     myInteractiveEventsCounter.set(0);
   }
@@ -1800,6 +1803,7 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * @return number of user touch or key events received by this scene since last reset.
    */
+  @Override
   public int getInteractiveEventsCount() {
     return myInteractiveEventsCounter.get();
   }
