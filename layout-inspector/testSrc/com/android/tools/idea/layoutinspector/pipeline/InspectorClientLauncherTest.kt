@@ -118,16 +118,18 @@ class InspectorClientLauncherTest {
     val launcher =
       InspectorClientLauncher(
         processes,
-        listOf { params ->
-          if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel)
-            FakeInspectorClient(
-              "Modern client",
-              projectRule.project,
-              params.process,
-              disposableRule.disposable
-            )
-          else null
-        },
+        listOf(
+          ClientFactory { params ->
+            if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel)
+              FakeInspectorClient(
+                "Modern client",
+                projectRule.project,
+                params.process,
+                disposableRule.disposable
+              )
+            else null
+          }
+        ),
         projectRule.project,
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
@@ -156,22 +158,24 @@ class InspectorClientLauncherTest {
     val launcher =
       InspectorClientLauncher(
         processes,
-        listOf { params ->
-          val client =
-            FakeInspectorClient(
-              "Client",
-              projectRule.project,
-              params.process,
-              disposableRule.disposable
-            )
-          client.registerStateCallback { state ->
-            if (state == InspectorClient.State.DISCONNECTED) {
-              clientWasDisconnected = true
-              disconnectLatch.countDown()
+        listOf(
+          ClientFactory { params ->
+            val client =
+              FakeInspectorClient(
+                "Client",
+                projectRule.project,
+                params.process,
+                disposableRule.disposable
+              )
+            client.registerStateCallback { state ->
+              if (state == InspectorClient.State.DISCONNECTED) {
+                clientWasDisconnected = true
+                disconnectLatch.countDown()
+              }
             }
+            client
           }
-          client
-        },
+        ),
         projectRule.project,
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
@@ -201,7 +205,7 @@ class InspectorClientLauncherTest {
       InspectorClientLauncher(
         processes,
         listOf(
-          { params ->
+          ClientFactory { params ->
             creatorCount1++
             if (params.process.device.apiLevel == MODERN_DEVICE.apiLevel)
               FakeInspectorClient(
@@ -212,7 +216,7 @@ class InspectorClientLauncherTest {
               )
             else null
           },
-          { params ->
+          ClientFactory { params ->
             creatorCount2++
             if (params.process.device.apiLevel == LEGACY_DEVICE.apiLevel)
               FakeInspectorClient(
@@ -223,7 +227,7 @@ class InspectorClientLauncherTest {
               )
             else null
           },
-          { params ->
+          ClientFactory { params ->
             creatorCount3++
             FakeInspectorClient(
               "Fallback client",
@@ -273,7 +277,7 @@ class InspectorClientLauncherTest {
       InspectorClientLauncher(
         processes,
         listOf(
-          { params ->
+          ClientFactory { params ->
             object :
               FakeInspectorClient(
                 "Exploding client #1",
@@ -284,7 +288,7 @@ class InspectorClientLauncherTest {
               override suspend fun doConnect() = throw IllegalStateException()
             }
           },
-          { params ->
+          ClientFactory { params ->
             object :
               FakeInspectorClient(
                 "Exploding client #2",
@@ -295,7 +299,7 @@ class InspectorClientLauncherTest {
               override suspend fun doConnect() = throw IllegalStateException()
             }
           },
-          { params ->
+          ClientFactory { params ->
             FakeInspectorClient(
               "Fallback client",
               projectRule.project,
@@ -325,7 +329,7 @@ class InspectorClientLauncherTest {
       InspectorClientLauncher(
         processes,
         listOf(
-          { params ->
+          ClientFactory { params ->
             object :
               FakeInspectorClient(
                 "Exploding client #1",
@@ -336,7 +340,7 @@ class InspectorClientLauncherTest {
               override suspend fun doConnect() = throw IllegalStateException()
             }
           },
-          { params ->
+          ClientFactory { params ->
             object :
               FakeInspectorClient(
                 "Exploding client #2",
@@ -347,7 +351,7 @@ class InspectorClientLauncherTest {
               override suspend fun doConnect() = throw IllegalStateException()
             }
           },
-          { params ->
+          ClientFactory { params ->
             if (params.process.device.apiLevel >= MODERN_DEVICE.apiLevel) {
               FakeInspectorClient(
                 "Modern client",
@@ -393,14 +397,16 @@ class InspectorClientLauncherTest {
     val launcher =
       InspectorClientLauncher(
         processes,
-        listOf { params ->
-          FakeInspectorClient(
-            "Unused",
-            projectRule.project,
-            params.process,
-            disposableRule.disposable
-          )
-        },
+        listOf(
+          ClientFactory { params ->
+            FakeInspectorClient(
+              "Unused",
+              projectRule.project,
+              params.process,
+              disposableRule.disposable
+            )
+          }
+        ),
         projectRule.project,
         NotificationModel(projectRule.project),
         AndroidCoroutineScope(disposableRule.disposable),
@@ -465,7 +471,7 @@ class InspectorClientLauncherTest {
       InspectorClientLauncher(
         processes,
         listOf(
-          { params ->
+          ClientFactory { params ->
             object :
               FakeInspectorClient(
                 "Initial failing client",
@@ -486,7 +492,7 @@ class InspectorClientLauncherTest {
               override fun toString() = "Initial client for pid ${process.pid}"
             }
           },
-          { params ->
+          ClientFactory { params ->
             object :
               FakeInspectorClient(
                 "Only connect to process 2",
@@ -558,7 +564,7 @@ class InspectorClientLauncherMetricsTest {
       InspectorClientLauncher(
         processes,
         listOf(
-          { params ->
+          ClientFactory { params ->
             object :
               FakeInspectorClient(
                 "Exploding client #1",
@@ -575,7 +581,7 @@ class InspectorClientLauncherMetricsTest {
               }
             }
           },
-          { params ->
+          ClientFactory { params ->
             object :
               FakeInspectorClient(
                 "Exploding client #2",
@@ -592,7 +598,7 @@ class InspectorClientLauncherMetricsTest {
               }
             }
           },
-          { params ->
+          ClientFactory { params ->
             object :
               FakeInspectorClient(
                 "Fallback client",
@@ -652,26 +658,28 @@ class InspectorClientLauncherMetricsTest {
     val startedWaitingLatch = ReportingCountDownLatch(1)
     InspectorClientLauncher(
       processes,
-      listOf { params ->
-        object :
-          FakeInspectorClient(
-            "Hangs on initial connect",
-            projectRule.project,
-            params.process,
-            disposableRule.disposable
-          ) {
-          override suspend fun doConnect() {
-            metrics.logEvent(
-              DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST,
-              stats
-            )
-            if (params.process == process1) {
-              startedWaitingLatch.countDown()
-              changedProcessLatch.await(1, TimeUnit.SECONDS)
+      listOf(
+        ClientFactory { params ->
+          object :
+            FakeInspectorClient(
+              "Hangs on initial connect",
+              projectRule.project,
+              params.process,
+              disposableRule.disposable
+            ) {
+            override suspend fun doConnect() {
+              metrics.logEvent(
+                DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST,
+                stats
+              )
+              if (params.process == process1) {
+                startedWaitingLatch.countDown()
+                changedProcessLatch.await(1, TimeUnit.SECONDS)
+              }
             }
           }
         }
-      },
+      ),
       projectRule.project,
       NotificationModel(projectRule.project),
       AndroidCoroutineScope(disposableRule.disposable),

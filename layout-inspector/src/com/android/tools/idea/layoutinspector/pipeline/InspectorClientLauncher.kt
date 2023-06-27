@@ -40,18 +40,22 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
+fun interface ClientFactory {
+  fun createClient(params: InspectorClientLauncher.Params): InspectorClient?
+}
+
 /**
  * Class responsible for listening to active process connections and launching the correct
  * [InspectorClient] to handle it.
  *
- * @param clientCreators Client factory callbacks that will be triggered in order, and the first
- *   callback to return a non-null value will be used.
+ * @param clientFactories A list of [ClientFactory] that will be triggered in order. The first
+ *   non-null client will be used.
  * @param executor The executor which will handle connecting / launching the current client. This
  *   should not be the UI thread, in order to avoid blocking the UI during this time.
  */
 class InspectorClientLauncher(
   private val processes: ProcessesModel,
-  private val clientCreators: List<(Params) -> InspectorClient?>,
+  private val clientFactories: List<ClientFactory>,
   private val project: Project,
   private val notificationModel: NotificationModel,
   private val scope: CoroutineScope,
@@ -75,40 +79,41 @@ class InspectorClientLauncher(
       coroutineScope: CoroutineScope,
       parentDisposable: Disposable
     ): InspectorClientLauncher {
+
+      val appInspectionInspectorClientFactory = ClientFactory { params ->
+        if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
+          // Only Q+ devices support image updates which is used by the app inspection agent
+          AppInspectionInspectorClient(
+            params.process,
+            params.isInstantlyAutoConnected,
+            model,
+            notificationModel,
+            metrics,
+            treeSettings,
+            inspectorClientSettings,
+            coroutineScope,
+            parentDisposable
+          )
+        } else {
+          null
+        }
+      }
+
+      val legacyClientFactory = ClientFactory { params ->
+        LegacyClient(
+          params.process,
+          params.isInstantlyAutoConnected,
+          model,
+          notificationModel,
+          metrics,
+          coroutineScope,
+          parentDisposable
+        )
+      }
+
       return InspectorClientLauncher(
         processes,
-        listOf(
-          { params ->
-            if (params.process.device.apiLevel >= AndroidVersion.VersionCodes.Q) {
-              // Only Q devices or newer support image updates which is used by the app inspection
-              // agent
-              AppInspectionInspectorClient(
-                params.process,
-                params.isInstantlyAutoConnected,
-                model,
-                notificationModel,
-                metrics,
-                treeSettings,
-                inspectorClientSettings,
-                coroutineScope,
-                parentDisposable
-              )
-            } else {
-              null
-            }
-          },
-          { params ->
-            LegacyClient(
-              params.process,
-              params.isInstantlyAutoConnected,
-              model,
-              notificationModel,
-              metrics,
-              coroutineScope,
-              parentDisposable
-            )
-          }
-        ),
+        listOf(appInspectionInspectorClientFactory, legacyClientFactory),
         model.project,
         notificationModel,
         coroutineScope,
@@ -206,9 +211,9 @@ class InspectorClientLauncher(
           override val disposable: Disposable = parentDisposable
         }
       metrics?.setProcess(process)
-      for (createClient in clientCreators) {
+      for (clientFactory in clientFactories) {
         checkCancelled()
-        val client = createClient(params)
+        val client = clientFactory.createClient(params)
         if (client != null) {
           try {
             val latch = CountDownLatch(1)

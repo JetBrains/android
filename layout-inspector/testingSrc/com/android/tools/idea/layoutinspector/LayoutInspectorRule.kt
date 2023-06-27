@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.pipeline.ClientFactory
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
@@ -266,7 +267,9 @@ class LayoutInspectorRule(
     launcher =
       InspectorClientLauncher(
         processes,
-        clientProviders.map { provider -> { params -> provider.create(params, inspector) } },
+        clientProviders.map { provider ->
+          ClientFactory { params -> provider.create(params, inspector) }
+        },
         project,
         notificationModel,
         layoutInspectorCoroutineScope,
