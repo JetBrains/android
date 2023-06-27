@@ -26,7 +26,7 @@ class ToggleOrientationActionTest : SceneTest() {
     val root = myScene.getSceneComponent("root")!!
 
     myInteraction.performToolbarAction(root) { target -> target is ToggleOrientationAction }
-    assertEquals(null, root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
+    assertEquals(SdkConstants.VALUE_HORIZONTAL, root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
   }
 
   fun testToggleWhenSelectingRoot() {
@@ -34,7 +34,7 @@ class ToggleOrientationActionTest : SceneTest() {
 
     myInteraction.select(root, true)
     myInteraction.performToolbarAction(root) { target -> target is ToggleOrientationAction }
-    assertEquals(null, root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
+    assertEquals(SdkConstants.VALUE_HORIZONTAL, root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
   }
 
   fun testToggleWhenSelectingChild() {
@@ -43,7 +43,7 @@ class ToggleOrientationActionTest : SceneTest() {
 
     myInteraction.select(button, true)
     myInteraction.performToolbarAction(root) { target -> target is ToggleOrientationAction }
-    assertEquals(null, root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
+    assertEquals(SdkConstants.VALUE_HORIZONTAL, root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
   }
 
   fun testToggleWhenSelectingMultipleChildren() {
@@ -53,7 +53,7 @@ class ToggleOrientationActionTest : SceneTest() {
 
     myInteraction.select(button1, button2)
     myInteraction.performToolbarAction(root) { target -> target is ToggleOrientationAction }
-    assertEquals(null, root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
+    assertEquals(SdkConstants.VALUE_HORIZONTAL, root.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
   }
 
   fun testToggleWhenSelectingNestedLinearLayout() {
@@ -71,7 +71,7 @@ class ToggleOrientationActionTest : SceneTest() {
     myInteraction.select(nested1, nested2)
     myInteraction.performToolbarAction(root) { target -> target is ToggleOrientationAction }
     assertEquals(SdkConstants.VALUE_VERTICAL, nested1.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
-    assertEquals(null, nested2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
+    assertEquals(SdkConstants.VALUE_HORIZONTAL, nested2.authoritativeNlComponent.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION))
   }
 
   override fun createModel(): ModelBuilder {
