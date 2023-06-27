@@ -28,7 +28,7 @@ import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.categorytable.IconButton
-import com.android.tools.adtui.categorytable.RowKey
+import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -178,6 +178,17 @@ constructor(
 
     panelScope.launch(uiDispatcher) { trackDevices() }
     panelScope.launch(uiDispatcher) { trackDeviceTemplates() }
+
+    // Keep the device details synced with the selected row.
+    panelScope.launch(uiDispatcher) {
+      deviceTable.selection.asFlow().collect { selectedRows ->
+        if (deviceDetailsPanelRow != null) {
+          (selectedRows.singleOrNull() as? ValueRowKey)?.let { selectedRow ->
+            deviceTable.values.find { it.key() == selectedRow.key }?.let { showDeviceDetails(it) }
+          }
+        }
+      }
+    }
   }
 
   private suspend fun trackDevices() {
@@ -228,8 +239,8 @@ constructor(
                 if (deviceTable.addOrUpdateRow(it, beforeKey = handle.sourceTemplate)) {
                   handle.sourceTemplate?.let {
                     if (templateInstantiationCount.add(it, 1) == 0) {
-                      if (deviceTable.selection.selectedKeys().contains(RowKey.ValueRowKey(it))) {
-                        deviceTable.selection.selectRow(RowKey.ValueRowKey(handle))
+                      if (deviceTable.selection.selectedKeys().contains(ValueRowKey(it))) {
+                        deviceTable.selection.selectRow(ValueRowKey(handle))
                       }
                       deviceTable.setRowVisibleByKey(it, false)
                     }

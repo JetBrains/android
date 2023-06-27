@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.DeactivationAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.RepairDeviceAction
 import com.android.sdklib.deviceprovisioner.TestDefaultDeviceActionPresentation
 import icons.StudioIcons
@@ -29,13 +30,12 @@ import kotlinx.coroutines.flow.update
 
 internal class FakeDeviceHandle(
   override val scope: CoroutineScope,
+  override val sourceTemplate: DeviceTemplate? = null,
+  initialProperties: DeviceProperties =
+    DeviceProperties.build { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
 ) : DeviceHandle {
   override val stateFlow =
-    MutableStateFlow<DeviceState>(
-      DeviceState.Disconnected(
-        DeviceProperties.build { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE }
-      )
-    )
+    MutableStateFlow<DeviceState>(DeviceState.Disconnected(initialProperties))
   override val activationAction = FakeActivationAction()
   override val deactivationAction = FakeDeactivationAction()
   override val repairDeviceAction = FakeRepairDeviceAction()

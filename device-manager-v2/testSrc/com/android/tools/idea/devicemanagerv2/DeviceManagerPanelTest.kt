@@ -21,16 +21,14 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.tools.adtui.categorytable.CategoryTable
-import com.android.tools.adtui.categorytable.RowKey
+import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -60,7 +58,7 @@ class DeviceManagerPanelTest {
     deviceHandles.send(listOf(pixel5Emulator, pixel6))
     deviceTemplates.send(listOf(pixel5Template))
 
-    deviceTable.selection.selectRow(RowKey.ValueRowKey(pixel5Template))
+    deviceTable.selection.selectRow(ValueRowKey(pixel5Template))
 
     assertThat(deviceTable.values).hasSize(3)
     val originalValues = deviceTable.values.map { it.key() }
@@ -74,7 +72,7 @@ class DeviceManagerPanelTest {
       .inOrder()
 
     assertThat(deviceTable.selection.selectedKeys())
-      .containsExactly(RowKey.ValueRowKey<DeviceRowData>(pixel5Handle))
+      .containsExactly(ValueRowKey<DeviceRowData>(pixel5Handle))
   }
 
   @Test
@@ -106,6 +104,30 @@ class DeviceManagerPanelTest {
     pixel5Handle.scope.cancel()
 
     assertThat(deviceTable.visibleKeys()).containsExactly(pixel4, pixel5Template, pixel6)
+  }
+
+  @Test
+  fun detailsTracksSelection() = runTestWithFixture {
+    val pixel4 = createHandle("Pixel 4")
+    val pixel5 = createHandle("Pixel 5")
+
+    deviceHandles.send(listOf(pixel4, pixel5))
+
+    val pixel4Row = DeviceRowData.create(pixel4, emptyList())
+    val pixel5Row = DeviceRowData.create(pixel5, emptyList())
+
+    ViewDetailsAction().actionPerformed(actionEvent(dataContext(panel, deviceRowData = pixel4Row)))
+
+    assertThat(panel.deviceDetailsPanelRow).isEqualTo(pixel4Row)
+
+    deviceTable.selection.selectRow(ValueRowKey(pixel5))
+
+    assertThat(panel.deviceDetailsPanelRow).isEqualTo(pixel5Row)
+
+    deviceTable.selection.clear()
+
+    // Shouldn't change anything
+    assertThat(panel.deviceDetailsPanelRow).isEqualTo(pixel5Row)
   }
 
   fun <T : Any> CategoryTable<T>.visibleKeys() =
@@ -141,23 +163,14 @@ class DeviceManagerPanelTest {
     val deviceTable = panel.deviceTable
 
     fun createHandle(name: String, sourceTemplate: DeviceTemplate? = null) =
-      FakeDeviceHandle(scope.createChildScope(isSupervisor = true), name, sourceTemplate)
-    fun createTemplate(name: String) = FakeDeviceTemplate(name)
-  }
-
-  private class FakeDeviceHandle(
-    override val scope: CoroutineScope,
-    val name: String,
-    override val sourceTemplate: DeviceTemplate?,
-  ) : DeviceHandle {
-    override val stateFlow =
-      MutableStateFlow<DeviceState>(
-        DeviceState.Disconnected(
-          DeviceProperties.build {
-            model = name
-            icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-          }
-        )
+      FakeDeviceHandle(
+        scope.createChildScope(isSupervisor = true),
+        sourceTemplate,
+        DeviceProperties.build {
+          model = name
+          icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+        }
       )
+    fun createTemplate(name: String) = FakeDeviceTemplate(name)
   }
 }
