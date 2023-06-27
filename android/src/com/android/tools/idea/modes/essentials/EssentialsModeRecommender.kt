@@ -21,9 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.memorysettings.MemorySettingsUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EditorNotification
-import com.google.wireless.android.sdk.stats.MemorySettings
 import com.intellij.ide.IdeBundle
-import com.intellij.ide.actions.ToggleEssentialHighlightingAction
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
@@ -37,7 +35,7 @@ import kotlinx.coroutines.delay
 
 
 class EssentialsModeRecommender : ProjectActivity {
-  val ignoreEssentialsMode = "ignore.essentials.mode"
+  val ignoreEssentialsMode = "ignore.essentials.mode.recommendation"
   val notificationGroup = "Essentials Mode"
 
   fun shouldRecommend(): Boolean {
@@ -72,9 +70,7 @@ class EssentialsModeRecommender : ProjectActivity {
   // Creating separate inner classes, so we are able to tell which response a user selects in our tracking via class names
   inner class EssentialsModeResponseYes : NotificationAction("Yes") {
     override fun actionPerformed(e: AnActionEvent, notification: Notification) {
-      EssentialsMode.setEnabled(true)
-      // ToggleEssentialHighlightingAction sends a notification about what the mode does
-      if (StudioFlags.ESSENTIALS_HIGHLIGHTING_MODE.get()) ToggleEssentialHighlightingAction().setSelected(e, true)
+      EssentialsMode.setEnabled(true, e.project)
       notification.expire()
     }
   }

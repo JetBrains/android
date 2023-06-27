@@ -61,7 +61,7 @@ class LayoutlibSceneManagerTest: SceneTest() {
   }
 
   fun testPowerSaveModeDoesNotRefreshOnResourcesChange() {
-    EssentialsMode.setEnabled(true)
+    EssentialsMode.setEnabled(true, project)
     try {
       val nlSurface = myScene.designSurface as NlDesignSurface
       val sceneManager = nlSurface.sceneManager!!
@@ -74,7 +74,7 @@ class LayoutlibSceneManagerTest: SceneTest() {
       sceneManager.requestRenderAsync()
       assertFalse(sceneManager.isOutOfDate)
     } finally {
-      EssentialsMode.setEnabled(false)
+      EssentialsMode.setEnabled(false, project)
     }
   }
 

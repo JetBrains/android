@@ -91,6 +91,8 @@ public final class AndroidPlugin {
    */
   private static void overrideEssentialHighlightingAction(ActionManager actionManager) {
     ToggleAction studioAction = new EssentialsModeToggleAction();
+    // when using Essentials mode, don't show essential-highlighting notifications
+    PropertiesComponent.getInstance().setValue("ignore.essential-highlighting.mode", true);
     if (actionManager.getAction("ToggleEssentialHighlighting") != null) {
       Actions.replaceAction(actionManager, "ToggleEssentialHighlighting", studioAction);
     } else {

@@ -15,37 +15,44 @@
  */
 package com.android.tools.idea.modes.essentials
 
+import com.android.flags.Flag
+import com.android.tools.idea.flags.StudioFlags
+import com.intellij.ide.EssentialHighlightingMode
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.registry.RegistryManager
 
 @Service
-class EssentialsMode : ProjectActivity {
+class EssentialsMode {
+  init {
+    essentialsModeLogger.info("Essentials mode isEnabled on start-up: ${isEnabled()}")
+  }
   companion object {
-
+    private const val REGISTRY_KEY = "ide.essentials.mode"
     private val messenger = service<EssentialsModeMessenger>()
     private val essentialsModeLogger = logger<EssentialsMode>()
+
+    // keeping Essential Highlighting separable from Essentials Mode if it's determined at a future
+    // date that most users would prefer this feature not bundled with Essentials Mode
+    private val essentialHighlightingEnabled: Flag<Boolean> = StudioFlags.ESSENTIALS_HIGHLIGHTING_MODE
     @JvmStatic
     fun isEnabled(): Boolean {
-      return RegistryManager.getInstance().`is`("ide.essentials.mode");
+      return RegistryManager.getInstance().`is`(REGISTRY_KEY);
     }
 
     @JvmStatic
-    fun setEnabled(value: Boolean) {
+    fun setEnabled(value: Boolean, project: Project?) {
       val beforeSet = isEnabled()
-      RegistryManager.getInstance().get("ide.essentials.mode").setValue(value)
-
+      RegistryManager.getInstance().get(REGISTRY_KEY).setValue(value)
+      if (essentialHighlightingEnabled.get()) EssentialHighlightingMode.setEnabled(value)
       // send message if the value changed
       if (beforeSet != value) {
         messenger.sendMessage()
         essentialsModeLogger.info("Essentials mode isEnabled set to $value")
+        project?.service<EssentialsModeNotifier>()?.notifyProject()
       }
     }
-  }
-  override suspend fun execute(project: Project) {
-    essentialsModeLogger.info("Essentials mode isEnabled on start-up: ${isEnabled()}")
   }
 }

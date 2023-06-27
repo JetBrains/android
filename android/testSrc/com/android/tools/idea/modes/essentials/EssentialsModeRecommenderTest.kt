@@ -13,7 +13,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.ui.UIUtil
-import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,7 +41,7 @@ class EssentialsModeRecommenderTest : LightPlatformTestCase() {
     StudioFlags.ESSENTIALS_MODE_VISIBLE.clearOverride()
     StudioFlags.ESSENTIALS_MODE_GETS_RECOMMENDED.override(true)
     PropertiesComponent.getInstance().setValue(recommender.ignoreEssentialsMode, false)
-    EssentialsMode.setEnabled(false)
+    EssentialsMode.setEnabled(false, project)
   }
 
   @Test
@@ -67,7 +66,7 @@ class EssentialsModeRecommenderTest : LightPlatformTestCase() {
 
   @Test
   fun `should not recommend if in essentials mode`() {
-    EssentialsMode.setEnabled(true)
+    EssentialsMode.setEnabled(true, project)
 
     Truth.assertThat(recommender.shouldRecommend()).isFalse()
   }
@@ -83,7 +82,7 @@ class EssentialsModeRecommenderTest : LightPlatformTestCase() {
 
   @Test
   fun `do not send recommendation if it should not`() {
-    EssentialsMode.setEnabled(true)
+    EssentialsMode.setEnabled(true, project)
 
     recommender.recommendEssentialsMode()
     UIUtil.dispatchAllInvocationEvents()

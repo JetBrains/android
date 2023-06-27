@@ -69,10 +69,10 @@ class ComposePreviewLiteModeManagerTest {
 
       // Enable Android Studio essentials mode. Note that preview lite mode is still disabled in
       // settings.
-      EssentialsMode.setEnabled(true)
+      EssentialsMode.setEnabled(true, projectRule.project)
       assertTrue(ComposePreviewLiteModeManager.isLiteModeEnabled)
     } finally {
-      EssentialsMode.setEnabled(false)
+      EssentialsMode.setEnabled(false, projectRule.project)
     }
   }
 }

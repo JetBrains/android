@@ -17,8 +17,6 @@ package com.android.tools.idea.modes.essentials
 
 import com.android.flags.Flag
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.ide.EssentialHighlightingMode
-import com.intellij.ide.actions.ToggleEssentialHighlightingAction
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -28,18 +26,13 @@ class EssentialsModeToggleAction : ToggleAction(
   "Essentials Mode") {
 
   private val essentialsModeFlag: Flag<Boolean> = StudioFlags.ESSENTIALS_MODE_VISIBLE
-  private val essentialHighlightingEnabled: Flag<Boolean> = StudioFlags.ESSENTIALS_HIGHLIGHTING_MODE
-  // keeping Essential Highlighting separable from Essentials Mode if it's determined at a future
-  // date that most users would prefer this feature not bundled with Essentials Mode
-  private val essentialHighlightingAction = ToggleEssentialHighlightingAction()
 
   override fun isSelected(e: AnActionEvent): Boolean {
     return EssentialsMode.isEnabled()
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    if (essentialHighlightingEnabled.get()) essentialHighlightingAction.setSelected(e, state)
-    EssentialsMode.setEnabled(state)
+    EssentialsMode.setEnabled(state, e.project!!)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
@@ -49,9 +42,5 @@ class EssentialsModeToggleAction : ToggleAction(
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isVisible = essentialsModeFlag.get()
-    if (!essentialsModeFlag.get()) {
-      EssentialsMode.setEnabled(false)
-      EssentialHighlightingMode.setEnabled(false)
-    }
   }
 }
