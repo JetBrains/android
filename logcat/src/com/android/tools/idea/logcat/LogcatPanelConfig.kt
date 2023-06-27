@@ -45,11 +45,11 @@ private const val PROPERTY_NAME_CUSTOM = "custom"
  * It is persisted into [StoragePathMacros.PRODUCT_WORKSPACE_FILE] by [SplittingTabsToolWindowFactory].
  */
 internal data class LogcatPanelConfig(
-  var device: Device?,
-  var formattingConfig: FormattingConfig,
-  var filter: String,
-  var filterMatchCase: Boolean,
-  var isSoftWrap: Boolean,
+  val device: Device?,
+  val formattingConfig: FormattingConfig,
+  val filter: String,
+  val filterMatchCase: Boolean,
+  val isSoftWrap: Boolean,
 ) {
 
   companion object {
@@ -63,13 +63,10 @@ internal data class LogcatPanelConfig(
         }
         else {
           val config = gson.fromJson(json, LogcatPanelConfig::class.java)
-          config?.device?.let {
-            @Suppress("SENSELESS_COMPARISON") // GSON doesn't care that model is non-null
-            if (it.model == null) {
-              config.device = it.copy(model = "")
-            }
+          when (config?.device?.model) {
+            null -> config?.copy(device = config.device?.copy(model = ""))
+            else -> config
           }
-          config
         }
       }
       catch (e: JsonSyntaxException) {
@@ -102,9 +99,7 @@ internal data class LogcatPanelConfig(
           )
         }
 
-        gson.fromJson(json, LogcatPanelConfig::class.java).apply {
-          this.device = device
-        }
+        gson.fromJson(json, LogcatPanelConfig::class.java).copy(device= device)
       }
       catch (e: JsonSyntaxException) {
         LOGGER.warn("Invalid state", e)
