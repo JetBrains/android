@@ -38,6 +38,7 @@ import com.android.tools.idea.insights.events.IssueToggled
 import com.android.tools.idea.insights.events.OSesChanged
 import com.android.tools.idea.insights.events.PersistSettingsAdapter
 import com.android.tools.idea.insights.events.ResetSnapshot
+import com.android.tools.idea.insights.events.RestoreFilterFromSettings
 import com.android.tools.idea.insights.events.SafeFiltersAdapter
 import com.android.tools.idea.insights.events.SelectedIssueChanged
 import com.android.tools.idea.insights.events.SignalChanged
@@ -142,14 +143,12 @@ class AppInsightsProjectLevelControllerImpl(
   private val connectionsFlow = flow {
     var shouldRestorePreviousConfig = true
     appConnection.collect { connections ->
-      val (filters, savedConnection) =
-        if (shouldRestorePreviousConfig && connections.isNotEmpty()) {
-          shouldRestorePreviousConfig = false
-          Pair(settings?.overwriteFilters(defaultFilters) ?: defaultFilters, settings?.connection)
-        } else {
-          Pair(defaultFilters, null)
-        }
-      emit(wrapAdapters(ConnectionsChanged(connections, filters, savedConnection)))
+      var event: ChangeEvent = ConnectionsChanged(connections, defaultFilters)
+      if (shouldRestorePreviousConfig && connections.isNotEmpty()) {
+        shouldRestorePreviousConfig = false
+        settings?.let { event = RestoreFilterFromSettings(it, event) }
+      }
+      emit(wrapAdapters(event))
     }
   }
 

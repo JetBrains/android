@@ -29,7 +29,6 @@ import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
-import com.android.tools.idea.insights.selectionOf
 import com.android.tools.idea.kotlin.enumValueOfOrNull
 import kotlin.IllegalArgumentException
 
@@ -75,23 +74,25 @@ data class InsightsFilterSettings(
       result = result.copy(devices = MultiSelection(items.toSet(), items))
     }
 
-    val types = failureTypes?.mapNotNull { enumValueOfOrNull<FailureType>(it) }
+    val types = failureTypes?.mapNotNull { enumValueOfOrNull<FailureType>(it) }?.toSet()
     if (!types.isNullOrEmpty()) {
       result =
-        result.copy(
-          failureTypeToggles = MultiSelection(types.toSet(), filters.failureTypeToggles.items)
-        )
+        result.copy(failureTypeToggles = filters.failureTypeToggles.selectMatching { it in types })
     }
 
     signal
       ?.let { enumValueOfOrNull<SignalType>(it) }
-      ?.let { signal -> result = result.copy(signal = selectionOf(signal)) }
+      ?.let { signal -> result = result.copy(signal = filters.signal.select(signal)) }
     visibilityType
       ?.let { enumValueOfOrNull<VisibilityType>(it) }
-      ?.let { visibility -> result = result.copy(visibilityType = selectionOf(visibility)) }
+      ?.let { visibility ->
+        result = result.copy(visibilityType = filters.visibilityType.select(visibility))
+      }
     timeIntervalDays
       ?.let { enumValueOfOrNull<TimeIntervalFilter>(it) }
-      ?.let { interval -> result = result.copy(timeInterval = selectionOf(interval)) }
+      ?.let { interval ->
+        result = result.copy(timeInterval = filters.timeInterval.select(interval))
+      }
     return result
   }
 }

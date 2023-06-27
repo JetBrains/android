@@ -22,18 +22,12 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
-import com.android.tools.idea.insights.persistence.ConnectionSetting
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 
-/**
- * Any change to the available connections is propagated here.
- *
- * By default, prefers the [savedConnection] if it is in [connections].
- */
+/** Any change to the available connections is propagated here. */
 data class ConnectionsChanged(
   val connections: List<Connection>,
-  private val defaultFilters: Filters,
-  private val savedConnection: ConnectionSetting?
+  private val defaultFilters: Filters
 ) : ChangeEvent {
 
   override fun transition(
@@ -50,7 +44,6 @@ data class ConnectionsChanged(
           issues = LoadingState.Loading,
           currentIssueDetails = LoadingState.Ready(null),
           currentNotes = LoadingState.Ready(null),
-          // reset all filters to persisted state, or if not available, default state
           filters = defaultFilters
         ),
         action =
@@ -68,14 +61,7 @@ data class ConnectionsChanged(
   }
 
   private fun findActiveConnection(state: AppInsightsState): Connection? {
-    // First, try to see if the saved selected connection is part of the current connections, if so,
-    // pick it. If not, pick the currently selected connection.
-    val currentSelection =
-      if (savedConnection == null) {
-        state.connections.selected
-      } else {
-        connections.firstOrNull { savedConnection.equalsConnection(it) }
-      }
+    val currentSelection = state.connections.selected
     if (currentSelection in connections) return currentSelection
 
     // Next, try to see if there's a matching connection with the currently selected build variant,

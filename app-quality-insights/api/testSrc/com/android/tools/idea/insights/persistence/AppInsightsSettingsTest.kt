@@ -29,6 +29,7 @@ import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.SignalType
+import com.android.tools.idea.insights.TEST_FILTERS
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
@@ -42,17 +43,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
-private val TEST_CONNECTION_SETTING =
-  ConnectionSetting(
-    CONNECTION1.appId,
-    CONNECTION1.projectId,
-    CONNECTION1.projectNumber,
-    CONNECTION1.mobileSdkAppId
-  )
-
-private val device = WithCount(2, Device("Google", "Pixel 4a"))
-private val version = WithCount(3, Version("2.0", "2.0", "2.0"))
-private val operatingSystem = WithCount(4, OperatingSystemInfo("Android Api 23", "Api 23"))
+private val device = WithCount(0, Device("Google", "Pixel 4a"))
+private val version = WithCount(0, Version("2.0", "2.0", "2.0"))
+private val operatingSystem = WithCount(0, OperatingSystemInfo("Android Api 23", "Api 23"))
 
 class AppInsightsSettingsTest {
   private val projectRule = ProjectRule()
@@ -73,21 +66,42 @@ class AppInsightsSettingsTest {
       controllerRule.updateConnections(emptyList())
       assertThat(controllerRule.consumeNext().connections).isEqualTo(Selection(null, emptyList()))
 
+      // Mock settings
       projectRule.project
         .service<AppInsightsSettings>()
         .tabSettings[controllerRule.controller.key.displayName] =
-        InsightsFilterSettings(connection = TEST_CONNECTION_SETTING)
+        InsightsFilterSettings(
+          connection = CONNECTION1.toSetting(),
+          timeIntervalDays = TimeIntervalFilter.SEVEN_DAYS.name,
+          visibilityType = VisibilityType.ALL.name,
+          signal = SignalType.SIGNAL_EARLY.name,
+          failureTypes = listOf(FailureType.FATAL.name),
+          versions = listOf(version.value.toSetting()),
+          devices = listOf(device.value.toSetting()),
+          operatingSystems = listOf(operatingSystem.value.toSetting())
+        )
+
+      // Check settings are correctly applied to the state
       controllerRule.updateConnections(listOf(CONNECTION2, CONNECTION1))
-      assertThat(controllerRule.consumeNext().connections)
-        .isEqualTo(Selection(CONNECTION1, listOf(CONNECTION2, CONNECTION1)))
+      with(controllerRule.consumeNext()) {
+        assertThat(connections).isEqualTo(Selection(CONNECTION1, listOf(CONNECTION2, CONNECTION1)))
+        assertThat(filters.timeInterval.selected).isEqualTo(TimeIntervalFilter.SEVEN_DAYS)
+        assertThat(filters.visibilityType.selected).isEqualTo(VisibilityType.ALL)
+        assertThat(filters.failureTypeToggles.selected).isEqualTo(setOf(FailureType.FATAL))
+        assertThat(filters.versions.selected).isEqualTo(setOf(version))
+        assertThat(filters.devices.selected).isEqualTo(setOf(device))
+        assertThat(filters.operatingSystems.selected).isEqualTo(setOf(operatingSystem))
+      }
       completeFetch()
 
       // Verify that once settings are applied, they are not applied again.
       controllerRule.updateConnections(emptyList())
       assertThat(controllerRule.consumeNext().connections).isEqualTo(Selection(null, emptyList()))
       controllerRule.updateConnections(listOf(CONNECTION2, CONNECTION1))
-      assertThat(controllerRule.consumeNext().connections)
-        .isEqualTo(Selection(CONNECTION2, listOf(CONNECTION2, CONNECTION1)))
+      with(controllerRule.consumeNext()) {
+        assertThat(connections).isEqualTo(Selection(CONNECTION2, listOf(CONNECTION2, CONNECTION1)))
+        assertThat(filters).isEqualTo(TEST_FILTERS)
+      }
       completeFetch()
     }
 
@@ -178,6 +192,32 @@ class AppInsightsSettingsTest {
           .containsExactly(operatingSystem.value)
       }
     }
+
+  @Test
+  fun `settings should not apply if connection does not exist`() = runBlocking {
+    // Mock settings for a connection that does not exist.
+    projectRule.project
+      .service<AppInsightsSettings>()
+      .tabSettings[controllerRule.controller.key.displayName] =
+      InsightsFilterSettings(
+        connection = CONNECTION1.toSetting(),
+        timeIntervalDays = TimeIntervalFilter.SEVEN_DAYS.name,
+        visibilityType = VisibilityType.ALL.name,
+        signal = SignalType.SIGNAL_EARLY.name,
+        failureTypes = listOf(FailureType.FATAL.name),
+        versions = listOf(version.value.toSetting()),
+        devices = listOf(device.value.toSetting()),
+        operatingSystems = listOf(operatingSystem.value.toSetting())
+      )
+
+    // Update connections
+    controllerRule.updateConnections(listOf(CONNECTION2))
+    val model = controllerRule.consumeNext()
+
+    // Check settings are not applied
+    assertThat(model.connections).isEqualTo(Selection(CONNECTION2, listOf(CONNECTION2)))
+    assertThat(model.filters).isEqualTo(TEST_FILTERS)
+  }
 
   private suspend fun completeFetch(
     issueResponse: IssueResponse =
