@@ -1,5 +1,9 @@
 package org.jetbrains.android.dom.inspections
 
+import com.android.SdkConstants.VIEW_FRAGMENT
+import com.android.SdkConstants.VIEW_INCLUDE
+import com.android.SdkConstants.VIEW_MERGE
+import com.android.SdkConstants.VIEW_TAG
 import com.android.resources.ResourceFolderType
 import com.android.tools.idea.imports.MavenClassRegistryManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -19,7 +23,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.Nls
-import java.util.ArrayList
+
+private val builtinTags = listOf(VIEW_INCLUDE, VIEW_MERGE, VIEW_FRAGMENT, VIEW_TAG)
 
 /**
  * Looks for unknown tags, such as unresolved custom layouts
@@ -76,7 +81,7 @@ class AndroidUnresolvableTagInspection : LocalInspectionTool() {
       // package segments).
       val reference = tag.references.lastOrNull() ?: return
 
-      if (reference.resolve() == null) {
+      if (reference.resolve() == null && !builtinTags.contains(tag.name)) {
         val className: String = tag.name
         val fixes = mavenClassRegistryManager.collectFixesFromMavenClassRegistry(className, tag.project, tag.containingFile?.fileType)
         getTagNameRange(tag)?.let {

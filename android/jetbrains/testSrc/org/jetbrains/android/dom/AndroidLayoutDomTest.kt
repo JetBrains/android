@@ -2556,6 +2556,10 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.checkHighlighting()
   }
 
+  fun testIncludeInMerge() {
+    doTestHighlighting("include_in_merge.xml")
+  }
+
   private fun doTestAttrReferenceCompletion(textToType: String) {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml")
     val file = copyFileToProject(getTestName(true) + ".xml")
