@@ -140,10 +140,10 @@ class LiveEditCompiler(val project: Project) {
       // 1) Compute binding context based on any previous cached analysis results.
       //    On small edits of previous analyzed project, this operation should be below 30ms or so.
       ProgressManager.checkCanceled()
-      val resolution = tracker.record({ fetchResolution(project, inputFiles) }, "resolution_fetch")
+      val resolution = tracker.record("resolution_fetch") { fetchResolution(project, inputFiles) }
 
       ProgressManager.checkCanceled()
-      val analysisResult = tracker.record({ analyze(inputFiles, resolution) }, "analysis")
+      val analysisResult = tracker.record("analysis") { analyze(inputFiles, resolution) }
       val inlineCandidates = analyzeSingleDepthInlinedFunctions(file, analysisResult.bindingContext, inlineCandidateCache)
 
       // 2) Invoke the backend with the inputs and the binding context computed from step 1.
@@ -151,15 +151,13 @@ class LiveEditCompiler(val project: Project) {
       //    the complexity of the input .kt file.
       ProgressManager.checkCanceled()
       val generationState = try {
-        tracker.record(
-          {
-            backendCodeGen(project,
-                           analysisResult,
-                           inputFiles,
-                           inputFiles.first().module!!,
-                           inlineCandidates)
-          },
-          "codegen")
+        tracker.record("codegen") {
+          backendCodeGen(project,
+                         analysisResult,
+                         inputFiles,
+                         inputFiles.first().module!!,
+                         inlineCandidates)
+        }
       } catch (e : LiveEditUpdateException) {
         if (e.error != LiveEditUpdateException.Error.UNABLE_TO_INLINE) {
           throw e
@@ -173,14 +171,13 @@ class LiveEditCompiler(val project: Project) {
         val newAnalysisResult = resolution.analyzeWithAllCompilerChecks(inputFiles)
 
         // We will need to start using the new analysis for code gen.
-        tracker.record(
-        {
+        tracker.record("codegen_inline") {
           backendCodeGen(project,
-            newAnalysisResult,
-            inputFiles,
-            inputFiles.first().module!!,
-            inlineCandidates)
-        }, "codegen_inline")
+                         newAnalysisResult,
+                         inputFiles,
+                         inputFiles.first().module!!,
+                         inlineCandidates)
+        }
       } catch (p : ProcessCanceledException) {
         throw p
       } catch (t : Throwable) {
