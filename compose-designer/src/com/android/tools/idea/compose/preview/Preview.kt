@@ -385,7 +385,10 @@ class ComposePreviewRepresentation(
         essentialsModeMessagingService.TOPIC,
         EssentialsModeMessenger.Listener {
           updateFpsForCurrentMode()
-          updateEssentialMode()
+          updateEssentialMode(
+            ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType
+              .STUDIO_ESSENTIALS_MODE_SWITCH
+          )
           // When getting out of Essentials Mode, request a refresh
           if (!EssentialsMode.isEnabled()) requestRefresh()
         }
@@ -395,23 +398,36 @@ class ComposePreviewRepresentation(
       .connect(this as Disposable)
       .subscribe(
         NlOptionsConfigurable.Listener.TOPIC,
-        NlOptionsConfigurable.Listener { updateEssentialMode() }
+        NlOptionsConfigurable.Listener {
+          updateEssentialMode(
+            ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.PREVIEW_LITE_MODE_SWITCH
+          )
+        }
       )
   }
 
-  private fun updateEssentialMode() {
-    if (
-      !ComposePreviewLiteModeManager.isLiteModeEnabled && composeWorkBench.essentialMode != null
-    ) {
+  /**
+   * Updates the [composeWorkBench]'s [ComposeEssentialMode] according to the state of Android
+   * Studio Essentials Mode or Compose Preview Lite Mode.
+   *
+   * @param sourceEventType type of the event that triggered the update
+   */
+  private fun updateEssentialMode(
+    sourceEventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType? = null
+  ) {
+    val liteModeIsEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
+    val composeEssentialsModeIsSet = composeWorkBench.essentialMode != null
+    // Only update essentials mode if needed
+    if (liteModeIsEnabled == composeEssentialsModeIsSet) return
+
+    if (composeEssentialsModeIsSet) {
       composeWorkBench.essentialMode = null
       singlePreviewElementInstance = null // Remove filter applied by lite mode.
-      requestRefresh()
-    } else if (
-      ComposePreviewLiteModeManager.isLiteModeEnabled && composeWorkBench.essentialMode == null
-    ) {
+    } else {
       composeWorkBench.essentialMode = ComposeEssentialMode(composeWorkBench.mainSurface)
-      requestRefresh()
     }
+    logComposePreviewLiteModeEvent(sourceEventType)
+    requestRefresh()
   }
 
   private fun updateFpsForCurrentMode() {
@@ -1187,12 +1203,11 @@ class ComposePreviewRepresentation(
   /**
    * Logs a [ComposePreviewLiteModeEvent], which should happen after the first render and when the
    * user enables or disables Compose Preview Essentials Mode.
-   *
-   * TODO(b/286416832): log the event when triggering it from other event types
    */
   private fun logComposePreviewLiteModeEvent(
-    eventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType
+    eventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType?
   ) {
+    if (eventType == null) return
     ApplicationManager.getApplication().executeOnPooledThread {
       UsageTracker.log(
         AndroidStudioEvent.newBuilder()
