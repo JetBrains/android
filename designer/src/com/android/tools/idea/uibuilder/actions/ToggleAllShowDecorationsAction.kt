@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.actions
 
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction
+import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.util.ui.LafIconLookup
 
@@ -30,10 +32,17 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
                           parent: NlComponent,
                           selectedChildren: MutableList<NlComponent>): Boolean {
     val surface = editor.scene.designSurface
-    return surface.models
-             .map { surface.getSceneManager(it) as? LayoutlibSceneManager }
-             .first()
+    val isSelected = surface.models
+             .firstOrNull()
+             ?.let { surface.getSceneManager(it) as? LayoutlibSceneManager }
              ?.isShowingDecorations ?: false
+    // A selected state could need to change to unselected due to changing to a wear device.
+    // Make sure to update the selection here in such scenario
+    if (isSelected && editor.configuration.device.isWear()) {
+      setSelected(editor, false)
+      return false
+    }
+    return isSelected
   }
 
   override fun setSelected(editor: ViewEditor,
@@ -41,6 +50,10 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
                            parent: NlComponent,
                            selectedChildren: MutableList<NlComponent>,
                            selected: Boolean) {
+    setSelected(editor, selected)
+  }
+
+  private fun setSelected(editor: ViewEditor, selected: Boolean) {
     // Save as global setting
     RenderSettings.getProjectSettings(editor.model.project).showDecorations = selected
 
@@ -51,4 +64,18 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
     // Changing the decoration needs to rebuild the RenderTask, so we have to force re-render the layouts.
     surface.forceRefresh()
   }
+
+  override fun updatePresentation(presentation: ViewActionPresentation,
+                                  editor: ViewEditor,
+                                  handler: ViewHandler,
+                                  component: NlComponent,
+                                  selectedChildren: MutableList<NlComponent>,
+                                  modifiers: Int,
+                                  selected: Boolean) {
+    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers, selected)
+    presentation.setEnabled(!editor.configuration.device.isWear())
+  }
+
+  private fun Device?.isWear() =
+    this?.tagId?.contains("wear") ?: false
 }
