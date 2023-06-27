@@ -18,6 +18,7 @@ package com.android.tools.idea.configurations;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.ide.common.resources.Locale;
 import com.android.sdklib.devices.Device;
+import com.android.sdklib.devices.State;
 import com.android.tools.configurations.Configuration;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -174,6 +175,46 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     PsiFile file = myFixture.addFileToProject("res/layout/layout.xml", LAYOUT_FILE_TEXT);
     Configuration config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
     assertEquals("@style/Theme.TheTheme", config.getTheme());
+  }
+
+  public void testFileStateSaving() {
+    VirtualFile file1 = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml");
+
+    AndroidFacet facet = AndroidFacet.getInstance(myModule);
+    assertNotNull(facet);
+    ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
+    assertNotNull(manager);
+    assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
+
+    Configuration configuration = manager.getConfiguration(file1);
+    {
+      State state = configuration.getDeviceState();
+      assertNotNull(state);
+      assertEquals("Portrait", state.getName());
+    }
+
+    Device device = configuration.getDevice();
+    assertNotNull(device);
+    State landscapeState = device.getAllStates().stream()
+      .filter((state) -> "Landscape".equals(state.getName()))
+      .findFirst()
+      .orElseThrow();
+    configuration.setDeviceState(landscapeState);
+    configuration.save();
+
+    // Dispose the original manager and verify that the new one restores the correct configuration
+    ConfigurationManager previousManager = manager;
+    previousManager.dispose();
+    manager = ConfigurationManager.getOrCreateInstance(myModule);
+    assertNotSame(previousManager, manager);
+    assertNotNull(manager);
+
+    configuration = manager.getConfiguration(file1);
+    {
+      State state = configuration.getDeviceState();
+      assertNotNull(state);
+      assertEquals("Landscape", state.getName());
+    }
   }
 
   @Language("xml")

@@ -201,7 +201,7 @@ public class ConfigurationManager implements Disposable, ConfigurationSettings {
     }
     Configuration configuration = ConfigurationForFile.create(this, file, fileState, config);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
-    if (stateManager.getProjectState().getDeviceIds().isEmpty()) {
+    if (stateManager.getProjectState().getDeviceIds().isEmpty() && fileState == null) {
       matcher.findAndSetCompatibleConfig(false);
     }
     else {

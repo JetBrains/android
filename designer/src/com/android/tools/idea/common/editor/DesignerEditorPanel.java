@@ -445,6 +445,7 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
 
   public void deactivate() {
     mySurface.deactivate();
+    mySurface.getConfigurations().forEach(Configuration::save);
   }
 
   @NotNull
