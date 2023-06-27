@@ -20,13 +20,13 @@ import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.PHYSICAL_DELETE_ACTION
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_DELETE_ACTION
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.MessageDialogBuilder
 import icons.StudioIcons
 import kotlinx.coroutines.launch
 
-class DeleteAction : AnAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
+class DeleteAction : DumbAwareAction("Delete", "Delete this device", StudioIcons.Common.DELETE) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

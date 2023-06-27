@@ -23,11 +23,11 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
 
 internal class OpenDeviceExplorerAction :
-  AnAction(
+  DumbAwareAction(
     "Open in Device Explorer",
     DeviceManagerBundle.message("openDeviceExplorerButton.tooltip"),
     AllIcons.Actions.MenuOpen

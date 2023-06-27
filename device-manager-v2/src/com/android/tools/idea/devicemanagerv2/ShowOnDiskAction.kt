@@ -19,11 +19,11 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_SHOW_ON_DISK_ACTION
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.launch
 
-class ShowAction : AnAction("Show", "Show this device", AllIcons.Actions.Show) {
+class ShowAction : DumbAwareAction("Show", "Show this device", AllIcons.Actions.Show) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

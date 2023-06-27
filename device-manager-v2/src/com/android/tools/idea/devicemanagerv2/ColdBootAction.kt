@@ -17,12 +17,12 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.launch
 
 /** Activates the device with a cold boot. */
-class ColdBootAction() : AnAction("Cold Boot") {
+class ColdBootAction() : DumbAwareAction("Cold Boot") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

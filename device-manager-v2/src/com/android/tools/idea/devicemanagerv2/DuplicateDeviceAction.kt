@@ -19,12 +19,12 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_DUPLICATE_ACTION
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.launch
 
 class DuplicateDeviceAction :
-  AnAction("Duplicate", "Duplicate this device", AllIcons.Actions.Copy) {
+  DumbAwareAction("Duplicate", "Duplicate this device", AllIcons.Actions.Copy) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

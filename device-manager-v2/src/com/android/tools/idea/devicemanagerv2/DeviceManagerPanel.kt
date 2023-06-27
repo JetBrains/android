@@ -50,6 +50,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.components.service
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
@@ -250,14 +251,14 @@ constructor(
     }
   }
 
-  private fun <A : DeviceAction> A.toAnAction(action: suspend A.() -> Unit): AnAction {
+  private fun <A : DeviceAction> A.toAnAction(action: suspend A.() -> Unit): DumbAwareAction {
     panelScope.launch {
       // Any time the DeviceAction presentation changes, update the ActivityTracker so that we can
       // update the AnAction presentation
       presentation.collect { ActivityTracker.getInstance().inc() }
     }
     return object :
-      AnAction(presentation.value.label, presentation.value.label, presentation.value.icon) {
+      DumbAwareAction(presentation.value.label, presentation.value.label, presentation.value.icon) {
       override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
       override fun update(e: AnActionEvent) {

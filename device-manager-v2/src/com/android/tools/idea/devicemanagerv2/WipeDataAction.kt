@@ -19,14 +19,14 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.adtui.actions.componentToRestoreFocusTo
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_WIPE_DATA_ACTION
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.MessageDialogBuilder
 import icons.StudioIcons
 import kotlinx.coroutines.launch
 
 class WipeDataAction :
-  AnAction("Wipe Data", "Wipe the user data of this AVD", StudioIcons.Common.CLEAR) {
+  DumbAwareAction("Wipe Data", "Wipe the user data of this AVD", StudioIcons.Common.CLEAR) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

@@ -20,12 +20,12 @@ import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.launch
 
 /** Invokes the DeviceHandle's edit action, if available. */
-class EditDeviceAction : AnAction("Edit", "Edit this device", AllIcons.Actions.Edit) {
+class EditDeviceAction : DumbAwareAction("Edit", "Edit this device", AllIcons.Actions.Edit) {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {

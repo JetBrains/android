@@ -24,13 +24,13 @@ import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.PHYSIC
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_PAIR_DEVICE_ACTION
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.project.DumbAwareAction
 import kotlinx.coroutines.launch
 import org.jetbrains.android.AndroidPluginDisposable
 
-class PairWearableDeviceAction : AnAction("Pair Wearable") {
+class PairWearableDeviceAction : DumbAwareAction("Pair Wearable") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -61,7 +61,7 @@ class PairWearableDeviceAction : AnAction("Pair Wearable") {
   }
 }
 
-class ViewPairedDevicesAction : AnAction("View Paired Device(s)") {
+class ViewPairedDevicesAction : DumbAwareAction("View Paired Device(s)") {
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
@@ -74,7 +74,7 @@ class ViewPairedDevicesAction : AnAction("View Paired Device(s)") {
   }
 }
 
-class UnpairWearableDeviceAction() : AnAction("Unpair Device") {
+class UnpairWearableDeviceAction() : DumbAwareAction("Unpair Device") {
   // The WearPairingManager is an Application-scoped service, so we use that scope too.
   private val coroutineScope =
     AndroidCoroutineScope(AndroidPluginDisposable.getApplicationInstance())
