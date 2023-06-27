@@ -26,7 +26,8 @@ import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.Assert
 
-class ProjectDiffer(template: Template, goldenDirName: String) : ProjectRenderer(template, goldenDirName) {
+class ProjectDiffer(template: Template, goldenDirName: String) :
+  ProjectRenderer(template, goldenDirName) {
   override fun handleDirectories(moduleName: String, goldenDir: Path, projectDir: Path) {
     diffDirectories(goldenDir, projectDir, "")
   }
@@ -88,15 +89,30 @@ private fun diffDirectories(goldenDir: Path, projectDir: Path, printPrefix: Stri
 private fun getNonEmptyDirEntries(dir: Path, printPrefix: String = ""): MutableSet<String> {
   return Files.list(dir).use { pathStream ->
     pathStream
-      .filter { !it.isDirectory() || !isDirectoryEmpty(it, printPrefix) }
+      .filter { !it.isDirectory() || !isDirectoryEffectivelyEmpty(it, printPrefix) }
       .map { it.fileName.toString() }
       .toList()
       .toMutableSet()
   }
 }
 
-private fun isDirectoryEmpty(dir: Path, printPrefix: String = ""): Boolean {
-  val empty = Files.list(dir).use { it.isEmpty() }
+/**
+ * Returns whether the directory is effectively empty, i.e. if it itself is empty, or if it only
+ * contains more directories that are also effectively empty. This is needed because Git doesn't
+ * check in directories, only files. If there are many nested directories but no file at the end of
+ * it, the checked out golden files wouldn't have those directories, so we need to skip them for
+ * diffing.
+ *
+ * TODO: This isn't super efficient because subdirectories that return not empty would get checked
+ *   again in the next level of diffing.
+ */
+private fun isDirectoryEffectivelyEmpty(dir: Path, printPrefix: String = ""): Boolean {
+  val empty =
+    Files.list(dir).use { pathStream ->
+      pathStream
+        .filter { !it.isDirectory() || isDirectoryEffectivelyEmpty(it, "$printPrefix..") }
+        .isEmpty()
+    }
   if (empty) {
     println("${printPrefix}Skipping empty $dir")
   }
