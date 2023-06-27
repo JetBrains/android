@@ -105,6 +105,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.guava.asDeferred
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.awt.Component
@@ -979,9 +980,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       for (device in removed) {
         removePhysicalDevicePanel(device)
       }
-      if (!toolWindow.isVisible && deviceClients.isEmpty() && emulators.isEmpty() && removed.isNotEmpty()) {
-        hideLiveIndicator()
-      }
       for ((serialNumber, device) in onlineDevices) {
         if (!mirroredDevices.contains(serialNumber)) {
           coroutineScope.launch {
@@ -989,7 +987,19 @@ internal class StreamingToolWindowManager @AnyThread constructor(
           }
         }
       }
+
+      if (!contentCreated) {
+        toolWindowScope.launch(Dispatchers.IO) {
+          val embeddedEmulators = RunningEmulatorCatalog.getInstance().updateNow().await().filter { it.emulatorId.isEmbedded }
+          withContext(Dispatchers.EDT) {
+            if (deviceClients.isEmpty() && embeddedEmulators.isEmpty()) {
+              hideLiveIndicator()
+            }
+          }
+        }
+      }
     }
+
     override fun dispose() {
       deviceClients.clear() // The clients have been disposed already.
       updateMirroringHandlesFlow()
