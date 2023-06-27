@@ -326,6 +326,24 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
+  fun testEnableLiveUpdatesOnProcessChange() {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    layoutInspector.inspectorClientSettings.isCapturingModeOn = false
+    assertThat(layoutInspector.inspectorClientSettings.isCapturingModeOn).isFalse()
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+
+    assertThat(layoutInspector.inspectorClientSettings.isCapturingModeOn).isFalse()
+
+    layoutInspector.processModel?.selectedProcess = MODERN_DEVICE.createProcess()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    assertThat(layoutInspector.inspectorClientSettings.isCapturingModeOn).isTrue()
+  }
+
+  @Test
+  @RunsInEdt
   fun testToggleLayoutInspectorShowsWarningFirstTime() {
     PropertiesComponent.getInstance().unsetValue(SHOW_EXPERIMENTAL_WARNING_KEY)
 
@@ -420,19 +438,6 @@ class LayoutInspectorManagerTest {
 
     assertThat(tabInfo.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>())
       .hasSize(1)
-  }
-
-  @Test
-  @RunsInEdt
-  fun testEnableLiveUpdatesOnProcessChange() {
-    LayoutInspectorManager.getInstance(displayViewRule.project)
-
-    layoutInspector.inspectorClientSettings.isCapturingModeOn = false
-
-    layoutInspector.processModel?.selectedProcess = MODERN_DEVICE.createProcess()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    assertThat(layoutInspector.inspectorClientSettings.isCapturingModeOn).isTrue()
   }
 
   private fun assertDoesNotHaveWorkbench(tabInfo: TabInfo) {

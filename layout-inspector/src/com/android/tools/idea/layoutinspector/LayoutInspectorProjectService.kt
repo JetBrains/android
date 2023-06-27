@@ -71,6 +71,13 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
 
   private var layoutInspector: LayoutInspector? = null
 
+  /**
+   * Creates an instance of [LayoutInspector]. [LayoutInspector] will automatically connect to the
+   * device, so call this method only when Layout Inspector is meant to be used.
+   *
+   * TODO(b/289017459): once the standalone Layout Inspector is deprecated, we should refactor LI to
+   *   only connect to a device on-demand.
+   */
   @UiThread
   fun getLayoutInspector(): LayoutInspector {
     ApplicationManager.getApplication().assertIsDispatchThread()
