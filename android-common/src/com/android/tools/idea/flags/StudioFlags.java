@@ -254,11 +254,6 @@ public final class StudioFlags {
     "Support Actionbar in property panel",
     false);
 
-  public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
-    NELE, "show.source.code.editor", "New Source Code Editor",
-    "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
-    true);
-
   public static final Flag<Boolean> NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD = Flag.create(
     NELE, "recyclerview.setup.wizard", "Show setup wizard for recycler view",
     "When you right click recycler view in layout editor, you can now see \"Generate Adapter\" " +

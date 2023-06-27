@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.editors.sourcecode.isSourceFileType
-import com.android.tools.idea.flags.StudioFlags.NELE_SOURCE_CODE_EDITOR
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MULTI_PREVIEW_STATE_TAG
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreviewFileEditorState
@@ -78,8 +77,7 @@ class SourceCodeEditorProvider private constructor(private val providers: Collec
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
     val projectFacetManager = ProjectFacetManager.getInstance(project)
-    return NELE_SOURCE_CODE_EDITOR.get()
-           && !LightEdit.owns(project)
+    return !LightEdit.owns(project)
            && file.isSourceFileType()
            && (projectFacetManager.hasFacets(AndroidFacet.ID) || projectFacetManager.hasFacets(GradleFacet.getFacetTypeId()))
   }

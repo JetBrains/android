@@ -61,20 +61,6 @@ class SourceCodeEditorProviderTest {
     provider = SourceCodeEditorProvider()
   }
 
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride()
-  }
-
-  @Test
-  fun testOffIfDisabled() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
-
-    val file = fixture.addFileToProject("src/Preview.kt", "")
-
-    assertFalse(provider.accept(file.project, file.virtualFile))
-  }
-
   @Test
   fun testOffIfNoAndroidModules() {
     runWriteActionAndWait {

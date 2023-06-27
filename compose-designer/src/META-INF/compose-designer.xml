@@ -28,8 +28,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <lang.documentationProvider language="kotlin" implementationClass="com.android.tools.idea.compose.documentation.ComposeDocumentationProvider" order="first"/>
 
-    <editorNotificationProvider implementation="com.android.tools.idea.compose.preview.ComposeNewPreviewNotificationProvider" />
-
     <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewAnnotationInFunctionWithParametersInspection"
                      language="kotlin"
                      enabledByDefault="true"

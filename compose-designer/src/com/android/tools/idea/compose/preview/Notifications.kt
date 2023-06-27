@@ -16,66 +16,20 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
-import com.intellij.openapi.util.Key
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
-import com.intellij.serviceContainer.NonInjectable
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import java.util.concurrent.TimeUnit
-
-/**
- * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview
- * import. The notification will close the current editor and open one with the preview.
- */
-internal class ComposeNewPreviewNotificationProvider
-@NonInjectable
-constructor(private val filePreviewElementProvider: () -> FilePreviewElementFinder) :
-  EditorNotifications.Provider<EditorNotificationPanel>() {
-  private val COMPONENT_KEY =
-    Key.create<EditorNotificationPanel>("android.tools.compose.preview.new.notification")
-
-  constructor() : this(::defaultFilePreviewElementFinder)
-
-  override fun createNotificationPanel(
-    file: VirtualFile,
-    fileEditor: FileEditor,
-    project: Project
-  ): EditorNotificationPanel? =
-    when {
-      StudioFlags.NELE_SOURCE_CODE_EDITOR.get() -> null
-      // Not a Kotlin file or already a Compose Preview Editor
-      !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
-      filePreviewElementProvider().hasPreviewMethods(project, file) ->
-        EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
-          setText(message("notification.new.preview"))
-          createActionLabel(message("notification.new.preview.action")) {
-            if (fileEditor.isValid) {
-              FileEditorManager.getInstance(project).closeFile(file)
-              FileEditorManager.getInstance(project).openFile(file, true)
-              project.requestBuild(file)
-            }
-          }
-        }
-      else -> null
-    }
-
-  override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY
-}
 
 /**
  * [ProjectComponent] that listens for Kotlin file additions or removals and triggers a notification
@@ -95,8 +49,7 @@ internal class ComposeNewPreviewNotificationManager : Disposable {
     )
   }
 
-  override fun dispose() {
-  }
+  override fun dispose() {}
 
   class MyStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {

@@ -61,16 +61,6 @@ class ResourceExplorerTest {
   @JvmField
   val guiTest: GuiTestRule = GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
-  @Before
-  fun setUp() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride()
-  }
-
   /**
    * This test covers several interactions with the IDE and the Resource Explorer:
    * <p>
