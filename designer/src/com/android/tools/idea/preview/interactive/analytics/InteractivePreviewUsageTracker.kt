@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.analytics
+package com.android.tools.idea.preview.interactive.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.surface.DesignSurface
@@ -37,7 +37,7 @@ interface InteractivePreviewUsageTracker {
     private val MANAGER =
       DesignerUsageTrackerManager<InteractivePreviewUsageTracker, DesignSurface<*>>(
         { executor, _, eventLogger ->
-          InteractiveComposePreviewUsageTracker(executor, eventLogger)
+          InteractivePreviewUsageTrackerImpl(executor, eventLogger)
         },
         NOP_TRACKER
       )

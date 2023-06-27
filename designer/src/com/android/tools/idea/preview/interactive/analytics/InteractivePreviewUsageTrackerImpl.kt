@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.analytics
+package com.android.tools.idea.preview.interactive.analytics
 
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.InteractivePreviewEvent
@@ -23,9 +23,10 @@ import java.util.concurrent.RejectedExecutionException
 import java.util.function.Consumer
 
 private val LOG: Logger
-  get() = Logger.getInstance("InteractiveComposePreviewUsageTracker.kt")
-/** Usage tracking implementation for compose interactive preview */
-class InteractiveComposePreviewUsageTracker(
+  get() = Logger.getInstance("InteractivePreviewUsageTrackerImpl.kt")
+
+/** Usage tracking implementation for interactive previews */
+class InteractivePreviewUsageTrackerImpl(
   private val myExecutor: Executor,
   private val myEventLogger: Consumer<AndroidStudioEvent.Builder>
 ) : InteractivePreviewUsageTracker {

@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.analytics
+package com.android.tools.idea.preview.interactive.analytics
 
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.InteractivePreviewEvent
-import java.util.concurrent.Executor
-import java.util.function.Consumer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.Executor
+import java.util.function.Consumer
 
-class InteractiveComposePreviewUsageTrackerTest {
+class InteractivePreviewUsageTrackerImplTest {
   private lateinit var myInteractivePreviewUsageTracker: InteractivePreviewUsageTracker
 
   private var myLastEventBuilder: AndroidStudioEvent.Builder? = null
@@ -36,7 +36,7 @@ class InteractiveComposePreviewUsageTrackerTest {
   @Before
   fun setUp() {
     myInteractivePreviewUsageTracker =
-      InteractiveComposePreviewUsageTracker(Executor { command -> command.run() }, myEventLogger)
+      InteractivePreviewUsageTrackerImpl(Executor { command -> command.run() }, myEventLogger)
   }
 
   @Test
