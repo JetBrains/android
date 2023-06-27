@@ -135,4 +135,27 @@ class DeviceInfoPanelTest {
     assertThat(panel.abiList).isEqualTo("arm64-v8a")
     assertThat(panel.availableStorage).isEqualTo("2,542 MB")
   }
+
+  @Test
+  fun infoSectionFormat() {
+    val buffer = StringBuilder()
+    InfoSection(
+        "Properties",
+        listOf(
+          LabeledValue("Type", "Phone"),
+          LabeledValue("System image", "/tmp/foo/system.img"),
+          LabeledValue("API", "33")
+        )
+      )
+      .writeTo(buffer)
+    assertThat(buffer.toString())
+      .isEqualTo(
+        String.format(
+          "Properties%n" +
+            "Type         Phone%n" +
+            "System image /tmp/foo/system.img%n" +
+            "API          33%n"
+        )
+      )
+  }
 }

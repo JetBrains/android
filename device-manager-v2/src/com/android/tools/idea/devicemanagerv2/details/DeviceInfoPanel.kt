@@ -23,16 +23,30 @@ import com.android.adblib.shellAsLines
 import com.android.adblib.shellAsText
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
+import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.adtui.device.ScreenDiagram
 import com.ibm.icu.number.NumberFormatter
 import com.ibm.icu.util.MeasureUnit
+import com.intellij.icons.AllIcons
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
+import com.intellij.util.ui.JBUI
+import java.awt.Cursor
 import java.awt.Font
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
+import java.text.Collator
 import java.time.Duration
+import java.util.Formatter
 import java.util.Locale
+import java.util.TreeMap
 import javax.swing.GroupLayout
+import javax.swing.JButton
+import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.LayoutStyle
+import javax.swing.plaf.basic.BasicGraphicsUtils
 import kotlin.reflect.KProperty
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
@@ -72,24 +86,43 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
       )
     )
 
+  var copyPropertiesButton: JComponent = JPanel()
+    set(value) {
+      layout.replace(field, value)
+      field = value
+    }
+  var propertiesSection: JComponent = JPanel()
+    set(value) {
+      layout.replace(field, value)
+      field = value
+    }
+
   val screenDiagram = ScreenDiagram()
 
-  init {
-    val layout = GroupLayout(this)
+  val layout = GroupLayout(this)
 
+  init {
     val horizontalGroup: GroupLayout.Group = layout.createParallelGroup()
     val verticalGroup = layout.createSequentialGroup()
 
-    horizontalGroup.addGroup(
-      layout
-        .createSequentialGroup()
-        .addComponent(summarySection)
-        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-        .addComponent(screenDiagram)
-    )
-    verticalGroup.addGroup(
-      layout.createParallelGroup().addComponent(summarySection).addComponent(screenDiagram)
-    )
+    horizontalGroup
+      .addGroup(
+        layout
+          .createSequentialGroup()
+          .addComponent(summarySection)
+          .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+          .addComponent(screenDiagram)
+      )
+      .addComponent(copyPropertiesButton)
+      .addComponent(propertiesSection)
+    verticalGroup
+      .addGroup(
+        layout.createParallelGroup().addComponent(summarySection).addComponent(screenDiagram)
+      )
+      .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+      .addComponent(copyPropertiesButton)
+      .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+      .addComponent(propertiesSection)
 
     layout.autoCreateContainerGaps = true
     layout.setHorizontalGroup(horizontalGroup)
@@ -99,15 +132,14 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
   }
 }
 
-internal class InfoSection(heading: String, labeledValues: List<LabeledValue>) :
+internal class InfoSection(heading: String, private val labeledValues: List<LabeledValue>) :
   JBPanel<InfoSection>() {
+  private val headingLabel = headingLabel(heading)
+
   init {
     isOpaque = false
 
-    val headingLabel = headingLabel(heading)
-
     val labels = labeledValues.map { it.label }.toTypedArray()
-
     val layout = GroupLayout(this)
     layout.linkSize(*labels)
 
@@ -129,6 +161,18 @@ internal class InfoSection(heading: String, labeledValues: List<LabeledValue>) :
 
     this.layout = layout
   }
+
+  fun writeTo(buffer: StringBuilder) {
+    val formatter = Formatter(buffer)
+    formatter.format("%s%n", headingLabel.text)
+
+    val maxLength = labeledValues.maxOfOrNull { it.label.text.length } ?: 1
+    val format = "%-" + maxLength + "s %s%n"
+
+    for (labeledValue in labeledValues) {
+      formatter.format(format, labeledValue.label.text, labeledValue.value.text)
+    }
+  }
 }
 
 /**
@@ -137,6 +181,10 @@ internal class InfoSection(heading: String, labeledValues: List<LabeledValue>) :
  * It can be used as a property delegate, such that the value is tied to the property.
  */
 class LabeledValue(label: String) {
+  constructor(label: String, value: String) : this(label) {
+    this.value.text = value
+  }
+
   operator fun getValue(container: Any, property: KProperty<*>): String {
     return value.text
   }
@@ -163,7 +211,51 @@ internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
   val resolutionDp = properties.resolutionDp
   this.resolutionDp = resolutionDp?.toString() ?: "Unknown"
   screenDiagram.setDimensions(resolutionDp?.width ?: 0, resolutionDp?.height ?: 0)
+
+  if (properties is LocalEmulatorProperties) {
+    val avdConfigProperties =
+      properties.avdConfigProperties.filterNotTo(TreeMap(Collator.getInstance())) {
+        it.key in EXCLUDED_LOCAL_AVD_PROPERTIES
+      }
+    if (avdConfigProperties.isNotEmpty()) {
+      val values = avdConfigProperties.map { LabeledValue(it.key, it.value) }
+      val section = InfoSection("Properties", values)
+      copyPropertiesButton = createCopyPropertiesButton(section)
+      propertiesSection = section
+    }
+  }
 }
+
+private fun createCopyPropertiesButton(infoSection: InfoSection) =
+  JButton("Copy properties to clipboard", AllIcons.Actions.Copy).apply {
+    border = null
+    isContentAreaFilled = false
+    cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+    foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
+
+    val gap = iconTextGap
+    val size = BasicGraphicsUtils.getPreferredButtonSize(this, gap)
+
+    maximumSize = size
+    minimumSize = size
+    preferredSize = size
+
+    addActionListener {
+      val text = StringBuilder().also { infoSection.writeTo(it) }.toString()
+      Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text), null)
+    }
+  }
+
+private val EXCLUDED_LOCAL_AVD_PROPERTIES =
+  setOf(
+    AvdManager.AVD_INI_ABI_TYPE,
+    AvdManager.AVD_INI_CPU_ARCH,
+    AvdManager.AVD_INI_SKIN_NAME,
+    AvdManager.AVD_INI_SKIN_PATH,
+    AvdManager.AVD_INI_SDCARD_SIZE,
+    AvdManager.AVD_INI_SDCARD_PATH,
+    AvdManager.AVD_INI_IMAGES_2,
+  )
 
 internal suspend fun populateDeviceInfo(deviceInfoPanel: DeviceInfoPanel, handle: DeviceHandle) =
   coroutineScope {
