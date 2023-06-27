@@ -341,6 +341,7 @@ public class LayoutRenderPullParserTest extends AndroidTestCase {
     @Language("XML")
     final String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                            "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "    xmlns:other_tools=\"http://schemas.android.com/tools\"\n" +
                            "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
                            "    android:layout_width=\"match_parent\"\n" +
                            "    android:layout_height=\"match_parent\"\n" +
@@ -352,7 +353,7 @@ public class LayoutRenderPullParserTest extends AndroidTestCase {
                            "        app:autoSizeText=\"none\"\n" +
                            "        tools:autoSizeText=\"uniform\"\n" +
                            "        android:text=\"Hello world\"\n" +
-                           "        tools:text=\"Tools content\"/>\n" +
+                           "        other_tools:text=\"Tools content\"/>\n" +
                            "</LinearLayout>";
     PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
     assertTrue(psiFile instanceof XmlFile);

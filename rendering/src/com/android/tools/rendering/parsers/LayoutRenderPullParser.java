@@ -166,9 +166,11 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
   @Nullable
   public final TagSnapshot myRoot;
 
-  /** Mapping from URI to namespace prefix for android, app and tools URIs */
+  /** Mapping from namespace prefix to URI */
   @NotNull
-  protected final ImmutableMap<String, String> myNamespacePrefixes;
+  protected final Map<String, String> myNamespacePrefixToUri = new HashMap<>();
+
+  private final boolean myHasToolsNamespace;
 
   private final ResourceNamespace myLayoutNamespace;
 
@@ -325,29 +327,34 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
   }
 
   /**
-   * Returns the declared namespaces in the passed {@link TagSnapshot}. If the passed root is null, an empty map is returned.
+   * Returns the namespace corresponding to the given prefix in the passed {@link TagSnapshot}, or null if the root is null.
    * This method will run in a read action if needed.
    */
-  @NotNull
-  private static ImmutableMap<String, String> buildNamespacesMap(@Nullable TagSnapshot root) {
+  @Nullable
+  private static String computeUriFromPrefix(@Nullable TagSnapshot root, @NotNull String prefix) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction((Computable<ImmutableMap<String, String>>)() -> buildNamespacesMap(root));
+      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> computeUriFromPrefix(root, prefix));
     }
 
     RenderXmlTag rootTag = root != null ? root.tag : null;
     if (rootTag == null || !rootTag.isValid()) {
-      return ImmutableMap.of();
+      return null;
     }
 
-    ImmutableMap.Builder<String, String> prefixesBuilder = ImmutableMap.builder();
-    for (String uri : new String[]{ANDROID_URI, TOOLS_URI, AUTO_URI}) {
-      String prefix = rootTag.getPrefixByNamespace(uri);
-      if (prefix != null) {
-        prefixesBuilder.put(uri, prefix);
-      }
+    return rootTag.getNamespaceByPrefix(prefix);
+  }
+
+  private static boolean hasToolsNamespace(@Nullable TagSnapshot root) {
+    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
+      return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> hasToolsNamespace(root));
     }
 
-    return prefixesBuilder.build();
+    RenderXmlTag rootTag = root != null ? root.tag : null;
+    if (rootTag == null || !rootTag.isValid()) {
+      return false;
+    }
+
+    return rootTag.getPrefixByNamespace(TOOLS_URI) != null;
   }
 
   /**
@@ -392,7 +399,7 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
 
     myRoot = myRootRef.get();
     myLayoutNamespace = myLayoutNamespaceRef.get();
-    myNamespacePrefixes = buildNamespacesMap(myRoot);
+    myHasToolsNamespace = hasToolsNamespace(myRoot);
     // Obtain a list of all the aapt declared attributes
     myDeclaredAaptAttrs = findDeclaredAaptAttrs(myRoot);
   }
@@ -409,7 +416,7 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
       }
     });
 
-    myNamespacePrefixes = buildNamespacesMap(myRoot);
+    myHasToolsNamespace = hasToolsNamespace(myRoot);
     myLayoutNamespace = layoutNamespace;
   }
 
@@ -695,8 +702,7 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
     }
     else if (namespace.equals(ANDROID_URI) || namespace.equals(AUTO_URI)) {
       // tools attributes can override both android and app namespace attributes
-      String toolsPrefix = myNamespacePrefixes.get(TOOLS_URI);
-      if (toolsPrefix == null || (!myUseToolsPositionAndVisibility && myToolsPositionAndVisibilityAttributes.contains(localName))) {
+      if (!myHasToolsNamespace || (!myUseToolsPositionAndVisibility && myToolsPositionAndVisibilityAttributes.contains(localName))) {
         // tools namespace is not declared
         value = tag.getAttribute(localName, namespace);
       }
@@ -705,7 +711,11 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
         for (int i = 0, n = tag.attributes.size(); i < n; i++) {
           AttributeSnapshot attribute = tag.attributes.get(i);
           if (localName.equals(attribute.name)) {
-            if (toolsPrefix.equals(attribute.prefix)) {
+            String attrPrefix = attribute.prefix;
+            String uri = attrPrefix != null
+                         ? myNamespacePrefixToUri.computeIfAbsent(attrPrefix, prefix -> computeUriFromPrefix(myRoot, prefix))
+                         : null;
+            if (TOOLS_URI.equals(uri)) {
               value = attribute.value;
               if (value != null && value.isEmpty()) {
                 // Empty when there is a runtime attribute set means unset the runtime attribute
