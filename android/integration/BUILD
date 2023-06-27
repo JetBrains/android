@@ -196,6 +196,45 @@ iml_studio_test(
     test_class = "com.android.tools.idea.LiveEditTest",
 )
 
+apply_changes_data = [
+    ":buildproject_deps",
+    ":applychangesproject",
+    "//prebuilts/studio/sdk:build-tools/30.0.3",
+    "//prebuilts/studio/sdk:emulator",
+    "//prebuilts/studio/sdk:platform-tools",
+    "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
+    INTEGRATION_TEST_GRADLE_VERSION,
+    INTEGRATION_TEST_SYSTEM_IMAGE,
+]
+
+iml_studio_test(
+    name = "ApplyChangesTest",
+    timeout = "long",
+    data = apply_changes_data,
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.ApplyChangesTest",
+)
+
+iml_studio_test(
+    name = "ApplyCodeChangesTest",
+    timeout = "long",
+    data = apply_changes_data,
+    module = ":intellij.android.core.integration",
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.ApplyCodeChangesTest",
+)
+
 build_and_run_test_data = [
     ":buildproject_deps",
     ":minapp",
@@ -578,6 +617,11 @@ filegroup(
 filegroup(
     name = "liveeditproject",
     srcs = glob(["testData/liveedit/**"]),
+)
+
+filegroup(
+    name = "applychangesproject",
+    srcs = glob(["testData/applychanges/**"]),
 )
 
 filegroup(
