@@ -47,11 +47,12 @@ class IconTableComponentTest {
     val selected =
       TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = true)
     val unselected =
-      TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = false)
+      TablePresentation(foreground = JBColor.BLUE, background = JBColor.GREEN, rowSelected = false)
 
     assertThat(label.icon).isEqualTo(icon)
 
     label.updateTablePresentation(presentationManager, selected)
+    assertThat(label.background).isEqualTo(JBColor.RED)
     if (ExperimentalUI.isNewUI()) {
       // We don't change the icon colors in the new UI
       assertThat(label.icon).isEqualTo(icon)
@@ -61,6 +62,7 @@ class IconTableComponentTest {
 
     label.updateTablePresentation(presentationManager, unselected)
     assertThat(label.icon).isEqualTo(icon)
+    assertThat(label.background).isEqualTo(JBColor.GREEN)
   }
 
   @Test
