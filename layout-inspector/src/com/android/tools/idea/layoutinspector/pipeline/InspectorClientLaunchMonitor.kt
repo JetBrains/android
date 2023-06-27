@@ -27,6 +27,7 @@ import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
 import com.android.tools.idea.layoutinspector.pipeline.debugger.isPausedInDebugger
 import com.android.tools.idea.layoutinspector.pipeline.debugger.resumeDebugger
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.util.ListenerCollection
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorAttachToProcess.ClientType
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
@@ -178,7 +179,10 @@ class InspectorClientLaunchMonitor(
           }
         }
       }
-    val disconnect = createDisconnectAction(attemptDumpViews = true)
+    // Only offer option to dump views in standalone Layout Inspector
+    // The embedded LI is meant to work only with live app inspection client.
+    val attemptDumpViews = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    val disconnect = createDisconnectAction(attemptDumpViews = attemptDumpViews)
     notificationModel.addNotification(
       CONNECT_TIMEOUT_MESSAGE_KEY,
       LayoutInspectorBundle.message(CONNECT_TIMEOUT_MESSAGE_KEY),

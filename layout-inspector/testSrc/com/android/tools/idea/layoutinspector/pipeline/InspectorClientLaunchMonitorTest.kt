@@ -30,6 +30,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
 import com.android.tools.idea.layoutinspector.model.NotificationModel
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.project.DefaultProjectSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -152,9 +153,18 @@ class InspectorClientLaunchMonitorTest {
 
   @Test
   fun slowAttachMessageWithAppInspectionClient() {
-    val appInspectionClient = mock<InspectorClient>()
-    whenever(appInspectionClient.clientType).thenReturn(ClientType.APP_INSPECTION_CLIENT)
-    slowAttachMessage(appInspectionClient, "Dump Views")
+    val previous = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = false
+    val appInspectionClient1 = mock<InspectorClient>()
+    whenever(appInspectionClient1.clientType).thenReturn(ClientType.APP_INSPECTION_CLIENT)
+    slowAttachMessage(appInspectionClient1, "Dump Views")
+
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
+    val appInspectionClient2 = mock<InspectorClient>()
+    whenever(appInspectionClient2.clientType).thenReturn(ClientType.APP_INSPECTION_CLIENT)
+    slowAttachMessage(appInspectionClient2, "Disconnect")
+
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = previous
   }
 
   private fun slowAttachMessage(client: InspectorClient, expectedDisconnectMessage: String) {
