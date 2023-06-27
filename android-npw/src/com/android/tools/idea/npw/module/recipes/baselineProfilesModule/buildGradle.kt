@@ -26,6 +26,7 @@ import com.android.tools.idea.wizard.template.renderIf
 import com.intellij.openapi.module.Module
 
 private const val BENCHMARK_MIN_COMPILE_SDK = 34
+private const val BENCHMARK_MIN_API = 28
 
 fun baselineProfilesBuildGradle(
   newModule: ModuleTemplateData,
@@ -102,8 +103,8 @@ android {
   $kotlinOptionsBlock
 
   defaultConfig {
-        ${toAndroidFieldVersion("minSdk", apis.minApi.apiString, gradlePluginVersion)}
-        ${toAndroidFieldVersion("targetSdk", apis.targetApi.apiString, gradlePluginVersion)}
+        ${toAndroidFieldVersion("minSdk", "${maxOf(apis.minApi.api, BENCHMARK_MIN_API)}", gradlePluginVersion)}
+        ${toAndroidFieldVersion("targetSdk", "${maxOf(apis.targetApi.api, BENCHMARK_MIN_API)}", gradlePluginVersion)}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
