@@ -64,11 +64,9 @@ internal data class LogcatPanelConfig(
         }
         else {
           val config = gson.fromJson(json, LogcatPanelConfig::class.java)
-          if (config?.device?.model == null) {
-            config?.copy(device = config.device?.copy(model = ""))
-          }
-          else {
-            config
+          when (config?.device?.model) {
+            null -> config?.copy(device = config.device?.copy(model = ""))
+            else -> config
           }
         }
       }
