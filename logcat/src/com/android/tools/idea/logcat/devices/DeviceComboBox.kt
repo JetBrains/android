@@ -59,10 +59,10 @@ import kotlin.io.path.pathString
  */
 internal class DeviceComboBox(
   private val project: Project,
-  private val initialDevice: Device?,
+  private val initialItem: DeviceComboItem?,
 ) : ComboBox<DeviceComboItem>() {
   private val deviceTracker: IDeviceComboBoxDeviceTracker =
-    project.service<DeviceComboBoxDeviceTrackerFactory>().createDeviceComboBoxDeviceTracker(initialDevice)
+    project.service<DeviceComboBoxDeviceTrackerFactory>().createDeviceComboBoxDeviceTracker((initialItem as? DeviceItem)?.device)
 
   private val deviceComboModel: DeviceComboModel
     get() = model as DeviceComboModel
@@ -71,6 +71,10 @@ internal class DeviceComboBox(
     AccessibleContextUtil.setName(this, LogcatBundle.message("logcat.device.combo.accessible.name"))
     renderer = DeviceComboBoxRenderer()
     model = DeviceComboModel()
+    if (initialItem is FileItem) {
+      deviceComboModel.add(initialItem)
+      deviceComboModel.selectedItem = initialItem
+    }
   }
 
   override fun setSelectedItem(item: Any?) {
@@ -133,6 +137,8 @@ internal class DeviceComboBox(
 
   fun getSelectedDevice(): Device? = (item as? DeviceItem)?.device
 
+  fun getSelectedFile(): Path? = (item as? FileItem)?.path
+
   private fun deviceAdded(device: Device) {
     if (deviceComboModel.containsDevice(device)) {
       deviceStateChanged(device)
@@ -141,8 +147,8 @@ internal class DeviceComboBox(
       val item = deviceComboModel.addDevice(device)
       when {
         selectedItem != null -> return
-        initialDevice == null -> selectItem(item)
-        device.deviceId == initialDevice.deviceId -> selectItem(item)
+        initialItem == null -> selectItem(item)
+        device.deviceId == (initialItem as? DeviceItem)?.device?.deviceId -> selectItem(item)
       }
     }
   }

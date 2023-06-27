@@ -519,6 +519,7 @@ class LogcatMainPanelTest {
     val logcatMainPanel = logcatMainPanel(
       state = LogcatPanelConfig(
         device = null,
+        file = null,
         FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(17))),
         filter = "foo",
         filterMatchCase = true,
@@ -806,6 +807,7 @@ class LogcatMainPanelTest {
     logcatMainPanel(
       state = LogcatPanelConfig(
         device = null,
+        file = null,
         formattingConfig = FormattingConfig.Preset(COMPACT),
         "filter",
         filterMatchCase = true,
@@ -844,6 +846,7 @@ class LogcatMainPanelTest {
     logcatMainPanel(
       state = LogcatPanelConfig(
         device = null,
+        file = null,
         formattingConfig = FormattingConfig.Custom(FormattingOptions(tagFormat = TagFormat(20, hideDuplicates = false, enabled = true))),
         "filter",
         filterMatchCase = true,
@@ -1218,7 +1221,12 @@ class LogcatMainPanelTest {
     filter: String = "",
     state: LogcatPanelConfig? = LogcatPanelConfig(
       device = null,
-      FormattingConfig.Preset(STANDARD), filter = filter, filterMatchCase = false, isSoftWrap = false),
+      file = null,
+      formattingConfig = FormattingConfig.Preset(STANDARD),
+      filter = filter,
+      filterMatchCase = false,
+      isSoftWrap = false
+    ),
     logcatSettings: AndroidLogcatSettings = AndroidLogcatSettings(),
     androidProjectDetector: AndroidProjectDetector = FakeAndroidProjectDetector(true),
     hyperlinkDetector: HyperlinkDetector? = null,

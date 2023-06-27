@@ -92,7 +92,7 @@ class DeviceComboBoxTest {
 
   @Test
   fun withInitialDevice_selectsInitialDevice(): Unit = runTest(dispatchTimeoutMs = 5_000) {
-    val deviceComboBox = deviceComboBox(initialDevice = device2, selectionEvents = selectionEvents)
+    val deviceComboBox = deviceComboBox(initialItem = DeviceItem(device2), selectionEvents = selectionEvents)
     val selectedItems = async { deviceComboBox.trackSelected().toList() }
 
     deviceTracker.use {
@@ -106,6 +106,32 @@ class DeviceComboBoxTest {
     assertThat(selectionEvents).containsExactly(DeviceItem(device2))
     assertThat(selectedItems.await()).isEqualTo(selectionEvents)
     assertThat(deviceComboBox.getItems()).containsExactly(
+      DeviceItem(device1),
+      DeviceItem(device2),
+    ).inOrder()
+  }
+
+  @Test
+  fun withInitialDevice_selectsInitialFile(): Unit = runTest(dispatchTimeoutMs = 5_000) {
+    val fileSystem = createInMemoryFileSystem()
+    val path = fileSystem.getPath("file.logcat").apply {
+      writeText("")
+    }
+
+    val deviceComboBox = deviceComboBox(initialItem = FileItem(path), selectionEvents = selectionEvents)
+    val selectedItems = async { deviceComboBox.trackSelected().toList() }
+
+    deviceTracker.use {
+      it.sendEvents(
+        Added(device1),
+        Added(device2),
+      )
+      advanceUntilIdle()
+    }
+
+    assertThat(selectedItems.await()).isEqualTo(selectionEvents)
+    assertThat(deviceComboBox.getItems()).containsExactly(
+      FileItem(path),
       DeviceItem(device1),
       DeviceItem(device2),
     ).inOrder()
@@ -232,10 +258,10 @@ class DeviceComboBoxTest {
 
 
   private fun deviceComboBox(
-    initialDevice: Device? = null,
+    initialItem: DeviceComboItem? = null,
     selectionEvents: MutableList<Any?> = mutableListOf(),
   ): DeviceComboBox {
-    return DeviceComboBox(projectRule.project, initialDevice).also {
+    return DeviceComboBox(projectRule.project, initialItem).also {
       // Replace the model with a spy that records all the calls to setSelectedItem()
       it.model = spy(it.model)
       whenever(it.model.setSelectedItem(any())).thenAnswer { invocation ->

@@ -46,6 +46,7 @@ private const val PROPERTY_NAME_CUSTOM = "custom"
  */
 internal data class LogcatPanelConfig(
   val device: Device?,
+  val file: String?,
   val formattingConfig: FormattingConfig,
   val filter: String,
   val filterMatchCase: Boolean,
@@ -63,9 +64,11 @@ internal data class LogcatPanelConfig(
         }
         else {
           val config = gson.fromJson(json, LogcatPanelConfig::class.java)
-          when (config?.device?.model) {
-            null -> config?.copy(device = config.device?.copy(model = ""))
-            else -> config
+          if (config?.device?.model == null) {
+            config?.copy(device = config.device?.copy(model = ""))
+          }
+          else {
+            config
           }
         }
       }

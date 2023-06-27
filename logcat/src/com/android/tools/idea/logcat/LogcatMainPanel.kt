@@ -51,6 +51,7 @@ import com.android.tools.idea.logcat.actions.SaveLogcatAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
+import com.android.tools.idea.logcat.devices.DeviceComboBox
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.DeviceItem
 import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.FileItem
 import com.android.tools.idea.logcat.files.LogcatFileData
@@ -168,6 +169,7 @@ import javax.swing.GroupLayout
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
+import kotlin.io.path.pathString
 import kotlin.math.max
 
 // This is probably a massive overkill as we do not expect this many tags/packages in a real Logcat
@@ -266,7 +268,7 @@ internal class LogcatMainPanel @TestOnly constructor(
     logcatFilterParser,
     state?.filter ?: getDefaultFilter(project, androidProjectDetector),
     state?.filterMatchCase ?: false,
-    state?.device,
+    state?.getInitialItem()
   )
 
   private val deviceComboBox = headerPanel.deviceComboBox
@@ -441,6 +443,10 @@ internal class LogcatMainPanel @TestOnly constructor(
         }
       }
     }
+
+    state?.file?.let {
+      deviceComboBox.addOrSelectFile(Path.of(it))
+    }
   }
 
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
@@ -525,11 +531,12 @@ internal class LogcatMainPanel @TestOnly constructor(
     val formattingOptionsStyle = formattingOptions.getStyle()
     return LogcatPanelConfig.toJson(
       LogcatPanelConfig(
-        deviceComboBox.getSelectedDevice()?.copy(isOnline = false),
-        if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
-        headerPanel.filter,
-        headerPanel.filterMatchCase,
-        isSoftWrapEnabled))
+        device = deviceComboBox.getSelectedDevice()?.copy(isOnline = false),
+        file = deviceComboBox.getSelectedFile()?.pathString,
+        formattingConfig = if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
+        filter = headerPanel.filter,
+        filterMatchCase = headerPanel.filterMatchCase,
+        isSoftWrap = isSoftWrapEnabled))
   }
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
@@ -881,6 +888,14 @@ internal class LogcatMainPanel @TestOnly constructor(
     init {
       border = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 0), border)
     }
+  }
+}
+
+private fun LogcatPanelConfig.getInitialItem(): DeviceComboBox.DeviceComboItem? {
+  return when {
+    device != null -> DeviceItem(device)
+    file != null -> FileItem(Path.of(file))
+    else -> null
   }
 }
 

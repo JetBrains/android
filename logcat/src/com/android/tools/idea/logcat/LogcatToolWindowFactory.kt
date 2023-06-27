@@ -96,7 +96,14 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
       null -> getDefaultFilter(project, AndroidProjectDetectorImpl())
       else -> "package:$applicationId"
     }
-    val config = LogcatPanelConfig(device, getDefaultFormattingConfig(), filter, filterMatchCase = false, isSoftWrap = false)
+    val config = LogcatPanelConfig(
+      device = device,
+      file = null,
+      formattingConfig = getDefaultFormattingConfig(),
+      filter = filter,
+      filterMatchCase = false,
+      isSoftWrap = false
+    )
     createNewTab(this, name, LogcatPanelConfig.toJson(config))
   }
 
