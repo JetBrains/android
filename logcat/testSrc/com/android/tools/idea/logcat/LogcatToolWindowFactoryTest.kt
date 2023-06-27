@@ -46,11 +46,13 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
+import com.intellij.util.io.delete
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.spy
 import org.mockito.Mockito.verify
+import java.nio.file.Files
 
 
 @RunsInEdt
@@ -167,6 +169,28 @@ class LogcatToolWindowFactoryTest {
     assertThat(content.tabName).isEqualTo("com.test (device1)")
     assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedDevice()?.deviceId).isEqualTo("device1")
     assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("package:com.test")
+  }
+
+  @Test
+  fun showLogcatFile_opensLogcatPanel() {
+    // Use a real file because the path gets serialized and deserilized and depends on the file system being used.
+    val path = Files.createTempFile("logcat", "txt")
+    Disposer.register(disposable) { path.delete() }
+    val toolWindow = MockToolWindow(project)
+    logcatToolWindowFactory().init(toolWindow)
+
+    project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcatFile(path, "name")
+    waitForCondition {
+      toolWindow.contentManager.contentCount == 1
+    }
+
+    val content = toolWindow.contentManager.contents.first()
+    val logcatMainPanel: LogcatMainPanel = TreeWalker(content.component).descendants().filterIsInstance<LogcatMainPanel>().first()
+    waitForCondition {
+      logcatMainPanel.headerPanel.deviceComboBox.getSelectedFile() != null
+    }
+    assertThat(content.tabName).isEqualTo("name")
+    assertThat(logcatMainPanel.headerPanel.deviceComboBox.getSelectedFile()).isEqualTo(path)
   }
 
   private fun logcatToolWindowFactory(

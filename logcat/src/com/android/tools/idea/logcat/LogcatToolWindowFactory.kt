@@ -33,6 +33,7 @@ import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.PhysicalDeviceInfo
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -43,6 +44,9 @@ import com.intellij.ui.content.Content
 import com.intellij.util.text.UniqueNameGenerator
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.nio.file.Path
+import kotlin.io.path.name
+import kotlin.io.path.pathString
 
 internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbAware {
 
@@ -55,8 +59,14 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
     super.init(toolWindow)
     val project = (toolWindow as ToolWindowEx).project
     project.messageBus.connect(toolWindow.disposable)
-      .subscribe(ShowLogcatListener.TOPIC, ShowLogcatListener { device, applicationId ->
-        showLogcat(toolWindow, device, applicationId)
+      .subscribe(ShowLogcatListener.TOPIC, object : ShowLogcatListener {
+        override fun showLogcat(deviceInfo: DeviceInfo, applicationId: String?) {
+          showLogcat(toolWindow, deviceInfo, applicationId)
+        }
+
+        override fun showLogcatFile(path: Path, displayName: String?) {
+          openLogcatFile(toolWindow, path, displayName)
+        }
       })
 
     project.getService(ProcessNameMonitor::class.java).start()
@@ -68,7 +78,6 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   }
 
   private fun showLogcat(toolWindow: ToolWindowEx, deviceInfo: DeviceInfo, applicationId: String?) {
-
     AndroidCoroutineScope(toolWindow.disposable).launch {
       val name = if (applicationId == null) deviceInfo.id else "$applicationId (${deviceInfo.id})"
       val device = toolWindow.project.service<DeviceFinder>().findDevice(deviceInfo.serialNumber) ?: deviceInfo.toOfflineDevice()
@@ -105,6 +114,28 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
       isSoftWrap = false
     )
     createNewTab(this, name, LogcatPanelConfig.toJson(config))
+  }
+
+  private fun openLogcatFile(toolWindow: ToolWindowEx, path: Path, displayName: String?) {
+    invokeLater {
+      insideShowLogcatListener = true
+      try {
+        val config = LogcatPanelConfig(
+          device = null,
+          file = path.pathString,
+          formattingConfig = getDefaultFormattingConfig(),
+          filter = "",
+          filterMatchCase = false,
+          isSoftWrap = false
+        )
+
+        createNewTab(toolWindow, displayName ?: path.fileName.name, LogcatPanelConfig.toJson(config))
+        toolWindow.activate(null)
+      }
+      finally {
+        insideShowLogcatListener = false
+      }
+    }
   }
 
   override fun shouldCreateNewTabWhenEmpty() = !insideShowLogcatListener

@@ -35,12 +35,15 @@ import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.run.ShowLogcatListener.DeviceInfo.EmulatorDeviceInfo
 import com.intellij.util.messages.Topic
 import org.jetbrains.android.util.AndroidBundle
+import java.nio.file.Path
 
 /**
  * Listener of events requesting that Logcat panels for a specific device be shown.
  */
-fun interface ShowLogcatListener {
+interface ShowLogcatListener {
   fun showLogcat(deviceInfo: DeviceInfo, applicationId: String?)
+
+  fun showLogcatFile(path: Path, displayName: String? = null)
 
   fun showLogcat(device: IDevice, applicationId: String?) {
     showLogcat(device.toDeviceInfo(), applicationId)
