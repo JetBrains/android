@@ -254,7 +254,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     fun doConfigure(project: Project, modules: List<Module>, version: IdeKotlinVersion): NotificationMessageCollector {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = NotificationMessageCollector.create(project)
-            val changedFiles = configureWithVersion(project, modules, version, collector, emptyMap())
+            val changedFiles = configureWithVersion(project, modules, version, collector, kotlinVersionsAndModules = emptyMap())
 
             for (file in changedFiles) {
                 OpenFileAction.openFile(file.virtualFile, project)
