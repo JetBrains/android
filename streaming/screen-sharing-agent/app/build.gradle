@@ -39,4 +39,8 @@ android {
     lintOptions {
         checkReleaseBuilds false
     }
+    buildFeatures {
+        aidl true
+    }
+    namespace 'com.android.tools.screensharing'
 }
