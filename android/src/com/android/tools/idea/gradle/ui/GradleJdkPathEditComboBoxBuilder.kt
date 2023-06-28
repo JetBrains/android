@@ -30,7 +30,7 @@ object GradleJdkPathEditComboBoxBuilder {
 
   fun build(
     initialSelectionJdkPath: @SystemIndependent String?,
-    embeddedJdkPath: Path?,
+    embeddedJdkPath: Path,
     suggestedJdks: List<Sdk>,
     hintMessage: String? = null,
   ) = GradleJdkPathEditComboBox(
@@ -39,17 +39,17 @@ object GradleJdkPathEditComboBoxBuilder {
     hintMessage = hintMessage
   )
 
-  private fun getKnownValidJdks(jdkList: List<Sdk>, embeddedJdkPath: Path?) =
+  private fun getKnownValidJdks(jdkList: List<Sdk>, embeddedJdkPath: Path) =
     jdkList
       .asSequence()
       .filter { ExternalSystemJdkUtil.isValidJdk(it) }
-      .mapNotNull { it.homePath }
-      .plus(embeddedJdkPath.toString())
+      .mapNotNull { it.homeDirectory?.toNioPath() }
+      .plus(listOf(embeddedJdkPath))
       .distinct()
-      .sortedByDescending { Jdks.getInstance().getVersion(it) }
+      .sortedByDescending { Jdks.getInstance().findVersion(it) }
       .mapNotNull { path ->
-        JavaSdk.getInstance().getVersionString(path)?.let { version ->
-          LabelAndFileForLocation(version, Path.of(path))
+        JavaSdk.getInstance().getVersionString(path.toString())?.let { version ->
+          LabelAndFileForLocation(version, path)
         }
       }
       .toList()
