@@ -132,7 +132,7 @@ class DeviceMonitorModel @NonInjectable constructor(
   }
 
   private fun filterProcessList(list: List<ProcessInfo>): List<ProcessInfo> {
-    if (!isPackageFilterActive.value) {
+    if (!isPackageFilterActive.value || isApplicationIdsEmpty.value) {
       return list
     }
 

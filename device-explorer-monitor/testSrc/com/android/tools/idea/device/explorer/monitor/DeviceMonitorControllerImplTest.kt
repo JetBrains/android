@@ -271,7 +271,7 @@ class DeviceMonitorControllerImplTest {
 
     model.setPackageFilter(true)
     addClient(testDevice1, 10)
-    checkMockViewActiveDevice(0)
+    checkMockViewActiveDevice(2)
 
     // Act
     packageNameProvider.setApplicationIds("package-10")
