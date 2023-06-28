@@ -74,6 +74,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
@@ -665,7 +666,7 @@ class StreamingToolWindowManagerTest {
     tablet.start(standalone = true)
     RunningEmulatorCatalog.getInstance().updateNow().get()
 
-    assertThat(toolWindow.tabActions).isNotEmpty()
+    waitForCondition(2, TimeUnit.SECONDS) { toolWindow.tabActions.isNotEmpty() }
     val newTabAction = toolWindow.tabActions[0]
     val testEvent = createTestEvent(toolWindow.component, project)
     newTabAction.actionPerformed(testEvent)
@@ -854,7 +855,7 @@ class StreamingToolWindowManagerTest {
     get() = avdId.replace('_', ' ')
 
   private fun createToolWindow(): TestToolWindow {
-    val windowManager = TestToolWindowManager(project)
+    val windowManager = TestToolWindowManager()
     project.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
     val toolWindow = windowManager.toolWindow
     assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
@@ -867,8 +868,8 @@ class StreamingToolWindowManagerTest {
     return displayView.frameNumber
   }
 
-  private class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
-    var toolWindow = TestToolWindow(project, this)
+  private inner class TestToolWindowManager : ToolWindowHeadlessManagerImpl(project) {
+    var toolWindow = TestToolWindow(this)
 
     override fun getToolWindow(id: String?): ToolWindow? {
       return if (id == RUNNING_DEVICES_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
@@ -879,10 +880,7 @@ class StreamingToolWindowManagerTest {
     }
   }
 
-  private class TestToolWindow(
-    project: Project,
-    private val manager: ToolWindowManager
-  ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
+  private inner class TestToolWindow(private val manager: ToolWindowManager) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
 
     var tabActions: List<AnAction> = emptyList()
       private set
@@ -904,6 +902,7 @@ class StreamingToolWindowManagerTest {
 
     override fun show(runnable: Runnable?) {
       if (!visible) {
+        windowFactory.createToolWindowContent(project, this)
         visible = true
         notifyStateChanged()
         runnable?.run()
@@ -944,7 +943,7 @@ class StreamingToolWindowManagerTest {
       runnable?.run()
     }
 
-    override fun getIcon(): Icon? {
+    override fun getIcon(): Icon {
       return icon
     }
 

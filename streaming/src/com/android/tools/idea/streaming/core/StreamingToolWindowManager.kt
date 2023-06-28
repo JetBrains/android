@@ -236,12 +236,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     FlightRecorder.initialize(1000)
     Disposer.register(toolWindow.disposable, this)
 
-    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-      val newTabAction = NewTabAction()
-      newTabAction.registerCustomShortcutSet(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, toolWindow.component)
-      (toolWindow as ToolWindowEx).setTabActions(newTabAction)
-    }
-
     // Lazily initialize content since we can only have one frame.
     val messageBusConnection = project.messageBus.connect(this)
     messageBusConnection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
@@ -368,6 +362,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun createContent() {
     if (!initialized) {
       initialized = true
+
+      if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+        val newTabAction = NewTabAction()
+        newTabAction.registerCustomShortcutSet(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, toolWindow.component)
+        (toolWindow as ToolWindowEx).setTabActions(newTabAction)
+      }
+
       toolWindow.contentManager.addDataProvider { dataId -> getDataFromSelectedPanel(dataId) }
       val actionGroup = DefaultActionGroup()
       actionGroup.addAction(ToggleZoomToolbarAction())
