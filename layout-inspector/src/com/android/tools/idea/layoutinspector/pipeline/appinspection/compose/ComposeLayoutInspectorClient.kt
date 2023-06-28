@@ -37,11 +37,11 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.model.learnMoreAction
+import com.android.tools.idea.layoutinspector.pipeline.ErrorInfo
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.AttachErrorInfo
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.toAttachErrorInfo
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.protobuf.CodedInputStream
 import com.android.tools.idea.transport.TransportException
@@ -183,7 +183,7 @@ class ComposeLayoutInspectorClient(
               notificationModel,
               logErrorToMetrics,
               isRunningFromSourcesInTests,
-              exception.toAttachErrorInfo()
+              exception.errorCode
             )
           }
         } else {
@@ -204,7 +204,7 @@ class ComposeLayoutInspectorClient(
                 notificationModel,
                 logErrorToMetrics,
                 isRunningFromSourcesInTests,
-                compatibility?.status.toAttachErrorInfo()
+                compatibility?.status.errorCode
               )
 
           checkComposeVersion(notificationModel, version)
@@ -224,7 +224,7 @@ class ComposeLayoutInspectorClient(
               notificationModel,
               logErrorToMetrics,
               isRunningFromSourcesInTests,
-              exception.toAttachErrorInfo()
+              exception.errorCode
             )
           }
         }
@@ -257,14 +257,14 @@ class ComposeLayoutInspectorClient(
           notificationModel,
           logErrorToMetrics,
           isRunningFromSourcesInTests,
-          unexpected.toAttachErrorInfo()
+          unexpected.errorCode
         )
       } catch (unexpected: TransportException) {
         handleError(
           notificationModel,
           logErrorToMetrics,
           isRunningFromSourcesInTests,
-          unexpected.toAttachErrorInfo()
+          unexpected.errorCode
         )
       }
     }
@@ -321,7 +321,7 @@ class ComposeLayoutInspectorClient(
       notificationModel: NotificationModel,
       logErrorToMetrics: (AttachErrorCode) -> Unit,
       isRunningFromSourcesInTests: Boolean?,
-      error: AttachErrorInfo
+      error: ErrorInfo
     ): ComposeLayoutInspectorClient? {
       val actions = mutableListOf<StatusNotificationAction>()
       val message: String =

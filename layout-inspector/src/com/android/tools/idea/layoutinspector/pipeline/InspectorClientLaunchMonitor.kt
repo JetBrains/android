@@ -24,7 +24,7 @@ import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.toAttachErrorInfo
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.errorCode
 import com.android.tools.idea.layoutinspector.pipeline.debugger.isPausedInDebugger
 import com.android.tools.idea.layoutinspector.pipeline.debugger.resumeDebugger
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
@@ -113,7 +113,7 @@ class InspectorClientLaunchMonitor(
     // CancellationExceptions will be forwarded to LayoutInspector.logError no need to handle it
     // here.
     if (t !is CancellationException) {
-      logAttachError(t.toAttachErrorInfo().code)
+      logAttachError(t.errorCode.code)
     }
     stop()
   }
