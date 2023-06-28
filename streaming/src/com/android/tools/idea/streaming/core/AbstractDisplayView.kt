@@ -57,6 +57,7 @@ import kotlin.math.roundToInt
  * Common base class for [com.android.tools.idea.streaming.emulator.EmulatorView] and
  * [com.android.tools.idea.streaming.device.DeviceView].
  */
+@Suppress("UseJBColor")
 abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable {
 
   /** Serial number of the device sown in the view. */
@@ -289,7 +290,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   }
 
  /** Attempts to restore a lost device connection. */
-  protected inner class Reconnector(val reconnectLabel: String, val progressMessage: String, val reconnect: suspend () -> Unit) {
+  protected inner class Reconnector(val reconnectLabel: String, private val progressMessage: String, val reconnect: suspend () -> Unit) {
 
     /** Starts the reconnection attempt. */
     internal fun start() {
