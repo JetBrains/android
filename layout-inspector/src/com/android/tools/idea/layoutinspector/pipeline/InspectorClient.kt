@@ -77,11 +77,20 @@ interface InspectorClient : Disposable {
     SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS,
   }
 
+  fun interface ErrorListener {
+    /**
+     * Called when an error happens in an [InspectorClient].
+     *
+     * @param errorMessage An user-visible error message.
+     */
+    fun handleError(errorMessage: String)
+  }
+
   /** Register a handler that is triggered whenever this client's [state] has changed. */
   fun registerStateCallback(callback: (State) -> Unit)
 
   /** Register a handler that is triggered when this client encounters an error message */
-  fun registerErrorCallback(callback: (String?, Throwable?) -> Unit)
+  fun registerErrorCallback(errorListener: ErrorListener)
 
   /**
    * Register a handler that is triggered when this client receives an event containing the changed
@@ -217,7 +226,7 @@ object DisconnectedClient : InspectorClient {
   override fun disconnect() {}
 
   override fun registerStateCallback(callback: (InspectorClient.State) -> Unit) = Unit
-  override fun registerErrorCallback(callback: (String?, Throwable?) -> Unit) = Unit
+  override fun registerErrorCallback(errorListener: InspectorClient.ErrorListener) = Unit
   override fun registerRootsEventCallback(callback: (List<*>) -> Unit) = Unit
   override fun registerTreeEventCallback(callback: (Any) -> Unit) = Unit
   override fun registerConnectionTimeoutCallback(callback: (AttachErrorState) -> Unit) = Unit

@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -38,6 +39,7 @@ import com.android.tools.idea.layoutinspector.pipeline.AbstractInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.TreeLoader
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
@@ -57,12 +59,14 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.EditorNotificationPanel.Status
 import java.nio.file.Path
 import java.util.EnumSet
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -119,9 +123,7 @@ class AppInspectionInspectorClient(
   var composeInspector: ComposeLayoutInspectorClient? = null
     private set
 
-  private val loggingExceptionHandler = CoroutineExceptionHandler { _, t ->
-    fireError(t.message, t)
-  }
+  private val loggingExceptionHandler = CoroutineExceptionHandler { _, t -> handleError(t) }
 
   private var debugViewAttributesChanged = false
 
@@ -178,7 +180,7 @@ class AppInspectionInspectorClient(
             stats,
             coroutineScope,
             composeInspector,
-            ::fireError,
+            ::notifyError,
             ::fireRootsEvent,
             ::fireTreeEvent,
             launchMonitor
@@ -219,14 +221,30 @@ class AppInspectionInspectorClient(
         completableDeferred.await()
         model.modificationListeners.remove(updateListener)
       }
-      .recover {
-        handleException(it)
-        throw it
+      .recover { t ->
+        handleError(t)
+        throw t
       }
   }
 
-  private fun handleException(throwable: Throwable) {
-    fireError(throwable.message, throwable)
+  /** Handles the error by logging it if necessary and notifying listeners. */
+  private fun handleError(throwable: Throwable) {
+    val userVisibleErrorMessage =
+      when (throwable) {
+        is CancellationException -> null
+        is ConnectionFailedException -> {
+          Logger.getInstance(LayoutInspector::class.java).warn(throwable.message)
+          throwable.message
+        }
+        else -> {
+          logUnexpectedError(InspectorConnectionError(throwable))
+          "An unknown error happened."
+        }
+      }
+
+    if (userVisibleErrorMessage != null) {
+      notifyError(userVisibleErrorMessage)
+    }
   }
 
   override suspend fun doDisconnect() =
@@ -242,7 +260,7 @@ class AppInspectionInspectorClient(
         skiaParser.shutdown()
         logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
       } catch (t: Throwable) {
-        fireError(t.message, t)
+        handleError(t)
         throw t
       }
     }
@@ -251,7 +269,7 @@ class AppInspectionInspectorClient(
     try {
       startFetchingInternal()
     } catch (t: Throwable) {
-      handleException(t)
+      handleError(t)
       throw t
     }
   }
@@ -277,7 +295,7 @@ class AppInspectionInspectorClient(
       stats.currentModeIsLive = false
       viewInspector?.stopFetching()
     } catch (t: Throwable) {
-      fireError(t.message, t)
+      handleError(t)
       throw t
     }
   }

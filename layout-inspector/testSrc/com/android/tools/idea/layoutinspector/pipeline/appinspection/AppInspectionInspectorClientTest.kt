@@ -654,7 +654,7 @@ class AppInspectionInspectorClientTest {
 
     val error = CompletableDeferred<String>()
     inspectorRule.launcher.addClientChangedListener { client ->
-      client.registerErrorCallback { message, _ -> error.complete(message!!) }
+      client.registerErrorCallback({ message -> error.complete(message) })
     }
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     assertThat(error.await()).isEqualTo(startFetchError)
@@ -1472,7 +1472,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val notifications = inspectorRule.notificationModel.notifications
     assertThat(notifications).hasSize(1)
-    assertThat(notifications[0].message).isEqualTo("Unknown error")
+    assertThat(notifications[0].message).isEqualTo("An unknown error happened.")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
     val usages =
       usageTrackerRule.testTracker.usages.filter {
@@ -1497,7 +1497,7 @@ class AppInspectionInspectorClientWithFailingClientTest {
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     val notifications = inspectorRule.notificationModel.notifications
     assertThat(notifications).hasSize(1)
-    assertThat(notifications[0].message).isEqualTo("Unknown error")
+    assertThat(notifications[0].message).isEqualTo("An unknown error happened.")
     assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
     val usages =
       usageTrackerRule.testTracker.usages.filter {

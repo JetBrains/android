@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescrip
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLaunchMonitor
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.ComposeLayoutInspectorClient
@@ -93,7 +94,7 @@ class ViewLayoutInspectorClient(
   private val scope: CoroutineScope,
   private val messenger: AppInspectorMessenger,
   private val composeInspector: ComposeLayoutInspectorClient?,
-  private val fireError: (String?, Throwable?) -> Unit = { _, _ -> },
+  private val errorListener: InspectorClient.ErrorListener = InspectorClient.ErrorListener {},
   private val fireRootsEvent: (List<Long>) -> Unit = {},
   private val fireTreeEvent: (Data) -> Unit = {},
   private val launchMonitor: InspectorClientLaunchMonitor
@@ -127,7 +128,7 @@ class ViewLayoutInspectorClient(
       stats: SessionStatistics,
       eventScope: CoroutineScope,
       composeLayoutInspectorClient: ComposeLayoutInspectorClient?,
-      fireError: (String?, Throwable?) -> Unit,
+      errorListener: InspectorClient.ErrorListener,
       fireRootsEvent: (List<Long>) -> Unit,
       fireTreeEvent: (Data) -> Unit,
       launchMonitor: InspectorClientLaunchMonitor
@@ -146,7 +147,7 @@ class ViewLayoutInspectorClient(
         eventScope,
         messenger,
         composeLayoutInspectorClient,
-        fireError,
+        errorListener,
         fireRootsEvent,
         fireTreeEvent,
         launchMonitor
@@ -292,7 +293,7 @@ class ViewLayoutInspectorClient(
   }
 
   private fun handleErrorEvent(errorEvent: ErrorEvent) {
-    fireError(errorEvent.message, null)
+    errorListener.handleError(errorEvent.message)
   }
 
   private fun handleRootsEvent(rootsEvent: WindowRootsEvent) {

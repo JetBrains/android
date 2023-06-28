@@ -24,10 +24,7 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.ConnectionFailedException
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.logUnexpectedError
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
@@ -42,13 +39,13 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.EditorNotificationPanel.Status
 import java.awt.Component
 import java.util.concurrent.Executor
 import java.util.concurrent.atomic.AtomicLong
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 
 @VisibleForTesting const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
@@ -199,7 +196,7 @@ private constructor(
 
   private fun onClientChanged(client: InspectorClient) {
     if (client !== DisconnectedClient) {
-      client.registerErrorCallback(::logError)
+      client.registerErrorCallback(::showErrorMessage)
       client.registerRootsEventCallback(::adjustRoots)
       client.registerTreeEventCallback(::loadComponentTree)
       client.registerStateCallback { state ->
@@ -275,35 +272,12 @@ private constructor(
     }
   }
 
-  private fun logError(error: String?, throwable: Throwable?) {
-    val message =
-      when {
-        throwable is ConnectionFailedException -> {
-          Logger.getInstance(LayoutInspector::class.java).warn(error)
-          throwable.message
-        }
-        throwable is CancellationException -> {
-          // Do not alert the user. This can happen in normal circumstances e.g. b/264667192
-          Logger.getInstance(LayoutInspector::class.java).warn(throwable)
-          return
-        }
-        throwable != null -> {
-          logUnexpectedError(InspectorConnectionError(throwable))
-          "Unknown error"
-        }
-        !error.isNullOrEmpty() -> {
-          logUnexpectedError(InspectorConnectionError(error))
-          error
-        }
-        else -> return
-      }
-    if (message != null) {
-      notificationModel.addNotification(message, message, Status.Error)
+  private fun showErrorMessage(errorMessage: String) {
+    notificationModel.addNotification(errorMessage, errorMessage, Status.Error)
 
-      if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
-        ApplicationManager.getApplication().invokeLater {
-          Messages.showErrorDialog(inspectorModel.project, message, "Inspector Error")
-        }
+    if (SHOW_ERROR_MESSAGES_IN_DIALOG) {
+      invokeLater {
+        Messages.showErrorDialog(inspectorModel.project, errorMessage, "Inspector Error")
       }
     }
   }
