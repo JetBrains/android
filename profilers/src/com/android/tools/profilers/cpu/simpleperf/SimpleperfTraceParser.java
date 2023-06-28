@@ -199,6 +199,18 @@ public class SimpleperfTraceParser implements TraceParser {
                               myCaptureRange, getCaptureTrees(), myTags);
   }
 
+  public static boolean verifyFileHasSimpleperfHeader(@NotNull File trace) {
+    try {
+      ByteBuffer buffer = byteBufferFromFile(trace, ByteOrder.LITTLE_ENDIAN);
+      verifyMagicNumber(buffer);
+    } catch (IllegalStateException | IOException e) {
+      getLog().warn("There was an error trying to read the trace file header.", e);
+      // If magic number verification fails, then return false
+       return false;
+    }
+    return true;
+  }
+
   public Map<CpuThreadInfo, CaptureNode> getCaptureTrees() {
     return myCaptureTrees;
   }

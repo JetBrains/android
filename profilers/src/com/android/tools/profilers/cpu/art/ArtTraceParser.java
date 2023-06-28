@@ -42,4 +42,8 @@ public class ArtTraceParser implements TraceParser {
     // ART traces always support dual clock mode.
     return new BaseCpuCapture(traceId, TraceType.ART, true, null, range, myTraceHandler.getThreadsGraph());
   }
+
+  public static boolean verifyFileHasArtHeader(@NotNull File trace) {
+    return VmTraceParser.verifyFileHasArtHeader(trace, new ArtTraceHandler());
+  }
 }

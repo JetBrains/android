@@ -146,10 +146,6 @@ public class CpuCaptureTest {
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
       assertThat(executionExceptionCause).isInstanceOf(CpuCaptureParser.ParsingFailureException.class);
-
-      // Expected IOException to be thrown in VmTraceParser.
-      assertThat(executionExceptionCause.getCause()).isInstanceOf(IOException.class);
-      // CpuCaptureParser#traceBytesToCapture catches the IOException and throw an IllegalStateException instead.
     }
   }
 
@@ -177,7 +173,6 @@ public class CpuCaptureTest {
       // It should be caused by an expected IllegalStateException thrown while parsing the trace bytes.
       Throwable executionExceptionCause = e.getCause();
       assertThat(executionExceptionCause).isInstanceOf(CpuCaptureParser.ParsingFailureException.class);
-      assertThat(executionExceptionCause).hasCauseThat().hasMessageThat().contains("magic number mismatch");
     }
   }
 

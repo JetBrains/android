@@ -30,6 +30,8 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class SimpleperfTraceParserTest {
   private lateinit var myParser: SimpleperfTraceParser
@@ -247,6 +249,51 @@ class SimpleperfTraceParserTest {
       // Do nothing. Expected exception.
       Truth.assertThat(e.message).contains("magic number mismatch")
     }
+  }
+
+  @Test
+  fun verifyFileHasSimpleperfHeaderMismatchMagicNumber() {
+    val traceBytes = CpuProfilerTestUtils.traceFileToByteString("simpleperf_malformed.trace")
+    val trace = FileUtil.createTempFile("cpu_trace", ".trace")
+    FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
+    val result = SimpleperfTraceParser.verifyFileHasSimpleperfHeader(trace)
+    assertFalse { result }
+  }
+
+  @Test
+  fun verifyFileHasSimpleperfHeaderMismatchMagicNumberWithPerfettoTrace() {
+    val traceBytes = CpuProfilerTestUtils.traceFileToByteString("perfetto_cpu_usage.trace")
+    val trace = FileUtil.createTempFile("cpu_trace", ".trace")
+    FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
+    val result = SimpleperfTraceParser.verifyFileHasSimpleperfHeader(trace)
+    assertFalse { result }
+  }
+
+  @Test
+  fun verifyFileHasSimpleperfHeaderMismatchMagicNumberWithAtraceTrace() {
+    val traceBytes = CpuProfilerTestUtils.traceFileToByteString("atrace.ctrace")
+    val trace = FileUtil.createTempFile("cpu_trace", ".trace")
+    FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
+    val result = SimpleperfTraceParser.verifyFileHasSimpleperfHeader(trace)
+    assertFalse { result }
+  }
+
+  @Test
+  fun verifyFileHasSimpleperfHeaderMismatchMagicNumberWithArtTrace() {
+    val traceBytes = CpuProfilerTestUtils.traceFileToByteString("art_non_streaming.trace")
+    val trace = FileUtil.createTempFile("cpu_trace", ".trace")
+    FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
+    val result = SimpleperfTraceParser.verifyFileHasSimpleperfHeader(trace)
+    assertFalse { result }
+  }
+
+  @Test
+  fun verifyFileHasSimpleperfHeaderMagicNumberMatch() {
+    val traceBytes = CpuProfilerTestUtils.traceFileToByteString("simpleperf.trace")
+    val trace = FileUtil.createTempFile("cpu_trace", ".trace")
+    FileOutputStream(trace).use { out -> out.write(traceBytes.toByteArray()) }
+    val result = SimpleperfTraceParser.verifyFileHasSimpleperfHeader(trace)
+    assertTrue { result }
   }
 
   @Test
