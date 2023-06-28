@@ -785,6 +785,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun updateMirroringHandlesFlow() {
+    if (project.isDisposed) {
+      return
+    }
     val mirroringHandles = mutableMapOf<DeviceHandle, MirroringHandle>()
     for (device in devicesExcludedFromMirroring.values) {
       if (device.handle.reservationAction == null) {
