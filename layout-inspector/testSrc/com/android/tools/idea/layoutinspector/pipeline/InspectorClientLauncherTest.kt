@@ -44,6 +44,7 @@ import com.intellij.testFramework.ProjectRule
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.delay
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -528,6 +529,63 @@ class InspectorClientLauncherTest {
     assertThat(failureMessage).isNull()
     assertThat(launcher.activeClient).isEqualTo(successfulClient)
     assertThat(processes.selectedProcess).isEqualTo(process2)
+  }
+
+  @Test
+  fun launchJobIsCancelled() {
+    val processes = ProcessesModel(TestProcessDiscovery())
+    val process1 = MODERN_DEVICE.createProcess(pid = 1)
+    val process2 = MODERN_DEVICE.createProcess(pid = 2)
+
+    val firstProcessLatch = ReportingCountDownLatch(1)
+    val secondProcessLatch = ReportingCountDownLatch(1)
+
+    val clientFactory = ClientFactory { params ->
+      object :
+        FakeInspectorClient(
+          "First Client",
+          projectRule.project,
+          params.process,
+          disposableRule.disposable
+        ) {
+        override suspend fun doConnect() {
+          when (params.process) {
+            process1 -> {
+              // Notify that we're starting the connection process
+              firstProcessLatch.countDown()
+              // Fake connection time
+              delay(10000)
+            }
+            process2 -> secondProcessLatch.countDown()
+            else -> throw IllegalArgumentException("Unexpected process: ${params.process}")
+          }
+        }
+      }
+    }
+
+    val launcher =
+      InspectorClientLauncher(
+        processes,
+        listOf(clientFactory),
+        projectRule.project,
+        NotificationModel(projectRule.project),
+        AndroidCoroutineScope(disposableRule.disposable),
+        disposableRule.disposable
+      )
+
+    processes.selectedProcess = process1
+    // Await for connection to start
+    firstProcessLatch.await(2, TimeUnit.SECONDS)
+    val client1LaunchJob = launcher.launchJob
+
+    // Connecting the new process should cancel the previous launch
+    processes.selectedProcess = process2
+    secondProcessLatch.await(2, TimeUnit.SECONDS)
+    val client2LaunchJob = launcher.launchJob
+
+    assertThat(client1LaunchJob).isNotEqualTo(client2LaunchJob)
+    assertThat(client1LaunchJob?.isCancelled).isTrue()
+    assertThat(client2LaunchJob?.isCancelled).isFalse()
   }
 }
 

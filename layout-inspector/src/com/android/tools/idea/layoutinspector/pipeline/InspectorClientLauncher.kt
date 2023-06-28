@@ -37,6 +37,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
@@ -288,23 +289,32 @@ class InspectorClientLauncher(
     }
   }
 
+  @VisibleForTesting
+  var launchJob: Job? = null
+    private set
+
   var activeClient: InspectorClient = DisconnectedClient
     private set(value) {
-      if (field != value) {
-        val oldClient =
-          synchronized(sequenceNumberLock) {
-            checkCancelled()
-            field
-          }
-        oldClient.disconnect()
-        Disposer.dispose(oldClient)
+      if (field == value) {
+        return
+      }
+
+      val oldClient =
         synchronized(sequenceNumberLock) {
           checkCancelled()
-          field = value
+          field
         }
-        clientChangedCallbacks.forEach { callback -> callback(value) }
-        scope.launch { value.connect(project) }
+      oldClient.disconnect()
+      Disposer.dispose(oldClient)
+
+      synchronized(sequenceNumberLock) {
+        checkCancelled()
+        field = value
       }
+
+      clientChangedCallbacks.forEach { callback -> callback(value) }
+      launchJob?.cancel()
+      launchJob = scope.launch { value.connect(project) }
     }
 
   /**
