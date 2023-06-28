@@ -28,9 +28,9 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
-import com.android.tools.idea.compose.preview.lite.ComposeEssentialMode
+import com.android.tools.idea.compose.preview.lite.ComposeEssentialsMode
 import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
-import com.android.tools.idea.compose.preview.lite.EssentialModeWrapperPanel
+import com.android.tools.idea.compose.preview.lite.EssentialsModeWrapperPanel
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -96,8 +96,8 @@ interface ComposePreviewView {
   /** If true, the contents have been at least rendered once. */
   var hasRendered: Boolean
 
-  /** If Essential Mode is enabled, null if mode is disabled. */
-  var essentialMode: ComposeEssentialMode?
+  /** If Essentials Mode is enabled, null if mode is disabled. */
+  var essentialsMode: ComposeEssentialsMode?
 
   /** Method called to force an update on the notifications for the given [FileEditor]. */
   fun updateNotifications(parentEditor: FileEditor)
@@ -361,7 +361,7 @@ internal class ComposePreviewViewImpl(
     Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
   }
 
-  override var essentialMode: ComposeEssentialMode? = null
+  override var essentialsMode: ComposeEssentialsMode? = null
     set(value) {
       // Avoid repeated values.
       if (value == field) return
@@ -370,7 +370,7 @@ internal class ComposePreviewViewImpl(
       if (field == null) {
         content.remove(mainSurface)
       } else {
-        content.components.filterIsInstance<EssentialModeWrapperPanel>().firstOrNull()?.let {
+        content.components.filterIsInstance<EssentialsModeWrapperPanel>().firstOrNull()?.let {
           it.remove(mainSurface)
           content.remove(it)
         }
@@ -379,7 +379,7 @@ internal class ComposePreviewViewImpl(
       if (value == null) {
         content.add(mainSurface, BorderLayout.CENTER)
       } else {
-        content.add(EssentialModeWrapperPanel(value.component, mainSurface), BorderLayout.CENTER)
+        content.add(EssentialsModeWrapperPanel(value.component, mainSurface), BorderLayout.CENTER)
       }
       field = value
     }

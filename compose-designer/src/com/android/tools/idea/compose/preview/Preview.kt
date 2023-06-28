@@ -33,7 +33,7 @@ import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationM
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.fast.requestFastPreviewRefreshAndTrack
-import com.android.tools.idea.compose.preview.lite.ComposeEssentialMode
+import com.android.tools.idea.compose.preview.lite.ComposeEssentialsMode
 import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
@@ -385,7 +385,7 @@ class ComposePreviewRepresentation(
         essentialsModeMessagingService.TOPIC,
         EssentialsModeMessenger.Listener {
           updateFpsForCurrentMode()
-          updateEssentialMode(
+          updateEssentialsMode(
             ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType
               .STUDIO_ESSENTIALS_MODE_SWITCH
           )
@@ -399,7 +399,7 @@ class ComposePreviewRepresentation(
       .subscribe(
         NlOptionsConfigurable.Listener.TOPIC,
         NlOptionsConfigurable.Listener {
-          updateEssentialMode(
+          updateEssentialsMode(
             ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.PREVIEW_LITE_MODE_SWITCH
           )
         }
@@ -407,24 +407,24 @@ class ComposePreviewRepresentation(
   }
 
   /**
-   * Updates the [composeWorkBench]'s [ComposeEssentialMode] according to the state of Android
+   * Updates the [composeWorkBench]'s [ComposeEssentialsMode] according to the state of Android
    * Studio Essentials Mode or Compose Preview Lite Mode.
    *
    * @param sourceEventType type of the event that triggered the update
    */
-  private fun updateEssentialMode(
+  private fun updateEssentialsMode(
     sourceEventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType? = null
   ) {
     val liteModeIsEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
-    val composeEssentialsModeIsSet = composeWorkBench.essentialMode != null
+    val composeEssentialsModeIsSet = composeWorkBench.essentialsMode != null
     // Only update essentials mode if needed
     if (liteModeIsEnabled == composeEssentialsModeIsSet) return
 
     if (composeEssentialsModeIsSet) {
-      composeWorkBench.essentialMode = null
+      composeWorkBench.essentialsMode = null
       singlePreviewElementInstance = null // Remove filter applied by lite mode.
     } else {
-      composeWorkBench.essentialMode = ComposeEssentialMode(composeWorkBench.mainSurface)
+      composeWorkBench.essentialsMode = ComposeEssentialsMode(composeWorkBench.mainSurface)
     }
     logComposePreviewLiteModeEvent(sourceEventType)
     requestRefresh()
@@ -787,7 +787,7 @@ class ComposePreviewRepresentation(
 
   init {
     Disposer.register(this, ticker)
-    updateEssentialMode()
+    updateEssentialsMode()
   }
 
   override val component: JComponent

@@ -23,10 +23,10 @@ import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
 /**
- * If essential mode is enabled, one preview at a time is available with tabs to select between
+ * If essentials mode is enabled, one preview at a time is available with tabs to select between
  * them.
  */
-class ComposeEssentialMode(rootComponent: JComponent) {
+class ComposeEssentialsMode(rootComponent: JComponent) {
 
   private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
     val previewElement = tab?.element
@@ -53,7 +53,7 @@ class ComposeEssentialMode(rootComponent: JComponent) {
     get() = tabs.selectedKey
 }
 
-class EssentialModeWrapperPanel(northComponent: JComponent, centerComponent: JComponent) :
+class EssentialsModeWrapperPanel(northComponent: JComponent, centerComponent: JComponent) :
   JPanel(BorderLayout()) {
   init {
     add(northComponent, BorderLayout.NORTH)

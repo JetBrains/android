@@ -31,7 +31,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
-class ComposeEssentialModeTest {
+class ComposeEssentialsModeTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
@@ -54,7 +54,7 @@ class ComposeEssentialModeTest {
           )
       }
     val context = MapDataContext().also { it.put(COMPOSE_PREVIEW_MANAGER, composePreviewManager) }
-    val gallery = ComposeEssentialMode(JPanel())
+    val gallery = ComposeEssentialsMode(JPanel())
     val tabsToolbar = findTabs(gallery.component)
     tabsToolbar.actionGroup.update(createTestEvent(context))
 
