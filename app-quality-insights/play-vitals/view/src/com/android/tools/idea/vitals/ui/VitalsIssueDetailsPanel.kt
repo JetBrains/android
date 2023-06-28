@@ -347,7 +347,7 @@ class VitalsIssueDetailsPanel(
       if (issue.issueDetails.lowestAffectedApiLevel == issue.issueDetails.highestAffectedApiLevel)
         issue.issueDetails.lowestAffectedApiLevel.toString()
       else
-        "${issue.issueDetails.lowestAffectedApiLevel} > ${issue.issueDetails.highestAffectedApiLevel}"
+        "${issue.issueDetails.lowestAffectedApiLevel} → ${issue.issueDetails.highestAffectedApiLevel}"
     timestampLabel.text = dateFormatter.format(issue.sampleEvent.eventData.eventTime)
 
     eventsCountLabel.icon = StudioIcons.AppQualityInsights.ISSUE

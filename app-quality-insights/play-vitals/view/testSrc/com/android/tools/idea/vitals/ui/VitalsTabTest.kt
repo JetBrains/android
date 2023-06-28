@@ -188,7 +188,7 @@ class VitalsTabTest {
         assertThat(icon).isEqualTo(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE)
       }
       with(firstRowComponents[2] as JLabel) {
-        assertThat(text).isEqualTo("8 > 13")
+        assertThat(text).isEqualTo("8 → 13")
         assertThat(icon).isEqualTo(StudioIcons.LayoutEditor.Toolbar.ANDROID_API)
       }
       with(firstRowComponents[3] as JLabel) {
