@@ -934,46 +934,6 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   /**
-   * Schedule asynchronously model inflating and view hierarchy updating.
-   */
-  protected void requestModelUpdate() {
-    if (isDisposed.get()) {
-      return;
-    }
-
-    myProgressIndicator.start();
-
-    myRenderingQueue.queue(new Update("model.update", HIGH_PRIORITY) {
-      @Override
-      public void run() {
-        NlModel model = getModel();
-        Project project = model.getModule().getProject();
-        if (!project.isOpen()) {
-          return;
-        }
-        DumbService.getInstance(project).runWhenSmart(() -> {
-          if (model.getVirtualFile().isValid() && !model.getFacet().isDisposed()) {
-            updateModelAsync()
-              .whenComplete((result, ex) -> {
-                isOutOfDate.set(false);
-                myProgressIndicator.stop();
-              });
-          }
-          else {
-            isOutOfDate.set(false);
-            myProgressIndicator.stop();
-          }
-        });
-      }
-
-      @Override
-      public boolean canEat(Update update) {
-        return equals(update);
-      }
-    });
-  }
-
-  /**
    * Whether we should render just the viewport
    */
   private static boolean ourRenderViewPort;
@@ -1348,8 +1308,6 @@ public class LayoutlibSceneManager extends SceneManager {
   /**
    * Asynchronously update the model. This will inflate the layout and notify the listeners using
    * {@link ModelListener#modelDerivedDataChanged(NlModel)}.
-   *
-   * Try to use {@link #requestModelUpdate()} if possible. Which schedules the updating in the rendering queue and avoid duplication.
    */
   @NotNull
   public CompletableFuture<Void> updateModelAsync() {
@@ -1795,12 +1753,9 @@ public class LayoutlibSceneManager extends SceneManager {
       ResourceNotificationManager.ResourceVersion version =
         manager.getCurrentVersion(getModel().getFacet(), getModel().getFile(), getModel().getConfiguration());
       if (!version.equals(myRenderedVersion)) {
-        requestModelUpdate();
-        getModel().updateTheme();
+        forceReinflate();
       }
-      else {
-        requestLayoutAndRenderAsync(false);
-      }
+      requestLayoutAndRenderAsync(false);
     }
 
     return active;

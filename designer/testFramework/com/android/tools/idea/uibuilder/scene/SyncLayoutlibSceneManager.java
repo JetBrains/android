@@ -133,11 +133,6 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   }
 
   @Override
-  protected void requestModelUpdate() {
-    updateModelAsync();
-  }
-
-  @Override
   @NotNull
   protected RenderModelModule createRenderModule(AndroidFacet facet) {
     return new TestRenderModelModule(new AndroidFacetRenderModelModule(facet));
