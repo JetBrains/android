@@ -5,6 +5,7 @@ load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 load("//tools/base/bazel:expand_template.bzl", "expand_template_ex")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
+load("//tools/adt/idea/studio/rules:app-icon.bzl", "AppIconInfo", "replace_app_icon")
 
 PluginInfo = provider(
     doc = "Info for IntelliJ plugins, including those built by the studio_plugin rule",
@@ -663,6 +664,8 @@ def _android_studio_os(ctx, platform, out):
     platform_prefix = _android_studio_prefix(ctx, platform)
 
     platform_files = platform.get(ctx.attr.platform[IntellijInfo].base)
+    if ctx.attr.application_icon:
+        platform_files = replace_app_icon(ctx, platform.name, platform_files, ctx.attr.application_icon[AppIconInfo])
     plugin_files = platform.get(ctx.attr.platform[IntellijInfo].plugins)
 
     if ctx.attr.jre:
@@ -811,6 +814,7 @@ _android_studio = rule(
         "plugins": attr.label_list(providers = [PluginInfo]),
         "vm_options": attr.string_list(),
         "properties": attr.string_list(),
+        "application_icon": attr.label(providers = [AppIconInfo]),
         "searchable_options": attr.label(),
         "version_code_name": attr.string(),
         "version_micro_patch": attr.string(),
@@ -848,6 +852,11 @@ _android_studio = rule(
         "_expander": attr.label(
             default = Label("//tools/base/bazel/expander"),
             cfg = "host",
+            executable = True,
+        ),
+        "_replace_exe_icon": attr.label(
+            default = Label("//tools/vendor/google/windows-exe-patcher:replace-exe-icon"),
+            cfg = "exec",
             executable = True,
         ),
     },

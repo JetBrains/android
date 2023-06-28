@@ -3,6 +3,15 @@ load("//tools/base/common:version.bzl", "LAST_STABLE_BUILD_VERSION")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "iml_studio_test", "studio_plugin")
 load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
+load("//tools/adt/idea/studio/rules:app-icon.bzl", "app_icon")
+
+app_icon(
+    name = "nightly-icon",
+    icns = "nightly/studio.icns",
+    ico = "nightly/studio.ico",
+    png = "nightly/studio.png",
+    svg = "nightly/studio.svg",
+)
 
 bool_flag(
     name = "create-nightly-build",
@@ -656,6 +665,10 @@ exports_files([
 
 android_studio(
     name = "android-studio",
+    application_icon = select({
+        ":nightly-build": ":nightly-icon",
+        "//conditions:default": None,
+    }),
     codesign_entitlements = "codesign/entitlements.xml",
     files_linux = {
         "safemode/linux/studio_safe.sh": "bin/studio_safe.sh",
