@@ -20,7 +20,6 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY;
 import static com.android.tools.rendering.ProblemSeverity.ERROR;
-import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
 import com.android.annotations.concurrency.GuardedBy;
@@ -96,7 +95,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.util.ProgressIndicatorBase;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorUtil;
@@ -947,11 +945,17 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   public void setTransparentRendering(boolean enabled) {
-    useTransparentRendering = enabled;
+    if (useTransparentRendering != enabled) {
+      useTransparentRendering = enabled;
+      forceReinflate();
+    }
   }
 
   public void setShrinkRendering(boolean enabled) {
-    useShrinkRendering = enabled;
+    if (useShrinkRendering != enabled) {
+      useShrinkRendering = enabled;
+      forceReinflate();
+    }
   }
 
   /**
@@ -1710,7 +1714,11 @@ public class LayoutlibSceneManager extends SceneManager {
    * @param interactive true if the scene is interactive, false otherwise.
    */
   public void setInteractive(boolean interactive) {
+    var isTransitionFromInteractiveToStatic = myIsInteractive && !interactive;
     myIsInteractive = interactive;
+    if (isTransitionFromInteractiveToStatic) {
+      forceReinflate();
+    }
     if (StudioFlags.NELE_ATF_FOR_COMPOSE.get()) {
       getLayoutScannerConfig().setLayoutScannerEnabled(!interactive);
     }
@@ -1734,7 +1742,10 @@ public class LayoutlibSceneManager extends SceneManager {
    * method when we want to use the private ClassLoader, e.g. in interactive previews or animation inspector.
    */
   public void setUsePrivateClassLoader(boolean usePrivateClassLoader) {
-    myUsePrivateClassLoader = usePrivateClassLoader;
+    if (myUsePrivateClassLoader != usePrivateClassLoader) {
+      myUsePrivateClassLoader = usePrivateClassLoader;
+      forceReinflate();
+    }
   }
 
   /**
@@ -1797,5 +1808,20 @@ public class LayoutlibSceneManager extends SceneManager {
   @Override
   public boolean isOutOfDate() {
     return isOutOfDate.get();
+  }
+
+  @TestOnly
+  public boolean isForceReinflate() {
+    return myForceInflate.get();
+  }
+
+  @TestOnly
+  public boolean isUseShrinkRendering() {
+    return useShrinkRendering;
+  }
+
+  @TestOnly
+  public boolean isUseTransparentRendering() {
+    return useTransparentRendering;
   }
 }

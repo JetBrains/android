@@ -191,22 +191,6 @@ private class PreviewElementDataContext(
 }
 
 /**
- * Returns true if change of values of any [LayoutlibSceneManager] properties would require
- * necessary re-inflation. Namely, if we change [LayoutlibSceneManager.isShowingDecorations],
- * [LayoutlibSceneManager.isUsePrivateClassLoader] or if we transition from interactive to static
- * preview mode (not the other way around though) we need to re-inflate in order to update the
- * preview layout.
- */
-fun LayoutlibSceneManager.changeRequiresReinflate(
-  showDecorations: Boolean,
-  isInteractive: Boolean,
-  usePrivateClassLoader: Boolean
-) =
-  (showDecorations != isShowingDecorations) ||
-    (interactive && !isInteractive) || // transition from interactive to static
-    (usePrivateClassLoader != isUsePrivateClassLoader)
-
-/**
  * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently,
  * this will configure if the preview elements will be displayed with "full device size" or simply
  * containing the previewed components (shrink mode).
@@ -232,8 +216,6 @@ fun configureLayoutlibSceneManager(
   quality: Float
 ): LayoutlibSceneManager =
   sceneManager.apply {
-    val reinflate =
-      changeRequiresReinflate(showDecorations, isInteractive, requestPrivateClassLoader)
     setTransparentRendering(!showDecorations)
     setShrinkRendering(!showDecorations)
     interactive = isInteractive
@@ -255,9 +237,6 @@ fun configureLayoutlibSceneManager(
       } else {
         VisualLintMode.DISABLED
       }
-    if (reinflate) {
-      forceReinflate()
-    }
   }
 
 /** Key for the persistent group state for the Compose Preview. */
