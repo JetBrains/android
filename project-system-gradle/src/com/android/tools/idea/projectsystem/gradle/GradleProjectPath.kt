@@ -34,7 +34,9 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
+import org.jetbrains.plugins.gradle.util.gradleIdentityPathOrNull
 import org.jetbrains.plugins.gradle.util.gradlePath
+import org.jetbrains.plugins.gradle.util.gradlePathOrNull
 import org.jetbrains.plugins.gradle.util.isIncludedBuild
 import java.io.File
 
@@ -73,12 +75,12 @@ fun GradleProjectPath.toSourceSetPath(sourceSet: IdeModuleSourceSet): GradleSour
 }
 
 /** Returns Gradle identity path (composite build-aware path) of the Gradle build this module belongs to e.g. ":" or ":includedBuild". */
-private fun Module.getGradleBuildIdentityPath(): String {
-  fun computeValue(): String {
-    val mainModuleDataNode = CachedModuleDataFinder.getInstance(project).findMainModuleData(this) ?: return ":"
+private fun Module.getGradleBuildIdentityPath(): String? {
+  fun computeValue(): String? {
+    val mainModuleDataNode = CachedModuleDataFinder.getInstance(project).findMainModuleData(this) ?: return null
     if (!mainModuleDataNode.data.isIncludedBuild) return ":"
-    val gradlePath = mainModuleDataNode.data.gradlePath
-    val gradleIdentityPath = mainModuleDataNode.data.gradleIdentityPath
+    val gradlePath = mainModuleDataNode.data.gradlePathOrNull ?: return null
+    val gradleIdentityPath = mainModuleDataNode.data.gradleIdentityPathOrNull ?: return null
     return gradleIdentityPath.removeSuffix(gradlePath)
   }
 
@@ -90,7 +92,7 @@ private fun Module.getGradleBuildIdentityPath(): String {
 }
 
 private fun Module.internalGetGradleProjectPath(): GradleProjectPath? {
-  val gradleBuildName = this.getGradleBuildIdentityPath()
+  val gradleBuildName = this.getGradleBuildIdentityPath() ?: return null
   val externalRootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(this) ?: return null
   val buildRootModule = this.project.findGradleBuildRoot(externalRootProjectPath, gradleBuildName) ?: return null
   val buildRootFolder = ExternalSystemApiUtil.getExternalProjectPath(buildRootModule)?.let { File(it)} ?: return null
@@ -116,8 +118,10 @@ private fun Project.findGradleBuildRoot(externalRootProjectPath: String, gradleB
       .mapNotNull {
         val data = CachedModuleDataFinder.getGradleModuleData(it) ?: return@mapNotNull null
         val externalRootProjectPath = ExternalSystemApiUtil.getExternalRootProjectPath(it) ?: return@mapNotNull null
+        val gradlePath = data.moduleData.gradlePathOrNull ?: return@mapNotNull null
+        val gradleIdentityPath = data.moduleData.gradleIdentityPathOrNull ?: return@mapNotNull null
 
-        return@mapNotNull if (data.gradlePath == ":") (externalRootProjectPath + data.gradleIdentityPath) to it
+        return@mapNotNull if (gradlePath == ":") (externalRootProjectPath + gradleIdentityPath) to it
         else null
       }.toMap()
 
