@@ -155,7 +155,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testTabManagement() {
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
 
     val tempFolder = emulatorRule.avdRoot
@@ -232,7 +231,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testEmulatorCrash() {
-    createToolWindowContent()
 
     val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
@@ -257,7 +255,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testUiStatePreservation() {
-    createToolWindowContent()
 
     val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
@@ -297,7 +294,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testZoomStatePreservation() {
-    createToolWindowContent()
 
     val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
@@ -348,7 +344,6 @@ class StreamingToolWindowManagerTest {
       return
     }
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -383,7 +378,6 @@ class StreamingToolWindowManagerTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -406,7 +400,6 @@ class StreamingToolWindowManagerTest {
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnAppLaunch.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnTestLaunch.override(true, testRootDisposable)
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
     assertThat(toolWindow.isActive).isFalse()
@@ -442,7 +435,6 @@ class StreamingToolWindowManagerTest {
     }
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
     deviceMirroringSettings::activateOnAppLaunch.override(true, testRootDisposable)
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
     assertThat(toolWindow.isActive).isFalse()
@@ -477,7 +469,6 @@ class StreamingToolWindowManagerTest {
       return
     }
     deviceMirroringSettings.deviceMirroringEnabled = false
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -496,7 +487,6 @@ class StreamingToolWindowManagerTest {
       return
     }
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
     toolWindow.show()
@@ -533,7 +523,6 @@ class StreamingToolWindowManagerTest {
     }
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -598,7 +587,6 @@ class StreamingToolWindowManagerTest {
       return
     }
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -637,7 +625,6 @@ class StreamingToolWindowManagerTest {
       return
     }
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -668,7 +655,6 @@ class StreamingToolWindowManagerTest {
     }
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     EmulatorSettings.getInstance()::launchInToolWindow.override(false, testRootDisposable)
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
     toolWindow.show()
@@ -705,7 +691,6 @@ class StreamingToolWindowManagerTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
     if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
@@ -735,7 +720,6 @@ class StreamingToolWindowManagerTest {
       return
     }
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
-    createToolWindowContent()
     assertThat(toolWindow.isVisible).isFalse()
 
     deviceMirroringSettings.confirmationDialogShown = false
@@ -764,7 +748,6 @@ class StreamingToolWindowManagerTest {
     }
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -785,7 +768,6 @@ class StreamingToolWindowManagerTest {
     }
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -807,7 +789,6 @@ class StreamingToolWindowManagerTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -826,7 +807,6 @@ class StreamingToolWindowManagerTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
-    createToolWindowContent()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -843,9 +823,9 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testWindowViewModeActionSetTypeWhenPerformed() {
-    createToolWindowContent()
     toolWindow.setType(ToolWindowType.DOCKED) {}
 
+    windowFactory.createToolWindowContent(project, toolWindow)
     val windowAction = toolWindow.titleActions.find { it.templateText == "Window" }!!
     windowAction.actionPerformed(AnActionEvent.createFromAnAction(windowAction, null, "", dataContext))
 
@@ -854,7 +834,7 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testWindowViewModeActionUnavailableWhenTypeIsWindowedOrFloat() {
-    createToolWindowContent()
+    windowFactory.createToolWindowContent(project, toolWindow)
     val windowAction = toolWindow.titleActions.find { it.templateText == "Window" }!!
 
     toolWindow.setType(ToolWindowType.FLOATING) {}
@@ -870,19 +850,16 @@ class StreamingToolWindowManagerTest {
     }
   }
 
-  private fun createToolWindowContent() {
-    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
-    windowFactory.init(toolWindow)
-    windowFactory.createToolWindowContent(project, toolWindow)
-  }
-
   private val FakeEmulator.avdName
     get() = avdId.replace('_', ' ')
 
   private fun createToolWindow(): TestToolWindow {
     val windowManager = TestToolWindowManager(project)
     project.replaceService(ToolWindowManager::class.java, windowManager, testRootDisposable)
-    return windowManager.toolWindow
+    val toolWindow = windowManager.toolWindow
+    assertThat(windowFactory.shouldBeAvailable(project)).isTrue()
+    windowFactory.init(toolWindow)
+    return toolWindow
   }
 
   private fun renderAndGetFrameNumber(fakeUi: FakeUi, displayView: AbstractDisplayView): Int {

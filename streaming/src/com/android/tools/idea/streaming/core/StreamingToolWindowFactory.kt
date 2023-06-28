@@ -37,11 +37,14 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.setTitleActions(listOf(MoveToWindowAction(toolWindow)))
     toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
-    StreamingToolWindowManager(toolWindow)
 
     if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
       toolWindow.hide()
     }
+  }
+
+  override fun init(toolWindow: ToolWindow) {
+    StreamingToolWindowManager(toolWindow)
   }
 
   override fun isApplicable(project: Project): Boolean {
