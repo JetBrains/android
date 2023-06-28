@@ -22,6 +22,7 @@ import org.jetbrains.android.facet.AndroidRootUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class AndroidSdkNotConfiguredNotificationProvider implements EditorNotificationProvider {
   private final Project myProject;
@@ -33,26 +34,28 @@ public class AndroidSdkNotConfiguredNotificationProvider implements EditorNotifi
   @Override
   public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
                                                                                                                  @NotNull VirtualFile file) {
-    return fileEditor -> {
-      if (!FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE)) {
-        return null;
-      }
+      if (!FileTypeRegistry.getInstance().isFileOfType(file, XmlFileType.INSTANCE)) return null;
       final Module module = ModuleUtilCore.findModuleForFile(file, myProject);
-      final AndroidFacet facet = module != null ? AndroidFacet.getInstance(module) : null;
+      if (module == null) return null;
+      final AndroidFacet facet = AndroidFacet.getInstance(module);
+      if (facet == null) return null;
 
-      if (facet == null) {
-        return null;
-      }
-      if (!AndroidModel.isRequired(facet)
-          && (IdeResourcesUtil.isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
-        final AndroidPlatform platform = AndroidPlatforms.getInstance(module);
+    return fileEditor -> createPanel(module, fileEditor, facet, file);
+  }
 
-        if (platform == null) {
-          return new MySdkNotConfiguredNotificationPanel(fileEditor, module);
-        }
+  private @Nullable EditorNotificationPanel createPanel(@NotNull Module module,
+                                                       @NotNull FileEditor fileEditor,
+                                                       @NotNull AndroidFacet facet,
+                                                       @NotNull VirtualFile file) {
+    if (!AndroidModel.isRequired(facet)
+        && (IdeResourcesUtil.isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
+      final AndroidPlatform platform = AndroidPlatforms.getInstance(module);
+
+      if (platform == null) {
+        return new MySdkNotConfiguredNotificationPanel(fileEditor, module);
       }
-      return null;
-    };
+    }
+    return null;
   }
 
   private class MySdkNotConfiguredNotificationPanel extends EditorNotificationPanel {
@@ -60,9 +63,9 @@ public class AndroidSdkNotConfiguredNotificationProvider implements EditorNotifi
     MySdkNotConfiguredNotificationPanel(@NotNull FileEditor fileEditor, @NotNull final Module module) {
       super(fileEditor, EditorNotificationPanel.Status.Warning);
 
-      setText("Android SDK is not configured for module '" + module.getName() + "' or corrupted");
+      setText(message("android.sdk.not.configured.notification", module.getName()));
 
-      createActionLabel("Open Project Structure", new Runnable() {
+      createActionLabel(message("action.label.open.project.structure"), new Runnable() {
         @Override
         public void run() {
           ModulesConfigurator.showDialog(module.getProject(), module.getName(), ClasspathEditor.getName());
