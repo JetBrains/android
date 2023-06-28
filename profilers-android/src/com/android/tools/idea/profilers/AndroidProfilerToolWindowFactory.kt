@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers
 
+import com.android.tools.idea.IdeInfo
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -25,6 +26,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
+import org.jetbrains.annotations.Nls
 
 class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
@@ -56,7 +58,8 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
 
   companion object {
     const val ID = "Android Profiler"
-    private const val PROFILER_TOOL_WINDOW_TITLE = "Profiler"
+    @Nls
+    private val PROFILER_TOOL_WINDOW_TITLE = if (IdeInfo.getInstance().isAndroidStudio) "Profiler" else AndroidProfilerBundle.message("android.profiler.tool.window.title")
     private val PROJECT_PROFILER_MAP: MutableMap<Content, AndroidProfilerToolWindow> = HashMap()
     private fun createContent(project: Project, toolWindow: ToolWindow) {
       val wrapper: ToolWindowWrapper = ToolWindowWrapperImpl(project, toolWindow)
