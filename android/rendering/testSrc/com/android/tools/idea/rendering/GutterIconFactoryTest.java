@@ -107,6 +107,20 @@ public class GutterIconFactoryTest extends AndroidTestCase {
     ImageDiffUtil.assertImageSimilar(getName(), input, output, 0);
   }
 
+  public void testCreateIcon_HiPDIProperlyScaled() throws Exception {
+    String path = Paths.get(getTestDataPath(), "render/imageutils/long_hirozontal_red_line.png").toString();
+    BufferedImage input = ImageIO.read(new File(path));
+    // Sanity check.
+    assertThat(input.getHeight()).isAtMost(GutterIconCache.MAX_HEIGHT);
+    assertThat(input.getWidth()).isGreaterThan(GutterIconCache.MAX_WIDTH);
+
+    VirtualFile file = LocalFileSystem.getInstance().findFileByPath(path);
+    Icon icon = GutterIconFactory.createIcon(file, null, GutterIconCache.MAX_WIDTH, GutterIconCache.MAX_HEIGHT, myFacet);
+    assertThat(icon).isNotNull();
+    assertThat(icon.getIconWidth()).isAtMost(GutterIconCache.MAX_WIDTH);
+    assertThat(icon.getIconHeight()).isAtMost(GutterIconCache.MAX_HEIGHT);
+  }
+
   public void testIsReference() {
     final String themeReference = PREFIX_THEME_REF + "android:attr/textColorSecondary";
     final String resourceReference = PREFIX_RESOURCE_REF + "android:color/opaque_red";

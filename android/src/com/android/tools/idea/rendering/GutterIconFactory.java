@@ -239,6 +239,16 @@ public class GutterIconFactory {
         }
 
         image = ImageUtil.scaleImage(image, scale);
+        // ImageUtil.scaleImage does not guarantee scaling for HiDPI images: in case scaling factor
+        // is small enough for the resulting image to have 0 width or high, the original (unscaled)
+        // image will be returned!
+        if (image.getWidth(null) > maxWidth || image.getHeight(null) > maxHeight) {
+          image = ImageUtil.toBufferedImage(image, false);
+          // The scale might have changed since the underlying BufferedImage obtained from the HiDPI image
+          // in the previous line might have different size.
+          scale = Math.min(maxWidth / (double)image.getWidth(null), maxHeight / (double)image.getHeight(null));
+          image = ImageUtil.scaleImage(image, scale);
+        }
       } else {
         // If the image is smaller than the max size, simply use it as is instead of scaling down and then up.
         image = bufferedImage;
