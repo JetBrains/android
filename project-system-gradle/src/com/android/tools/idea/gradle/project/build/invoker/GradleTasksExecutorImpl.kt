@@ -144,12 +144,6 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
 
     @Volatile
     private var myProgressIndicator: ProgressIndicator = EmptyProgressIndicator()
-    override fun getNotificationInfo(): NotificationInfo? {
-      return NotificationInfo(
-        if (myErrorCount > 0) "Gradle Invocation (errors)" else "Gradle Invocation (success)",
-        "Gradle Invocation Finished", "$myErrorCount Errors", true
-      )
-    }
 
     override fun run(indicator: ProgressIndicator) {
       try {
