@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.mlkit.notifications;
 
+import static com.android.SdkConstants.DOT_TFLITE;
+import static com.android.tools.idea.mlkit.viewer.TfliteModelFileType.TFLITE_EXTENSION;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.mlkit.MlUtils;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
@@ -29,41 +32,37 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.ui.EditorNotificationProvider;
 import com.intellij.ui.EditorNotifications;
 import java.util.List;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Notifies users that some required dependencies are missing for ML Model Binding feature.
  */
-public class MissingDependenciesNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
-  private static final Key<EditorNotificationPanel> KEY = Key.create("ml.missing.deps.notification.panel");
-  private static final Key<String> HIDDEN_KEY = Key.create("ml.missing.deps.notification.panel.hidden");
+public class MissingDependenciesNotificationProvider implements EditorNotificationProvider {
 
-  @NotNull
-  @Override
-  public Key<EditorNotificationPanel> getKey() {
-    return KEY;
-  }
+  private static final Key<String> HIDDEN_KEY = Key.create("ml.missing.deps.notification.panel.hidden");
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
-                                                         @NotNull FileEditor fileEditor,
-                                                         @NotNull Project project) {
-    if (fileEditor.getUserData(HIDDEN_KEY) != null
-        || !(fileEditor instanceof TfliteModelFileEditor)) {
-      return null;
-    }
-
+  public Function<FileEditor, EditorNotificationPanel> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
+    if (!TFLITE_EXTENSION.equals(file.getExtension())) return null;
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module == null || !MlUtils.isMlModelBindingBuildFeatureEnabled(module)) {
       return null;
     }
-
-    if (MlUtils.isModelFileInMlModelsFolder(module, file)
-        && !MlUtils.getMissingRequiredDependencies(module).isEmpty()) {
+    if (!MlUtils.isModelFileInMlModelsFolder(module, file)
+        || MlUtils.getMissingRequiredDependencies(module).isEmpty()) {
+      return null;
+    }
+    return (fileEditor) -> {
+      if (fileEditor.getUserData(HIDDEN_KEY) != null
+          || !(fileEditor instanceof TfliteModelFileEditor)) {
+        return null;
+      }
       EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
       panel.setText("ML Model Binding dependencies not found.");
       panel.createActionLabel("Add Now", () -> {
@@ -82,8 +81,6 @@ public class MissingDependenciesNotificationProvider extends EditorNotifications
         EditorNotifications.getInstance(project).updateNotifications(file);
       });
       return panel;
-    }
-
-    return null;
+    };
   }
 }

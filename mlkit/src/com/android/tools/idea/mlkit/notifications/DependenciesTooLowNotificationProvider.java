@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.mlkit.notifications;
 
+import static com.android.tools.idea.mlkit.viewer.TfliteModelFileType.TFLITE_EXTENSION;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.mlkit.MlUtils;
 import com.android.tools.idea.mlkit.viewer.TfliteModelFileEditor;
@@ -27,9 +29,11 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
+import com.intellij.ui.EditorNotificationProvider;
 import com.intellij.ui.EditorNotifications;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,32 +41,25 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Notifies users that some required dependencies have lower version than required.
  */
-public class DependenciesTooLowNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
-  private static final Key<EditorNotificationPanel> KEY = Key.create("ml.deps.too.low.notification.panel");
-  private static final Key<String> HIDDEN_KEY = Key.create("ml.deps.too.low.notification.panel.hidden");
+class DependenciesTooLowNotificationProvider implements EditorNotificationProvider {
 
-  @NotNull
-  @Override
-  public Key<EditorNotificationPanel> getKey() {
-    return KEY;
-  }
+  private static final Key<String> HIDDEN_KEY = Key.create("ml.deps.too.low.notification.panel.hidden");
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
-                                                         @NotNull FileEditor fileEditor,
-                                                         @NotNull Project project) {
-    if (fileEditor.getUserData(HIDDEN_KEY) != null || !(fileEditor instanceof TfliteModelFileEditor)) {
-      return null;
-    }
-
+  public Function<FileEditor, EditorNotificationPanel> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
+    if (!TFLITE_EXTENSION.equals(file.getExtension())) return null;
     Module module = ModuleUtilCore.findModuleForFile(file, project);
     if (module == null || !MlUtils.isMlModelBindingBuildFeatureEnabled(module) || !MlUtils.isModelFileInMlModelsFolder(module, file)) {
       return null;
     }
-
     List<Pair<GradleCoordinate, GradleCoordinate>> depPairList = MlUtils.getDependenciesLowerThanRequiredVersion(module);
-    if (!depPairList.isEmpty()) {
+    if (depPairList.isEmpty()) return null;
+
+    return (fileEditor) -> {
+      if (fileEditor.getUserData(HIDDEN_KEY) != null || !(fileEditor instanceof TfliteModelFileEditor)) {
+        return null;
+      }
       EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
       panel.setText("ML Model Binding requires updated dependencies");
       panel.createActionLabel("View dependencies", () -> {
@@ -83,8 +80,6 @@ public class DependenciesTooLowNotificationProvider extends EditorNotifications.
         EditorNotifications.getInstance(project).updateNotifications(file);
       });
       return panel;
-    }
-
-    return null;
+    };
   }
 }
