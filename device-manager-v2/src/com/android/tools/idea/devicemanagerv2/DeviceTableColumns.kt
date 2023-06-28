@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.sdklib.deviceprovisioner.DeviceError
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.tools.adtui.categorytable.Attribute
 import com.android.tools.adtui.categorytable.Attribute.Companion.stringAttribute
@@ -86,7 +87,12 @@ internal object DeviceTableColumns {
       component.baseIcon =
         when {
           rowValue.handle?.state?.isTransitioning == true -> ColorableAnimatedSpinnerIcon()
-          rowValue.error != null -> StudioIcons.Common.WARNING
+          rowValue.error != null ->
+            when (rowValue.error.severity) {
+              DeviceError.Severity.INFO -> StudioIcons.Common.INFO
+              DeviceError.Severity.WARNING -> StudioIcons.Common.WARNING
+              DeviceError.Severity.ERROR -> StudioIcons.Common.ERROR
+            }
           else ->
             when (value) {
               DeviceRowData.Status.OFFLINE -> null

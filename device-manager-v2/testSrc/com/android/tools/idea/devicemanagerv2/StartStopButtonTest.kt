@@ -98,6 +98,7 @@ class StartStopButtonTest {
       handle.activationAction.presentation.update { it.copy(enabled = false) }
 
       class TestError : DeviceError {
+        override val severity = DeviceError.Severity.ERROR
         override val message = "error"
       }
 

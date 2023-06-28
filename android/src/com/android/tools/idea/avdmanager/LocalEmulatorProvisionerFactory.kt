@@ -71,15 +71,21 @@ private class AvdManagerImpl(val project: Project?) : LocalEmulatorProvisionerPl
   override suspend fun rescanAvds() =
     withContext(diskIoThread) { avdManagerConnection.getAvds(true) }
 
-  override suspend fun createAvd(): Boolean =
+  override suspend fun createAvd(): AvdInfo? {
+    val avdOptionsModel = AvdOptionsModel(null)
     withContext(uiThread) {
-      AvdWizardUtils.createAvdWizard(null, project, AvdOptionsModel(null)).showAndGet()
+      AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel).showAndGet()
     }
+    return avdOptionsModel.createdAvd.orElse(null)
+  }
 
-  override suspend fun editAvd(avdInfo: AvdInfo): Boolean =
+  override suspend fun editAvd(avdInfo: AvdInfo): AvdInfo? {
+    val avdOptionsModel = AvdOptionsModel(avdInfo)
     withContext(uiThread) {
-      AvdWizardUtils.createAvdWizard(null, project, avdInfo).showAndGet()
+      AvdWizardUtils.createAvdWizard(null, project, avdOptionsModel).showAndGet()
     }
+    return avdOptionsModel.createdAvd.orElse(null)
+  }
 
   override suspend fun startAvd(avdInfo: AvdInfo, coldBoot: Boolean) {
     // Note: the original DeviceManager does this in UI thread, but this may call
