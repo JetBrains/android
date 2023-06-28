@@ -183,7 +183,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
+      "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout." +
       "<BR/>", issues.get(0));
     assertHtmlEquals(
@@ -204,7 +205,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
+      "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout." +
       "<BR/>", issues.get(0));
     assertHtmlEquals(
@@ -226,7 +228,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "<DD>-&NBSP;Bitton (<A HREF=\"replaceTags:Bitton/Button\">Change to Button</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
+      "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>",
       issues.get(0));
   }
@@ -679,7 +682,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "The following classes could not be found:<DL>" +
       "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
       ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
+      "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
+      "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
       "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>",
       issues.get(0));
   }

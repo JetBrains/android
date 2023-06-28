@@ -1046,8 +1046,11 @@ public class RenderErrorContributor {
 
     builder
       .addIcon(HtmlBuilderHelper.getTipIconPath())
+      .addLink("Tip: Try to ", "build", " the module.",
+                    myLinkManager.createBuildModuleUrl())
+      .newline()
       .addLink("Tip: Try to ", "build", " the project.",
-                    myLinkManager.createBuildProjectUrl())
+               myLinkManager.createBuildProjectUrl())
       .newline()
       .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Try to ", "refresh", " the layout.",

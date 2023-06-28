@@ -35,6 +35,7 @@ import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ADD_DEPENDENCY;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ASSIGN_FRAGMENT_URL;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_ASSIGN_LAYOUT_URL;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_BUILD;
+import static com.android.tools.rendering.HtmlLinkManagerKt.URL_BUILD_MODULE;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_CLEAR_CACHE_AND_NOTIFY;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_CREATE_CLASS;
 import static com.android.tools.rendering.HtmlLinkManagerKt.URL_DISABLE_SANDBOX;
@@ -65,6 +66,7 @@ import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.ide.browsers.BrowserLauncher;
@@ -167,6 +169,10 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       assert module != null;
       assert file != null;
       handleReplaceTagsUrl(url, module, file);
+    }
+    else if (url.equals(URL_BUILD_MODULE)) {
+      assert module != null;
+      handleBuildModuleUrl(url, file);
     }
     else if (url.equals(URL_BUILD)) {
       assert module != null;
@@ -355,6 +361,11 @@ public class StudioHtmlLinkManager implements HtmlLinkManager {
       String rightTag = url.substring(delimiterPos + 1);
       new ReplaceTagFix((XmlFile)file, wrongTag, rightTag).run();
     }
+  }
+
+  private static void handleBuildModuleUrl(@NotNull String url, @NotNull PsiFile psiFile) {
+    assert url.equals(URL_BUILD_MODULE) : url;
+    ProjectSystemUtil.getProjectSystem(psiFile.getProject()).getBuildManager().compileFilesAndDependencies(Lists.newArrayList(psiFile.getVirtualFile()));
   }
 
   private static void handleBuildProjectUrl(@NotNull String url, @NotNull Project project) {

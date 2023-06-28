@@ -25,6 +25,8 @@ import java.net.MalformedURLException
 interface HtmlLinkManager {
   fun handleUrl(url: String, module: Module?, file: PsiFile?, hasRenderResult: Boolean, surface: RefreshableSurface)
 
+  fun createBuildModuleUrl(): String = URL_BUILD_MODULE
+
   fun createBuildProjectUrl(): String = URL_BUILD
 
   fun createSyncProjectUrl(): String = URL_SYNC
@@ -124,6 +126,7 @@ interface HtmlLinkManager {
 }
 
 const val URL_BUILD = "action:build"
+const val URL_BUILD_MODULE = "action:buildModule"
 const val URL_SYNC = "action:sync"
 const val URL_EDIT_CLASSPATH = "action:classpath"
 const val URL_OPEN_CLASS = "openClass:"
