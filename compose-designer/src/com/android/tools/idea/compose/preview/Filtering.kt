@@ -60,7 +60,7 @@ class SinglePreviewElementInstanceFilteredPreviewProvider(
 ) : PreviewElementProvider<ComposePreviewElementInstance> {
   /**
    * The Composable [ComposePreviewElementInstance] to filter. If no [ComposePreviewElementInstance]
-   * is defined by that intsance, then this filter will return all the available previews.
+   * is defined by that instance, then this filter will return all the available previews.
    */
   @Volatile var instance: ComposePreviewElementInstance? = null
 
