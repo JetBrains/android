@@ -21,6 +21,7 @@ import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.files.LogcatFileIo
 import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
+import com.android.tools.idea.run.ShowLogcatListener
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.ide.util.PropertiesComponent
@@ -88,6 +89,7 @@ internal class SaveLogcatAction :
       val notification = Notification("Logcat", LogcatBundle.message("logcat.save.log.notification.text"), NotificationType.INFORMATION)
         .addAction(OpenInEditorAction(virtualFile))
         .addAction(RevealLogcatFileAction(virtualFile))
+        .addAction(OpenInLogcatAction(virtualFile, "${device.name} Android ${device.release}"))
       Notifications.Bus.notify(notification, project)
     }
   }
@@ -103,8 +105,8 @@ internal class SaveLogcatAction :
     else project.guessProjectDir()
   }
 
-  private class OpenInEditorAction(val file: VirtualFile) : DumbAwareAction(
-    LogcatBundle.message("logcat.save.log.notification.open.in.editor")) {
+  private class OpenInEditorAction(val file: VirtualFile) :
+    DumbAwareAction(LogcatBundle.message("logcat.save.log.notification.open.in.editor")) {
     override fun getActionUpdateThread() = EDT
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -113,12 +115,21 @@ internal class SaveLogcatAction :
     }
   }
 
-  private class RevealLogcatFileAction(val file: VirtualFile) : DumbAwareAction(
-    RevealFileAction.getActionName()) {
+  private class RevealLogcatFileAction(val file: VirtualFile) :
+    DumbAwareAction(RevealFileAction.getActionName()) {
     override fun getActionUpdateThread() = EDT
 
     override fun actionPerformed(e: AnActionEvent) {
       RevealFileAction.openFile(file.toNioPath())
+    }
+  }
+
+  private class OpenInLogcatAction(val file: VirtualFile, private val tabName: String) :
+    DumbAwareAction(LogcatBundle.message("logcat.save.log.notification.open.in.logcat")) {
+    override fun getActionUpdateThread() = EDT
+
+    override fun actionPerformed(e: AnActionEvent) {
+      e.project?.messageBus?.syncPublisher(ShowLogcatListener.TOPIC)?.showLogcatFile(file.toNioPath(), tabName)
     }
   }
 }

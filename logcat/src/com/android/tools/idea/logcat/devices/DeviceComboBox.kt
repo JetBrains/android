@@ -114,6 +114,10 @@ internal class DeviceComboBox(
 
 
   fun trackSelected(): Flow<DeviceComboItem> = callbackFlow {
+    // If an item is already selected, the listener will not send it, so we send it now
+    (selectedItem as? DeviceComboItem)?.let {
+      trySendBlocking(it)
+    }
     val listener = ActionListener {
       item?.let {
         trySendBlocking(it)
