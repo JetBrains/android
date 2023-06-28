@@ -22,6 +22,7 @@ import com.android.tools.adtui.categorytable.ColorableAnimatedSpinnerIcon
 import com.android.tools.adtui.categorytable.Column
 import com.android.tools.adtui.categorytable.IconLabel
 import com.android.tools.adtui.categorytable.LabelColumn
+import com.android.tools.adtui.event.DelegateMouseEventHandler
 import com.google.common.collect.Ordering
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.JBDimension
@@ -134,6 +135,14 @@ internal object DeviceTableColumns {
         null -> DeviceTemplateButtonsPanel(coroutineScope, rowValue.template!!)
         else -> DeviceHandleButtonsPanel(project, rowValue.handle)
       }
+    }
+
+    override fun installMouseDelegate(
+      component: ActionButtonsPanel,
+      mouseDelegate: DelegateMouseEventHandler
+    ) {
+      // Install the mouse handler on each child of the panel
+      component.components.forEach { mouseDelegate.installListenerOn(it) }
     }
 
     // TODO: Precomputing this is a hack... can we base it on the panel after it has been

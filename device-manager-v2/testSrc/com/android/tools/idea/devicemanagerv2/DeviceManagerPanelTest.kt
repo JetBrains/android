@@ -21,7 +21,9 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.tools.adtui.categorytable.CategoryTable
+import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
@@ -128,6 +130,30 @@ class DeviceManagerPanelTest {
 
     // Shouldn't change anything
     assertThat(panel.deviceDetailsPanelRow).isEqualTo(pixel5Row)
+  }
+
+  @Test
+  fun clickRow() = runTestWithFixture {
+    val pixel4 = createHandle("Pixel 4")
+    val pixel5 = createHandle("Pixel 5")
+
+    deviceHandles.send(listOf(pixel4, pixel5))
+
+    panel.setBounds(0, 0, 800, 400)
+
+    val fakeUi = FakeUi(panel, createFakeWindow = true)
+    fakeUi.layout()
+
+    assertThat(deviceTable.selection.selectedKeys()).isEmpty()
+
+    val runButton =
+      checkNotNull(fakeUi.findComponent<IconButton> { it.baseIcon == StudioIcons.Avd.RUN })
+    assertThat(runButton.isEnabled).isTrue()
+
+    fakeUi.clickOn(runButton)
+
+    assertThat(deviceTable.selection.selectedKeys())
+      .containsExactly(ValueRowKey<DeviceRowData>(pixel4))
   }
 
   fun <T : Any> CategoryTable<T>.visibleKeys() =

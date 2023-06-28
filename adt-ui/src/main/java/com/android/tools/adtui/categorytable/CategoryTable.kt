@@ -171,8 +171,8 @@ class CategoryTable<T : Any>(
 
     addMouseListener(
       object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-          mouseClickedOnRow(e)
+        override fun mousePressed(e: MouseEvent) {
+          mousePressedOnRow(e)
         }
       }
     )
@@ -229,7 +229,7 @@ class CategoryTable<T : Any>(
 
   internal fun indexOf(key: RowKey<T>): Int = rowComponents.indexOfFirst { it.rowKey == key }
 
-  private fun mouseClickedOnRow(e: MouseEvent) {
+  private fun mousePressedOnRow(e: MouseEvent) {
     if (SwingUtilities.isLeftMouseButton(e)) {
       rowComponents
         .firstOrNull { it.isVisible && e.y < it.y + it.height }

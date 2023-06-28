@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.android.tools.adtui.event.DelegateMouseEventHandler
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.components.JBLabel
@@ -128,9 +129,11 @@ internal class ValueRowComponent<T>(
   initialValue: T,
   primaryKey: Any
 ) : RowComponent<T>(), DataProvider {
+  private val mouseDelegate = DelegateMouseEventHandler.delegateTo(this)
+
   /** The components of this row, in model order. */
   val componentList: List<ColumnComponent<T, *, *>> =
-    columns.map { ColumnComponent(it, initialValue) }
+    columns.map { ColumnComponent(it, initialValue, mouseDelegate) }
 
   init {
     layout = ValueRowLayout(header)
@@ -192,9 +195,11 @@ internal class ValueRowComponent<T>(
    */
   internal class ColumnComponent<T, C, U : JComponent>(
     val column: Column<T, C, U>,
-    initialValue: T
+    initialValue: T,
+    mouseDelegate: DelegateMouseEventHandler,
   ) {
-    val component = column.createUi(initialValue)
+    val component =
+      column.createUi(initialValue).also { column.installMouseDelegate(it, mouseDelegate) }
     fun updateValue(rowValue: T) {
       column.updateValue(rowValue, component, column.attribute.value(rowValue))
     }
