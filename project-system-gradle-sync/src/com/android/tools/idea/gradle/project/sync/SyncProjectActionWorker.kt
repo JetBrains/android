@@ -141,7 +141,6 @@ internal class SyncProjectActionWorker(
         .mapNotNull { it.ignoreExceptionsAndGet()?.let { result -> result.module to it } }
         .groupBy({ it.first }, { it.second })
 
-    // TODO(b/220325253): Kotlin parallel model fetching is broken.
     actionRunner.runActions(variants.entries.map { (module, result) ->
       ActionToRun(fun(controller: BuildController) {
         result.map {
@@ -247,8 +246,6 @@ internal class SyncProjectActionWorker(
         }
 
       val preModuleDependenciesWithoutKotlin: List<ModelResult<SyncVariantResult>> = actionRunner.runActions(actions)
-
-      // TODO(b/220325253): Kotlin parallel model fetching is broken.
       val preModuleDependencies = actionRunner.runActions(preModuleDependenciesWithoutKotlin.map { syncResult ->
         ActionToRun(fun(controller: BuildController): ModelResult<SyncVariantResult> {
           return syncResult.mapCatching { syncResult ->
