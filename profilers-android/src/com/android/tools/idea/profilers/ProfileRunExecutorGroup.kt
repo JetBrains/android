@@ -16,6 +16,7 @@
 package com.android.tools.idea.profilers
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.profilers.AndroidProfilerBundle.message
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
@@ -30,6 +31,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowId
 import icons.StudioIcons
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.annotations.Nls
 import javax.swing.Icon
 
 /**
@@ -40,11 +42,12 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
    * A setting maps to a child executor in the group, containing metadata for the child executor.
    */
   class ProfilerSetting(profilingMode: ProfilingMode) : AbstractProfilerSetting(profilingMode) {
+    @get:Nls
     override val actionName: String
       get() = when (profilingMode) {
-        ProfilingMode.PROFILEABLE -> "Profile with low overhead"
-        ProfilingMode.DEBUGGABLE -> "Profile with complete data"
-        else -> "Profile"
+        ProfilingMode.PROFILEABLE -> message("android.profiler.action.profile.with.low.overhead")
+        ProfilingMode.DEBUGGABLE -> message("android.profiler.action.profile.with.complete.data")
+        else -> message("android.profiler.action.profile")
       }
 
     override val icon: Icon
@@ -57,10 +60,11 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
     override val startActionText = "Profile"
     override fun canRun(profile: RunProfile) = true
     override fun isApplicable(project: Project) = true
+    @Nls
     override fun getStartActionText(configurationName: String) = when (profilingMode) {
-      ProfilingMode.PROFILEABLE -> "Profile '$configurationName' with low overhead"
-      ProfilingMode.DEBUGGABLE -> "Profile '$configurationName' with complete data"
-      else -> "Profile '$configurationName'"
+      ProfilingMode.PROFILEABLE -> message("android.profiler.action.profile.configuration.with.low.overhead", configurationName)
+      ProfilingMode.DEBUGGABLE -> message("android.profiler.action.profile.configuration.with.complete.data", configurationName)
+      else -> message("android.profiler.action.profile.configuration", configurationName)
     }
   }
 
@@ -75,7 +79,7 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
     override fun updateDisabledActionPresentation(eventPresentation: Presentation) {
       eventPresentation.icon = PROFILEABLE_ICON
-      eventPresentation.text = "Profile"
+      eventPresentation.text = message("android.profiler.action.profile")
     }
   }
 
@@ -91,13 +95,13 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
   override fun getDisabledIcon(): Icon = toolWindowIcon
 
-  override fun getDescription(): String = "Profile selected configuration"
+  override fun getDescription(): String = message("android.profiler.action.profile.description")
 
-  override fun getActionName(): String = "Profile"
+  override fun getActionName(): String = message("android.profiler.action.profile")
 
   override fun getId(): String = EXECUTOR_ID
 
-  override fun getStartActionText(): String = "Profile"
+  override fun getStartActionText(): String = message("android.profiler.action.profile")
 
   override fun getContextActionId(): String = "ProfileGroupRunClass"
 

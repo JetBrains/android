@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.profilers.capture;
 
+import com.android.tools.idea.profilers.AndroidProfilerBundle;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.util.io.ByteSequence;
@@ -47,13 +48,13 @@ public class MemoryCaptureFileType extends AndroidProfilerCaptureFileType {
   @NotNull
   @Override
   public String getDisplayName() {
-    return "Android Profiler Memory capture (.hprof)";
+    return AndroidProfilerBundle.message("android.profiler.memory.capture.file.extension", EXTENSION);
   }
 
   @NotNull
   @Override
   public String getDescription() {
-    return "Android Profiler Memory capture file (.hprof)";
+    return AndroidProfilerBundle.message("android.profiler.memory.capture.file.description.extension", EXTENSION);
   }
 
   @NotNull
