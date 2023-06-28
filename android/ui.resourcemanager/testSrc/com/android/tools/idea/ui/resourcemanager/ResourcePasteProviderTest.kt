@@ -167,6 +167,50 @@ internal class ResourcePasteProviderTest {
   }
 
   @Test
+  fun pasteInDataBindingAttributeValue() {
+    val content = """<ImageView
+        |      xmlns:android="http://schemas.android.com/apk/res/android"
+        |    android:layout_width="wrap_content"
+        |    android:layout_height="wrap_content"
+        |    android:background="@{databinding}"
+        |    />""".trimMargin()
+
+    val psiFile = psiFile(content)
+    editor = createEditor(psiFile)
+    val attributeIndex = content.indexOf("android:background=")
+    val valueIndex = content.indexOf("binding")
+    runInEdtAndWait { editor.caretModel.moveToOffset(valueIndex) }
+    val dataContext = createDataContext(editor, psiFile)
+
+    val resourcePasteProvider = ResourcePasteProvider()
+    resourcePasteProvider.paste(dataContext)
+
+    Truth.assertThat(editor.document.text.substring(attributeIndex)).startsWith("android:background=\"@{@namespace:drawable/my_resource}")
+  }
+
+  @Test
+  fun pasteOutsideDataBindingAttributeValue() {
+    val content = """<ImageView
+        |      xmlns:android="http://schemas.android.com/apk/res/android"
+        |    android:layout_width="wrap_content"
+        |    android:layout_height="wrap_content"
+        |    android:background="@{databinding}"
+        |    />""".trimMargin()
+
+    val psiFile = psiFile(content)
+    editor = createEditor(psiFile)
+    val attributeIndex = content.indexOf("android:background=")
+    val valueIndex = content.indexOf("{databinding")
+    runInEdtAndWait { editor.caretModel.moveToOffset(valueIndex) }
+    val dataContext = createDataContext(editor, psiFile)
+
+    val resourcePasteProvider = ResourcePasteProvider()
+    resourcePasteProvider.paste(dataContext)
+
+    Truth.assertThat(editor.document.text.substring(attributeIndex)).startsWith("android:background=\"@namespace:drawable/my_resource")
+  }
+
+  @Test
   fun pasteOnAttribute() {
     val content = """<ImageView
         |      xmlns:android="http://schemas.android.com/apk/res/android"

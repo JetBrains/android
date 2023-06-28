@@ -202,11 +202,20 @@ class ResourcePasteProvider : PasteProvider {
                                   caret: Caret,
                                   resourceReference: String): Boolean {
     if (xmlAttribute == null) return false
-    runWriteAction {
+    val replaceStartOffset = runWriteAction {
+      val textRange = xmlAttribute.valueElement?.valueTextRange
+      if (textRange != null && xmlAttribute.value?.startsWith("@{") == true
+        && caret.offset > textRange.startOffset + 1 && caret.offset < textRange.endOffset) {
+        // If caret is inside databinding, replace only the value inside the bracket
+        xmlAttribute.setValue("@{$resourceReference}")
+        return@runWriteAction textRange.startOffset + 2
+      }
       xmlAttribute.setValue(resourceReference)
+      return@runWriteAction textRange?.startOffset ?: -1
     }
-    xmlAttribute.valueElement?.valueTextRange?.startOffset?.let {
-      caret.selectStringFromOffset(resourceReference, it)
+
+    if (replaceStartOffset > -1) {
+      caret.selectStringFromOffset(resourceReference, replaceStartOffset)
     }
     return true
   }
