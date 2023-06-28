@@ -905,21 +905,21 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   @NotNull
-  public InsertType determineInsertType(@NotNull DragType dragType, @Nullable DnDTransferItem item, boolean asPreview) {
+  public InsertType determineInsertType(
+    @NotNull DragType dragType,
+    @Nullable DnDTransferItem item,
+    boolean asPreview,
+    boolean generateIds
+  ) {
     if (item != null && item.isFromPalette()) {
       return asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
     }
-    switch (dragType) {
-      case CREATE:
-        return asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
-      case MOVE:
-        return item != null && myId != item.getModelId() ? InsertType.COPY : InsertType.MOVE;
-      case COPY:
-        return InsertType.COPY;
-      case PASTE:
-      default:
-        return InsertType.PASTE;
-    }
+    return switch (dragType) {
+      case CREATE -> asPreview ? InsertType.CREATE_PREVIEW : InsertType.CREATE;
+      case MOVE -> item != null && myId != item.getModelId() ? InsertType.COPY : InsertType.MOVE;
+      case COPY -> InsertType.COPY;
+      default -> generateIds ? InsertType.PASTE_GENERATE_NEW_IDS : InsertType.PASTE;
+    };
   }
 
   public long getId() {

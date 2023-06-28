@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.surface;
 
+import com.android.tools.idea.common.actions.PasteWithNewIds;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -126,7 +127,8 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
 
   @Override
   public void performPaste(@NotNull DataContext dataContext) {
-    pasteOperation(false /* check and perform the actual paste */);
+    boolean generateNewIds = Boolean.TRUE.equals(PasteWithNewIds.getPASTE_WITH_NEW_IDS_KEY().getData(dataContext));
+    pasteOperation(false /* check and perform the actual paste */, generateNewIds);
   }
 
   /**
@@ -142,14 +144,14 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
    */
   @Override
   public boolean isPasteEnabled(@NotNull DataContext dataContext) {
-    return pasteOperation(true /* check only */);
+    return pasteOperation(true /* check only */, false /* generate new ides */);
   }
 
   private boolean hasNonEmptySelection() {
     return !mySurface.getSelectionModel().isEmpty();
   }
 
-  private boolean pasteOperation(boolean checkOnly) {
+  private boolean pasteOperation(boolean checkOnly, boolean generateNewIds) {
     NlComponent receiver = getPasteTarget();
     if (receiver == null) {
       return false;
@@ -162,7 +164,7 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
     }
 
     DragType dragType = transferItem.isCut() ? DragType.MOVE : DragType.PASTE;
-    InsertType insertType = model.determineInsertType(dragType, transferItem, checkOnly);
+    InsertType insertType = model.determineInsertType(dragType, transferItem, checkOnly, generateNewIds);
 
     List<NlComponent> pasted = model.createComponents(transferItem, insertType);
 

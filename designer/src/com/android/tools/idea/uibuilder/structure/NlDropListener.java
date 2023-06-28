@@ -155,7 +155,7 @@ public class NlDropListener extends DropTargetAdapter {
       return InsertType.MOVE;
     }
     DragType dragType = event.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-    return model.determineInsertType(dragType, myTransferItem, isPreview);
+    return model.determineInsertType(dragType, myTransferItem, isPreview, true /* generateIds */);
   }
 
   private void clearDraggedComponents() {

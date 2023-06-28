@@ -543,7 +543,7 @@ class NlComponentMixin(component: NlComponent)
 
   override fun beforeMove(insertType: InsertType, receiver: NlComponent, ids: MutableSet<String>) {
     // AssignId
-    if (component.needsDefaultId() && insertType != InsertType.MOVE) {
+    if (component.needsDefaultId() && insertType != InsertType.MOVE && insertType != InsertType.PASTE) {
       component.incrementId(ids)
     }
   }

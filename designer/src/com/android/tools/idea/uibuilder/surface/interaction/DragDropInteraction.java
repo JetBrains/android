@@ -204,7 +204,7 @@ public class DragDropInteraction extends Interaction {
         DragType dragType = dragEvent.getDropAction() == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
         setType(dragType);
         NlModel model = sceneView.getSceneManager().getModel();
-        InsertType insertType = model.determineInsertType(dragType, getTransferItem(), true /* preview */);
+        InsertType insertType = model.determineInsertType(dragType, getTransferItem(), true /* preview */, true /* generateIds */);
 
         // This determines the icon presented to the user while dragging.
         // If we are dragging a component from the palette then use the icon for a copy, otherwise show the icon
@@ -414,7 +414,7 @@ public class DragDropInteraction extends Interaction {
       if (commit && error == null) {
         added.addAll(myDraggedComponents);
         final NlModel model = mySceneView.getSceneManager().getModel();
-        InsertType insertType = model.determineInsertType(myType, myTransferItem, false /* not for preview */);
+        InsertType insertType = model.determineInsertType(myType, myTransferItem, false /* not for preview */, true /* generateIds */);
 
         // TODO: Run this *after* making a copy
         myDragHandler.commit(ax, ay, modifiers, insertType);
@@ -543,7 +543,7 @@ public class DragDropInteraction extends Interaction {
 
     NlModel model = sceneView.getSceneManager().getModel();
     DragType dragType = dropAction == DnDConstants.ACTION_COPY ? DragType.COPY : DragType.MOVE;
-    InsertType insertType = model.determineInsertType(dragType, item, false /* not for preview */);
+    InsertType insertType = model.determineInsertType(dragType, item, false /* not for preview */, true /* generateIds */);
 
     setType(dragType);
     setTransferItem(item);

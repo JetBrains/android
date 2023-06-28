@@ -48,6 +48,11 @@ public enum InsertType {
   PASTE,
 
   /**
+   * Same as PASTE except the ids of the components will be replaced with new ids.
+   */
+  PASTE_GENERATE_NEW_IDS,
+
+  /**
    * The component is being inserted here as a result of a move with a modifier key.
    * This is functionally the same as a PASTE (with a different user feedback)
    */

@@ -173,7 +173,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
       return null
     }
     val dragType = if (event.dropAction == DnDConstants.ACTION_COPY) DragType.COPY else DragType.MOVE
-    val insertType = model.determineInsertType(dragType, item, true /* preview */)
+    val insertType = model.determineInsertType(dragType, item, true /* preview */, true /* generate ids */)
 
     val dragged: List<NlComponent>
     if (StudioFlags.NELE_DRAG_PLACEHOLDER.get() && !item.isFromPalette) {

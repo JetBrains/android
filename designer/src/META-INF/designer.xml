@@ -205,6 +205,7 @@
       <synonym key="action.StoreDefaultLayout.synonym" />
     </action>
     <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
+    <action id="PasteWithNewIds" class="com.android.tools.idea.common.actions.PasteWithNewIds"/>
 
     <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction">
         <add-to-group group-id="Internal.Android" anchor="after" relative-to-action="Android.TerminateAdbAction"/>

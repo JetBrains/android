@@ -616,7 +616,7 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       }
       DnDTransferComponent dndComponent = new DnDTransferComponent(item.getTagName(), item.getXml(), 0, 0);
       DnDTransferItem dndItem = new DnDTransferItem(dndComponent);
-      InsertType insertType = model.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */);
+      InsertType insertType = model.determineInsertType(DragType.COPY, dndItem, checkOnly /* preview */, true /* generateIds */);
 
       List<NlComponent> toAdd = model.createComponents(dndItem, insertType);
 
