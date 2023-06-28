@@ -44,7 +44,7 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.ComponentUtil
 import com.intellij.ui.SpeedSearchBase
-import com.intellij.ui.ToolbarUtil
+import com.intellij.ui.ToolbarService
 import com.intellij.ui.components.JBLayeredPane
 import com.intellij.util.Consumer
 import com.intellij.util.ExceptionUtil
@@ -191,8 +191,7 @@ private val dispatchEventMethod = ReflectionUtil.getDeclaredMethod(EventQueue::c
 /**
  * Implementation of [DialogWrapperPeerFactory] for headless tests involving dialogs.
  */
-class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
-
+private class HeadlessDialogWrapperPeerFactory : DialogWrapperPeerFactory() {
   override fun createPeer(wrapper: DialogWrapper, project: Project?, canBeParent: Boolean): DialogWrapperPeer {
     return HeadlessDialogWrapperPeer(wrapper, project, canBeParent)
   }
@@ -374,9 +373,9 @@ private class HeadlessDialogWrapperPeer(
     UIUtil.decorateWindowHeader(rootPane)
     val window = window
     if (window is JDialog && !window.isUndecorated) {
-      ToolbarUtil.setTransparentTitleBar(window, rootPane) { runnable: Runnable ->
+      ToolbarService.getInstance().setTransparentTitleBar(window = window, rootPane = rootPane, onDispose = { runnable ->
         Disposer.register(wrapper.disposable, runnable::run)
-      }
+      })
     }
 
     val dialog = MyDialog()
