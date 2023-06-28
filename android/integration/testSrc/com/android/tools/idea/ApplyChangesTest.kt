@@ -32,6 +32,13 @@ class ApplyChangesTest {
   @Rule
   var watcher = MemoryDashboardNameProviderWatcher()
 
+  /**
+   * ETE Test for Apply Changes.
+   *
+   * The goal is to run project, modify the Activity's start up and apply the delta.
+   *
+   * We verify that the activity is properly restarted and the modified onResume is invoked.
+   */
   @Test
   fun applyChangesTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/applychanges")
@@ -47,8 +54,6 @@ class ApplyChangesTest {
 
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
-
-          println("Waiting for index");
           studio.waitForIndex()
 
           println("Waiting for project init");

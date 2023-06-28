@@ -32,6 +32,16 @@ class ApplyCodeChangesTest {
   @Rule
   var watcher = MemoryDashboardNameProviderWatcher()
 
+  /**
+   * ETE Test for Apply Code Changes.
+   *
+   * The goal is to run project, modify a BroadcastReceiver and verify the change by sending an
+   * intent from the ADB shell.
+   *
+   * Since Apply Code Changes do not rely on Activity restart, we need a robust way to interact
+   * with the running application in a lockstep manner for verification so we base our test on a
+   * small isolated BroadcastReceiver in the shared project.
+   */
   @Test
   fun applyChangesTest() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/applychanges")
@@ -47,8 +57,6 @@ class ApplyCodeChangesTest {
 
         system.runStudio(project, watcher.dashboardName) { studio ->
           studio.waitForSync()
-
-          println("Waiting for index");
           studio.waitForIndex()
 
           println("Waiting for project init");

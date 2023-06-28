@@ -204,7 +204,6 @@ apply_changes_data = [
     "//prebuilts/studio/sdk:platform-tools",
     "@system_image_android-33_default_x86_64//:x86_64-android-33-images",
     INTEGRATION_TEST_GRADLE_VERSION,
-    INTEGRATION_TEST_SYSTEM_IMAGE,
 ]
 
 iml_studio_test(
