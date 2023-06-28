@@ -110,6 +110,7 @@ public class ConvertToConstraintLayoutAction extends AnAction {
   public static final String ATTR_LAYOUT_CONVERSION_WRAP_WIDTH = "layout_conversion_wrapWidth"; //$NON-NLS-1$
   public static final String ATTR_LAYOUT_CONVERSION_WRAP_HEIGHT = "layout_conversion_wrapHeight"; //$NON-NLS-1$
   private static final HashSet<String> ourExcludedTags = new HashSet<>(Arrays.asList(TAG_LAYOUT, TAG_DATA, TAG_VARIABLE, TAG_IMPORT));
+  public static final String ACTION_UNDO_ID = "convert_constraintlayout_id";
   private final NlDesignSurface mySurface;
 
   public ConvertToConstraintLayoutAction(@NotNull NlDesignSurface surface) {
@@ -280,7 +281,8 @@ public class ConvertToConstraintLayoutAction extends AnAction {
 
     public void execute() {
       WriteCommandAction.Builder builder =
-        WriteCommandAction.writeCommandAction(myScreenView.getSurface().getProject(), myScreenView.getSceneManager().getModel().getFile());
+        WriteCommandAction.writeCommandAction(myScreenView.getSurface().getProject(), myScreenView.getSceneManager().getModel().getFile())
+          .withName(TITLE).withGroupId(ACTION_UNDO_ID);
       builder.run(() -> preLayoutRun());
       layout();
       builder.run(() -> postLayoutRun());
@@ -350,7 +352,9 @@ public class ConvertToConstraintLayoutAction extends AnAction {
               manager.removeRenderListener(this);
 
               myEditor.measureChildren(layout, null)
-                .whenCompleteAsync((sizes, ex) -> NlWriteCommandActionUtil.run(layout, "Infer Constraints", () -> {
+                .whenCompleteAsync(
+                  (sizes, ex) -> NlWriteCommandActionUtil.run(
+                    Collections.singletonList(layout), "Infer Constraints", ACTION_UNDO_ID, () -> {
                   for (NlComponent component : sizes.keySet()) {
                     Dimension d = sizes.get(component);
                     component.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_WRAP_WIDTH, Integer.toString(d.width));
