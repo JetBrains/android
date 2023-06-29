@@ -183,7 +183,7 @@ class IssuePanelService(private val project: Project) {
           setSharedIssuePanelVisibility(false)
           return
         }
-        if (isComposeFile(newFile) || isSupportedDesignerFileType(newFile)) {
+        if (isSupportedDesignerFileType(newFile)) {
           addIssuePanel()
           return
         }
@@ -359,9 +359,6 @@ class IssuePanelService(private val project: Project) {
 
     fileToTabName[file]?.let { return it }
 
-    if (isComposeFile(file)) {
-      return "Compose"
-    }
     val name = getTabNameOfSupportedDesignerFile(file)
     if (name != null) {
       return name
@@ -378,7 +375,7 @@ class IssuePanelService(private val project: Project) {
    */
   private fun isDesignEditor(editor: FileEditor): Boolean {
     val virtualFile = editor.file ?: return false
-    return isComposeFile(virtualFile) || isSupportedDesignerFileType(virtualFile) || editor.getDesignSurface() != null
+    return isSupportedDesignerFileType(virtualFile) || editor.getDesignSurface() != null
   }
 
   private fun isComposeFile(file: VirtualFile): Boolean {
@@ -400,6 +397,7 @@ class IssuePanelService(private val project: Project) {
   private fun getTabNameOfSupportedDesignerFile(file: VirtualFile): String? {
     val psiFile = file.toPsiFile(project) ?: return null
     return when {
+      isComposeFile(file) -> "Compose"
       LayoutFileType.isResourceTypeOf(psiFile) -> "Layout and Qualifiers"
       PreferenceScreenFileType.isResourceTypeOf(psiFile) -> "Preference"
       MenuFileType.isResourceTypeOf(psiFile) -> "Menu"
