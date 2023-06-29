@@ -3,6 +3,7 @@ load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
 load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("//tools/base/bazel:expand_template.bzl", "expand_template_ex")
 load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 PluginInfo = provider(
@@ -500,6 +501,25 @@ def _full_display_version(ctx):
     (micro, _) = _split_version(ctx.attr.version_micro_patch)
     return _form_version_full(ctx).format(intellij_info.major_version, intellij_info.minor_version, micro)
 
+def _append(ctx, platform, files, path, lines):
+    if not lines:
+        return
+    file = files[path]
+    text = "\n".join(lines)
+    template = ctx.actions.declare_file(file.basename + ".%s.template" % platform.name)
+    out = ctx.actions.declare_file(file.basename + ".%s.append.%s" % (platform.name, file.extension))
+    files[path] = out
+    ctx.actions.write(output = template, content = "{CONTENT}")
+    expand_template_ex(
+        ctx = ctx,
+        template = template,
+        out = out,
+        substitutions = {
+            "{CONTENT}": "$(inline " + file.path + ")\n" + text + "\n",
+        },
+        files = [file],
+    )
+
 def _stamp(ctx, args, srcs, src, out):
     args.add("--stamp")
     args.add(src)
@@ -669,6 +689,12 @@ def _android_studio_os(ctx, platform, out):
     ctx.actions.write(dev01, "")
     files += [(platform.base_path + "license/dev01_license.txt", dev01)]
 
+    suffix = "64" if platform == LINUX else ("64.exe" if platform == WIN else "")
+    vm_options_path = platform_prefix + platform.base_path + "bin/studio" + suffix + ".vmoptions"
+    _append(ctx, platform, all_files, vm_options_path, ctx.attr.vm_options)
+
+    _append(ctx, platform, all_files, platform_prefix + platform.base_path + "bin/idea.properties", ctx.attr.properties)
+
     # Add safe mode batch file based on the current platform
     source_map = {
         LINUX: ctx.attr.files_linux,
@@ -765,6 +791,8 @@ _android_studio = rule(
         "jre": attr.label(),
         "platform": attr.label(providers = [IntellijInfo]),
         "plugins": attr.label_list(providers = [PluginInfo]),
+        "vm_options": attr.string_list(),
+        "properties": attr.string_list(),
         "searchable_options": attr.label(),
         "version_code_name": attr.string(),
         "version_micro_patch": attr.string(),
@@ -797,6 +825,11 @@ _android_studio = rule(
         "_lnzipper": attr.label(
             default = Label("//tools/base/bazel/lnzipper:lnzipper"),
             cfg = "exec",
+            executable = True,
+        ),
+        "_expander": attr.label(
+            default = Label("//tools/base/bazel/expander"),
+            cfg = "host",
             executable = True,
         ),
     },
