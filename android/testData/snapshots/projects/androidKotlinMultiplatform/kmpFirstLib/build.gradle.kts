@@ -6,7 +6,9 @@ plugins {
 kotlin {
   androidLibrary {
     withAndroidTestOnJvm(compilationName = "unitTest")
-    withAndroidTestOnDevice(compilationName = "instrumentedTest")
+    withAndroidTestOnDevice(compilationName = "instrumentedTest") {
+      instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
 
     sourceSets.getByName("androidMain") {
       dependencies {
@@ -33,8 +35,6 @@ kotlin {
       productFlavors.put("type", mutableListOf("typeone"))
       productFlavors.put("mode", mutableListOf("modetwo"))
     }
-
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     aarMetadata.minAgpVersion = "7.2.0"
   }
