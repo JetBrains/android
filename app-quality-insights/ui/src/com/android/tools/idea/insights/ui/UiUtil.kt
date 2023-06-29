@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueDetails
-import com.android.tools.idea.insights.ui.AppInsightsIssuesTableView.Companion.LOGGER
 import com.intellij.icons.AllIcons
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
@@ -74,7 +73,6 @@ val EMPTY_STATE_LINK_FORMAT =
 fun IssueDetails.getDisplayTitle(): Pair<String, String> {
   val splitSubtitle = subtitle.split('.')
   if (splitSubtitle.size < 2) {
-    LOGGER.warn("Failed to format subtitle: $subtitle")
     return title to ""
   }
   val (className, methodName) = splitSubtitle.takeLast(2)
