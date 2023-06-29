@@ -18,5 +18,3 @@ play-services-maps = { group = "com.google.android.gms", name = "play-services-m
 
 [plugins]
 
-[bundles]
-

@@ -24,5 +24,3 @@ navigation-ui = { group = "androidx.navigation", name = "navigation-ui", version
 
 [plugins]
 
-[bundles]
-

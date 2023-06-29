@@ -39,5 +39,3 @@ watchface-complications-data-source-ktx = { group = "androidx.wear.watchface", n
 
 [plugins]
 
-[bundles]
-

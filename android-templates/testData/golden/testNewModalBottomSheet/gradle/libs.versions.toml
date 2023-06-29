@@ -18,5 +18,3 @@ recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version
 
 [plugins]
 
-[bundles]
-

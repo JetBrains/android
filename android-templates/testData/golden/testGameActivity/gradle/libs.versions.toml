@@ -16,5 +16,3 @@ games-activity = { group = "androidx.games", name = "games-activity", version.re
 
 [plugins]
 
-[bundles]
-

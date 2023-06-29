@@ -10,5 +10,3 @@ glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "gl
 
 [plugins]
 
-[bundles]
-

@@ -26,5 +26,3 @@ activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref
 
 [plugins]
 
-[bundles]
-

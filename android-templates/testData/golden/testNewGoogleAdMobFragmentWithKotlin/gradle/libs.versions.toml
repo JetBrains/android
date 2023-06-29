@@ -20,5 +20,3 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 
 [plugins]
 
-[bundles]
-

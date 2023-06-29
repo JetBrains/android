@@ -29,5 +29,3 @@ activity-compose = { group = "androidx.activity", name = "activity-compose", ver
 
 [plugins]
 
-[bundles]
-

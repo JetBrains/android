@@ -16,5 +16,3 @@ legacy-support-v13 = { group = "androidx.legacy", name = "legacy-support-v13", v
 
 [plugins]
 
-[bundles]
-

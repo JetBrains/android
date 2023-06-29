@@ -20,5 +20,3 @@ lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-lived
 
 [plugins]
 
-[bundles]
-

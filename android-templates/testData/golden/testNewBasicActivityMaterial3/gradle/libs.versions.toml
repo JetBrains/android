@@ -22,5 +22,3 @@ navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx",
 
 [plugins]
 
-[bundles]
-

@@ -18,5 +18,3 @@ preference = { group = "androidx.preference", name = "preference", version.ref =
 
 [plugins]
 
-[bundles]
-

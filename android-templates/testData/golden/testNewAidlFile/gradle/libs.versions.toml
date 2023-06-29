@@ -14,5 +14,3 @@ material = { group = "com.google.android.material", name = "material", version.r
 
 [plugins]
 
-[bundles]
-

@@ -14,5 +14,3 @@ media = { group = "androidx.media", name = "media", version.ref = "media" }
 
 [plugins]
 
-[bundles]
-

@@ -18,5 +18,3 @@ play-services-ads = { group = "com.google.android.gms", name = "play-services-ad
 
 [plugins]
 
-[bundles]
-

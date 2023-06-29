@@ -20,5 +20,3 @@ slice-builders = { group = "androidx.slice", name = "slice-builders", version.re
 
 [plugins]
 
-[bundles]
-
