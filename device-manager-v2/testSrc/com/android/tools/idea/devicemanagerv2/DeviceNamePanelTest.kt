@@ -96,6 +96,16 @@ class DeviceNamePanelTest {
   }
 
   @Test
+  fun icon() {
+    val panel = DeviceNamePanel()
+    val row = sampleRow().copy(icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR)
+
+    panel.update(row)
+
+    assertThat(panel.deviceIcon.baseIcon).isEqualTo(StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR)
+  }
+
+  @Test
   fun wearPairing() {
     val panel = DeviceNamePanel()
     val row =
@@ -104,6 +114,7 @@ class DeviceNamePanelTest {
         handle = mock<DeviceHandle>(),
         name = "Pixel 6",
         type = DeviceType.HANDHELD,
+        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE,
         androidVersion = AndroidVersion(31),
         abi = Abi.ARM64_V8A,
         status = DeviceRowData.Status.ONLINE,
@@ -127,4 +138,21 @@ class DeviceNamePanelTest {
       .isEqualTo(StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED)
     assertThat(panel.pairedLabel.accessibleContext.accessibleDescription).contains("Pixel Watch")
   }
+
+  /** An arbitrary DeviceRowData that can easily be customized with copy(). */
+  private fun sampleRow() =
+    DeviceRowData(
+      template = null,
+      handle = mock<DeviceHandle>(),
+      name = "Pixel 6",
+      type = DeviceType.HANDHELD,
+      icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE,
+      androidVersion = AndroidVersion(31),
+      abi = Abi.ARM64_V8A,
+      status = DeviceRowData.Status.ONLINE,
+      error = null,
+      handleType = DeviceRowData.HandleType.PHYSICAL,
+      wearPairingId = "abcd1234",
+      pairingStatus = emptyList()
+    )
 }

@@ -23,6 +23,7 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.intellij.openapi.actionSystem.DataKey
+import javax.swing.Icon
 
 /**
  * Immutable snapshot of relevant parts of a [DeviceHandle] or [DeviceTemplate] for use in
@@ -37,6 +38,7 @@ internal data class DeviceRowData(
   val handle: DeviceHandle?,
   val name: String,
   val type: DeviceType,
+  val icon: Icon,
   val androidVersion: AndroidVersion?,
   val abi: Abi?,
   val status: Status,
@@ -63,6 +65,7 @@ internal data class DeviceRowData(
         handle = handle,
         name = properties.title,
         type = properties.deviceType ?: DeviceType.HANDHELD,
+        icon = properties.icon,
         androidVersion = properties.androidVersion,
         abi = properties.abi,
         status =
@@ -90,6 +93,7 @@ internal data class DeviceRowData(
         handle = null,
         name = properties.title,
         type = properties.deviceType ?: DeviceType.HANDHELD,
+        icon = properties.icon,
         androidVersion = properties.androidVersion,
         abi = properties.abi,
         status = Status.OFFLINE,

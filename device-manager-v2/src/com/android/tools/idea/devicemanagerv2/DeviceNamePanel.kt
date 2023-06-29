@@ -39,6 +39,7 @@ import org.jetbrains.annotations.VisibleForTesting
  * to indicate more details, such as its Android version or an error state.
  */
 internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
+  internal val deviceIcon = IconLabel(null)
   internal val twoLineLabel = TwoLineLabel()
   internal val pairedLabel = IconLabel(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN)
 
@@ -49,6 +50,7 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
     val horizontalGroup =
       layout
         .createSequentialGroup()
+        .addComponent(deviceIcon)
         .addPreferredGap(ComponentPlacement.RELATED)
         .addComponent(twoLineLabel)
         .addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Int.MAX_VALUE)
@@ -58,6 +60,7 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
     val verticalGroup =
       layout
         .createParallelGroup(GroupLayout.Alignment.CENTER)
+        .addComponent(deviceIcon)
         .addGroup(
           layout
             .createSequentialGroup()
@@ -74,6 +77,7 @@ internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null) {
   }
 
   fun update(deviceRowData: DeviceRowData) {
+    deviceIcon.baseIcon = deviceRowData.icon
     twoLineLabel.line1Label.text = deviceRowData.name
     twoLineLabel.line2Label.text = deviceRowData.toLine2Text()
     updatePairingState(deviceRowData.pairingStatus)
