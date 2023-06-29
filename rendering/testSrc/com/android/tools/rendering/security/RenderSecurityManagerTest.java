@@ -18,6 +18,7 @@ package com.android.tools.rendering.security;
 import com.android.ide.common.resources.RecordingLogger;
 import com.android.testutils.TestUtils;
 import com.android.utils.SdkUtils;
+import com.google.common.base.Predicates;
 import com.google.common.io.Files;
 import com.intellij.mock.MockApplication;
 import com.intellij.openapi.Disposable;
@@ -30,6 +31,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.function.Supplier;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -80,7 +82,7 @@ public class RenderSecurityManagerTest {
   @Test
   public void testExec() throws IOException {
     assertNull(RenderSecurityManager.getCurrent());
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     RecordingLogger logger = new RecordingLogger();
     manager.setLogger(logger);
     try {
@@ -109,7 +111,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testSetSecurityManager() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
       System.setSecurityManager(null);
@@ -126,10 +128,11 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testRead() {
-    RenderSecurityManager manager = new RenderSecurityManager(
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(
       "/Users/userHome/Sdk",
       "/Users/userHome/Projects/project1",
-      true);
+      true,
+      () -> true);
 
     // Not allowed paths
     String[] notAllowedPaths = new String[] {
@@ -179,10 +182,11 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testWrite() {
-    RenderSecurityManager manager = new RenderSecurityManager(
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(
       "/Users/userHome/Sdk",
       "/Users/userHome/Projects/project1",
-      false);
+      false,
+      () -> true);
 
     String cachePath = PathManager.getSystemPath() + "/caches/";
     String indexPath = PathManager.getIndexRoot() + "/";
@@ -230,7 +234,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testExecute() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
       manager.checkPermission(new FilePermission("/foo", "execute"));
@@ -247,7 +251,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testDelete() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
       manager.checkPermission(new FilePermission("/foo", "delete"));
@@ -264,7 +268,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testLoadLibrary() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -285,7 +289,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testAllowedLoadLibrary() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -302,7 +306,7 @@ public class RenderSecurityManagerTest {
   @SuppressWarnings("CheckReturnValue")
   @Test
   public void testInvalidRead() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -322,7 +326,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testInvalidPropertyWrite() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -344,7 +348,7 @@ public class RenderSecurityManagerTest {
   @SuppressWarnings("CheckReturnValue")
   @Test
   public void testReadOk() throws IOException {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -367,7 +371,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testProperties() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -387,7 +391,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testExit() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -420,7 +424,7 @@ public class RenderSecurityManagerTest {
         }
       }
     };
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -452,7 +456,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testActive() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -493,6 +497,8 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testThread2() throws InterruptedException {
+    ThreadGroup renderThreadGroup = new ThreadGroup("Render thread group");
+    Supplier<Boolean> isRenderThread = () -> renderThreadGroup.parentOf(Thread.currentThread().getThreadGroup());
     final List<Thread> threads = Collections.synchronizedList(new ArrayList<>());
     // Check that when a new thread is created simultaneously from an unrelated
     // thread during rendering, that new thread does not pick up the security manager.
@@ -514,14 +520,14 @@ public class RenderSecurityManagerTest {
     // uninstalled, and at barrier5 all threads will check that there are no more
     // restrictions. At barrier6 all threads are done.
 
-    final Thread thread1 = new Thread("render") {
+    final Thread thread1 = new Thread(renderThreadGroup, "render") {
       @Override
       public void run() {
         try {
           barrier1.await();
           assertNull(RenderSecurityManager.getCurrent());
 
-          RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+          RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, isRenderThread);
           manager.setActive(true, myCredential);
 
           barrier2.await();
@@ -649,7 +655,7 @@ public class RenderSecurityManagerTest {
   public void testDisabled() {
     assertNull(RenderSecurityManager.getCurrent());
 
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     RenderSecurityManager.sEnabled = false;
     try {
       assertNull(RenderSecurityManager.getCurrent());
@@ -708,7 +714,8 @@ public class RenderSecurityManagerTest {
     });
     thread.start();
 
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    Thread thisThread = Thread.currentThread();
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> thisThread == Thread.currentThread());
     RecordingLogger logger = new RecordingLogger();
     manager.setLogger(logger);
     try {
@@ -740,7 +747,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testEnterExitSafeRegion() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     Object credential = new Object();
     try {
       manager.setActive(true, credential);
@@ -815,7 +822,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testRunSafeRegion() throws Exception {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     Object credential = new Object();
     try {
       manager.setActive(true, credential);
@@ -863,7 +870,7 @@ public class RenderSecurityManagerTest {
   public void testImageIo() throws IOException, InterruptedException {
     // Warm up ImageIO static state that calls write actions forbidden by RenderSecurityManager
     ImageIO.getCacheDirectory();
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -907,7 +914,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testTempDir() throws IOException {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -928,7 +935,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testAppTempDir() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setAppTempDir("/random/path/");
       manager.setActive(true, myCredential);
@@ -943,7 +950,7 @@ public class RenderSecurityManagerTest {
   public void testSetTimeZone() {
     // Warm up TimeZone.defaultTimeZone initialization that accesses properties forbidden by RenderSecurityManager
     TimeZone.getDefault();
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -974,7 +981,7 @@ public class RenderSecurityManagerTest {
    */
   @Test
   public void testLogDir() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -990,7 +997,7 @@ public class RenderSecurityManagerTest {
   }
   @Test
   public void testLogException() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 
@@ -1017,7 +1024,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testNoLinkCreationAllowed() throws IOException {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     Path testTemp = java.nio.file.Files.createTempDirectory("linkTest");
     Path attackLink = testTemp.resolve("attack");
     File victimFile = new File(PathManager.getConfigPath() + "/victim-" + UUID.randomUUID().toString());
@@ -1037,7 +1044,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testCheckWriteToNonExistingLink() throws IOException {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
 
     Path testTemp = java.nio.file.Files.createTempDirectory("linkTest");
     Path attackLink = testTemp.resolve("attack");
@@ -1060,7 +1067,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testCheckWriteToExistingLink() throws IOException {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
 
     Path testTemp = java.nio.file.Files.createTempDirectory("linkTest");
     Path attackLink = testTemp.resolve("attack");
@@ -1086,7 +1093,7 @@ public class RenderSecurityManagerTest {
    */
   @Test
   public void testPathTraversal() throws IOException {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
       manager.checkPermission(new FilePermission("/tmp/../dev/null", "read,write"));
@@ -1102,7 +1109,7 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testSystemPropertiesAccess() {
-    RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
+    RenderSecurityManager manager = RenderSecurityManager.createForTests(null, null, false, () -> true);
     try {
       manager.setActive(true, myCredential);
 

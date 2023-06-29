@@ -17,10 +17,12 @@ package com.android.tools.rendering
 
 import com.android.testutils.VirtualTimeScheduler
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import org.junit.Assert
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.util.concurrent.CountDownLatch
 
 class SingleThreadExecutorServiceTest {
   @Test
@@ -65,5 +67,30 @@ class SingleThreadExecutorServiceTest {
     Assert.assertEquals(3, slowThreadCounter)
 
     executor.shutdown()
+  }
+
+  @Test
+  fun testHasSpawnedCurrentThread() {
+    val executor =
+      SingleThreadExecutorService.create(
+        "Test thread",
+        threadProfileSettings = ThreadProfileSettings.disabled
+      )
+
+    var exception: Throwable? = null
+    executor.submit {
+      assertTrue(executor.hasSpawnedCurrentThread())
+
+      Thread {
+        // Child threads must also return hasSpawnedCurrentThread
+        assertTrue(executor.hasSpawnedCurrentThread())
+      }.also {
+        it.setUncaughtExceptionHandler { t, e -> exception = e  }
+        it.start()
+        it.join()
+      }
+      exception?.let { throw it }
+    }.get()
+    assertFalse(executor.hasSpawnedCurrentThread())
   }
 }

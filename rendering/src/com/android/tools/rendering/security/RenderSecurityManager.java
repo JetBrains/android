@@ -16,6 +16,7 @@
 package com.android.tools.rendering.security;
 
 import com.android.annotations.Nullable;
+import com.android.tools.rendering.RenderService;
 import com.android.utils.ILogger;
 
 import com.intellij.openapi.application.PathManager;
@@ -31,6 +32,7 @@ import java.security.Permission;
 import java.util.Arrays;
 import java.util.PropertyPermission;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.*;
@@ -59,25 +61,6 @@ public class RenderSecurityManager extends SecurityManager {
   public static boolean sEnabled = !VALUE_FALSE.equals(System.getProperty(ENABLED_PROPERTY));
 
   /**
-   * Thread local data which indicates whether the current thread is relevant for
-   * this security manager. This is an inheritable thread local such that any threads
-   * spawned from this thread will also apply the security manager; otherwise code
-   * could just create new threads and execute code separate from the security manager
-   * there.
-   */
-  private static ThreadLocal<Boolean> sIsRenderThread = new InheritableThreadLocal<Boolean>() {
-    @Override
-    protected synchronized Boolean initialValue() {
-      return Boolean.FALSE;
-    }
-
-    @Override
-    protected synchronized Boolean childValue(Boolean parentValue) {
-      return parentValue;
-    }
-  };
-
-  /**
    * Secret which must be provided by callers wishing to deactivate the security manager
    */
   private static Object sCredential;
@@ -100,15 +83,7 @@ public class RenderSecurityManager extends SecurityManager {
 
   private boolean isRestrictReads;
 
-  @NotNull
-  private static String normalizeDirectoryPath(@NotNull Path originalPath) {
-    return originalPath.normalize() + originalPath.getFileSystem().getSeparator();
-  }
-
-  @NotNull
-  private static String normalizeDirectoryPath(@NotNull String stringPath) {
-    return normalizeDirectoryPath(Paths.get(stringPath));
-  }
+  private final Supplier<Boolean> isRenderThread;
 
   /**
    * Returns the current render security manager, if any. This will only return
@@ -117,12 +92,10 @@ public class RenderSecurityManager extends SecurityManager {
    */
   @Nullable
   public static RenderSecurityManager getCurrent() {
-    if (sIsRenderThread.get()) {
-      SecurityManager securityManager = System.getSecurityManager();
-      if (securityManager instanceof RenderSecurityManager) {
-        RenderSecurityManager manager = (RenderSecurityManager)securityManager;
-        return manager.isRelevant() ? manager : null;
-      }
+    SecurityManager securityManager = System.getSecurityManager();
+    if (securityManager instanceof RenderSecurityManager) {
+      RenderSecurityManager manager = (RenderSecurityManager)securityManager;
+      return manager.isRelevant() ? manager : null;
     }
 
     return null;
@@ -147,11 +120,12 @@ public class RenderSecurityManager extends SecurityManager {
    * @param restrictReads when true, reads will be restricted to only a set of directories including temp directory and the given sdkPath
    *                      and projectPath directories.
    */
-  public RenderSecurityManager(
+  protected RenderSecurityManager(
     @Nullable String sdkPath,
     @Nullable String projectPath,
     boolean restrictReads,
-    @NotNull String[] allowedPaths) {
+    @NotNull String[] allowedPaths,
+    @NotNull Supplier<Boolean> isRenderThread) {
     mSdkPath = sdkPath;
     mProjectPath = projectPath;
     mTempDir = System.getProperty("java.io.tmpdir");
@@ -160,23 +134,24 @@ public class RenderSecurityManager extends SecurityManager {
     //noinspection AssignmentToStaticFieldFromInstanceMethod
     sLastFailedPath = null;
     isRestrictReads = restrictReads;
+    this.isRenderThread = isRenderThread;
   }
 
-  public RenderSecurityManager(
+  @NotNull
+  static RenderSecurityManager createForTests(
+    @Nullable String sdkPath,
+    @Nullable String projectPath,
+    boolean restrictReads,
+    @NotNull Supplier<Boolean> isRenderThread) {
+    return new RenderSecurityManager(sdkPath, projectPath, restrictReads, RenderSecurityManagerDefaults.getDefaultAllowedPaths(), isRenderThread);
+  }
+
+  @NotNull
+  public static RenderSecurityManager create(
     @Nullable String sdkPath,
     @Nullable String projectPath,
     boolean restrictReads) {
-    this(sdkPath, projectPath, restrictReads, new String[]{
-      // When loading classes, IntelliJ might sometimes drop a corruption marker
-      normalizeDirectoryPath(PathManager.getIndexRoot()),
-      /*
-        Root of the path where IntelliJ stores the logs. When loading classes,
-        IntelliJ might try to update cache hashes for the loaded files
-      */
-      normalizeDirectoryPath(PathManager.getLogPath()),
-      // When loading classes, IntelliJ might try to update cache hashes for the loaded files
-      normalizeDirectoryPath(Paths.get(PathManager.getSystemPath(), "caches"))
-    });
+    return new RenderSecurityManager(sdkPath, projectPath, restrictReads, RenderSecurityManagerDefaults.getDefaultAllowedPaths(), RenderService::isRenderThread);
   }
 
   /**
@@ -216,7 +191,6 @@ public class RenderSecurityManager extends SecurityManager {
       // Enable
       assert !(current instanceof RenderSecurityManager);
       myPreviousSecurityManager = current;
-      sIsRenderThread.set(true);
       mDisabled = false;
       System.setSecurityManager(this);
       //noinspection AssignmentToStaticFieldFromInstanceMethod
@@ -246,20 +220,18 @@ public class RenderSecurityManager extends SecurityManager {
           System.setSecurityManager(myPreviousSecurityManager);
         }
         else if (mLogger != null) {
-          sIsRenderThread.set(false);
           mLogger.warning("Security manager was changed behind the scenes: ", current);
         }
       }
       finally {
         mDisabled = true;
         mAllowSetSecurityManager = false;
-        sIsRenderThread.set(false);
       }
     }
   }
 
   protected boolean isRelevant() {
-    return sEnabled && !mDisabled && sIsRenderThread.get();
+    return sEnabled && !mDisabled && isRenderThread.get();
   }
 
   /**

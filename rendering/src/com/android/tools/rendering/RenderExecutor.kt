@@ -275,6 +275,11 @@ private constructor(
   /** Returns true if the render thread is busy running some code, false otherwise. */
   fun isBusy() = renderingExecutorService.isBusy
 
+  /**
+   * Returns true if called from the render thread.
+   */
+  fun isRenderThread(): Boolean = renderingExecutorService.hasSpawnedCurrentThread()
+
   companion object {
     @JvmStatic
     fun create(): RenderExecutor {

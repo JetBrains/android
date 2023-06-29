@@ -48,6 +48,7 @@ import kotlin.random.Random
 
 private class TestSingleThreadExecutorService(private val delegate: ExecutorService): AbstractExecutorService(), SingleThreadExecutorService {
   override val isBusy: Boolean = false
+  override fun hasSpawnedCurrentThread(): Boolean = false
   override fun stackTrace(): Array<StackTraceElement> = emptyArray()
   override fun interrupt() {}
   override fun execute(command: Runnable) = delegate.execute(command)

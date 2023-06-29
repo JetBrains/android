@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.rendering.RenderAsyncActionExecutor;
 import com.android.tools.rendering.RenderService;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import junit.framework.TestCase;
 
 import java.util.concurrent.CountDownLatch;
@@ -87,5 +88,31 @@ public class RenderServiceTest extends TestCase {
     future.get();
     assertEquals(renderActionCounter + 1, renderActionExecutor.getExecutedRenderActionCount());
     assertTrue(called.get());
+  }
+
+  public void testRenderThreadCheck() throws Throwable {
+    assertFalse(RenderService.isRenderThread());
+    AtomicReference<Throwable> exceptionReference = new AtomicReference<>(null);
+    RenderService.getRenderAsyncActionExecutor().runAsyncAction(() -> {
+      assertTrue(RenderService.isRenderThread());
+      Thread thread = new Thread(() -> {
+        assertTrue(RenderService.isRenderThread());
+      });
+
+      thread.setUncaughtExceptionHandler((t, e) -> {
+          exceptionReference.set(e);
+      });
+      thread.start();
+      try {
+        thread.join();
+      }
+      catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }).get();
+
+    Throwable exception = exceptionReference.get();
+    if (exception != null) throw exception;
+    assertFalse(RenderService.isRenderThread());
   }
 }

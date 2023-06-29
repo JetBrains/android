@@ -60,21 +60,36 @@ import org.jetbrains.annotations.TestOnly;
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
  */
 final public class RenderService implements Disposable {
-  private static RenderExecutor ourExecutor;
+  private static final Object ourExecutorLock = new Object();
+  private static RenderExecutor ourExecutor = getOrCreateExecutor();
 
-  static {
-    ourExecutor = RenderExecutor.create();
+  @NotNull
+  private static RenderExecutor getOrCreateExecutor() {
+    synchronized (ourExecutorLock) {
+      if (ourExecutor == null) ourExecutor = RenderExecutor.create();
+      return ourExecutor;
+    }
+  }
+
+  @Nullable
+  private static RenderExecutor getExistingExecutor() {
+    synchronized (ourExecutorLock) {
+      return ourExecutor;
+    }
   }
 
   @TestOnly
   public static void initializeRenderExecutor() {
     assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit testszs
 
-    ourExecutor = RenderExecutor.create();
+    synchronized (ourExecutorLock) {
+      ourExecutor = RenderExecutor.create();
+    }
   }
 
   public static void shutdownRenderExecutor() {
-    ourExecutor.shutdown();
+    RenderExecutor currentExecutor = getExistingExecutor();
+    if (currentExecutor != null) currentExecutor.shutdown();
   }
 
   /**
@@ -85,7 +100,9 @@ final public class RenderService implements Disposable {
   public static void shutdownRenderExecutor(@SuppressWarnings("SameParameterValue") long timeoutSeconds) {
     assert ApplicationManager.getApplication().isUnitTestMode(); // Only to be called from unit tests
 
-    ourExecutor.shutdown(timeoutSeconds);
+    // We avoid using getExecutor here since we do not want to create a new one if it doesn't exist
+    RenderExecutor currentExecutor = getExistingExecutor();
+    if (currentExecutor != null) currentExecutor.shutdown(timeoutSeconds);
   }
 
   private static final String JDK_INSTALL_URL = "https://developer.android.com/preview/setup-sdk.html#java8";
@@ -98,7 +115,7 @@ final public class RenderService implements Disposable {
 
   @NotNull
   public static RenderAsyncActionExecutor getRenderAsyncActionExecutor() {
-    return ourExecutor;
+    return getOrCreateExecutor();
   }
 
   /**
@@ -106,7 +123,7 @@ final public class RenderService implements Disposable {
    */
   @TestOnly
   public static StackTraceElement[] getCurrentExecutionStackTrace() {
-    return ourExecutor.currentStackTrace();
+    return getOrCreateExecutor().currentStackTrace();
   }
 
   public RenderService(@NotNull Consumer<RenderTaskBuilder> configureBuilder) {
@@ -148,7 +165,16 @@ final public class RenderService implements Disposable {
    * @return true if the underlying {@link RenderExecutor} is busy, false otherwise.
    */
   public static boolean isBusy() {
-    return ourExecutor.isBusy();
+    RenderExecutor currentExecutor = getExistingExecutor();
+    return currentExecutor != null && currentExecutor.isBusy();
+  }
+
+  /**
+   * @return true if called from the render thread.
+   */
+  public static boolean isRenderThread() {
+    RenderExecutor currentExecutor = getExistingExecutor();
+    return currentExecutor != null && currentExecutor.isRenderThread();
   }
 
   /**

@@ -32,9 +32,7 @@ private val PROFILE_SLOW_TASKS_TIMEOUT_MS =
   Integer.getInteger("layoutlib.thread.profile.timeoutms", 4000)
 private val PROFILE_INTERVAL_MS = Integer.getInteger("layoutlib.thread.profile.intervalms", 2500)
 
-/**
- * Settings for profiling a thread.
- */
+/** Settings for profiling a thread. */
 data class ThreadProfileSettings(
   /** Ms to wait before considering a running task as slow and start profiling. */
   val profileSlowTasksTimeoutMs: Long = PROFILE_SLOW_TASKS_TIMEOUT_MS.toLong(),
@@ -48,42 +46,45 @@ data class ThreadProfileSettings(
   val onSlowThread: (Throwable) -> Unit
 ) {
   companion object {
-    val disabled = ThreadProfileSettings(
-      maxSamples = 0,
-      scheduledExecutorService = ScheduledThreadPoolExecutor(0),
-      onSlowThread = {}
-    )
+    val disabled =
+      ThreadProfileSettings(
+        maxSamples = 0,
+        scheduledExecutorService = ScheduledThreadPoolExecutor(0),
+        onSlowThread = {}
+      )
   }
 }
 
 /**
- * Interface for a single threaded executor service with additional functionality to allow
- * for interrupting the thread and checking whether is active or not.
+ * Interface for a single threaded executor service with additional functionality to allow for
+ * interrupting the thread and checking whether is active or not.
  */
-interface SingleThreadExecutorService: ExecutorService {
+interface SingleThreadExecutorService : ExecutorService {
   /** True if busy and a new command will not execute immediately. */
   val isBusy: Boolean
 
+  /** Returns true if called from the thread that is handled by this [ExecutorService]. */
+  fun hasSpawnedCurrentThread(): Boolean
+
   /**
-   * Returns the current stack thread for the thread executing commands.
-   * The stack trace might be empty if the thread is not currently running.
+   * Returns the current stack thread for the thread executing commands. The stack trace might be
+   * empty if the thread is not currently running.
    */
   fun stackTrace(): Array<StackTraceElement>
 
-  /**
-   * Sends an interrupt to the thread and returns immediately.
-   */
+  /** Sends an interrupt to the thread and returns immediately. */
   fun interrupt()
 
   companion object {
     /**
-     * Creates a new single thread [ExecutorService] with optional profiling. The [threadName] will name
-     * the thread used by this executor.
+     * Creates a new single thread [ExecutorService] with optional profiling. The [threadName] will
+     * name the thread used by this executor.
      */
     fun create(
       threadName: String,
       threadProfileSettings: ThreadProfileSettings
-    ): SingleThreadExecutorService = ProfilingSingleThreadExecutorImpl(threadName, threadProfileSettings)
+    ): SingleThreadExecutorService =
+      ProfilingSingleThreadExecutorImpl(threadName, threadProfileSettings)
   }
 }
 
@@ -97,30 +98,28 @@ private class ProfilingSingleThreadExecutorImpl(
   override val isBusy: Boolean
     get() = _isBusy.get()
 
+  private val renderThreadGroup = ThreadGroup("Render Thread group")
+
   /**
    * The thread factory allows us controlling when the new thread is created to we can keep track of
    * it. This allows us to capture the stack trace later.
    */
   private val threadFactory = ThreadFactory {
-    val newThread = Thread(null, it, threadName).apply { isDaemon = true }
+    val newThread = Thread(renderThreadGroup, it, threadName).apply { isDaemon = true }
     theThread.set(newThread)
     newThread
   }
 
-  private fun profileThread(
-    remainingSamples: Int,
-    profileThreadFuture: CompletableFuture<Unit>
-  ) {
+  private fun profileThread(remainingSamples: Int, profileThreadFuture: CompletableFuture<Unit>) {
     if (remainingSamples <= 0) return
     if (!isBusy) return
     threadProfileSettings.onSlowThread(
       TimeoutException(
-        "Slow render action ${threadProfileSettings.maxSamples-remainingSamples}/${threadProfileSettings.maxSamples}"
-      ).also { slowException ->
-        theThread.get()?.also {
-          slowException.stackTrace = it.stackTrace
+          "Slow render action ${threadProfileSettings.maxSamples-remainingSamples}/${threadProfileSettings.maxSamples}"
+        )
+        .also { slowException ->
+          theThread.get()?.also { slowException.stackTrace = it.stackTrace }
         }
-      }
     )
     threadProfileSettings.scheduledExecutorService
       .schedule(
@@ -133,34 +132,37 @@ private class ProfilingSingleThreadExecutorImpl(
       }
   }
   private var profileThreadFuture: CompletableFuture<Unit>? = null
-  private val threadPoolExecutor = object:
-    ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, PriorityBlockingQueue(), threadFactory) {
-    override fun beforeExecute(t: Thread?, r: Runnable?) {
-      _isBusy.set(true)
-      profileThreadFuture = CompletableFuture()
-      threadProfileSettings.scheduledExecutorService
-        .schedule(
-          { profileThread(threadProfileSettings.maxSamples, profileThreadFuture!!) },
-          threadProfileSettings.profileSlowTasksTimeoutMs,
-          TimeUnit.MILLISECONDS
-        )
-        .also { scheduledFuture ->
-          profileThreadFuture!!.whenComplete { _, _ -> scheduledFuture.cancel(true) }
-        }
-      super.beforeExecute(t, r)
+  private val threadPoolExecutor =
+    object :
+      ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, PriorityBlockingQueue(), threadFactory) {
+      override fun beforeExecute(t: Thread?, r: Runnable?) {
+        _isBusy.set(true)
+        profileThreadFuture = CompletableFuture()
+        threadProfileSettings.scheduledExecutorService
+          .schedule(
+            { profileThread(threadProfileSettings.maxSamples, profileThreadFuture!!) },
+            threadProfileSettings.profileSlowTasksTimeoutMs,
+            TimeUnit.MILLISECONDS
+          )
+          .also { scheduledFuture ->
+            profileThreadFuture!!.whenComplete { _, _ -> scheduledFuture.cancel(true) }
+          }
+        super.beforeExecute(t, r)
+      }
+
+      override fun afterExecute(r: Runnable?, t: Throwable?) {
+        val pendingProfiling = profileThreadFuture
+        profileThreadFuture = null
+        pendingProfiling?.cancel(true)
+        _isBusy.set(false)
+        super.afterExecute(r, t)
+      }
     }
 
-    override fun afterExecute(r: Runnable?, t: Throwable?) {
-      val pendingProfiling = profileThreadFuture
-      profileThreadFuture = null
-      pendingProfiling?.cancel(true)
-      _isBusy.set(false)
-      super.afterExecute(r, t)
-    }
-  }
+  override fun hasSpawnedCurrentThread(): Boolean =
+    renderThreadGroup.parentOf(Thread.currentThread().threadGroup)
 
-  override fun stackTrace(): Array<StackTraceElement> =
-    theThread.get()?.stackTrace ?: emptyArray()
+  override fun stackTrace(): Array<StackTraceElement> = theThread.get()?.stackTrace ?: emptyArray()
 
   override fun interrupt() {
     theThread.get()?.interrupt()

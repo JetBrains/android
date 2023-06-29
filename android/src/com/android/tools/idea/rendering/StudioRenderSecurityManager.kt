@@ -16,14 +16,21 @@
 package com.android.tools.idea.rendering
 
 import com.android.tools.adtui.webp.WebpNativeLibHelper
+import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.security.RenderSecurityException
 import com.android.tools.rendering.security.RenderSecurityManager
+import com.android.tools.rendering.security.RenderSecurityManagerDefaults
 import java.io.File
 
 /** Studio-specific [RenderSecurityManager]. */
-class StudioRenderSecurityManager(
-  sdkPath: String?, projectPath: String?, restrictReads: Boolean
-) : RenderSecurityManager(sdkPath, projectPath, restrictReads) {
+class StudioRenderSecurityManager(sdkPath: String?, projectPath: String?, restrictReads: Boolean) :
+  RenderSecurityManager(
+    sdkPath,
+    projectPath,
+    restrictReads,
+    RenderSecurityManagerDefaults.getDefaultAllowedPaths(),
+    RenderService::isRenderThread
+  ) {
   override fun checkLink(lib: String) {
     // Allow linking with relative paths
     // Needed to for example load the "fontmanager" library from layout lib (from the
