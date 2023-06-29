@@ -18,8 +18,11 @@ package com.android.tools.idea.lang.androidSql.room
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.createAndroidProjectBuilderForDefaultTestProjectStructure
+import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.command.CommandProcessor
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.junit.Before
@@ -136,5 +139,107 @@ class RoomSqlBooleanLiteralInspectionTest(private val minSdk: Int, private val e
     myFixture.openFileInEditor(file.virtualFile)
 
     myFixture.checkHighlighting()
+  }
+
+  @Test
+  fun applyQuickFixForTrue() {
+    // For API levels that don't show the warning, there's nothing to verify.
+    if (!expectWarning) return
+
+    val file = myFixture.addFileToProject(
+      "src/com/example/UserDao.java",
+      //language=java
+      """
+      package com.example;
+
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
+
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE isActive = TRUE")
+        List<Object> getObjects();
+      }
+      """.trimIndent())
+    myFixture.openFileInEditor(file.virtualFile)
+    myFixture.moveCaret("SELECT * FROM user WHERE isActive = TR|UE")
+
+    val intention = myFixture.getAvailableIntention("Replace Boolean literal 'TRUE' with '1'")
+    assertThat(intention).isNotNull()
+
+    CommandProcessor.getInstance().executeCommand(
+      myFixture.project,
+      { runWriteAction { intention!!.invoke(myFixture.project, myFixture.editor, file) } },
+      /* name = */ "Apply Quick Fix",
+      /* groupId = */ null
+    )
+
+    myFixture.checkResult(
+      //language=java
+      """
+      package com.example;
+
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
+
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE isActive = 1")
+        List<Object> getObjects();
+      }
+      """.trimIndent())
+  }
+
+  @Test
+  fun applyQuickFixForFalse() {
+    // For API levels that don't show the warning, there's nothing to verify.
+    if (!expectWarning) return
+
+    val file = myFixture.addFileToProject(
+      "src/com/example/UserDao.java",
+      //language=java
+      """
+      package com.example;
+
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
+
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE isActive = FALSE")
+        List<Object> getObjects();
+      }
+      """.trimIndent())
+    myFixture.openFileInEditor(file.virtualFile)
+    myFixture.moveCaret("SELECT * FROM user WHERE isActive = FAL|SE")
+
+    val intention = myFixture.getAvailableIntention("Replace Boolean literal 'FALSE' with '0'")
+    assertThat(intention).isNotNull()
+
+    CommandProcessor.getInstance().executeCommand(
+      myFixture.project,
+      { runWriteAction { intention!!.invoke(myFixture.project, myFixture.editor, file) } },
+      /* name = */ "Apply Quick Fix",
+      /* groupId = */ null
+    )
+
+    myFixture.checkResult(
+      //language=java
+      """
+      package com.example;
+
+      import androidx.room.Dao;
+      import androidx.room.Query;
+      import java.util.List;
+
+      @Dao
+      public interface UserDao {
+        @Query("SELECT * FROM user WHERE isActive = 0")
+        List<Object> getObjects();
+      }
+      """.trimIndent())
   }
 }
