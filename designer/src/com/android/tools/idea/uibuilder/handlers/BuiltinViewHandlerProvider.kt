@@ -227,6 +227,7 @@ private object PreferencesViewHandlerProvider : ViewHandlerProvider {
           PreferenceTags.PREFERENCE_SCREEN -> PreferenceScreenHandler()
           PreferenceTags.RINGTONE_PREFERENCE -> RingtonePreferenceHandler()
           PreferenceTags.SWITCH_PREFERENCE -> SwitchPreferenceHandler()
+          PreferenceTags.SWITCH_PREFERENCE_COMPAT -> SwitchPreferenceHandler()
           else -> null
       }
 }

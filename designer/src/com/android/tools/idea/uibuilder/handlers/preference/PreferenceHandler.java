@@ -80,6 +80,7 @@ public abstract class PreferenceHandler extends ViewHandler {
   @NotNull
   @Override
   public String getTitle(@NotNull NlComponent component) {
-    return Strings.nullToEmpty(component.getAndroidAttribute(ATTR_TITLE));
+    String title = component.getAttribute(AUTO_URI, ATTR_TITLE);
+    return title != null ? title : Strings.nullToEmpty(component.getAndroidAttribute(ATTR_TITLE));
   }
 }

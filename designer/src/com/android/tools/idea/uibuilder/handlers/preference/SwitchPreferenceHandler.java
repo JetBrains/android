@@ -29,7 +29,6 @@ import java.util.List;
 
 import static com.android.SdkConstants.ATTR_TITLE;
 import static com.android.SdkConstants.PreferenceAttributes.*;
-import static com.android.SdkConstants.PreferenceTags.SWITCH_PREFERENCE;
 
 public final class SwitchPreferenceHandler extends PreferenceHandler {
   @Language("XML")
@@ -80,7 +79,7 @@ public final class SwitchPreferenceHandler extends PreferenceHandler {
 
     if (type == InsertType.CREATE) {
       NlWriteCommandActionUtil.run(newChild, "Set SwitchPreference", () -> {
-        newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, SWITCH_PREFERENCE, "switch_preference_"));
+        newChild.setAndroidAttribute(ATTR_KEY, generateKey(newChild, newChild.getTagName(), "switch_preference_"));
       });
     }
     return true;

@@ -22,6 +22,7 @@ import com.android.xml.XmlBuilder;
 import com.android.tools.idea.uibuilder.api.*;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
+import com.google.common.base.Strings;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,5 +72,12 @@ public final class PreferenceCategoryHandler extends ViewGroupHandler {
     }
 
     return true;
+  }
+
+  @NotNull
+  @Override
+  public String getTitle(@NotNull NlComponent component) {
+    String title = component.getAttribute(AUTO_URI, ATTR_TITLE);
+    return title != null ? title : Strings.nullToEmpty(component.getAndroidAttribute(ATTR_TITLE));
   }
 }
