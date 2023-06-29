@@ -22,10 +22,10 @@ class MainActivity : Activity() {
     }
 
     fun printBefore() {
-      Log.i("MainActivity", "OnResume Before")
+      Log.i("MainActivity", "OnResume Before with resource status: " + getString(R.string.status))
     }
 
     fun printAfter() {
-      Log.i("MainActivity", "OnResume After")
+      Log.i("MainActivity", "OnResume After with resource status: " + getString(R.string.status))
     }
 }

@@ -60,8 +60,11 @@ class ApplyChangesTest {
           studio.waitForProjectInit()
 
           // Open the file ahead of time so that Live Edit is ready when we want to make a change
-          val path = project.targetProject.resolve("src/main/java/com/example/applychanges/MainActivity.kt")
-          studio.openFile("ApplyChangesTest", path.toString())
+          val ktPath = project.targetProject.resolve("src/main/java/com/example/applychanges/MainActivity.kt")
+          studio.openFile("ApplyChangesTest", ktPath.toString())
+
+          val xmlPath = project.targetProject.resolve("src/main/res/values/strings.xml")
+          studio.openFile("ApplyChangesTest", xmlPath.toString())
 
           studio.executeAction("MakeGradleProject")
           studio.waitForBuild()
@@ -75,12 +78,16 @@ class ApplyChangesTest {
             waitForLog(".*OnResume Before.*", 600, TimeUnit.SECONDS);
           }
 
-          val newContents = "printAfter()\n"
-          studio.editFile(path.toString(), "(?s)// EASILY SEARCHABLE ONRESUME LINE.*?// END ONRESUME SEARCH", newContents)
+          val ktNewContents = "printAfter()\n"
+          studio.editFile(ktPath.toString(), "(?s)// EASILY SEARCHABLE ONRESUME LINE.*?// END ONRESUME SEARCH", ktNewContents)
+
+          val xmlNewContents = "new\n"
+          studio.editFile(xmlPath.toString(), "(?s)<!-- EASILY SEARCHABLE RESOURCE LINE.*?<!-- END RESOURCE SEARCH", xmlNewContents)
+
           studio.executeAction("android.deploy.ApplyChanges")
 
           adb.runCommand("logcat") {
-            waitForLog(".*OnResume After.*", 600, TimeUnit.SECONDS);
+            waitForLog(".*OnResume After with resource status: new.*", 600, TimeUnit.SECONDS);
           }
         }
       }
