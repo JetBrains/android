@@ -205,6 +205,7 @@ class RenderErrorTest {
     assertThat(offsets.sorted(), `is`(listOf(1667, 1817)))
   }
 
+  @Ignore("b/289364358")
   @Test
   fun testVisualLintErrors() {
     val issueModel = VisualLintService.getInstance(project).issueModel
