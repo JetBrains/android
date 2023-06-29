@@ -1195,9 +1195,10 @@ class ComposePreviewRepresentation(
       )
     }
     // Some Composables (e.g. Popup) delay their content placement and wrap them into a coroutine
-    // controlled by the Compose clock. For that reason, we need to call executeCallbacksAsync()
-    // once, to make sure the queued behaviors are triggered and displayed in static preview.
-    surface.sceneManagers.forEach { it.executeCallbacksAsync() }
+    // controlled by the Compose clock. For that reason, we need to call
+    // executeCallbacksAndRequestRender() once, to make sure the queued behaviors are triggered
+    // and displayed in static preview.
+    surface.sceneManagers.forEach { it.executeCallbacksAndRequestRender(null) }
   }
 
   /**
