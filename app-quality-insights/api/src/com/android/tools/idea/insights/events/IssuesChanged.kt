@@ -99,23 +99,23 @@ data class IssuesChanged(
           state.filters.copy(
             versions =
               if (issues is LoadingState.Ready) {
-                val currentlySelected = currentVersions.selected.map { it.value }.toSet()
                 MultiSelection(emptySet(), issues.value.versions).selectMatching {
-                  currentlySelected.isEmpty() || it.value in currentlySelected
+                  currentVersions.allSelected() ||
+                    currentVersions.selected.any { current -> it.value == current.value }
                 }
               } else state.filters.versions,
             devices =
               if (issues is LoadingState.Ready) {
-                val currentlySelected = currentDevices.selected.map { it.value }.toSet()
                 MultiSelection(emptySet(), issues.value.devices).selectMatching {
-                  currentlySelected.isEmpty() || it.value in currentlySelected
+                  currentDevices.allSelected() ||
+                    currentDevices.selected.any { current -> it.value == current.value }
                 }
               } else state.filters.devices,
             operatingSystems =
               if (issues is LoadingState.Ready) {
-                val currentlySelected = currentOses.selected.map { it.value }.toSet()
                 MultiSelection(emptySet(), issues.value.operatingSystems).selectMatching {
-                  currentlySelected.isEmpty() || it.value in currentlySelected
+                  currentOses.allSelected() ||
+                    currentOses.selected.any { current -> it.value == current.value }
                 }
               } else state.filters.operatingSystems
           ),

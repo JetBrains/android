@@ -168,19 +168,8 @@ class AppInsightsSettingsTest {
           operatingSystems = listOf(operatingSystem.value.toSetting())
         )
 
-      with(
-        controllerRule.consumeInitialState(
-          LoadingState.Ready(
-            IssueResponse(
-              emptyList(),
-              listOf(DEFAULT_FETCHED_VERSIONS, version),
-              listOf(DEFAULT_FETCHED_DEVICES, device),
-              listOf(DEFAULT_FETCHED_OSES, operatingSystem),
-              DEFAULT_FETCHED_PERMISSIONS
-            )
-          )
-        )
-      ) {
+      controllerRule.updateConnections(listOf(CONNECTION1))
+      with(controllerRule.consumeNext()) {
         assertThat(connections.selected).isEqualTo(CONNECTION1)
         assertThat(filters.timeInterval.selected).isEqualTo(TimeIntervalFilter.SEVEN_DAYS)
         assertThat(filters.visibilityType.selected).isEqualTo(VisibilityType.ALL)
