@@ -191,7 +191,9 @@ data class Event(
   val stacktraceGroup: StacktraceGroup = StacktraceGroup(),
   val appVcsInfo: AppVcsInfo = AppVcsInfo.NONE
 ) {
-  companion object
+  companion object {
+    val EMPTY = Event()
+  }
 }
 
 /**

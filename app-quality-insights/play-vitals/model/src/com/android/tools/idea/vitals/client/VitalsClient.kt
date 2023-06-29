@@ -20,6 +20,7 @@ import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
 import com.android.tools.idea.insights.Device
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
@@ -49,6 +50,7 @@ import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.thisLogger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -227,14 +229,20 @@ class VitalsClient(
             // Here we restrict number of concurrent calls as a short-term fix while waiting for
             // b/287461357 being resolved. Limiting calls are to address high chances of
             // 'UNAVAILABLE' errors to some extent.
-            concurrentCallLimit.withPermit {
-              grpcClient
-                .searchErrorReports(request.connection, request.filters, issueDetails.id, 1)
-                .firstOrNull()
-                ?: throw IllegalStateException(
-                  "No sample report got for $issueDetails by request: $request."
+            val reports =
+              concurrentCallLimit.withPermit {
+                grpcClient.searchErrorReports(
+                  request.connection,
+                  request.filters,
+                  issueDetails.id,
+                  1
                 )
-            }
+              }
+
+            reports.firstOrNull()
+              ?: Event.EMPTY.also {
+                thisLogger().warn("No sample report got for $issueDetails by request: $request.")
+              }
           }
         }
         .awaitAll()

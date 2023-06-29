@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DataPoint
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.DeviceType
+import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.FAKE_50_DAYS_AGO
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.FakeTimeProvider
@@ -216,6 +217,42 @@ class VitalsClientTest {
           issueDetails = ISSUE1.issueDetails.copy(impactedDevicesCount = 0L, eventsCount = 0L)
         )
       )
+  }
+
+  @Test
+  fun `client swallows no report found error`() = runTest {
+    val cache = AppInsightsCacheImpl()
+    val grpcClient =
+      object : TestVitalsGrpcClient() {
+        override suspend fun getErrorCountMetricsFreshnessInfo(connection: Connection) =
+          listOf(Freshness(TimeGranularity.FULL_RANGE, DateTime.getDefaultInstance()))
+
+        override suspend fun listTopIssues(
+          connection: Connection,
+          filters: QueryFilters,
+          maxNumResults: Int,
+          pageTokenFromPreviousCall: String?
+        ): List<IssueDetails> = listOf(ISSUE1.issueDetails)
+      }
+    val client = VitalsClient(disposableRule.disposable, cache, grpcClient)
+
+    val responseIssue =
+      (client.listTopOpenIssues(
+          IssueRequest(
+            TEST_CONNECTION_1,
+            QueryFilters(
+              interval = Interval(FAKE_50_DAYS_AGO, FakeTimeProvider.now),
+              eventTypes = listOf(FailureType.FATAL),
+            )
+          ),
+          null,
+          ConnectionMode.ONLINE
+        ) as LoadingState.Ready)
+        .value
+        .issues
+        .single()
+
+    assertThat(responseIssue).isEqualTo(ISSUE1.copy(sampleEvent = Event.EMPTY))
   }
 
   @Test
