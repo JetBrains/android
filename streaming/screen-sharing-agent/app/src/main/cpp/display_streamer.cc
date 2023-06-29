@@ -53,7 +53,7 @@ struct CodecInfo {
 namespace {
 
 constexpr int MAX_SUBSEQUENT_ERRORS = 10;
-constexpr double MIN_VIDEO_RESOLUTION = 128;
+constexpr int MIN_VIDEO_RESOLUTION = 128;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface.
 constexpr int BIT_RATE = 8000000;
 constexpr int BIT_RATE_REDUCED = 1000000;
@@ -185,12 +185,19 @@ int32_t RoundUpToMultipleOf(int32_t value, int32_t power_of_two) {
 }
 
 Size ComputeVideoSize(Size rotated_display_size, Size max_resolution, Size size_alignment) {
-  auto width = rotated_display_size.width;
-  auto height = rotated_display_size.height;
-  double scale = max(min(1.0, min(static_cast<double>(max_resolution.width) / width, static_cast<double>(max_resolution.height) / height)),
-                     max(MIN_VIDEO_RESOLUTION / width, MIN_VIDEO_RESOLUTION / height));
-  return Size { RoundUpToMultipleOf(lround(width * scale), max(size_alignment.width, 8)),
-                RoundUpToMultipleOf(lround(height * scale), max(size_alignment.height, 8)) };
+  double display_width = rotated_display_size.width;
+  double display_height = rotated_display_size.height;
+  if (size_alignment.width < 8) {
+    size_alignment.width = 8;  // Increase horizontal size alignment to accommodate FFmpeg video decoder.
+  }
+  double scale = max(min(1.0, min(max_resolution.width / display_width, max_resolution.height / display_height)),
+                     max(MIN_VIDEO_RESOLUTION / display_width, MIN_VIDEO_RESOLUTION / display_height));
+  // We are computing width of the frame first and the height based on the width to make sure that,
+  // if the video frame has a sightly different aspect ration than the display, it is taller rather
+  // than wider.
+  int32_t width = RoundUpToMultipleOf(lround(display_width * scale), size_alignment.width);
+  int32_t height = RoundUpToMultipleOf(lround(width * display_height / display_width), size_alignment.height);
+  return Size { width, height };
 }
 
 Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_video_resolution, AMediaFormat* media_format,
@@ -329,7 +336,9 @@ void DisplayStreamer::Run() {
         virtual_display.Resize(video_size.width, video_size.height, display_info_.logical_density_dpi);
         virtual_display.SetSurface(surface);
       } else {
-        SurfaceControl::ConfigureProjection(jni, display_token, surface, display_info, video_size);
+        int32_t height = lround(static_cast<double>(video_size.width) * display_info.logical_size.height / display_info.logical_size.width);
+        int32_t y = (video_size.height - height) / 2;
+        SurfaceControl::ConfigureProjection(jni, display_token, surface, display_info, { 0, y, video_size.width, height });
       }
       AMediaCodec_start(codec);
       running_codec_ = codec;

@@ -114,7 +114,7 @@ void SurfaceControl::SetDisplayProjection(
 }
 
 void SurfaceControl::ConfigureProjection(
-    Jni jni, jobject display_token, ANativeWindow* surface, const DisplayInfo& display_info, Size projected_size) {
+    Jni jni, jobject display_token, ANativeWindow* surface, const DisplayInfo& display_info, ARect projection_rect) {
   struct Transaction {
     explicit Transaction(Jni jni)
         : jni_(jni) {
@@ -129,7 +129,7 @@ void SurfaceControl::ConfigureProjection(
   InitializeStatics(jni);
   Transaction transaction(jni);
   SetDisplaySurface(jni, display_token, surface);
-  SetDisplayProjection(jni, display_token, 0, display_info.logical_size.toRect(), projected_size.toRect());
+  SetDisplayProjection(jni, display_token, 0, display_info.logical_size.toRect(), projection_rect);
   SetDisplayLayerStack(jni, display_token, display_info.layer_stack);
 }
 
