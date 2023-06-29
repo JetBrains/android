@@ -15,18 +15,27 @@
  */
 package com.android.tools.idea.lang.androidSql.room
 
+import com.android.tools.idea.lang.androidSql.AndroidSqlContext
+import com.android.tools.idea.lang.androidSql.AndroidSqlKnownContextInspection
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBindParameter
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBooleanLiteral
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlFile
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPragmaValue
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlVisitor
+import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.LocalInspectionToolSession
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.psi.PsiElementVisitor
 
 /**
- * Reports unnamed bind parameters, which are not supported by Room.
+ * Base class for SQL inspections that operate only on PSI files with a known [RoomSqlContext].
+ *
+ * Similar to [AndroidSqlKnownContextInspection], but requires [RoomSqlContext] instead of the more generic [AndroidSqlContext].
  */
-class RoomBindParameterSyntaxInspection : LocalInspectionTool() {
+abstract class RoomSqlKnownContextInspection : LocalInspectionTool() {
 
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
     return if (isRoomQuery(session)) super.buildVisitor(holder, isOnTheFly, session) else PsiElementVisitor.EMPTY_VISITOR
@@ -37,6 +46,13 @@ class RoomBindParameterSyntaxInspection : LocalInspectionTool() {
     return RoomSqlContext.Provider().getContext(query) != null
   }
 
+  abstract override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor
+
+}
+
+/** Reports unnamed bind parameters, which are not supported by Room. */
+class RoomBindParameterSyntaxInspection : RoomSqlKnownContextInspection() {
+
   override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
     return object : AndroidSqlVisitor() {
       override fun visitBindParameter(parameter: AndroidSqlBindParameter) {
@@ -46,4 +62,27 @@ class RoomBindParameterSyntaxInspection : LocalInspectionTool() {
       }
     }
   }
+
+}
+
+/** Reports usages of boolean "TRUE" or "FALSE" literals, which are unsupported before API level 30. */
+class RoomSqlBooleanLiteralInspection : RoomSqlKnownContextInspection() {
+
+  override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor {
+    return object : AndroidSqlVisitor() {
+      override fun visitBooleanLiteral(literal: AndroidSqlBooleanLiteral) {
+        // "true"/"false" are allowed in pragma values regardless of API level.
+        if (literal.parent is AndroidSqlPragmaValue) return
+
+        val minSdk = literal.androidFacet?.let { AndroidModel.get(it)?.minSdkVersion?.apiLevel } ?: return
+        if (minSdk < 30) {
+          holder.registerProblem(
+            literal,
+            "Boolean literals require API level 30 (current min is $minSdk).",
+            ProblemHighlightType.WARNING)
+        }
+      }
+    }
+  }
+
 }
