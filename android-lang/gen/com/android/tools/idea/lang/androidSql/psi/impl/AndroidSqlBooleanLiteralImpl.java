@@ -25,53 +25,23 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes.*;
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.android.tools.idea.lang.androidSql.psi.*;
 
-public class AndroidSqlLiteralExpressionImpl extends AndroidSqlExpressionImpl implements AndroidSqlLiteralExpression {
+public class AndroidSqlBooleanLiteralImpl extends ASTWrapperPsiElement implements AndroidSqlBooleanLiteral {
 
-  public AndroidSqlLiteralExpressionImpl(@NotNull ASTNode node) {
+  public AndroidSqlBooleanLiteralImpl(@NotNull ASTNode node) {
     super(node);
   }
 
-  @Override
   public void accept(@NotNull AndroidSqlVisitor visitor) {
-    visitor.visitLiteralExpression(this);
+    visitor.visitBooleanLiteral(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof AndroidSqlVisitor) accept((AndroidSqlVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public AndroidSqlBindParameter getBindParameter() {
-    return findChildByClass(AndroidSqlBindParameter.class);
-  }
-
-  @Override
-  @Nullable
-  public AndroidSqlBooleanLiteral getBooleanLiteral() {
-    return findChildByClass(AndroidSqlBooleanLiteral.class);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getDoubleQuoteStringLiteral() {
-    return findChildByType(DOUBLE_QUOTE_STRING_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getNumericLiteral() {
-    return findChildByType(NUMERIC_LITERAL);
-  }
-
-  @Override
-  @Nullable
-  public PsiElement getSingleQuoteStringLiteral() {
-    return findChildByType(SINGLE_QUOTE_STRING_LITERAL);
   }
 
 }

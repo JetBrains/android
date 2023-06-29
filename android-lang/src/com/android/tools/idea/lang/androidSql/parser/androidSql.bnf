@@ -399,9 +399,12 @@ raise_function_expression ::= RAISE '(' ( IGNORE | ( ROLLBACK | ABORT | FAIL ) '
 
 error_message ::= string_literal // TODO: check
 
+boolean_literal ::= TRUE | FALSE
+
 private literal_value ::=
   NUMERIC_LITERAL
   | string_literal // X marks a blob literal
+  | boolean_literal
   | NULL
   | CURRENT_TIME
   | CURRENT_DATE
@@ -420,7 +423,7 @@ pragma_name ::= name // TODO: check
 
 // SQLite has special parsing code for pragmas, we try to keep up by listing keywords that happen to be allowed values for certain pragmas.
 // See https://sqlite.org/pragma.html
-pragma_value ::= signed_number | name | string_literal | ON | NO | FULL | DELETE | EXCLUSIVE | DEFAULT
+pragma_value ::= signed_number | name | string_literal | boolean_literal | ON | NO | FULL | DELETE | EXCLUSIVE | DEFAULT
 
 reindex_statement ::= REINDEX ( collation_name | ( database_name '.' )? ( defined_table_name | index_name ) )?
 

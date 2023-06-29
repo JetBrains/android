@@ -28,6 +28,9 @@ public interface AndroidSqlLiteralExpression extends AndroidSqlExpression {
   AndroidSqlBindParameter getBindParameter();
 
   @Nullable
+  AndroidSqlBooleanLiteral getBooleanLiteral();
+
+  @Nullable
   PsiElement getDoubleQuoteStringLiteral();
 
   @Nullable

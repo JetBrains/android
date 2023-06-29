@@ -34,6 +34,7 @@ public interface AndroidSqlPsiTypes {
   IElementType BETWEEN_EXPRESSION = new AndroidSqlAstNodeType("BETWEEN_EXPRESSION");
   IElementType BIND_PARAMETER = new AndroidSqlAstNodeType("BIND_PARAMETER");
   IElementType BIT_EXPRESSION = new AndroidSqlAstNodeType("BIT_EXPRESSION");
+  IElementType BOOLEAN_LITERAL = new AndroidSqlAstNodeType("BOOLEAN_LITERAL");
   IElementType CASE_EXPRESSION = new AndroidSqlAstNodeType("CASE_EXPRESSION");
   IElementType CAST_EXPRESSION = new AndroidSqlAstNodeType("CAST_EXPRESSION");
   IElementType COLLATE_EXPRESSION = new AndroidSqlAstNodeType("COLLATE_EXPRESSION");
@@ -187,6 +188,7 @@ public interface AndroidSqlPsiTypes {
   IElementType EXISTS = new AndroidSqlTokenType("EXISTS");
   IElementType EXPLAIN = new AndroidSqlTokenType("EXPLAIN");
   IElementType FAIL = new AndroidSqlTokenType("FAIL");
+  IElementType FALSE = new AndroidSqlTokenType("FALSE");
   IElementType FOR = new AndroidSqlTokenType("FOR");
   IElementType FOREIGN = new AndroidSqlTokenType("FOREIGN");
   IElementType FROM = new AndroidSqlTokenType("FROM");
@@ -272,6 +274,7 @@ public interface AndroidSqlPsiTypes {
   IElementType TO = new AndroidSqlTokenType("TO");
   IElementType TRANSACTION = new AndroidSqlTokenType("TRANSACTION");
   IElementType TRIGGER = new AndroidSqlTokenType("TRIGGER");
+  IElementType TRUE = new AndroidSqlTokenType("TRUE");
   IElementType UNEQ = new AndroidSqlTokenType("<>");
   IElementType UNION = new AndroidSqlTokenType("UNION");
   IElementType UNIQUE = new AndroidSqlTokenType("UNIQUE");
@@ -315,6 +318,9 @@ public interface AndroidSqlPsiTypes {
       }
       else if (type == BIT_EXPRESSION) {
         return new AndroidSqlBitExpressionImpl(node);
+      }
+      else if (type == BOOLEAN_LITERAL) {
+        return new AndroidSqlBooleanLiteralImpl(node);
       }
       else if (type == CASE_EXPRESSION) {
         return new AndroidSqlCaseExpressionImpl(node);

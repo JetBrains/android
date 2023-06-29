@@ -114,6 +114,7 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   "EXISTS"                            { return EXISTS; }
   "EXPLAIN"                           { return EXPLAIN; }
   "FAIL"                              { return FAIL; }
+  "FALSE"                             { return FALSE; }
   "FOR"                               { return FOR; }
   "FOREIGN"                           { return FOREIGN; }
   "FROM"                              { return FROM; }
@@ -178,6 +179,7 @@ BRACKET_LITERAL={UNTERMINATED_BRACKET_LITERAL} \]
   "TO"                                { return TO; }
   "TRANSACTION"                       { return TRANSACTION; }
   "TRIGGER"                           { return TRIGGER; }
+  "TRUE"                              { return TRUE; }
   "UNION"                             { return UNION; }
   "UNIQUE"                            { return UNIQUE; }
   "UPDATE"                            { return UPDATE; }

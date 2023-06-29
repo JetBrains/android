@@ -22,27 +22,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface AndroidSqlPragmaValue extends PsiElement {
-
-  @Nullable
-  AndroidSqlBooleanLiteral getBooleanLiteral();
-
-  @Nullable
-  AndroidSqlSignedNumber getSignedNumber();
-
-  @Nullable
-  PsiElement getBacktickLiteral();
-
-  @Nullable
-  PsiElement getBracketLiteral();
-
-  @Nullable
-  PsiElement getDoubleQuoteStringLiteral();
-
-  @Nullable
-  PsiElement getIdentifier();
-
-  @Nullable
-  PsiElement getSingleQuoteStringLiteral();
+public interface AndroidSqlBooleanLiteral extends PsiElement {
 
 }
