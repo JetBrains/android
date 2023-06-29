@@ -19,7 +19,6 @@ import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.impl.IdeModuleSourceSetImpl
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.utils.FileUtils
-import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getExternalModuleType
 import com.intellij.openapi.module.Module
@@ -33,9 +32,7 @@ import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import org.jetbrains.plugins.gradle.util.gradleIdentityPathOrNull
-import org.jetbrains.plugins.gradle.util.gradlePath
 import org.jetbrains.plugins.gradle.util.gradlePathOrNull
 import org.jetbrains.plugins.gradle.util.isIncludedBuild
 import java.io.File
@@ -152,7 +149,7 @@ fun createGradleProjectPath(
 
 fun Module.getGradleIdentityPath(): String? {
   @Suppress("UnstableApiUsage")
-  return CachedModuleDataFinder.getGradleModuleData(this)?.gradleIdentityPath
+  return CachedModuleDataFinder.getGradleModuleData(this)?.moduleData?.gradleIdentityPathOrNull
 }
 
 fun Module.getGradleProjectPath(): GradleProjectPath? {
