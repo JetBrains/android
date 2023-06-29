@@ -48,11 +48,11 @@ class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<App
   JPanel(CardLayout()) {
   private val deviceDistributionPanel =
     DistributionPanel().apply {
-      border = BorderFactory.createCompoundBorder(JBUI.Borders.emptyLeft(9), border)
+      border = BorderFactory.createCompoundBorder(JBUI.Borders.empty(0, 9), border)
     }
   private val osDistributionPanel =
     DistributionPanel().apply {
-      border = BorderFactory.createCompoundBorder(JBUI.Borders.emptyLeft(9), border)
+      border = BorderFactory.createCompoundBorder(JBUI.Borders.empty(0, 9), border)
     }
 
   // The setter has the side effect of updating the UI, so it should be called from the EDT thread.
