@@ -145,6 +145,11 @@ class DeviceMonitorControllerImpl(
     override fun setPackageFilter(isActive: Boolean) {
       uiThreadScope.launch {
         model.setPackageFilter(isActive)
+        trackAction(DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED)
+        trackAction(
+          if (isActive) DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED_ON
+          else DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED_OFF
+        )
       }
     }
   }

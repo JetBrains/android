@@ -67,9 +67,9 @@ class DeviceExplorerController(
     uiThreadScope.launch {
       view.setup()
       deviceFilesController.setup()
-      view.addTab(deviceFilesController.getViewComponent(), "Files")
+      view.addTab(deviceFilesController.getViewComponent(), DeviceExplorerTab.Files.name)
       deviceMonitorControllerImpl.setup()
-      view.addTab(deviceMonitorControllerImpl.getViewComponent(), "Processes")
+      view.addTab(deviceMonitorControllerImpl.getViewComponent(), DeviceExplorerTab.Processes.name)
       launch { view.trackDeviceListChanges() }
       launch { view.trackActiveDeviceChanges() }
     }
