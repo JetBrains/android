@@ -45,8 +45,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.plugins.gradle.util.gradleIdentityPath
-import org.jetbrains.plugins.gradle.util.gradlePath
+import org.jetbrains.plugins.gradle.util.gradleIdentityPathOrNull
+import org.jetbrains.plugins.gradle.util.gradlePathOrNull
 
 class VariantProjectDataNodes {
   var data: MutableList<DataNode<ProjectData>> = mutableListOf()
@@ -184,14 +184,15 @@ private class AndroidModules(
 private fun DataNode<ProjectData>.getAndroidModules(): AndroidModules {
   val holderModuleNodes = findAllRecursively(this, ProjectKeys.MODULE)
   val roots =
-    holderModuleNodes.filter { it.data.gradlePath == ":" }.associate { it.data.gradleIdentityPath to it.data.linkedExternalProjectPath }
+    holderModuleNodes.filter { it.data.gradlePathOrNull == ":" }
+      .associate { it.data.gradleIdentityPathOrNull to it.data.linkedExternalProjectPath }
 
   return AndroidModules(
     holderModuleNodes.mapNotNull { node ->
       val androidModel = GradleAndroidModelDataImpl.findFromModuleDataNode(node) ?: return@mapNotNull null
 
-      val projectPath = node.data.gradlePath
-      val rootProjectName = node.data.gradleIdentityPath.removeSuffix(projectPath).ifEmpty { ":" }
+      val projectPath = node.data.gradlePathOrNull ?: return@mapNotNull null
+      val rootProjectName = node.data.gradleIdentityPathOrNull?.removeSuffix(projectPath)?.ifEmpty { ":" } ?: return@mapNotNull null
       AndroidModule(
         gradleProjectPath = GradleHolderProjectPath(
           roots[rootProjectName] ?: error("Cannot find root module data: $rootProjectName"),
