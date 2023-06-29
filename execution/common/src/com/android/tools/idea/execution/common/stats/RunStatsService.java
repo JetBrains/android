@@ -15,25 +15,44 @@
  */
 package com.android.tools.idea.execution.common.stats;
 
+import com.intellij.execution.ExecutionListener;
+import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
-public class RunStatsService {
+public class RunStatsService implements Disposable {
 
+  private final Project myProject;
   private RunStats myLastRunStats;
-  private Project myProject;
+
+  public RunStatsService(Project project) {
+    myProject = project;
+    project.getMessageBus().connect(this).subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
+      @Override
+      public void processNotStarted(@NotNull String executorId, @NotNull ExecutionEnvironment env) {
+        RunStats stats = env.getUserData(RunStats.KEY);
+        if (stats != null) {
+          stats.abort();
+        }
+      }
+    });
+  }
 
   public synchronized RunStats create() {
     if (myLastRunStats != null) {
       // If this event was logged, then this is a no-op
-      myLastRunStats.abort();
+      myLastRunStats.abandoned();
     }
     myLastRunStats = new RunStats(myProject);
     return myLastRunStats;
   }
 
+  @Override
+  public void dispose() { }
+
   public static RunStatsService get(Project project) {
-    RunStatsService result = project.getService(RunStatsService.class);
-    result.myProject = project;
-    return result;
+    return project.getService(RunStatsService.class);
   }
 }

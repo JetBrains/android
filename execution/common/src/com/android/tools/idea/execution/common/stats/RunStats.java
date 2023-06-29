@@ -54,6 +54,10 @@ public class RunStats {
     commit(RunEvent.Status.ABORT);
   }
 
+  public void abandoned() {
+    commit(RunEvent.Status.ABANDONED);
+  }
+
   public void success() {
     commit(RunEvent.Status.SUCCESS);
   }
