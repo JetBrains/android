@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.liveedit.ui
 
 import com.android.ddmlib.IDevice
+import com.android.tools.adtui.compose.ComposeStatus
 import com.android.tools.adtui.compose.InformationPopup
 import com.android.tools.adtui.compose.InformationPopupImpl
 import com.android.tools.adtui.compose.IssueNotificationAction
@@ -37,6 +38,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.ActionUtil
@@ -83,7 +85,7 @@ internal fun defaultCreateInformationPopup(
   dataContext: DataContext,
 ): InformationPopup? {
   return getStatusInfo(project, dataContext).let { status ->
-    if (status == LiveEditStatus.Disabled) {
+    if (shouldHideImpl(status, dataContext)) {
       return@let null
     }
 
@@ -181,9 +183,17 @@ class LiveEditIssueNotificationAction(
     return JBUI.insets(2)
   }
 
+  override fun shouldHide(status: ComposeStatus, dataContext: DataContext): Boolean {
+    return shouldHideImpl(status, dataContext)
+  }
+
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.EDT
   }
+}
+
+private fun shouldHideImpl(status: ComposeStatus, dataContext: DataContext): Boolean {
+  return status == LiveEditStatus.Disabled && dataContext.getData(PlatformDataKeys.TOOL_WINDOW)?.id != RUNNING_DEVICES_TOOL_WINDOW_ID
 }
 
 /**

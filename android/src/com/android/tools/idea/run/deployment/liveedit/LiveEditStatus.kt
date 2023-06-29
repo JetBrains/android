@@ -123,7 +123,7 @@ open class LiveEditStatus(
     }
   }
 
-  object Disabled : LiveEditStatus(null, "", "", DISABLED)
+  object Disabled : LiveEditStatus(AllIcons.General.Warning, "Live Edit disabled", "Live Edit is disabled.", DISABLED)
 
   object UnrecoverableError :
     LiveEditStatus(
