@@ -30,6 +30,8 @@ import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener
 import com.intellij.openapi.actionSystem.ex.AnActionListener
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.util.ActionCallback
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import java.awt.Component
 import java.awt.event.InputEvent
 import java.util.function.Function
@@ -38,6 +40,9 @@ import javax.swing.JComponent
 open class OpenActionManager(private val wrapped: ActionManagerEx) : ActionManagerEx() {
   override fun createActionPopupMenu(place: String, group: ActionGroup): ActionPopupMenu =
     wrapped.createActionPopupMenu(place, group)
+
+  override val timerEvents: Flow<Unit>
+    get() = emptyFlow()
 
   override fun createActionToolbar(place: String,
                                    group: ActionGroup,
