@@ -80,9 +80,6 @@ import kotlin.math.abs
 object AndroidStudioUsageTracker {
   private const val IDLE_TIME_BEFORE_SHOWING_DIALOG = 3 * 60 * 1000
   const val STUDIO_EXPERIMENTS_OVERRIDE = "studio.experiments.override"
-
-  private const val DAYS_IN_LEAP_YEAR = 366
-  private const val DAYS_IN_NON_LEAP_YEAR = 365
   private const val DAYS_TO_WAIT_FOR_REQUESTING_SENTIMENT_AGAIN = 7
 
   // Broadcast channel for Android Studio events being logged
@@ -270,7 +267,7 @@ object AndroidStudioUsageTracker {
 
     val now = AnalyticsSettings.dateProvider.now()
 
-    if (isWithinPastYear(now, lastSentimentAnswerDate)) {
+    if (!exceedRefreshDeadline(now, lastSentimentAnswerDate)) {
       return false
     }
 
@@ -292,7 +289,7 @@ object AndroidStudioUsageTracker {
         Hashing.farmHashFingerprint64()
           .hashString(AnalyticsSettings.userId, Charsets.UTF_8)
           .asLong()
-      ) % daysInYear(now)
+      ) % AnalyticsSettings.popSentimentQuestionFrequency
     return daysSinceJanFirst == offset
   }
 
@@ -325,7 +322,6 @@ object AndroidStudioUsageTracker {
       AnalyticsSettings.lastSentimentAnswerDate = now
       AnalyticsSettings.saveSettings()
     }
-
     eventQueue.addIdleListener(runner, IDLE_TIME_BEFORE_SHOWING_DIALOG)
   }
 
@@ -424,8 +420,8 @@ object AndroidStudioUsageTracker {
     }
   }
 
-  private fun isWithinPastYear(now: Date, date: Date?): Boolean {
-    return isBeforeDayCount(now, date, -daysInYear(now))
+  private fun exceedRefreshDeadline(now: Date, date: Date?): Boolean {
+    return !isBeforeDayCount(now, date, -AnalyticsSettings.popSentimentQuestionFrequency)
   }
 
   private fun isBeforeDayCount(now: Date, date: Date?, days: Int): Boolean {
@@ -439,14 +435,5 @@ object AndroidStudioUsageTracker {
     calendar.time = now
     calendar.add(Calendar.DATE, days)
     return calendar.time
-  }
-
-  private fun daysInYear(now: Date): Int {
-    return if (GregorianCalendar().isLeapYear(now.year + 1900)) {
-      DAYS_IN_LEAP_YEAR
-    }
-    else {
-      DAYS_IN_NON_LEAP_YEAR
-    }
   }
 }

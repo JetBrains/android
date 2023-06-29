@@ -19,6 +19,8 @@ import com.android.ddmlib.IDevice
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.AnalyticsSettings
+import com.android.tools.analytics.AnalyticsSettings.optedIn
+import com.android.tools.analytics.AnalyticsSettings.userId
 import com.android.tools.analytics.AnalyticsSettingsData
 import com.android.tools.analytics.HostData.graphicsEnvironment
 import com.android.tools.analytics.HostData.osBean
@@ -45,6 +47,7 @@ import java.time.ZoneOffset
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.TimeZone
+import java.util.Calendar
 
 class AndroidStudioUsageTrackerTest : TestCase() {
   fun testDeviceToDeviceInfo() {
@@ -153,6 +156,31 @@ class AndroidStudioUsageTrackerTest : TestCase() {
         lastSentimentAnswerDate = Date(115, 4, 17)
       })
       Assert.assertTrue(shouldRequestUserSentiment())
+
+      // 91 days ago
+      val calendar: Calendar = Calendar.getInstance()
+      calendar.setTime(AnalyticsSettings.dateProvider.now())
+      calendar.add(Calendar.DAY_OF_YEAR, -91)
+
+      // opted in user who was asked more than the frequency set
+      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+        popSentimentQuestionFrequency=90
+        lastSentimentAnswerDate = calendar.getTime()
+        lastSentimentQuestionDate = calendar.getTime()
+      })
+      Assert.assertTrue(shouldRequestUserSentiment())
+
+      // opted in user who was asked less than the frequency set
+      AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
+        userId = "db3dd15b-053a-4066-ac93-04c50585edc2"
+        optedIn = true
+        popSentimentQuestionFrequency=90
+        lastSentimentAnswerDate = AnalyticsSettings.dateProvider.now()
+        lastSentimentQuestionDate = AnalyticsSettings.dateProvider.now()
+      })
+      Assert.assertFalse(shouldRequestUserSentiment())
 
       // opted in user who was asked less than a year ago should not be asked
       AnalyticsSettings.setInstanceForTest(AnalyticsSettingsData().apply {
