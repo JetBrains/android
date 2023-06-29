@@ -49,7 +49,6 @@ import com.android.tools.idea.vitals.datamodel.extractValue
 import com.android.tools.idea.vitals.datamodel.fromDimensions
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -57,7 +56,6 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
-private val LOG = Logger.getInstance(VitalsClient::class.java)
 private const val NOT_SUPPORTED_ERROR_MSG = "Vitals doesn't support this."
 private const val MAX_CONCURRENT_CALLS = 10
 
@@ -189,7 +187,6 @@ class VitalsClient(
     issueId: IssueId,
     mode: ConnectionMode
   ): LoadingState.Done<List<Note>> {
-    LOG.warn(NOT_SUPPORTED_ERROR_MSG)
     return LoadingState.Ready(emptyList())
   }
 
