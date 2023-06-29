@@ -69,6 +69,7 @@ private val KEY_DETAIL_VISIBLE = DesignerCommonIssuePanel::class.java.name + "_d
  * The issue panel to load the issues from Layout Editor and Layout Validation Tool.
  */
 class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project: Project, private val treeModel: DesignerCommonIssueModel,
+                               nodeFactoryProvider: () -> NodeFactory,
                                val issueProvider: DesignerCommonIssueProvider<Any>,
                                private val emptyMessageProvider: () -> String) : Disposable {
 
@@ -116,7 +117,7 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
 
   init {
     Disposer.register(parentDisposable, this)
-    treeModel.root = DesignerCommonIssueRoot(project, issueProvider)
+    treeModel.root = DesignerCommonIssueRoot(project, issueProvider, nodeFactoryProvider)
     val problemsViewState = ProblemsViewState.getInstance(project)
     setIssueNodeOrder(problemsViewState.sortBySeverity, problemsViewState.sortByName)
     issueProvider.registerUpdateListener {

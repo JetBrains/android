@@ -97,11 +97,11 @@ class DesignerIssueNodeVisitorTest {
   @Test
   fun testVisitNoFileNode() {
     val getParentFunc: (DesignerCommonIssueNode?) -> DesignerCommonIssueNode? = { it?.parentDescriptor as? DesignerCommonIssueNode }
-    val comparedNode = NoFileNode(null)
+    val comparedNode = LayoutValidationNoFileNode(null)
     val visitor = DesignerIssueNodeVisitor(comparedNode)
 
     run {
-      val testNode = NoFileNode(null)
+      val testNode = LayoutValidationNoFileNode(null)
       val path = TreePathUtil.pathToCustomNode(testNode, getParentFunc)
       assertEquals(TreeVisitor.Action.INTERRUPT, visitor.visit(path))
     }
@@ -138,7 +138,7 @@ class DesignerIssueNodeVisitorTest {
     }
 
     run {
-      val testNode = NoFileNode(null)
+      val testNode = LayoutValidationNoFileNode(null)
       val path = TreePathUtil.pathToCustomNode(testNode) { null }
       assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
     }
@@ -151,7 +151,7 @@ class DesignerIssueNodeVisitorTest {
     val mockedFile = mock<VirtualFile>()
     val node1 = IssuedFileNode(mockedFile, null)
     val visitor = DesignerIssueNodeVisitor(node1)
-    val node2 = NoFileNode(null)
+    val node2 = LayoutValidationNoFileNode(null)
 
     val path = TreePathUtil.pathToCustomNode(node2) { null }
     assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(path))
@@ -159,7 +159,7 @@ class DesignerIssueNodeVisitorTest {
 
   @Test
   fun testVisitOtherNodeTypes() {
-    val node1 = NoFileNode(null)
+    val node1 = LayoutValidationNoFileNode(null)
     val visitor = DesignerIssueNodeVisitor(node1)
     val node2: DesignerCommonIssueNode = mock()
     val path = TreePathUtil.pathToCustomNode(node2) { null }

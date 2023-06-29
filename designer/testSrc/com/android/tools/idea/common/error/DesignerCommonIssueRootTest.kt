@@ -34,11 +34,11 @@ class DesignerCommonIssueRootTest {
     val issue3 = TestIssue("c")
     val issues = listOf(issue1, issue2, issue3)
     val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
-    val root = DesignerCommonIssueRoot(null, provider)
+    val root = DesignerCommonIssueRoot(null, provider) { LayoutValidationNodeFactory }
     root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
 
     // The issues have no source file results NoFileNode
-    val noFileNode = NoFileNode(root)
+    val noFileNode = LayoutValidationNoFileNode(root)
     val issueNodes = issues.map { IssueNode(null, it, noFileNode) }.toList()
 
     assertEquals(listOf(noFileNode), root.getChildren())
@@ -53,7 +53,7 @@ class DesignerCommonIssueRootTest {
     val issues = listOf(issue1, issue2)
 
     val provider = DesignerCommonIssueTestProvider(issues)
-    val root = DesignerCommonIssueRoot(null, provider)
+    val root = DesignerCommonIssueRoot(null, provider) { LayoutValidationNodeFactory }
 
     val issuedFileNode = IssuedFileNode(file, root)
     val child1 = IssueNode(file, issue1, issuedFileNode)
@@ -76,12 +76,12 @@ class DesignerCommonIssueRootTest {
 
     val provider = DesignerCommonIssueTestProvider(issues)
 
-    val root = DesignerCommonIssueRoot(null, provider)
+    val root = DesignerCommonIssueRoot(null, provider) { LayoutValidationNodeFactory }
     root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
 
     // The order of node is sorted by the file name alphabetically.
     // And the NoFileNode will always be the last one.
-    val expected = listOf(IssuedFileNode(file1, root), IssuedFileNode(file2, root), NoFileNode(root))
+    val expected = listOf(IssuedFileNode(file1, root), IssuedFileNode(file2, root), LayoutValidationNoFileNode(root))
     assertEquals(expected, root.getChildren())
   }
 
@@ -96,7 +96,7 @@ class DesignerCommonIssueRootTest {
     val issues = listOf(issue3, issue1, issue2)
 
     val provider = DesignerCommonIssueTestProvider(issues)
-    val root = DesignerCommonIssueRoot(null, provider)
+    val root = DesignerCommonIssueRoot(null, provider) { LayoutValidationNodeFactory }
     root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
 
     // The order of issues in same child node is same as the given order from IssueProvider
@@ -136,7 +136,7 @@ class DesignerCommonIssueRootTest {
     )
 
     val provider = DesignerCommonIssueTestProvider(allIssues)
-    val root = DesignerCommonIssueRoot(null, provider)
+    val root = DesignerCommonIssueRoot(null, provider) { LayoutValidationNodeFactory }
 
     val fileNode1 = IssuedFileNode(file1, root)
     val fileNode1Children = listOf(file1IssueA, file1IssueB, file1IssueC).map { IssueNode(file1, it, fileNode1) }.toList()
@@ -144,7 +144,7 @@ class DesignerCommonIssueRootTest {
     val fileNode2 = IssuedFileNode(file2, root)
     val fileNode2Children = listOf(file2IssueA, file2IssueB, file2IssueC).map { IssueNode(file2, it, fileNode2) }.toList()
 
-    val noFileNode = NoFileNode(root)
+    val noFileNode = LayoutValidationNoFileNode(root)
     val noFileNodeChildren = listOf(noFileIssueA, noFileIssueB, noFileIssueC).map { IssueNode(null, it, noFileNode) }.toList()
 
     assertEquals(listOf(fileNode1, fileNode2, noFileNode), root.getChildren())
@@ -164,7 +164,7 @@ class DesignerCommonIssueRootTest {
     val file2Issue = TestIssue(summary = "issue2", source = (IssueSourceWithFile(backedFile2, "")))
 
     val provider = DesignerCommonIssueTestProvider(listOf(file1Issue, file2Issue))
-    val root = DesignerCommonIssueRoot(null, provider)
+    val root = DesignerCommonIssueRoot(null, provider) { LayoutValidationNodeFactory }
 
     // File from same backed file should belong to same parent node.
     assertEquals(1, root.getChildren().size)

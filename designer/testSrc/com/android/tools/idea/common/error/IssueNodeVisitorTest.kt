@@ -42,7 +42,7 @@ class IssueNodeVisitorTest {
 
     val provider = DesignerCommonIssueTestProvider(issues)
     val model = DesignerCommonIssueModel()
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, { LayoutValidationNodeFactory }, provider) { "" }
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
 

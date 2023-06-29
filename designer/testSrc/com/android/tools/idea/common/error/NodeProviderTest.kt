@@ -44,7 +44,7 @@ class NodeProviderTest {
     val issue4 = TestIssue("issue4")
     val issue5 = TestIssue("issue5")
 
-    nodeProvider.updateIssues(listOf(issue1, issue2, issue3, issue4, issue5))
+    nodeProvider.updateIssues(listOf(issue1, issue2, issue3, issue4, issue5), LayoutValidationNodeFactory)
 
     val fileNode = nodeProvider.getFileNodes()
     assertEquals(2, fileNode.size)

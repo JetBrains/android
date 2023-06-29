@@ -59,7 +59,7 @@ class DesignerCommonIssuePanelTest {
     val provider = DesignerCommonIssueTestProvider(listOf(infoSeverityIssue, warningSeverityIssue))
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, { LayoutValidationNodeFactory }, provider) { "" }
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
@@ -71,7 +71,7 @@ class DesignerCommonIssuePanelTest {
     val noFileNode = root.getChildren().single() as NoFileNode
     run {
       panel.setViewOptionFilter { true }
-      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues(), LayoutValidationNodeFactory)
 
       assertEquals(2, noFileNode.getChildren().size)
       assertEquals(warningSeverityIssue, (noFileNode.getChildren()[0].issue))
@@ -80,7 +80,7 @@ class DesignerCommonIssuePanelTest {
 
     run {
       panel.setViewOptionFilter { !setOf(HighlightSeverity.INFORMATION.myVal).contains(it.severity.myVal) }
-      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues(), LayoutValidationNodeFactory)
 
       assertEquals(1, noFileNode.getChildren().size)
       assertEquals(warningSeverityIssue, (noFileNode.getChildren()[0].issue))
@@ -88,7 +88,7 @@ class DesignerCommonIssuePanelTest {
 
     run {
       panel.setViewOptionFilter { !setOf(HighlightSeverity.WARNING.myVal).contains(it.severity.myVal) }
-      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues(), LayoutValidationNodeFactory)
 
       assertEquals(1, noFileNode.getChildren().size)
       assertEquals(infoSeverityIssue, (noFileNode.getChildren()[0].issue))
@@ -98,7 +98,7 @@ class DesignerCommonIssuePanelTest {
       panel.setViewOptionFilter {
         !setOf(HighlightSeverity.INFORMATION.myVal, HighlightSeverity.WARNING.myVal).contains(it.severity.myVal)
       }
-      root.getNodeProvider().updateIssues(provider.getFilteredIssues())
+      root.getNodeProvider().updateIssues(provider.getFilteredIssues(), LayoutValidationNodeFactory)
 
       // If there is no issue, then tree has no file node.
       assertEquals(0, root.getChildren().size)
@@ -111,7 +111,7 @@ class DesignerCommonIssuePanelTest {
     val provider = DesignerCommonIssueTestProvider(listOf(TestIssue(description = "some description")))
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, { LayoutValidationNodeFactory }, provider) { "" }
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!
@@ -161,7 +161,7 @@ class DesignerCommonIssuePanelTest {
     val provider = DesignerCommonIssueTestProvider(listOf(fileIssue, noFileIssue, visualLintIssue))
     val model = DesignerCommonIssueModel()
     Disposer.register(rule.testRootDisposable, model)
-    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, provider) { "" }
+    val panel = DesignerCommonIssuePanel(rule.testRootDisposable, rule.project, model, { LayoutValidationNodeFactory }, provider) { "" }
     // Make sure the Tree is added into DesignerCommonIssuePanel.
     IdeEventQueue.getInstance().flushQueue()
     val tree = UIUtil.findComponentOfType(panel.getComponent(), Tree::class.java)!!

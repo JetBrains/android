@@ -130,7 +130,8 @@ class IssuePanelService(private val project: Project) {
       val issueProvider = DesignToolsIssueProvider(problemsViewWindow.disposable, project,
                                                    NotSuppressedFilter + SelectedEditorFilter(project))
       val treeModel = DesignerCommonIssuePanelModelProvider.getInstance(project).model
-      val issuePanel = DesignerCommonIssuePanel(problemsViewWindow.disposable, project, treeModel, issueProvider, ::getEmptyMessage)
+      val issuePanel = DesignerCommonIssuePanel(problemsViewWindow.disposable, project, treeModel, ::nodeFactoryProvider, issueProvider,
+                                                ::getEmptyMessage)
       treeModel.addTreeModelListener(object : TreeModelAdapter() {
         override fun process(event: TreeModelEvent, type: EventType) {
           updateSharedIssuePanelTabName()
@@ -430,6 +431,11 @@ class IssuePanelService(private val project: Project) {
     else {
       "No problems in $fileNameString"
     }
+  }
+
+  private fun nodeFactoryProvider(): NodeFactory {
+    // TODO Return UICheckNodeFactory for compose files.
+    return LayoutValidationNodeFactory
   }
 
   /**

@@ -124,7 +124,7 @@ interface NodeProvider {
   /**
    * Update the tree of [DesignerCommonIssueNode]
    */
-  fun updateIssues(issueList: List<Issue>)
+  fun updateIssues(issueList: List<Issue>, nodeFactory: NodeFactory)
 
   /**
    * Get the [DesignerCommonIssueNode] of all nodes of all files.
@@ -138,7 +138,7 @@ interface NodeProvider {
 }
 
 object EmptyNodeProvider : NodeProvider {
-  override fun updateIssues(issueList: List<Issue>) = Unit
+  override fun updateIssues(issueList: List<Issue>, nodeFactory: NodeFactory) = Unit
   override fun getFileNodes(): List<DesignerCommonIssueNode> = emptyList()
   override fun getIssueNodes(fileNode: DesignerCommonIssueNode): List<IssueNode> = emptyList()
 }
@@ -155,7 +155,7 @@ class NodeProviderImpl(private val rootNode: DesignerCommonIssueNode) : NodeProv
   private var issueToNodeMap = mapOf<Issue, IssueNode>()
 
   @Suppress("UnstableApiUsage")
-  override fun updateIssues(issueList: List<Issue>) {
+  override fun updateIssues(issueList: List<Issue>, nodeFactory: NodeFactory) {
     // Construct the nodes of the whole tree. The old node is reused if it exists.
     val fileIssuesMap: Map<VirtualFile?, List<Issue>> = issueList.groupBy {
       it.source.file?.let { file -> BackedVirtualFile.getOriginFileIfBacked(file) }
@@ -167,7 +167,10 @@ class NodeProviderImpl(private val rootNode: DesignerCommonIssueNode) : NodeProv
     // Update file nodes.
     val newFileNodeMap: MutableMap<VirtualFile?, DesignerCommonIssueNode> = mutableMapOf()
     for ((file, _) in fileIssuesMap) {
-      val node = oldFileNodeMap[file] ?: let { if (file != null) IssuedFileNode(file, rootNode) else NoFileNode(rootNode) }
+      val node = oldFileNodeMap[file] ?: let {
+        if (file != null) nodeFactory.createFileNode(file, rootNode)
+        else nodeFactory.createNoFileNode(rootNode)
+      }
       newFileNodeMap[file] = node
     }
 
@@ -205,7 +208,9 @@ class NodeProviderImpl(private val rootNode: DesignerCommonIssueNode) : NodeProv
 /**
  * The root of common issue panel. This is an invisible root node for simulating the multi-root tree.
  */
-class DesignerCommonIssueRoot(project: Project?, private val issueProvider: DesignerCommonIssueProvider<out Any?>)
+class DesignerCommonIssueRoot(project: Project?,
+                              private val issueProvider: DesignerCommonIssueProvider<out Any?>,
+                              private val nodeFactoryProvider: () -> NodeFactory)
   : DesignerCommonIssueNode(project, null) {
 
   private var _comparator: Comparator<DesignerCommonIssueNode> = compareBy { 0 }
@@ -215,8 +220,8 @@ class DesignerCommonIssueRoot(project: Project?, private val issueProvider: Desi
   private val nodeProvider = NodeProviderImpl(this)
 
   init {
-    issueProvider.registerUpdateListener { nodeProvider.updateIssues(issueProvider.getFilteredIssues()) }
-    nodeProvider.updateIssues(issueProvider.getFilteredIssues())
+    issueProvider.registerUpdateListener { nodeProvider.updateIssues(issueProvider.getFilteredIssues(), nodeFactoryProvider()) }
+    nodeProvider.updateIssues(issueProvider.getFilteredIssues(), nodeFactoryProvider())
   }
 
   fun setComparator(comparator: Comparator<DesignerCommonIssueNode>) {
@@ -285,19 +290,39 @@ class IssuedFileNode(val file: VirtualFile, parent: DesignerCommonIssueNode?) : 
   }
 }
 
-/**
- * TODO(b/222110455): So far Layout Validation is the only use case. Needs refactor when having other use cases.
- *                    It can use the type of [IssueSource] to detect the source.
- */
-const val NO_FILE_NODE_NAME = "Layout Validation"
+const val LAYOUT_VALIDATION_NODE_NAME = "Layout Validation"
+
+const val UI_CHECK_NODE_NAME = "UI Check"
+
+object LayoutValidationNodeFactory : NodeFactory {
+  override fun createNoFileNode(parent: DesignerCommonIssueNode) = LayoutValidationNoFileNode(parent)
+}
+
+object UICheckNodeFactory : NodeFactory {
+  override fun createNoFileNode(parent: DesignerCommonIssueNode) =
+    NoFileNode(UI_CHECK_NODE_NAME, null, parent)
+
+}
+
+interface NodeFactory {
+  fun createNoFileNode(parent: DesignerCommonIssueNode): DesignerCommonIssueNode
+
+  fun createFileNode(virtualFile: VirtualFile, parent: DesignerCommonIssueNode): DesignerCommonIssueNode =
+    IssuedFileNode(virtualFile, parent)
+}
+
+class LayoutValidationNoFileNode(parent: DesignerCommonIssueNode?) : NoFileNode(LAYOUT_VALIDATION_NODE_NAME, AllIcons.FileTypes.Xml, parent)
+
 
 /**
  * A node which doesn't represent any file. This is used to show the issues which do not belong to any particular file.
  */
-class NoFileNode(parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(parent?.project, parent) {
+open class NoFileNode(private val nodeName: String,
+                      private val nodeIcon: Icon?,
+                      parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(parent?.project, parent) {
   override fun getLeafState() = LeafState.DEFAULT
 
-  override fun getName() = NO_FILE_NODE_NAME
+  override fun getName() = nodeName
 
   override fun getVirtualFile(): VirtualFile? = null
 
@@ -305,7 +330,7 @@ class NoFileNode(parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(par
 
   override fun updatePresentation(presentation: PresentationData) {
     presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
-    presentation.setIcon(AllIcons.FileTypes.Xml)
+    presentation.setIcon(nodeIcon)
     val count = getNodeProvider().getIssueNodes(this).size
     presentation.addText("  ${createIssueCountText(count)}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
   }
