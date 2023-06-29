@@ -32,7 +32,7 @@ class LanguageHighlightingTest {
   val system: AndroidSystem = AndroidSystem.standard()
 
   @Test
-  fun basicShowUsages() {
+  fun kotlinHighlighting() {
     val project = AndroidProject("tools/adt/idea/android/integration/testData/languagehighlighting")
 
     // Create a maven repo and set it up in the installation and environment
