@@ -232,7 +232,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
             Scope                         : Test
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.app.main
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
@@ -367,6 +371,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.main
@@ -503,7 +511,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
             Scope                         : Test
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.app.main
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-a.main
@@ -1336,7 +1348,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
             Scope                         : Test
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
@@ -1483,6 +1499,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
         Classes
@@ -1657,7 +1677,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
             Scope                         : Test
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
@@ -1882,7 +1906,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
             Scope                         : Test
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
@@ -2198,6 +2226,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.feature-b.commonMain
@@ -2342,7 +2374,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
             Scope                         : Test
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.commonMain
             Scope                         : Test
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.common.jvmMain
@@ -3711,7 +3747,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
             Scope                         : Test
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
             Scope                         : Test
         BUILD_TASKS
@@ -3829,6 +3869,10 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         Classes
             -                             : file://<PROJECT>/lib/build/intermediates/javac/debug/classes
             -                             : file://<PROJECT>/lib/build/tmp/kotlin-classes/debug
@@ -3955,7 +3999,11 @@ PROJECT                       : NonStandardSourceSetDependencies
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            LibraryLevel                  : module
+            IsModuleLevel                 : true
             Scope                         : Test
+            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
+                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : NonStandardSourceSetDependencies.lib.main
             Scope                         : Test
         BUILD_TASKS

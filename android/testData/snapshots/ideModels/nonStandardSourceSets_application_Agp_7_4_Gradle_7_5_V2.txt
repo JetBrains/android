@@ -780,7 +780,7 @@ MODULE                        : application
         externalSystemId              : GRADLE
 MODULE                        : application.app
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :app
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/application/app/build.gradle
@@ -802,7 +802,7 @@ MODULE                        : application.app
     BuildId                       : <ROOT>/application
     BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/application/app/build [-]
@@ -972,7 +972,7 @@ MODULE                        : application.app
                     ShadersDirectories            : <ROOT>/application/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/application/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.0-alpha09 [-]
+            ProguardFiles                 : <ROOT>/application/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.1 [-]
             ProguardFiles                 : <ROOT>/application/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false

@@ -1030,7 +1030,7 @@ MODULE                        : project
         externalSystemId              : GRADLE
 MODULE                        : project.app
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :app
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
@@ -1052,7 +1052,7 @@ MODULE                        : project.app
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -1222,7 +1222,7 @@ MODULE                        : project.app
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.0-alpha09 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android.txt-7.4.1 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2187,7 +2187,7 @@ MODULE                        : project.app.main
 MODULE                        : project.app.unitTest
 MODULE                        : project.lib
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :lib
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/lib/build.gradle
@@ -2209,7 +2209,7 @@ MODULE                        : project.lib
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :lib
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]

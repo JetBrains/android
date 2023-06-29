@@ -2526,7 +2526,7 @@ MODULE                        : NonStandardSourceSetDependencies.aarWrapperLib
     externalProject               : :aarWrapperLib (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.app
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :app
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/app/build.gradle
@@ -2548,7 +2548,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :app
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -2718,7 +2718,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                     ShadersDirectories            : <ROOT>/app/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.4.0-alpha09 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.4.1 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -3763,7 +3763,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop.main
 MODULE                        : NonStandardSourceSetDependencies.desktop.test
 MODULE                        : NonStandardSourceSetDependencies.feature-a
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :feature-a
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/feature-a/build.gradle
@@ -3785,7 +3785,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :feature-a
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/feature-a/build [-]
@@ -4897,7 +4897,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a.main
 MODULE                        : NonStandardSourceSetDependencies.feature-a.unitTest
 MODULE                        : NonStandardSourceSetDependencies.feature-b
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :feature-b
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/feature-b/build.gradle
@@ -4919,7 +4919,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :feature-b
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/feature-b/build [-]
@@ -6188,7 +6188,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     externalProject               : :kmp-java:sample (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample-test
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :kmp-java:sample-test
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/kmp-java/sample-test/build.gradle
@@ -6210,7 +6210,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :kmp-java:sample-test
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/kmp-java/sample-test/build [-]
@@ -6508,7 +6508,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
 MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample.test
 MODULE                        : NonStandardSourceSetDependencies.lib
     GradleModuleModel
-        agpVersion                    : 7.4.0-alpha09
+        agpVersion                    : 7.4.1
         gradlePath                    : :lib
         gradleVersion                 : 7.5
         buildFile                     : <ROOT>/lib/build.gradle
@@ -6530,7 +6530,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
     BuildId                       : <ROOT>
     BuildName                     : :
     ProjectPath                   : :lib
-    ModelVersion                  : 7.4.0-alpha09
+    ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -6695,7 +6695,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     ShadersDirectories            : <ROOT>/lib/src/testDebug/shaders [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.4.0-alpha09 [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-7.4.1 [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
