@@ -72,6 +72,7 @@ import com.android.tools.idea.util.DependencyManagementUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * This performs direct conversion of RelativeLayout to ConstraintLayout
@@ -249,7 +250,7 @@ public class ScoutDirectConvert {
       }
       else {
         int margin = targetMargin + childMargin;
-        creatList.add(new String[]{ANDROID_URI, srcMargin, String.format(VALUE_N_DP, margin)});
+        creatList.add(new String[]{ANDROID_URI, srcMargin, String.format(Locale.US, VALUE_N_DP, margin)});
       }
     }
   }

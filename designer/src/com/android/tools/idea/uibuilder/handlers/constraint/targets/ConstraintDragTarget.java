@@ -25,6 +25,7 @@ import com.android.tools.idea.common.scene.target.DragBaseTarget;
 import com.android.tools.idea.common.scene.target.MultiComponentTarget;
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -179,7 +180,7 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
         applyMargin(attributes, targetEndMargin, dx);
       }
       else {
-        String positionX = String.format(SdkConstants.VALUE_N_DP, x - parent.getDrawX());
+        String positionX = String.format(Locale.US, SdkConstants.VALUE_N_DP, x - parent.getDrawX());
         attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
       }
 
@@ -218,7 +219,7 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
         applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, dy);
       }
       else {
-        String positionY = String.format(SdkConstants.VALUE_N_DP, y - parent.getDrawY());
+        String positionY = String.format(Locale.US, SdkConstants.VALUE_N_DP, y - parent.getDrawY());
         attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
       }
       ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
@@ -271,7 +272,7 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
         }
       }
       else {
-        String marginY = String.format(SdkConstants.VALUE_N_DP, currentValue);
+        String marginY = String.format(Locale.US, SdkConstants.VALUE_N_DP, currentValue);
         attributes.setAttribute(SdkConstants.ANDROID_URI, attribute, marginY);
         if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attribute)) {
           attributes.setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT, marginY);

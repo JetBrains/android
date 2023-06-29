@@ -38,6 +38,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawHorizontalG
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawVerticalGuideline;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
+import java.util.Locale;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -317,11 +318,11 @@ public class GuidelineTarget extends BaseTarget {
         dimension = parent.getDrawWidth();
       }
       if (begin != null || (end == null && percent == null)) {
-        String position = String.format(SdkConstants.VALUE_N_DP, value);
+        String position = String.format(Locale.US, SdkConstants.VALUE_N_DP, value);
         attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, position);
       }
       else if (end != null) {
-        String position = String.format(SdkConstants.VALUE_N_DP, (int)dimension - value);
+        String position = String.format(Locale.US, SdkConstants.VALUE_N_DP, (int)dimension - value);
         attributes.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, position);
       }
       else {

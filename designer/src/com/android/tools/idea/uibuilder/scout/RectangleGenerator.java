@@ -1,6 +1,7 @@
 package com.android.tools.idea.uibuilder.scout;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Random;
 
 public class RectangleGenerator {
@@ -128,24 +129,24 @@ public class RectangleGenerator {
     for (int i = 0; i < recs.length; i++) {
       ScoutWidget wrect = recs[i];
       if (i != 0) {
-        display += String.format("DrawComponentBackground,%d,%d,%d,%d,1,false\n",
+        display += String.format(Locale.US, "DrawComponentBackground,%d,%d,%d,%d,1,false\n",
                                  (int)wrect.getX(),
                                  (int)wrect.getY(),
                                  (int)wrect.getWidth(),
                                  (int)wrect.getHeight());
-        display += String.format("DrawTextRegion,%d,%d,%d,%d,0,0,false,false,5,5,28,1.0,\"\"\n",
+        display += String.format(Locale.US, "DrawTextRegion,%d,%d,%d,%d,0,0,false,false,5,5,28,1.0,\"\"\n",
                                  (int)wrect.getX(),
                                  (int)wrect.getY(),
                                  (int)wrect.getWidth(),
                                  (int)wrect.getHeight());
       }
-      display += String.format("DrawNlComponentFrame,%d,%d,%d,%d,1,20,20\n",
+      display += String.format(Locale.US, "DrawNlComponentFrame,%d,%d,%d,%d,1,20,20\n",
                                (int)wrect.getX(),
                                (int)wrect.getY(),
                                (int)wrect.getWidth(),
                                (int)wrect.getHeight());
     }
-    display += String.format("Clip,0,0,%d,%d\n", (int)recs[0].getWidth(), (int)recs[0].getHeight());
+    display += String.format(Locale.US, "Clip,0,0,%d,%d\n", (int)recs[0].getWidth(), (int)recs[0].getHeight());
     return display;
   }
 }

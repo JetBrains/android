@@ -65,6 +65,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
@@ -436,7 +437,7 @@ public class ConstraintAnchorTarget extends AnchorTarget {
       }
       String margin;
       if (Scout.getMarginResource() == null) {
-        margin = String.format(SdkConstants.VALUE_N_DP, marginValue);
+        margin = String.format(Locale.US, SdkConstants.VALUE_N_DP, marginValue);
       } else {
         margin = Scout.getMarginResource();
       }

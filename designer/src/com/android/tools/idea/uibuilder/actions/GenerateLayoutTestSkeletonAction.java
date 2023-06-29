@@ -51,6 +51,7 @@ import icons.StudioIcons;
 import java.awt.Rectangle;
 import java.awt.datatransfer.StringSelection;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -273,7 +274,7 @@ public class GenerateLayoutTestSkeletonAction extends AnAction {
   @NotNull
   private static String makeBounds(@NotNull NlComponent component) {
     Rectangle bounds = getBounds(component);
-    return String.format(".withBounds(%d, %d, %d, %d)", bounds.x, bounds.y, bounds.width, bounds.height);
+    return String.format(Locale.US, ".withBounds(%d, %d, %d, %d)", bounds.x, bounds.y, bounds.width, bounds.height);
   }
 
   @NotNull

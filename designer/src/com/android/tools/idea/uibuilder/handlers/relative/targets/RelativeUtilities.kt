@@ -23,6 +23,7 @@ import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.uibuilder.model.TextDirection
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.google.common.collect.ImmutableList
+import java.util.Locale
 
 /**
  * Get the proper attributes for real layout file, which consider minimal SDK and target SDK.
@@ -72,12 +73,13 @@ internal val SceneComponent.drawCenterX: Int
 internal val SceneComponent.drawCenterY: Int
   get() = drawY + drawHeight / 2
 
-internal fun Int.toDpString(): String = String.format(SdkConstants.VALUE_N_DP, this)
+internal fun Int.toDpString(): String = String.format(Locale.US, SdkConstants.VALUE_N_DP, this)
 
 internal fun updateAlignAttribute(component: SceneComponent, attributes: NlAttributesHolder, value: Int, rules: AlignAttributeRules) {
   val parent = component.parent!!
   if (attributes.getAndroidAttribute(rules.alignParentAttribute) == SdkConstants.VALUE_TRUE) {
-    attributes.setAndroidAttribute(rules.marginAttribute, String.format(SdkConstants.VALUE_N_DP, rules.alignParentRule(parent, value)))
+    attributes.setAndroidAttribute(rules.marginAttribute,
+                                   String.format(Locale.US, SdkConstants.VALUE_N_DP, rules.alignParentRule(parent, value)))
     return
   }
 
@@ -86,7 +88,7 @@ internal fun updateAlignAttribute(component: SceneComponent, attributes: NlAttri
     if (alignWidget != null) {
       val alignedComponent = parent.getSceneComponent(alignWidget) ?: return
       attributes.setAndroidAttribute(rules.marginAttribute,
-                                     String.format(SdkConstants.VALUE_N_DP, rule(alignedComponent, value)))
+                                     String.format(Locale.US, SdkConstants.VALUE_N_DP, rule(alignedComponent, value)))
       return
     }
   }

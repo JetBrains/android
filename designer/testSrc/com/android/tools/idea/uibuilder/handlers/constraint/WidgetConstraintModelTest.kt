@@ -26,8 +26,22 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.PlatformTestUtil
 import org.mockito.Mockito
 import java.awt.event.ActionEvent
+import java.util.Locale
 
 class WidgetConstraintModelTest: SceneTest() {
+  private var defaultLocale: Locale? = null
+
+  override fun setUp() {
+    super.setUp()
+    defaultLocale = Locale.getDefault()
+    // Set the default Locale to Arabic which catches bugs where a number is formatted with arabic numbers instead of cardinal numbers.
+    Locale.setDefault(Locale("ar"))
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    defaultLocale?.let { Locale.setDefault(it) }
+  }
 
   override fun createModel(): ModelBuilder {
     return model("constraint.xml",

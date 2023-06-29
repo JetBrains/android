@@ -66,6 +66,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.ModalityUiUtil;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import javax.swing.Timer;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -688,7 +689,7 @@ public class WidgetConstraintModel implements SelectionListener {
       setAttribute(ANDROID_URI, attribute, marginString);
     }
     else {
-      String marginY = String.format(VALUE_N_DP, currentValueInInt);
+      String marginY = String.format(Locale.US, VALUE_N_DP, currentValueInInt);
       setAttribute(ANDROID_URI, attribute, marginY);
     }
   }

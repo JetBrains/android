@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
+import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
+import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ANDROID_WEBKIT_PKG;
 import static com.android.SdkConstants.ATTR_BACKGROUND;
@@ -25,9 +27,7 @@ import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
-import static com.android.AndroidXConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CLASS_VIEWGROUP;
-import static com.android.AndroidXConstants.CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.FQCN_ADAPTER_VIEW;
 import static com.android.SdkConstants.REQUEST_FOCUS;
 import static com.android.SdkConstants.TAG_DATA;
@@ -38,7 +38,6 @@ import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_N_DP;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.WEB_VIEW;
-import static java.util.Locale.ROOT;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -48,7 +47,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
@@ -58,6 +56,7 @@ import com.android.tools.idea.uibuilder.scout.ScoutDirectConvert;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.rendering.parsers.AttributeSnapshot;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -88,6 +87,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -382,11 +382,11 @@ public class ConvertToConstraintLayoutAction extends AnAction {
         int dph = myEditor.pxToDp(NlComponentHelperKt.getH(child));
         AttributesTransaction transaction = child.startAttributeTransaction();
         // Record the bounds for use by Scout
-        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH, String.format(ROOT, VALUE_N_DP, dpw));
-        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT, String.format(ROOT, VALUE_N_DP, dph));
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_WIDTH, String.format(Locale.US, VALUE_N_DP, dpw));
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_CONVERSION_ABSOLUTE_HEIGHT, String.format(Locale.US, VALUE_N_DP, dph));
         // position in absolute coordinates
-        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, String.format(ROOT, VALUE_N_DP, dpx));
-        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, String.format(ROOT, VALUE_N_DP, dpy));
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X, String.format(Locale.US, VALUE_N_DP, dpx));
+        transaction.setAttribute(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, String.format(Locale.US, VALUE_N_DP, dpy));
         //* Set to wrap Scout can use
         transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, VALUE_WRAP_CONTENT);
         transaction.setAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);

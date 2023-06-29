@@ -16,6 +16,8 @@
 
 package com.android.tools.idea.uibuilder.scout;
 
+import java.util.Locale;
+
 /**
  * Represents connections between constrained widgets
  */
@@ -138,7 +140,7 @@ public class Connection {
    */
   public String getDisplayString() {
     String res =
-      String.format("%dx%dx%dx%d,%d",
+      String.format(Locale.US, "%dx%dx%dx%d,%d",
                     (int)myDestRect.getX(),
                     (int)myDestRect.getY(),
                     myDestRect.getWidthInt(),

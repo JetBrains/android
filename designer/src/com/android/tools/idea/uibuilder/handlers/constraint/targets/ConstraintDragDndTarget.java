@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.scout.ScoutArrange;
 import com.android.tools.idea.uibuilder.scout.ScoutWidget;
+import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -123,12 +124,12 @@ public class ConstraintDragDndTarget extends ConstraintDragTarget {
     if (ConstraintComponentUtilities.isGuideLine(myComponent.getNlComponent())) {
       if (ConstraintLayoutGuidelineHandler.isVertical(myComponent.getNlComponent())) {
         int dx = x - getLeftTargetOrigin(myComponent.getParent());
-        String positionX = String.format(SdkConstants.VALUE_N_DP, dx);
+        String positionX = String.format(Locale.US, SdkConstants.VALUE_N_DP, dx);
         attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, positionX);
       }
       else {
         int dy = y - getTopTargetOrigin(myComponent.getParent());
-        String positionY = String.format(SdkConstants.VALUE_N_DP, dy);
+        String positionY = String.format(Locale.US, SdkConstants.VALUE_N_DP, dy);
         attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, positionY);
       }
     }
