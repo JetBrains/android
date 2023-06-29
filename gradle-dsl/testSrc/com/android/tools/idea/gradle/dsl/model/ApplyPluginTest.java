@@ -668,6 +668,21 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testAddPluginDslWithApplyBlockNoVersion() throws Exception {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_PLUGIN);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
+
+    buildModel.applyPlugin("com.google.firebase.crashlytics", null, true);
+    verifyPlugins(ImmutableList.of("com.android.application", "com.google.firebase.crashlytics"), buildModel.plugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.google.firebase.crashlytics"), buildModel.appliedPlugins());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_PLUGIN_DSL_NO_VERSION_EXPECTED);
+    verifyPlugins(ImmutableList.of("com.android.application", "com.google.firebase.crashlytics"), buildModel.plugins());
+    verifyPlugins(ImmutableList.of("com.android.application", "com.google.firebase.crashlytics"), buildModel.appliedPlugins());
+  }
+
+  @Test
   public void testAddPluginAfterBuildscript() throws Exception {
     writeToBuildFile(TestFile.ADD_PLUGIN_AFTER_BUILDSCRIPT);
     GradleBuildModel buildModel = getGradleBuildModel();
@@ -797,6 +812,7 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
     ADD_AND_APPLY_PLUGIN("addAndApplyPlugin"),
     ADD_AND_APPLY_PLUGIN_EXPECTED("addAndApplyPluginExpected"),
     ADD_AND_APPLY_PLUGIN_DSL_EXPECTED("addAndApplyPluginDslExpected"),
+    ADD_AND_APPLY_PLUGIN_DSL_NO_VERSION_EXPECTED("addAndApplyPluginDslNoVersionExpected"),
     ADD_AND_APPLY_ALREADY_EXISTING_PLUGIN("addAndApplyAlreadyExistingPlugin"),
     ADD_EXISTING_PLUGIN_TO_PLUGINS_AND_APPLY_BLOCKS("addExistingPluginToPluginsAndApplyBlocks"),
     SET_PLUGIN_NAME("setPluginName"),
