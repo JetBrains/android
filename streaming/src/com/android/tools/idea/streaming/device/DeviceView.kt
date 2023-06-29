@@ -264,6 +264,7 @@ internal class DeviceView(
   }
 
   private fun connected() {
+    hideLongRunningOperationIndicatorInstantly()
     if (connectionState == ConnectionState.CONNECTING) {
       hideDisconnectedStateMessage()
       connectionState = ConnectionState.CONNECTED
@@ -276,6 +277,7 @@ internal class DeviceView(
       if (disposed) {
         return@invokeLaterIfNeeded
       }
+      hideLongRunningOperationIndicatorInstantly()
       stopClipboardSynchronization()
       val message: String
       val reconnector: Reconnector
