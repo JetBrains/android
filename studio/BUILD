@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
+load("//tools/base/common:version.bzl", "LAST_STABLE_BUILD_VERSION")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "iml_studio_test", "studio_plugin")
 load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
@@ -689,6 +690,12 @@ android_studio(
         ":com.google.urlassistant",
         ":com.google.targetsdkversionassistant",
     ],
+    properties = select({
+        "//conditions:default": [],
+        "//tools/adt/idea/studio:nightly-build": [
+            "gradle.ide.agp.version.to.use=" + LAST_STABLE_BUILD_VERSION,
+        ],
+    }),
     searchable_options = "//tools/adt/idea/searchable-options",
     update_message_template = ":update_message.html",
     version_code_name = STUDIO_CODENAME,
