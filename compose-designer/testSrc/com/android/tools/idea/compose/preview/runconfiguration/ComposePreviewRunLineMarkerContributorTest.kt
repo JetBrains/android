@@ -48,13 +48,13 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
     super.setUp()
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
-    StudioFlags.COMPOSE_PREVIEW_LITE_MODE.override(true)
+    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(true)
   }
 
   override fun tearDown() {
     super.tearDown()
-    StudioFlags.COMPOSE_PREVIEW_LITE_MODE.clearOverride()
-    AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled = false
+    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.clearOverride()
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = false
   }
 
   override fun configureAdditionalModules(
@@ -92,8 +92,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
     assertNotNull(contributor.getInfo(functionIdentifier))
   }
 
-  fun testGetInfoWhenLiteModeIsEnabled() {
-    AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled = true
+  fun testGetInfoWhenEssentialsModeIsEnabled() {
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
     val file =
       myFixture.addFileToProjectAndInvalidate(
         "src/Test.kt",
@@ -112,7 +112,7 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
     // Although the function is a valid preview, a run line marker should not be created, because
-    // Lite Mode is enabled
+    // Essentials Mode is enabled
     assertNull(contributor.getInfo(functionIdentifier))
   }
 

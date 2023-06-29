@@ -21,9 +21,9 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
@@ -57,15 +57,18 @@ class ComposeViewControlAction(
     e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
     e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
     e.presentation.description =
-      if (ComposePreviewLiteModeManager.isLiteModeEnabled)
-        message("action.scene.view.control.lite.mode.description")
+      if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
+        message("action.scene.view.control.essentials.mode.description")
       else message("action.scene.view.control.description")
   }
 
   @VisibleForTesting
   public override fun updateActions(context: DataContext): Boolean {
     removeAll()
-    if (StudioFlags.COMPOSE_VIEW_FILTER.get() && !ComposePreviewLiteModeManager.isLiteModeEnabled) {
+    if (
+      StudioFlags.COMPOSE_VIEW_FILTER.get() &&
+        !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+    ) {
       DESIGN_SURFACE.getData(context)?.let { surface ->
         add(ComposeShowFilterAction(surface))
         addSeparator()

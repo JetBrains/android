@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface.SceneViewAlignment
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
@@ -72,8 +72,8 @@ class SwitchSurfaceLayoutManagerAction(
     }
 
     override fun isSelected(e: AnActionEvent): Boolean {
-      if (ComposePreviewLiteModeManager.isLiteModeEnabled) {
-        // In Lite Mode, the standard layout manager actions should be disabled, as Gallery
+      if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) {
+        // In Essentials Mode, the standard layout manager actions should be disabled, as Gallery
         // will be selected by default and a special action will be created for it.
         return false
       }
@@ -92,15 +92,16 @@ class SwitchSurfaceLayoutManagerAction(
     // We will only add the actions and be visible if there are more than one option
     if (layoutManagers.size > 1) {
       layoutManagers.forEach { add(SetSurfaceLayoutManagerAction(it)) }
-      if (ComposePreviewLiteModeManager.isLiteModeEnabled) {
-        // When lite mode is enabled, we add another action to the list, so users have a visual
-        // indication that they're not in neither Grid nor List view. When/if Gallery becomes a
-        // mode in the future that's independent of Lite Mode, we need to refactor this code.
+      if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) {
+        // When essentials mode is enabled, we add another action to the list, so users have a
+        // visual indication that they're not in neither Grid nor List view. When/if Gallery
+        // becomes a mode in the future that's independent of Essentials Mode, we need to refactor
+        // this code.
         val galleryAction =
           object : ToggleAction(message("gallery.mode.title")) {
             override fun getActionUpdateThread() = ActionUpdateThread.EDT
             override fun isSelected(e: AnActionEvent) =
-              ComposePreviewLiteModeManager.isLiteModeEnabled
+              ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             override fun setSelected(e: AnActionEvent, state: Boolean) {}
             override fun update(e: AnActionEvent) {
               super.update(e)

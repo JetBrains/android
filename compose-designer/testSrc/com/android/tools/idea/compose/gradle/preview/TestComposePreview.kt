@@ -21,7 +21,7 @@ import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.compose.preview.ComposePreviewView
 import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
-import com.android.tools.idea.compose.preview.lite.ComposeEssentialsMode
+import com.android.tools.idea.compose.preview.essentials.ComposeEssentialsMode
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider

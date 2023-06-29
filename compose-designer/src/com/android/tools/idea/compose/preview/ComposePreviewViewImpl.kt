@@ -28,9 +28,9 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
-import com.android.tools.idea.compose.preview.lite.ComposeEssentialsMode
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
-import com.android.tools.idea.compose.preview.lite.EssentialsModeWrapperPanel
+import com.android.tools.idea.compose.preview.essentials.ComposeEssentialsMode
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
+import com.android.tools.idea.compose.preview.essentials.EssentialsModeWrapperPanel
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -145,9 +145,9 @@ interface ComposePreviewView {
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
   ): List<ComposePreviewElement> {
     return mainSurface.updatePreviewsAndRefresh(
-      // Don't reuse models when in lite mode to avoid briefly showing an unexpected/mixed
+      // Don't reuse models when in essentials mode to avoid briefly showing an unexpected/mixed
       // state of the old and new preview.
-      tryReusingModels = !ComposePreviewLiteModeManager.isLiteModeEnabled,
+      tryReusingModels = !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled,
       reinflate,
       previewElements,
       Logger.getInstance(ComposePreviewView::class.java),
@@ -365,7 +365,7 @@ internal class ComposePreviewViewImpl(
     set(value) {
       // Avoid repeated values.
       if (value == field) return
-      // If lite mode is enabled,disabled or updated - components should be rearranged.
+      // If essentials mode is enabled,disabled or updated - components should be rearranged.
       // Remove components from its existing places.
       if (field == null) {
         content.remove(mainSurface)

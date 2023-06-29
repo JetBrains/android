@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -37,12 +37,12 @@ class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
     val isUiCheckModeEnabled = StudioFlags.NELE_COMPOSE_UI_CHECK_MODE.get()
-    val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
+    val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
     e.presentation.isVisible = isUiCheckModeEnabled
-    e.presentation.isEnabled = isUiCheckModeEnabled && !isLiteModeEnabled
-    e.presentation.text = if (isLiteModeEnabled) null else message("action.uicheck.title")
+    e.presentation.isEnabled = isUiCheckModeEnabled && !isEssentialsModeEnabled
+    e.presentation.text = if (isEssentialsModeEnabled) null else message("action.uicheck.title")
     e.presentation.description =
-      if (isLiteModeEnabled) message("action.uicheck.lite.mode.description")
+      if (isEssentialsModeEnabled) message("action.uicheck.essentials.mode.description")
       else message("action.uicheck.description")
   }
 

@@ -17,8 +17,8 @@ package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.isValidComposePreview
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.kotlin.getClassName
 import com.android.tools.idea.projectsystem.getHolderModule
@@ -65,7 +65,7 @@ open class ComposePreviewRunConfigurationProducer :
     context: ConfigurationContext,
     sourceElement: Ref<PsiElement>
   ): Boolean {
-    if (ComposePreviewLiteModeManager.isLiteModeEnabled) return false
+    if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) return false
     val module = context.module ?: context.location?.module ?: return false
     configuration.setLaunchActivity(COMPOSE_PREVIEW_ACTIVITY_FQN, true)
     context.containingComposePreviewFunction()?.let { ktNamedFunction ->
@@ -104,7 +104,7 @@ open class ComposePreviewRunConfigurationProducer :
     configuration: ComposePreviewRunConfiguration,
     context: ConfigurationContext
   ): Boolean {
-    if (ComposePreviewLiteModeManager.isLiteModeEnabled) return false
+    if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) return false
     context.containingComposePreviewFunction()?.let {
       val createdFromContext = configuration.composableMethodFqn == it.composePreviewFunctionFqn()
       if (createdFromContext) {

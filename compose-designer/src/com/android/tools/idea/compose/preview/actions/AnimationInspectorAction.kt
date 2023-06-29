@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -43,13 +43,14 @@ class AnimationInspectorAction(private val dataContextProvider: () -> DataContex
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
     e.presentation.apply {
-      val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
-      isEnabled = !isLiteModeEnabled
+      val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+      isEnabled = !isEssentialsModeEnabled
       // Only display the animation inspector icon if there are animations to be inspected.
       isVisible = getPreviewElement()?.hasAnimations == true
-      text = if (isLiteModeEnabled) null else message("action.animation.inspector.title")
+      text = if (isEssentialsModeEnabled) null else message("action.animation.inspector.title")
       description =
-        if (isLiteModeEnabled) message("action.animation.inspector.lite.mode.description")
+        if (isEssentialsModeEnabled)
+          message("action.animation.inspector.essentials.mode.description")
         else message("action.animation.inspector.description")
     }
   }

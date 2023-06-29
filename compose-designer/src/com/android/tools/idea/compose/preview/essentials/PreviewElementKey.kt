@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.lite
+package com.android.tools.idea.compose.preview.essentials
 
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 

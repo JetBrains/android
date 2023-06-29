@@ -21,7 +21,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.compose.pickers.preview.property.referenceDeviceIds
-import com.android.tools.idea.compose.preview.lite.ComposeEssentialsMode
+import com.android.tools.idea.compose.preview.essentials.ComposeEssentialsMode
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectStatus

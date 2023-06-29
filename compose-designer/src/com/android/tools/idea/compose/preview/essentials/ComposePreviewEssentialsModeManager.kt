@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.lite
+package com.android.tools.idea.compose.preview.essentials
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 /**
- * Service to handle and query the state of Compose Preview Lite Mode. The state can be set via
- * settings.
+ * Service to handle and query the state of Compose Preview Essentials Mode. The state can be
+ * changed via settings panel.
  */
-object ComposePreviewLiteModeManager {
+object ComposePreviewEssentialsModeManager {
 
-  val isLiteModeEnabled: Boolean
+  val isEssentialsModeEnabled: Boolean
     get() =
-      StudioFlags.COMPOSE_PREVIEW_LITE_MODE.get() &&
-        (AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled ||
+      StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.get() &&
+        (AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled ||
           EssentialsMode.isEnabled())
 }

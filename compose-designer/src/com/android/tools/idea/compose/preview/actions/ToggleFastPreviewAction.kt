@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
@@ -52,9 +52,9 @@ class ToggleFastPreviewAction : AnAction(null, null, null) {
       presentation.isEnabledAndVisible = false
       return
     }
-    if (ComposePreviewLiteModeManager.isLiteModeEnabled) {
+    if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) {
       presentation.description =
-        message("action.preview.fast.refresh.disabled.in.lite.mode.description")
+        message("action.preview.fast.refresh.disabled.in.essentials.mode.description")
       presentation.isEnabled = false
     } else {
       presentation.description = message("action.preview.fast.refresh.toggle.description")

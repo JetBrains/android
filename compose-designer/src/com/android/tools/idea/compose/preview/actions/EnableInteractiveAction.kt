@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -41,12 +41,12 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
+    val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
     e.presentation.isVisible = true
-    e.presentation.isEnabled = !isLiteModeEnabled
-    e.presentation.text = if (isLiteModeEnabled) null else message("action.interactive.title")
+    e.presentation.isEnabled = !isEssentialsModeEnabled
+    e.presentation.text = if (isEssentialsModeEnabled) null else message("action.interactive.title")
     e.presentation.description =
-      if (isLiteModeEnabled) message("action.interactive.lite.mode.description")
+      if (isEssentialsModeEnabled) message("action.interactive.essentials.mode.description")
       else message("action.interactive.description")
   }
 

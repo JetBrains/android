@@ -60,13 +60,13 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
           .trimIndent()
       )
     composableFunction = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
-    StudioFlags.COMPOSE_PREVIEW_LITE_MODE.override(true)
+    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.override(true)
   }
 
   override fun tearDown() {
     super.tearDown()
-    StudioFlags.COMPOSE_PREVIEW_LITE_MODE.clearOverride()
-    AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled = false
+    StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.clearOverride()
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = false
   }
 
   override fun configureAdditionalModules(
@@ -103,13 +103,13 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     }
   }
 
-  fun testSetupConfigurationFromContextWhenLiteModeIsEnabled() {
-    AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled = true
+  fun testSetupConfigurationFromContextWhenEssentialsModeIsEnabled() {
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
 
     val context = ConfigurationContext(composableFunction)
     val runConfiguration = newComposePreviewRunConfiguration()
     val producer = ComposePreviewRunConfigurationProducer()
-    // We shouldn't be able to create a configuration from context when lite mode is enabled.
+    // We shouldn't be able to create a configuration from context when essentials mode is enabled.
     assertFalse(
       producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
     )
@@ -296,15 +296,16 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
     assertTrue(producer.isConfigurationFromContext(runConfiguration, context))
   }
 
-  fun testIsConfigurationFromContextWhenLiteModeIsEnabled() {
-    AndroidEditorSettings.getInstance().globalState.isComposePreviewLiteModeEnabled = true
+  fun testIsConfigurationFromContextWhenEssentialsModeIsEnabled() {
+    AndroidEditorSettings.getInstance().globalState.isComposePreviewEssentialsModeEnabled = true
     val producer = ComposePreviewRunConfigurationProducer()
     val context = ConfigurationContext(composableFunction)
     val runConfiguration = newComposePreviewRunConfiguration()
 
     runConfiguration.name = "Preview1"
     runConfiguration.composableMethodFqn = "TestKt.Preview1"
-    // Configuration shouldn't match when Lite Mode is enabled, even if both name and FQN match.
+    // Configuration shouldn't match when Compose Preview Essentials Mode is enabled,
+    // even if both name and FQN match.
     assertFalse(producer.isConfigurationFromContext(runConfiguration, context))
   }
 

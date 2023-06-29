@@ -1176,9 +1176,9 @@ public final class StudioFlags {
   //region Compose
   private static final FlagGroup COMPOSE = new FlagGroup(FLAGS, "compose", "Compose");
 
-  public static final Flag<Boolean> COMPOSE_PREVIEW_LITE_MODE = Flag.create(
-    COMPOSE, "preview.compose.lite.mode", "Enable Compose Preview Lite Mode",
-    "If enabled, Preview Lite Mode will be enabled.",
+  public static final Flag<Boolean> COMPOSE_PREVIEW_ESSENTIALS_MODE = Flag.create(
+    COMPOSE, "preview.essentials.mode", "Enable Compose Preview Essentials Mode",
+    "If enabled, Compose Preview Essentials Mode will be enabled.",
     true);
 
   public static final Flag<Boolean> COMPOSE_PREVIEW_DOUBLE_RENDER = Flag.create(

@@ -146,7 +146,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
       }
 
       group("Compose Preview") {
-        if (StudioFlags.COMPOSE_PREVIEW_LITE_MODE.get()) {
+        if (StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.get()) {
           buttonsGroup("Resource Usage:") {
             if (EssentialsMode.isEnabled()) {
               row {
@@ -161,8 +161,8 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
             row {
               defaultModeRadioButton =
                 radioButton("Default")
-                  .bindSelected({ !state.isComposePreviewLiteModeEnabled }) {
-                    state.isComposePreviewLiteModeEnabled = !it
+                  .bindSelected({ !state.isComposePreviewEssentialsModeEnabled }) {
+                    state.isComposePreviewEssentialsModeEnabled = !it
                   }
             }.enabled(!EssentialsMode.isEnabled())
             indent {
@@ -175,13 +175,14 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
               }
             }.enabled(!EssentialsMode.isEnabled())
             row {
-              val liteModeHint = "Preview will preserve resources by inflating previews on demand, and disabling live updates and " +
-                                 "preview modes. <a href=\"https://developer.android.com/jetpack/compose/tooling/previews\">Learn more</a>"
+              val essentialsModeHint =
+                "Preview will preserve resources by inflating previews on demand, and disabling live updates and preview modes. " +
+                "<a href=\"https://developer.android.com/jetpack/compose/tooling/previews\">Learn more</a>"
 
               radioButton("Essentials")
-                .comment(liteModeHint)
-                .bindSelected(state::isComposePreviewLiteModeEnabled) {
-                  state.isComposePreviewLiteModeEnabled = it
+                .comment(essentialsModeHint)
+                .bindSelected(state::isComposePreviewEssentialsModeEnabled) {
+                  state.isComposePreviewEssentialsModeEnabled = it
                 }
             }.enabled(!EssentialsMode.isEnabled())
           }

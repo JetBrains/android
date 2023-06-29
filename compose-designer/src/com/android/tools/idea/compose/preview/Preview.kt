@@ -31,10 +31,10 @@ import com.android.tools.idea.compose.pickers.preview.property.referenceDeviceId
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
+import com.android.tools.idea.compose.preview.essentials.ComposeEssentialsMode
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.fast.requestFastPreviewRefreshAndTrack
-import com.android.tools.idea.compose.preview.lite.ComposeEssentialsMode
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
@@ -408,21 +408,21 @@ class ComposePreviewRepresentation(
 
   /**
    * Updates the [composeWorkBench]'s [ComposeEssentialsMode] according to the state of Android
-   * Studio Essentials Mode or Compose Preview Lite Mode.
+   * Studio (and/or Compose Preview) Essentials Mode.
    *
    * @param sourceEventType type of the event that triggered the update
    */
   private fun updateEssentialsMode(
     sourceEventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType? = null
   ) {
-    val liteModeIsEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
-    val composeEssentialsModeIsSet = composeWorkBench.essentialsMode != null
+    val essentialsModeIsEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+    val composePreviewViewEssentialsModeIsSet = composeWorkBench.essentialsMode != null
     // Only update essentials mode if needed
-    if (liteModeIsEnabled == composeEssentialsModeIsSet) return
+    if (essentialsModeIsEnabled == composePreviewViewEssentialsModeIsSet) return
 
-    if (composeEssentialsModeIsSet) {
+    if (composePreviewViewEssentialsModeIsSet) {
       composeWorkBench.essentialsMode = null
-      singlePreviewElementInstance = null // Remove filter applied by lite mode.
+      singlePreviewElementInstance = null // Remove filter applied by essentials mode.
     } else {
       composeWorkBench.essentialsMode = ComposeEssentialsMode(composeWorkBench.mainSurface)
     }
@@ -832,12 +832,12 @@ class ComposePreviewRepresentation(
           }
 
           // If Fast Preview is enabled, prefetch the daemon for the current configuration.
-          // This should not happen when lite mode is enabled.
+          // This should not happen when essentials mode is enabled.
           if (
             module != null &&
               !module.isDisposed &&
               FastPreviewManager.getInstance(project).isEnabled &&
-              !ComposePreviewLiteModeManager.isLiteModeEnabled
+              !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
           ) {
             FastPreviewManager.getInstance(project).preStartDaemon(module)
           }
@@ -1016,7 +1016,7 @@ class ComposePreviewRepresentation(
               !EssentialsMode.isEnabled() &&
                 interactiveModeFlow.value.isStoppingOrDisabled() &&
                 !animationInspection.get() &&
-                !ComposePreviewLiteModeManager.isLiteModeEnabled
+                !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             )
               requestRefresh()
           }
@@ -1026,12 +1026,12 @@ class ComposePreviewRepresentation(
 
   /**
    * Whether fast preview is available. In addition to checking its normal availability from
-   * [FastPreviewManager], we also verify that lite mode is not enabled, because fast preview should
-   * not be available in this case.
+   * [FastPreviewManager], we also verify that essentials mode is not enabled, because fast preview
+   * should not be available in this case.
    */
   private fun isFastPreviewAvailable() =
     FastPreviewManager.getInstance(project).isAvailable &&
-      !ComposePreviewLiteModeManager.isLiteModeEnabled
+      !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
 
   override fun onActivate() {
     lifecycleManager.activate()
@@ -1215,7 +1215,9 @@ class ComposePreviewRepresentation(
           .setComposePreviewLiteModeEvent(
             ComposePreviewLiteModeEvent.newBuilder()
               .setType(eventType)
-              .setIsComposePreviewLiteMode(ComposePreviewLiteModeManager.isLiteModeEnabled)
+              .setIsComposePreviewLiteMode(
+                ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+              )
           )
       )
     }

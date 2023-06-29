@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.analytics
 
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.analytics.setApplicationId
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.preview.PreviewNode
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
@@ -91,7 +91,7 @@ class MultiPreviewEvent(private val nodes: List<MultiPreviewNode>, val fileFqNam
           .filter { !it.nodeInfo.isUseless() && !it.nodeInfo.isPreviewType() }
           .map { it.nodeInfo.build() }
       )
-      .setIsComposePreviewLiteMode(ComposePreviewLiteModeManager.isLiteModeEnabled)
+      .setIsComposePreviewLiteMode(ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)
 
   fun build(): ComposeMultiPreviewEvent {
     return eventBuilder.build()

@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewElement
-import com.android.tools.idea.compose.preview.lite.ComposePreviewLiteModeManager
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.previewProviderClassAndIndex
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
@@ -60,14 +60,14 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
     val isTestFile =
       previewElement()?.previewBodyPsi?.let { isTestFile(it.project, it.virtualFile) } ?: false
     e.presentation.apply {
-      val isLiteModeEnabled = ComposePreviewLiteModeManager.isLiteModeEnabled
-      isEnabled = !isTestFile && !isLiteModeEnabled
+      val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+      isEnabled = !isTestFile && !isEssentialsModeEnabled
       isVisible = true
-      text = if (isLiteModeEnabled) null else message("action.run.title")
+      text = if (isEssentialsModeEnabled) null else message("action.run.title")
       description =
         if (isTestFile) message("action.run.description.test.files")
         else {
-          if (isLiteModeEnabled) message("action.run.lite.mode.description")
+          if (isEssentialsModeEnabled) message("action.run.essentials.mode.description")
           else message("action.run.description")
         }
     }
