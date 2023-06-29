@@ -22,7 +22,9 @@ import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -51,10 +53,9 @@ import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JPanel
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
-import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.`is`
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -73,7 +74,19 @@ class RenderErrorTest {
     get() = projectRule.fixture
 
   private val log = Logger.getInstance(RenderErrorTest::class.java)
-  private lateinit var panels: List<SceneViewPeerPanel>
+
+  private lateinit var fakeUi: FakeUi
+  private lateinit var composePreviewRepresentation: ComposePreviewRepresentation
+  private lateinit var previewView: TestComposePreviewView
+
+  private val panels: List<SceneViewPeerPanel>
+    get() =
+      fakeUi.findAllComponents<SceneViewPeerPanel>().also { panels ->
+        panels.forEach { log.debug("Found SceneViewPeerPanel ${it.displayName}") }
+        fakeUi.findAllComponents<SceneViewErrorsPanel>().forEach {
+          log.debug("Found SceneViewErrorsPanel $it")
+        }
+      }
 
   @Before
   fun setup() {
@@ -85,15 +98,13 @@ class RenderErrorTest {
         .guessProjectDir()!!
         .findFileByRelativePath(SimpleComposeAppPaths.APP_RENDER_ERROR.path)!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
-    val composePreviewRepresentation: ComposePreviewRepresentation
 
-    val previewView = TestComposePreviewView(fixture.testRootDisposable, project)
+    previewView = TestComposePreviewView(fixture.testRootDisposable, project)
     composePreviewRepresentation =
       ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
         previewView
       }
-    composePreviewRepresentation.atfChecksEnabled = true
-    composePreviewRepresentation.visualLintingEnabled = true
+
     val visualLintInspections =
       arrayOf(
         ButtonSizeAnalyzerInspection(),
@@ -104,7 +115,6 @@ class RenderErrorTest {
     projectRule.fixture.enableInspections(*visualLintInspections)
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
 
-    lateinit var fakeUi: FakeUi
     UIUtil.invokeAndWaitIfNeeded(
       Runnable {
         fakeUi =
@@ -122,19 +132,21 @@ class RenderErrorTest {
     )
 
     runBlocking { composePreviewRepresentation.activateAndWaitForRender(fakeUi) }
-
-    panels = fakeUi.findAllComponents<SceneViewPeerPanel>()
-
-    panels.forEach { log.debug("Found SceneViewPeerPanel ${it.displayName}") }
-    fakeUi.findAllComponents<SceneViewErrorsPanel>().forEach {
-      log.debug("Found SceneViewErrorsPanel $it")
-    }
   }
 
   @Test
   fun testSceneViewWithRenderErrors() {
-    val sceneViewPanelWithErrors = panels.single { it.displayName == "PreviewWithRenderErrors" }
-    assertTrue(sceneViewPanelWithErrors.sceneView.hasRenderErrors())
+    startUiCheckForModel("PreviewWithRenderErrors")
+
+    lateinit var sceneViewPanelWithErrors: SceneViewPeerPanel
+    runBlocking {
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+        panels
+          .singleOrNull { it.displayName == "PreviewWithRenderErrors - _device_class_phone" }
+          ?.takeIf { it.sceneView.hasRenderErrors() }
+          ?.also { sceneViewPanelWithErrors = it } != null
+      }
+    }
 
     val visibleErrorsPanel =
       TreeWalker(sceneViewPanelWithErrors)
@@ -181,28 +193,26 @@ class RenderErrorTest {
 
   @Test
   fun testAtfErrors() {
-    val issueModel = VisualLintService.getInstance(project).issueModel
-    runBlocking {
-      delayUntilCondition(delayPerIterationMs = 200, timeout = 5.seconds) {
-        issueModel.issues
-          .filterIsInstance<VisualLintRenderIssue>()
-          .filter { it.type == VisualLintErrorType.ATF }
-          .size == 2
-      }
-    }
-    val accessibilityIssues =
-      issueModel.issues.filterIsInstance<VisualLintRenderIssue>().filter {
-        it.type == VisualLintErrorType.ATF
-      }
-    val offsets = mutableListOf<Int>()
-    accessibilityIssues.forEach {
-      assertEquals("Insufficient text color contrast ratio", it.summary)
-      val navigatable = it.components[0].navigatable
-      assertTrue(navigatable is OpenFileDescriptor)
-      offsets.add((navigatable as OpenFileDescriptor).offset)
-      assertEquals("RenderError.kt", navigatable.file.name)
-    }
-    assertThat(offsets.sorted(), `is`(listOf(1667, 1817)))
+    startUiCheckForModel("PreviewWithContrastError")
+
+    val accessibilityIssue = accessibilityIssues().last()
+    assertEquals("Insufficient text color contrast ratio", accessibilityIssue.summary)
+    val navigatable = accessibilityIssue.components[0].navigatable
+    assertTrue(navigatable is OpenFileDescriptor)
+    assertEquals(1667, (navigatable as OpenFileDescriptor).offset)
+    assertEquals("RenderError.kt", navigatable.file.name)
+  }
+
+  @Test
+  fun testAtfErrorsOnSecondModel() {
+    startUiCheckForModel("PreviewWithContrastErrorAgain")
+
+    val accessibilityIssue = accessibilityIssues().last()
+    assertEquals("Insufficient text color contrast ratio", accessibilityIssue.summary)
+    val navigatable = accessibilityIssue.components[0].navigatable
+    assertTrue(navigatable is OpenFileDescriptor)
+    assertEquals(1817, (navigatable as OpenFileDescriptor).offset)
+    assertEquals("RenderError.kt", navigatable.file.name)
   }
 
   @Ignore("b/289364358")
@@ -243,4 +253,42 @@ class RenderErrorTest {
       .single()
       .childActionsOrStubs
       .toList()
+
+  private fun startUiCheckForModel(model: String) {
+    runBlocking {
+      val uiCheckElement =
+        previewView.mainSurface.models
+          .first { it.modelDisplayName == model }
+          .dataContext
+          .getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)!!
+
+      composePreviewRepresentation.setMode(
+        PreviewMode.UiCheck(
+          selected = uiCheckElement,
+          atfChecksEnabled = true,
+          visualLintingEnabled = true,
+        ),
+      )
+
+      delayUntilCondition(
+        250,
+        timeout = 2.minutes,
+      ) {
+        composePreviewRepresentation.isUiCheckPreview
+      }
+    }
+  }
+
+  private fun accessibilityIssues() = runBlocking {
+    val issueModel = VisualLintService.getInstance(project).issueModel
+    var accessibilityIssues = emptyList<VisualLintRenderIssue>()
+    delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+      accessibilityIssues =
+        issueModel.issues.filterIsInstance<VisualLintRenderIssue>().filter {
+          it.type == VisualLintErrorType.ATF
+        }
+      accessibilityIssues.isNotEmpty()
+    }
+    accessibilityIssues
+  }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
+import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -56,8 +57,8 @@ class AnimationInspectorAction(private val dataContextProvider: () -> DataContex
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER)?.let {
-      it.animationInspectionPreviewElementInstance = getPreviewElement()
-    }
+    val manager = dataContextProvider().getData(COMPOSE_PREVIEW_MANAGER) ?: return
+    val previewElement = getPreviewElement() ?: return
+    manager.setMode(PreviewMode.AnimationInspection(previewElement))
   }
 }

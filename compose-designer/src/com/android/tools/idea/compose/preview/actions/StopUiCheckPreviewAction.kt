@@ -37,7 +37,7 @@ class StopUiCheckPreviewAction :
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagersForContext(e.dataContext).forEach { it.stopUiCheckPreview() }
+    setDefaultPreviewMode(e)
   }
 
   // BGT is needed when calling findComposePreviewManagersForContext because it accesses the

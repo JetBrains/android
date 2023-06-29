@@ -33,11 +33,6 @@ open class TestComposePreviewManager(
       isRefreshing = false,
       interactiveMode = initialInteractiveMode
     )
-  var interactiveMode: ComposePreviewManager.InteractiveMode = initialInteractiveMode
-    set(value) {
-      field = value
-      currentStatus = currentStatus.copy(interactiveMode = value)
-    }
   override fun status(): ComposePreviewManager.Status = currentStatus
 
   override val availableGroupsFlow: StateFlow<Set<PreviewGroup.Named>> =
@@ -45,17 +40,8 @@ open class TestComposePreviewManager(
   override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
     MutableStateFlow(emptySet())
   override var groupFilter: PreviewGroup = PreviewGroup.All
-  override var singlePreviewElementInstance: ComposePreviewElementInstance? = null
-  override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance? = null
   override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
-  override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
-    singlePreviewElementInstance = instance
-  }
-
-  override fun stopInteractivePreview() {
-    singlePreviewElementInstance = null
-  }
 
   override fun invalidate() {}
 
@@ -65,13 +51,10 @@ open class TestComposePreviewManager(
 
   override var atfChecksEnabled: Boolean = false
 
-  override var visualLintingEnabled: Boolean = false
-
-  override var isUiCheckPreview: Boolean = false
-
-  override fun startUiCheckPreview(instance: ComposePreviewElementInstance) {}
-
-  override fun stopUiCheckPreview() {}
+  override var mode: PreviewMode = PreviewMode.Default
+  override fun setMode(newMode: PreviewMode.Settable) {
+    mode = newMode
+  }
 
   override fun dispose() {}
 }

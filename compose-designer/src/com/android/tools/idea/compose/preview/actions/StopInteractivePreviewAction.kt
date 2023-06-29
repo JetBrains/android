@@ -49,10 +49,7 @@ class StopInteractivePreviewAction :
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagersForContext(e.dataContext).forEach {
-      it.stopInteractivePreview()
-      it.animationInspectionPreviewElementInstance = null
-    }
+    setDefaultPreviewMode(e)
   }
 
   // BGT is needed when calling findComposePreviewManagersForContext because it accesses the

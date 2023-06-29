@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
+import com.android.testutils.delayUntilCondition
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
+import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
+import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.waitForSmartMode
@@ -38,6 +41,7 @@ import java.awt.Dimension
 import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Before
@@ -95,22 +99,35 @@ class AccessibilityModelUpdaterTest {
     val previewRepresentation =
       ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
-    previewRepresentation.atfChecksEnabled = true
+
     return previewRepresentation
   }
 
   @Test
   fun testNlComponentTreeCreation() {
+    val twoElementsPreviewModel =
+      previewView.mainSurface.models.first { it.modelDisplayName == "TwoElementsPreview" }
+
+    val uiCheckElement =
+      twoElementsPreviewModel.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)!!
+    composePreviewRepresentation.setMode(
+      PreviewMode.UiCheck(
+        uiCheckElement,
+        atfChecksEnabled = true,
+      ),
+    )
+    runBlocking { delayUntilCondition(250) { composePreviewRepresentation.isUiCheckPreview } }
+
     val twoElementsPreviewRoot =
       previewView.mainSurface.models
-        .first { it.modelDisplayName == "TwoElementsPreview" }
+        .first { it.modelDisplayName == "TwoElementsPreview - _device_class_phone" }
         .components[0]
     assertNotEquals(-1, twoElementsPreviewRoot.accessibilityId)
 
     var children = twoElementsPreviewRoot.children
-    assertEquals(1, children.size)
+    assertThat(children.size).isGreaterThanOrEqualTo(1)
     assertNotEquals(-1, children[0].accessibilityId)
-    assertEquals(323, children[0].w)
+    assertEquals(306, children[0].w)
 
     children = children[0].children
     assertEquals(2, children.size)
@@ -118,7 +135,7 @@ class AccessibilityModelUpdaterTest {
     val textViewComponent = children[0]
     assertEquals(0, textViewComponent.childCount)
     assertNotEquals(-1, textViewComponent.accessibilityId)
-    assertEquals(148, textViewComponent.w)
+    assertEquals(141, textViewComponent.w)
     val textViewNavigatable = textViewComponent.navigatable as OpenFileDescriptor
     assertEquals(1158, textViewNavigatable.offset)
     assertEquals("MainActivity.kt", textViewNavigatable.file.name)
@@ -129,7 +146,7 @@ class AccessibilityModelUpdaterTest {
     val buttonTextViewComponent = children[0]
     assertEquals(0, buttonTextViewComponent.childCount)
     assertNotEquals(-1, buttonTextViewComponent.accessibilityId)
-    assertEquals(235, buttonTextViewComponent.w)
+    assertEquals(222, buttonTextViewComponent.w)
     val buttonTextViewNavigatable = buttonTextViewComponent.navigatable as OpenFileDescriptor
     assertEquals(1225, buttonTextViewNavigatable.offset)
     assertEquals("MainActivity.kt", buttonTextViewNavigatable.file.name)
@@ -137,7 +154,7 @@ class AccessibilityModelUpdaterTest {
     val buttonComponent = children[1]
     assertEquals(0, buttonComponent.childCount)
     assertNotEquals(-1, buttonComponent.accessibilityId)
-    assertEquals(323, buttonComponent.w)
+    assertEquals(306, buttonComponent.w)
     val buttonNavigatable = buttonComponent.navigatable as OpenFileDescriptor
     assertEquals(1225, buttonNavigatable.offset)
     assertEquals("MainActivity.kt", buttonNavigatable.file.name)

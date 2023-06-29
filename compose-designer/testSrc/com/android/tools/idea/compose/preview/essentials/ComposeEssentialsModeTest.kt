@@ -18,12 +18,14 @@ package com.android.tools.idea.compose.preview.essentials
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent.createTestEvent
+import com.intellij.testFramework.assertInstanceOf
 import java.awt.Component
 import java.util.stream.Collectors
 import javax.swing.JPanel
@@ -40,7 +42,6 @@ class ComposeEssentialsModeTest {
     override val allPreviewElementsInFileFlow:
       MutableStateFlow<Collection<ComposePreviewElementInstance>> =
       MutableStateFlow(emptySet())
-    override var singlePreviewElementInstance: ComposePreviewElementInstance? = null
   }
 
   @Test
@@ -62,7 +63,8 @@ class ComposeEssentialsModeTest {
     tabsToolbar.actionGroup.update(createTestEvent(context))
 
     assertEquals(firstElement, gallery.selectedKey!!.element)
-    assertEquals(firstElement, composePreviewManager.singlePreviewElementInstance)
+    assertInstanceOf<PreviewMode.Essential>(composePreviewManager.mode)
+    assertEquals(firstElement, (composePreviewManager.mode as PreviewMode.Essential).selected)
   }
 
   private fun findTabs(parent: Component): ActionToolbarImpl =

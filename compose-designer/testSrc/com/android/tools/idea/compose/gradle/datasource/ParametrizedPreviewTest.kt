@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.idea.compose.preview.ParametrizedComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.PreviewElementTemplateInstanceProvider
+import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
@@ -304,7 +305,7 @@ class ParametrizedPreviewTest {
     preview.onActivate()
 
     val uiCheckElement = elements.first() as ParametrizedComposePreviewElementInstance
-    preview.startUiCheckPreview(uiCheckElement)
+    preview.setMode(PreviewMode.UiCheck(uiCheckElement))
     delayUntilCondition(250) { preview.isUiCheckPreview }
 
     assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Enabled>(

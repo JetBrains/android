@@ -307,7 +307,7 @@ class ComposePreviewRepresentation(
         surface.deactivateIssueModel()
       },
       onDelayedDeactivate = {
-        stopInteractivePreview()
+        setMode(PreviewMode.Default)
         log.debug("Delayed surface deactivation")
         surface.deactivate()
       }
@@ -379,6 +379,21 @@ class ComposePreviewRepresentation(
    */
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
+  /**
+   * Flow representing the [ComposePreviewManager]'s current [PreviewMode]. This flow is used by
+   * [mode] in order to implement the [PreviewModeManager] interface. The flow is collected and, if
+   * the current mode in the flow is [PreviewMode.Switching], then the [onExit] and [onEnter]
+   * methods are called.
+   */
+  private val modeFlow = MutableStateFlow<PreviewMode>(PreviewMode.Default)
+
+  /** The [ComposePreviewManager]'s current [PreviewMode] */
+  override val mode: PreviewMode
+    get() = modeFlow.value
+
+  private val isAnimationPreviewEnabled: Boolean
+    get() = currentOrNextMode is PreviewMode.AnimationInspection
+
   init {
     val project = psiFile.project
 
@@ -408,6 +423,21 @@ class ComposePreviewRepresentation(
           )
         }
       )
+
+    // Launch handling of Preview modes
+    launch {
+      modeFlow.collect {
+        when (it) {
+          // TODO(b/290173523): this should be handled in a separate class
+          is PreviewMode.Switching -> {
+            onExit(it.currentMode)
+            onEnter(it.newMode)
+            modeFlow.value = it.newMode
+          }
+          else -> Unit
+        }
+      }
+    }
   }
 
   /**
@@ -426,7 +456,7 @@ class ComposePreviewRepresentation(
 
     if (composePreviewViewEssentialsModeIsSet) {
       composeWorkBench.essentialsMode = null
-      singlePreviewElementInstance = null // Remove filter applied by essentials mode.
+      setMode(PreviewMode.Default)
     } else {
       composeWorkBench.essentialsMode = ComposeEssentialsMode(composeWorkBench.mainSurface)
     }
@@ -480,13 +510,17 @@ class ComposePreviewRepresentation(
         }
     }
 
-  override var singlePreviewElementInstance: ComposePreviewElementInstance?
+  /**
+   * Filter that can be applied to select a single instance. Setting this filter will trigger a
+   * refresh.
+   *
+   * TODO(b/290579075): replace this variable with a method
+   */
+  private var singlePreviewElementInstance: ComposePreviewElementInstance?
     get() = (filterFlow.value as? ComposePreviewElementsModel.Filter.Single)?.instance
     set(newValue) {
       val previousValue = (filterFlow.value as? ComposePreviewElementsModel.Filter.Single)?.instance
       if (newValue != previousValue) {
-        stopInteractivePreview()
-        stopUiCheckPreview()
         log.debug("New instance selection: $newValue")
         filterFlow.value =
           if (newValue != null) {
@@ -524,7 +558,7 @@ class ComposePreviewRepresentation(
           .toolsAttribute("paintBounds", showDebugBoundaries.toString())
           .toolsAttribute("findDesignInfoProviders", hasDesignInfoProviders.toString())
           .apply {
-            if (animationInspection.get()) {
+            if (isAnimationPreviewEnabled) {
               // If the animation inspection is active, start the PreviewAnimationClock with
               // the current epoch time.
               toolsAttribute("animationClockStartTime", System.currentTimeMillis().toString())
@@ -533,7 +567,7 @@ class ComposePreviewRepresentation(
           .buildString()
     }
 
-  override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
+  private fun startInteractivePreview(instance: ComposePreviewElementInstance) {
     if (interactiveModeFlow.value.isStartingOrReady()) return
     log.debug("New single preview element focus: $instance")
     requestVisibilityAndNotificationsUpdate()
@@ -560,47 +594,14 @@ class ComposePreviewRepresentation(
     }
   }
 
-  override fun stopInteractivePreview() {
-    if (interactiveModeFlow.value.isStoppingOrDisabled()) return
-
-    log.debug("Stopping interactive")
-    onInteractivePreviewStop()
-    requestVisibilityAndNotificationsUpdate()
-    onStaticPreviewStart()
-    forceRefresh().invokeOnCompletion {
-      interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.DISABLED
-    }
-  }
-
-  override fun startUiCheckPreview(instance: ComposePreviewElementInstance) {
-    atfChecksEnabled = StudioFlags.NELE_ATF_FOR_COMPOSE.get()
-    visualLintingEnabled = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get()
+  private suspend fun startUiCheckPreview(instance: ComposePreviewElementInstance) {
     log.debug(
       "Starting UI check. ATF checks enabled: $atfChecksEnabled, Visual Linting enabled: $visualLintingEnabled"
     )
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance)
     surface.background = INTERACTIVE_BACKGROUND_COLOR
     IssuePanelService.getInstance(project).addIssueSelectionListener(issueListener)
-    forceRefresh().invokeOnCompletion { isUiCheckPreview = true }
-  }
-
-  override fun stopUiCheckPreview() {
-    if (!isUiCheckPreview) return
-    log.debug("Stopping UI check")
-    uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
-    atfChecksEnabled = false
-    visualLintingEnabled = false
-    IssuePanelService.getInstance(project).removeIssueSelectionListener(issueListener)
-    onStaticPreviewStart()
-    forceRefresh().invokeOnCompletion {
-      surface.repaint()
-      isUiCheckPreview = false
-    }
-  }
-
-  private fun onStaticPreviewStart() {
-    sceneComponentProvider.enabled = true
-    surface.background = Colors.DEFAULT_BACKGROUND_COLOR
+    forceRefresh().join()
   }
 
   private fun onInteractivePreviewStop() {
@@ -609,56 +610,9 @@ class ComposePreviewRepresentation(
     requestVisibilityAndNotificationsUpdate()
     interactiveManager.stop()
     filterFlow.value = ComposePreviewElementsModel.Filter.Disabled
-  }
-
-  private val animationInspection = AtomicBoolean(false)
-
-  override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance?
-    set(value) {
-      if (
-        (!animationInspection.get() && value != null) ||
-          (animationInspection.get() && value == null)
-      ) {
-        if (value != null) {
-          log.debug("Animation Preview open for preview: $value")
-          ComposePreviewAnimationManager.onAnimationInspectorOpened()
-          singlePreviewElementInstance = value
-          animationInspection.set(true)
-          sceneComponentProvider.enabled = false
-
-          // Open the animation inspection panel
-          ComposePreviewAnimationManager.createAnimationInspectorPanel(
-            surface,
-            this,
-            psiFilePointer
-          ) {
-            // Close this inspection panel, making all the necessary UI changes (e.g. changing
-            // background and refreshing the preview) before
-            // opening a new one.
-            animationInspectionPreviewElementInstance = null
-            updateAnimationPanelVisibility()
-          }
-          updateAnimationPanelVisibility()
-          surface.background = INTERACTIVE_BACKGROUND_COLOR
-        } else {
-          onAnimationInspectionStop()
-          onStaticPreviewStart()
-        }
-        forceRefresh().invokeOnCompletion {
-          interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.DISABLED
-          ActivityTracker.getInstance().inc()
-        }
-      }
+    forceRefresh().invokeOnCompletion {
+      interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.DISABLED
     }
-    get() = if (animationInspection.get()) singlePreviewElementInstance else null
-
-  private fun onAnimationInspectionStop() {
-    animationInspection.set(false)
-    // Close the animation inspection panel
-    ComposePreviewAnimationManager.closeCurrentInspector()
-    // Swap the components back
-    updateAnimationPanelVisibility()
-    singlePreviewElementInstance = null
   }
 
   private fun updateAnimationPanelVisibility() {
@@ -666,7 +620,7 @@ class ComposePreviewRepresentation(
     composeWorkBench.bottomPanel =
       when {
         status().hasErrors || project.needsBuild -> null
-        animationInspection.get() -> ComposePreviewAnimationManager.currentInspector?.component
+        isAnimationPreviewEnabled -> ComposePreviewAnimationManager.currentInspector?.component
         else -> null
       }
   }
@@ -688,12 +642,6 @@ class ComposePreviewRepresentation(
   override var isInspectionTooltipEnabled: Boolean = false
 
   override var isFilterEnabled: Boolean = false
-
-  override var atfChecksEnabled: Boolean = false
-
-  override var visualLintingEnabled: Boolean = false
-
-  override var isUiCheckPreview: Boolean = false
 
   private val dataProvider = DataProvider {
     when (it) {
@@ -849,7 +797,7 @@ class ComposePreviewRepresentation(
 
         override fun buildStarted() {
           log.debug("buildStarted")
-          animationInspectionsEnabled = animationInspection.get()
+          animationInspectionsEnabled = isAnimationPreviewEnabled
 
           composeWorkBench.updateProgress(message("panel.building"))
           afterBuildStarted()
@@ -1041,7 +989,7 @@ class ComposePreviewRepresentation(
             if (
               !EssentialsMode.isEnabled() &&
                 interactiveModeFlow.value.isStoppingOrDisabled() &&
-                !animationInspection.get() &&
+                !isAnimationPreviewEnabled &&
                 !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             )
               requestRefresh()
@@ -1130,7 +1078,6 @@ class ComposePreviewRepresentation(
     if (interactiveModeFlow.value == ComposePreviewManager.InteractiveMode.READY) {
       interactiveManager.stop()
     }
-    animationInspectionPreviewElementInstance = null
   }
 
   private fun hasErrorsAndNeedsBuild(): Boolean =
@@ -1202,8 +1149,8 @@ class ComposePreviewRepresentation(
       showDecorations = displaySettings.showDecoration,
       isInteractive = interactiveModeFlow.value.isStartingOrReady(),
       requestPrivateClassLoader = usePrivateClassLoader(),
-      runAtfChecks = runAtfChecks(),
-      runVisualLinting = runVisualLinting(),
+      runAtfChecks = atfChecksEnabled,
+      runVisualLinting = visualLintingEnabled,
       quality = qualityManager.getTargetQuality(layoutlibSceneManager)
     )
 
@@ -1286,7 +1233,7 @@ class ComposePreviewRepresentation(
         progressIndicator,
         this::onAfterRender,
         previewElementModelAdapter,
-        if (runAtfChecks() || runVisualLinting()) accessibilityModelUpdater
+        if (atfChecksEnabled || visualLintingEnabled) accessibilityModelUpdater
         else defaultModelUpdater,
         this::configureLayoutlibSceneManagerForPreviewElement
       )
@@ -1516,23 +1463,8 @@ class ComposePreviewRepresentation(
    */
   private fun usePrivateClassLoader() =
     interactiveModeFlow.value.isStartingOrReady() ||
-      animationInspection.get() ||
+      isAnimationPreviewEnabled ||
       shouldQuickRefresh()
-
-  /**
-   * Whether to run ATF checks on the preview. Never do it for interactive or animation previews.
-   */
-  private fun runAtfChecks() =
-    atfChecksEnabled && !interactiveModeFlow.value.isStartingOrReady() && !animationInspection.get()
-
-  /**
-   * Whether to run Visual Linting on the preview. Never do it for interactive or animation
-   * previews.
-   */
-  private fun runVisualLinting() =
-    visualLintingEnabled &&
-      !interactiveModeFlow.value.isStartingOrReady() &&
-      !animationInspection.get()
 
   override fun invalidate() {
     invalidated.set(true)
@@ -1710,6 +1642,94 @@ class ComposePreviewRepresentation(
             .toList()
         }
       }
+    }
+  }
+
+  override fun setMode(newMode: PreviewMode.Settable) {
+    val currentMode = modeFlow.value as? PreviewMode.Settable
+    if (currentMode == null) {
+      log.debug("Mode is already switching")
+      return
+    }
+
+    if (currentMode == newMode) {
+      log.debug("Mode was already $newMode")
+      return
+    }
+
+    modeFlow.value = PreviewMode.Switching(currentMode, newMode)
+  }
+
+  private suspend fun onEnter(mode: PreviewMode) {
+    when (mode) {
+      is PreviewMode.Default -> {
+        sceneComponentProvider.enabled = true
+        surface.background = Colors.DEFAULT_BACKGROUND_COLOR
+        singlePreviewElementInstance = null
+        forceRefresh().join()
+        surface.repaint()
+      }
+      is PreviewMode.Interactive -> {
+        startInteractivePreview(mode.selected)
+      }
+      is PreviewMode.UiCheck -> {
+        startUiCheckPreview(mode.selected)
+      }
+      is PreviewMode.AnimationInspection -> {
+        ComposePreviewAnimationManager.onAnimationInspectorOpened()
+        singlePreviewElementInstance = mode.selected
+        sceneComponentProvider.enabled = false
+
+        withContext(uiThread) {
+          // Open the animation inspection panel
+          ComposePreviewAnimationManager.createAnimationInspectorPanel(
+            surface,
+            this@ComposePreviewRepresentation,
+            psiFilePointer
+          ) {
+            // Close this inspection panel, making all the necessary UI changes (e.g. changing
+            // background and refreshing the preview) before
+            // opening a new one.
+            updateAnimationPanelVisibility()
+          }
+          updateAnimationPanelVisibility()
+          surface.background = INTERACTIVE_BACKGROUND_COLOR
+        }
+        forceRefresh().join()
+      }
+      is PreviewMode.Essential -> {
+        singlePreviewElementInstance = mode.selected
+      }
+      is PreviewMode.Switching,
+      is PreviewMode.Settable -> {}
+    }
+  }
+
+  private suspend fun onExit(mode: PreviewMode) {
+    when (mode) {
+      is PreviewMode.Default -> {}
+      is PreviewMode.Interactive -> {
+        log.debug("Stopping interactive")
+        onInteractivePreviewStop()
+        requestVisibilityAndNotificationsUpdate()
+      }
+      is PreviewMode.UiCheck -> {
+        log.debug("Stopping UI check")
+        uiCheckFilterFlow.value = UiCheckModeFilter.Disabled
+        IssuePanelService.getInstance(project).removeIssueSelectionListener(issueListener)
+      }
+      is PreviewMode.AnimationInspection -> {
+        onInteractivePreviewStop()
+        withContext(uiThread) {
+          // Close the animation inspection panel
+          ComposePreviewAnimationManager.closeCurrentInspector()
+        }
+        // Swap the components back
+        updateAnimationPanelVisibility()
+      }
+      is PreviewMode.Essential,
+      is PreviewMode.Switching,
+      is PreviewMode.Settable -> {}
     }
   }
 }

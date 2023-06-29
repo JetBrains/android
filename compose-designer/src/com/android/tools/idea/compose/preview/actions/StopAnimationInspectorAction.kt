@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -39,13 +40,11 @@ class StopAnimationInspectorAction :
     val composePreviewManagers = findComposePreviewManagersForContext(e.dataContext)
     e.presentation.isEnabled = !composePreviewManagers.any { it.status().isRefreshing }
     e.presentation.isVisible =
-      composePreviewManagers.any { it.animationInspectionPreviewElementInstance != null }
+      composePreviewManagers.any { it.mode is PreviewMode.AnimationInspection }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    findComposePreviewManagersForContext(e.dataContext).forEach {
-      it.animationInspectionPreviewElementInstance = null
-    }
+    setDefaultPreviewMode(e)
   }
 
   // BGT is needed when calling findComposePreviewManagersForContext because it accesses the

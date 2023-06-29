@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.annotations.ApiStatus
 
 /** Interface that provides access to the Compose Preview logic. */
-interface ComposePreviewManager : Disposable {
+interface ComposePreviewManager : Disposable, PreviewModeManager {
   /**
    * Enum that determines the current status of the interactive preview.
    *
@@ -91,18 +91,6 @@ interface ComposePreviewManager : Disposable {
   var groupFilter: PreviewGroup
 
   /**
-   * Filter that can be applied to select a single instance. Setting this filter will trigger a
-   * refresh and stop any other preview mode (Animation, Interactive, UI Check...).
-   */
-  var singlePreviewElementInstance: ComposePreviewElementInstance?
-
-  /**
-   * Represents the [ComposePreviewElementInstance] open in the Animation Inspector. Null if no
-   * preview is being inspected.
-   */
-  var animationInspectionPreviewElementInstance: ComposePreviewElementInstance?
-
-  /**
    * When true, the ComposeViewAdapter will search for Composables that can return a DesignInfo
    * object.
    */
@@ -121,39 +109,22 @@ interface ComposePreviewManager : Disposable {
   var isFilterEnabled: Boolean
 
   /** Flag to indicate whether ATF checks should be run on the preview. */
-  var atfChecksEnabled: Boolean
+  val atfChecksEnabled: Boolean
+    get() = (currentOrNextMode as? PreviewMode.UiCheck)?.atfChecksEnabled ?: false
 
   /** Flag to indicate whether Visual Lint checks should be run on the preview. */
-  var visualLintingEnabled: Boolean
+  val visualLintingEnabled: Boolean
+    get() = (currentOrNextMode as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
 
   /**
    * Indicates whether the preview is in its default mode by opposition to one of the special modes
-   * (interactive, animation, UI check).
+   * (interactive, animation, UI check, essential).
    */
   val isInNormalMode: Boolean
-    get() =
-      animationInspectionPreviewElementInstance == null &&
-        status().interactiveMode == InteractiveMode.DISABLED &&
-        !isUiCheckPreview
+    get() = mode is PreviewMode.Default
 
-  var isUiCheckPreview: Boolean
-
-  /**
-   * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance]
-   * .
-   */
-  suspend fun startInteractivePreview(instance: ComposePreviewElementInstance)
-
-  /** Stops the interactive preview. */
-  fun stopInteractivePreview()
-
-  /**
-   * Starts the UI check preview focusing in the given [ComposePreviewElementInstance] [instance] .
-   */
-  fun startUiCheckPreview(instance: ComposePreviewElementInstance)
-
-  /** Stops the UI check preview. */
-  fun stopUiCheckPreview()
+  val isUiCheckPreview: Boolean
+    get() = mode is PreviewMode.UiCheck
 
   /**
    * Invalidates the cached preview status. This ensures that the @Preview annotations lookup
@@ -178,19 +149,14 @@ class NopComposePreviewManager : ComposePreviewManager {
   override val allPreviewElementsInFileFlow: StateFlow<Collection<ComposePreviewElementInstance>> =
     MutableStateFlow(emptySet())
   override var groupFilter: PreviewGroup = PreviewGroup.All
-  override var singlePreviewElementInstance: ComposePreviewElementInstance? = null
-  override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance? = null
   override val hasDesignInfoProviders: Boolean = false
   override val previewedFile: PsiFile? = null
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
-  override var atfChecksEnabled: Boolean = false
-  override var visualLintingEnabled: Boolean = false
-  override var isUiCheckPreview: Boolean = false
-  override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {}
-  override fun stopInteractivePreview() {}
-  override fun startUiCheckPreview(instance: ComposePreviewElementInstance) {}
-  override fun stopUiCheckPreview() {}
+  override var mode: PreviewMode = PreviewMode.Default
+  override fun setMode(newMode: PreviewMode.Settable) {
+    mode = newMode
+  }
 
   override fun invalidate() {}
   override fun dispose() {}

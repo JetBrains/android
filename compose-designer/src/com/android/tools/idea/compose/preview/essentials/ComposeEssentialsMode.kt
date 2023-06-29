@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.essentials
 
+import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.intellij.openapi.actionSystem.DataContext
 import java.awt.BorderLayout
@@ -30,8 +31,8 @@ class ComposeEssentialsMode(rootComponent: JComponent) {
 
   private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
     val previewElement = tab?.element
-    findComposePreviewManagersForContext(dataContext).forEach {
-      it.singlePreviewElementInstance = previewElement
+    findComposePreviewManagersForContext(dataContext).forEach { previewManager ->
+      previewElement?.let { previewManager.setMode(PreviewMode.Essential(previewElement)) }
     }
   }
 

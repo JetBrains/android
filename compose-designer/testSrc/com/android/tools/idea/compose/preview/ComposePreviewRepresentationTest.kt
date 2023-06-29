@@ -259,7 +259,7 @@ class ComposePreviewRepresentationTest {
         mainSurface.models.mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
       val uiCheckElement = previewElements.single { it.composableMethodFqn == "TestKt.Preview1" }
 
-      preview.startUiCheckPreview(uiCheckElement)
+      preview.setMode(PreviewMode.UiCheck(uiCheckElement))
       delayUntilCondition(250) { preview.isUiCheckPreview }
 
       assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Enabled>(
@@ -299,8 +299,8 @@ class ComposePreviewRepresentationTest {
         }
       )
 
-      preview.stopUiCheckPreview()
-      delayUntilCondition(250) { !preview.isUiCheckPreview }
+      preview.setMode(PreviewMode.Default)
+      delayUntilCondition(250) { preview.isInNormalMode }
       assertInstanceOf<ComposePreviewRepresentation.UiCheckModeFilter.Disabled>(
         preview.uiCheckFilterFlow.value
       )
