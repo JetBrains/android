@@ -67,7 +67,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
-import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.anyString
 import org.mockito.Mockito.eq
 import org.mockito.Mockito.never
@@ -108,6 +107,7 @@ class AndroidPositionManagerTest {
       whenever(type.sourceName()).thenReturn("View.java")
       val location: MockLocation = mock()
       whenever(location.declaringType()).thenReturn(type)
+      whenever(location.lineNumber()).thenReturn(12)
       return location
     }
 
@@ -217,12 +217,11 @@ class AndroidPositionManagerTest {
 
   @Test
   fun sourcePosition_locationIsAnAndroidFile() {
-    val position = SourcePosition.createFromLine(mock(), 1)
-    whenever(mockSdkSourcePositionFinder.getSourcePosition(eq(targetDeviceAndroidVersion.apiLevel), any(), anyInt())).thenReturn(position)
+    runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }
 
-    val sourcePosition = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }
-
-    assertThat(sourcePosition).isSameAs(position)
+    val lineNumber = androidSdkClassLocation.lineNumber()
+    verify(mockSdkSourcePositionFinder)
+      .getSourcePosition(eq(targetDeviceAndroidVersion.apiLevel), any(), eq(lineNumber - 1))
   }
 
   @Test

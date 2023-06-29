@@ -27,6 +27,7 @@ import com.intellij.debugger.NoDataException
 import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.PositionManagerImpl
+import com.intellij.debugger.impl.DebuggerUtilsEx
 import com.intellij.debugger.impl.PrioritizedTask
 import com.intellij.debugger.requests.ClassPrepareRequestor
 import com.intellij.ide.highlighter.JavaClassFileType
@@ -131,7 +132,8 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
 
     // Since we have an Android SDK file, return the SDK source if it's available.
     // Otherwise, return a generated file with a comment indicating that sources are unavailable.
-    return SdkSourcePositionFinder.getInstance(project).getSourcePosition(myAndroidVersion.apiLevel, file, location.lineNumber())
+    return SdkSourcePositionFinder.getInstance(project)
+      .getSourcePosition(myAndroidVersion.apiLevel, file, DebuggerUtilsEx.getLineNumber(location, true))
   }
 
   // This override only exists for the purpose of changing visibility for invocation via tests.
