@@ -248,7 +248,7 @@ class DeviceToolWindowPanelTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
-    device = agentRule.connectDevice("8 Fold-out", 33, Dimension(2200, 2480), foldedSize = Dimension(1148, 2480))
+    device = agentRule.connectDevice("Pixel Fold", 33, Dimension(2208, 1840), foldedSize = Dimension(1080, 2092))
 
     panel.createContent(false)
     val deviceView = panel.deviceView!!
@@ -279,14 +279,14 @@ class DeviceToolWindowPanelTest {
       assertThat(event.presentation.isEnabled).isTrue()
       assertThat(event.presentation.isVisible).isTrue()
     }
-    assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2200, 2480))
+    assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))
 
     val nextFrameNumber = panel.frameNumber + 1
     val closingAction = foldingActions[0]
     closingAction.actionPerformed(event)
     waitForCondition(2, TimeUnit.SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
     waitForFrame(nextFrameNumber)
-    assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(1148, 2480))
+    assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
   }
 
   @Test
