@@ -51,7 +51,7 @@ class EnableInstantAppsSupportAction : AnAction() {
     return if (modules.isNullOrEmpty()) dataContext.getData(PlatformCoreDataKeys.MODULE) else modules[0]
   }
 
-  companion object {
+  object Handler {
     private const val DIST_XMLNS = "xmlns:dist"
     private const val DIST_URI = "http://schemas.android.com/apk/distribution"
 

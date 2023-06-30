@@ -108,7 +108,7 @@ public class EnableInstantAppsSupportDialog extends DialogWrapper {
       return;
     }
 
-    EnableInstantAppsSupportAction.addInstantAppSupportToManifest(manifestTag);
+    EnableInstantAppsSupportAction.Handler.addInstantAppSupportToManifest(manifestTag);
 
     // Update run configurations "Deploy as instant app"
     ProjectSystemService.getInstance(myBaseModule.getProject())

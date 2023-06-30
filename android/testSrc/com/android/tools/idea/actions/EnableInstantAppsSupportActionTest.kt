@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions
 
 import com.android.testutils.ignore.IgnoreTestRule
-import com.android.tools.idea.actions.EnableInstantAppsSupportAction.Companion.addInstantAppSupportToManifest
+import com.android.tools.idea.actions.EnableInstantAppsSupportAction.Handler.addInstantAppSupportToManifest
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
