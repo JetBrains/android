@@ -129,6 +129,15 @@ public class GradleWrapperTest extends PlatformTestCase {
     assertEquals(specifiedVersion, LatestKnownPluginVersionProvider.INSTANCE.get());
     assertEquals("7.3.3", GradleWrapper.getGradleVersionToUse().getVersion());
 
+    // Check that "stable" alias has the same effect as explicitly setting LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION.
+    StudioFlags.AGP_VERSION_TO_USE.override("stable");
+    assertEquals(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION, LatestKnownPluginVersionProvider.INSTANCE.get());
+    GradleVersion gradleVersionToUseWhenOverrideIsStable = GradleWrapper.getGradleVersionToUse();
+    StudioFlags.AGP_VERSION_TO_USE.override(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION);
+    assertEquals(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION, LatestKnownPluginVersionProvider.INSTANCE.get());
+    GradleVersion gradleVersionToUseWhenOverrideIsExplicitVersionEqualToStable = GradleWrapper.getGradleVersionToUse();
+    assertEquals(gradleVersionToUseWhenOverrideIsStable, gradleVersionToUseWhenOverrideIsExplicitVersionEqualToStable);
+
     StudioFlags.AGP_VERSION_TO_USE.override("");
     assertEquals(Version.ANDROID_GRADLE_PLUGIN_VERSION, LatestKnownPluginVersionProvider.INSTANCE.get());
     assertEquals(SdkConstants.GRADLE_LATEST_VERSION, GradleWrapper.getGradleVersionToUse().getVersion());

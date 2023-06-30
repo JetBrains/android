@@ -752,9 +752,13 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = Flag.create(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 
+  /**
+   * Don't read this directly, use AgpVersions.agpVersionStudioFlagOverride which handles the 'stable' alias
+   */
   public static final Flag<String> AGP_VERSION_TO_USE = Flag.create(
     GRADLE_IDE, "agp.version.to.use", "Version of AGP to use",
-    "The AGP version to use when making a new project, e.g. \"8.0.0-dev\". When set, a compatible Gradle version will also be " +
+    "The AGP version to use when making a new project, e.g. \"8.0.0-dev\". To use the latest stable version of AGP, set the value" +
+    "to \"stable\". When set, a compatible Gradle version will also be " +
     "selected. If unset, the latest AGP version and the latest Gradle version will be used.",
     ""
   );

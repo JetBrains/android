@@ -22,7 +22,7 @@ import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.gradle.Component;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -44,9 +44,9 @@ public class LatestKnownPluginVersionProvider {
 
   @NotNull
   public String get() {
-    String agpVersion = StudioFlags.AGP_VERSION_TO_USE.get();
-    if (!agpVersion.isEmpty()) {
-      return agpVersion;
+    AgpVersion override = AgpVersions.getStudioFlagOverride();
+    if (override != null) {
+      return override.toString();
     }
 
     List<File> repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();

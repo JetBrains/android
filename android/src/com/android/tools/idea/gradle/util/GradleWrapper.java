@@ -28,6 +28,7 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 
 import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.wizard.template.TemplateData;
 import com.google.common.base.Strings;
 import com.google.common.io.Resources;
@@ -223,13 +224,11 @@ public final class GradleWrapper {
   }
 
   public static GradleVersion getGradleVersionToUse() {
-    String agpVersion = StudioFlags.AGP_VERSION_TO_USE.get();
-    if (agpVersion.isEmpty()) {
+    AgpVersion agpVersion = AgpVersions.getStudioFlagOverride();
+    if (agpVersion == null) {
       return GradleVersion.version(GRADLE_LATEST_VERSION);
     }
-
-    AgpVersion parsedVersion = AgpVersion.parse(agpVersion);
-    CompatibleGradleVersion gradleVersion = CompatibleGradleVersion.Companion.getCompatibleGradleVersion(parsedVersion);
+    CompatibleGradleVersion gradleVersion = CompatibleGradleVersion.Companion.getCompatibleGradleVersion(agpVersion);
 
     return gradleVersion.getVersion();
   }
