@@ -1,5 +1,6 @@
 package com.android.tools.idea.gradle.plugin
 
+import com.android.Version
 import com.android.flags.junit.FlagRule
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
@@ -17,18 +18,21 @@ class AgpVersionsTest {
   fun `check no override behaviour` () {
     StudioFlags.AGP_VERSION_TO_USE.clearOverride()
     assertThat(AgpVersions.studioFlagOverride).isNull()
+    assertThat(AgpVersions.newProject).isEqualTo(AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION))
   }
 
   @Test
   fun `check override behaviour` () {
-      StudioFlags.AGP_VERSION_TO_USE.override("7.4.0")
-      assertThat(AgpVersions.studioFlagOverride).isEqualTo(AgpVersion.parse("7.4.0"))
+    StudioFlags.AGP_VERSION_TO_USE.override("7.4.0")
+    assertThat(AgpVersions.studioFlagOverride).isEqualTo(AgpVersion.parse("7.4.0"))
+    assertThat(AgpVersions.newProject).isEqualTo(AgpVersion.parse("7.4.0"))
   }
 
   @Test
   fun `check override stable` () {
     StudioFlags.AGP_VERSION_TO_USE.override("stable")
     assertThat(AgpVersions.studioFlagOverride!!.isPreview).isFalse()
+    assertThat(AgpVersions.newProject).isEqualTo(AgpVersions.studioFlagOverride)
   }
 
   @Test
@@ -42,11 +46,15 @@ class AgpVersionsTest {
     StudioFlags.AGP_VERSION_TO_USE.override("7.4.0.3")
     val failure = assertFailsWith<IllegalStateException> { AgpVersions.studioFlagOverride }
     assertThat(failure).hasMessageThat().isEqualTo("Invalid value '7.4.0.3' for Studio flag gradle.ide.agp.version.to.use. Expected Android Gradle plugin version (e.g. '8.0.2') or 'stable'")
+    assertFailsWith<IllegalStateException> { AgpVersions.newProject }
   }
+
   @Test
   fun `check invalid version string` () {
     StudioFlags.AGP_VERSION_TO_USE.override("canary")
     val failure = assertFailsWith<IllegalStateException> { AgpVersions.studioFlagOverride }
     assertThat(failure).hasMessageThat().isEqualTo("Invalid value 'canary' for Studio flag gradle.ide.agp.version.to.use. Expected Android Gradle plugin version (e.g. '8.0.2') or 'stable'")
+    assertFailsWith<IllegalStateException> { AgpVersions.newProject }
   }
+
 }

@@ -16,13 +16,29 @@
 package com.android.tools.idea.gradle.plugin
 
 import com.android.Version
+import com.android.ide.common.gradle.Component
 import com.android.ide.common.repository.AgpVersion
+import com.android.ide.common.repository.MavenRepositories
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
+import com.android.tools.idea.ui.GuiTestingService
+import com.android.tools.idea.util.StudioPathManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import java.io.File
+import java.nio.file.Files
+import com.android.ide.common.gradle.Version as GradleVersion
 
 object AgpVersions {
   private val LOG: Logger
     get() = Logger.getInstance("#com.android.tools.idea.gradle.plugin.AgpVersions")
+
+  private val ANDROID_GRADLE_PLUGIN_VERSION = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
+  private val LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION = AgpVersion.parseStable(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION)
+
+  private val AGP_APP_PLUGIN_MARKER = Component(
+    "com.android.application", "com.android.application.gradle.plugin",
+    GradleVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION))
 
   @JvmStatic
   val studioFlagOverride: AgpVersion?
@@ -31,13 +47,38 @@ object AgpVersions {
       if (override.isEmpty()) return null
       if (override.equals("stable", true)) {
         LOG.info(
-          "Android Gradle Plugin version overridden to latest stable version ${Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION} by Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}=stable")
-        return AgpVersion.parse(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION)
+          "Android Gradle Plugin version overridden to latest stable version $LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION by Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}=stable")
+        return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION
       }
       val version = AgpVersion.tryParse(override) ?: throw IllegalStateException(
         "Invalid value '$override' for Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}. Expected Android Gradle plugin version (e.g. '8.0.2') or 'stable'")
       LOG.info(
         "Android Gradle Plugin version overridden to custom version $version by Studio flag ${StudioFlags.AGP_VERSION_TO_USE.id}=$override")
       return version
+    }
+
+  @JvmStatic
+  val newProject: AgpVersion
+    get() {
+      // Allow explicit override by the studio flag
+      studioFlagOverride?.let { return it }
+
+      // When running from sources allow fallback to the latest stable if AGP has not been built locally
+      if (StudioPathManager.isRunningFromSources() && ApplicationManager.getApplication() != null && !GuiTestingService.isInTestingMode()) {
+        val repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
+        for (repoPath in repoPaths) {
+          if (Files.isDirectory(MavenRepositories.getArtifactDirectory(repoPath.toPath(), AGP_APP_PLUGIN_MARKER))) {
+            return ANDROID_GRADLE_PLUGIN_VERSION // Found locally built AGP
+          }
+        }
+        LOG.info(
+          "Android Gradle plugin $ANDROID_GRADLE_PLUGIN_VERSION not locally built, " +
+          "falling back to latest stable version ${Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION}. " +
+          "${if(repoPaths.isEmpty()) "(no injected repos)" else "(searched injected repos: ${repoPaths.joinToString(File.pathSeparator)}"})")
+        return LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION // No locally built AGP exists, use stable version
+
+      }
+      // In packaged studio and for tests, use the AGP that was built alongside Studio
+      return ANDROID_GRADLE_PLUGIN_VERSION
     }
 }

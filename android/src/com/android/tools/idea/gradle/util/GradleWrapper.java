@@ -224,13 +224,7 @@ public final class GradleWrapper {
   }
 
   public static GradleVersion getGradleVersionToUse() {
-    AgpVersion agpVersion = AgpVersions.getStudioFlagOverride();
-    if (agpVersion == null) {
-      return GradleVersion.version(GRADLE_LATEST_VERSION);
-    }
-    CompatibleGradleVersion gradleVersion = CompatibleGradleVersion.Companion.getCompatibleGradleVersion(agpVersion);
-
-    return gradleVersion.getVersion();
+    return CompatibleGradleVersion.Companion.getCompatibleGradleVersion(AgpVersions.getNewProject()).getVersion();
   }
 
   /**
