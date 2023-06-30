@@ -44,31 +44,10 @@ internal object DeviceTableColumns {
       component.update(rowValue)
   }
 
-  object TypeAttribute : Attribute<DeviceRowData, DeviceType> {
+  object FormFactor : Attribute<DeviceRowData, DeviceType> {
     override val sorter: Comparator<DeviceType> = compareBy { it.name }
 
     override fun value(t: DeviceRowData): DeviceType = t.type
-  }
-
-  /** Renders the type (form factor) of device as an icon. */
-  object FormFactor : Column<DeviceRowData, DeviceType, IconLabel> {
-    override val name = DeviceManagerBundle.message("column.title.formfactor")
-    override val columnHeaderName = "" // no room for a name
-
-    override val attribute = TypeAttribute
-
-    override fun createUi(rowValue: DeviceRowData): IconLabel = IconLabel(null)
-
-    override fun updateValue(rowValue: DeviceRowData, component: IconLabel, value: DeviceType) {
-      // While we use isVirtual to tweak the icon, this column groups based on device type only.
-      component.baseIcon =
-        rowValue.handle?.state?.properties?.icon
-          ?: rowValue.template?.properties?.icon ?: StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-    }
-
-    // All icons should be the same size
-    override val widthConstraint =
-      Column.SizeConstraint.exactly(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE.iconWidth + 5)
   }
 
   object Api :
@@ -152,5 +131,5 @@ internal object DeviceTableColumns {
   }
 
   fun columns(project: Project?, coroutineScope: CoroutineScope) =
-    listOf(Status, FormFactor, Name, Api, HandleType, Actions(project, coroutineScope))
+    listOf(Status, Name, Api, HandleType, Actions(project, coroutineScope))
 }

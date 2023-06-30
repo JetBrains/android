@@ -52,7 +52,7 @@ class CategoryTableTest {
   @Test
   fun group() {
     val values = CategoryTableDemo.devices
-    val sorted = groupAndSort(values, listOf(Status), emptyList())
+    val sorted = groupAndSort(values, listOf(Status.attribute), emptyList())
     assertThat(sorted.map { it.status })
       .containsExactly("Offline", "Offline", "Offline", "Online", "Online", "Online")
   }
@@ -60,7 +60,7 @@ class CategoryTableTest {
   @Test
   fun nestedGroup() {
     val values = CategoryTableDemo.devices
-    val sorted = groupAndSort(values, listOf(Status, Type), emptyList())
+    val sorted = groupAndSort(values, listOf(Status.attribute, Type.attribute), emptyList())
     assertThat(sorted.map { it.type })
       .containsExactly("Phone", "Phone", "Tablet", "Phone", "Phone", "Tablet")
   }
