@@ -67,16 +67,6 @@ class BuildIssueComposer(baseMessage: String, val issueTitle: String = "Gradle S
   }
 }
 
-//TODO(karimai): This is a workaround until I refactor the services related to reporting sync Metrics to use Gradle project paths.
-fun updateUsageTracker(projectPath: String, gradleSyncFailure: GradleSyncFailure) {
-  for (project in ProjectManager.getInstance().openProjects) {
-    if (project.basePath == projectPath) {
-      getInstance(project).collect(gradleSyncFailure)
-      break
-    }
-  }
-}
-
 /**
  * Find the Idea project instance associated with a given Gradle project's external path.
  */

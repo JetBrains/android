@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
@@ -43,7 +43,7 @@ class MissingAndroidSdkIssueChecker : GradleIssueChecker {
         message != SDK_DIR_PROPERTY_MISSING && !SDK_NOT_FOUND_PATTERN.matcher(message).matches()) return null
 
     // Log metrics.
-    updateUsageTracker(issueData.projectPath, GradleSyncFailure.SDK_NOT_FOUND)
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.SDK_NOT_FOUND)
 
     val propertiesFile = File(issueData.projectPath, FN_LOCAL_PROPERTIES)
     if (!propertiesFile.isFile) return null

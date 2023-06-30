@@ -19,14 +19,13 @@ import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.InstallBuildToolsQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.MISSING_BUILD_TOOLS
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -52,9 +51,7 @@ class MissingBuildToolsIssueChecker: GradleIssueChecker {
     if (!matcher.matches()) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, MISSING_BUILD_TOOLS)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, MISSING_BUILD_TOOLS)
     val version = matcher.group(3)
     val buildIssueComposer = getBuildIssueDescription(message, issueData.projectPath, version)
     return buildIssueComposer.composeBuildIssue()

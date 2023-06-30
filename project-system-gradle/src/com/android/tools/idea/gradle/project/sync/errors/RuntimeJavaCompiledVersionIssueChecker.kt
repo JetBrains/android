@@ -17,13 +17,12 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.SelectJdkFromFileSystemQuickFix
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.application.invokeLater
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -52,9 +51,7 @@ abstract class RuntimeJavaCompiledVersionIssueChecker : GradleIssueChecker {
     val buildIssue = createBuildIssue(issueData)
     if (buildIssue != null) {
       // Log metrics.
-      invokeLater {
-        updateUsageTracker(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP)
-      }
+      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.GRADLE_JVM_NOT_COMPATIBLE_WITH_AGP)
     }
     return buildIssue
   }

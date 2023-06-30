@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapperQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
@@ -34,6 +34,7 @@ import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.build.issue.BuildIssueQuickFix
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -71,9 +72,7 @@ class UnsupportedGradleVersionIssueChecker: GradleIssueChecker {
                   if (isOldGradleError) "The project is using an unsupported version of Gradle.\n$FIX_GRADLE_VERSION" else return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
     val buildIssueComposer = BuildIssueComposer(message)
 
     // Get QuickFixes.

@@ -17,13 +17,12 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.SdkConstants
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.CreateGradleWrapperQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -37,9 +36,7 @@ class Gradle2RequiredIssueChecker : GradleIssueChecker {
     if (message.isBlank() || !message.endsWith(MESSAGE_SUFFIX)) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.GRADLE2_REQUIRED)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.GRADLE2_REQUIRED)
     return BuildIssueComposer("Gradle ${SdkConstants.GRADLE_MINIMUM_VERSION} is required.").apply {
       addDescription(message)
       addQuickFix("Migrate to Gradle wrapper and sync project", CreateGradleWrapperQuickFix())

@@ -16,6 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.idea.issues
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
 import com.android.tools.idea.gradle.project.sync.issues.TestSyncIssueUsageReporter.Companion.replaceSyncMessagesService
@@ -23,12 +26,27 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.replaceService
 import org.mockito.Mockito.spy
 
 class Jdk8RequiredErrorTest : AndroidGradleTestCase() {
+  /** A UsageTracker implementation that allows introspection of logged metrics in tests. */
+  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
+
+  override fun setUp() {
+    super.setUp()
+    UsageTracker.setWriterForTest(usageTracker)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    usageTracker.close()
+    UsageTracker.cleanAfterTesting()
+  }
+
   fun testJdk8RequiredError() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
     val ideSdks = spy(IdeSdks.getInstance())
@@ -48,6 +66,8 @@ class Jdk8RequiredErrorTest : AndroidGradleTestCase() {
     }
     expectedText.append("<a href=\"select.jdk.from.gradle.settings\">Change Gradle JDK...</a>")
     assertThat(message).contains(expectedText.toString())
-    assertEquals(GradleSyncFailure.JDK8_REQUIRED, usageReporter.collectedFailure)
+    val event = usageTracker.usages
+      .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
+    assertEquals(GradleSyncFailure.JDK8_REQUIRED, event.studioEvent.gradleSyncFailure)
   }
 }

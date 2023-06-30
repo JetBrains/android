@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.google.wireless.android.sdk.stats.GradleSyncStats
@@ -48,9 +48,7 @@ class GradleDistributionInstallIssueChecker : GradleIssueChecker {
     if (!message.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX)) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.GRADLE_DISTRIBUTION_INSTALL_ERROR)
 
     val buildIssueComposer = BuildIssueComposer(message)
     val wrapperConfiguration = GradleUtil.getWrapperConfiguration(issueData.projectPath)

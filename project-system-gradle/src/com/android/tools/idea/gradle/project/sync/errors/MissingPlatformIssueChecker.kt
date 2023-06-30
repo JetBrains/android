@@ -20,7 +20,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
@@ -67,9 +67,7 @@ class MissingPlatformIssueChecker: GradleIssueChecker {
         (rootCause !is IllegalStateException) && (rootCause !is ExternalSystemException)) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.MISSING_ANDROID_PLATFORM)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.MISSING_ANDROID_PLATFORM)
     val buildIssueComposer = BuildIssueComposer(message)
 
     // Get quickFixes.

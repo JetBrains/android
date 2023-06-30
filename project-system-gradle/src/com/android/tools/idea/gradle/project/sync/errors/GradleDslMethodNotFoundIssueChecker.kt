@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.FixAndroidGradlePluginVersionQuickFix
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenFileAtLocationQuickFix
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder
@@ -58,9 +58,7 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
     if (!message.startsWith(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.DSL_METHOD_NOT_FOUND)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.DSL_METHOD_NOT_FOUND)
 
     val matcher = MISSING_METHOD_PATTERN.matcher(message)
     val buildIssueComposer =

@@ -16,13 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -36,9 +35,7 @@ class CorruptGradleDependencyIssueChecker: GradleIssueChecker {
     if (message.isBlank() || !message.startsWith(ERROR_MESSAGE)) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.CORRUPT_GRADLE_DEPENDENCY)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.CORRUPT_GRADLE_DEPENDENCY)
 
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
     return BuildIssueComposer("Gradle's dependency cache seems to be corrupt or out of sync.").apply {

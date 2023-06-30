@@ -20,6 +20,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.project.sync.quickFixes.DownloadAndroidStudioQuickFix
 import com.android.tools.idea.gradle.project.sync.requestProjectSync
@@ -85,9 +86,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
     val message = when {
       issueData.error is JdkImportCheckException -> issueData.error.message!!
       issueData.error.message?.contains("Unsupported major.minor version 52.0") == true -> {
-        invokeLater {
-          updateUsageTracker(issueData.projectPath, GradleSyncFailure.JDK8_REQUIRED)
-        }
+        SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.JDK8_REQUIRED)
         "${issueData.error.message!!}\nPlease use JDK 8 or newer."
       }
       else -> return null

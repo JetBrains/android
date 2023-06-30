@@ -18,10 +18,9 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.tools.idea.gradle.project.sync.AgpVersionsMismatch.Companion.INCOMPATIBLE_AGP_VERSIONS
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -36,9 +35,7 @@ class IncompatibleAgpVersionsIssueChecker: GradleIssueChecker {
     if (!matcher.find()) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, AndroidStudioEvent.GradleSyncFailure.SDK_BUILD_TOOLS_TOO_LOW)
     val messageLines = message.lines()
     if (messageLines.isEmpty()) return null
     return BuildIssueComposer("${messageLines[0]}\n${messageLines[1]}").composeBuildIssue()

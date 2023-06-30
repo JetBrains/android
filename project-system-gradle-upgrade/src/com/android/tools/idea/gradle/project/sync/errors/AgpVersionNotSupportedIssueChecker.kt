@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResol
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.upgrade.performForcedPluginUpgrade
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -89,9 +89,7 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
   }
 
   private fun logMetrics(issueDataProjectPath: String) {
-    invokeLater {
-      updateUsageTracker(issueDataProjectPath, AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueDataProjectPath, AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN)
   }
 
   override fun consumeBuildOutputFailureMessage(

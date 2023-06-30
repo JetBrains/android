@@ -16,13 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.application.invokeLater
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionErrorHandler
@@ -36,9 +35,7 @@ class ErrorOpeningZipFileIssueChecker: GradleIssueChecker {
     if (!message.contains(ERROR_ZIP_FILE)) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.CANNOT_OPEN_ZIP_FILE)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.CANNOT_OPEN_ZIP_FILE)
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
     return BuildIssueComposer("Failed to open zip file.").apply {
       addDescription("Gradle's dependency cache may be corrupt (this sometimes occurs after a network connection timeout.)")

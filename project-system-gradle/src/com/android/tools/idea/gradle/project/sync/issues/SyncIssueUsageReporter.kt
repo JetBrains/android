@@ -28,6 +28,10 @@ import org.jetbrains.annotations.VisibleForTesting
 
 private val LOG = Logger.getInstance(SyncIssueUsageReporter::class.java)
 
+/**
+ * This service is responsible for collecting and then reporting sync issues not necessarily leading to the failure.
+ * Failure type [AndroidStudioEvent.GradleSyncFailure] is now collected and reported in [SyncFailureUsageReporter].
+ */
 interface SyncIssueUsageReporter {
 
   /**
@@ -35,12 +39,6 @@ interface SyncIssueUsageReporter {
    * method is supposed to be called on EDT only.
    */
   fun collect(issue: GradleSyncIssue)
-
-  /**
-   * Collects a sync failure to be reported as a part of [AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS] event. This
-   * method is supposed to be called on EDT only.
-   */
-  fun collect(failure: AndroidStudioEvent.GradleSyncFailure)
 
   /**
    * Logs collected usages to the usage tracker as a [AndroidStudioEvent.EventKind.GRADLE_SYNC_ISSUES] and/or

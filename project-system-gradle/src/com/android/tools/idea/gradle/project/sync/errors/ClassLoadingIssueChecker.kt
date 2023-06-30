@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenGradleJdkSettingsQuickfix
 import com.android.tools.idea.gradle.project.sync.quickFixes.SyncProjectRefreshingDependenciesQuickFix
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -121,25 +121,19 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
         if (matcher.matches()) {
           className = matcher.group(1)
           // Log metrics.
-          invokeLater {
-            updateUsageTracker(projectPath, CLASS_NOT_FOUND)
-          }
+          SyncFailureUsageReporter.getInstance().collectFailure(projectPath, CLASS_NOT_FOUND)
           return "Unable to load class '${className}'"
         }
       }
       is NoSuchMethodError -> {
         // Log metrics.
-        invokeLater {
-          updateUsageTracker(projectPath, METHOD_NOT_FOUND)
-        }
+        SyncFailureUsageReporter.getInstance().collectFailure(projectPath, METHOD_NOT_FOUND)
         return "Unable to find method '$message'"
       }
       else -> {
         if (message.contains(CANNOT_BE_CAST_TO_EXCEPTION)) {
           // Log metrics.
-          invokeLater {
-            updateUsageTracker(projectPath, CANNOT_BE_CAST_TO)
-          }
+          SyncFailureUsageReporter.getInstance().collectFailure(projectPath, CANNOT_BE_CAST_TO)
           return message
         }
       }

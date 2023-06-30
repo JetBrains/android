@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.SdkConstants
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
-import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.io.FilePaths
 import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.sdk.AndroidSdks
@@ -28,7 +28,6 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailur
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.ProjectManager
@@ -52,9 +51,7 @@ open class FailedToParseSdkIssueChecker: GradleIssueChecker {
     if (rootCause !is RuntimeException || message.isBlank() || !message.contains(FAILED_TO_PARSE)) return null
 
     // Log metrics.
-    invokeLater {
-      updateUsageTracker(issueData.projectPath, GradleSyncFailure.FAILED_TO_PARSE_SDK)
-    }
+    SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.FAILED_TO_PARSE_SDK)
 
     val buildIssueComposer = BuildIssueComposer(message)
     val pathOfBrokenSdk = findPathOfSdkWithoutAddonsFolder(issueData.projectPath)
