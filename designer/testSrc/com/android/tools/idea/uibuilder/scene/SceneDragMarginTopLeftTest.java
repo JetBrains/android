@@ -58,8 +58,8 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"748dp\"\n" +
-                 "        android:layout_marginTop=\"200dp\"\n" +
+                 "        android:layout_marginLeft=\"728dp\"\n" +
+                 "        android:layout_marginTop=\"180dp\"\n" +
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
@@ -72,8 +72,8 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"100dp\"\n" +
-                 "        android:layout_marginTop=\"488dp\"\n" +
+                 "        android:layout_marginLeft=\"80dp\"\n" +
+                 "        android:layout_marginTop=\"468dp\"\n" +
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }
@@ -86,8 +86,8 @@ public class SceneDragMarginTopLeftTest extends SceneTest {
                  "        android:id=\"@id/button\"\n" +
                  "        android:layout_width=\"100dp\"\n" +
                  "        android:layout_height=\"20dp\"\n" +
-                 "        android:layout_marginLeft=\"748dp\"\n" +
-                 "        android:layout_marginTop=\"488dp\"\n" +
+                 "        android:layout_marginLeft=\"728dp\"\n" +
+                 "        android:layout_marginTop=\"468dp\"\n" +
                  "        app:layout_constraintLeft_toLeftOf=\"parent\"\n" +
                  "        app:layout_constraintTop_toTopOf=\"parent\" />");
   }

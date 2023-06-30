@@ -285,78 +285,140 @@ public class ConstraintDragTarget extends DragBaseTarget implements MultiCompone
 
     private int getStartTargetOrigin(@NotNull SceneComponent target, boolean isInRtl) {
       int origin = target.getDrawX();
-      if (isInRtl) {
-        origin += target.getDrawWidth();
-      }
       NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
       if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_START_TO_END_OF) != null) {
-        if (isInRtl) {
-          origin = target.getDrawX();
-        }
-        else {
-          origin += target.getDrawWidth();
-        }
+        return isInRtl ? origin : origin + target.getDrawWidth();
       }
-      return origin;
+
+      NlComponent parent = target.getAuthoritativeNlComponent();
+      return isInRtl ? origin + target.getDrawWidth() - getPadding(parent, true)[0]
+                     : origin + getPadding(parent, false)[0];
     }
 
     private int getEndTargetOrigin(@NotNull SceneComponent target, boolean isInRtl) {
       int origin = target.getDrawX();
-      if (isInRtl) {
-        origin += target.getDrawWidth();
-      }
       NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
       if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_END_TO_END_OF) != null) {
-        if (isInRtl) {
-          origin = target.getDrawX();
-        }
-        else {
-          origin += target.getDrawWidth();
-        }
+        NlComponent parent = target.getAuthoritativeNlComponent();
+        return isInRtl ? origin + getPadding(parent, true)[2]
+                       : origin + target.getDrawWidth() - getPadding(parent, false)[2];
       }
-      return origin;
+
+      NlComponent parent = target.getAuthoritativeNlComponent();
+      return isInRtl ? origin + target.getDrawWidth() - getPadding(parent, true)[0]
+                     : origin + getPadding(parent, false)[0];
     }
 
     private int getLeftTargetOrigin(@NotNull SceneComponent target) {
       int origin = target.getDrawX();
       NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
       if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_LEFT_TO_RIGHT_OF) != null) {
-        origin += target.getDrawWidth();
+        return origin + target.getDrawWidth();
       }
-      return origin;
+
+      NlComponent parent = target.getAuthoritativeNlComponent();
+      return origin + getPadding(parent, false)[0];
     }
 
     private int getRightTargetOrigin(@NotNull SceneComponent target) {
       int origin = target.getDrawX();
       NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
+      NlComponent parent = target.getAuthoritativeNlComponent();
       if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_RIGHT_TO_RIGHT_OF) != null) {
-        origin += target.getDrawWidth();
+        return origin + target.getDrawWidth() - getPadding(parent, false)[2];
       }
-      return origin;
+
+      return origin + getPadding(parent, false)[0];
     }
 
     protected int getTopTargetOrigin(@NotNull SceneComponent target) {
       int origin = target.getDrawY();
       NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
       if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_BOTTOM_OF) != null) {
-        origin += target.getDrawHeight();
+        return origin + target.getDrawHeight();
       }
-      return origin;
+
+      NlComponent parent = target.getAuthoritativeNlComponent();
+      return origin + getPadding(parent, false)[1];
     }
 
     private int getBottomTargetOrigin(@NotNull SceneComponent target) {
       int origin = target.getDrawY();
       NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
+      NlComponent parent = target.getAuthoritativeNlComponent();
       if (nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF) != null) {
-        origin += target.getDrawHeight();
+        return origin + target.getDrawHeight() - getPadding(parent, false)[3];
       }
-      return origin;
+
+      return origin + getPadding(parent, false)[1];
     }
 
     private int getMarginValue(String attribute) {
       // TODO handles RTL + margin
       NlComponent nlComponent = myComponent.getAuthoritativeNlComponent();
       return ConstraintComponentUtilities.getDpValue(nlComponent, nlComponent.getAttribute(SdkConstants.ANDROID_URI, attribute));
+    }
+
+    /**
+     * Returns the an array of the padding for an {@link NlComponent} in order: start, top, end, bottom
+     */
+    private int[] getPadding(NlComponent component, boolean isRtl) {
+      int[] padding = {-1, -1, -1, -1};
+      // Precedence order for padding goes: paddingStart/End, padding, paddingVertical, paddingTop/Bottom/Left/Right
+      String paddingAttr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_START);
+      if (paddingAttr != null) {
+        padding[0] = ConstraintComponentUtilities.getDpValue(component, paddingAttr);
+      }
+      paddingAttr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_END);
+      if (paddingAttr != null) {
+        padding[2] = ConstraintComponentUtilities.getDpValue(component, paddingAttr);
+      }
+
+      paddingAttr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING);
+      if (paddingAttr != null) {
+        int paddingValue = ConstraintComponentUtilities.getDpValue(component, paddingAttr);
+        padding[0] = padding[0] == -1 ? paddingValue : padding[0];
+        padding[1] = paddingValue;
+        padding[2] = padding[2] == -1 ? paddingValue : padding[2];
+        padding[3] = paddingValue;
+        return padding;
+      }
+
+      paddingAttr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_VERTICAL);
+      if (paddingAttr != null) {
+        int paddingValue = ConstraintComponentUtilities.getDpValue(component, paddingAttr);
+        padding[1] = paddingValue;
+        padding[3] = paddingValue;
+      } else {
+        paddingAttr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_TOP);
+        padding[1] = ConstraintComponentUtilities.getDpValue(component, paddingAttr);
+        paddingAttr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_BOTTOM);
+        padding[3] = ConstraintComponentUtilities.getDpValue(component, paddingAttr);
+      }
+
+      if (padding[0] > -1 && padding[2] > -1) {
+        return padding;
+      }
+
+      paddingAttr = component.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_HORIZONTAL);
+      if (paddingAttr != null) {
+        int paddingValue = ConstraintComponentUtilities.getDpValue(component, paddingAttr);
+        padding[0] = padding[0] == -1 ? paddingValue : padding[0];
+        padding[2] = padding[2] == -1 ? paddingValue : padding[2];
+      } else {
+        if (padding[0] == -1) {
+          paddingAttr = component.getAttribute(SdkConstants.ANDROID_URI,
+                                               isRtl ? SdkConstants.ATTR_PADDING_RIGHT : SdkConstants.ATTR_PADDING_LEFT);
+          padding[0] = ConstraintComponentUtilities.getDpValue(component, paddingAttr);
+        }
+        if (padding[2] == -1) {
+          paddingAttr = component.getAttribute(SdkConstants.ANDROID_URI,
+                                               isRtl ? SdkConstants.ATTR_PADDING_LEFT : SdkConstants.ATTR_PADDING_RIGHT);
+          padding[2] = ConstraintComponentUtilities.getDpValue(component, paddingAttr);
+        }
+      }
+
+      return padding;
     }
   }
 }
