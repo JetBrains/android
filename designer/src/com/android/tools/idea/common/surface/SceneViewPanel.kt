@@ -719,7 +719,9 @@ internal class SceneViewPanel(
       *components
         .filterIsInstance<SceneViewPeerPanel>()
         .distinctBy { it.sceneView }
-        .map { it.sceneView to it.bounds }
+        .map {
+          it.sceneView to it.bounds.apply { location = Point(it.sceneView.x, it.sceneView.y) }
+        }
         .toTypedArray()
     )
 

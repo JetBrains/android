@@ -51,6 +51,7 @@ import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewportScroller;
+import com.android.tools.idea.common.surface.layout.ReferencePointScroller;
 import com.android.tools.idea.common.surface.layout.TopBoundCenterScroller;
 import com.android.tools.idea.common.surface.layout.ZoomCenterScroller;
 import com.android.tools.idea.flags.StudioFlags;
@@ -895,13 +896,25 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @Override
   public boolean setScale(double scale, int x, int y) {
+    double previousScale = getScale();
     boolean changed = super.setScale(scale, x, y);
     if (changed) {
       DesignSurfaceViewport port = getViewport();
 
       if (myLayoutManager instanceof GroupedListSurfaceLayoutManager) {
         Point scrollPosition = getScrollPosition();
-        myViewportScroller = new TopBoundCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition));
+        if(x < 0 || y < 0) {
+          myViewportScroller = new TopBoundCenterScroller(
+            new Dimension(port.getViewSize()), new Point(scrollPosition));
+        }
+        else {
+          myViewportScroller = new ReferencePointScroller(
+            new Dimension(port.getViewSize()), new Point(scrollPosition),
+            new Point(x, y), getScale()/previousScale, findSceneViewRectangles(),
+            (SceneView sceneView) -> mySceneViewPanel.findMeasuredSceneViewRectangle(sceneView,
+                                                                                     getPositionableContent(),
+                                                                                     getExtentSize()));
+        }
       }
       else if (!(myLayoutManager instanceof GridSurfaceLayoutManager)) {
         Point zoomCenterInView;
