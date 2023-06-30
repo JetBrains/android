@@ -77,11 +77,12 @@ class BuildAttributionManagerImpl(
     myCurrentBuildInvocationType = detectBuildType(request)
     analyzersWrapper.onBuildStart()
     ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
-    analyzersProxy.buildAnalyzers.filterIsInstance<DownloadsAnalyzer>().singleOrNull()?.let {
-      if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
-      val downloadsInfoDataModel = DownloadInfoDataModel(currentBuildDisposable!!)
-      it.eventsProcessor.downloadsInfoDataModel = downloadsInfoDataModel
-      project.setUpDownloadsInfoNodeOnBuildOutput(request.taskId, currentBuildDisposable!!, downloadsInfoDataModel)
+    if (StudioFlags.isBuildOutputShowsDownloadInfo()) {
+      analyzersProxy.buildAnalyzers.filterIsInstance<DownloadsAnalyzer>().singleOrNull()?.let {
+        val downloadsInfoDataModel = DownloadInfoDataModel(currentBuildDisposable!!)
+        it.eventsProcessor.downloadsInfoDataModel = downloadsInfoDataModel
+        project.setUpDownloadsInfoNodeOnBuildOutput(request.taskId, currentBuildDisposable!!, downloadsInfoDataModel)
+      }
     }
   }
 
