@@ -55,8 +55,10 @@ class SyncAnalyzerManagerImpl(
 
   override fun onSyncStarted(id: ExternalSystemTaskId?) {
     if (id == null) return
-    val data = project.getService(SyncAnalyzerDataManager::class.java).getOrCreateDataForTask(id)
-    if (IdeInfo.getInstance().isAndroidStudio) project.setUpDownloadsInfoNodeOnBuildOutput(id, data)
+    if (StudioFlags.isBuildOutputShowsDownloadInfo()) {
+      val data = project.getService(SyncAnalyzerDataManager::class.java).getOrCreateDataForTask(id)
+      project.setUpDownloadsInfoNodeOnBuildOutput(id, data)
+    }
   }
 
   override fun onSyncFinished(id: ExternalSystemTaskId?) {
@@ -65,7 +67,6 @@ class SyncAnalyzerManagerImpl(
   }
 
   private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, dataHolder: SyncAnalyzerDataManager.DataHolder) {
-    if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
     if (dataHolder.downloadsInfoDataModel == null) return // It is not created if flag is disabled.
     val gradleVersion = GradleVersions.getInstance().getGradleVersion(this)
     val rootDownloadEvent = DownloadsInfoPresentableBuildEvent(id, dataHolder.buildDisposable, dataHolder.buildStartTimestampMs, gradleVersion, dataHolder.downloadsInfoDataModel)
@@ -96,7 +97,7 @@ class SyncAnalyzerDataManager {
 
     // We don't want it to be created if feature is disabled. Once it is created it will be installed to build events listener and
     // involve running internal logic. To better isolate the feature using the flag just do not create it at all.
-    val downloadsInfoDataModel = if (StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) {
+    val downloadsInfoDataModel = if (StudioFlags.isBuildOutputShowsDownloadInfo()) {
       id.findProject()?.let { project ->
         val notifier = LongDownloadsNotifier(id, project, buildDisposable, buildStartTimestampMs)
         DownloadInfoDataModel(buildDisposable, notifier)
