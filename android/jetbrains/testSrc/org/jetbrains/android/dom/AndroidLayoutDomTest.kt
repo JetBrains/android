@@ -1279,7 +1279,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     toTestCompletion("tn13.xml", "tn13_after.xml")
   }
 
-  // Test that support library component alternatives are pushed higher in completion
+  // Test that support library component alternatives are pushed lower in completion
   fun testSupportLibraryCompletion() {
     myFixture.copyFileToProject("$myTestFolder/GridLayout.java", "src/android/support/v7/widget/GridLayout.java")
     val file = copyFileToProject("tn14.xml")
@@ -1287,7 +1287,7 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.complete(CompletionType.BASIC)
     val completionResult = myFixture.lookupElementStrings
 
-    assertThat(completionResult).containsExactly("android.support.v7.widget.GridLayout", "GridLayout").inOrder()
+    assertThat(completionResult).containsExactly("GridLayout", "android.support.v7.widget.GridLayout").inOrder()
   }
 
   // Test android:layout_width and android:layout_height highlighting for framework and library layouts
