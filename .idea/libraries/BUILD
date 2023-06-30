@@ -165,13 +165,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "tightvnc",
-    jars = ["//prebuilts/tools/common/tightvnc:tightvnc_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "android-test-plugin-host-device-info-proto",
     jars = ["//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto.jar"],
     visibility = ["//visibility:public"],

@@ -519,7 +519,6 @@ studio_plugin(
     directory = "firebase-testing",
     libs = [
         "//prebuilts/tools/common/m2:JSch",
-        "//tools/adt/idea/.idea/libraries:tightvnc",
         "//tools/studio/google/cloud/testing/firebase-testing:google_api_services_testing",
     ],
     modules = {
