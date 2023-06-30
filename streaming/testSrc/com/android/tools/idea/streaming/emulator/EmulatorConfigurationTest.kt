@@ -16,8 +16,10 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.DisplayModeValue
+import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.google.common.jimfs.Jimfs
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
@@ -57,6 +59,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
+    assertThat(config?.postures).isEmpty()
     assertThat(config?.api).isEqualTo(29)
   }
 
@@ -83,6 +86,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.LANDSCAPE)
     assertThat(config?.displayModes).isEmpty()
+    assertThat(config?.postures).isEmpty()
     assertThat(config?.api).isEqualTo(29)
   }
 
@@ -109,6 +113,7 @@ class EmulatorConfigurationTest {
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
+    assertThat(config?.postures).isEmpty()
     assertThat(config?.api).isEqualTo(30)
   }
 
@@ -135,6 +140,10 @@ class EmulatorConfigurationTest {
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
+    assertThat(config?.postures).containsExactly(
+        PostureDescriptor(PostureValue.POSTURE_CLOSED, 0.0, 30.0),
+        PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, 30.0, 150.0),
+        PostureDescriptor(PostureValue.POSTURE_OPENED, 150.0, 180.0))
     assertThat(config?.api).isEqualTo(29)
   }
 
@@ -161,6 +170,10 @@ class EmulatorConfigurationTest {
     assertThat(config?.hasOrientationSensors).isTrue()
     assertThat(config?.initialOrientation).isEqualTo(SkinRotation.PORTRAIT)
     assertThat(config?.displayModes).isEmpty()
+    assertThat(config?.postures).containsExactly(
+        PostureDescriptor(PostureValue.POSTURE_CLOSED, 58.55, 76.45),
+        PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, 76.45, 94.35),
+        PostureDescriptor(PostureValue.POSTURE_OPENED, 94.35, 100.0))
     assertThat(config?.api).isEqualTo(31)
   }
 
@@ -190,6 +203,7 @@ class EmulatorConfigurationTest {
                                                      DisplayMode(DisplayModeValue.FOLDABLE, 1768, 2208),
                                                      DisplayMode(DisplayModeValue.TABLET, 1920, 1200),
                                                      DisplayMode(DisplayModeValue.DESKTOP, 1920, 1080))
+    assertThat(config?.postures).isEmpty()
     assertThat(config?.api).isEqualTo(32)
   }
 }

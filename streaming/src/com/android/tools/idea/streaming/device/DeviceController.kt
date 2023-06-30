@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.streaming.core.FOLDING_STATE_ICONS
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
 import com.intellij.openapi.Disposable
@@ -25,7 +26,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil.toTitleCase
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
-import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.EOFException
@@ -216,14 +216,5 @@ class DeviceController(
 internal data class FoldingState(val id: Int, val name: String, val appAccessible: Boolean) {
   val icon: Icon? = FOLDING_STATE_ICONS[name]
 }
-
-private val FOLDING_STATE_ICONS = mapOf(
-  "Closed" to StudioIcons.Emulator.Menu.POSTURE_CLOSED,
-  "Flipped" to StudioIcons.Emulator.Menu.POSTURE_FLIPPED,
-  "Half-Open" to StudioIcons.Emulator.Menu.POSTURE_HALF_FOLDED,
-  "Open" to StudioIcons.Emulator.Menu.POSTURE_OPEN,
-  "Rear Display" to StudioIcons.Emulator.Menu.POSTURE_REAR_DISPLAY,
-  "Tent" to StudioIcons.Emulator.Menu.POSTURE_TENT,
-)
 
 private const val CONTROL_MSG_BUFFER_SIZE = 4096

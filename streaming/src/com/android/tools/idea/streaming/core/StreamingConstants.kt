@@ -20,6 +20,7 @@ import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationGroup.Companion.findRegisteredGroup
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.util.ui.components.BorderLayoutPanel
+import icons.StudioIcons
 
 /** Constants for the Running Devices tool window. */
 
@@ -35,3 +36,14 @@ internal val RUNNING_DEVICES_NOTIFICATION_GROUP: NotificationGroup
 internal const val PRIMARY_DISPLAY_ID = 0
 
 internal const val STREAMING_SECONDARY_TOOLBAR_ID = "StreamingToolbarSecondary"
+
+internal val FOLDING_STATE_ICONS = mapOf(
+  // TODO: Uncomment when the POSTURE_BOTH_DISPLAYS icon is created (b/289546684).
+  //"Both Displays" to StudioIcons.Emulator.Menu.POSTURE_BOTH_DISPLAYS,
+  "Closed" to StudioIcons.Emulator.Menu.POSTURE_CLOSED,
+  "Flipped" to StudioIcons.Emulator.Menu.POSTURE_FLIPPED,
+  "Half-Open" to StudioIcons.Emulator.Menu.POSTURE_HALF_FOLDED,
+  "Open" to StudioIcons.Emulator.Menu.POSTURE_OPEN,
+  "Rear Display" to StudioIcons.Emulator.Menu.POSTURE_REAR_DISPLAY,
+  "Tent" to StudioIcons.Emulator.Menu.POSTURE_TENT,
+)
