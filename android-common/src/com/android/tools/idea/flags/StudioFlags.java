@@ -21,6 +21,7 @@ import com.android.flags.FlagOverrides;
 import com.android.flags.Flags;
 import com.android.flags.overrides.DefaultFlagOverrides;
 import com.android.flags.overrides.PropertyOverrides;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.flags.overrides.ServerFlagOverrides;
 import com.android.tools.idea.util.StudioPathManager;
@@ -751,6 +752,9 @@ public final class StudioFlags {
     GRADLE_IDE, "build.analyzer.category.analysis", "Enable 'Group by Task Category' category task analysis",
     "Enable 'Group by Task Category' category task analysis in Build Analyzer.", true);
 
+  /**
+   * @see #isBuildOutputShowsDownloadInfo
+   */
   public static final Flag<Boolean> BUILD_OUTPUT_DOWNLOADS_INFORMATION = Flag.create(
     GRADLE_IDE, "build.output.downloads.information", "Enable downloads information in Build/Sync View",
     "Show separate node with downloads information in Build and Sync views.", true);
@@ -1792,6 +1796,12 @@ public final class StudioFlags {
     "Whether or not sandbox SDK should launch a process with the debugger attached on debug action.",
     false);
   // endregion PRIVACY_SANDBOX_SDK
+
+  public static Boolean isBuildOutputShowsDownloadInfo() {
+    return BUILD_OUTPUT_DOWNLOADS_INFORMATION.isOverridden()
+           ? BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()
+           : IdeInfo.getInstance().isAndroidStudio();
+  }
 
   private StudioFlags() { }
 
