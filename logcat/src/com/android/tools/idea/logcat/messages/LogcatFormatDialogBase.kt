@@ -36,17 +36,18 @@ import com.intellij.openapi.util.NlsContexts
 import com.intellij.ui.JBIntSpinner
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.layout.Cell
-import com.intellij.ui.layout.CellBuilder
-import com.intellij.ui.layout.LayoutBuilder
-import com.intellij.ui.layout.applyToComponent
-import com.intellij.ui.layout.enableIf
-import com.intellij.ui.layout.panel
-import com.intellij.ui.layout.selected
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ui.dsl.builder.RightGap
+import com.intellij.ui.dsl.builder.Row
+import com.intellij.ui.dsl.builder.RowLayout
+import com.intellij.ui.dsl.builder.bindIntValue
+import com.intellij.ui.dsl.builder.bindItem
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import org.jetbrains.annotations.VisibleForTesting
-import java.awt.GridLayout
 import java.awt.event.ItemEvent
 import java.time.Instant
 import java.time.ZoneId
@@ -54,7 +55,6 @@ import java.time.ZonedDateTime
 import javax.swing.ComboBoxModel
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
-import javax.swing.JPanel
 import javax.swing.ListCellRenderer
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
@@ -65,7 +65,6 @@ private const val MIN_TAG_LENGTH = 10
 private const val MAX_TAG_LENGTH = 35
 private const val MIN_APP_NAME_LENGTH = 10
 private const val MAX_APP_NAME_LENGTH = 45
-private const val GRID_COLUMN_GAP = 50
 
 private val sampleZoneId = ZoneId.of("GMT")
 private val sampleTimestamp = Instant.from(ZonedDateTime.of(2021, 10, 4, 11, 0, 14, 234000000, sampleZoneId))
@@ -148,6 +147,7 @@ internal abstract class LogcatFormatDialogBase(
     }
   }
 
+  @VisibleForTesting
   fun applyToComponents(currentOptions: FormattingOptions) {
     showTimestampCheckbox.isSelected = currentOptions.timestampFormat.enabled
     timestampStyleComboBox.selectedItem = currentOptions.timestampFormat.style
@@ -181,21 +181,31 @@ internal abstract class LogcatFormatDialogBase(
     return panel
   }
 
-  protected open fun createComponents(layoutBuilder: LayoutBuilder, formattingOptions: FormattingOptions) {
-    layoutBuilder.row {
-      component(JPanel())
-        .constraints(growX, pushX)
-        .applyToComponent {
-          layout = GridLayout(0, 2).apply {
-            hgap = GRID_COLUMN_GAP
-          }
-          add(panel { timestampGroup(formattingOptions.timestampFormat) })
-          add(panel { processIdGroup(formattingOptions.processThreadFormat) })
-          add(panel { tagGroup(formattingOptions.tagFormat) })
-          add(panel { packageNameGroup(formattingOptions.appNameFormat) })
-          add(panel { levelGroup(formattingOptions.levelFormat.enabled) })
-        }
-      layoutBuilder.footerGroup()
+  protected open fun createComponents(layoutBuilder: Panel, formattingOptions: FormattingOptions) {
+    //.align(AlignY.TOP) is not required while group panels next to each other are the same height
+    layoutBuilder.panel {
+      row {
+        panel {
+          timestampGroup(formattingOptions.timestampFormat)
+        }.gap(RightGap.COLUMNS)
+          .resizableColumn()
+        panel {
+          processIdGroup(formattingOptions.processThreadFormat)
+        }.resizableColumn()
+      }.layout(RowLayout.PARENT_GRID)
+
+      row {
+        panel {
+          tagGroup(formattingOptions.tagFormat)
+        }.gap(RightGap.COLUMNS)
+          .resizableColumn()
+        panel {
+          packageNameGroup(formattingOptions.appNameFormat)
+        }.resizableColumn()
+      }.layout(RowLayout.PARENT_GRID)
+
+      levelGroup(formattingOptions.levelFormat.enabled)
+      footerGroup()
     }
   }
 
@@ -224,126 +234,129 @@ internal abstract class LogcatFormatDialogBase(
         // TODO(aalbert): Add usage for Show Levels
       )
 
-  private fun LayoutBuilder.timestampGroup(format: TimestampFormat) {
-    titledRow(message("logcat.header.options.timestamp.title")) {
-      subRowIndent = 0
-      row {
-        val showTimestamp = checkBox(message("logcat.header.options.timestamp.show"), format.enabled, ::showTimestampCheckbox)
-          .constraints(growX, pushX)
+  private fun Panel.timestampGroup(format: TimestampFormat) {
+    group(message("logcat.header.options.timestamp.title")) {
+      lateinit var showTimestamp: Cell<JBCheckBox>
+      row { showTimestamp = checkBox(message("logcat.header.options.timestamp.show"), format.enabled, ::showTimestampCheckbox) }
+      indent {
         row {
-          cell {
-            label(message("logcat.header.options.timestamp.format"))
-            val model = DefaultComboBoxModel(TimestampFormat.Style.values())
-            val renderer = SimpleListCellRenderer.create<TimestampFormat.Style?>("") { it?.displayName }
-            comboBox(model, renderer, format.style, ::timestampStyleComboBox)
+          panel {
+            row(message("logcat.header.options.timestamp.format")) {
+              val model = DefaultComboBoxModel(TimestampFormat.Style.values())
+              val renderer = SimpleListCellRenderer.create<TimestampFormat.Style?>("") { it?.displayName }
+              comboBox(model, renderer, format.style, ::timestampStyleComboBox)
+            }
           }
-        }.enableIf(showTimestamp.selected)
+        }.enabledIf(showTimestamp.selected)
       }
     }
   }
 
-  private fun LayoutBuilder.processIdGroup(format: ProcessThreadFormat) {
-    titledRow(message("logcat.header.options.process.id.title")) {
-      subRowIndent = 0
-      row {
-        val showPid = checkBox(message("logcat.header.options.process.id.show.pid"), format.enabled, ::showPidCheckbox)
+  private fun Panel.processIdGroup(format: ProcessThreadFormat) {
+    group(message("logcat.header.options.process.id.title")) {
+      lateinit var showPid: Cell<JBCheckBox>
+      row { showPid = checkBox(message("logcat.header.options.process.id.show.pid"), format.enabled, ::showPidCheckbox) }
+      indent {
         row {
           val includeTid = format.style == ProcessThreadFormat.Style.BOTH
           checkBox(message("logcat.header.options.process.id.show.tid"), includeTid, ::includeTidCheckbox)
-            .enableIf(showPid.selected)
+            .enabledIf(showPid.selected)
         }
       }
     }
   }
 
-  private fun LayoutBuilder.tagGroup(format: TagFormat) {
-    titledRow(message("logcat.header.options.tag.title")) {
-      subRowIndent = 0
-      row {
-        val showTag = checkBox(message("logcat.header.options.tag.show"), format.enabled, ::showTagCheckbox)
-          .constraints(growX, pushX)
+  private fun Panel.tagGroup(format: TagFormat) {
+    group(message("logcat.header.options.tag.title")) {
+
+      lateinit var showTags: Cell<JBCheckBox>
+      row { showTags = checkBox(message("logcat.header.options.tag.show"), format.enabled, ::showTagCheckbox) }
+      indent {
         row {
-          cell {
-            label(message("logcat.header.options.tag.width"))
-            spinner(format.maxLength, MIN_TAG_LENGTH, MAX_TAG_LENGTH, ::tagWidthSpinner)
+          panel {
+            row(message("logcat.header.options.tag.width")) {
+              spinner(format.maxLength, MIN_TAG_LENGTH, MAX_TAG_LENGTH, ::tagWidthSpinner)
+            }
           }
-        }.enableIf(showTag.selected)
+        }.enabledIf(showTags.selected)
         row {
           checkBox(message("logcat.header.options.tag.show.repeated"), !format.hideDuplicates, ::showRepeatedTagsCheckbox)
-        }.enableIf(showTag.selected)
+        }.enabledIf(showTags.selected)
       }
     }
   }
 
-  private fun LayoutBuilder.packageNameGroup(format: AppNameFormat) {
-    titledRow(message("logcat.header.options.package.title")) {
-      subRowIndent = 0
+  private fun Panel.packageNameGroup(format: AppNameFormat) {
+    group(message("logcat.header.options.package.title")) {
+
+      lateinit var showPackageNames: Cell<JBCheckBox>
       row {
-        val showPackageName = checkBox(message("logcat.header.options.package.show"), format.enabled, ::showPackageCheckbox)
+        showPackageNames = checkBox(message("logcat.header.options.package.show"), format.enabled, ::showPackageCheckbox)
+      }
+      indent {
         row {
-          cell {
-            label(message("logcat.header.options.package.width"))
-            spinner(format.maxLength, MIN_APP_NAME_LENGTH, MAX_APP_NAME_LENGTH, ::packageWidthSpinner)
+          panel {
+            row(message("logcat.header.options.package.width")) {
+              spinner(format.maxLength, MIN_APP_NAME_LENGTH, MAX_APP_NAME_LENGTH, ::packageWidthSpinner)
+            }
           }
-        }.enableIf(showPackageName.selected)
+        }.enabledIf(showPackageNames.selected)
         row {
           checkBox(message("logcat.header.options.package.show.repeated"), !format.hideDuplicates, ::showRepeatedPackagesCheckbox)
-        }.enableIf(showPackageName.selected)
+        }.enabledIf(showPackageNames.selected)
       }
     }
   }
 
-  private fun LayoutBuilder.levelGroup(showLevels: Boolean) {
-    titledRow(message("logcat.header.options.level.title")) {
-      subRowIndent = 0
+  private fun Panel.levelGroup(showLevels: Boolean) {
+    group(message("logcat.header.options.level.title")) {
       row {
         checkBox(message("logcat.header.options.level.show"), showLevels, ::showLevelCheckbox)
-          .constraints(growX, pushX)
       }
     }
   }
 
-  private fun LayoutBuilder.footerGroup() {
+  private fun Panel.footerGroup() {
     row {
-      component(sampleEditor.component).applyToComponent {
+      cell(sampleEditor.component).applyToComponent {
         border = JBUI.Borders.customLine(NamedColorUtil.getBoundsColor())
       }
     }
   }
 
   @Suppress("UnstableApiUsage")
-  private fun Cell.checkBox(
+  private fun Row.checkBox(
     @NlsContexts.Checkbox text:
     String, value: Boolean,
-    componentSetter: KMutableProperty0<JBCheckBox>): CellBuilder<JBCheckBox> {
-    return checkBox(text, value).apply {
-      componentSetter.set(component)
-      components.add(component)
-    }
+    componentSetter: KMutableProperty0<JBCheckBox>
+  ) = checkBox(text).apply {
+    selected(value)
+    componentSetter.set(component)
+    components.add(component)
   }
 
-  private fun Cell.spinner(
+  private fun Row.spinner(
     value: Int,
     minValue: Int,
     maxValue: Int,
     componentSetter: KMutableProperty0<JBIntSpinner>,
-  ): CellBuilder<JBIntSpinner> {
-    return spinner({ value }, {}, minValue, maxValue).apply {
-      componentSetter.set(component)
-      components.add(component)
-    }
+  ) = spinner(minValue..maxValue).apply {
+    //TODO: replace with proper setter
+    bindIntValue(getter = { value }, setter = {})
+    componentSetter.set(component)
+    components.add(component)
   }
 
-  private inline fun <reified T : Any> Cell.comboBox(
+  private inline fun <reified T : Any> Row.comboBox(
     model: ComboBoxModel<T>,
     renderer: ListCellRenderer<T?>,
     value: T,
     componentSetter: KMutableProperty0<ComboBox<T>>,
-  ): CellBuilder<ComboBox<T>> {
-    return comboBox(model, { value }, {}, renderer).apply {
-      componentSetter.set(this.component)
-      components.add(component)
-    }
+  ) = comboBox(model, renderer).apply {
+    //TODO: replace with proper setter
+    bindItem(getter = { value }, setter = {})
+    componentSetter.set(this.component)
+    components.add(component)
   }
 
   protected open fun onComponentsChanged(isUserAction: Boolean) {

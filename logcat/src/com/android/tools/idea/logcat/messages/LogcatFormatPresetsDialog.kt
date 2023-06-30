@@ -29,16 +29,16 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.layout.CCFlags
-import com.intellij.ui.layout.LayoutBuilder
-import com.intellij.ui.layout.applyToComponent
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ui.dsl.builder.bindItem
+import com.intellij.ui.dsl.builder.selected
 import java.awt.event.ActionEvent
 import java.awt.event.ItemEvent
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
-import javax.swing.SwingConstants
 
 /**
  * A variant of [LogcatFormatDialogBase] that controls the Standard & Compact formatting presets.
@@ -59,64 +59,58 @@ internal class LogcatFormatPresetsDialog(
 
   override fun createDialogWrapper(): DialogWrapper = MyDialogWrapper(project, createPanel(initialFormatting.formattingOptions))
 
-  override fun createComponents(layoutBuilder: LayoutBuilder, formattingOptions: FormattingOptions) {
+  override fun createComponents(layoutBuilder: Panel, formattingOptions: FormattingOptions) {
     globalSettingsGroup(layoutBuilder)
     super.createComponents(layoutBuilder, formattingOptions)
   }
 
-  private fun globalSettingsGroup(layoutBuilder: LayoutBuilder) {
+  private fun globalSettingsGroup(layoutBuilder: Panel) {
     layoutBuilder.row {
-      cell {
-        label(LogcatBundle.message("logcat.format.presets.dialog.view"))
-        val model = DefaultComboBoxModel(FormattingOptions.Style.values())
-        val renderer = SimpleListCellRenderer.create<FormattingOptions.Style>("") { it?.displayName }
-        val styleComboBox = comboBox(model, { initialFormatting }, {}, renderer)
-        val setAsDefaultCheckBox = checkBox(
-          LogcatBundle.message("logcat.format.presets.dialog.default"),
-          isSelected = initialFormatting == defaultFormatting)
-        setAsDefaultCheckBox.applyToComponent {
-          addItemListener {
-            if (isSelected) {
-              defaultFormatting = styleComboBox.component.item
-            }
+      label(LogcatBundle.message("logcat.format.presets.dialog.view"))
+      val model = DefaultComboBoxModel(FormattingOptions.Style.values())
+      val renderer = SimpleListCellRenderer.create<FormattingOptions.Style>("") { it?.displayName }
+      //TODO: replace with proper setter
+      val styleComboBox = comboBox(model, renderer).bindItem(getter = { initialFormatting }, setter = {})
+      val setAsDefaultCheckBox = checkBox(LogcatBundle.message("logcat.format.presets.dialog.default"))
+        .selected(initialFormatting == defaultFormatting)
+      setAsDefaultCheckBox.applyToComponent {
+        addItemListener {
+          if (isSelected) {
+            defaultFormatting = styleComboBox.component.item
           }
         }
-        component(ActionLink(LogcatBundle.message("logcat.format.presets.dialog.restore.default")) { restoreDefault() })
-          .constraints(CCFlags.growX)
-          .applyToComponent {
-            horizontalAlignment = SwingConstants.TRAILING
+      }
+      cell(ActionLink(LogcatBundle.message("logcat.format.presets.dialog.restore.default")) { restoreDefault() }).align(AlignX.RIGHT)
+      styleComboBox.applyToComponent {
+        addItemListener {
+          if (it.stateChange == ItemEvent.DESELECTED) {
+            return@addItemListener
           }
-        styleComboBox.applyToComponent {
-          addItemListener {
-            if (it.stateChange == ItemEvent.DESELECTED) {
-              return@addItemListener
-            }
-            val previousOptions: FormattingOptions
-            val currentOptions: FormattingOptions
-            if (item == STANDARD) {
-              previousOptions = compactFormattingOptions
-              currentOptions = standardFormattingOptions
-            }
-            else {
-              previousOptions = standardFormattingOptions
-              currentOptions = compactFormattingOptions
-            }
-            applyToFormattingOptions(previousOptions)
-
-            // Do not apply changes to the current style while we manually change update the components.
-            doNotApplyToFormattingOptions = true
-            try {
-              applyToComponents(currentOptions)
-            }
-            finally {
-              doNotApplyToFormattingOptions = false
-            }
-
-            setAsDefaultCheckBox.component.isSelected = item == defaultFormatting
+          val previousOptions: FormattingOptions
+          val currentOptions: FormattingOptions
+          if (item == STANDARD) {
+            previousOptions = compactFormattingOptions
+            currentOptions = standardFormattingOptions
           }
-          styleComboBoxComponent = styleComboBox.component
-          setAsDefaultCheckBoxComponent = setAsDefaultCheckBox.component
+          else {
+            previousOptions = standardFormattingOptions
+            currentOptions = compactFormattingOptions
+          }
+          applyToFormattingOptions(previousOptions)
+
+          // Do not apply changes to the current style while we manually change update the components.
+          doNotApplyToFormattingOptions = true
+          try {
+            applyToComponents(currentOptions)
+          }
+          finally {
+            doNotApplyToFormattingOptions = false
+          }
+
+          setAsDefaultCheckBox.component.isSelected = item == defaultFormatting
         }
+        styleComboBoxComponent = styleComboBox.component
+        setAsDefaultCheckBoxComponent = setAsDefaultCheckBox.component
       }
     }
   }
