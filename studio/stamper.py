@@ -66,8 +66,7 @@ def _overwrite_plugin_version(build_txt, content):
   build_number = utils.read_file(build_txt)
   build = build_number[3:] # removes the AI- prefix
 
-  # TODO: Start with the IJ way of doing this, but move to a more robust/strict later.
-  content = re.sub("<version>[\\d.]*</version>", "<version>%s</version>" % build, content, 1)
+  content = re.sub("<version>.*</version>", "<version>%s</version>" % build, content, 1)
   content = re.sub("<idea-version\\s+since-build=\"\\d+\\.\\d+\"\\s+until-build=\"\\d+\\.\\d+\"",
                    "<idea-version since-build=\"%s\" until-build=\"%s\"" % (build, build),
                    content, 1)

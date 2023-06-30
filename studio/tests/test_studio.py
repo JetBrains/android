@@ -1,3 +1,4 @@
+import io
 import os
 import re
 import unittest
@@ -162,6 +163,20 @@ class StudioTests(unittest.TestCase):
     with zipfile.ZipFile(name) as mac_zip:
       kotlin_plugin_count = sum(name.endswith("kotlin-plugin.jar") for name in mac_zip.namelist())
       self.assertEqual(kotlin_plugin_count, 1)
+
+  def test_android_plugin_version(self):
+    # Motive: we used to have a custom stamping, let's make sure it's not there anymore.
+    name = "tools/adt/idea/studio/android-studio.linux.zip"
+    with zipfile.ZipFile(name, "r") as linux_zip:
+      android_jar = linux_zip.read("android-studio/plugins/android/lib/android.jar")
+      build_txt = linux_zip.read("android-studio/build.txt").decode("utf-8")
+      version = build_txt[3:] # remove AI-
+      with zipfile.ZipFile(io.BytesIO(android_jar), "r") as jar:
+        xml = jar.read("META-INF/plugin.xml")
+        m = re.search("<version>(.*)</version>", xml.decode("utf-8"))
+        if not m:
+          self.fail("Android's plugin.xml does not contain a version tag")
+        self.assertEquals(version, m.group(1))
 
 if __name__ == "__main__":
   unittest.main()
