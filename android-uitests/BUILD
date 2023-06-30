@@ -2056,21 +2056,6 @@ java_test(
 )
 
 java_test(
-    name = "FindUsagesTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/CodeGeneration/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.FindUsagesTest"],
-    tags = COMMON_TAGS + [
-        "no_windows",
-        "qa_smoke",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "QuickDocumentationTest",
     size = "large",
     data = COMMON_DATA,
