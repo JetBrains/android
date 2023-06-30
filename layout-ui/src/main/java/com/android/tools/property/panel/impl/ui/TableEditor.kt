@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.adtui.stdui.registerAnActionKey
+import com.android.tools.property.panel.api.HelpSupport
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.TableEditingRequest
 import com.android.tools.property.panel.impl.model.TableLineModelImpl
@@ -32,6 +33,7 @@ import com.android.tools.property.ptable.PTableCellRendererProvider
 import com.android.tools.property.ptable.PTableColumn
 import com.android.tools.property.ptable.PTableGroupItem
 import com.android.tools.property.ptable.PTableItem
+import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.psi.codeStyle.NameUtil
@@ -114,6 +116,9 @@ class TableEditor(
             action.templatePresentation.description
           )
         }
+    }
+    DataManager.registerDataProvider(component) { dataId ->
+      if (HelpSupport.PROPERTY_ITEM.`is`(dataId)) lineModel.selectedItem else null
     }
   }
 

@@ -56,17 +56,6 @@ private const val CUSTOM_TAG = "com.example.PieChart"
 private const val ATTR_LEGEND = "legend"
 private const val ATTR_LABEL_POS = "labelPosition"
 
-internal const val EXPECTED_ID_TOOLTIP =
-  "<html><b>android:id:</b><br/>" +
-  "Supply an identifier name for this view, to later retrieve it with {@link android.view.View#findViewById View.findViewById()} or " +
-  "{@link android.app.Activity#findViewById Activity.findViewById()}. This must be a resource reference; typically you set this using " +
-  "the &lt;code&gt;@+&lt;/code&gt; syntax to create a new ID resources. " +
-  "For example: &lt;code&gt;android:id=&quot;@+id/my_id&quot;&lt;/code&gt; which allows you to " +
-  "later retrieve the view with &lt;code&gt;findViewById(R.id.my_id)&lt;/code&gt;.</html>"
-
-internal const val EXPECTED_TEXT_TOOLTIP =
-  "<html><b>android:text:</b><br/>Text to display.</html>"
-
 private fun PropertiesTable<NlPropertyItem>.contains(namespace: String, name: String): Boolean {
   return this.getOrNull(namespace, name) != null
 }
@@ -155,17 +144,6 @@ class NlPropertiesProviderTest : PropertyTestCase() {
     assertThat(properties.getByNamespace(ANDROID_URI).keys).containsAllIn(linearLayoutAttrs)
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_TEXT)).isTrue()
     assertThat(properties.getByNamespace(AUTO_URI).keys).containsAllOf(ATTR_LEGEND, ATTR_LABEL_POS)
-  }
-
-  fun testToolTip() {
-    SupportTestUtil.setUpCustomView(myFixture)
-    val provider = NlPropertiesProvider(myFacet)
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(CUSTOM_TAG)))
-    val id = properties[ANDROID_URI, ATTR_ID]
-    val legend = properties[AUTO_URI, ATTR_LEGEND]
-    assertThat(id.tooltipForName.trim()).isEqualTo(EXPECTED_ID_TOOLTIP.trim())
-    assertThat(legend.tooltipForName).isEqualTo("<html><b>legend:</b><br/>Help Text</html>")
   }
 
   fun testComponentName() {

@@ -71,6 +71,12 @@ class FakeJBPopupFactory : JBPopupFactory() {
   private val balloons = ArrayDeque<FakeBalloon>()
 
   /**
+   * Returns the number of popups created using this factory
+   */
+  val popupCount: Int
+    get() = popups.size
+
+  /**
    * Returns a popup that has been created using this factory.
    *
    * Type safety is the responsibility of the caller.

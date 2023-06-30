@@ -25,9 +25,11 @@ import com.android.tools.idea.uibuilder.property.inspector.neleDesignPropertySec
 import com.android.tools.idea.uibuilder.property.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.property.panel.api.PropertiesPanel
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.util.Disposer
+import com.intellij.platform.ide.documentation.DOCUMENTATION_TARGETS
 import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.facet.AndroidFacet
@@ -57,6 +59,7 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
   private val properties = PropertiesPanel<NlPropertyItem>(componentModel)
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
+  private val documentationTarget = NlPropertyDocumentationTarget({ properties.selectedItem }, { componentModel.selection.singleOrNull() })
   private var toolWindow: ToolWindowCallback? = null
 
   init {
@@ -64,6 +67,9 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
     add(properties.component, BorderLayout.CENTER)
     properties.addView(componentView)
     properties.addView(motionEditorView)
+    DataManager.registerDataProvider(properties.component) { dataId ->
+      if (DOCUMENTATION_TARGETS.`is`(dataId)) listOf(documentationTarget) else null
+    }
     registerAnActionKey({ showResolvedValueAction }, ToggleShowResolvedValueAction.SHORTCUT.firstKeyStroke, "toggleResolvedValues",
                         WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
   }

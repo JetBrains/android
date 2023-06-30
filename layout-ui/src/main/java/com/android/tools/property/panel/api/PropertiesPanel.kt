@@ -18,7 +18,9 @@ package com.android.tools.property.panel.api
 import com.android.tools.adtui.stdui.CommonTabbedPane
 import com.android.tools.property.panel.impl.ui.PropertiesPage
 import com.android.tools.property.panel.impl.ui.WatermarkPanel
+import com.android.tools.property.ptable.PTableItem
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
@@ -28,6 +30,8 @@ import java.util.IdentityHashMap
 import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.properties.Delegates
+import org.jetbrains.concurrency.AsyncPromise
+import org.jetbrains.concurrency.Promise
 
 const val PROPERTIES_PANEL_NAME = "properties.panel"
 
@@ -53,6 +57,7 @@ class PropertiesPanel<P : PropertyItem>(parentDisposable: Disposable) :
   private val watermark = WatermarkPanel()
   private val hidden = JPanel()
   private var updatingPageVisibility = false
+  private var isDisposed = false
 
   @VisibleForTesting val mainPage = PropertiesPage(this)
 
@@ -61,6 +66,15 @@ class PropertiesPanel<P : PropertyItem>(parentDisposable: Disposable) :
   val component = JPanel(BorderLayout())
   var filter: String by
     Delegates.observable("") { _, oldValue, newValue -> filterChanged(oldValue, newValue) }
+
+  val selectedItem: Promise<PTableItem?>
+    get() {
+      val result = AsyncPromise<PTableItem?>()
+      DataManager.getInstance().dataContextFromFocusAsync.then {
+        result.setResult(it.getData(HelpSupport.PROPERTY_ITEM))
+      }
+      return result
+    }
 
   init {
     component.name = PROPERTIES_PANEL_NAME
@@ -76,7 +90,7 @@ class PropertiesPanel<P : PropertyItem>(parentDisposable: Disposable) :
   }
 
   override fun propertiesGenerated(model: PropertiesModel<P>) {
-    if (Disposer.isDisposed(this)) {
+    if (isDisposed) {
       return
     }
     populateInspector(model)
@@ -238,6 +252,7 @@ class PropertiesPanel<P : PropertyItem>(parentDisposable: Disposable) :
   }
 
   override fun dispose() {
+    isDisposed = true
     views.keys.forEach { it.removeListener(this) }
     pages.forEach { it.clear() }
   }

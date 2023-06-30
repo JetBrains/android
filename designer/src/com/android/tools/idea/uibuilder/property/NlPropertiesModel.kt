@@ -105,6 +105,9 @@ open class NlPropertiesModel(
     get() = activeSurface
     set(value) = useDesignSurface(value)
 
+  val selection: List<NlComponent>
+    get() = surface?.selectionModel?.selection ?: emptyList()
+
   /**
    * If true the value in an editor should show the resolved value of a property.
    */
@@ -243,8 +246,7 @@ open class NlPropertiesModel(
       panel.requestSelection()
     }
     else if (surface != null) {
-      val newSelection: List<NlComponent> = activeSceneView?.selectionModel?.selection ?: emptyList()
-      designSurfaceListener.componentSelectionChanged(surface, newSelection)
+      designSurfaceListener.componentSelectionChanged(surface, selection)
     }
   }
 
@@ -397,7 +399,7 @@ open class NlPropertiesModel(
   }
 
   fun firePropertyValueChangeIfNeeded() {
-    val components = activeSurface?.selectionModel?.selection ?: return
+    val components = selection
     if (components.isEmpty() || !sameAsTheCurrentLiveListeners(components)) {
       // If there are no components currently selected, there is nothing to update.
       // If the currently selected components are different from the components being shown,

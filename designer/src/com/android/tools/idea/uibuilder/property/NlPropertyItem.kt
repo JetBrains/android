@@ -38,9 +38,10 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
+import com.android.tools.configurations.Configuration
+import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.configurations.Configuration
 import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -72,7 +73,6 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomUtil
-import com.android.tools.dom.attrs.AttributeDefinition
 import java.awt.Color
 import javax.swing.Icon
 
@@ -140,9 +140,6 @@ open class NlPropertyItem(
       TOOLS_URI -> StudioIcons.LayoutEditor.Properties.TOOLS_ATTRIBUTE
       else -> StudioIcons.LayoutEditor.Toolbar.INSERT_VERT_CHAIN
     }
-
-  override val tooltipForName: String
-    get() = computeTooltipForName()
 
   override val tooltipForValue: String
     get() = computeTooltipForValue()
@@ -313,10 +310,6 @@ open class NlPropertyItem(
   private fun isId(value: String): Boolean {
     val url = ResourceUrl.parse(value)
     return url?.type == ResourceType.ID
-  }
-
-  private fun computeTooltipForName(): String {
-    return HelpActions.createHelpText(this, allowEmptyDescription = true)
   }
 
   private fun computeTooltipForValue(): String {
