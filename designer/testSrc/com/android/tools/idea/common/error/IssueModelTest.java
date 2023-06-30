@@ -70,7 +70,8 @@ public class IssueModelTest {
     assertTrue(myIssueModel.hasIssues());
     assertTrue(hasRenderError());
     assertEquals(1, myIssueModel.getIssueCount());
-    assertArrayEquals(new Issue[]{RenderIssueProvider.NlRenderIssueWrapper.wrapIssue(issue, sourceNlModel)}, myIssueModel.getIssues().toArray());
+    assertArrayEquals(new Issue[]{RenderIssueProvider.NlRenderIssueWrapper.wrapIssue(issue, sourceNlModel)},
+                      myIssueModel.getIssues().toArray());
   }
 
   @NotNull
@@ -90,7 +91,7 @@ public class IssueModelTest {
     myIssueModel.addIssueProvider(new LintIssueProvider(lintAnnotationsModel));
     assertTrue(myIssueModel.hasIssues());
     assertFalse(hasRenderError());
-    assertTrue(myIssueModel.getIssueCount() == 1);
+    assertEquals(1, myIssueModel.getIssueCount());
     assertArrayEquals(new Issue[]{new LintIssueProvider.LintIssueWrapper(lintAnnotationsModel.getIssues().get(0))},
                       myIssueModel.getIssues().toArray());
   }
@@ -150,10 +151,10 @@ public class IssueModelTest {
           issueListBuilder.add(createIssue(HighlightSeverity.INFORMATION, IssueSource.fromNlComponent(mockComponent)));
           issueListBuilder.add(expectedHighest);
         }
-    });
+      });
     assertEquals(3, myIssueModel.getIssueCount());
     Issue highest = myIssueModel.getHighestSeverityIssue(mockComponent);
-    assertEquals(expectedHighest, highest );
+    assertEquals(expectedHighest, highest);
   }
 
   @Test

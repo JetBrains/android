@@ -72,7 +72,7 @@ internal class CommonIssueTestParentNode(project: Project) : DesignerCommonIssue
 
 fun createTestVisualLintRenderIssue(type: VisualLintErrorType,
                                     components: List<NlComponent>,
-                                    summary: String = "") : VisualLintRenderIssue {
+                                    summary: String = ""): VisualLintRenderIssue {
   return VisualLintRenderIssue.builder().model(components.first().model)
     .summary(summary)
     .severity(HighlightSeverity.WARNING)

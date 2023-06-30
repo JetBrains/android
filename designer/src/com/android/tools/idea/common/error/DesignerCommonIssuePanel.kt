@@ -58,6 +58,7 @@ import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 
 private const val TOOLBAR_ACTIONS_ID = "Android.Designer.IssuePanel.ToolbarActions"
+
 /**
  * The id of pop action group which is shown when right-clicking a tree node.
  */
@@ -255,14 +256,14 @@ class DesignerCommonIssuePanel(parentDisposable: Disposable, private val project
  */
 class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : TreeVisitor {
 
-  override fun visit(path: TreePath) : TreeVisitor.Action {
+  override fun visit(path: TreePath): TreeVisitor.Action {
     return when (val visitedNode = path.lastPathComponent) {
       !is DesignerCommonIssueNode -> TreeVisitor.Action.CONTINUE
       else -> compareNode(visitedNode, node)
     }
   }
 
-  private fun compareNode(node1: DesignerCommonIssueNode?, node2: DesignerCommonIssueNode?) : TreeVisitor.Action {
+  private fun compareNode(node1: DesignerCommonIssueNode?, node2: DesignerCommonIssueNode?): TreeVisitor.Action {
     if (node1 == null || node2 == null) {
       return if (node1 == null && node2 == null) TreeVisitor.Action.INTERRUPT else TreeVisitor.Action.CONTINUE
     }
@@ -279,14 +280,16 @@ class DesignerIssueNodeVisitor(private val node: DesignerCommonIssueNode) : Tree
   }
 
   private fun visitIssuedFileNode(node1: IssuedFileNode, node2: IssuedFileNode): TreeVisitor.Action {
-    return if (node1.file != node2.file) TreeVisitor.Action.CONTINUE else {
+    return if (node1.file != node2.file) TreeVisitor.Action.CONTINUE
+    else {
       compareNode(node1.parentDescriptor?.element as? DesignerCommonIssueNode,
                   node2.parentDescriptor?.element as? DesignerCommonIssueNode)
     }
   }
 
   private fun visitNoFileNode(node1: NoFileNode, node2: NoFileNode): TreeVisitor.Action {
-    return if (node1.name != node2.name) TreeVisitor.Action.CONTINUE else {
+    return if (node1.name != node2.name) TreeVisitor.Action.CONTINUE
+    else {
       compareNode(node1.parentDescriptor?.element as? DesignerCommonIssueNode,
                   node2.parentDescriptor?.element as? DesignerCommonIssueNode)
     }

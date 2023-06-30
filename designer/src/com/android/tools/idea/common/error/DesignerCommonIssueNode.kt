@@ -413,11 +413,12 @@ class VisualLintIssueNode(private val visualLintIssue: VisualLintRenderIssue, pa
       return null
     }
     val targetComponent = visualLintIssue.components
-                            .filterNot { it.isVisualLintErrorSuppressed(visualLintIssue.type) }
-                            .firstOrNull()
+      .filterNot { it.isVisualLintErrorSuppressed(visualLintIssue.type) }
+      .firstOrNull()
     val openLayoutValidationNavigatable = if (HardwareConfigHelper.isWear(visualLintIssue.models.firstOrNull()?.configuration?.device)) {
       SelectWearDevicesNavigatable(project)
-    } else {
+    }
+    else {
       SelectWindowSizeDevicesNavigatable(project)
     }
     if (targetComponent == null) {
@@ -429,13 +430,16 @@ class VisualLintIssueNode(private val visualLintIssue: VisualLintRenderIssue, pa
         navigateToComponent(targetComponent, true)
         openLayoutValidationNavigatable.navigate(requestFocus)
       }
+
       override fun canNavigate(): Boolean = project != null
       override fun canNavigateToSource(): Boolean = project != null
     }
   }
 }
 
-class NavigatableFileNode(val file: VirtualFile, val fileNavigatable: Navigatable, parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(parent?.project, parent) {
+class NavigatableFileNode(val file: VirtualFile,
+                          val fileNavigatable: Navigatable,
+                          parent: DesignerCommonIssueNode?) : DesignerCommonIssueNode(parent?.project, parent) {
 
   override fun getLeafState() = LeafState.ALWAYS
 
@@ -451,7 +455,7 @@ class NavigatableFileNode(val file: VirtualFile, val fileNavigatable: Navigatabl
     presentation.addText(name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
     presentation.setIcon(
       CompoundIconProvider.findIcon(PsiUtilCore.findFileSystemItem(project, virtualFile), 0)
-        ?: if (virtualFile.isDirectory) AllIcons.Nodes.Folder else AllIcons.FileTypes.Any_type
+      ?: if (virtualFile.isDirectory) AllIcons.Nodes.Folder else AllIcons.FileTypes.Any_type
     )
   }
 
@@ -500,10 +504,10 @@ private class MyOpenFileDescriptor(openFileDescriptor: OpenFileDescriptor) :
 }
 
 @VisibleForTesting
-class SelectWindowSizeDevicesNavigatable(project: Project): OpenLayoutValidationNavigatable(project, ConfigurationSet.WindowSizeDevices)
+class SelectWindowSizeDevicesNavigatable(project: Project) : OpenLayoutValidationNavigatable(project, ConfigurationSet.WindowSizeDevices)
 
 @VisibleForTesting
-class SelectWearDevicesNavigatable(project: Project): OpenLayoutValidationNavigatable(project, ConfigurationSet.WearDevices)
+class SelectWearDevicesNavigatable(project: Project) : OpenLayoutValidationNavigatable(project, ConfigurationSet.WearDevices)
 
 @VisibleForTesting
 open class OpenLayoutValidationNavigatable(private val project: Project, configurationSetToSelect: ConfigurationSet) : Navigatable {

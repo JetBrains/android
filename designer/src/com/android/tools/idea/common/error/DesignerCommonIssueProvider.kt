@@ -46,6 +46,7 @@ object NotSuppressedFilter : DesignerCommonIssueProvider.Filter {
 
 class SelectedEditorFilter(project: Project) : DesignerCommonIssueProvider.Filter {
   private val editorManager: FileEditorManager = FileEditorManager.getInstance(project)
+
   @Suppress("UnstableApiUsage")
   override fun invoke(issue: Issue): Boolean {
     return if (issue is VisualLintRenderIssue) {
@@ -59,7 +60,7 @@ class SelectedEditorFilter(project: Project) : DesignerCommonIssueProvider.Filte
   }
 }
 
-operator fun DesignerCommonIssueProvider.Filter.plus(filter: DesignerCommonIssueProvider.Filter) : DesignerCommonIssueProvider.Filter {
+operator fun DesignerCommonIssueProvider.Filter.plus(filter: DesignerCommonIssueProvider.Filter): DesignerCommonIssueProvider.Filter {
   return DesignerCommonIssueProvider.Filter { issue -> this@plus.invoke(issue) && filter.invoke(issue) }
 }
 
@@ -69,6 +70,7 @@ operator fun DesignerCommonIssueProvider.Filter.plus(filter: DesignerCommonIssue
 class DesignToolsIssueProvider(parentDisposable: Disposable, project: Project, private val issueFilter: DesignerCommonIssueProvider.Filter)
   : DesignerCommonIssueProvider<Any> {
   private val mapLock = Any()
+
   @GuardedBy("mapLock")
   private val sourceToIssueMap = mutableMapOf<Any, List<Issue>>()
 

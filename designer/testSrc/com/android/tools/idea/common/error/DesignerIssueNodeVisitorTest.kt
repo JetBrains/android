@@ -62,7 +62,7 @@ class DesignerIssueNodeVisitorTest {
     val node2 = TestIssueNode(issue2)
 
     val visitor = DesignerIssueNodeVisitor(node1)
-    assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit (TreePathUtil.pathToCustomNode(node2) { null }))
+    assertEquals(TreeVisitor.Action.CONTINUE, visitor.visit(TreePathUtil.pathToCustomNode(node2) { null }))
   }
 
   @Test

@@ -17,8 +17,6 @@ package com.android.tools.idea.common.error;
 
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.util.ActionToolbarUtil;
-import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableList;
@@ -72,7 +70,6 @@ import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,12 +90,18 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
   private static final String ACTION_COLLAPSE = "collapse";
   private static final Pattern MULTIPLE_SPACES = Pattern.compile("\\s+");
 
-  /** Event listeners for the issue panel */
+  /**
+   * Event listeners for the issue panel
+   */
   public interface EventListener {
-    /** Called when the panel is expanded or minimized */
+    /**
+     * Called when the panel is expanded or minimized
+     */
     void onPanelExpanded(boolean isExpanded);
 
-    /** Called when the individual issue is expanded or minimized */
+    /**
+     * Called when the individual issue is expanded or minimized
+     */
     void onIssueExpanded(@Nullable Issue issue, boolean isExpanded);
   }
 
@@ -119,7 +122,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
    */
   private boolean hasUserSeenNewErrors;
   private boolean isMinimized;
-  private boolean myInitialized;
+  private final boolean myInitialized;
   /**
    * If set to false, the panel will not minimize/maximaze without user interaction.
    * The default behaviour is to have the panel automatically collapse if no errors are present.
@@ -455,8 +458,8 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     repaint();
 
     if (!myEventListeners.isEmpty()) {
-      UIUtil.invokeLaterIfNeeded(() -> myEventListeners.forEach(it ->
-        it.onPanelExpanded(!isMinimized)
+      UIUtil.invokeLaterIfNeeded(() -> myEventListeners.forEach(
+        it -> it.onPanelExpanded(!isMinimized)
       ));
     }
   }
@@ -616,7 +619,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
     private final JLabel myMessageLabel = createLabel("Message");
     private final JLabel mySourceLabel = createLabel("Source");
     private int[] myColumnsX;
-    private boolean myInitialized;
+    private final boolean myInitialized;
 
     private ColumnHeaderPanel() {
       setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.border()));
@@ -652,9 +655,9 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       super.doLayout();
       // Measurement from IssueView seems to be off sometimes. See b/168682770
       // ColumnsX might be just 0,0 and make the labels on top of one another.
-      boolean isColumnsXValid =  myColumnsX != null
-           && myColumnsX.length == COLUMN_COUNT
-           && !(myColumnsX[0] == 0 && myColumnsX[1] == 0);
+      boolean isColumnsXValid = myColumnsX != null
+                                && myColumnsX.length == COLUMN_COUNT
+                                && !(myColumnsX[0] == 0 && myColumnsX[1] == 0);
 
       if (isColumnsXValid) {
         myMessageLabel.setLocation(myColumnsX[0], 0);

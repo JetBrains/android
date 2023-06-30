@@ -28,7 +28,9 @@ import javax.swing.event.HyperlinkListener
 
 class DesignerCommonIssueSidePanelTest {
 
-  @JvmField @Rule val rule = AndroidProjectRule.inMemory()
+  @JvmField
+  @Rule
+  val rule = AndroidProjectRule.inMemory()
 
   @Test
   fun testHyperlinkListener() {

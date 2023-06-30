@@ -71,7 +71,7 @@ class IssuePanelSplitter(
         updateSplitter(isExpanded, issuePanel.suggestedHeight)
       }
 
-      override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) { }
+      override fun onIssueExpanded(issue: Issue?, isExpanded: Boolean) {}
     }
   }
 }

@@ -22,7 +22,6 @@ import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.RejectedExecutionException
@@ -97,7 +96,8 @@ private object DesignerCommonIssuePanelUsageTrackerImpl : DesignerCommonIssuePan
         UsageTracker.log(studioEvent)
       }
     }
-    catch (ignore: RejectedExecutionException) { }
+    catch (ignore: RejectedExecutionException) {
+    }
   }
 }
 

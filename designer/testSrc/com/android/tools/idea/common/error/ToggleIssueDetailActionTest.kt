@@ -72,10 +72,12 @@ class ToggleIssueDetailActionTest {
     }
 
     service.setSharedIssuePanelVisibility(true)
-    TestActionEvent.createTestEvent { when {
-      PlatformDataKeys.PROJECT.`is`(it) -> rule.project
-      PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestNode()
-      else -> null }
+    TestActionEvent.createTestEvent {
+      when {
+        PlatformDataKeys.PROJECT.`is`(it) -> rule.project
+        PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestNode()
+        else -> null
+      }
     }.let { event ->
       action.update(event)
       assertEquals("Show Issue Detail", event.presentation.text)
@@ -83,10 +85,12 @@ class ToggleIssueDetailActionTest {
       assertFalse(event.presentation.isEnabled)
     }
 
-    TestActionEvent.createTestEvent { when {
-      PlatformDataKeys.PROJECT.`is`(it) -> rule.project
-      PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestIssueNode(TestIssue())
-      else -> null }
+    TestActionEvent.createTestEvent {
+      when {
+        PlatformDataKeys.PROJECT.`is`(it) -> rule.project
+        PlatformDataKeys.SELECTED_ITEM.`is`(it) -> TestIssueNode(TestIssue())
+        else -> null
+      }
     }.let { event ->
       action.update(event)
       assertEquals("Show Issue Detail", event.presentation.text)

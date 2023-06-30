@@ -26,7 +26,6 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.util.containers.isEmpty
 import java.awt.event.MouseEvent
 import javax.swing.JList
-import kotlin.streams.toList
 
 class ShowQuickFixesAction : AnAction() {
 
@@ -69,7 +68,7 @@ class ShowQuickFixesAction : AnAction() {
   }
 }
 
-private class QuickFixableCellRenderer: ColoredListCellRenderer<Issue.QuickFixable>() {
+private class QuickFixableCellRenderer : ColoredListCellRenderer<Issue.QuickFixable>() {
   override fun customizeCellRenderer(list: JList<out Issue.QuickFixable>, element: Issue.QuickFixable, index: Int,
                                      selected: Boolean, hasFocus: Boolean) {
     icon = element.icon

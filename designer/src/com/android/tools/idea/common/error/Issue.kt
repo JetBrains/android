@@ -62,9 +62,7 @@ class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributes
     val otherComponent = other.componentRef.get() ?: return false
     if (component != otherComponent) return false
     if (file != other.file) return false
-    if (displayText != other.displayText) return false
-
-    return true
+    return displayText == other.displayText
   }
 
   override fun hashCode(): Int =
@@ -80,6 +78,7 @@ class NlComponentIssueSource(component: NlComponent) : IssueSource, NlAttributes
  */
 interface IssueSource {
   val file: VirtualFile?
+
   /** The display text to show in the issue panel. */
   val displayText: String
 
@@ -96,7 +95,7 @@ interface IssueSource {
     fun fromNlComponent(component: NlComponent): IssueSource = NlComponentIssueSource(component)
 
     @JvmStatic
-    fun fromNlModel(model: NlModel): IssueSource = object: IssueSource {
+    fun fromNlModel(model: NlModel): IssueSource = object : IssueSource {
       @Suppress("RedundantNullableReturnType") // May be null when using mocked NlModel in the test environment.
       override val file: VirtualFile? = model.virtualFile
       override val displayText: String = model.modelDisplayName.orEmpty()

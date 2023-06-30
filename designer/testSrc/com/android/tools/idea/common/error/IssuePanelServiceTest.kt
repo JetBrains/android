@@ -432,6 +432,6 @@ private class TestContentComponent(private val id: String) : JComponent(), Probl
 }
 
 /** Asserts [expected] and [actual] are the same string when removing all spaces and new lines. */
-fun assertEqualsIgnoreSpaces(expected: String, actual:String) {
+fun assertEqualsIgnoreSpaces(expected: String, actual: String) {
   assertEquals(expected.replace("\\s+".toRegex(), ""), actual.replace("\\s+".toRegex(), ""))
 }

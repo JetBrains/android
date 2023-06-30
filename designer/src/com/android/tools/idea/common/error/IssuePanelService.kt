@@ -127,7 +127,8 @@ class IssuePanelService(private val project: Project) {
 
     // The shared issue panel for all design tools.
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      val issueProvider = DesignToolsIssueProvider(problemsViewWindow.disposable, project, NotSuppressedFilter + SelectedEditorFilter(project))
+      val issueProvider = DesignToolsIssueProvider(problemsViewWindow.disposable, project,
+                                                   NotSuppressedFilter + SelectedEditorFilter(project))
       val treeModel = DesignerCommonIssuePanelModelProvider.getInstance(project).model
       val issuePanel = DesignerCommonIssuePanel(problemsViewWindow.disposable, project, treeModel, issueProvider, ::getEmptyMessage)
       treeModel.addTreeModelListener(object : TreeModelAdapter() {
@@ -161,41 +162,48 @@ class IssuePanelService(private val project: Project) {
     }
     contentManager.addContentManagerListener(contentManagerListener)
 
-    project.messageBus.connect(problemsViewWindow.disposable).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-      override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
-        val editor = source.getSelectedEditor(file)
-        updateIssuePanelVisibility(file, editor, true)
-      }
+    project.messageBus.connect(problemsViewWindow.disposable).subscribe(
+      FileEditorManagerListener.FILE_EDITOR_MANAGER,
+      object : FileEditorManagerListener {
+        override fun fileOpened(source: FileEditorManager,
+                                file: VirtualFile) {
+          val editor = source.getSelectedEditor(file)
+          updateIssuePanelVisibility(file, editor, true)
+        }
 
-      override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
-        if (!source.hasOpenFiles()) {
-          // There is no opened file, remove the tab.
-          removeSharedIssueTabFromProblemsPanel()
+        override fun fileClosed(source: FileEditorManager,
+                                file: VirtualFile) {
+          if (!source.hasOpenFiles()) {
+            // There is no opened file, remove the tab.
+            removeSharedIssueTabFromProblemsPanel()
+          }
         }
-      }
 
-      override fun selectionChanged(event: FileEditorManagerEvent) {
-        updateIssuePanelVisibility(event.newFile, event.newEditor, false)
-      }
+        override fun selectionChanged(event: FileEditorManagerEvent) {
+          updateIssuePanelVisibility(event.newFile, event.newEditor,
+                                     false)
+        }
 
-      private fun updateIssuePanelVisibility(newFile: VirtualFile?, newEditor: FileEditor?, selectIfVisible: Boolean) {
-        if (newFile == null) {
-          setSharedIssuePanelVisibility(false)
-          return
+        private fun updateIssuePanelVisibility(newFile: VirtualFile?,
+                                               newEditor: FileEditor?,
+                                               selectIfVisible: Boolean) {
+          if (newFile == null) {
+            setSharedIssuePanelVisibility(false)
+            return
+          }
+          if (isSupportedDesignerFileType(newFile)) {
+            addIssuePanel()
+            return
+          }
+          val surface = newEditor?.getDesignSurface()
+          if (surface != null) {
+            updateIssuePanelVisibility(newFile)
+          }
+          else {
+            removeSharedIssueTabFromProblemsPanel()
+          }
         }
-        if (isSupportedDesignerFileType(newFile)) {
-          addIssuePanel()
-          return
-        }
-        val surface = newEditor?.getDesignSurface()
-        if (surface != null) {
-          updateIssuePanelVisibility(newFile)
-        }
-        else {
-          removeSharedIssueTabFromProblemsPanel()
-        }
-      }
-    })
+      })
 
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       // If the shared issue panel is initialized after opening editor, the message bus misses the file editor event.
@@ -272,7 +280,7 @@ class IssuePanelService(private val project: Project) {
   /**
    * Return if the current issue panel of the given [DesignSurface] or the shared issue panel is showing.
    */
-  fun isShowingIssuePanel(surface: DesignSurface<*>?) : Boolean {
+  fun isShowingIssuePanel(surface: DesignSurface<*>?): Boolean {
     if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
       return isSharedIssueTabShowing(sharedIssueTab)
     }
@@ -603,6 +611,7 @@ fun createTabName(title: String, issueCount: Int?): String {
   val padding = (if (count <= 0) 0 else JBUI.scale(8)).toString()
   val fg = ColorUtil.toHtmlColor(NamedColorUtil.getInactiveTextColor())
   val number = if (count <= 0) "" else count.toString()
+
   @Language("HTML")
   val labelWithCounter = "<html><body>" +
                          "<table cellpadding='0' cellspacing='0'><tr>" +

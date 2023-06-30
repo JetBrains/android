@@ -166,7 +166,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
                 fix.apply(startElement, endElement, AndroidQuickfixContexts.BatchContext.getInstance())
               }
             },
-              EXECUTE_FIX + fix.name, null
+            EXECUTE_FIX + fix.name, null
           )
         }
       }
@@ -180,9 +180,9 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
         if (editor != null) {
           val project = model.project
           CommandProcessor.getInstance().executeCommand(
-              project,
-              { fix.invoke(project, editor, model.file) },
-              EXECUTE_FIX + fix.familyName, null
+            project,
+            { fix.invoke(project, editor, model.file) },
+            EXECUTE_FIX + fix.familyName, null
           )
         }
       }

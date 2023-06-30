@@ -73,7 +73,7 @@ class ShowQuickFixesActionTest {
     val sourceButton = ActionButton(action, Presentation(), "", Dimension(1, 1))
     val inputEvent = MouseEvent(sourceButton, 0, 0, 0, 0, 0, 1, true, MouseEvent.BUTTON1)
     val dataContext = DataContext { IssueNode(null, TestIssue(fixList = listOf(mock())), null) }
-    val eventWithFix = AnActionEvent(inputEvent, dataContext, "", action.templatePresentation.clone(), ActionManager.getInstance(), 0);
+    val eventWithFix = AnActionEvent(inputEvent, dataContext, "", action.templatePresentation.clone(), ActionManager.getInstance(), 0)
 
     assertEquals(0, popupRule.fakePopupFactory.getChildPopups(sourceButton).size)
     action.actionPerformed(eventWithFix)

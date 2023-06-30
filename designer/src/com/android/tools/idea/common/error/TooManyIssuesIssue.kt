@@ -17,7 +17,7 @@ package com.android.tools.idea.common.error
 
 import com.intellij.lang.annotation.HighlightSeverity
 
-internal class TooManyIssuesIssue(extraIssuesCount: Int): Issue() {
+internal class TooManyIssuesIssue(extraIssuesCount: Int) : Issue() {
   override val source: IssueSource = IssueSource.NONE
   override val summary = "Too many issues found. $extraIssuesCount not shown."
   override val description = """

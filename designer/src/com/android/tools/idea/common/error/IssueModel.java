@@ -64,11 +64,15 @@ public class IssueModel implements Disposable {
 
   /**
    * IssueModel constructor.
+   *
    * @param listenerExecutor {@link Executor} to run the listeners execution.
    * @param issueNumberLimit maximum number of issues to be handled by this model. If the number of issues exceeds this number, it will be
    *                         truncated to <code>issueNumberLimit</code> and a new {@link TooManyIssuesIssue} added.
    */
-  private IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project, @NotNull Executor listenerExecutor, int issueNumberLimit) {
+  private IssueModel(@NotNull Disposable parentDisposable,
+                     @NotNull Project project,
+                     @NotNull Executor listenerExecutor,
+                     int issueNumberLimit) {
     Disposer.register(parentDisposable, this);
     myProject = project;
     myListeners = ListenerCollection.createWithExecutor(listenerExecutor);
@@ -76,7 +80,8 @@ public class IssueModel implements Disposable {
   }
 
   public IssueModel(@NotNull Disposable parentDisposable, @NotNull Project project) {
-    this(parentDisposable, project, command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command), MAX_ISSUE_NUMBER_LIMIT);
+    this(parentDisposable, project, command -> ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState(), command),
+         MAX_ISSUE_NUMBER_LIMIT);
   }
 
   @TestOnly
@@ -171,7 +176,7 @@ public class IssueModel implements Disposable {
 
   /**
    * Add issue provider.
-
+   *
    * @param update true if issueModel should be updated to display newest information. False otherwise.
    * @return true if issueProvider was not already an {@link IssueProvider} associated with this {@link IssueModel}, otherwise false
    */

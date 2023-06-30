@@ -143,7 +143,7 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     val scrollPane = JBScrollPane(contentPanel,
                                   ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                                   ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER)
-    scrollPane.border = JBUI.Borders.empty(12, 0, 0, 0)
+    scrollPane.border = JBUI.Borders.emptyTop(12)
     add(scrollPane, BorderLayout.CENTER)
 
     val descriptionEditorPane = DescriptionEditorPane()
@@ -174,11 +174,12 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
         }
         for (file in relatedFiles) {
           val pathToDisplay = FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true) ?: continue
-          val link = object: ActionLink(pathToDisplay, { OpenFileDescriptor(project, file).navigateInEditor(project, true) }) {
+          val link = object : ActionLink(pathToDisplay, { OpenFileDescriptor(project, file).navigateInEditor(project, true) }) {
             override fun getToolTipText(): String? {
               return if (size.width < minimumSize.width) {
                 pathToDisplay
-              } else {
+              }
+              else {
                 null
               }
             }

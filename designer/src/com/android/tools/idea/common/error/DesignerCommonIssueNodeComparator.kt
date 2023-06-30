@@ -45,7 +45,7 @@ object IssueNodeSeverityComparator : Comparator<DesignerCommonIssueNode> {
       return 0
     }
     // Use minus operator to show the more important issue first.
-    return - o1.issue.severity.compareTo(o2.issue.severity)
+    return -o1.issue.severity.compareTo(o2.issue.severity)
   }
 }
 
@@ -64,6 +64,6 @@ object IssueNodeNameComparator : Comparator<DesignerCommonIssueNode> {
     }
     // If they are same regardless the case, the lower case should be first.
     // Node: 'a' compare to 'A' is positive, but we want the lower case be first. Reverse the result by using minus operator.
-    return - o1.name.compareTo(o2.name)
+    return -o1.name.compareTo(o2.name)
   }
 }
