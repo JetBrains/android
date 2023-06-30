@@ -40,7 +40,7 @@ import org.junit.runner.RunWith;
 public class AddDebugAndReleaseSourceSetToProjectTest {
 
   @Rule
-  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
   private final String DEBUG_IMPORT_CLASS_NAME = "com.google.myapplication.DebugTest.BuildVariantDebugClass";
@@ -203,7 +203,7 @@ public class AddDebugAndReleaseSourceSetToProjectTest {
     // Testing toggle between release and debug projects (Step 15)
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
     ideFrame.getBuildVariantsWindow()
-      .selectVariantForModule("My_Application.app", "debug");
+      .selectVariantForModule("My_Application.app", "debug (default)");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     ideFrame.find(guiTest.robot()).requestFocusIfLost();
     ideFrame.getProjectView()

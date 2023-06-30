@@ -22,22 +22,32 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.KeyPressInfo;
-import org.fest.swing.timing.Wait;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class BasicLayoutEditTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
+  private IdeFrameFixture ideFrame;
+
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
+  protected static final String APP_NAME = "App";
+  protected static final String PACKAGE_NAME = "android.com.app";
+  protected static final int MIN_SDK_API = 30;
+  protected static final String ACTIVITY_FILE = "app/src/main/res/layout/activity_main.xml";
 
   /**
    * Verifies addition of components to designer screen
@@ -59,22 +69,33 @@ public class BasicLayoutEditTest {
    *   5. Make sure TextView xml tag has attribute {@code android:text="@string/app_name"}
    * </pre>
    */
+
+  @Before
+  public void setUp() throws Exception {
+
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java);
+    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    ideFrame = guiTest.ideFrame();
+
+    //Clearing notifications present on the screen.
+    ideFrame.clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+  }
+
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void basicLayoutEdit() throws Exception {
     NlEditorFixture editorFixture = guiTest
-      .importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(120))
+      .ideFrame()
       .getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
+      .open(ACTIVITY_FILE, EditorFixture.Tab.DESIGN)
       .getLayoutEditor()
       .waitForSurfaceToLoad();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
 
-    editorFixture
-      .dragComponentToSurface("Buttons", "Button")
-      .waitForRenderToFinish();
 
     editorFixture
       .dragComponentToSurface("Common", "TextView")
@@ -91,18 +112,22 @@ public class BasicLayoutEditTest {
     guiTest.ideFrame().click();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
+    editorFixture
+      .dragComponentToSurface("Buttons", "Button")
+      .waitForRenderToFinish();
+
     List<NlComponentFixture> components = editorFixture.getAllComponents();
     // The components list is expected to have 4 elements in the following order:
     // * A RelativeLayout containing all the other components
     // * A TextView containing the text "Hello world!", which was already present in activity_my.xml
     // * A Button, added in this test
     // * Another TextView, added in this test. This is the component we want to verify.
-    assertEquals("Simple Application", components.get(3).getText());
+    assertEquals("App", components.get(2).getText());
 
     String layoutFileContents = guiTest
       .ideFrame()
       .getEditor()
-      .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
+      .open(ACTIVITY_FILE, EditorFixture.Tab.EDITOR)
       .getCurrentFileContents();
     assertThat(layoutFileContents).contains("<TextView");
     assertThat(layoutFileContents).contains("android:text=\"@string/app_name\"");
