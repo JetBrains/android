@@ -183,6 +183,7 @@ class DeviceController(
       "HALF_CLOSED" -> "HALF_OPEN"
       "HALF_FOLDED" -> "HALF_OPEN"
       "HALF_OPENED" -> "HALF_OPEN"
+      "CONCURRENT_INNER_DEFAULT" -> "BOTH_DISPLAYS"
       else -> correctedName
     }
     if (correctedName.startsWith("HALF_")) {

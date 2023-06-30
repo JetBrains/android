@@ -272,7 +272,8 @@ class DeviceToolWindowPanelTest {
         FoldingAction(FoldingState(2, "Half-Open", true)),
         FoldingAction(FoldingState(3, "Open", true)),
         FoldingAction(FoldingState(4, "Rear Display", true)),
-        FoldingAction(FoldingState(5, "Flipped", true)))
+        FoldingAction(FoldingState(5, "Both Displays", true)),
+        FoldingAction(FoldingState(6, "Flipped", true)))
     for (action in foldingActions) {
       action.update(event)
       assertThat(event.presentation.isEnabled).isTrue()

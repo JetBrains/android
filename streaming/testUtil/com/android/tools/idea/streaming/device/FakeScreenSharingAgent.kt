@@ -691,7 +691,8 @@ class FakeScreenSharingAgent(
                 DeviceState{identifier=2, name='HALF_FOLDED', app_accessible=true},
                 DeviceState{identifier=3, name='OPEN', app_accessible=true},
                 DeviceState{identifier=4, name='REAR_DISPLAY_STATE', app_accessible=true},
-                DeviceState{identifier=5, name='FLIPPED', app_accessible=true},
+                DeviceState{identifier=5, name='CONCURRENT_INNER_DEFAULT', app_accessible=true},
+                DeviceState{identifier=6, name='FLIPPED', app_accessible=true},
               ]
               """.trimIndent()
           sendNotification(SupportedDeviceStatesNotification(supportedStates))
@@ -793,7 +794,7 @@ class FakeScreenSharingAgent(
     }
   }
 
-  private enum class FoldingState { CLOSED, TENT, HALF_FOLDED, OPEN }
+  private enum class FoldingState { CLOSED, TENT, HALF_FOLDED, OPEN, REAR_DISPLAY_STATE, CONCURRENT_INNER_DEFAULT, FLIPPED }
 
   companion object {
     @JvmStatic
