@@ -35,19 +35,19 @@ import kotlin.text.Charsets.UTF_8
  *     or null to return all keys and values.
  */
 fun readKeyValueFile(file: Path, keysToExtract: Set<String>? = null): Map<String, String>? {
-  val result = mutableMapOf<String, String>()
-  try {
+  return try {
+    val result = mutableMapOf<String, String>()
     for (line in Files.readAllLines(file)) {
       val keyValue = KEY_VALUE_SPLITTER.splitToList(line)
       if (keyValue.size == 2 && (keysToExtract == null || keysToExtract.contains(keyValue[0]))) {
         result[keyValue[0]] = keyValue[1]
       }
     }
-    return result
+    result
   }
   catch (e: IOException) {
     logError("Error reading $file", e)
-    return null
+    null
   }
 }
 
