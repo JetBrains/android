@@ -1092,6 +1092,7 @@ java_test(
 
 java_test(
     name = "StudioDefaultJDKTest",
+    size = "large",
     data = COMMON_DATA,
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.newpsd.StudioDefaultJDKTest"],
     tags = COMMON_TAGS + [

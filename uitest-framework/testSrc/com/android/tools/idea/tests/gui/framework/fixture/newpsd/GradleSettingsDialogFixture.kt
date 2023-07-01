@@ -7,7 +7,7 @@
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
+* Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
@@ -15,49 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.tests.gui.framework.DialogContainerFixture
-import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.fixupWaiting
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers
+import com.android.tools.idea.gradle.ui.GradleJdkPathEditComboBox
+import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture
 import com.intellij.openapi.roots.ui.configuration.SdkComboBox
-import org.fest.swing.core.Robot
+import com.intellij.openapi.ui.ComboBox
 import org.fest.swing.fixture.JComboBoxFixture
-import javax.swing.JDialog
 
-class GradleSettingsDialogFixture(
-  val container: JDialog,
-  private val ideFrameFixture: IdeFrameFixture
-) : DialogContainerFixture {
-
-  private val robot = ideFrameFixture.robot().fixupWaiting()
-  override fun target(): JDialog = container
-  override fun robot(): Robot = robot
-
-  override fun maybeRestoreLostFocus() {
-    ideFrameFixture.requestFocusIfLost()
-  }
+class GradleSettingsDialogFixture (settingsDialog: IdeSettingsDialogFixture) {
+  val target = settingsDialog.target()
+  val robot = settingsDialog.robot()
 
   fun gradleJDKComboBox(): JComboBoxFixture{
-    val jdkComboBox = robot().finder().findByType(target(), SdkComboBox::class.java)
-    return JComboBoxFixture(robot(), jdkComboBox)
+    val jdkComboBox = robot.finder().findByType(target, SdkComboBox::class.java)
+    return JComboBoxFixture(robot, jdkComboBox)
   }
 
-  fun clickCancel(): IdeFrameFixture {
-    clickCancelAndWaitDialogDisappear()
-    return ideFrameFixture
+  fun gradleJDKPathComboBox(): JComboBoxFixture {
+    val jdkComboBox = robot.finder().findByType(target, GradleJdkPathEditComboBox::class.java)
+    val gradlePathComboBox = robot.finder().findByType(jdkComboBox, ComboBox::class.java)
+    return JComboBoxFixture(robot, gradlePathComboBox)
   }
-
-  companion object{
-    fun find(ideFrameFixture: IdeFrameFixture): GradleSettingsDialogFixture {
-      val dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog::class.java, "Gradle"))
-      return GradleSettingsDialogFixture(dialog, ideFrameFixture)
-    }
-  }
-}
-
-fun IdeSdksLocationConfigurableFixture.selectGradleSetting(ideframe: IdeFrameFixture): GradleSettingsDialogFixture{
-  clickGradleSetting()
-  val dialog = GuiTests.waitUntilShowing(ideframe.robot(), Matchers.byTitle(JDialog::class.java, "Gradle"))
-  return GradleSettingsDialogFixture(dialog, ideframe)
 }
