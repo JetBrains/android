@@ -370,7 +370,7 @@ private class HeadlessDialogWrapperPeer(
     val result = CompletableFuture<Any?>()
     val anCancelAction = AnCancelAction()
     val rootPane = getRootPane()
-    UIUtil.decorateWindowHeader(rootPane)
+    ComponentUtil.decorateWindowHeader(rootPane)
     val window = window
     if (window is JDialog && !window.isUndecorated) {
       ToolbarService.getInstance().setTransparentTitleBar(window = window, rootPane = rootPane, onDispose = { runnable ->
