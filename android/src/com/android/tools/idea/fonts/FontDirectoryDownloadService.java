@@ -17,6 +17,7 @@ package com.android.tools.idea.fonts;
 
 import com.android.ide.common.fonts.FontLoader;
 import com.android.ide.common.fonts.FontProvider;
+import com.android.tools.fonts.FontDirectoryDownloader;
 import com.android.tools.idea.downloads.DownloadService;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;

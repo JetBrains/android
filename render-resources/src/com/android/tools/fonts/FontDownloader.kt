@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fonts
+package com.android.tools.fonts
 
 import com.android.ide.common.fonts.FontFamily
 import com.android.ide.common.fonts.FontLoader
 import com.android.ide.common.fonts.FontProvider
-import com.android.tools.idea.fonts.FontDirectoryDownloader.Companion.NOOP_FONT_DIRECTORY_DOWNLOADER
+import com.android.tools.fonts.FontDirectoryDownloader.Companion.NOOP_FONT_DIRECTORY_DOWNLOADER
 import java.io.File
 
 /** Manages network fonts downloading. */
