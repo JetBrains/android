@@ -69,11 +69,7 @@ class SceneViewErrorsPanelTest {
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
     invokeAndWaitIfNeeded { fakeUi.root.validate() }
 
-    assertNotNull(
-      fakeUi.findComponent<JBLabel> {
-        it.text.contains("Some issues were found while trying to render this preview")
-      }
-    )
+    assertNotNull(fakeUi.findComponent<JBLabel> { it.text.contains("Render problem.") })
   }
 
   @Test
@@ -81,9 +77,9 @@ class SceneViewErrorsPanelTest {
     val sceneViewErrorsPanel = SceneViewErrorsPanel()
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
 
-    assertEquals(100, sceneViewErrorsPanel.minimumSize.height)
+    assertEquals(35, sceneViewErrorsPanel.minimumSize.height)
     assertEquals(150, sceneViewErrorsPanel.minimumSize.width)
-    assertEquals(100, sceneViewErrorsPanel.preferredSize.height)
+    assertEquals(35, sceneViewErrorsPanel.preferredSize.height)
     assertEquals(150, sceneViewErrorsPanel.preferredSize.width)
   }
 }
