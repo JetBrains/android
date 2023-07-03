@@ -66,43 +66,43 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
     private const val GSK_DIR = "idea-android/testData/configuration/android-gsk"
   }
 
-  fun doTest(path: String, extension: String) {
-    runWriteAction {
-      buildFile = projectRule.fixture.tempDirFixture.createFile("build.${extension}")
-      Assert.assertTrue(buildFile.isWritable)
+    fun doTest(path: String, extension: String) {
+        runWriteAction {
+            buildFile = projectRule.fixture.tempDirFixture.createFile("build.${extension}")
+            Assert.assertTrue(buildFile.isWritable)
+        }
+        val testRoot = resolveWorkspacePath("tools/adt/idea/android-kotlin").toFile()
+        val file = File(testRoot, "${path}_before.$extension")
+        val fileText = loadFile(file, CharsetToolkit.UTF8, true)
+        runWriteAction {
+            VfsUtil.saveText(buildFile, fileText)
+        }
+
+        val versionFromFile = findStringWithPrefixes(fileText, "// VERSION:")
+        val rawVersion = versionFromFile ?: DEFAULT_VERSION
+        val version = IdeKotlinVersion.get(rawVersion)
+
+        val project = projectRule.project
+        val collector = NotificationMessageCollector.create(project)
+
+        val jvmTarget = JvmTarget.JVM_1_8.description
+
+        val configurator = KotlinAndroidGradleModuleConfigurator()
+        configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = true, version, jvmTarget,
+                                     collector, mutableListOf())
+        configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = false, version, jvmTarget,
+                                     collector, mutableListOf())
+
+        collector.showNotification()
+
+        val afterFile = File(testRoot, "${path}_after.$extension")
+        assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(rawVersion, "\$VERSION$"))
+
+        // Clear JDK table
+        ProjectJdkTable.getInstance().allJdks.forEach {
+            SdkConfigurationUtil.removeSdk(it)
+        }
     }
-    val testRoot = resolveWorkspacePath("tools/adt/idea/android-kotlin").toFile()
-    val file = File(testRoot, "${path}_before.$extension")
-    val fileText = loadFile(file, CharsetToolkit.UTF8, true)
-    runWriteAction {
-      VfsUtil.saveText(buildFile, fileText)
-    }
-
-    val versionFromFile = findStringWithPrefixes(fileText, "// VERSION:")
-    val rawVersion = versionFromFile ?: DEFAULT_VERSION
-    val version = IdeKotlinVersion.get(rawVersion)
-
-    val project = projectRule.project
-    val collector = NotificationMessageCollector.create(project)
-
-    val jvmTarget = JvmTarget.JVM_1_8.description
-
-      val configurator = KotlinAndroidGradleModuleConfigurator()
-      configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = true, version, jvmTarget,
-                                   collector, mutableListOf())
-      configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = false, version, jvmTarget,
-                                   collector, mutableListOf())
-
-    collector.showNotification()
-
-    val afterFile = File(testRoot, "${path}_after.$extension")
-    assertEqualsToFile(afterFile, VfsUtil.loadText(buildFile).replace(rawVersion, "\$VERSION$"))
-
-    // Clear JDK table
-    ProjectJdkTable.getInstance().allJdks.forEach {
-      SdkConfigurationUtil.removeSdk(it)
-    }
-  }
 
   @RunsInEdt
   class AndroidGradle : ConfigureProjectTest(useAndroidX = false) {
