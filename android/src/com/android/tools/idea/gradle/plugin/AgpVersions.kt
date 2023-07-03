@@ -16,10 +16,12 @@
 package com.android.tools.idea.gradle.plugin
 
 import com.android.Version
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.MavenRepositories
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.ui.GuiTestingService
 import com.android.tools.idea.util.StudioPathManager
@@ -81,4 +83,21 @@ object AgpVersions {
       // In packaged studio and for tests, use the AGP that was built alongside Studio
       return ANDROID_GRADLE_PLUGIN_VERSION
     }
+
+  /** The highest known Android Gradle plugin version. Usually just the version that was built alongside this version of Studio */
+  @JvmStatic
+  val latestKnown: AgpVersion get() {
+    return studioFlagOverride?.takeIf { it > ANDROID_GRADLE_PLUGIN_VERSION } ?: ANDROID_GRADLE_PLUGIN_VERSION
+  }
+
+  @Slow
+  fun getAvailableVersions(): Set<AgpVersion> {
+    val gmavenVersions = IdeGoogleMavenRepository.getAgpVersions()
+    val repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
+      .takeIf { it.isNotEmpty() } ?: return gmavenVersions
+    val localRepoVersions = repoPaths.asSequence()
+      .flatMap { MavenRepositories.getAllVersions(it.toPath(), AGP_APP_PLUGIN_MARKER.module) }
+      .mapNotNullTo(mutableListOf()) { AgpVersion.tryParse(it.toString()) }
+    return gmavenVersions.union(localRepoVersions)
+  }
 }

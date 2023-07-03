@@ -15,67 +15,15 @@
  */
 package com.android.tools.idea.gradle.plugin;
 
-import static com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION;
-import static com.android.ide.common.repository.MavenRepositories.getHighestInstalledVersion;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID;
-import static com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID;
-
-import com.android.annotations.Nullable;
-import com.android.ide.common.gradle.Component;
-import com.android.ide.common.repository.AgpVersion;
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.intellij.openapi.diagnostic.Logger;
-import java.io.File;
-import java.lang.invoke.MethodHandles;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 public class LatestKnownPluginVersionProvider {
   public static final LatestKnownPluginVersionProvider INSTANCE = new LatestKnownPluginVersionProvider();
 
-  private static final String[] lastEmbeddedResult = new String[1];
-
-  static {
-    lastEmbeddedResult[0] = "unseen";
-  }
-
+  /** @deprecated Replace with AgpVersions.getLatestKnown() */
   @NotNull
+  @Deprecated
   public String get() {
-    AgpVersion override = AgpVersions.getStudioFlagOverride();
-    if (override != null) {
-      return override.toString();
-    }
-
-    List<File> repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths();
-    if (repoPaths.isEmpty()) {
-      return ANDROID_GRADLE_PLUGIN_VERSION;
-    }
-    else {
-      Optional<Component> highestValueComponent = repoPaths.stream()
-        .map(repoPath -> getHighestInstalledVersion(GROUP_ID, ARTIFACT_ID, repoPath.toPath(), null /* filter */, true /* allow preview */))
-        .filter(Objects::nonNull)
-        .max(Comparator.comparing(Component::getVersion));
-
-      @Nullable String embeddedResult = highestValueComponent.map(c -> c.getVersion().toString()).orElse(null);
-      @NotNull String version = highestValueComponent.map(c -> c.getVersion().toString()).orElse(ANDROID_GRADLE_PLUGIN_VERSION);
-      synchronized(lastEmbeddedResult) {
-        // We don't expect very many state changes; things should only change if an internal user gets an error from failing to find a
-        // -dev version of AGP, following which they might well build and publish such a dev version to the embedded repo and try again.
-        if (!Objects.equals(embeddedResult, lastEmbeddedResult[0])) {
-          Logger logger = Logger.getInstance(MethodHandles.lookup().lookupClass());
-          if (highestValueComponent.isEmpty()) {
-            logger.info("'" + ARTIFACT_ID + "' plugin missing from the offline Maven repo, will use default " + version);
-          }
-          else {
-            logger.info("'" + ARTIFACT_ID + "' plugin version " + version + " found in offline Maven repo");
-          }
-        }
-        lastEmbeddedResult[0] = embeddedResult;
-      }
-      return version;
-    }
+    return AgpVersions.getLatestKnown().toString();
   }
 }

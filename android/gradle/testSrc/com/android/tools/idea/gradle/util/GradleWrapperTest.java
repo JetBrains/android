@@ -26,7 +26,7 @@ import static org.gradle.wrapper.WrapperExecutor.DISTRIBUTION_URL_PROPERTY;
 import com.android.SdkConstants;
 import com.android.Version;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectStoreOwner;
@@ -126,20 +126,20 @@ public class GradleWrapperTest extends PlatformTestCase {
     String specifiedVersion = "7.2.0-alpha03";
     StudioFlags.AGP_VERSION_TO_USE.override(specifiedVersion);
 
-    assertEquals(specifiedVersion, LatestKnownPluginVersionProvider.INSTANCE.get());
+    assertEquals(specifiedVersion, AgpVersions.getNewProject().toString());
     assertEquals("7.3.3", GradleWrapper.getGradleVersionToUse().getVersion());
 
     // Check that "stable" alias has the same effect as explicitly setting LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION.
     StudioFlags.AGP_VERSION_TO_USE.override("stable");
-    assertEquals(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION, LatestKnownPluginVersionProvider.INSTANCE.get());
+    assertEquals(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION, AgpVersions.getNewProject().toString());
     GradleVersion gradleVersionToUseWhenOverrideIsStable = GradleWrapper.getGradleVersionToUse();
     StudioFlags.AGP_VERSION_TO_USE.override(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION);
-    assertEquals(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION, LatestKnownPluginVersionProvider.INSTANCE.get());
+    assertEquals(Version.LAST_STABLE_ANDROID_GRADLE_PLUGIN_VERSION, AgpVersions.getNewProject().toString());
     GradleVersion gradleVersionToUseWhenOverrideIsExplicitVersionEqualToStable = GradleWrapper.getGradleVersionToUse();
     assertEquals(gradleVersionToUseWhenOverrideIsStable, gradleVersionToUseWhenOverrideIsExplicitVersionEqualToStable);
 
     StudioFlags.AGP_VERSION_TO_USE.override("");
-    assertEquals(Version.ANDROID_GRADLE_PLUGIN_VERSION, LatestKnownPluginVersionProvider.INSTANCE.get());
+    assertEquals(Version.ANDROID_GRADLE_PLUGIN_VERSION, AgpVersions.getNewProject().toString());
     assertEquals(SdkConstants.GRADLE_LATEST_VERSION, GradleWrapper.getGradleVersionToUse().getVersion());
   }
 

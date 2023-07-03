@@ -19,7 +19,7 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
@@ -87,10 +87,9 @@ class UpgradeAssistantWindowModel(
   val project: Project,
   val currentVersionProvider: () -> AgpVersion?,
   var recommended: AgpVersion? = null,
-  val knownVersionsRequester: () -> Set<AgpVersion> = { IdeGoogleMavenRepository.getAgpVersions() }
+  val latestKnownVersion : AgpVersion = AgpVersions.latestKnown,
+  val knownVersionsRequester: () -> Set<AgpVersion> = { AgpVersions.getAvailableVersions() }
 ) : GradleSyncListener, Disposable {
-
-  val latestKnownVersion = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
 
   var current: AgpVersion? = currentVersionProvider()
     private set
@@ -386,9 +385,9 @@ class UpgradeAssistantWindowModel(
     refresh()
   }
 
-  fun suggestedVersionsList(gMavenVersions: Set<AgpVersion>): List<AgpVersion> = gMavenVersions
-    // Make sure the current (if known), recommended, and latest known versions are present, whether published or not
-    .union(listOfNotNull(current, recommended, latestKnownVersion))
+  fun suggestedVersionsList(avaliableVersions: Set<AgpVersion>): List<AgpVersion> = avaliableVersions
+    // Make sure the current (if known) and recommended versions are present, whether published or not
+    .union(listOfNotNull(current, recommended)).asSequence()
     // Keep only versions that are later than or equal to current
     .filter { current?.let { current -> it >= current } ?: false }
     // Keep only versions that are no later than the latest version we support
