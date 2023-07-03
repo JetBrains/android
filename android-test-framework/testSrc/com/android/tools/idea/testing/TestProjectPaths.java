@@ -19,6 +19,7 @@ public final class TestProjectPaths {
   public static final String APP_WITH_ACTIVITY_IN_LIB = "projects/appWithActivityInLib";
 
   public static final String BASIC = "projects/basic";
+  public static final String BASIC_KOTLIN_GRADLE_DSL = "projects/basicKotlinGradleDsl";
   public static final String NO_MODULES = "projects/projectWithNoModules";
   public static final String BUDDY_APKS = "projects/buddyApks";
   public static final String BUILD_ANALYZER_CHECK_ANALYZERS = "projects/buildAnalyzer/checkAnalyzers";
