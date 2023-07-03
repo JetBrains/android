@@ -42,6 +42,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWit
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
@@ -143,6 +144,9 @@ internal val COMPOSE_PREVIEW_ELEMENT_INSTANCE =
  * Returns a list of all [ComposePreviewManager]s related to the current context (which is implied
  * to be bound to a particular file). The search is done among the open preview parts and
  * [PreviewRepresentation]s (if any) of open file editors.
+ *
+ * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT
+ * thread. For actions using it, they should use [ActionUpdateThread.BGT].
  */
 internal fun findComposePreviewManagersForContext(
   context: DataContext

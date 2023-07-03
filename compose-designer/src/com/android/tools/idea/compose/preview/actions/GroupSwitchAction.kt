@@ -28,7 +28,8 @@ import com.intellij.openapi.actionSystem.ToggleAction
 /** [DropDownAction] that allows the user filtering the visible previews by group. */
 internal class GroupSwitchAction :
   DropDownAction(null, message("action.group.switch.title"), null) {
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  // Actions calling findComposePreviewManagersForContext in the update method, must run in BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   /** [ToggleAction] that sets the given [group] as filter. */
   inner class SetGroupAction(private val group: PreviewGroup, private val isSelected: Boolean) :

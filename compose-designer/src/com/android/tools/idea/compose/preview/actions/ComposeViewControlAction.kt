@@ -105,7 +105,8 @@ class ComposeViewControlAction(
     return true
   }
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  // Actions calling isAnyPreviewRefreshing in the update method, must run in BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   /**
    * Zoom actions have the icons, which we don't want to display in [ComposeViewControlAction]. We

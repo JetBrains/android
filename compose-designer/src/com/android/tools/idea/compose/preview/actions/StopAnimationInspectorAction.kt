@@ -48,6 +48,7 @@ class StopAnimationInspectorAction :
     }
   }
 
-  // EDT is needed because of calls to ComposePreviewManager.status()
-  override fun getActionUpdateThread() = ActionUpdateThread.EDT
+  // BGT is needed when calling findComposePreviewManagersForContext because it accesses the
+  // VirtualFile
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

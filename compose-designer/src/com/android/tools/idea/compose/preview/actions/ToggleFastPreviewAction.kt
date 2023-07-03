@@ -21,12 +21,17 @@ import com.android.tools.idea.compose.preview.findComposePreviewManagersForConte
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.ManualDisabledReason
 import com.android.tools.idea.editors.fast.fastPreviewManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.EditorNotifications
 
 /** Action that toggles the Fast Preview state. */
 class ToggleFastPreviewAction : AnAction(null, null, null) {
+  // BGT is needed when calling findComposePreviewManagersForContext because it accesses the
+  // VirtualFile
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val fastPreviewManager = project.fastPreviewManager

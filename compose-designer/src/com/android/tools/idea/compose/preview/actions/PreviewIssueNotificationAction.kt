@@ -297,8 +297,8 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   RightAlignedToolbarAction,
   CustomComponentAction {
 
-  // EDT is needed to read the preview status without holding the read lock
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+  // Actions calling findComposePreviewManagersForContext in the update method, must run in BGT
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   companion object {
     private const val ACTION_ID =
@@ -333,7 +333,11 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
     val isRefreshing =
-      findComposePreviewManagersForContext(e.dataContext).any { it.status().isRefreshing }
+      findComposePreviewManagersForContext(e.dataContext).any {
+        e.updateSession.compute(this, "Check Preview Status", ActionUpdateThread.EDT) {
+          it.status().isRefreshing
+        }
+      }
     presentation.isEnabled = !isRefreshing
     templateText?.let {
       presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false)
