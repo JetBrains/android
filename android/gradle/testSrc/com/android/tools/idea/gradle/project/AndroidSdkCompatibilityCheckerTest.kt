@@ -104,7 +104,7 @@ class AndroidSdkCompatibilityCheckerTest {
       checker.checkAndroidSdkVersion(androidModels, projectRule.project)
     }
     assertThat(dialogMessages).hasSize(1)
-    assertThat(dialogMessages[0]).startsWith("Your project is configured with a compile sdk version that is not supported by this version of Android Studio")
+    assertThat(dialogMessages[0]).startsWith("Your project is configured with a compile SDK version that is not supported by this version of Android Studio")
     assertThat(dialogMessages[0]).contains(".myapp")
   }
 
@@ -124,33 +124,11 @@ class AndroidSdkCompatibilityCheckerTest {
       checker.checkAndroidSdkVersion(androidModels, projectRule.project)
     }
     assertThat(dialogMessages).hasSize(1)
-    assertThat(dialogMessages[0]).startsWith("Your project is configured with a compile sdk version that is not supported by this version of Android Studio")
+    assertThat(dialogMessages[0]).startsWith("Your project is configured with a compile SDK version that is not supported by this version of Android Studio")
     assertThat(dialogMessages[0]).contains(".myapp")
     assertThat(dialogMessages[0]).contains(".mylib")
     assertThat(dialogMessages[0]).contains("(compileSdk=1000)")
     assertThat(dialogMessages[0]).contains("(and 1 more)")
-  }
-
-  @Test
-  fun `test ide and project level properties are set when do not show again action is run`() {
-    var ideLevel = PropertiesComponent.getInstance().getBoolean("studio.upgrade.do.not.show.again")
-    var projectLevel = PropertiesComponent.getInstance(projectRule.project).getBoolean("studio.upgrade.do.not.show.again")
-    assertThat(ideLevel).isFalse()
-    assertThat(projectLevel).isFalse()
-
-    projectRule.setupProjectFrom(
-      JavaModuleModelBuilder.rootModuleBuilder,
-      appModuleBuilder(compileSdk = "android-1000"),
-    )
-    val androidModels = getGradleAndroidModels(projectRule.project)
-    responseToDialog(true, replyWith = 1) {
-      checker.checkAndroidSdkVersion(androidModels, projectRule.project)
-    }
-
-    ideLevel = PropertiesComponent.getInstance().getBoolean("studio.upgrade.do.not.show.again")
-    projectLevel = PropertiesComponent.getInstance(projectRule.project).getBoolean("studio.upgrade.do.not.show.again")
-    assertThat(ideLevel).isTrue()
-    assertThat(projectLevel).isTrue()
   }
 
   @Test
@@ -252,7 +230,7 @@ class AndroidSdkCompatibilityCheckerTest {
   }
 
   private fun responseToDialog(expectedToBeShown: Boolean, replyWith: Int = 0, action: () -> Unit) {
-    val myTestDialog = TestDialog {message ->
+    val myTestDialog = TestDialog { message ->
       if (!expectedToBeShown) throw AssertionError("This should not be invoked")
       dialogMessages.add(message.trim())
       replyWith

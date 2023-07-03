@@ -27,12 +27,14 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.DoNotAskOption
+import com.intellij.openapi.ui.MessageDialogBuilder
 import com.intellij.openapi.updateSettings.impl.UpdateChecker
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
+
 
 /**
  * Verifies an Android Gradle project, does not have any modules that violate the compatibility rule between the compile sdk version
@@ -70,34 +72,39 @@ class AndroidSdkCompatibilityChecker {
       ApplicationInfo.getInstance().fullVersion
     ) + getAffectedModules(modulesViolatingSupportRules)
 
-    invokeLater(ModalityState.NON_MODAL) {
-      val selection = Messages.showIdeaMessageDialog(
-        project,
-        content,
+    ApplicationManager.getApplication().invokeAndWait({
+      val dontAskAgain: DoNotAskOption = object : DoNotAskOption.Adapter() {
+        override fun rememberChoice(isSelected: Boolean, exitCode: Int) {
+          if (isSelected) {
+            logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.DO_NOT_ASK_AGAIN)
+            StudioUpgradeReminder(project).doNotAskAgainProjectLevel = true
+            StudioUpgradeReminder(project).doNotAskAgainIdeLevel = true
+          }
+        }
+
+        override fun getDoNotShowMessage(): String {
+          return DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT
+        }
+      }
+
+      val selection = MessageDialogBuilder.yesNo(
         AndroidBundle.message("project.upgrade.studio.notification.title"),
-        arrayOf(
-          UPDATE_STUDIO_BUTTON.second,
-          DO_NOT_ASK_FOR_PROJECT_BUTTON.second
-        ),
-        0,
-        Messages.getWarningIcon(),
-        null
+        content,
       )
+        .yesText(UPDATE_STUDIO_BUTTON_TEXT)
+        .noText(CANCEL_BUTTON_TEXT)
+        .asWarning()
+        .doNotAsk(dontAskAgain)
+        .ask(project)
 
       when (selection) {
-        UPDATE_STUDIO_BUTTON.first -> {
+        true -> {
           logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.UPGRADE_STUDIO)
           UpdateChecker.updateAndShowResult(project)
         }
-        DO_NOT_ASK_FOR_PROJECT_BUTTON.first -> {
-          logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.DO_NOT_ASK_AGAIN)
-          StudioUpgradeReminder(project).doNotAskAgainProjectLevel = true
-          StudioUpgradeReminder(project).doNotAskAgainIdeLevel = true
-        }
-        CANCEL_BUTTON -> logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.CANCEL)
-        else -> logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.UNKNOWN_USER_ACTION)
+        false -> logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.CANCEL)
       }
-    }
+    }, ModalityState.NON_MODAL)
   }
 
   private fun logEvent(project: Project, action: UpgradeAndroidStudioDialogStats.UserAction) {
@@ -132,9 +139,9 @@ class AndroidSdkCompatibilityChecker {
 
   companion object {
     val MAX_RECOMMENDED_COMPILE_SDK_VERSION: AndroidVersion = SdkConstants.MAX_SUPPORTED_ANDROID_PLATFORM_VERSION
-    val UPDATE_STUDIO_BUTTON = 0 to "Upgrade Android Studio"
-    val DO_NOT_ASK_FOR_PROJECT_BUTTON = 1 to "Don't ask for this project"
-    const val CANCEL_BUTTON = -1
+    const val UPDATE_STUDIO_BUTTON_TEXT = "Upgrade Android Studio"
+    const val DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT = "Don't ask for this project"
+    const val CANCEL_BUTTON_TEXT = "Cancel"
     const val MAX_NUM_OF_MODULES = 5
 
     fun getInstance(): AndroidSdkCompatibilityChecker {
