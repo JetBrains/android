@@ -73,6 +73,7 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomUtil
+import com.android.tools.fonts.AVAILABLE_FAMILIES
 import java.awt.Color
 import javax.swing.Icon
 
@@ -390,7 +391,7 @@ open class NlPropertyItem(
       values.addAll(valueSet.sorted())
     }
     if (type == NlPropertyType.FONT) {
-      values.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)
+      values.addAll(AVAILABLE_FAMILIES)
     }
     return values
   }

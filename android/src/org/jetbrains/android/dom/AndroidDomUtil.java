@@ -76,6 +76,7 @@ import static com.android.AndroidXConstants.RECYCLER_VIEW;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.tools.fonts.Fonts.AVAILABLE_FAMILIES;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -190,14 +191,6 @@ public class AndroidDomUtil {
   private static final ToolsAttributeDefinitionsImpl TOOLS_ATTRIBUTE_DEFINITIONS = new ToolsAttributeDefinitionsImpl();
 
   private static final AutoFillHintsConverter AUTOFILL_HINTS_CONVERTER = new AutoFillHintsConverter();
-
-  // List of available font families extracted from framework's fonts.xml
-  // Used to provide completion for values of android:fontFamily attribute
-  // https://android.googlesource.com/platform/frameworks/base/+/android-6.0.0_r5/data/fonts/fonts.xml
-  public static final List<String> AVAILABLE_FAMILIES = ImmutableList
-      .of("sans-serif", "sans-serif-thin", "sans-serif-light", "sans-serif-medium", "sans-serif-black",
-          "sans-serif-condensed", "sans-serif-condensed-light", "sans-serif-condensed-medium",
-          "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps");
 
   static {
     // This section adds additional resource type registrations where the attrs metadata is lacking. For

@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants.FONT_PREFIX
 import com.android.ide.common.resources.ResourceResolver
+import com.android.tools.fonts.AVAILABLE_FAMILIES
 import com.android.tools.fonts.ProjectFonts
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
@@ -50,7 +51,7 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
 
       val index = fonts.size
       fonts.add(EnumValue.header(ANDROID_HEADER))
-      AndroidDomUtil.AVAILABLE_FAMILIES.mapTo(fonts) { EnumValue.indented(it) }
+      AVAILABLE_FAMILIES.mapTo(fonts) { EnumValue.indented(it) }
       if (fonts.size == index + 1) {
         fonts.removeAt(index)
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fonts;
+package com.android.tools.fonts;
 
 import com.android.ide.common.fonts.*;
 import com.google.common.primitives.Ints;
-import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,12 +24,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
+import static com.android.tools.fonts.Fonts.AVAILABLE_FAMILIES;
 
 /**
  * There are TTF files loaded from the jar file which can be used to display
  * system fonts in the UI.
  */
-class SystemFonts {
+public class SystemFonts {
   private static final int CONDENSED_WIDTH = 75;
 
   private final Map<String, FontFamily> myFonts;
@@ -51,7 +51,7 @@ class SystemFonts {
 
   private static Map<String, FontFamily> createFonts(@NotNull FontLoader fontLoader) {
     Map<String, FontFamily> fonts = new TreeMap<>();
-    for (String fontName : AndroidDomUtil.AVAILABLE_FAMILIES) {
+    for (String fontName : AVAILABLE_FAMILIES) {
       FontFamily family = createFont(fontLoader, fontName);
       if (family != null) {
         fonts.put(fontName, family);

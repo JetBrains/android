@@ -55,6 +55,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.WARNING
+import com.android.tools.fonts.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.MinApiLayoutTestCase
@@ -453,7 +454,7 @@ class NlPropertyItemTest {
     val font = util.makeProperty(ANDROID_URI, ATTR_FONT_FAMILY, NlPropertyType.FONT)
     val values = font.editingSupport.completion("")
     val expected = mutableListOf("@font/customfont")
-    expected.addAll(AndroidDomUtil.AVAILABLE_FAMILIES)
+    expected.addAll(AVAILABLE_FAMILIES)
     assertThat(values).containsExactlyElementsIn(expected)
   }
 
