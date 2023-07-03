@@ -79,7 +79,7 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
   companion object {
     @JvmStatic
     fun fromLibraryTables(
-      globalLibraryTable: IdeResolvedLibraryTable,
+      globalLibraryTable: IdeResolvedLibraryTable?,
       kmpLibraryTable: IdeResolvedLibraryTable?,
     ): IdeLibraryModelResolver {
       return IdeLibraryModelResolverImpl {
@@ -87,7 +87,7 @@ class IdeLibraryModelResolverImpl @VisibleForTesting constructor(
           kmpLibraryTable!!.libraries[it.libraryIndex].asSequence()
         }
         else {
-          globalLibraryTable.libraries[it.libraryIndex].asSequence()
+          globalLibraryTable!!.libraries[it.libraryIndex].asSequence()
         }
       }
     }

@@ -366,7 +366,9 @@ fun syncSelectedVariant(facet: AndroidFacet, variant: IdeVariant) {
 
 internal fun createLibraryResolverFor(projectNode: DataNode<ProjectData>): IdeLibraryModelResolver {
   val libraryTable = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.IDE_LIBRARY_TABLE)?.data
-    ?: error("IDE library table node not found")
   val kmpLibraries = ExternalSystemApiUtil.find(projectNode, AndroidProjectKeys.KMP_ANDROID_LIBRARY_TABLE)?.data
+  if (libraryTable == null && kmpLibraries == null) {
+    error("IDE library table node not found")
+  }
   return IdeLibraryModelResolverImpl.fromLibraryTables(libraryTable, kmpLibraries)
 }
