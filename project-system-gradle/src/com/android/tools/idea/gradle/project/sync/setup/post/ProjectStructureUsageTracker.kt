@@ -72,6 +72,8 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
     ApplicationManager.getApplication().executeOnPooledThread {
       try {
         doTrackProjectStructure()
+      } catch(e: ProcessCanceledException) {
+        throw e;
       } catch (e: Throwable) {
         // Any errors in project tracking should not be displayed to the user.
         LOG.warn("Failed to track project structure", e)
