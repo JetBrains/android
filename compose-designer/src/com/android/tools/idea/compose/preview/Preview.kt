@@ -579,6 +579,7 @@ class ComposePreviewRepresentation(
   }
 
   override fun stopUiCheckPreview() {
+    if (!isUiCheckPreview) return
     log.debug("Stopping UI check")
     previewElementProvider = defaultPreviewElementProvider
     atfChecksEnabled = false
