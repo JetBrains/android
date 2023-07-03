@@ -11,7 +11,13 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-analytics-shared" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-shared:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-shared:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-shared/223.0.1.0/analytics-shared-223.0.1.0.jar">
+              <sha256sum>d923fcb7eda661dc3aaa7c2c9a32a3d8816e076ef9a318fb6d8d1a90528192f5</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-shared/223.0.1.0/analytics-shared-223.0.1.0.jar!/" />
         </CLASSES>
@@ -21,7 +27,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-analytics-shared-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-shared_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-shared_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-shared_test/223.0.1.0/analytics-shared_test-223.0.1.0.jar">
+              <sha256sum>72df3b7691589be37242564e92ace57d6ac88c13126978f5bdaa4e263949ec5c</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-shared_test/223.0.1.0/analytics-shared_test-223.0.1.0.jar!/" />
         </CLASSES>

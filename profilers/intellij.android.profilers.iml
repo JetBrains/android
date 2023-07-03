@@ -27,7 +27,13 @@
     <orderEntry type="library" name="perfetto-proto" level="project" />
     <orderEntry type="module-library">
       <library name="traceprocessor-proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:traceprocessor_protos:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:traceprocessor_protos:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/traceprocessor_protos/223.0.1.0/traceprocessor_protos-223.0.1.0.jar">
+              <sha256sum>5c2211d1d24ebc87df24fd0929c2b3f24e2ca54dadaeb347630be88036dbee97</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/traceprocessor_protos/223.0.1.0/traceprocessor_protos-223.0.1.0.jar!/" />
         </CLASSES>

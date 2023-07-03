@@ -15,7 +15,13 @@
     <orderEntry type="library" name="libapp-processes-proto" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-ddmlib" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.ddmlib:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.ddmlib:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib/223.0.1.0/studio.android.sdktools.ddmlib-223.0.1.0.jar">
+              <sha256sum>98e57eff90dff3cd6df8244a54a8e30ea1837b358a1339d67cbbcd407b3ef4fe</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib/223.0.1.0/studio.android.sdktools.ddmlib-223.0.1.0.jar!/" />
         </CLASSES>
@@ -25,7 +31,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-ddmlib-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.ddmlib_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.ddmlib_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib_test/223.0.1.0/studio.android.sdktools.ddmlib_test-223.0.1.0.jar">
+              <sha256sum>e9efde44df5bf99de00aa6ceb28f43bead3a6c809d9aa9521e868ef078cb283e</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.ddmlib_test/223.0.1.0/studio.android.sdktools.ddmlib_test-223.0.1.0.jar!/" />
         </CLASSES>

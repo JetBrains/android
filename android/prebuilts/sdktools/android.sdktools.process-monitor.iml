@@ -16,7 +16,13 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-process-monitor" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.process-monitor:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.process-monitor:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.process-monitor/223.0.1.0/studio.android.sdktools.process-monitor-223.0.1.0.jar">
+              <sha256sum>03dd0355077f9d638586fa978630bcd716ca211211c739edc7147c5869cca3bf</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.process-monitor/223.0.1.0/studio.android.sdktools.process-monitor-223.0.1.0.jar!/" />
         </CLASSES>
@@ -26,7 +32,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-process-monitor-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.process-monitor_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.process-monitor_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.process-monitor_test/223.0.1.0/studio.android.sdktools.process-monitor_test-223.0.1.0.jar">
+              <sha256sum>529bb00ddb144df6bd915f859d05b5b62046d88119a1d6fb2d9683a4621196e6</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.process-monitor_test/223.0.1.0/studio.android.sdktools.process-monitor_test-223.0.1.0.jar!/" />
         </CLASSES>

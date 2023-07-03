@@ -8,7 +8,13 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-layoutlib-api" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.layoutlib-api:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.layoutlib-api:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api/223.0.1.0/studio.android.sdktools.layoutlib-api-223.0.1.0.jar">
+              <sha256sum>b6397b5f9af4818d94fc7bb0131689addda212395b2a9cd38e9c4960bf3444df</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api/223.0.1.0/studio.android.sdktools.layoutlib-api-223.0.1.0.jar!/" />
         </CLASSES>
@@ -18,7 +24,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-layoutlib-api-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.layoutlib-api_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.layoutlib-api_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api_test/223.0.1.0/studio.android.sdktools.layoutlib-api_test-223.0.1.0.jar">
+              <sha256sum>cd50c91bd68029783d8c8469694f001c223f6e0ddc7b172d2815426381a34b0b</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.layoutlib-api_test/223.0.1.0/studio.android.sdktools.layoutlib-api_test-223.0.1.0.jar!/" />
         </CLASSES>

@@ -13,7 +13,13 @@
     <orderEntry type="library" name="layoutinspector-skia-proto" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-dynamic-layout-inspector.common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common/223.0.1.0/studio.dynamic-layout-inspector.common-223.0.1.0.jar">
+              <sha256sum>b1dba673549b98333fdc0896ea12710b11f811d142ef5532ed5de47fc4a5fc28</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common/223.0.1.0/studio.dynamic-layout-inspector.common-223.0.1.0.jar!/" />
         </CLASSES>
@@ -23,7 +29,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-dynamic-layout-inspector.common-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.dynamic-layout-inspector.common_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common_test/223.0.1.0/studio.dynamic-layout-inspector.common_test-223.0.1.0.jar">
+              <sha256sum>f584be339b837510f6bcd17a0e04fa6707af5f7902a85150f4449b18af9d7a42</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.dynamic-layout-inspector.common_test/223.0.1.0/studio.dynamic-layout-inspector.common_test-223.0.1.0.jar!/" />
         </CLASSES>

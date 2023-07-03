@@ -12,7 +12,13 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library">
       <library name="apkzlib" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.build:apkzlib:7.3.1" />
+        <properties include-transitive-deps="false" maven-id="com.android.tools.build:apkzlib:7.3.1">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/com/android/tools/build/apkzlib/7.3.1/apkzlib-7.3.1.jar">
+              <sha256sum>415c5d5adff68b0ebd700e27c04c150683e65d5731d47fdb018eae391f70768c</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/apkzlib/7.3.1/apkzlib-7.3.1.jar!/" />
         </CLASSES>
@@ -24,7 +30,13 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="apksig" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.build:apksig:7.3.1" />
+        <properties include-transitive-deps="false" maven-id="com.android.tools.build:apksig:7.3.1">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/com/android/tools/build/apksig/7.3.1/apksig-7.3.1.jar">
+              <sha256sum>6d6a13a51ac3806c11af5f0967092055e35a67df6a74bff1544d9f5518c5ad55</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/apksig/7.3.1/apksig-7.3.1.jar!/" />
         </CLASSES>

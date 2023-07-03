@@ -10,7 +10,13 @@
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="module-library" exported="">
       <library name="deploy_java_proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:deploy_java_proto:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:deploy_java_proto:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/deploy_java_proto/223.0.1.0/deploy_java_proto-223.0.1.0.jar">
+              <sha256sum>200df958778ff640d7209c23576917695ad88535c8030c55af3d6038f34d860e</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/deploy_java_proto/223.0.1.0/deploy_java_proto-223.0.1.0.jar!/" />
         </CLASSES>
@@ -20,7 +26,13 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="jb-r8" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/223.0.1.0/jb-r8-223.0.1.0.jar">
+              <sha256sum>1c237d8045d2eff0c093363d8e22cd29014c8c4ec540185656cfb4eb3007b6f8</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/223.0.1.0/jb-r8-223.0.1.0.jar!/" />
         </CLASSES>
@@ -30,7 +42,13 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="libjava_version" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_version:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_version:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_version/223.0.1.0/libjava_version-223.0.1.0.jar">
+              <sha256sum>db56095dcf902e33d10d40727b0a47532e7f193104368d253c730beac518dc45</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_version/223.0.1.0/libjava_version-223.0.1.0.jar!/" />
         </CLASSES>
@@ -46,7 +64,13 @@
     <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="module-library" scope="TEST">
       <library name="fake_device_proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:fake_device_proto:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:fake_device_proto:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/fake_device_proto/223.0.1.0/fake_device_proto-223.0.1.0.jar">
+              <sha256sum>3550728814f22db276c018904d3e501921912edbeb45701d762217d4c6f26dbf</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/fake_device_proto/223.0.1.0/fake_device_proto-223.0.1.0.jar!/" />
         </CLASSES>
@@ -58,7 +82,13 @@
     <orderEntry type="module" module-name="android.sdktools.zipflinger" />
     <orderEntry type="module-library">
       <library name="libjava_sites" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_sites:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_sites:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_sites/223.0.1.0/libjava_sites-223.0.1.0.jar">
+              <sha256sum>13b71bbf5023496373c78235f720324a6f304c95605bdecbec672d73a8bfcd2e</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_sites/223.0.1.0/libjava_sites-223.0.1.0.jar!/" />
         </CLASSES>
@@ -72,7 +102,13 @@
     <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-deployer" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.deployer:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.deployer:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.deployer/223.0.1.0/studio.android.sdktools.deployer-223.0.1.0.jar">
+              <sha256sum>b9b72a093ce2534b078689109e47d76053ce8e366c822b7565541336e3e3fea9</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.deployer/223.0.1.0/studio.android.sdktools.deployer-223.0.1.0.jar!/" />
         </CLASSES>
@@ -82,7 +118,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-deployer-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.deployer_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.deployer_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.deployer_test/223.0.1.0/studio.android.sdktools.deployer_test-223.0.1.0.jar">
+              <sha256sum>d9e4eaf08140d2249be996c7689873bcb80fceb8c612169cac997571fb61a923</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.deployer_test/223.0.1.0/studio.android.sdktools.deployer_test-223.0.1.0.jar!/" />
         </CLASSES>

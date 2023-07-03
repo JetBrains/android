@@ -10,7 +10,13 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module-library">
       <library name="asdriver_proto" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:asdriver_proto:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:asdriver_proto:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/asdriver_proto/223.0.1.0/asdriver_proto-223.0.1.0.jar">
+              <sha256sum>cbd08c3bd4cac45e3a7aac804332f2b75ca46b5aeb64c1eba55f0f26b83f59f2</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/asdriver_proto/223.0.1.0/asdriver_proto-223.0.1.0.jar!/" />
         </CLASSES>
