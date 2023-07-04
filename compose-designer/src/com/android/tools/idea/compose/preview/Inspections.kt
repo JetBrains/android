@@ -203,6 +203,8 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+
+  override fun getStaticDescription() = message("inspection.no.parameters.or.provider.description")
 }
 
 /**
@@ -245,6 +247,9 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+
+  override fun getStaticDescription() =
+    message("inspection.no.multiple.preview.provider.description")
 }
 
 /**
@@ -278,6 +283,8 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+
+  override fun getStaticDescription() = message("inspection.no.composable.description")
 }
 
 /**
@@ -310,6 +317,8 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+
+  override fun getStaticDescription() = message("inspection.top.level.function")
 }
 
 /**
@@ -363,6 +372,9 @@ class PreviewDimensionRespectsLimit : BasePreviewAnnotationInspection() {
       }
     }
   }
+
+  override fun getStaticDescription() =
+    message("inspection.width.height.limit.description", MAX_WIDTH, MAX_HEIGHT)
 }
 
 /** Inspection that checks if `@Preview` fontScale parameter is not positive. */
@@ -406,6 +418,8 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
       }
     }
   }
+
+  override fun getStaticDescription() = message("inspection.preview.font.scale.description")
 }
 
 /** Inspection that checks if `@Preview` apiLevel is valid. */
@@ -461,6 +475,8 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
       }
     }
   }
+
+  override fun getStaticDescription() = message("inspection.preview.api.level.static.description")
 }
 
 /**
@@ -493,6 +509,8 @@ class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
     // This inspection only applies for functions, not for Annotation classes
     return
   }
+
+  override fun getStaticDescription() = message("inspection.unit.test.files")
 }
 
 private fun KtValueArgument.exceedsLimit(limit: Int): Boolean {

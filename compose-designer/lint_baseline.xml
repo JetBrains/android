@@ -78,7 +78,7 @@
         message="Avoid `by lazy` for simple lazy initialization">
         <location
             file="src/com/android/tools/idea/compose/preview/Notifications.kt"
-            line="88"/>
+            line="42"/>
     </issue>
 
     <issue
@@ -95,38 +95,6 @@
         <location
             file="src/com/android/tools/idea/compose/preview/scene/ComposeSceneComponentProvider.kt"
             line="57"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="347"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="350"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="357"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within private scope">
-        <location
-            file="src/com/android/tools/idea/compose/preview/Inspections.kt"
-            line="360"/>
     </issue>
 
 </issues>
