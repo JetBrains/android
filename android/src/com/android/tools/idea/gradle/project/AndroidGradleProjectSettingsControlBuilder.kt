@@ -106,11 +106,12 @@ class AndroidGradleProjectSettingsControlBuilder(
       when (val sdkInfo = myGradleJdkComboBox?.getSelectedGradleJvmInfo()) {
         is SdkInfo.Undefined -> throw ConfigurationException("Please, set the Gradle JDK option")
         is SdkInfo.Resolved -> {
+          val selectedJdkPath = gradleLocalJavaHomeComboBox?.selectedJdkPath
           if (sdkInfo.name != GRADLE_LOCAL_JAVA_HOME && !ExternalSystemJdkUtil.isValidJdk(sdkInfo.homePath)) {
             throw ConfigurationException("Gradle JDK option is incorrect:\nPath: ${sdkInfo.homePath}")
-          } else if (sdkInfo.name == GRADLE_LOCAL_JAVA_HOME && !ExternalSystemJdkUtil.isValidJdk(gradleLocalJavaHomeComboBox?.selectedJdkPath)) {
+          } else if (sdkInfo.name == GRADLE_LOCAL_JAVA_HOME && !ExternalSystemJdkUtil.isValidJdk(selectedJdkPath)) {
             throw ConfigurationException(
-              AndroidBundle.message("gradle.settings.jdk.invalid.path.error", gradleLocalJavaHomeComboBox?.selectedJdkPath))
+              AndroidBundle.message("gradle.settings.jdk.invalid.path.error", (selectedJdkPath ?: "<empty>")))
           }
         }
         is SdkInfo.Resolving, SdkInfo.Unresolved, null -> {}
