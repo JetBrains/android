@@ -412,6 +412,7 @@ public class LayoutlibSceneManager extends SceneManager {
         return LayoutEditorRenderResult.Trigger.BUILD;
       case CONFIGURATION_CHANGE:
       case UPDATE_HIERARCHY:
+      case MODEL_ACTIVATION:
         break;
     }
 

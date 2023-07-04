@@ -198,7 +198,7 @@ class NavSceneManagerTest : NavTestCase() {
         fragment("fragment1")
       }.also { root = it }
     }
-    val model = modelBuilder.build()
+    val model = modelBuilder.build(false)
 
     val sceneManager = model.surface.sceneManager as NavSceneManager
     sceneManager.update()

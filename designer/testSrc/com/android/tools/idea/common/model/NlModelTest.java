@@ -422,6 +422,7 @@ public class NlModelTest extends LayoutTestCase {
           .height("100dp")
       ))
       .build();
+    model.activate(this);
 
     NlComponent linearLayout = model.getComponents().get(0);
     NlComponent frameLayout = linearLayout.getChild(0);
@@ -637,7 +638,7 @@ public class NlModelTest extends LayoutTestCase {
                                "<resources>" +
                                "  <style name=\"Theme.MyTheme\"></style>" +
                                "</resources>");
-    SyncNlModel model = createDefaultModelBuilder(true).build();
+    SyncNlModel model = createDefaultModelBuilder(true).build(false);
     SceneView sceneView = mock(SceneView.class);
     SelectionModel selectionModel = model.getSurface().getSelectionModel();
     when(sceneView.getSelectionModel()).thenReturn(selectionModel);
@@ -891,10 +892,37 @@ public class NlModelTest extends LayoutTestCase {
     }
   }
 
+  public void testDelayedNotificationWhenNotActive() {
+    XmlFile modelXml = (XmlFile)myFixture.addFileToProject("res/layout/model.xml",
+                                                           "<LinearLayout" +
+                                                           "         xmlns:android=\"http://schemas.android.com/apk/res/android\"" +
+                                                           "         android:layout_width=\"match_parent\"" +
+                                                           "         android:layout_height=\"match_parent\">" +
+                                                           "</LinearLayout>");
+    NlModel model = createModel(modelXml);
+
+    TestModelListener listener = new TestModelListener();
+    model.addListener(listener);
+
+    model.notifyModified(NlModel.ChangeType.EDIT);
+    model.notifyModified(NlModel.ChangeType.EDIT);
+    model.notifyModified(NlModel.ChangeType.RESOURCE_CHANGED);
+    model.flushPendingUpdates();
+    assertEquals("", listener.callLogToString());
+
+    model.activate(this);
+    model.flushPendingUpdates();
+    assertEquals(
+      """
+        modelActivated (null)
+        modelChanged (null)
+        """, listener.callLogToString());
+    assertEquals(NlModel.ChangeType.MODEL_ACTIVATION, model.getLastChangeType());
+  }
+
   @NotNull
   private SyncNlModel createModel(@NotNull XmlFile modelXml) {
-    SyncNlModel model =  SyncNlModel.create(myFixture.getProject(), NlComponentRegistrar.INSTANCE, null, myFacet, modelXml.getVirtualFile());
-    return model;
+    return SyncNlModel.create(myFixture.getProject(), NlComponentRegistrar.INSTANCE, null, myFacet, modelXml.getVirtualFile());
   }
 
   @NotNull
