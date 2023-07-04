@@ -598,4 +598,45 @@ class InspectionsTest {
       fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
     )
   }
+
+  @Test
+  fun testPreviewCalledRecursively() {
+    fixture.enableInspections(PreviewShouldNotBeCalledRecursively() as InspectionProfileEntry)
+
+    @Suppress("TestFunctionName")
+    @Language("kotlin")
+    val fileContent =
+      """
+      import $COMPOSABLE_ANNOTATION_FQN
+
+      @Composable
+      @$PREVIEW_TOOLING_PACKAGE.Preview
+      fun Preview1() {
+        ComposableWrapper {
+          Preview1()
+        }
+      }
+
+      // No preview annotation, i.e. regular composable
+      @Composable
+      fun Composable1() {
+        ComposableWrapper {
+          Composable1()
+        }
+      }
+
+      @Composable
+      fun ComposableWrapper(content: @Composable () -> Unit) {
+        content()
+      }
+    """
+        .trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertEquals(
+      "6: Preview functions usually don't call themselves recursively," +
+        " so please double-check you're calling the intended function",
+      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().descriptionWithLineNumber()
+    )
+  }
 }

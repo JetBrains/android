@@ -31,9 +31,12 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -511,6 +514,42 @@ class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
   }
 
   override fun getStaticDescription() = message("inspection.unit.test.files")
+}
+
+/** Inspection that checks that Preview functions are not called recursively. */
+class PreviewShouldNotBeCalledRecursively : AbstractKotlinInspection() {
+
+  override fun getStaticDescription() = message("inspection.preview.recursive.description")
+
+  override fun buildVisitor(
+    holder: ProblemsHolder,
+    isOnTheFly: Boolean,
+    session: LocalInspectionToolSession
+  ): PsiElementVisitor =
+    if (session.file.androidFacet != null || ApplicationManager.getApplication().isUnitTestMode) {
+      object : KtVisitorVoid() {
+        override fun visitCallExpression(expression: KtCallExpression) {
+          super.visitCallExpression(expression)
+          val parentFunction = expression.psiOrParent.parentOfType<KtNamedFunction>() ?: return
+          val resolvedExpression = expression.resolveToCall()
+          if (
+            resolvedExpression?.resultingDescriptor?.name?.asString() == parentFunction.name &&
+              parentFunction.annotationEntries.any {
+                it.fqNameMatches(COMPOSE_PREVIEW_ANNOTATION_FQN) ||
+                  (it.toUElement() as? UAnnotation).isMultiPreviewAnnotation()
+              }
+          ) {
+            holder.registerProblem(
+              expression.psiOrParent as PsiElement,
+              message("inspection.preview.recursive.description"),
+              ProblemHighlightType.WEAK_WARNING
+            )
+          }
+        }
+      }
+    } else {
+      PsiElementVisitor.EMPTY_VISITOR
+    }
 }
 
 private fun KtValueArgument.exceedsLimit(limit: Int): Boolean {

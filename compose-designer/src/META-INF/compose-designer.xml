@@ -156,6 +156,14 @@
                      key="inspection.unit.test.files"
                      level="ERROR"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.PreviewShouldNotBeCalledRecursively"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.preview.recursive.name"
+                     level="WEAK WARNING"/>
+
     <fileType name="DeviceSpecFile"
               language="DeviceSpec"
               implementationClass="com.android.tools.idea.compose.preview.util.device.DeviceSpecFileType"

@@ -29,7 +29,13 @@ fun CodeInsightTestFixture.stubComposableAnnotation(modulePath: String = "") {
     // language=kotlin
     """
     package androidx.compose.runtime
-
+    @Target(
+        AnnotationTarget.FUNCTION,
+        AnnotationTarget.TYPE_USAGE,
+        AnnotationTarget.TYPE,
+        AnnotationTarget.TYPE_PARAMETER,
+        AnnotationTarget.PROPERTY_GETTER
+    )
     annotation class Composable
     """.trimIndent()
   )
