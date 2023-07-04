@@ -164,7 +164,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given gradleJdk as '#USE_PROJECT_JDK' and projectJdk with valid table entry When sync project Then gradleJdk was configured with projectJdk`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
@@ -249,7 +249,7 @@ class MigrateProjectGradleFromMacrosJdkIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots project using non desired gradleJvm and projectJdk with valid table entry When sync project Then gradleJdk was configured with projectJdk`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(

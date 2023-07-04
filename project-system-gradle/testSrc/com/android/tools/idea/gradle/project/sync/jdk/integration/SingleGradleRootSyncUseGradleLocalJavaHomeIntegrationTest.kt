@@ -85,7 +85,7 @@ class SingleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given gradleJdk GRADLE_LOCAL_JAVA_HOME with valid javaHome property When sync project Then sync used the provided Jdk path`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
@@ -103,7 +103,7 @@ class SingleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given gradleJdk GRADLE_LOCAL_JAVA_HOME without javaHome property and valid default Jdk When sync project Then sync used the default Jdk path`() {
     GradleDefaultJdkPathStore.jdkPath = JDK_11_PATH
     jdkIntegrationTest.run(
@@ -192,7 +192,7 @@ class SingleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
   }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given gradleJdk GRADLE_LOCAL_JAVA_HOME without javaHome property and project Jdk with valid table entry When sync project Then sync used project Jdk path`() {
     jdkIntegrationTest.run(
       project = SimpleApplication(

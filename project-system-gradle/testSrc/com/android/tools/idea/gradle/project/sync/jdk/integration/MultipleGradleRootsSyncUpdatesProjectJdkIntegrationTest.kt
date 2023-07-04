@@ -77,7 +77,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given root using gradleJdk #JAVA_HOME pointing to JDK_EMBEDDED When synced project successfully Then projectJdk is updated with JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
@@ -99,7 +99,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots using different gradleJdk versions When synced project successfully Then projectJdk is updated with greatest JDK version JDK_EMBEDDED`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
@@ -193,7 +193,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots with invalid and valid jdkTable entry When sync partially succeed Then projectJdk is updated with greatest JDK synced version JDK_11`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(

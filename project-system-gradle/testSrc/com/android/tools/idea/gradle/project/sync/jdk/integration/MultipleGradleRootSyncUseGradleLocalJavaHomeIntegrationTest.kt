@@ -64,7 +64,7 @@ class MultipleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
   }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots gradleJdk GRADLE_LOCAL_JAVA_HOME without javaHome property and valid default Jdk When sync project Then sync used the default Jdk path`() {
     GradleDefaultJdkPathStore.jdkPath = JDK_11_PATH
     jdkIntegrationTest.run(
@@ -187,7 +187,7 @@ class MultipleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots gradleJdk GRADLE_LOCAL_JAVA_HOME without javaHome property and project Jdk with valid table entry When sync project Then sync used project Jdk path`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
@@ -221,7 +221,7 @@ class MultipleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots gradleJdk GRADLE_LOCAL_JAVA_HOME with different valid javaHome When sync project Then project Jdk is using the highest version`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
@@ -251,7 +251,7 @@ class MultipleGradleRootSyncUseGradleLocalJavaHomeIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots gradleJdk GRADLE_LOCAL_JAVA_HOME with same valid javaHome When sync project Then project Jdk is using the same version`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(

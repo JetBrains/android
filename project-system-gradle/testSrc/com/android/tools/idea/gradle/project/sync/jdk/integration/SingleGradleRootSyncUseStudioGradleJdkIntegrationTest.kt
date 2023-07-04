@@ -53,7 +53,7 @@ class SingleGradleRootSyncUseStudioGradleJdkIntegrationTest {
   private val jdkIntegrationTest = JdkIntegrationTest(projectRule, temporaryFolder, expect)
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given valid STUDIO_GRADLE_JDK env variable When import project Then sync used its path and the gradle jdk configuration doesn't change`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(

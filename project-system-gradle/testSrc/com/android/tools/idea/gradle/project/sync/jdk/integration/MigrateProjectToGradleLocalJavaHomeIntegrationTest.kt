@@ -103,7 +103,7 @@ class MigrateProjectToGradleLocalJavaHomeIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given gradleJdk #JAVA_HOME pointing to valid JDK When sync project Then no migration happened`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
@@ -142,7 +142,7 @@ class MigrateProjectToGradleLocalJavaHomeIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given gradleJdk #GRADLE_JAVA_HOME pointing to valid JDK When sync project Then no migration happened`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
@@ -183,7 +183,7 @@ class MigrateProjectToGradleLocalJavaHomeIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given gradleJdk pointing to a valid jdkTable entry When sync project Then JDK config was migrated to Gradle local javaHome`() =
     jdkIntegrationTest.run(
       project = SimpleApplication(
@@ -204,7 +204,7 @@ class MigrateProjectToGradleLocalJavaHomeIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given multiple roots with different JDK configuration When sync project Then only expected JDK config was migrated to Gradle local javaHome`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(

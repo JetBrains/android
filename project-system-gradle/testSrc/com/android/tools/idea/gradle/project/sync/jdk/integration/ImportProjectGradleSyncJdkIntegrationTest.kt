@@ -73,7 +73,7 @@ class ImportProjectGradleSyncJdkIntegrationTest {
     }
 
   @Test
-  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  @OldAgpTest(agpVersions = ["7.4.1"], gradleVersions = ["7.5"])
   fun `Given not configured project and valid pre-config JDK When import project Then was configured with #GRADLE_LOCAL_JAVA_HOME and user selected pre-config JDK`() {
     GradleDefaultJdkPathStore.jdkPath = JDK_11_PATH
     jdkIntegrationTest.run(
