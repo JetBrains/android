@@ -40,6 +40,7 @@ import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.android.tools.configurations.Configuration
 import com.android.tools.dom.attrs.AttributeDefinition
+import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.psi.TagToClassMapper
@@ -73,7 +74,6 @@ import com.intellij.util.text.nullize
 import com.intellij.util.ui.ColorIcon
 import icons.StudioIcons
 import org.jetbrains.android.dom.AndroidDomUtil
-import com.android.tools.fonts.AVAILABLE_FAMILIES
 import java.awt.Color
 import javax.swing.Icon
 

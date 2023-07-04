@@ -6,6 +6,7 @@ iml_module(
     name = "intellij.android.render-resources",
     srcs = ["src"],
     iml_files = ["intellij.android.render-resources.iml"],
+    resources = ["resources"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -24,6 +25,7 @@ kotlin_library(
         "src/**/*.java",
         "src/**/*.kt",
     ]),
+    resources = glob(["resources/**"]),
     visibility = ["//visibility:public"],
     deps = [
         "//prebuilts/tools/common/lint-psi/intellij-core",

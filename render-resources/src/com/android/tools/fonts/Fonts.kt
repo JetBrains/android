@@ -13,16 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("Fonts")
+
 package com.android.tools.fonts
 
-import com.google.common.collect.ImmutableList
+import com.android.ide.common.fonts.FontProvider
+import java.net.URL
 
-// List of available font families extracted from framework's fonts.xml
-// Used to provide completion for values of android:fontFamily attribute
-// https://android.googlesource.com/platform/frameworks/base/+/android-6.0.0_r5/data/fonts/fonts.xml
-@JvmField
-val AVAILABLE_FAMILIES: List<String> = listOf(
-  "sans-serif", "sans-serif-thin", "sans-serif-light", "sans-serif-medium", "sans-serif-black",
-  "sans-serif-condensed", "sans-serif-condensed-light", "sans-serif-condensed-medium",
-  "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps")
+class Fonts {
+  companion object {
+    // List of available font families extracted from framework's fonts.xml
+    // Used to provide completion for values of android:fontFamily attribute
+    // https://android.googlesource.com/platform/frameworks/base/+/android-6.0.0_r5/data/fonts/fonts.xml
+    @JvmField
+    val AVAILABLE_FAMILIES: List<String> = listOf(
+      "sans-serif", "sans-serif-thin", "sans-serif-light", "sans-serif-medium", "sans-serif-black",
+      "sans-serif-condensed", "sans-serif-condensed-light", "sans-serif-condensed-medium",
+      "serif", "monospace", "serif-monospace", "casual", "cursive", "sans-serif-smallcaps")
+
+    @JvmStatic
+    fun getFallbackResourceUrl(provider: FontProvider): URL {
+      val filename = if (provider.equals(FontProvider.GOOGLE_PROVIDER)) "google_font_directory.xml" else "empty_font_directory.xml"
+      return Fonts::class.java.classLoader.getResource("fonts/$filename")!!
+    }
+  }
+}

@@ -55,7 +55,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory.WARNING
-import com.android.tools.fonts.AVAILABLE_FAMILIES
+import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.MinApiLayoutTestCase

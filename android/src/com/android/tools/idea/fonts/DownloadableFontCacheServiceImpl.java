@@ -26,6 +26,7 @@ import com.android.ide.common.fonts.FontProvider;
 import com.android.tools.fonts.DownloadableFontCacheService;
 import com.android.tools.fonts.FontDirectoryDownloader;
 import com.android.tools.fonts.FontDownloader;
+import com.android.tools.fonts.Fonts;
 import com.android.tools.fonts.SystemFonts;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -255,7 +256,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   protected void loadFonts() {
     super.loadFonts();
     if (getFontFamilies().isEmpty()) {
-      loadDirectory(FontProvider.GOOGLE_PROVIDER, FontDirectoryDownloadService.getFallbackResourceUrl(FontProvider.GOOGLE_PROVIDER));
+      loadDirectory(FontProvider.GOOGLE_PROVIDER, Fonts.getFallbackResourceUrl(FontProvider.GOOGLE_PROVIDER));
     }
   }
 
