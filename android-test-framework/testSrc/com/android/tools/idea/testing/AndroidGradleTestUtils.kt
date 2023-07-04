@@ -72,7 +72,7 @@ import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeAbiImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeModuleImpl
 import com.android.tools.idea.gradle.model.impl.ndk.v2.IdeNativeVariantImpl
 import com.android.tools.idea.gradle.model.ndk.v2.NativeBuildSystem
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
@@ -1471,7 +1471,7 @@ private fun setupTestProjectFromAndroidModelCore(
           gradlePath,
           rootProjectBasePath,
           moduleBasePath,
-          moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get(),
+          moduleBuilder.agpVersion ?: AgpVersions.latestKnown.toString(),
           internedModels
         )
         featureToBase.putAll(androidProject.dynamicFeatures.map { it to gradlePath })

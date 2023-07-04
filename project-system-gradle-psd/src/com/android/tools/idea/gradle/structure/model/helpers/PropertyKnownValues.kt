@@ -21,7 +21,7 @@ import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.concurrency.readOnPooledThread
 import com.android.tools.idea.concurrency.transform
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
 import com.android.tools.idea.gradle.structure.model.PsChildModel
@@ -159,7 +159,7 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
       val searchResult = sr!!
       // TODO(b/242691473): going through toString() here is not pretty, but the type information is buried quite deep.
       val versions = searchResult.artifacts.flatMap { it.versions }.distinct().mapNotNull { AgpVersion.tryParse(it.toString()) }.toSet()
-      val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+      val latestKnown = AgpVersions.latestKnown
       // return only results that will not lead to forced upgrades
       searchResult.toVersionValueDescriptors {
         // TODO(b/242691473): again, not pretty

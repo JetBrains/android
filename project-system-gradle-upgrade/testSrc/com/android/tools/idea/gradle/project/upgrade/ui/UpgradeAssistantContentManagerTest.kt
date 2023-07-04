@@ -22,7 +22,7 @@ import com.android.testutils.ignore.IgnoreTestRule
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.testing.JdkConstants.JDK_11_PATH
@@ -82,8 +82,8 @@ import org.mockito.Mockito.mock
 
 @RunsInEdt
 class ContentManagerImplTest {
-  val currentAgpVersion by lazy { AgpVersion.parse("4.1.0") }
-  val latestAgpVersion by lazy { AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()) }
+  val currentAgpVersion = AgpVersion.parse("4.1.0")
+  val latestAgpVersion = AgpVersions.latestKnown
 
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk().onEdt()

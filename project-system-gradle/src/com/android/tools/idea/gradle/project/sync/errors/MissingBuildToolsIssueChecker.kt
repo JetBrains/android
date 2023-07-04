@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
-import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.findFromBuildFiles
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
 import com.android.tools.idea.gradle.project.sync.idea.issues.updateUsageTracker
@@ -65,12 +64,12 @@ class MissingBuildToolsIssueChecker: GradleIssueChecker {
     val buildIssueComposer = BuildIssueComposer(message)
     val ideaProject = fetchIdeaProjectForGradleProject(projectPath) ?: return buildIssueComposer
     val currentAGPVersion = findFromBuildFiles(ideaProject)?.pluginVersion
-    val recommendedAGPVersion = AgpVersion.tryParse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val recommendedAGPVersion = AgpVersions.latestKnown
     buildIssueComposer.addQuickFix("Install Build Tools $version and sync project",
                             InstallBuildToolsQuickFix(version, emptyList(), false))
-    if (currentAGPVersion == null || recommendedAGPVersion == null || currentAGPVersion < recommendedAGPVersion) {
+    if (currentAGPVersion == null || currentAGPVersion < recommendedAGPVersion) {
       buildIssueComposer.addQuickFix(
-        "Upgrade plugin to version ${AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())} and sync project",
+        "Upgrade plugin to version $recommendedAGPVersion and sync project",
         FixAndroidGradlePluginVersionQuickFix(null, null))
     }
     return buildIssueComposer

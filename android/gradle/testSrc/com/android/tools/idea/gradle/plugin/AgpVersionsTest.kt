@@ -19,6 +19,7 @@ class AgpVersionsTest {
     StudioFlags.AGP_VERSION_TO_USE.clearOverride()
     assertThat(AgpVersions.studioFlagOverride).isNull()
     assertThat(AgpVersions.newProject).isEqualTo(AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION))
+    assertThat(AgpVersions.latestKnown).isEqualTo(AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION))
   }
 
   @Test
@@ -26,6 +27,7 @@ class AgpVersionsTest {
     StudioFlags.AGP_VERSION_TO_USE.override("7.4.0")
     assertThat(AgpVersions.studioFlagOverride).isEqualTo(AgpVersion.parse("7.4.0"))
     assertThat(AgpVersions.newProject).isEqualTo(AgpVersion.parse("7.4.0"))
+    assertThat(AgpVersions.latestKnown).isEqualTo(AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION))
   }
 
   @Test
@@ -33,6 +35,7 @@ class AgpVersionsTest {
     StudioFlags.AGP_VERSION_TO_USE.override("stable")
     assertThat(AgpVersions.studioFlagOverride!!.isPreview).isFalse()
     assertThat(AgpVersions.newProject).isEqualTo(AgpVersions.studioFlagOverride)
+    assertThat(AgpVersions.latestKnown).isEqualTo(AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION))
   }
 
   @Test
@@ -47,6 +50,7 @@ class AgpVersionsTest {
     val failure = assertFailsWith<IllegalStateException> { AgpVersions.studioFlagOverride }
     assertThat(failure).hasMessageThat().isEqualTo("Invalid value '7.4.0.3' for Studio flag gradle.ide.agp.version.to.use. Expected Android Gradle plugin version (e.g. '8.0.2') or 'stable'")
     assertFailsWith<IllegalStateException> { AgpVersions.newProject }
+    assertFailsWith<IllegalStateException> { AgpVersions.latestKnown }
   }
 
   @Test
@@ -55,6 +59,18 @@ class AgpVersionsTest {
     val failure = assertFailsWith<IllegalStateException> { AgpVersions.studioFlagOverride }
     assertThat(failure).hasMessageThat().isEqualTo("Invalid value 'canary' for Studio flag gradle.ide.agp.version.to.use. Expected Android Gradle plugin version (e.g. '8.0.2') or 'stable'")
     assertFailsWith<IllegalStateException> { AgpVersions.newProject }
+    assertFailsWith<IllegalStateException> { AgpVersions.latestKnown }
+  }
+
+  @Test
+  fun `check override with newer version`() {
+    val current = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
+    val higherThanCurrent = AgpVersion(current.major + 1, 0)
+    assertThat(higherThanCurrent).isGreaterThan(current)
+    StudioFlags.AGP_VERSION_TO_USE.override(higherThanCurrent.toString())
+    assertThat(AgpVersions.studioFlagOverride).isEqualTo(higherThanCurrent)
+    assertThat(AgpVersions.newProject).isEqualTo(higherThanCurrent)
+    assertThat(AgpVersions.latestKnown).isEqualTo(higherThanCurrent)
   }
 
 }

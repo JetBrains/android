@@ -16,15 +16,13 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.util.ui.UIUtil
 import org.junit.Test
 import javax.swing.JEditorPane
 
 class AgpUpgradeRefactoringProcessorCannotUpgradeDialogTest : HeavyPlatformTestCase() {
-
-  private val latestKnown by lazy { AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()) }
 
   override fun tearDown() {
     super.tearDown()
@@ -33,14 +31,14 @@ class AgpUpgradeRefactoringProcessorCannotUpgradeDialogTest : HeavyPlatformTestC
 
   @Test
   fun testCannotUpgradeDialogNoBuildFile() {
-    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.1.0"), latestKnown)
+    val processor = AgpUpgradeRefactoringProcessor(project, AgpVersion.parse("4.1.0"), AgpVersions.latestKnown)
     assertTrue(processor.blockProcessorExecution())
     val dialog = registerDialogDisposable(AgpUpgradeRefactoringProcessorCannotUpgradeDialog(processor))
     val editorPanes = UIUtil.findComponentsOfType(dialog.createCenterPanel(), JEditorPane::class.java)
     assertSize(1, editorPanes)
     assertTrue(editorPanes[0].text.contains("failed to upgrade this project"))
     assertTrue(editorPanes[0].text.contains("no way"))
-    assertTrue(editorPanes[0].text.contains("Upgrade AGP dependency from 4.1.0 to $latestKnown"))
+    assertTrue(editorPanes[0].text.contains("Upgrade AGP dependency from 4.1.0 to ${AgpVersions.latestKnown}"))
     assertTrue(editorPanes[0].text.contains("Cannot find AGP version in build files."))
   }
 }

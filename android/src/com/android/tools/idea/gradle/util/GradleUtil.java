@@ -43,7 +43,7 @@ import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
@@ -483,7 +483,7 @@ public final class GradleUtil {
   public static String mapConfigurationName(@NotNull String configuration,
                                             @Nullable String pluginVersion,
                                             boolean preferApi) {
-    AgpVersion agpVersion = AgpVersion.tryParse(requireNonNullElseGet(pluginVersion, LatestKnownPluginVersionProvider.INSTANCE::get));
+    AgpVersion agpVersion = pluginVersion != null ? AgpVersion.tryParse(pluginVersion) : AgpVersions.getLatestKnown();
     return mapConfigurationName(configuration, agpVersion, preferApi);
   }
 

@@ -24,7 +24,7 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.analytics.LoggedUsage;
 import com.android.tools.analytics.TestUsageTracker;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject;
 import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestProject;
@@ -94,7 +94,7 @@ public class ProjectStructureUsageTrackerTest {
       assertThat(usage.getStudioEvent().getKind()).isEqualTo(AndroidStudioEvent.EventKind.GRADLE_BUILD_DETAILS);
       assertThat(usage.getStudioEvent().getGradleBuildDetails()).isEqualTo(
         GradleBuildDetails.newBuilder()
-          .setAndroidPluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
+          .setAndroidPluginVersion(AgpVersions.getLatestKnown().toString())
           .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
           .addLibraries(GradleLibrary.newBuilder()
                           .setJarDependencyCount(0)
@@ -129,7 +129,7 @@ public class ProjectStructureUsageTrackerTest {
       assertThat(usage.getTimestamp()).isEqualTo(0);
       assertThat(usage.getStudioEvent().getGradleBuildDetails()).isEqualTo(
         GradleBuildDetails.newBuilder()
-          .setAndroidPluginVersion(LatestKnownPluginVersionProvider.INSTANCE.get())
+          .setAndroidPluginVersion(AgpVersions.getLatestKnown().toString())
           .setGradleVersion(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION))
           .addLibraries(GradleLibrary.newBuilder()
                           .setJarDependencyCount(5)
@@ -215,7 +215,7 @@ public class ProjectStructureUsageTrackerTest {
     // The order of the modules is not always the same, and thus we cannot compare the details directly
     // since assertEquals will fail when the order is different to the expected details
     GradleBuildDetails buildDetails = usage.getStudioEvent().getGradleBuildDetails();
-    assertThat(buildDetails.getAndroidPluginVersion()).isEqualTo(LatestKnownPluginVersionProvider.INSTANCE.get());
+    assertThat(buildDetails.getAndroidPluginVersion()).isEqualTo(AgpVersions.getLatestKnown().toString());
     assertThat(buildDetails.getGradleVersion()).isEqualTo(GradleVersions.inferStableGradleVersion(SdkConstants.GRADLE_LATEST_VERSION));
     assertThat(buildDetails.getLibrariesList()).containsExactly(
       GradleLibrary.newBuilder()

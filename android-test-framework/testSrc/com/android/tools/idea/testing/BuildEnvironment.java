@@ -18,7 +18,7 @@ package com.android.tools.idea.testing;
 import com.android.Version;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import org.jetbrains.annotations.NotNull;
 
 import static com.android.SdkConstants.CURRENT_BUILD_TOOLS_VERSION;
@@ -49,7 +49,7 @@ public class BuildEnvironment {
   public synchronized static BuildEnvironment getInstance() {
     if (ourInstance == null) {
       ourInstance = new BuildEnvironment(
-        TestUtils.runningFromBazel() ? Version.ANDROID_GRADLE_PLUGIN_VERSION : LatestKnownPluginVersionProvider.INSTANCE.get(),
+        TestUtils.runningFromBazel() ? Version.ANDROID_GRADLE_PLUGIN_VERSION : AgpVersions.getLatestKnown().toString(),
         CURRENT_BUILD_TOOLS_VERSION,
 
         SdkVersionInfo.HIGHEST_KNOWN_STABLE_API,

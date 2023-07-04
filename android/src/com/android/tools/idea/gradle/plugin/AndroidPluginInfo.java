@@ -199,12 +199,6 @@ public class AndroidPluginInfo {
     return myModule;
   }
 
-  // Provides singleton mock support in tests
-  @NotNull
-  public LatestKnownPluginVersionProvider getLatestKnownPluginVersionProvider() {
-    return LatestKnownPluginVersionProvider.INSTANCE;
-  }
-
   @Nullable
   public AgpVersion getPluginVersion() {
     return myPluginVersion;

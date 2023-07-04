@@ -21,7 +21,7 @@ import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.SdkMavenRepository
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.RECOMMEND
@@ -239,7 +239,7 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun recommendedAgpVersion(project: Project): AgpVersion? {
     val current = project.findPluginInfo()?.pluginVersion ?: return null
-    val latestKnown = AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+    val latestKnown = AgpVersions.latestKnown
     val published = IdeGoogleMavenRepository.getAgpVersions()
     val state = computeGradlePluginUpgradeState(current, latestKnown, published)
     return when (state.importance) {

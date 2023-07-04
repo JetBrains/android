@@ -23,8 +23,8 @@ import com.android.repository.impl.meta.RepositoryPackages
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.Projects
 import com.android.tools.idea.Projects.getBaseDirPath
+import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixBuildToolsProcessor
@@ -104,7 +104,7 @@ class DownloadAndroidStudioQuickFix : DescribedBuildIssueQuickFix {
  */
 class FixAndroidGradlePluginVersionQuickFix(givenPluginVersion: AgpVersion?, givenGradleVersion: GradleVersion?) : BuildIssueQuickFix {
   override val id = "fix.gradle.elements"
-  val pluginVersion = givenPluginVersion ?: AgpVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+  val pluginVersion = givenPluginVersion ?: AgpVersions.latestKnown
   val gradleVersion = givenGradleVersion ?: GradleVersion.version(SdkConstants.GRADLE_LATEST_VERSION)
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
