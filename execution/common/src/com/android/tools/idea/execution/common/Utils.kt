@@ -17,15 +17,15 @@ package com.android.tools.idea.execution.common
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.processhandler.DeviceAwareProcessHandler
+import com.intellij.execution.ExecutionManager
 import com.intellij.execution.RunnerAndConfigurationSettings
-import com.intellij.execution.impl.ExecutionManagerImpl
 import com.intellij.execution.impl.isOfSameType
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.project.Project
 
 
 fun RunnerAndConfigurationSettings.getProcessHandlersForDevices(project: Project, devices: List<IDevice>): List<ProcessHandler> {
-  return ExecutionManagerImpl.getInstance(project)
+  return ExecutionManager.getInstance(project)
     .getRunningDescriptors { it.isOfSameType(this) }
     .mapNotNull { it.processHandler as? DeviceAwareProcessHandler }
     .filter { processHandler -> devices.any { processHandler.isAssociated(it) } }
