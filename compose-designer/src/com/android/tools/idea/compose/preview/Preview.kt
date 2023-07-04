@@ -1399,6 +1399,9 @@ class ComposePreviewRepresentation(
       )
       return CompletableDeferred(Unit)
     }
+
+    var invalidateIfCancelled = false
+
     val refreshJob =
       launchWithProgress(refreshProgressIndicator, uiThread) {
         refreshTriggers.forEach {
@@ -1428,6 +1431,7 @@ class ComposePreviewRepresentation(
 
           val needsFullRefresh =
             refreshRequest.type != RefreshType.QUALITY && invalidated.getAndSet(false)
+          invalidateIfCancelled = needsFullRefresh
 
           val previewsToRender =
             withContext(workerThread) {
@@ -1477,8 +1481,12 @@ class ComposePreviewRepresentation(
       log.debug("Completed")
       launch(uiThread) { Disposer.dispose(refreshProgressIndicator) }
       if (it is CancellationException) {
+        if (invalidateIfCancelled) invalidate()
         composeWorkBench.onRefreshCancelledByTheUser()
-      } else composeWorkBench.onRefreshCompleted()
+      } else {
+        if (it != null) invalidate()
+        composeWorkBench.onRefreshCompleted()
+      }
 
       launch(uiThread) {
         if (!composeWorkBench.isMessageBeingDisplayed) {
