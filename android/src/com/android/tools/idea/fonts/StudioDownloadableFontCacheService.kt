@@ -18,6 +18,7 @@ package com.android.tools.idea.fonts
 import com.android.ide.common.fonts.FontFamily
 import com.android.ide.common.fonts.FontLoader
 import com.android.ide.common.fonts.FontProvider
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl
 import com.android.tools.fonts.FontDirectoryDownloader
 import com.android.tools.fonts.FontDownloader
 import com.android.tools.idea.sdk.AndroidSdks

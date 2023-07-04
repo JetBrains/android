@@ -20,6 +20,7 @@ import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.tools.fonts.DownloadableFontCacheService;
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;

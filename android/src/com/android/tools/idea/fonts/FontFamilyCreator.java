@@ -30,6 +30,7 @@ import com.android.ide.common.resources.escape.string.StringResourceEscaper;
 import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.fonts.DownloadableFontCacheService;
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.instantapp.InstantApps;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;

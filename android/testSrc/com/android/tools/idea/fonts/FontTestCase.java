@@ -16,6 +16,7 @@
 package com.android.tools.idea.fonts;
 
 import com.android.tools.fonts.DownloadableFontCacheService;
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.fonts.FontDownloader;
 import com.intellij.openapi.util.io.FileUtil;
 import java.util.function.Supplier;

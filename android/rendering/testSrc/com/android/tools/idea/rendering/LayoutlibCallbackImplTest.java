@@ -36,7 +36,7 @@ import com.android.tools.fonts.DownloadableFontCacheService;
 import com.android.tools.fonts.ProjectFonts;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl;
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.LayoutlibCallbackImpl;

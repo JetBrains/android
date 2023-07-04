@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fonts;
+package com.android.tools.fonts;
 
 import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
 import static com.android.ide.common.fonts.FontFamilyKt.HTTPS_PROTOCOL_START;
@@ -23,11 +23,6 @@ import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontLoader;
 import com.android.ide.common.fonts.FontProvider;
-import com.android.tools.fonts.DownloadableFontCacheService;
-import com.android.tools.fonts.FontDirectoryDownloader;
-import com.android.tools.fonts.FontDownloader;
-import com.android.tools.fonts.Fonts;
-import com.android.tools.fonts.SystemFonts;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import java.awt.Font;
@@ -48,12 +43,10 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-import org.jetbrains.kotlin.utils.ThreadSafe;
 
 /**
- * {@link DownloadableFontCacheServiceImpl} is a threadsafe implementation of {link {@link DownloadableFontCacheService}.
+ * {@link DownloadableFontCacheServiceImpl} is a threadsafe implementation of {@link DownloadableFontCacheService}.
  */
-@ThreadSafe
 public class DownloadableFontCacheServiceImpl extends FontLoader implements DownloadableFontCacheService {
   private static final String FONTS = "fonts";
   private static final String FONT = "font";
@@ -68,7 +61,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   private final Supplier<File> mySdkHomeProvider;
 
   @NotNull
-  static DownloadableFontCacheServiceImpl getInstance() {
+  public static DownloadableFontCacheServiceImpl getInstance() {
     return (DownloadableFontCacheServiceImpl)DownloadableFontCacheService.getInstance();
   }
 
@@ -236,7 +229,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   }
 
   @TestOnly
-  SystemFonts getSystemFonts() {
+  public SystemFonts getSystemFonts() {
     return mySystemFonts;
   }
 
@@ -322,7 +315,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   }
 
   @NotNull
-  static String convertNameToFilename(@NotNull String name) {
+  public static String convertNameToFilename(@NotNull String name) {
     StringBuilder builder = new StringBuilder();
     boolean previousUnderscore = true;
     for (char character : name.toCharArray()) {

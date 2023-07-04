@@ -20,6 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
+import com.android.tools.fonts.DownloadableFontCacheServiceImpl;
 import com.android.tools.fonts.SystemFonts;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
