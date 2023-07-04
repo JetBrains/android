@@ -110,6 +110,7 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import java.io.File
@@ -149,7 +150,9 @@ import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
 /** Background color for the surface while "Interactive" is enabled. */
-private val INTERACTIVE_BACKGROUND_COLOR = JBColor(0xF7F8FA, 0x2B2D30)
+@Suppress("UnstableApiUsage")
+private val INTERACTIVE_BACKGROUND_COLOR =
+  if (ExperimentalUI.isNewUI()) JBColor.PanelBackground else JBColor(0xCBD2D9, 0x46454D)
 
 /** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
 const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"

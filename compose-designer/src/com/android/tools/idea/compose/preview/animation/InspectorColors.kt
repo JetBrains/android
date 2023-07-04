@@ -66,7 +66,7 @@ object InspectorColors {
 
   /** Background color for the timeline. */
   val TIMELINE_BACKGROUND_COLOR =
-    if (isNewUI) JBColor.background() else JBColor(Gray._245, JBColor.background())
+    if (isNewUI) JBColor.PanelBackground else JBColor(Gray._245, JBColor.background())
 
   /** Background color for the timeline for frozen elements. */
   val TIMELINE_FROZEN_BACKGROUND_COLOR =
