@@ -29,10 +29,12 @@ import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.res.AndroidFileChangeListener;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ide.impl.ProjectUtilKt;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
@@ -44,8 +46,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.startup.StartupActivity;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;
@@ -74,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock;
 
-public class GradleFiles {
+public class GradleFiles implements Disposable.Default {
   @NotNull private final Project myProject;
 
   @NotNull private final Object myLock = new Object();
@@ -97,6 +97,7 @@ public class GradleFiles {
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
 
+  @SuppressWarnings("UsagesOfObsoleteApi") // Replacement of StartupActivity is a co-routine interface that shouldn't be implemented in Java
   public static class UpdateHashesStartupActivity implements StartupActivity.DumbAware {
     @Override
     public void runActivity(@NotNull Project project) {
@@ -141,7 +142,7 @@ public class GradleFiles {
     PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
 
     if (isGradleFile(psiFile) || isExternalBuildFile(psiFile)) {
-      PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener);
+      PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener, this);
     }
   }
 
@@ -293,7 +294,7 @@ public class GradleFiles {
         }
       }
     };
-    Future wrapperHashFuture = executorService.submit(
+    Future<?> wrapperHashFuture = executorService.submit(
       () -> progressManager.executeProcessUnderProgress(computeWrapperHashRunnable, progressIndicator)
     );
     try {
@@ -306,7 +307,7 @@ public class GradleFiles {
     removeExternalBuildFiles();
     List<VirtualFile> externalBuildFiles = new ArrayList<>();
 
-    List<Module> modules = Lists.newArrayList(ModuleManager.getInstance(project).getModules());
+    List<Module> modules = ImmutableList.copyOf(ModuleManager.getInstance(project).getModules());
 
     Consumer<Module> computeHashes = module -> {
       VirtualFile buildFile = getGradleBuildFile(module);
@@ -357,7 +358,7 @@ public class GradleFiles {
       for (String fileName : fileNames) {
         ProgressManager.checkCanceled();
         File filePath = new File(rootFolderPath, fileName);
-        if (filePath.isFile()) {
+        if (filePath.isFile() && rootFolder != null) {
           VirtualFile virtualFile = rootFolder.findChild(fileName);
           if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
             application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
@@ -368,19 +369,21 @@ public class GradleFiles {
       File gradlePath = new File(rootFolderPath, "gradle");
       if (gradlePath.isDirectory()) {
         File[] gradleFiles = gradlePath.listFiles((dir, name) -> name.endsWith(".versions.toml"));
-        for (File tomlFile : gradleFiles) {
-          ProgressManager.checkCanceled();
-          if (tomlFile.isFile()) {
-            VirtualFile virtualFile = VfsUtil.findFileByIoFile(tomlFile, false);
-            if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
-              application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
+        if (gradleFiles != null) {
+          for (File tomlFile : gradleFiles) {
+            ProgressManager.checkCanceled();
+            if (tomlFile.isFile()) {
+              VirtualFile virtualFile = findFileByIoFile(tomlFile, false);
+              if (virtualFile != null && virtualFile.exists() && !virtualFile.isDirectory()) {
+                application.runReadAction(() -> putHashForFile(fileHashes, virtualFile));
+              }
             }
           }
         }
       }
     };
     if (rootFolder != null) {
-      Future projectWideFilesFuture = executorService.submit(
+      Future<?> projectWideFilesFuture = executorService.submit(
         () -> progressManager.executeProcessUnderProgress(projectWideFilesRunnable, progressIndicator)
       );
       try {
@@ -404,6 +407,7 @@ public class GradleFiles {
     } else {
       // If we are not running in tests, schedule ourselves on a background thread so that we don't accidentally freeze the UI if our
       // disk IO is slow.
+      //noinspection deprecation,UnstableApiUsage
       ProjectUtilKt.executeOnPooledIoThread(myProject, this::updateFileHashes);
     }
   }
@@ -422,11 +426,11 @@ public class GradleFiles {
    */
   public boolean areGradleFilesModified() {
     // Checks if any file in myChangedFiles actually has changes.
-    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> !checkHashesOfChangedFiles());
+    return ReadAction.compute(() -> !checkHashesOfChangedFiles());
   }
 
   public boolean areExternalBuildFilesModified() {
-    return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+    return ReadAction.compute(() -> {
       synchronized (myLock) {
         return !filterHashes(myChangedExternalFiles);
       }
