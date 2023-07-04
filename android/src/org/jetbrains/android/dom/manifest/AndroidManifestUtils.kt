@@ -17,13 +17,16 @@
 
 package org.jetbrains.android.dom.manifest
 
+import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_PACKAGE
+import com.android.SdkConstants.ATTR_VALUE
 import com.android.SdkConstants.ATTR_VERSION_NAME
 import com.android.SdkConstants.TAG_MANIFEST
 import com.android.SdkConstants.TAG_PERMISSION
 import com.android.SdkConstants.TAG_PERMISSION_GROUP
+import com.android.SdkConstants.TAG_USES_FEATURE
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
@@ -163,6 +166,8 @@ class AndroidManifestXmlFile(delegate: XmlFile) : XmlFile by delegate {
   val customPermissionGroups get() = findAndroidNamesForTags(TAG_PERMISSION_GROUP)
 
   val versionName get() = rootTag?.getAttributeValue(ATTR_VERSION_NAME, ANDROID_URI)
+
+  val usesFeature get() = findAndroidNamesForTags(TAG_USES_FEATURE)
 
   /**
    * Returns the android:name attribute of each [XmlTag] of the given type in the [XmlFile].

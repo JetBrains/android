@@ -127,8 +127,8 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     }).get();
   }
 
-  public void testWearProjectUsesWearDeviceByDefault() {
-    Manifest manifest = Manifest.getMainManifest(myFacet);
+  public void testWearProjectUsesWearDeviceByDefault() throws ExecutionException, InterruptedException {
+    Manifest manifest = AppExecutorUtil.getAppExecutorService().submit(() -> Manifest.getMainManifest(myFacet)).get();
     assertNotNull(manifest);
     WriteCommandAction.runWriteCommandAction(getProject(), () -> {
       UsesFeature feature = manifest.addUsesFeature();
@@ -140,8 +140,8 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertTrue(HardwareConfigHelper.isWear(config.getDevice()));
   }
 
-  public void testDefaultThemeCompute() {
-    Manifest manifest = Manifest.getMainManifest(myFacet);
+  public void testDefaultThemeCompute() throws ExecutionException, InterruptedException {
+    Manifest manifest = AppExecutorUtil.getAppExecutorService().submit(() -> Manifest.getMainManifest(myFacet)).get();
     assertNotNull(manifest);
     WriteCommandAction.runWriteCommandAction(getProject(), () -> {
       manifest.getApplication().getTheme().setStringValue("@style/break");
@@ -152,7 +152,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertEquals("@style/break", config.getTheme());
   }
 
-  public void testPostSplashScreenThemeResolution() {
+  public void testPostSplashScreenThemeResolution() throws ExecutionException, InterruptedException {
     myFixture.addFileToProject("res/values/styles.xml", """
         <resources>
           <!-- Base application theme. -->
@@ -166,7 +166,7 @@ public class ConfigurationManagerTest extends AndroidTestCase {
       """);
 
 
-    Manifest manifest = Manifest.getMainManifest(myFacet);
+    Manifest manifest = AppExecutorUtil.getAppExecutorService().submit(() -> Manifest.getMainManifest(myFacet)).get();
     assertNotNull(manifest);
     WriteCommandAction.runWriteCommandAction(getProject(), () -> {
       manifest.getApplication().getTheme().setStringValue("@style/Theme.SplashTheme");

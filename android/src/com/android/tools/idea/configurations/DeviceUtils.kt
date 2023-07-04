@@ -27,11 +27,10 @@ import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
 import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.util.Computable
 import com.intellij.util.containers.ContainerUtil
-import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
 import kotlin.math.hypot
 import kotlin.math.roundToInt
@@ -153,10 +152,8 @@ fun isUseWearDeviceAsDefault(module: Module): Boolean {
   if (facet == null || facet.isDisposed) {
     return false
   }
-  val manifest = Manifest.getMainManifest(facet) ?: return false
-  return ApplicationManager.getApplication().runReadAction(Computable {
-    manifest.usesFeatures.any { usesFeature -> usesFeature.name.value == WEAR_OS_USE_FEATURE_TAG }
-  })
+  val manifestXml = runReadAction { facet.getPrimaryManifestXml() } ?: return false
+  return manifestXml.usesFeature.contains(WEAR_OS_USE_FEATURE_TAG)
 }
 
 enum class CanonicalDeviceType(val id: String) {
