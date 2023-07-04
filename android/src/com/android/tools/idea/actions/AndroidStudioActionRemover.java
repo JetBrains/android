@@ -27,7 +27,7 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 /**
  * Wraps an action and makes it invisible when an Android-model-based project is open in Android Studio.
  */
-public class AndroidStudioActionRemover extends AnAction {
+public abstract class AndroidStudioActionRemover extends AnAction {
   @NotNull protected final AnAction myDelegate;
 
   /**

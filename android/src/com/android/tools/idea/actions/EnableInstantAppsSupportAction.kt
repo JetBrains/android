@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -28,6 +29,7 @@ import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.util.AndroidBundle.message
 
 class EnableInstantAppsSupportAction : AnAction() {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = isValidAndroidModuleSelected(e.dataContext)
