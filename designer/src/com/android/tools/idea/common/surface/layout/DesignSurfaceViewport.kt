@@ -22,6 +22,7 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import javax.swing.JComponent
 import javax.swing.JViewport
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
@@ -77,24 +78,25 @@ class ScrollableDesignSurfaceViewport(val viewport: JViewport) : DesignSurfaceVi
  * A [DesignSurfaceViewport] for non scrollable surfaces. These surfaces will usually be embedded in
  * a scrollable panel.
  */
-class NonScrollableDesignSurfaceViewport(val view: DesignSurface<*>) : DesignSurfaceViewport {
+class NonScrollableDesignSurfaceViewport(val viewport: JComponent) : DesignSurfaceViewport {
   override val viewRect: Rectangle
-    get() = view.bounds
+    get() = viewport.bounds
   override val viewportComponent: Component
-    get() = view
+    get() = viewport
   override val viewComponent: Component
-    get() = view
+    get() = viewport
   override var viewPosition: Point
     get() = Point(0, 0)
     set(_) {}
   override val extentSize: Dimension
     get() =
-      view.visibleRect
+      viewport.visibleRect
         .size // The extent size in this case is just the visible part of the design surface
   override val viewSize: Dimension
-    get() = view.size
+    get() = viewport.size
+
   override fun addChangeListener(changeListener: ChangeListener) {
-    view.addComponentListener(
+    viewport.addComponentListener(
       object : ComponentAdapter() {
         override fun componentResized(e: ComponentEvent) {
           changeListener.stateChanged(ChangeEvent(e.source))
