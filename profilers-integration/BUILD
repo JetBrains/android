@@ -91,7 +91,7 @@ maven_repository(
     artifacts = [
         "@maven//:com.android.tools.build.aapt2_7.4.1-8841542",
         "@maven//:com.android.tools.build.gradle_7.4.1",
-        "@maven//:com.android.tools.lint.lint-gradle_30.4.0-alpha09",
+        "@maven//:com.android.tools.lint.lint-gradle_30.4.1",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java-util_3.17.2",
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
