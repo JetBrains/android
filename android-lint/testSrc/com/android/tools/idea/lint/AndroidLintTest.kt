@@ -51,6 +51,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintDisableBaselineAlignme
 import com.android.tools.idea.lint.inspections.AndroidLintDuplicateIdsInspection
 import com.android.tools.idea.lint.inspections.AndroidLintEnforceUTF8Inspection
 import com.android.tools.idea.lint.inspections.AndroidLintExifInterfaceInspection
+import com.android.tools.idea.lint.inspections.AndroidLintExpiredTargetSdkVersionManifestInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedContentProviderInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedReceiverInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedServiceInspection
@@ -86,7 +87,6 @@ import com.android.tools.idea.lint.inspections.AndroidLintNonResizeableActivityI
 import com.android.tools.idea.lint.inspections.AndroidLintNotificationPermissionInspection
 import com.android.tools.idea.lint.inspections.AndroidLintObsoleteLayoutParamInspection
 import com.android.tools.idea.lint.inspections.AndroidLintObsoleteSdkIntInspection
-import com.android.tools.idea.lint.inspections.AndroidLintOldTargetApiInspection
 import com.android.tools.idea.lint.inspections.AndroidLintParcelClassLoaderInspection
 import com.android.tools.idea.lint.inspections.AndroidLintParcelCreatorInspection
 import com.android.tools.idea.lint.inspections.AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection
@@ -1237,7 +1237,11 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
   fun testOldTargetApi() {
     deleteManifest()
-    doTestHighlighting(AndroidLintOldTargetApiInspection(), "AndroidManifest.xml", "xml")
+    doTestHighlighting(
+      AndroidLintExpiredTargetSdkVersionManifestInspection(),
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testReferenceTypes() {
