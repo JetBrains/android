@@ -27,7 +27,7 @@ import com.android.tools.idea.execution.common.AndroidConfigurationExecutor;
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutorRunProfileState;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.execution.common.stats.RunStats;
-import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
+import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner;
 import com.android.tools.idea.testing.KeepTasksAsynchronousRule;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.Executor;

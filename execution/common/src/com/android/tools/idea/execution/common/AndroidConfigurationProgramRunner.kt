@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.configuration
+package com.android.tools.idea.execution.common
 
-import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
-import com.android.tools.idea.execution.common.AndroidExecutionException
-import com.android.tools.idea.execution.common.AndroidExecutionTarget
-import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTargetManager
@@ -44,7 +40,7 @@ import org.jetbrains.concurrency.catchError
  *
  * Actual execution for a configuration, after build, happens in [run] method.
  */
-abstract class AndroidConfigurationProgramRunner internal constructor(
+abstract class AndroidConfigurationProgramRunner(
   private val getAndroidTarget: (Project, RunConfiguration) -> AndroidExecutionTarget?
 ) : AsyncProgramRunner<RunnerSettings>() {
   constructor() : this({ project, profile -> getAvailableAndroidTarget(project, profile) })

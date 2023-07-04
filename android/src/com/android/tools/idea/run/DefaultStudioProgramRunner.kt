@@ -18,7 +18,7 @@ package com.android.tools.idea.run
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
-import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner
+import com.android.tools.idea.execution.common.AndroidConfigurationProgramRunner
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
