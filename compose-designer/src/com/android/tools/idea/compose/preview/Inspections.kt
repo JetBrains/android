@@ -465,7 +465,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
 
 /**
  * Inspection that checks that functions annotated with `@Preview`, or with a MultiPreview, are not
- * in a unit test file
+ * in a unit test file.
  */
 class PreviewNotSupportedInUnitTestFiles : BasePreviewAnnotationInspection() {
   override fun visitPreviewAnnotation(
