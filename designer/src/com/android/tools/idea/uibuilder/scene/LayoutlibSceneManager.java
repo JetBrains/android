@@ -1101,7 +1101,6 @@ public class LayoutlibSceneManager extends SceneManager {
       } finally {
         myUpdateHierarchyLock.release();
       }
-      getModel().checkStructure();
     }
     catch (InterruptedException ignored) {
     }

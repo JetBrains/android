@@ -324,24 +324,6 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
 
     XmlTag[] subTags = tag.getSubTags();
     if (subTags.length > 0) {
-      if (NlModel.CHECK_MODEL_INTEGRITY) {
-        Set<NlComponent> seen = Sets.newHashSet();
-        Set<XmlTag> seenTags = Sets.newHashSet();
-        for (XmlTag t : subTags) {
-          if (seenTags.contains(t)) {
-            assert false : t;
-          }
-          seenTags.add(t);
-          NlComponent registeredComponent = data.myTagToComponentMap.get(t);
-          if (registeredComponent != null) {
-            if (seen.contains(registeredComponent)) {
-              assert false : registeredComponent;
-            }
-            seen.add(registeredComponent);
-          }
-        }
-      }
-
       List<NlComponent> children = new ArrayList<>(subTags.length);
       for (XmlTag subtag : subTags) {
         NlComponent child = createTree(subtag, data);

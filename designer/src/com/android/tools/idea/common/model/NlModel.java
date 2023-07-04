@@ -40,7 +40,6 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -101,7 +100,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   public static final int DELAY_AFTER_TYPING_MS = 250;
 
-  static final boolean CHECK_MODEL_INTEGRITY = false;
   private final Set<String> myPendingIds = Sets.newHashSet();
 
   @NotNull private final AndroidFacet myFacet;
@@ -377,99 +375,6 @@ public class NlModel implements ModificationTracker, DataContextHolder {
 
   protected void setRootComponent(@Nullable NlComponent root) {
     myRootComponent = root;
-  }
-
-  public void checkStructure() {
-    if (CHECK_MODEL_INTEGRITY) {
-      ApplicationManager.getApplication().runReadAction(() -> {
-        Set<NlComponent> unique = Sets.newIdentityHashSet();
-        Set<XmlTag> uniqueTags = Sets.newIdentityHashSet();
-        checkUnique(getFile().getRootTag(), uniqueTags);
-        uniqueTags.clear();
-        if (myRootComponent != null) {
-          checkUnique(myRootComponent.getTagDeprecated(), uniqueTags);
-          checkUnique(myRootComponent, unique);
-          checkStructure(myRootComponent);
-        }
-      });
-    }
-  }
-
-  @SuppressWarnings("MethodMayBeStatic")
-  private void checkUnique(NlComponent component, Set<NlComponent> unique) {
-    if (CHECK_MODEL_INTEGRITY) {
-      assert !unique.contains(component);
-      unique.add(component);
-
-      for (NlComponent child : component.getChildren()) {
-        checkUnique(child, unique);
-      }
-    }
-  }
-
-  @SuppressWarnings("MethodMayBeStatic")
-  private void checkUnique(XmlTag tag, Set<XmlTag> unique) {
-    if (CHECK_MODEL_INTEGRITY) {
-      assert !unique.contains(tag);
-      unique.add(tag);
-      for (XmlTag subTag : tag.getSubTags()) {
-        checkUnique(subTag, unique);
-      }
-    }
-  }
-
-  @SuppressWarnings("MethodMayBeStatic")
-  private void checkStructure(NlComponent component) {
-    if (CHECK_MODEL_INTEGRITY) {
-      // This is written like this instead of just "assert component.w != -1" to ease
-      // setting breakpoint to debug problems
-      if (NlComponentHelperKt.getHasNlComponentInfo(component)) {
-        int w = NlComponentHelperKt.getW(component);
-        if (w == -1) {
-          assert false : w;
-        }
-      }
-      if (component.getSnapshot() == null) {
-        assert false;
-      }
-      if (component.getTagDeprecated() == null) {
-        assert false;
-      }
-      if (!component.getTagName().equals(component.getTagDeprecated().getName())) {
-        assert false;
-      }
-
-      if (!component.getTagDeprecated().isValid()) {
-        assert false;
-      }
-
-      // Look for parent chain cycle
-      NlComponent p = component.getParent();
-      while (p != null) {
-        if (p == component) {
-          assert false;
-        }
-        p = p.getParent();
-      }
-
-      for (NlComponent child : component.getChildren()) {
-        if (child == component) {
-          assert false;
-        }
-        if (child.getParent() == null) {
-          assert false;
-        }
-        if (child.getParent() != component) {
-          assert false;
-        }
-        if (child.getTagDeprecated().getParent() != component.getTagDeprecated()) {
-          assert false;
-        }
-
-        // Check recursively
-        checkStructure(child);
-      }
-    }
   }
 
   /**
