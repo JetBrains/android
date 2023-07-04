@@ -16,9 +16,9 @@
 package com.android.tools.idea.common.model
 
 import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.concurrency.addCallback
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getSyncManager

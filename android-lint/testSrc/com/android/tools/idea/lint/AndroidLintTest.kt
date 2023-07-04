@@ -17,6 +17,7 @@ package com.android.tools.idea.lint
 
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleVersion
 import com.android.ide.common.repository.StubGoogleMavenRepository
 import com.android.sdklib.AndroidVersion
@@ -131,7 +132,6 @@ import com.android.tools.idea.lint.inspections.AndroidLintWrongViewCastInspectio
 import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestAndroidModel
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents

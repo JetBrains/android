@@ -28,13 +28,13 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.repository.GradleCoordinate;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;

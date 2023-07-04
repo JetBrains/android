@@ -17,7 +17,8 @@
 
 package com.android.tools.idea.projectsystem
 
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId.*
+import com.android.ide.common.repository.GoogleMavenArtifactId
+import com.android.ide.common.repository.GoogleMavenArtifactId.*
 
 /**
  * A collection of repos for dependencies used during testing.

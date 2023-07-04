@@ -20,6 +20,7 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
 import static org.jetbrains.kotlin.idea.util.application.ApplicationUtilsKt.isUnitTestMode;
 
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.dependencies.DependenciesHelper;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -27,7 +28,6 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;

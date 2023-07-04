@@ -16,9 +16,9 @@
 package com.android.tools.idea.actions
 
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.getTextForFile

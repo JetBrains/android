@@ -16,9 +16,9 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.ide.common.gradle.Component;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.ui.GuiTestingService;

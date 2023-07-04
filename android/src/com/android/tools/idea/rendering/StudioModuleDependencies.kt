@@ -16,10 +16,10 @@
 package com.android.tools.idea.rendering
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.projectsystem.DependencyScopeType
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.util.dependsOn

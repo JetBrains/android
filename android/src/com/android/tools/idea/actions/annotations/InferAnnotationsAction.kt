@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.actions.annotations
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.actions.annotations.InferAnnotations.Companion.apply
 import com.android.tools.idea.actions.annotations.InferAnnotations.Companion.generateReport
 import com.android.tools.idea.actions.annotations.InferAnnotations.Companion.nothingFoundMessage
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager.Companion.get
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.util.addDependenciesWithUiConfirmation

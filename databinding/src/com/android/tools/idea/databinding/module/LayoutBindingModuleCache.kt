@@ -16,6 +16,7 @@
 package com.android.tools.idea.databinding.module
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.resources.ResourceType
 import com.android.tools.idea.databinding.BindingLayout
 import com.android.tools.idea.databinding.BindingLayoutGroup
@@ -31,7 +32,6 @@ import com.android.tools.idea.databinding.psiclass.LightBrClass
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager

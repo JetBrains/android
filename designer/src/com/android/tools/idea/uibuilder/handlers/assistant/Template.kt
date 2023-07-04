@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.assistant
 
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.dependsOnAndroidx
 import com.android.tools.idea.util.dependsOnOldSupportLib

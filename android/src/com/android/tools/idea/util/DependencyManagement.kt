@@ -20,12 +20,12 @@ package com.android.tools.idea.util
 import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.support.AndroidxName
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.DependencyManagementException
 import com.android.tools.idea.projectsystem.DependencyType
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getSyncManager

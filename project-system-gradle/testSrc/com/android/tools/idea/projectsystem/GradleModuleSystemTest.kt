@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.projectsystem
 
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.model.IdeAndroidProject

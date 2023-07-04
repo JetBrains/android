@@ -18,6 +18,7 @@ package com.android.tools.idea.projectsystem
 import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.SUPPORT_LIB_GROUP_ID
 import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.testutils.truth.PathSubject
 import com.android.testutils.truth.PathSubject.assertThat

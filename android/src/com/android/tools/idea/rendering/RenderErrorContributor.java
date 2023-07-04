@@ -40,10 +40,10 @@ import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ILayoutLog;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;

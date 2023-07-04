@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers
 
 import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.common.model.NlDependencyManager
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import org.jetbrains.android.facet.AndroidFacet
 
 internal fun AndroidFacet?.hasMaterial3Dependency(): Boolean {

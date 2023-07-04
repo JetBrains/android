@@ -21,6 +21,7 @@ import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY
 import com.android.SdkConstants.FN_RESOURCE_TEXT
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.projectmodel.ExternalLibraryImpl
 import com.android.projectmodel.RecursiveResourceFolder
@@ -37,7 +38,6 @@ import com.android.tools.idea.projectsystem.ClassFileFinder
 import com.android.tools.idea.projectsystem.CodeShrinker
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.DependencyType
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider

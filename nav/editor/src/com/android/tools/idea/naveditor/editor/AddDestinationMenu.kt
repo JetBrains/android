@@ -14,6 +14,7 @@
 package com.android.tools.idea.naveditor.editor
 
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtSecondaryPanel
@@ -32,7 +33,6 @@ import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROP
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.npw.actions.NewAndroidFragmentAction
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.rendering.LayoutSlowPreviewProvider

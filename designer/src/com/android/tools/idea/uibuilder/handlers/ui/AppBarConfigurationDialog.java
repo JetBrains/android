@@ -31,11 +31,11 @@ import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder
 
 import com.android.annotations.concurrency.WorkerThread;
 import com.android.ide.common.rendering.api.SessionParams;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.repositories
 import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.MavenRepositories
 import com.android.ide.common.repository.SdkMavenRepository
@@ -26,7 +27,6 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleLocalCache
 import com.android.tools.idea.lint.common.LintIdeSupport
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.lint.checks.GradleDetector.Companion.getLatestVersionFromRemoteRepo

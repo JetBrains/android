@@ -16,13 +16,13 @@
 package com.android.tools.idea.editors.fast
 
 import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_FAST_PREVIEW_AUTO_DISABLE
 import com.android.tools.idea.modes.essentials.EssentialsMode
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.android.tools.idea.util.toDisplayString

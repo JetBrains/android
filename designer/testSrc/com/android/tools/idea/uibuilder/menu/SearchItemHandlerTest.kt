@@ -16,12 +16,12 @@
 package com.android.tools.idea.uibuilder.menu
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlComponentBackend
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectBuilder

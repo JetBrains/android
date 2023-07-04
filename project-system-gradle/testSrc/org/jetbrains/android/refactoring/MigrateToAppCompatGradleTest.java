@@ -17,10 +17,10 @@ package org.jetbrains.android.refactoring;
 
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.AgpVersion;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
 import com.android.tools.idea.gradle.util.GradleUtil;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.testing.AndroidGradleTestCase;

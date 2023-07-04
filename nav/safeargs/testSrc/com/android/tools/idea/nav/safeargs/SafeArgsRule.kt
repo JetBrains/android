@@ -16,9 +16,9 @@
 package com.android.tools.idea.nav.safeargs
 
 import com.android.ide.common.gradle.Version
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
