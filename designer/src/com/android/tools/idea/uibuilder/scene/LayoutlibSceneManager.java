@@ -1722,7 +1722,6 @@ public class LayoutlibSceneManager extends SceneManager {
     if (StudioFlags.NELE_ATF_FOR_COMPOSE.get()) {
       getLayoutScannerConfig().setLayoutScannerEnabled(!interactive);
     }
-    getSceneViews().forEach(sv -> sv.setAnimated(interactive));
   }
 
   /**

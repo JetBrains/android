@@ -102,7 +102,6 @@ public abstract class SceneView {
   private ImmutableList<Layer> myLayersCache;
   @SwingCoordinate private int x;
   @SwingCoordinate private int y;
-  private boolean myAnimated = false;
   private boolean myIsVisible = true;
   @NotNull private final ShapePolicy myShapePolicy;
 
@@ -427,21 +426,6 @@ public abstract class SceneView {
     public int getSwingDimension(@AndroidCoordinate int dim) {
       return Coordinates.getSwingDimension(SceneView.this, dim);
     }
-  }
-
-  /**
-   * Sets animated mode of the scene.
-   * @param animated true if the scene is animated, false otherwise.
-   */
-  public void setAnimated(boolean animated) {
-    myAnimated = animated;
-  }
-
-  /**
-   * Returns true if the scene is animated, false otherwise.
-   */
-  public boolean isAnimated() {
-    return myAnimated;
   }
 
   public void setVisible(boolean visibility) {
