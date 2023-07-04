@@ -55,7 +55,7 @@ class InspectionsGradleTest {
       )!!
     fixture.configureFromExistingVirtualFile(vFile)
     assertEquals(
-      "21: Preview is not supported in unit test files.",
+      "21: Preview is not supported in unit test files",
       fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
     )
   }

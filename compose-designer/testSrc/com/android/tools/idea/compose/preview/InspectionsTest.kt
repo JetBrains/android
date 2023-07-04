@@ -57,7 +57,7 @@ class InspectionsTest {
 
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(
-      "9: Preview only works with Composable functions.",
+      "9: Preview only works with Composable functions",
       fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
     )
   }
@@ -144,10 +144,10 @@ class InspectionsTest {
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """5: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
-        |15: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
-        |34: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
-        |54: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter."""
+      """5: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter
+        |15: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter
+        |34: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter
+        |54: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter"""
         .trimMargin(),
       inspections
     )
@@ -200,8 +200,8 @@ class InspectionsTest {
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """12: Multiple @PreviewParameter are not allowed.
-        |21: Multiple @PreviewParameter are not allowed.
+      """12: Multiple @PreviewParameter are not allowed
+        |21: Multiple @PreviewParameter are not allowed
       """
         .trimMargin(),
       inspections
@@ -360,8 +360,8 @@ class InspectionsTest {
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """7: Preview width is limited to 2,000. Setting a higher number will not increase the preview width.
-        |15: Preview width is limited to 2,000. Setting a higher number will not increase the preview width.
+      """7: Preview width is limited to 2,000, and setting a higher number will not increase the preview width
+        |15: Preview width is limited to 2,000, and setting a higher number will not increase the preview width
       """
         .trimMargin(),
       inspections
@@ -411,8 +411,8 @@ class InspectionsTest {
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """7: Preview height is limited to 2,000. Setting a higher number will not increase the preview height.
-        |15: Preview height is limited to 2,000. Setting a higher number will not increase the preview height.
+      """7: Preview height is limited to 2,000, and setting a higher number will not increase the preview height
+        |15: Preview height is limited to 2,000, and setting a higher number will not increase the preview height
       """
         .trimMargin(),
       inspections
@@ -500,8 +500,8 @@ class InspectionsTest {
         .joinToString("\n") { it.descriptionWithLineNumber() }
 
     assertEquals(
-      """7: Preview fontScale value must be greater than zero.
-        |21: Preview fontScale value must be greater than zero.
+      """7: Preview fontScale value must be greater than zero
+        |21: Preview fontScale value must be greater than zero
       """
         .trimMargin(),
       inspections
@@ -594,7 +594,7 @@ class InspectionsTest {
 
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(
-      "8: Preview only works with Composable functions.",
+      "8: Preview only works with Composable functions",
       fixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber()
     )
   }
