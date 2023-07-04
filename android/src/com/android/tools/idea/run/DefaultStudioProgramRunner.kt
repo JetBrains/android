@@ -88,9 +88,7 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
     composePreviewRunConfigurationId
   )
 
-  override fun run(environment: ExecutionEnvironment, state: RunProfileState, indicator: ProgressIndicator): RunContentDescriptor {
-    val executor = state as AndroidConfigurationExecutor
-
+  override fun run(environment: ExecutionEnvironment, executor: AndroidConfigurationExecutor, indicator: ProgressIndicator): RunContentDescriptor {
     val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
 
     return if (swapInfo != null) {

@@ -104,8 +104,8 @@ public class AndroidConfigurationProgramRunnerTest {
         @NotNull
         @Override
         protected RunContentDescriptor run(@NotNull ExecutionEnvironment environment,
-                                           @NotNull RunProfileState state,
-                                           @NotNull ProgressIndicator indicator) throws ExecutionException {
+                                           @NotNull AndroidConfigurationExecutor executor,
+                                           @NotNull ProgressIndicator indicator) {
           return mock(RunContentDescriptor.class);
         }
       };
@@ -139,8 +139,8 @@ public class AndroidConfigurationProgramRunnerTest {
         @NotNull
         @Override
         protected RunContentDescriptor run(@NotNull ExecutionEnvironment environment,
-                                           @NotNull RunProfileState state,
-                                           @NotNull ProgressIndicator indicator) throws ExecutionException {
+                                           @NotNull AndroidConfigurationExecutor executor,
+                                           @NotNull ProgressIndicator indicator) {
           throw new RuntimeException("Exception in Runner");
         }
       };
@@ -173,8 +173,8 @@ public class AndroidConfigurationProgramRunnerTest {
         @NotNull
         @Override
         protected RunContentDescriptor run(@NotNull ExecutionEnvironment environment,
-                                           @NotNull RunProfileState state,
-                                           @NotNull ProgressIndicator indicator) throws ExecutionException {
+                                           @NotNull AndroidConfigurationExecutor executor,
+                                           @NotNull ProgressIndicator indicator) {
           return mock(RunContentDescriptor.class);
         }
 
@@ -210,8 +210,8 @@ public class AndroidConfigurationProgramRunnerTest {
         @NotNull
         @Override
         protected RunContentDescriptor run(@NotNull ExecutionEnvironment environment,
-                                           @NotNull RunProfileState state,
-                                           @NotNull ProgressIndicator indicator) throws ExecutionException {
+                                           @NotNull AndroidConfigurationExecutor executor,
+                                           @NotNull ProgressIndicator indicator) {
           final RunContentDescriptor mock = mock(RunContentDescriptor.class);
           when(mock.getProcessHandler()).thenReturn(mock(ProcessHandler.class));
           return mock;

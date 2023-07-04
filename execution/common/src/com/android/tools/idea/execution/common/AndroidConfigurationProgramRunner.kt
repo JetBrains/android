@@ -59,7 +59,8 @@ abstract class AndroidConfigurationProgramRunner(
   @kotlin.jvm.Throws(ExecutionException::class)
   protected abstract fun run(
     environment: ExecutionEnvironment,
-    state: RunProfileState, indicator: ProgressIndicator
+    executor: AndroidConfigurationExecutor,
+    indicator: ProgressIndicator
   ): RunContentDescriptor
 
   override fun getRunnerId(): String = "AndroidConfigurationProgramRunner"

@@ -91,9 +91,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
   )
 
   override fun canRunWithMultipleDevices(executorId: String) = false
-  override fun run(environment: ExecutionEnvironment, state: RunProfileState, indicator: ProgressIndicator): RunContentDescriptor {
-    val executor = state as AndroidConfigurationExecutor
-
+  override fun run(environment: ExecutionEnvironment, executor: AndroidConfigurationExecutor, indicator: ProgressIndicator): RunContentDescriptor {
     if (!isProfilerExecutor(environment.executor.id)) {
       throw RuntimeException("Not a profiler executor")
     }

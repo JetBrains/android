@@ -117,6 +117,7 @@ class BlazeAndroidConfigurationExecutor(
       override val appId = applicationId
     })
     stat.beginLaunchTasks()
+    indicator.text = "Launching on devices"
     try {
       printLaunchTaskStartedMessage(console)
 
