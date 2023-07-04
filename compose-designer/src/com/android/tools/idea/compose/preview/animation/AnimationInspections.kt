@@ -210,6 +210,9 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
     } else {
       PsiElementVisitor.EMPTY_VISITOR
     }
+
+  override fun getStaticDescription() =
+    message("inspection.animation.no.label.parameter.set.description", animationType)
 }
 
 class InfinitePropertiesLabelInspection : ExtensionLabelInspection() {
@@ -353,6 +356,9 @@ abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
     } else {
       PsiElementVisitor.EMPTY_VISITOR
     }
+
+  override fun getStaticDescription() =
+    message("inspection.animation.no.label.parameter.set.description", animationType)
 }
 
 /**
