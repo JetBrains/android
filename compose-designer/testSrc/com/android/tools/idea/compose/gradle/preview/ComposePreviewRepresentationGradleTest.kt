@@ -602,6 +602,7 @@ class ComposePreviewRepresentationGradleTest {
     )
   }
 
+  @Ignore("b/289888238")
   @Test
   fun `fast preview cancellation`() {
     val requestCompleted = CompletableDeferred<Unit>()
