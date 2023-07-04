@@ -82,8 +82,6 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
     val gradleProjectInfo = GradleProjectInfo.getInstance(project)
 
     fun shouldSyncOrAttachModels(): Boolean {
-      if (gradleProjectInfo.isSkipStartupActivity) return false
-
       // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
       if (gradleProjectInfo.androidModules.isNotEmpty()) return true
 
@@ -101,8 +99,6 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
       removeEmptyModules(project)
       attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
     }
-
-    gradleProjectInfo.isSkipStartupActivity = false
 
     // Disable all settings sections that we don't want to be present in Android Studio.
     // See AndroidStudioPreferences for a full list.
