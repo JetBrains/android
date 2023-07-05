@@ -49,21 +49,28 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
     return clazz.name.replace(regex, "")
   }
 
+  fun createReport(scenario: HProfBuilder.() -> Unit,
+                   nominatedClassNames: List<String>?,
+                   shouldMapClassNames: Boolean = true,
+                   config: AnalysisConfig? = null): String {
+    val hprofFile = tmpFolder.newFile()
+    HProfTestUtils.createHProfOnFile(hprofFile,
+                                     scenario) { c -> if (shouldMapClassNames) mapClassName(c) else c.name }
+    return createReport(hprofFile, nominatedClassNames, config)
+  }
+
   fun run(scenario: HProfBuilder.() -> Unit,
           baselineFileName: String,
           nominatedClassNames: List<String>?,
           shouldMapClassNames: Boolean = true,
           config: AnalysisConfig? = null) {
-    val hprofFile = tmpFolder.newFile()
-    HProfTestUtils.createHProfOnFile(hprofFile,
-                                     scenario) { c -> if (shouldMapClassNames) mapClassName(c) else c.name }
-    compareReportToBaseline(hprofFile, baselineFileName, nominatedClassNames, config)
+    val report = createReport(scenario, nominatedClassNames, shouldMapClassNames, config)
+    compareReportToBaseline(report, baselineFileName)
   }
 
-  private fun compareReportToBaseline(hprofFile: File,
-                                      baselineFileName: String,
+  fun createReport(hprofFile: File,
                                       nominatedClassNames: List<String>? = null,
-                                      config: AnalysisConfig? = null) {
+                                      config: AnalysisConfig? = null): String {
     FileChannel.open(hprofFile.toPath(), StandardOpenOption.READ).use { hprofChannel ->
 
       val progress = object : AbstractProgressIndicatorBase() {
@@ -81,8 +88,9 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
         RemapIDsVisitor.createFileBased(openTempEmptyFileChannel(), histogram.instanceCount)
 
       parser.accept(remapIDsVisitor, "id mapping")
-      parser.setIdRemappingFunction(remapIDsVisitor.getRemappingFunction())
-      hprofMetadata.remapIds(remapIDsVisitor.getRemappingFunction())
+      val idMapper = remapIDsVisitor.getIDMapper()
+      parser.setIDMapper(idMapper)
+      hprofMetadata.remapIds(idMapper)
 
       val navigator = ObjectNavigator.createOnAuxiliaryFiles(
         parser,
@@ -133,14 +141,16 @@ open class HProfScenarioRunner(private val tmpFolder: TemporaryFolder,
         histogram
       )
 
-      val analysisReport = AnalyzeGraph(analysisContext, memoryBackedListProvider).analyze(progress).mainReport.toString()
+      return AnalyzeGraph(analysisContext, memoryBackedListProvider).analyze(progress).mainReport.toString()
+    }
+  }
 
+  fun compareReportToBaseline(analysisReport: String, baselineFileName: String) {
       val baselinePath = getBaselinePath(baselineFileName)
       val baseline = getBaselineContents(baselinePath)
       Assert.assertEquals("Report doesn't match the baseline from file:\n$baselinePath",
                           baseline,
                           analysisReport)
-    }
   }
 
   /**

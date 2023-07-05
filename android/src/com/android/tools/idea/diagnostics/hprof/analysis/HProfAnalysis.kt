@@ -24,11 +24,8 @@ import com.android.tools.idea.diagnostics.hprof.util.FileBackedUByteList
 import com.android.tools.idea.diagnostics.hprof.util.FileBackedUShortList
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.sectionHeader
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsCount
-import com.android.tools.idea.diagnostics.hprof.util.IntList
 import com.android.tools.idea.diagnostics.hprof.util.ListProvider
 import com.android.tools.idea.diagnostics.hprof.util.PartialProgressIndicator
-import com.android.tools.idea.diagnostics.hprof.util.UByteList
-import com.android.tools.idea.diagnostics.hprof.util.UShortList
 import com.android.tools.idea.diagnostics.hprof.visitors.RemapIDsVisitor
 import com.google.common.base.Stopwatch
 import com.intellij.openapi.progress.ProgressIndicator
@@ -74,7 +71,7 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
     return tempChannel
   }
 
-  val fileBackedListProvider = object: ListProvider {
+  private val fileBackedListProvider = object: ListProvider {
     override fun createUByteList(name: String, size: Long) = FileBackedUByteList.createEmpty(openTempEmptyFileChannel(name), size)
     override fun createUShortList(name: String, size: Long) = FileBackedUShortList.createEmpty(openTempEmptyFileChannel(name), size)
     override fun createIntList(name: String, size: Long) = FileBackedIntList.createEmpty(openTempEmptyFileChannel(name), size)
@@ -120,8 +117,9 @@ class HProfAnalysis(private val hprofFileChannel: FileChannel,
         histogram.instanceCount)
 
       parser.accept(remapIDsVisitor, "id mapping")
-      parser.setIdRemappingFunction(remapIDsVisitor.getRemappingFunction())
-      hprofMetadata.remapIds(remapIDsVisitor.getRemappingFunction())
+      val idMapper = remapIDsVisitor.getIDMapper()
+      parser.setIDMapper(idMapper)
+      hprofMetadata.remapIds(idMapper)
 
       progress.text2 = "Create reference graph"
       progress.fraction = 0.3

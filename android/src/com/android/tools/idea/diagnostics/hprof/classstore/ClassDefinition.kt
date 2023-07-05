@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.hprof.classstore
 
-import java.util.function.LongUnaryOperator
+import com.android.tools.idea.diagnostics.hprof.util.IDMapper
 
 class ClassDefinition(val name: String,
                       val id: Long,
@@ -92,8 +92,8 @@ class ClassDefinition(val name: String,
 
   fun isPrimitiveArray(): Boolean = isArray() && name.length == 2
 
-  fun copyWithRemappedIDs(remappingFunction: LongUnaryOperator): ClassDefinition {
-    fun map(id: Long): Long = remappingFunction.applyAsLong(id)
+  fun copyWithRemappedIDs(idMapper: IDMapper): ClassDefinition {
+    fun map(id: Long): Long = idMapper.getID(id)
     val newConstantFields = LongArray(constantFields.size) {
       map(constantFields[it])
     }

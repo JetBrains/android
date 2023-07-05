@@ -71,7 +71,7 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Lo
     if (indexOfField == -1) {
       throw NavigationException("Missing field $name in ${getClass().name}")
     }
-    return refs[indexOfField]
+    return refs.getLong(indexOfField)
   }
 
   fun goToStaticField(className: String, fieldName: String) {
