@@ -36,28 +36,37 @@ import com.android.SdkConstants.CALENDAR_VIEW
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.dom.attrs.AttributeDefinition
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
-class NlEnumSupportProviderTest : AndroidTestCase() {
+private const val MATCH_CONSTRAINT = "0dp (match constraint)"
+private const val WRAP_CONTENT = "wrap_content"
 
-  private val MATCH_CONSTRAINT = "0dp (match constraint)"
-  private val WRAP_CONTENT = "wrap_content"
+@RunsInEdt
+class NlEnumSupportProviderTest {
+  private val projectRule = AndroidProjectRule.withSdk()
 
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  @Test
   fun testAttributeWithNoEnumSupport() {
-    val util =
-      SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.defaultName())
+    val util = SupportTestUtil(projectRule, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.defaultName())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property)
     assertThat(enumSupport).isNull()
   }
 
+  @Test
   fun testFromViewHandlerForConstraintLayout() {
-    val util =
-      SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.defaultName())
+    val util = SupportTestUtil(projectRule, TEXT_VIEW, parentTag = CONSTRAINT_LAYOUT.defaultName())
     val property = util.makeProperty(ANDROID_URI, ATTR_LAYOUT_HEIGHT, NlPropertyType.DIMENSION)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
@@ -67,8 +76,9 @@ class NlEnumSupportProviderTest : AndroidTestCase() {
       .inOrder()
   }
 
+  @Test
   fun testTextAppearance() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
@@ -76,8 +86,9 @@ class NlEnumSupportProviderTest : AndroidTestCase() {
     assertThat(enumSupport.values.size).isAtLeast(9)
   }
 
+  @Test
   fun testCalendarMonthTextAppearance() {
-    val util = SupportTestUtil(myFacet, myFixture, CALENDAR_VIEW)
+    val util = SupportTestUtil(projectRule, CALENDAR_VIEW)
     val property = util.makeProperty(ANDROID_URI, "monthTextAppearance", NlPropertyType.STYLE)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
@@ -85,8 +96,9 @@ class NlEnumSupportProviderTest : AndroidTestCase() {
     assertThat(enumSupport.values.size).isAtLeast(9)
   }
 
+  @Test
   fun testFontFamily() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_FONT_FAMILY, NlPropertyType.STYLE)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
@@ -94,8 +106,9 @@ class NlEnumSupportProviderTest : AndroidTestCase() {
     assertThat(enumSupport.values.size).isAtLeast(9)
   }
 
+  @Test
   fun testFontFamilyFromAutoNamespace() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(AUTO_URI, ATTR_FONT_FAMILY, NlPropertyType.STYLE)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
@@ -103,8 +116,9 @@ class NlEnumSupportProviderTest : AndroidTestCase() {
     assertThat(enumSupport.values.size).isAtLeast(9)
   }
 
+  @Test
   fun testTypeface() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TYPEFACE, NlPropertyType.DIMENSION)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
@@ -113,16 +127,18 @@ class NlEnumSupportProviderTest : AndroidTestCase() {
       .inOrder()
   }
 
+  @Test
   fun testTextSize() {
     checkTextSizeAttribute(ATTR_TEXT_SIZE)
   }
 
+  @Test
   fun testLineSpacingExtra() {
     checkTextSizeAttribute(ATTR_LINE_SPACING_EXTRA)
   }
 
   private fun checkTextSizeAttribute(attributeName: String) {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, attributeName, NlPropertyType.DIMENSION)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
@@ -143,24 +159,28 @@ class NlEnumSupportProviderTest : AndroidTestCase() {
       .inOrder()
   }
 
+  @Test
   fun testLayoutWidth() {
     checkSizeAttribute(ATTR_LAYOUT_WIDTH)
   }
 
+  @Test
   fun testLayoutHeight() {
     checkSizeAttribute(ATTR_LAYOUT_HEIGHT)
   }
 
+  @Test
   fun testDropDownWidth() {
     checkSizeAttribute(ATTR_DROPDOWN_WIDTH)
   }
 
+  @Test
   fun testDropDownHeight() {
     checkSizeAttribute(ATTR_DROPDOWN_HEIGHT)
   }
 
   private fun checkSizeAttribute(attributeName: String) {
-    val util = SupportTestUtil(myFacet, myFixture, AUTO_COMPLETE_TEXT_VIEW)
+    val util = SupportTestUtil(projectRule, AUTO_COMPLETE_TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, attributeName, NlPropertyType.DIMENSION)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
@@ -169,16 +189,18 @@ class NlEnumSupportProviderTest : AndroidTestCase() {
       .inOrder()
   }
 
+  @Test
   fun testOnClick() {
-    val util = SupportTestUtil(myFacet, myFixture, BUTTON)
+    val util = SupportTestUtil(projectRule, BUTTON)
     val property = util.makeProperty(ANDROID_URI, ATTR_ON_CLICK, NlPropertyType.STRING)
     val provider = NlEnumSupportProvider(util.model)
     val enumSupport = provider(property) ?: error("No EnumSupport Found")
     assertThat(enumSupport).isInstanceOf(OnClickEnumSupport::class.java)
   }
 
+  @Test
   fun testFromAttributeDefinition() {
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, ATTR_VISIBILITY)
     definition.setValueMappings(mapOf("visible" to 1, "invisible" to 2, "gone" to 3))
     val property = util.makeProperty(ANDROID_URI, definition, NlPropertyType.ENUM)

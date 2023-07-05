@@ -58,9 +58,9 @@ import com.android.tools.adtui.model.stdui.EditingErrorCategory.WARNING
 import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.MinApiLayoutTestCase
 import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
 import com.android.tools.idea.uibuilder.property.support.ToggleShowResolvedValueAction
+import com.android.tools.idea.uibuilder.property.testutils.MinApiRule
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
@@ -89,7 +89,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TestName
+import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -99,18 +99,15 @@ private const val HELLO_WORLD = "Hello World"
 
 @RunsInEdt
 class NlPropertyItemTest {
+  private val projectRule = AndroidProjectRule.withSdk()
 
-  @get:Rule val testName = TestName()
-
-  @get:Rule val projectRule = AndroidProjectRule.withSdk()
-
-  @get:Rule val edtRule = EdtRule()
+  @get:Rule
+  val chain = RuleChain.outerRule(projectRule).around(MinApiRule(projectRule)).around(EdtRule())!!
 
   private var componentStack: ComponentStack? = null
 
   @Before
   fun setUp() {
-    MinApiLayoutTestCase.setUpManifest(projectRule.fixture, testName.methodName)
     projectRule.fixture.testDataPath = AndroidTestBase.getModulePath("designer") + "/testData"
     projectRule.fixture.addFileToProject("/res/values/strings.xml", STRINGS)
     componentStack = ComponentStack(projectRule.project)

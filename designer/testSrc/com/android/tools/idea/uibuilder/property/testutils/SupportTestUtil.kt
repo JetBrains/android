@@ -57,7 +57,8 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
 private const val DEFAULT_FILENAME = "layout.xml"
 
-open class SupportTestUtil(
+open class SupportTestUtil
+private constructor(
   facet: AndroidFacet,
   val fixture: CodeInsightTestFixture,
   val components: MutableList<NlComponent>
@@ -72,7 +73,7 @@ open class SupportTestUtil(
   private val frameworkResourceManager =
     ModuleResourceManagers.getInstance(facet).frameworkResourceManager
 
-  constructor(
+  private constructor(
     facet: AndroidFacet,
     fixture: CodeInsightTestFixture,
     vararg tags: String,
@@ -87,7 +88,7 @@ open class SupportTestUtil(
       .toMutableList()
   )
 
-  constructor(
+  private constructor(
     facet: AndroidFacet,
     fixture: CodeInsightTestFixture,
     component: ComponentDescriptor
@@ -102,14 +103,16 @@ open class SupportTestUtil(
     vararg tags: String,
     parentTag: String = "",
     resourceFolder: String = FD_RES_LAYOUT,
-    fileName: String = DEFAULT_FILENAME
+    fileName: String = DEFAULT_FILENAME,
+    activityName: String = ""
   ) : this(
     AndroidFacet.getInstance(projectRule.module)!!,
     projectRule.fixture,
     *tags,
     parentTag = parentTag,
     resourceFolder = resourceFolder,
-    fileName = fileName
+    fileName = fileName,
+    activityName = activityName
   )
 
   constructor(

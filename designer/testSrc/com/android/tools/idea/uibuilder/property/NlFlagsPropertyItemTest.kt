@@ -21,17 +21,31 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.property.testutils.PropertyTestCase
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.uibuilder.property.testutils.ComponentUtil.component
+import com.android.tools.idea.uibuilder.property.testutils.ComponentUtil.createComponents
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import org.intellij.lang.annotations.Language
+import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
-class NlFlagsPropertyItemTest : PropertyTestCase() {
+@RunsInEdt
+class NlFlagsPropertyItemTest {
+  private val projectRule = AndroidProjectRule.withSdk()
 
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  @Test
   fun testTextStyleProperty() {
     val components =
       createComponents(
+        projectRule,
         component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
       )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
@@ -47,9 +61,11 @@ class NlFlagsPropertyItemTest : PropertyTestCase() {
     assertThat(property.formattedValue).isEqualTo("[bold]")
   }
 
+  @Test
   fun testSetTextStyleProperty() {
     val components =
       createComponents(
+        projectRule,
         component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
       )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
@@ -63,9 +79,11 @@ class NlFlagsPropertyItemTest : PropertyTestCase() {
     assertThat(property.formattedValue).isEqualTo("[bold, italic]")
   }
 
+  @Test
   fun testSetAndResetTextStyleProperty() {
     val components =
       createComponents(
+        projectRule,
         component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
       )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
@@ -83,9 +101,11 @@ class NlFlagsPropertyItemTest : PropertyTestCase() {
     assertThat(property.formattedValue).isEqualTo("[italic]")
   }
 
+  @Test
   fun testCenterImpliesMultipleEffectiveFlags() {
     val components =
       createComponents(
+        projectRule,
         component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER)
       )
     val property = createFlagsPropertyItem(ATTR_GRAVITY, NlPropertyType.STRING, components)
@@ -102,10 +122,12 @@ class NlFlagsPropertyItemTest : PropertyTestCase() {
     assertThat(centerVertical.effectiveValue).isTrue()
   }
 
+  @Test
   fun testValidate() {
-    myFixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
+    projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
     val components =
       createComponents(
+        projectRule,
         component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER)
       )
     val property = createFlagsPropertyItem(ATTR_GRAVITY, NlPropertyType.STRING, components)
@@ -134,8 +156,9 @@ class NlFlagsPropertyItemTest : PropertyTestCase() {
     type: NlPropertyType,
     components: List<NlComponent>
   ): NlFlagsPropertyItem {
-    val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
+    val facet = AndroidFacet.getInstance(projectRule.module)!!
+    val model = NlPropertiesModel(projectRule.testRootDisposable, facet)
+    val resourceManagers = ModuleResourceManagers.getInstance(facet)
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     val definition =
       frameworkResourceManager
@@ -153,6 +176,6 @@ class NlFlagsPropertyItemTest : PropertyTestCase() {
       <string name="myGravity">start|bottom</string>
       <string name="errGravity">start|wednesday|end</string>
     </resources>
-  """
+    """
       .trimIndent()
 }

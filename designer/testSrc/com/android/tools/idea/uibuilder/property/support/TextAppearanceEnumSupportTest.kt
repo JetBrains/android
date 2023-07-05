@@ -19,6 +19,7 @@ import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.TEXT_VIEW
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
@@ -26,7 +27,12 @@ import com.android.tools.idea.uibuilder.property.testutils.EnumValueUtil
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.google.common.truth.Truth
 import com.intellij.openapi.command.WriteCommandAction
-import org.jetbrains.android.AndroidTestCase
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.RuleChain
 
 private const val PROJECT_TEXT_APPEARANCES =
   """
@@ -35,17 +41,22 @@ private const val PROJECT_TEXT_APPEARANCES =
     <style name="TextAppearance.Blue" parent="MyTextStyle"/>
 </resources>"""
 
-class TextAppearanceEnumSupportTest : AndroidTestCase() {
+@RunsInEdt
+class TextAppearanceEnumSupportTest {
+  private val projectRule = AndroidProjectRule.withSdk()
 
-  override fun setUp() {
-    super.setUp()
-    myFixture.addFileToProject("res/values/project_styles.xml", PROJECT_TEXT_APPEARANCES)
+  @get:Rule val chain = RuleChain.outerRule(projectRule).around(EdtRule())!!
+
+  @Before
+  fun setUp() {
+    projectRule.fixture.addFileToProject("res/values/project_styles.xml", PROJECT_TEXT_APPEARANCES)
   }
 
+  @Test
   fun testTextViewTextAppearanceWithAppCompat() {
     // setup
-    Dependencies.add(myFixture, APPCOMPAT_LIB_ARTIFACT_ID)
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    Dependencies.add(projectRule.fixture, APPCOMPAT_LIB_ARTIFACT_ID)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
 
     // test
@@ -99,9 +110,10 @@ class TextAppearanceEnumSupportTest : AndroidTestCase() {
     Truth.assertThat(index).isEqualTo(-1)
   }
 
+  @Test
   fun testTextViewTextAppearanceWithoutAppCompat() {
     // setup
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
 
     // test
@@ -155,9 +167,10 @@ class TextAppearanceEnumSupportTest : AndroidTestCase() {
     Truth.assertThat(index).isEqualTo(-1)
   }
 
+  @Test
   fun testTextViewTextAppearanceWithInvalidXmlTag() {
     // setup
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW)
+    val util = SupportTestUtil(projectRule, TEXT_VIEW)
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE)
     deleteXmlTag(property)
 
@@ -214,6 +227,6 @@ class TextAppearanceEnumSupportTest : AndroidTestCase() {
 
   private fun deleteXmlTag(property: NlPropertyItem) {
     val tag = property.components.first().backend.tag!!
-    WriteCommandAction.writeCommandAction(project).run<Throwable> { tag.delete() }
+    WriteCommandAction.writeCommandAction(projectRule.project).run<Throwable> { tag.delete() }
   }
 }

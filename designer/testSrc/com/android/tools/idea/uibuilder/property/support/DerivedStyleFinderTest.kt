@@ -23,10 +23,17 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceValueMap
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-class DerivedStyleFinderTest : AndroidTestCase() {
+class DerivedStyleFinderTest {
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
+
   private val android = ResourceNamespace.ANDROID
   private val auto = ResourceNamespace.RES_AUTO
   private var finder: DerivedStyleFinder? = null
@@ -134,17 +141,18 @@ class DerivedStyleFinderTest : AndroidTestCase() {
       theme
     )
 
-  override fun setUp() {
-    super.setUp()
-    finder = DerivedStyleFinder(myFacet, resolver)
+  @Before
+  fun setUp() {
+    finder = DerivedStyleFinder(AndroidFacet.getInstance(projectRule.module)!!, resolver)
   }
 
-  override fun tearDown() {
+  @After
+  fun tearDown() {
     finder = null
     resolver = null
-    super.tearDown()
   }
 
+  @Test
   fun testTextAppearances() {
     val textAppearanceStyle = resolve(android, "TextAppearance")
     val styles =
@@ -168,6 +176,7 @@ class DerivedStyleFinderTest : AndroidTestCase() {
       .inOrder()
   }
 
+  @Test
   fun testAppCompatThemes() {
     val appCompat = resolve(auto, "Theme.AppCompat")
     val styles =

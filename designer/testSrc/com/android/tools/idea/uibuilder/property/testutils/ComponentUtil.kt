@@ -16,11 +16,19 @@
 package com.android.tools.idea.uibuilder.property.testutils
 
 import com.android.SdkConstants
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.stripPrefixFromId
+import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
+import com.android.tools.idea.uibuilder.property.NlPropertiesModel
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.idea.uibuilder.property.NlPropertyType
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
 object ComponentUtil {
   fun component(tag: String): ComponentDescriptor = ComponentDescriptor(tag)
@@ -77,5 +85,30 @@ object ComponentUtil {
       else -> descriptors.mapNotNullTo(result) { nlModel.find(stripPrefixFromId(it.id!!)) }
     }
     return result
+  }
+
+  /** Create a [NlPropertyItem] for testing purposes. */
+  fun createPropertyItem(
+    projectRule: AndroidProjectRule,
+    attrNamespace: String,
+    attrName: String,
+    type: NlPropertyType,
+    components: List<NlComponent>,
+    model: NlPropertiesModel =
+      NlPropertiesModel(
+        projectRule.testRootDisposable,
+        AndroidFacet.getInstance(projectRule.module)!!
+      )
+  ): NlPropertyItem {
+    val nlModel = components[0].model as SyncNlModel
+    model.surface = nlModel.surface
+    val resourceManagers =
+      ModuleResourceManagers.getInstance(AndroidFacet.getInstance(projectRule.module)!!)
+    val frameworkResourceManager = resourceManagers.frameworkResourceManager
+    val definition =
+      frameworkResourceManager
+        ?.attributeDefinitions
+        ?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
+    return NlPropertyItem(attrNamespace, attrName, type, definition, "", "", model, components)
   }
 }
