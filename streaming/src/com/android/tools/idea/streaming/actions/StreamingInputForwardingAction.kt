@@ -20,7 +20,6 @@ import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.components.Service
@@ -61,6 +60,10 @@ internal class StreamingInputForwardingAction : ToggleAction("Input Forwarding")
 
   private fun getDeviceId(event: AnActionEvent): DeviceId? {
     return getDisplayView(event)?.deviceId
+  }
+
+  companion object {
+    const val ACTION_ID = "android.streaming.input.forwarding"
   }
 }
 

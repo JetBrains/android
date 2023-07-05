@@ -20,12 +20,14 @@ import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.streaming.actions.InputForwardingStateStorage
+import com.android.tools.idea.streaming.actions.StreamingInputForwardingAction
 import com.intellij.ide.DataManager
 import com.intellij.ide.KeyboardAwareFocusOwner
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.components.service
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
@@ -305,8 +307,15 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   protected fun isInputForwardingEnabled(): Boolean =
       getProject()?.service<InputForwardingStateStorage>()?.isInputForwardingEnabled(deviceId) ?: false
 
-  override fun skipKeyEventDispatcher(event: KeyEvent): Boolean =
-      isInputForwardingEnabled()
+  final override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
+    if (!isInputForwardingEnabled()) return false
+    val stroke = KeyStroke.getKeyStrokeForEvent(event)
+    for (keyStroke in KeymapUtil.getKeyStrokes(
+        KeymapUtil.getActiveKeymapShortcuts(StreamingInputForwardingAction.ACTION_ID))) {
+      if (stroke == keyStroke) return false
+    }
+    return true
+  }
 
   internal abstract fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean)
 

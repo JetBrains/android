@@ -61,6 +61,8 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
+import com.intellij.openapi.actionSystem.KeyboardShortcut
+import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
@@ -751,6 +753,18 @@ class EmulatorViewTest {
     val view = emulatorViewRule.newEmulatorView()
     emulatorViewRule.executeAction("android.streaming.input.forwarding", view)
     assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(), 0, VK_M, VK_M.toChar()))).isTrue()
+  }
+
+  @Test
+  fun testKeyPreprocessingNotSkippedForActionTogglingInputForwarding() {
+    val view = emulatorViewRule.newEmulatorView()
+    emulatorViewRule.executeAction("android.streaming.input.forwarding", view)
+    val keymapManager = KeymapManager.getInstance()
+    keymapManager.activeKeymap.addShortcut("android.streaming.input.forwarding", KeyboardShortcut.fromString("control shift J"))
+
+    assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.nanoTime(),
+                                                    KeyEvent.SHIFT_DOWN_MASK or KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_J,
+                                                    KeyEvent.CHAR_UNDEFINED))).isFalse()
   }
 
   @Test

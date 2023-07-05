@@ -71,7 +71,9 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_PASTE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_REDO
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_SELECT_ALL
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_UNDO
+import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.ide.CopyPasteManager
+import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
@@ -703,6 +705,18 @@ internal class DeviceViewTest {
 
     assertThat(view.skipKeyEventDispatcher(
       KeyEvent(view, KEY_PRESSED, System.nanoTime(), 0, KeyEvent.VK_M, KeyEvent.VK_M.toChar()))).isTrue()
+  }
+
+  @Test
+  fun testKeyPreprocessingNotSkippedForActionTogglingInputForwarding() {
+    createDeviceView(250, 500)
+    executeStreamingAction("android.streaming.input.forwarding", view, project)
+    val keymapManager = KeymapManager.getInstance()
+    keymapManager.activeKeymap.addShortcut("android.streaming.input.forwarding", KeyboardShortcut.fromString("control shift J"))
+
+    assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KeyEvent.KEY_PRESSED, System.nanoTime(),
+                                                    KeyEvent.SHIFT_DOWN_MASK or KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_J,
+                                                    KeyEvent.CHAR_UNDEFINED))).isFalse()
   }
 
   @Test
