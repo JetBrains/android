@@ -85,21 +85,20 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
-    validateGradleFile(); //Validate Gradle file contains Material 3 dependencies
     validateMainActivity();//Validate MainActivity has @Composable
-    /*
-    // This needs to be enabled once Gradle Version Catalog is enabled by default
     guiTest.ideFrame().getProjectView().assertFilesExist(
     "gradle/libs.versions.toml"
     );
     validateTomlForMaterial3();
-     */
   }
 
   @Test
   public void  testNoActivityTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(0));
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
   @Test
@@ -107,18 +106,29 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(2));
     assertThat(buildProjectStatus).isTrue();
     validateThemeFile("app/src/main/res/values/themes.xml");
+    validateViewBindingInGradleFile();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
   @Test
   public void  testEmptyViewsActivityTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(4));
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
   @Test
   public void  testResponsiveViewsActivityTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(6));
     assertThat(buildProjectStatus).isTrue();
+    validateViewBindingInGradleFile();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
   private void validateMainActivity() {
@@ -126,12 +136,9 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
       assertThat((mainActivityContents).contains("@Composable")).isTrue();
   }
 
-  private void validateGradleFile() {
+  private void validateViewBindingInGradleFile() {
     String buildGradleContents = guiTest.getProjectFileText("app/build.gradle.kts");
-    assertThat((buildGradleContents).contains("implementation(\"androidx.compose.ui:ui\")")).isTrue();
-    assertThat((buildGradleContents).contains("implementation(\"androidx.compose.material3:material3\")")).isTrue();
-    assertThat((buildGradleContents).contains("implementation(\"androidx.compose.ui:ui-tooling-preview\")")).isTrue();
-    assertThat((buildGradleContents).contains("debugImplementation(\"androidx.compose.ui:ui-tooling\")")).isTrue();
+    assertThat((buildGradleContents).contains("viewBinding = true")).isTrue();
   }
 
   private void validateTomlForMaterial3() {

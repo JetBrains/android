@@ -88,6 +88,9 @@ public class VerifyNpwAutomotiveTemplatesTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
 
@@ -95,12 +98,18 @@ public class VerifyNpwAutomotiveTemplatesTest {
   public void  testNoActivityTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, automotiveTab, expectedTemplates.get(0));
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
   @Test
   public void  testMessagingServiceTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, automotiveTab, expectedTemplates.get(2));
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
 }

@@ -50,12 +50,23 @@ public class VerifyNpwPhoneAndTabletCppTemplatesTest {
   public void  testGameActivityCppTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createCppProject(guiTest, selectMobileTab, expectedTemplates.get(0));
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
   @Test
   public void  testNativeCppTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createCppProject(guiTest, selectMobileTab, expectedTemplates.get(1));
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
+    validateViewBindingInGradleFile();
   }
 
+  private void validateViewBindingInGradleFile() {
+    String buildGradleContents = guiTest.getProjectFileText("app/build.gradle.kts");
+    assertThat((buildGradleContents).contains("viewBinding = true")).isTrue();
+  }
 }

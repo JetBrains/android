@@ -83,12 +83,17 @@ public class VerifyNpwAndroidTVTemplatesTest {
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
-
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 
   @Test
   public void  testNoActivityTemplate() {
     boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectTVTab, expectedTemplates.get(0));
     assertThat(buildProjectStatus).isTrue();
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+      "gradle/libs.versions.toml"
+    );
   }
 }
