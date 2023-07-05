@@ -46,5 +46,10 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module, test]",
+        "//tools/base/studio-grpc-testutils:studio.studio-grpc-testutils[module, test]",
+        "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui[module, test]",
+        "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view[module, test]",
+        "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
     ],
 )

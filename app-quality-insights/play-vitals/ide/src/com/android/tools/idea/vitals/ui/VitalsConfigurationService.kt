@@ -67,11 +67,10 @@ import org.jetbrains.annotations.VisibleForTesting
 class VitalsConfigurationService(project: Project) : Disposable {
   private val cache = AppInsightsCacheImpl()
 
-  val manager = VitalsConfigurationManager(project, cache, VitalsClient(this, cache))
-
-  init {
-    Disposer.register(this, manager)
-  }
+  val manager: AppInsightsConfigurationManager =
+    VitalsConfigurationManager(project, cache, VitalsClient(this, cache)).also {
+      Disposer.register(this, it)
+    }
 
   override fun dispose() = Unit
 }
