@@ -478,6 +478,8 @@ public class Scene implements SelectionListener, Disposable {
         nlComponents.addAll(selection);
       }
       for (SceneComponent sceneComponent : components) {
+        if (sceneComponent == null) continue;
+
         NlComponent nlComponent = sceneComponent.getNlComponent();
         if ((isShiftDown() || isCtrlMetaDown()) && nlComponents.contains(nlComponent)) {
           // if shift is pressed and the component is already selected, remove it from the selection
@@ -1002,14 +1004,15 @@ public class Scene implements SelectionListener, Disposable {
     SecondarySelector secondarySelector = getSecondarySelector(transform, x, y);
 
     boolean same = sameSelection();
-    if (same && myHitListener.getTopHitComponent() != closestComponent
+    SceneComponent topHitComponent = myHitListener.getTopHitComponent();
+    if (same && topHitComponent != closestComponent
         && isWithinThreshold(myPressedMouseX, x, transform)
         && isWithinThreshold(myPressedMouseY, y, transform)) {
       // if the hit target ended up selecting the same component -- but
       // we have a /different/ top component, we should select it instead.
       // Let's only do that though if there was no drag action.
       myNewSelectedComponentsOnRelease.clear();
-      myNewSelectedComponentsOnRelease.add(myHitListener.getTopHitComponent());
+      myNewSelectedComponentsOnRelease.add(topHitComponent);
       myHitTarget = null;
       same = sameSelection();
     }
