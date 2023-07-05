@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssueNotificationHyperlink;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
@@ -26,21 +25,21 @@ import org.jetbrains.annotations.NotNull;
 
 public class ShowDependencyInProjectStructureHyperlink extends SyncIssueNotificationHyperlink {
   @NotNull private final Module myModule;
-  @NotNull private final GradleCoordinate myDependency;
+  @NotNull private final String myDependencyString;
 
-  public ShowDependencyInProjectStructureHyperlink(@NotNull Module module, @NotNull GradleCoordinate dependency) {
+  public ShowDependencyInProjectStructureHyperlink(@NotNull Module module, @NotNull String dependencyString) {
     super("open.dependency.in.project.structure",
           "Show in Project Structure dialog",
           AndroidStudioEvent.GradleSyncQuickFix.SHOW_DEPENDENCY_IN_PROJECT_STRUCTURE_HYPERLINK);
     myModule = module;
-    myDependency = dependency;
+    myDependencyString = dependencyString;
   }
 
   @Override
   protected void execute(@NotNull Project project) {
     ProjectSettingsService service = ProjectSettingsService.getInstance(project);
     if (service instanceof AndroidProjectSettingsService) {
-      ((AndroidProjectSettingsService)service).openAndSelectDependency(myModule, myDependency);
+      ((AndroidProjectSettingsService)service).openAndSelectDependency(myModule, myDependencyString);
     }
   }
 }

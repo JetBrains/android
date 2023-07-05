@@ -20,7 +20,6 @@ import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurab
 import static com.android.tools.idea.structure.dialog.ProjectStructureConfigurableKt.canShowPsdOrWarnUser;
 import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getGradleIdentityPathOrNull;
 
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.BuildVariantsPerspectiveConfigurableKt;
@@ -145,12 +144,12 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   }
 
   @Override
-  public void openAndSelectDependency(@NotNull Module module, @NotNull GradleCoordinate dependency) {
+  public void openAndSelectDependency(@NotNull Module module, @NotNull String dependencyString) {
     showNewPsd(
       new Place()
         .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
         .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleIdentityPathOrNull(module))
-        .putPath(DeclaredDependenciesPanelKt.MODULE_DEPENDENCIES_PLACE_NAME, dependency.toString())
+        .putPath(DeclaredDependenciesPanelKt.MODULE_DEPENDENCIES_PLACE_NAME, dependencyString)
     );
   }
 
