@@ -24,5 +24,6 @@ import org.jetbrains.android.dom.AndroidResourceDomFileDescription.Companion.isF
 object LayoutFileType : LayoutEditorFileType("layout") {
   override fun getLayoutEditorStateType() = LayoutEditorState.Type.LAYOUT
 
-  override fun isResourceTypeOf(file: PsiFile) = file is XmlFile && isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)
+  override fun isResourceTypeOf(file: PsiFile) =
+    file is XmlFile && isFileInResourceFolderType(file, ResourceFolderType.LAYOUT)
 }

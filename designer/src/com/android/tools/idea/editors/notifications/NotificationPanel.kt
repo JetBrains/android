@@ -27,19 +27,20 @@ import javax.swing.JPanel
 import kotlin.streams.asSequence
 
 /**
- * A panel that displays notifications or hides itself if there are none. It is intended to be used together with a [FileEditor] and
- * utilizes the mechanism of [EditorNotifications.Provider]s extending [epName] extension point to get [EditorNotificationPanel]s to
- * display.
+ * A panel that displays notifications or hides itself if there are none. It is intended to be used
+ * together with a [FileEditor] and utilizes the mechanism of [EditorNotifications.Provider]s
+ * extending [epName] extension point to get [EditorNotificationPanel]s to display.
  */
 class NotificationPanel(
-  private val NOTIFICATIONS_EP_NAME: ExtensionPointName<EditorNotifications.Provider<EditorNotificationPanel>>
+  private val NOTIFICATIONS_EP_NAME:
+    ExtensionPointName<EditorNotifications.Provider<EditorNotificationPanel>>
 ) : JPanel(VerticalLayout(0)) {
 
-  private val notificationsPanel: Box = Box.createVerticalBox().apply {
-    name = "NotificationsPanel"
-  }
+  private val notificationsPanel: Box =
+    Box.createVerticalBox().apply { name = "NotificationsPanel" }
 
-  // The notificationsWrapper helps pushing the notifications to the top of the layout. This whole panel will be hidden if no notifications
+  // The notificationsWrapper helps pushing the notifications to the top of the layout. This whole
+  // panel will be hidden if no notifications
   // are available.
   init {
     add(notificationsPanel, VerticalLayout.FILL_HORIZONTAL)
@@ -50,16 +51,13 @@ class NotificationPanel(
     NOTIFICATIONS_EP_NAME.extensionList
       .asSequence()
       .mapNotNull { it.createNotificationPanel(virtualFile, parentEditor, project) }
-      .forEach {
-        notificationsPanel.add(it)
-      }
+      .forEach { notificationsPanel.add(it) }
 
     // If no notification panels were added, we will hide the notifications panel
     if (notificationsPanel.componentCount > 0) {
       isVisible = true
       notificationsPanel.revalidate()
-    }
-    else {
+    } else {
       isVisible = false
     }
   }

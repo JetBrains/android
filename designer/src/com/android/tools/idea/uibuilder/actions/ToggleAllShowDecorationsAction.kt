@@ -27,15 +27,19 @@ import com.intellij.util.ui.LafIconLookup
 
 class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
   ToggleViewAction(null, LafIconLookup.getIcon("checkmark"), label, label) {
-  override fun isSelected(editor: ViewEditor,
-                          handler: ViewHandler,
-                          parent: NlComponent,
-                          selectedChildren: MutableList<NlComponent>): Boolean {
+  override fun isSelected(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    parent: NlComponent,
+    selectedChildren: MutableList<NlComponent>
+  ): Boolean {
     val surface = editor.scene.designSurface
-    val isSelected = surface.models
-             .firstOrNull()
-             ?.let { surface.getSceneManager(it) as? LayoutlibSceneManager }
-             ?.isShowingDecorations ?: false
+    val isSelected =
+      surface.models
+        .firstOrNull()
+        ?.let { surface.getSceneManager(it) as? LayoutlibSceneManager }
+        ?.isShowingDecorations
+        ?: false
     // A selected state could need to change to unselected due to changing to a wear device.
     // Make sure to update the selection here in such scenario
     if (isSelected && editor.configuration.device.isWear()) {
@@ -45,11 +49,13 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
     return isSelected
   }
 
-  override fun setSelected(editor: ViewEditor,
-                           handler: ViewHandler,
-                           parent: NlComponent,
-                           selectedChildren: MutableList<NlComponent>,
-                           selected: Boolean) {
+  override fun setSelected(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    parent: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    selected: Boolean
+  ) {
     setSelected(editor, selected)
   }
 
@@ -61,21 +67,31 @@ class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
     surface.models
       .mapNotNull { surface.getSceneManager(it) as? LayoutlibSceneManager }
       .forEach { it.setShowDecorations(selected) }
-    // Changing the decoration needs to rebuild the RenderTask, so we have to force re-render the layouts.
+    // Changing the decoration needs to rebuild the RenderTask, so we have to force re-render the
+    // layouts.
     surface.forceRefresh()
   }
 
-  override fun updatePresentation(presentation: ViewActionPresentation,
-                                  editor: ViewEditor,
-                                  handler: ViewHandler,
-                                  component: NlComponent,
-                                  selectedChildren: MutableList<NlComponent>,
-                                  modifiers: Int,
-                                  selected: Boolean) {
-    super.updatePresentation(presentation, editor, handler, component, selectedChildren, modifiers, selected)
+  override fun updatePresentation(
+    presentation: ViewActionPresentation,
+    editor: ViewEditor,
+    handler: ViewHandler,
+    component: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    modifiers: Int,
+    selected: Boolean
+  ) {
+    super.updatePresentation(
+      presentation,
+      editor,
+      handler,
+      component,
+      selectedChildren,
+      modifiers,
+      selected
+    )
     presentation.setEnabled(!editor.configuration.device.isWear())
   }
 
-  private fun Device?.isWear() =
-    this?.tagId?.contains("wear") ?: false
+  private fun Device?.isWear() = this?.tagId?.contains("wear") ?: false
 }

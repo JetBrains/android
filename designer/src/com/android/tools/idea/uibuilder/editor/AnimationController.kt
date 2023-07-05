@@ -15,33 +15,26 @@
  */
 package com.android.tools.idea.uibuilder.editor
 
-/**
- * Interface to control how to preview the animation.
- */
+/** Interface to control how to preview the animation. */
 interface AnimationController {
-  /**
-   * Indicates that the elapsed frame of animation needs to be setup again.
-   */
+  /** Indicates that the elapsed frame of animation needs to be setup again. */
   var forceElapsedReset: Boolean
 
   fun play()
   fun pause()
   fun stop()
 
-  /**
-   * Get the current [PlayStatus] of the controlled animation.
-   */
+  /** Get the current [PlayStatus] of the controlled animation. */
   fun getPlayStatus(): PlayStatus
 
   /**
-   * Sets a new frame position. If newPositionMs is outside of the min and max values, the value will be truncated to be within the range.
+   * Sets a new frame position. If newPositionMs is outside of the min and max values, the value
+   * will be truncated to be within the range.
    */
   fun setFrameMs(frameMs: Long)
   fun getFrameMs(): Long
 
-  /**
-   * Note: Set max time as -1 means it is an unlimited animation.
-   */
+  /** Note: Set max time as -1 means it is an unlimited animation. */
   fun setMaxTimeMs(maxTimeMs: Long)
   fun getMaxTimeMs(): Long
 
@@ -52,21 +45,13 @@ interface AnimationController {
 }
 
 enum class PlayStatus {
-  /**
-   * The animation is playing.
-   */
+  /** The animation is playing. */
   PLAY,
-  /**
-   * The animation is paused. The animation frame is same as the last shown frame.
-   */
+  /** The animation is paused. The animation frame is same as the last shown frame. */
   PAUSE,
-  /**
-   * The animation is reset. The animation frame is same as its initial value.
-   */
+  /** The animation is reset. The animation frame is same as its initial value. */
   STOP,
-  /**
-   * The played animation reaches the end itself. The animation frame is same as its max time.
-   */
+  /** The played animation reaches the end itself. The animation frame is same as its max time. */
   COMPLETE
 }
 

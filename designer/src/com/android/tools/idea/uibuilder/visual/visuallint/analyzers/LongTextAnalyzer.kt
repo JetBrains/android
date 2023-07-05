@@ -27,14 +27,10 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
-/**
- * Maximum length of a line of text, according to Material Design guidelines.
- */
+/** Maximum length of a line of text, according to Material Design guidelines. */
 private const val MAX_LENGTH = 120
 
-/**
- * [VisualLintAnalyzer] for issues where a line of text is longer than [MAX_LENGTH] characters.
- */
+/** [VisualLintAnalyzer] for issues where a line of text is longer than [MAX_LENGTH] characters. */
 object LongTextAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.LONG_TEXT
@@ -42,7 +38,10 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
   override val backgroundEnabled: Boolean
     get() = LongTextAnalyzerInspection.longTextBackground
 
-  override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
+  override fun findIssues(
+    renderResult: RenderResult,
+    model: NlModel
+  ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {
@@ -65,7 +64,9 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
       }
     }
     val data =
-      (view.accessibilityObject as? AccessibilityNodeInfo)?.extras?.getParcelableArray(EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY, RectF::class.java)
+      (view.accessibilityObject as? AccessibilityNodeInfo)
+        ?.extras
+        ?.getParcelableArray(EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY, RectF::class.java)
     if (!data.isNullOrEmpty()) {
       var lineBottom = data[0]?.bottom ?: return false
       var charCount = 1
@@ -89,10 +90,13 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
 
   private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
     val summary = "${nameWithId(view)} has lines containing more than 120 characters"
-    val url = "https://m3.material.io/foundations/layout/applying-layout/window-size-classes#a9594611-a6d4-4dce-abcb-15e7dd431f8a"
+    val url =
+      "https://m3.material.io/foundations/layout/applying-layout/window-size-classes#a9594611-a6d4-4dce-abcb-15e7dd431f8a"
     val provider = { count: Int ->
       HtmlBuilder()
-        .add("${simpleName(view)} has lines containing more than 120 characters in ${previewConfigurations(count)}.")
+        .add(
+          "${simpleName(view)} has lines containing more than 120 characters in ${previewConfigurations(count)}."
+        )
         .newline()
         .add("Material Design recommends reducing the width of TextView or switching to a ")
         .addLink("multi-column layout", url)
@@ -102,7 +106,8 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-class LongTextAnalyzerInspection: VisualLintInspection(VisualLintErrorType.LONG_TEXT, "longTextBackground") {
+class LongTextAnalyzerInspection :
+  VisualLintInspection(VisualLintErrorType.LONG_TEXT, "longTextBackground") {
   companion object {
     var longTextBackground = true
   }

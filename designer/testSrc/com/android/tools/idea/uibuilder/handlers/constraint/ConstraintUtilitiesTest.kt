@@ -25,9 +25,15 @@ class ConstraintUtilitiesTest : TestCase() {
     TestCase.assertEquals("B < A", ConstraintUtilities.replaceSpecialChars("B &lt; A"))
     TestCase.assertEquals("A & B", ConstraintUtilities.replaceSpecialChars("A &amp; B"))
     TestCase.assertEquals("A&B", ConstraintUtilities.replaceSpecialChars("A&amp;B"))
-    TestCase.assertEquals("\"Hello world\"",ConstraintUtilities.replaceSpecialChars("&quot;Hello world&quot;"))
+    TestCase.assertEquals(
+      "\"Hello world\"",
+      ConstraintUtilities.replaceSpecialChars("&quot;Hello world&quot;")
+    )
     TestCase.assertEquals("A' B", ConstraintUtilities.replaceSpecialChars("A&apos; B"))
-    TestCase.assertEquals("A&gt;&gt;B", ConstraintUtilities.replaceSpecialChars("A&amp;gt;&amp;gt;B"))
+    TestCase.assertEquals(
+      "A&gt;&gt;B",
+      ConstraintUtilities.replaceSpecialChars("A&amp;gt;&amp;gt;B")
+    )
     TestCase.assertEquals("Aamp;&amp;", ConstraintUtilities.replaceSpecialChars("Aamp;&amp;amp;"))
   }
 }

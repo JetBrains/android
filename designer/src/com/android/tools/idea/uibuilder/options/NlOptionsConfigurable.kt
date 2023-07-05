@@ -24,12 +24,12 @@ import com.intellij.ui.dsl.builder.labelTable
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.selected
 import com.intellij.util.messages.Topic
-import org.jetbrains.android.uipreview.AndroidEditorSettings
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.GraphicsEnvironment
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JSlider
+import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val CONFIGURABLE_ID = "nele.options"
 private val DISPLAY_NAME =
@@ -50,7 +50,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
       val TOPIC: Topic<Listener> = Topic(Listener::class.java, Topic.BroadcastDirection.TO_CHILDREN)
     }
 
-    fun onOptionsChanged();
+    fun onOptionsChanged()
   }
 
   private fun fireOptionsChanged() =
@@ -152,47 +152,47 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
               row {
                 comment(
                   "Note: Resource usage cannot be changed when Android Studio Essentials Mode is enabled. In this case, Compose Preview " +
-                  "resource usage will be overridden to Essentials."
+                    "resource usage will be overridden to Essentials."
                 )
               }
             }
 
             lateinit var defaultModeRadioButton: Cell<JBRadioButton>
             row {
-              defaultModeRadioButton =
-                radioButton("Default")
-                  .bindSelected({ !state.isComposePreviewEssentialsModeEnabled }) {
+                defaultModeRadioButton =
+                  radioButton("Default").bindSelected({
+                    !state.isComposePreviewEssentialsModeEnabled
+                  }) {
                     state.isComposePreviewEssentialsModeEnabled = !it
                   }
-            }.enabled(!EssentialsMode.isEnabled())
-            indent {
-              row {
-                checkBox("Enable live updates")
-                  .bindSelected(fastPreviewState::isEnabled) {
-                    fastPreviewState.isEnabled = it
-                  }
-                  .enabledIf(defaultModeRadioButton.selected)
               }
-            }.enabled(!EssentialsMode.isEnabled())
+              .enabled(!EssentialsMode.isEnabled())
+            indent {
+                row {
+                  checkBox("Enable live updates")
+                    .bindSelected(fastPreviewState::isEnabled) { fastPreviewState.isEnabled = it }
+                    .enabledIf(defaultModeRadioButton.selected)
+                }
+              }
+              .enabled(!EssentialsMode.isEnabled())
             row {
-              val essentialsModeHint =
-                "Preview will preserve resources by inflating previews on demand, and disabling live updates and preview modes. " +
-                "<a href=\"https://developer.android.com/jetpack/compose/tooling/previews\">Learn more</a>"
+                val essentialsModeHint =
+                  "Preview will preserve resources by inflating previews on demand, and disabling live updates and preview modes. " +
+                    "<a href=\"https://developer.android.com/jetpack/compose/tooling/previews\">Learn more</a>"
 
-              radioButton("Essentials")
-                .comment(essentialsModeHint)
-                .bindSelected(state::isComposePreviewEssentialsModeEnabled) {
+                radioButton("Essentials").comment(essentialsModeHint).bindSelected(
+                  state::isComposePreviewEssentialsModeEnabled
+                ) {
                   state.isComposePreviewEssentialsModeEnabled = it
                 }
-            }.enabled(!EssentialsMode.isEnabled())
-          }
-        }
-        else {
-          row {
-            checkBox("Enable live updates")
-              .bindSelected(fastPreviewState::isEnabled) {
-                fastPreviewState.isEnabled = it
               }
+              .enabled(!EssentialsMode.isEnabled())
+          }
+        } else {
+          row {
+            checkBox("Enable live updates").bindSelected(fastPreviewState::isEnabled) {
+              fastPreviewState.isEnabled = it
+            }
           }
         }
       }

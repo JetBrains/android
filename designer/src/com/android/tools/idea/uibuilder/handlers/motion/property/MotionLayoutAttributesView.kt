@@ -38,7 +38,6 @@ import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel
 import com.android.tools.idea.uibuilder.property.ui.TransformsPanel
 import com.android.tools.idea.uibuilder.property.ui.spring.SpringWidget
 import com.android.tools.idea.uibuilder.property.ui.spring.SpringWidgetModel
-import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.FilteredPTableModel
 import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
@@ -55,26 +54,26 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.util.Ref
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
-import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JSeparator
 import javax.swing.SwingConstants
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val MOTION_VIEW_NAME = "Motion"
-private val CONSTRAINT_SECTIONS = listOf(
-  MotionSceneAttrs.Tags.LAYOUT,
-  MotionSceneAttrs.Tags.MOTION,
-  MotionSceneAttrs.Tags.PROPERTY_SET,
-  MotionSceneAttrs.Tags.TRANSFORM
-)
+private val CONSTRAINT_SECTIONS =
+  listOf(
+    MotionSceneAttrs.Tags.LAYOUT,
+    MotionSceneAttrs.Tags.MOTION,
+    MotionSceneAttrs.Tags.PROPERTY_SET,
+    MotionSceneAttrs.Tags.TRANSFORM
+  )
 
-/**
- * [PropertiesView] for motion layout property editor.
- */
-class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : PropertiesView<NlPropertyItem>(MOTION_VIEW_NAME, model) {
+/** [PropertiesView] for motion layout property editor. */
+class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) :
+  PropertiesView<NlPropertyItem>(MOTION_VIEW_NAME, model) {
 
   init {
     val enumSupportProvider = NlEnumSupportProvider(model)
@@ -86,7 +85,9 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
   }
 
   @VisibleForTesting
-  class MotionInspectorBuilder @VisibleForTesting constructor(
+  class MotionInspectorBuilder
+  @VisibleForTesting
+  constructor(
     private val model: MotionLayoutAttributesModel,
     private val tableUIProvider: TableUIProvider,
     private val enumSupportProvider: NlEnumSupportProvider
@@ -94,24 +95,50 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
 
     private val myDescriptorProvider = AndroidDomElementDescriptorProvider()
 
-    override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NlPropertyItem>) {
+    override fun attachToInspector(
+      inspector: InspectorPanel,
+      properties: PropertiesTable<NlPropertyItem>
+    ) {
       val any = properties.first ?: return
       val selection = any.optionalValue1 as MotionSelection? ?: return
 
       when (selection.type) {
         MotionEditorSelector.Type.CONSTRAINT -> {
           val showConstraintPanel = !shouldDisplaySection(MotionSceneAttrs.Tags.LAYOUT, selection)
-          addPropertyTable(inspector, selection, MotionSceneAttrs.Tags.CONSTRAINT, model, true, false, showConstraintPanel)
+          addPropertyTable(
+            inspector,
+            selection,
+            MotionSceneAttrs.Tags.CONSTRAINT,
+            model,
+            true,
+            false,
+            showConstraintPanel
+          )
           addTransforms(inspector, model, properties)
           val attributes = ArrayList<String>()
           attributes.add("transitionEasing")
           attributes.add("pathMotionArc")
           attributes.add("transitionPathRotate")
-          addTransition(inspector, InspectorSection.TRANSITION, model, "transitionEasing", properties, attributes)
+          addTransition(
+            inspector,
+            InspectorSection.TRANSITION,
+            model,
+            "transitionEasing",
+            properties,
+            attributes
+          )
           addSubTagSections(inspector, selection, model)
         }
         MotionEditorSelector.Type.TRANSITION -> {
-          addPropertyTable(inspector, selection, selection.motionSceneTagName, model, false, false, false)
+          addPropertyTable(
+            inspector,
+            selection,
+            selection.motionSceneTagName,
+            model,
+            false,
+            false,
+            false
+          )
           val attributes = ArrayList<String>()
           attributes.add("motionInterpolator")
           attributes.add("staggered")
@@ -129,7 +156,15 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
           addSubTagSections(inspector, selection, model)
         }
         else -> {
-          addPropertyTable(inspector, selection, selection.motionSceneTagName, model, false, false, false)
+          addPropertyTable(
+            inspector,
+            selection,
+            selection.motionSceneTagName,
+            model,
+            false,
+            false,
+            false
+          )
           val allProperties = model.allProperties
           if (allProperties.containsKey("KeyAttribute")) {
             addTransforms(inspector, model, properties)
@@ -158,8 +193,13 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
       }
     }
 
-    private fun addTransforms(inspector: InspectorPanel, model: MotionLayoutAttributesModel, properties: PropertiesTable<NlPropertyItem>) {
-      val titleModel = inspector.addExpandableTitle(InspectorSection.TRANSFORMS.title, false, emptyList())
+    private fun addTransforms(
+      inspector: InspectorPanel,
+      model: MotionLayoutAttributesModel,
+      properties: PropertiesTable<NlPropertyItem>
+    ) {
+      val titleModel =
+        inspector.addExpandableTitle(InspectorSection.TRANSFORMS.title, false, emptyList())
       inspector.addComponent(TransformsPanel(model, properties), titleModel)
       val rotationAttributes = ArrayList<String>()
       rotationAttributes.add("rotationX")
@@ -216,15 +256,26 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
       model: MotionLayoutAttributesModel
     ) {
       val xmlTag = selection.getXmlTag(selection.motionSceneTag)
-      val elementDescriptor = (if (xmlTag != null) myDescriptorProvider.getDescriptor(xmlTag) else null) ?: return
+      val elementDescriptor =
+        (if (xmlTag != null) myDescriptorProvider.getDescriptor(xmlTag) else null) ?: return
       val subTagDescriptors = elementDescriptor.getElementsDescriptors(xmlTag)
       for (descriptor in subTagDescriptors) {
         val subTagName = descriptor.name
         if (subTagName != MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE) {
           val showConstraintWidget = subTagName == MotionSceneAttrs.Tags.LAYOUT
           val subModel = SubTagAttributesModel(model, subTagName)
-          addPropertyTable(inspector, selection, subTagName, subModel, true, true, showConstraintWidget)
-          if (MotionSceneAttrs.Tags.ON_SWIPE == subTagName && StudioFlags.NELE_ON_SWIPE_PANEL.get()) {
+          addPropertyTable(
+            inspector,
+            selection,
+            subTagName,
+            subModel,
+            true,
+            true,
+            showConstraintWidget
+          )
+          if (
+            MotionSceneAttrs.Tags.ON_SWIPE == subTagName && StudioFlags.NELE_ON_SWIPE_PANEL.get()
+          ) {
             val titleModel = inspector.addExpandableTitle("OnSwipe Behaviour", true, emptyList())
             val springModel: SpringWidgetModel = MotionLayoutSpringModel(model)
             val springPanel = SpringWidget.panelWithUI(springModel)
@@ -247,7 +298,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
       val customLineModelRef = Ref<TableLineModel>(null)
       val filter: (NlPropertyItem) -> Boolean = { item: NlPropertyItem ->
         item.namespace.isEmpty() &&
-        (item.rawValue != null || showDefaultValues && item.defaultValue != null)
+          (item.rawValue != null || showDefaultValues && item.defaultValue != null)
       }
       val deleteOp: (NlPropertyItem) -> Unit = {}
       val insertOp: (String, String) -> NlPropertyItem? = { name: String, value: String? ->
@@ -260,11 +311,23 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
         }
         null
       }
-      val tableModel = FilteredPTableModel(customModel, filter, insertOp, deleteOp, alphabeticalSortOrder, emptyList(), false, true,
-                                           { true }, { false })
+      val tableModel =
+        FilteredPTableModel(
+          customModel,
+          filter,
+          insertOp,
+          deleteOp,
+          alphabeticalSortOrder,
+          emptyList(),
+          false,
+          true,
+          { true },
+          { false }
+        )
       val addFieldAction = AddCustomFieldAction(this.model, selection)
       val deleteFieldAction = DeleteCustomFieldAction()
-      val actions: List<AnAction> = ImmutableList.builder<AnAction>().add(addFieldAction).add(deleteFieldAction).build()
+      val actions: List<AnAction> =
+        ImmutableList.builder<AnAction>().add(addFieldAction).add(deleteFieldAction).build()
       val title = inspector.addExpandableTitle("CustomAttributes", true, actions)
       val lineModel = inspector.addTable(tableModel, true, tableUIProvider, actions, title)
       inspector.addComponent(EmptyTablePanel(addFieldAction, lineModel), title)
@@ -273,7 +336,10 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
       customLineModelRef.set(lineModel)
     }
 
-    private fun findCustomTypeFromName(attrName: String, selection: MotionSelection): CustomAttributeType? {
+    private fun findCustomTypeFromName(
+      attrName: String,
+      selection: MotionSelection
+    ): CustomAttributeType? {
       val component = selection.componentForCustomAttributeCompletions ?: return null
       for (type in CustomAttributeType.values()) {
         val attributes = MotionAttributes.getCustomAttributesFor(component, type.tagName)
@@ -299,24 +365,36 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
       val any = model.properties.first
       val filter = { item: NlPropertyItem ->
         item.namespace.isNotEmpty() &&
-        (item.rawValue != null || showDefaultValues && item.defaultValue != null)
+          (item.rawValue != null || showDefaultValues && item.defaultValue != null)
       }
       val deleteOp = { item: NlPropertyItem -> item.value = null }
       val insertOp = { name: String?, value: String? ->
-        val newProperty = NlNewPropertyItem(
-          (model as MotionLayoutAttributesModel),
-          model.properties,
-          { item: NlPropertyItem -> item.rawValue == null },
-          {})
+        val newProperty =
+          NlNewPropertyItem(
+            (model as MotionLayoutAttributesModel),
+            model.properties,
+            { item: NlPropertyItem -> item.rawValue == null },
+            {}
+          )
         newProperty.name = name!!
         if (newProperty.delegate != null) {
           newProperty.value = value
           newProperty
-        }
-        else null
+        } else null
       }
-      val tableModel = FilteredPTableModel(model, filter, insertOp, deleteOp, alphabeticalSortOrder, emptyList(), true, true,
-                                           { it !is MotionIdPropertyItem }, { false })
+      val tableModel =
+        FilteredPTableModel(
+          model,
+          filter,
+          insertOp,
+          deleteOp,
+          alphabeticalSortOrder,
+          emptyList(),
+          true,
+          true,
+          { it !is MotionIdPropertyItem },
+          { false }
+        )
       val controlAction = SubSectionControlAction(any)
       val addFieldAction = AddMotionFieldAction(this.model, model.properties)
       val deleteFieldAction = DeleteMotionFieldAction()
@@ -353,22 +431,25 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
             return true
           }
           // If this is not a sectioned constraint then display the tag.
-          // If this it is a sectioned constraint but it has significant attributes then display the tag as well.
+          // If this it is a sectioned constraint but it has significant attributes then display the
+          // tag as well.
           val attrs: Set<String> = tag.attrList.keys
           !isSectionedConstraint(tag) || attrs.size > 1 || !attrs.contains(SdkConstants.ATTR_ID)
         }
-        MotionSceneAttrs.Tags.LAYOUT, MotionSceneAttrs.Tags.PROPERTY_SET, MotionSceneAttrs.Tags.TRANSFORM, MotionSceneAttrs.Tags.MOTION -> {
+        MotionSceneAttrs.Tags.LAYOUT,
+        MotionSceneAttrs.Tags.PROPERTY_SET,
+        MotionSceneAttrs.Tags.TRANSFORM,
+        MotionSceneAttrs.Tags.MOTION -> {
           if (selection.type != MotionEditorSelector.Type.CONSTRAINT) {
             false
-          }
-          else tag != null && isSectionedConstraint(tag)
+          } else tag != null && isSectionedConstraint(tag)
         }
-        MotionSceneAttrs.Tags.ON_CLICK, MotionSceneAttrs.Tags.ON_SWIPE -> selection.type == MotionEditorSelector.Type.TRANSITION
+        MotionSceneAttrs.Tags.ON_CLICK,
+        MotionSceneAttrs.Tags.ON_SWIPE -> selection.type == MotionEditorSelector.Type.TRANSITION
         MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE -> {
           if (tag == null && selection.type == MotionEditorSelector.Type.CONSTRAINT) {
             true
-          }
-          else tag != null && canHaveCustomAttributes(tag)
+          } else tag != null && canHaveCustomAttributes(tag)
         }
         else -> section == selection.motionSceneTagName
       }
@@ -378,12 +459,18 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
       val xml = tag.xmlTag ?: return false
       val elementDescriptor = myDescriptorProvider.getDescriptor(xml) ?: return false
 
-      return elementDescriptor.getElementsDescriptors(xml).any { it.defaultName == MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE }
+      return elementDescriptor.getElementsDescriptors(xml).any {
+        it.defaultName == MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE
+      }
     }
 
     override fun resetCache() {}
 
-    private fun addConstraintPanel(inspector: InspectorPanel, selection: MotionSelection, titleLine: InspectorLineModel) {
+    private fun addConstraintPanel(
+      inspector: InspectorPanel,
+      selection: MotionSelection,
+      titleLine: InspectorLineModel
+    ) {
       val panel = MotionConstraintPanel(listOfNotNull(selection.component))
       panel.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
       inspector.addComponent(panel, titleLine)

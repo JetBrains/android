@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
+import com.android.AndroidXConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ANDROID_WIDGET_PREFIX
@@ -24,7 +25,6 @@ import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.CLASS_VIEW
 import com.android.SdkConstants.CLASS_VIEWGROUP
 import com.android.SdkConstants.DOT_XML
-import com.android.AndroidXConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.MATERIAL1_PKG
 import com.android.SdkConstants.MATERIAL2_PKG
@@ -76,18 +76,23 @@ class TypeResolverSdkTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val lookupRule = PsiLookupRule { projectRule.module.androidFacet }
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(EdtRule()).around(projectRule).around(lookupRule)!!
+  @get:Rule val ruleChain = RuleChain.outerRule(EdtRule()).around(projectRule).around(lookupRule)!!
 
   @Test
   fun testAndroidViewAttributeTypes() {
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
-    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
-    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewClass =
+      psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass =
+      psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(ANDROID_WIDGET_PREFIX.trim { it == '.' })!!
     val report = Report(ANDROID_VIEWS_HEADER)
-    psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.name!!, report) }
-    psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.name!!, report) }
+    psiPackage.classes
+      .filter { it.isInheritor(psiViewClass, true) }
+      .forEach { checkViewAttributes(it.name!!, report) }
+    psiPackage.classes
+      .filter { it.isInheritor(psiViewGroupClass, true) }
+      .forEach { checkViewLayoutAttributes(it.name!!, report) }
     report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
@@ -95,10 +100,13 @@ class TypeResolverSdkTest {
   @Test
   fun testAndroidPreferenceAttributeTypes() {
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
-    val psiPreferenceClass = psiFacade.findClass(CLASS_PREFERENCE, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiPreferenceClass =
+      psiFacade.findClass(CLASS_PREFERENCE, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(PREFERENCE_PACKAGE)!!
     val report = Report(ANDROID_PREFERENCES_HEADER)
-    psiPackage.classes.filter { it.isInheritor(psiPreferenceClass, true) }.forEach { checkPreferencesAttributes(it.name!!, report) }
+    psiPackage.classes
+      .filter { it.isInheritor(psiPreferenceClass, true) }
+      .forEach { checkPreferencesAttributes(it.name!!, report) }
     report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
@@ -107,12 +115,18 @@ class TypeResolverSdkTest {
   fun testAppCompatViewAttributeTypes() {
     Dependencies.add(projectRule.fixture, APPCOMPAT_LIB_ARTIFACT_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
-    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
-    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewClass =
+      psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass =
+      psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(APPCOMPAT_VIEW_PACKAGE)!!
     val report = Report(APPCOMPAT_VIEWS_HEADER)
-    psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
-    psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
+    psiPackage.classes
+      .filter { it.isInheritor(psiViewClass, true) }
+      .forEach { checkViewAttributes(it.qualifiedName!!, report) }
+    psiPackage.classes
+      .filter { it.isInheritor(psiViewGroupClass, true) }
+      .forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
     report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
@@ -121,12 +135,18 @@ class TypeResolverSdkTest {
   fun testConstraintLayoutViewAttributeTypes() {
     Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
-    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
-    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewClass =
+      psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass =
+      psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(CONSTRAINT_LAYOUT_PACKAGE)!!
     val report = Report(CONSTRAINT_LAYOUT_HEADER)
-    psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
-    psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
+    psiPackage.classes
+      .filter { it.isInheritor(psiViewClass, true) }
+      .forEach { checkViewAttributes(it.qualifiedName!!, report) }
+    psiPackage.classes
+      .filter { it.isInheritor(psiViewGroupClass, true) }
+      .forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
     report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
@@ -135,12 +155,18 @@ class TypeResolverSdkTest {
   fun testDesignViewAttributeTypes() {
     Dependencies.add(projectRule.fixture, DESIGN_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
-    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
-    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewClass =
+      psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass =
+      psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(MATERIAL1_PKG)!!
     val report = Report(DESIGN_HEADER)
-    psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
-    psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
+    psiPackage.classes
+      .filter { it.isInheritor(psiViewClass, true) }
+      .forEach { checkViewAttributes(it.qualifiedName!!, report) }
+    psiPackage.classes
+      .filter { it.isInheritor(psiViewGroupClass, true) }
+      .forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
     report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
@@ -150,13 +176,19 @@ class TypeResolverSdkTest {
     Dependencies.add(projectRule.fixture, "appcompat/appcompat")
     Dependencies.add(projectRule.fixture, MATERIAL_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
-    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
-    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewClass =
+      psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass =
+      psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(MATERIAL2_PKG)!!
     val report = Report(MATERIAL_HEADER)
     for (folder in psiPackage.subPackages) {
-      folder.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
-      folder.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
+      folder.classes
+        .filter { it.isInheritor(psiViewClass, true) }
+        .forEach { checkViewAttributes(it.qualifiedName!!, report) }
+      folder.classes
+        .filter { it.isInheritor(psiViewGroupClass, true) }
+        .forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
     }
     report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
@@ -166,13 +198,19 @@ class TypeResolverSdkTest {
   fun testMaterial3ViewAttributeTypes() {
     Dependencies.add(projectRule.fixture, "material/material")
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
-    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
-    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewClass =
+      psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass =
+      psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(MATERIAL2_PKG)!!
     val report = Report(MATERIAL_HEADER)
     for (folder in psiPackage.subPackages) {
-      folder.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
-      folder.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
+      folder.classes
+        .filter { it.isInheritor(psiViewClass, true) }
+        .forEach { checkViewAttributes(it.qualifiedName!!, report) }
+      folder.classes
+        .filter { it.isInheritor(psiViewGroupClass, true) }
+        .forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
     }
     report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
@@ -182,40 +220,57 @@ class TypeResolverSdkTest {
   fun testRecyclerViewAttributeTypes() {
     Dependencies.add(projectRule.fixture, RECYCLER_VIEW_V7_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
-    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
-    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewClass =
+      psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass =
+      psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage("android.support.v7.widget")!!
     val report = Report(RECYCLER_VIEW_HEADER)
-    psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach {
-      checkViewAttributes(it.qualifiedName!!, report)
-    }
-    psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach {
-      checkViewLayoutAttributes(it.qualifiedName!!, report)
-    }
+    psiPackage.classes
+      .filter { it.isInheritor(psiViewClass, true) }
+      .forEach { checkViewAttributes(it.qualifiedName!!, report) }
+    psiPackage.classes
+      .filter { it.isInheritor(psiViewGroupClass, true) }
+      .forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
     report.dumpReport(report.totalErrors > 0)
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }
 
   private fun checkViewAttributes(tagName: String, report: Report) {
-    val util = SupportTestUtil(projectRule, tagName, parentTag = FRAME_LAYOUT,
-                               fileName = "${tagName.substringAfter('.')}$DOT_XML")
+    val util =
+      SupportTestUtil(
+        projectRule,
+        tagName,
+        parentTag = FRAME_LAYOUT,
+        fileName = "${tagName.substringAfter('.')}$DOT_XML"
+      )
     waitUntilLastSelectionUpdateCompleted(util.model)
     val tag = util.components.first().backend.tag!!
     checkAttributes(tag, report)
   }
 
   private fun checkPreferencesAttributes(tagName: String, report: Report) {
-    val util = SupportTestUtil(projectRule, tagName,
-                               parentTag = SdkConstants.PreferenceTags.PREFERENCE_SCREEN,
-                               resourceFolder = SdkConstants.FD_RES_XML,
-                               fileName = "${tagName.substringAfter('.')}$DOT_XML")
+    val util =
+      SupportTestUtil(
+        projectRule,
+        tagName,
+        parentTag = SdkConstants.PreferenceTags.PREFERENCE_SCREEN,
+        resourceFolder = SdkConstants.FD_RES_XML,
+        fileName = "${tagName.substringAfter('.')}$DOT_XML"
+      )
     waitUntilLastSelectionUpdateCompleted(util.model)
     val tag = util.components.first().backend.tag!!
     checkAttributes(tag, report)
   }
 
   private fun checkViewLayoutAttributes(tagName: String, report: Report) {
-    val util = SupportTestUtil(projectRule, BUTTON, parentTag = tagName, fileName = "${tagName.substringAfter('.')}$DOT_XML")
+    val util =
+      SupportTestUtil(
+        projectRule,
+        BUTTON,
+        parentTag = tagName,
+        fileName = "${tagName.substringAfter('.')}$DOT_XML"
+      )
     val tag = util.components.first().parent!!.backend.tag!!
     checkAttributes(tag, report)
   }
@@ -232,30 +287,34 @@ class TypeResolverSdkTest {
     val componentClass = lookupRule.classOf(tag.name)
     attrDescriptors.forEach {
       val name = it.name
-      val namespaceUri = (it as NamespaceAwareXmlAttributeDescriptor).getNamespace(tag) ?: ANDROID_URI
+      val namespaceUri =
+        (it as NamespaceAwareXmlAttributeDescriptor).getNamespace(tag) ?: ANDROID_URI
       val namespace = ResourceNamespace.fromNamespaceUri(namespaceUri)
       if (namespace != null) {
         val attrDefs = if (ANDROID_URI == namespaceUri) systemAttrDefs else localAttrDefs
         val attrDefinition = attrDefs.getAttrDefinition(ResourceReference.attr(namespace, name))
         val type = TypeResolver.resolveType(name, attrDefinition, componentClass)
         val className = componentClass?.qualifiedName
-        val lookupType = when {
-          name != ATTR_DEFAULT_VALUE -> AndroidAttributeFact.lookup(name)
-          className == PreferenceClasses.CLASS_LIST_PREFERENCE -> NlPropertyType.STRING
-          className == PreferenceClasses.CLASS_EDIT_TEXT_PREFERENCE -> NlPropertyType.STRING
-          className == PreferenceClasses.CLASS_RINGTONE_PREFERENCE -> NlPropertyType.STRING
-          className == PreferenceClasses.CLASS_MULTI_SELECT_LIST_PREFERENCE -> NlPropertyType.STRING_ARRAY
-          className == PreferenceClasses.CLASS_CHECK_BOX_PREFERENCE -> NlPropertyType.THREE_STATE_BOOLEAN
-          className == PreferenceClasses.CLASS_SWITCH_PREFERENCE -> NlPropertyType.THREE_STATE_BOOLEAN
-          className == PreferenceClasses.CLASS_SEEK_BAR_PREFERENCE -> NlPropertyType.INTEGER
-          else -> NlPropertyType.UNKNOWN
-        }
+        val lookupType =
+          when {
+            name != ATTR_DEFAULT_VALUE -> AndroidAttributeFact.lookup(name)
+            className == PreferenceClasses.CLASS_LIST_PREFERENCE -> NlPropertyType.STRING
+            className == PreferenceClasses.CLASS_EDIT_TEXT_PREFERENCE -> NlPropertyType.STRING
+            className == PreferenceClasses.CLASS_RINGTONE_PREFERENCE -> NlPropertyType.STRING
+            className == PreferenceClasses.CLASS_MULTI_SELECT_LIST_PREFERENCE ->
+              NlPropertyType.STRING_ARRAY
+            className == PreferenceClasses.CLASS_CHECK_BOX_PREFERENCE ->
+              NlPropertyType.THREE_STATE_BOOLEAN
+            className == PreferenceClasses.CLASS_SWITCH_PREFERENCE ->
+              NlPropertyType.THREE_STATE_BOOLEAN
+            className == PreferenceClasses.CLASS_SEEK_BAR_PREFERENCE -> NlPropertyType.INTEGER
+            else -> NlPropertyType.UNKNOWN
+          }
 
         // Remove this when we have a library in prebuilts with this bug fixed: b/119883920
         if (tag.name == FLOATING_ACTION_BUTTON.oldName() && it.name == ATTR_BACKGROUND_TINT_MODE) {
           // ignore for now...
-        }
-        else if (type != lookupType) {
+        } else if (type != lookupType) {
           report.logMismatch(Mismatch(tag.localName, name, type, lookupType))
         }
         report.logAttribute(tag.localName)
@@ -263,10 +322,12 @@ class TypeResolverSdkTest {
     }
   }
 
-  private data class Mismatch(val tag: String,
-                              val attribute: String,
-                              val found: NlPropertyType,
-                              val expected: NlPropertyType)
+  private data class Mismatch(
+    val tag: String,
+    val attribute: String,
+    val found: NlPropertyType,
+    val expected: NlPropertyType
+  )
 
   private class Report(private val name: String) {
     private val found = mutableMapOf<String, Int>()
@@ -299,12 +360,18 @@ class TypeResolverSdkTest {
       System.err.println("           $name")
       if (mismatches.isNotEmpty()) {
         System.err.println("\nType mismatches found:")
-        mismatches.forEach { System.err.println(
-          "Tag: ${it.tag}, Attr: ${it.attribute}, Got: ${it.found}, Wanted: ${it.expected}") }
+        mismatches.forEach {
+          System.err.println(
+            "Tag: ${it.tag}, Attr: ${it.attribute}, Got: ${it.found}, Wanted: ${it.expected}"
+          )
+        }
       }
       System.err.println()
-      found.forEach { (tag, count) -> System.err.println(
-        "${String.format("%4d", count)}: attributes found for: $tag ${formatError(tag)}") }
+      found.forEach { (tag, count) ->
+        System.err.println(
+          "${String.format("%4d", count)}: attributes found for: $tag ${formatError(tag)}"
+        )
+      }
       System.err.println("\n==============================================================>")
     }
 

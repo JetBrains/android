@@ -25,21 +25,23 @@ import com.intellij.openapi.util.Key
 import java.util.concurrent.CountDownLatch
 
 /**
- * Data key for the actions work in Design Editor. This includes DesignSurface and ActionToolBar, but **exclude** all attached ToolWindows.
- * Attached ToolWindows take the responsibility of handling shortcuts and key events. For example, when focusing Palette, typing means
- * search the widget.
+ * Data key for the actions work in Design Editor. This includes DesignSurface and ActionToolBar,
+ * but **exclude** all attached ToolWindows. Attached ToolWindows take the responsibility of
+ * handling shortcuts and key events. For example, when focusing Palette, typing means search the
+ * widget.
  */
 @JvmField
-val DESIGN_SURFACE: DataKey<DesignSurface<*>> =
-  DataKey.create(DesignSurface::class.qualifiedName!!)
+val DESIGN_SURFACE: DataKey<DesignSurface<*>> = DataKey.create(DesignSurface::class.qualifiedName!!)
 
 @JvmField
-val ANIMATION_TOOLBAR: DataKey<AnimationToolbar> = DataKey.create(AnimationToolbar::class.qualifiedName!!)
+val ANIMATION_TOOLBAR: DataKey<AnimationToolbar> =
+  DataKey.create(AnimationToolbar::class.qualifiedName!!)
 
 private const val COMMON_PROBLEMS_PANEL_ISSUE = "COMMON_PROBLEMS_PANEL_ISSUE"
 
 /**
- * User data key for render related issues. It is used as a bus between external annotator and design surface.
+ * User data key for render related issues. It is used as a bus between external annotator and
+ * design surface.
  */
 @JvmField
 val ATF_ISSUES: Key<CommonPanelIssueSet> = Key.create("${COMMON_PROBLEMS_PANEL_ISSUE}_ATF")
@@ -51,13 +53,17 @@ val ATF_ISSUES: Key<CommonPanelIssueSet> = Key.create("${COMMON_PROBLEMS_PANEL_I
 val ATF_ISSUES_LATCH: Key<CountDownLatch> = Key.create("${COMMON_PROBLEMS_PANEL_ISSUE}_ATF_LATCH")
 
 /**
- * User data key for visual lint issues. It is used as a bus between external annotator and design surface.
+ * User data key for visual lint issues. It is used as a bus between external annotator and design
+ * surface.
  */
 @JvmField
-val VISUAL_LINT_ISSUES: Key<CommonPanelIssueSet> = Key.create("${COMMON_PROBLEMS_PANEL_ISSUE}_VISUAL_LINT")
+val VISUAL_LINT_ISSUES: Key<CommonPanelIssueSet> =
+  Key.create("${COMMON_PROBLEMS_PANEL_ISSUE}_VISUAL_LINT")
 
 /**
- * User data key for visual lint related latch. It is used to control scheduling between lint and render.
+ * User data key for visual lint related latch. It is used to control scheduling between lint and
+ * render.
  */
 @JvmField
-val VISUAL_LINT_ISSUES_LATCH: Key<CountDownLatch> = Key.create("${COMMON_PROBLEMS_PANEL_ISSUE}_VISUAL_LINT_LATCH")
+val VISUAL_LINT_ISSUES_LATCH: Key<CountDownLatch> =
+  Key.create("${COMMON_PROBLEMS_PANEL_ISSUE}_VISUAL_LINT_LATCH")

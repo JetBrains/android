@@ -28,7 +28,8 @@ class NlVisibilityButtonCellRenderer : ListCellRenderer<ButtonPresentation> {
     value: ButtonPresentation,
     index: Int,
     isSelected: Boolean,
-    cellHasFocus: Boolean): Component {
+    cellHasFocus: Boolean
+  ): Component {
     list as NlVisibilityJBList
     value.isHovered = index == list.currHovered
     // isSelected here is not trust worthy. It unselects at random places.

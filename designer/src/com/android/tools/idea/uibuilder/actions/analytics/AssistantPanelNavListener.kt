@@ -21,8 +21,8 @@ import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPane
 import java.awt.event.ActionEvent
 
 /**
- * Assistant Panel navigation listener. It listens to navigation events
- * specific to the layout editor (filtered through [AssistantPanelNavListener.getIdPrefix])
+ * Assistant Panel navigation listener. It listens to navigation events specific to the layout
+ * editor (filtered through [AssistantPanelNavListener.getIdPrefix])
  *
  * For now, it listens to all events triggered from [HelpPanelType.FULL_ALL]
  */

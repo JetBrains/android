@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector
 
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.panel.api.PropertiesTable
 
 fun getTagName(properties: PropertiesTable<NlPropertyItem>): String? {
   val property = properties.first ?: return null

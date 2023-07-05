@@ -26,36 +26,38 @@ import java.util.concurrent.Executor
 import java.util.concurrent.RejectedExecutionException
 import java.util.function.Consumer
 
-/**
- * Internal multi view usage tracker.
- */
+/** Internal multi view usage tracker. */
 internal interface InternalMultiViewMetricTracker {
-  /**
-   * Track the changes of category in Layout Validation Tool.
-   */
+  /** Track the changes of category in Layout Validation Tool. */
   fun trackSetCategory(eventType: MultiViewEvent.MultiViewEventType)
 
-  /**
-   * Track open and close issue panel from Layout Validation Tool.
-   */
+  /** Track open and close issue panel from Layout Validation Tool. */
   fun trackToggleIssuePanel(event: MultiViewEvent.ToggleIssuePanel)
 }
 
 /**
- * Factory for creating the tracker that shares thread pool, user agreeing log opt-in policy, event drop-policy etc.
+ * Factory for creating the tracker that shares thread pool, user agreeing log opt-in policy, event
+ * drop-policy etc.
  */
 internal class InternalMultiViewMetricTrackerFactory {
 
-   companion object {
-     private val MANAGER = DesignerUsageTrackerManager<InternalMultiViewMetricTracker, DesignSurface<*>>(
-       { executor, surface, eventLogger -> MultiViewMetricTrackerImpl(executor, surface, eventLogger) }, MultiViewNopTracker)
+  companion object {
+    private val MANAGER =
+      DesignerUsageTrackerManager<InternalMultiViewMetricTracker, DesignSurface<*>>(
+        { executor, surface, eventLogger ->
+          MultiViewMetricTrackerImpl(executor, surface, eventLogger)
+        },
+        MultiViewNopTracker
+      )
 
-     /**
-      * Gets a shared instance of the tracker.
-      * @param surface - used as a key for session-info in tracker. If null, [MultiViewNopTracker] will be used.
-      */
-     fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
-   }
+    /**
+     * Gets a shared instance of the tracker.
+     *
+     * @param surface - used as a key for session-info in tracker. If null, [MultiViewNopTracker]
+     *   will be used.
+     */
+    fun getInstance(surface: DesignSurface<*>?) = MANAGER.getInstance(surface)
+  }
 }
 
 /**
@@ -65,37 +67,43 @@ internal class InternalMultiViewMetricTrackerFactory {
  * @param surface - key used by [UsageTracker] for session info
  * @param myConsumer - Consumer that eventually calls [UsageTracker.log]
  */
-private class MultiViewMetricTrackerImpl internal constructor(
+private class MultiViewMetricTrackerImpl
+internal constructor(
   private val myExecutor: Executor,
   private val surface: DesignSurface<*>?,
-  private val myConsumer: Consumer<AndroidStudioEvent.Builder>) : InternalMultiViewMetricTracker {
+  private val myConsumer: Consumer<AndroidStudioEvent.Builder>
+) : InternalMultiViewMetricTracker {
 
   /**
    * Returns the [MultiViewEvent.AssociatedSplitEditorMode] for the associated editor to track it.
    */
   private fun getAssociatedEditorMode(): MultiViewEvent.AssociatedSplitEditorMode =
     when ((surface?.fileEditorDelegate as? DesignToolsSplitEditor)?.layout) {
-      TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW -> MultiViewEvent.AssociatedSplitEditorMode.SPLIT_MODE
+      TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW ->
+        MultiViewEvent.AssociatedSplitEditorMode.SPLIT_MODE
       TextEditorWithPreview.Layout.SHOW_EDITOR -> MultiViewEvent.AssociatedSplitEditorMode.TEXT_MODE
-      TextEditorWithPreview.Layout.SHOW_PREVIEW -> MultiViewEvent.AssociatedSplitEditorMode.VISUAL_MODE
+      TextEditorWithPreview.Layout.SHOW_PREVIEW ->
+        MultiViewEvent.AssociatedSplitEditorMode.VISUAL_MODE
       else -> MultiViewEvent.AssociatedSplitEditorMode.UNKNOWN_MODE
-  }
+    }
 
   override fun trackSetCategory(eventType: MultiViewEvent.MultiViewEventType) {
     try {
       myExecutor.execute {
-        val event = AndroidStudioEvent.newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.MULTI_VIEW_EVENT)
-          .setMultiViewEvent(MultiViewEvent.newBuilder()
-                               .setType(eventType)
-                               .setAssociatedSplitEditorMode(getAssociatedEditorMode())
-                               .build())
+        val event =
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.MULTI_VIEW_EVENT)
+            .setMultiViewEvent(
+              MultiViewEvent.newBuilder()
+                .setType(eventType)
+                .setAssociatedSplitEditorMode(getAssociatedEditorMode())
+                .build()
+            )
         surface?.model?.let { event.setApplicationId(surface.model!!.facet) }
 
         myConsumer.accept(event)
       }
-    }
-    catch (e: RejectedExecutionException) {
+    } catch (e: RejectedExecutionException) {
       // We are hitting the throttling limit
     }
   }
@@ -103,26 +111,26 @@ private class MultiViewMetricTrackerImpl internal constructor(
   override fun trackToggleIssuePanel(event: MultiViewEvent.ToggleIssuePanel) {
     try {
       myExecutor.execute {
-        val event = AndroidStudioEvent.newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.MULTI_VIEW_EVENT)
-          .setMultiViewEvent(MultiViewEvent.newBuilder()
-                               .setAssociatedSplitEditorMode(getAssociatedEditorMode())
-                               .setToggleIssuePanel(event)
-                               .build())
+        val event =
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.MULTI_VIEW_EVENT)
+            .setMultiViewEvent(
+              MultiViewEvent.newBuilder()
+                .setAssociatedSplitEditorMode(getAssociatedEditorMode())
+                .setToggleIssuePanel(event)
+                .build()
+            )
         surface?.model?.let { event.setApplicationId(surface.model!!.facet) }
 
         myConsumer.accept(event)
       }
-    }
-    catch (e: RejectedExecutionException) {
+    } catch (e: RejectedExecutionException) {
       // We are hitting the throttling limit
     }
   }
 }
 
-/**
- * NO-op impl for when user opts out or for tests.
- */
+/** NO-op impl for when user opts out or for tests. */
 object MultiViewNopTracker : InternalMultiViewMetricTracker {
   override fun trackSetCategory(eventType: MultiViewEvent.MultiViewEventType) = Unit
 

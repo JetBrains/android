@@ -19,12 +19,11 @@ import com.android.tools.idea.common.model.NlComponent
 import javax.swing.JComponent
 
 /**
- * Interface that allows [com.android.tools.idea.uibuilder.api.ViewHandler]s providing the assistant component.
+ * Interface that allows [com.android.tools.idea.uibuilder.api.ViewHandler]s providing the assistant
+ * component.
  */
 interface ComponentAssistantFactory {
-  /**
-   * Context for an assistant panel instance.
-   */
+  /** Context for an assistant panel instance. */
   data class Context(
     /** The component that triggered the assistant */
     val component: NlComponent,

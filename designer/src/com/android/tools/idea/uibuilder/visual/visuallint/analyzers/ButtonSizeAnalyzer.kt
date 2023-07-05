@@ -27,9 +27,7 @@ import com.android.utils.HtmlBuilder
 
 private const val MAX_BUTTON_WIDTH_DP = 320
 
-/**
- * [VisualLintAnalyzer] for issues where a button is wider than the recommended 320dp.
- */
+/** [VisualLintAnalyzer] for issues where a button is wider than the recommended 320dp. */
 object ButtonSizeAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.BUTTON_SIZE
@@ -37,7 +35,10 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
   override val backgroundEnabled: Boolean
     get() = ButtonSizeAnalyzerInspection.buttonSizeBackground
 
-  override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
+  override fun findIssues(
+    renderResult: RenderResult,
+    model: NlModel
+  ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {
@@ -62,7 +63,9 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
     val summary = "The button ${nameWithId(view)} is too wide"
     val provider = { count: Int ->
       HtmlBuilder()
-        .add("The button ${simpleName(view)} is wider than ${MAX_BUTTON_WIDTH_DP}dp in ${previewConfigurations(count)}.")
+        .add(
+          "The button ${simpleName(view)} is wider than ${MAX_BUTTON_WIDTH_DP}dp in ${previewConfigurations(count)}."
+        )
         .newline()
         .add("Material Design recommends buttons to be no wider than ${MAX_BUTTON_WIDTH_DP}dp")
     }
@@ -70,9 +73,9 @@ object ButtonSizeAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-class ButtonSizeAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BUTTON_SIZE, "buttonSizeBackground") {
+class ButtonSizeAnalyzerInspection :
+  VisualLintInspection(VisualLintErrorType.BUTTON_SIZE, "buttonSizeBackground") {
   companion object {
     var buttonSizeBackground = true
   }
 }
-

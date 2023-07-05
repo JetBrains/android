@@ -19,14 +19,12 @@ import com.android.tools.idea.common.scene.SceneContext
 import java.awt.Graphics2D
 
 /**
- * CompositeDrawCommand is an abstract draw command that aggregates a fixed list
- * of child draw commands that have a predefined order. Derived classes
- * provide the list of child commands as well as custom serialization.
+ * CompositeDrawCommand is an abstract draw command that aggregates a fixed list of child draw
+ * commands that have a predefined order. Derived classes provide the list of child commands as well
+ * as custom serialization.
  */
 abstract class CompositeDrawCommand(private val level: Int = 0) : DrawCommand {
-  val commands: List<DrawCommand> by lazy {
-    buildCommands()
-  }
+  val commands: List<DrawCommand> by lazy { buildCommands() }
 
   protected abstract fun buildCommands(): List<DrawCommand>
 

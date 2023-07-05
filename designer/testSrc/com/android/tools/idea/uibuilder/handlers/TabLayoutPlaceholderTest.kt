@@ -30,9 +30,15 @@ class TabLayoutPlaceholderTest : SceneTest() {
     val placeholder = TabLayoutPlaceholder(tabLayout, tabItem1)
 
     val region = placeholder.region
-    assertEquals(tabLayout.drawX - com.android.tools.idea.uibuilder.handlers.linear.SIZE, region.left)
+    assertEquals(
+      tabLayout.drawX - com.android.tools.idea.uibuilder.handlers.linear.SIZE,
+      region.left
+    )
     assertEquals(tabLayout.drawY, region.top)
-    assertEquals(tabLayout.drawX + com.android.tools.idea.uibuilder.handlers.linear.SIZE, region.right)
+    assertEquals(
+      tabLayout.drawX + com.android.tools.idea.uibuilder.handlers.linear.SIZE,
+      region.right
+    )
     assertEquals(tabLayout.drawY + tabLayout.drawHeight, region.bottom)
   }
 
@@ -56,28 +62,30 @@ class TabLayoutPlaceholderTest : SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model("tabLayout.xml",
-                 component(AndroidXConstants.TAB_LAYOUT.newName())
-                   .width("300dp")
-                   .height("100dp")
-                   .withBounds(0, 0, 600, 200)
-                   .id("@id/tabLayout")
-                   .children(
-                     component(AndroidXConstants.TAB_ITEM.newName())
-                       .withBounds(0, 0, 200, 200)
-                       .id("@id/tabItem1")
-                       .width("100dp")
-                       .height("100dp"),
-                     component(AndroidXConstants.TAB_ITEM.newName())
-                       .withBounds(200, 0, 200, 200)
-                       .id("@id/tabItem2")
-                       .width("100dp")
-                       .height("100dp"),
-                     component(AndroidXConstants.TAB_ITEM.newName())
-                       .withBounds(400, 0, 200, 200)
-                       .id("@id/tabItem3")
-                       .width("100dp")
-                       .height("100dp")
-                   ))
+    return model(
+      "tabLayout.xml",
+      component(AndroidXConstants.TAB_LAYOUT.newName())
+        .width("300dp")
+        .height("100dp")
+        .withBounds(0, 0, 600, 200)
+        .id("@id/tabLayout")
+        .children(
+          component(AndroidXConstants.TAB_ITEM.newName())
+            .withBounds(0, 0, 200, 200)
+            .id("@id/tabItem1")
+            .width("100dp")
+            .height("100dp"),
+          component(AndroidXConstants.TAB_ITEM.newName())
+            .withBounds(200, 0, 200, 200)
+            .id("@id/tabItem2")
+            .width("100dp")
+            .height("100dp"),
+          component(AndroidXConstants.TAB_ITEM.newName())
+            .withBounds(400, 0, 200, 200)
+            .id("@id/tabItem3")
+            .width("100dp")
+            .height("100dp")
+        )
+    )
   }
 }

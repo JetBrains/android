@@ -25,7 +25,8 @@ class NlPropertyTypeTest {
     assertThat(NlPropertyType.BOOLEAN.validateLiteral("")).isNull()
     assertThat(NlPropertyType.BOOLEAN.validateLiteral("true")).isNull()
     assertThat(NlPropertyType.BOOLEAN.validateLiteral("false")).isNull()
-    assertThat(NlPropertyType.BOOLEAN.validateLiteral("wednesday")).isEqualTo("Invalid bool value: 'wednesday'")
+    assertThat(NlPropertyType.BOOLEAN.validateLiteral("wednesday"))
+      .isEqualTo("Invalid bool value: 'wednesday'")
   }
 
   @Test
@@ -33,7 +34,8 @@ class NlPropertyTypeTest {
     assertThat(NlPropertyType.THREE_STATE_BOOLEAN.validateLiteral("")).isNull()
     assertThat(NlPropertyType.THREE_STATE_BOOLEAN.validateLiteral("true")).isNull()
     assertThat(NlPropertyType.THREE_STATE_BOOLEAN.validateLiteral("false")).isNull()
-    assertThat(NlPropertyType.THREE_STATE_BOOLEAN.validateLiteral("wednesday")).isEqualTo("Invalid bool value: 'wednesday'")
+    assertThat(NlPropertyType.THREE_STATE_BOOLEAN.validateLiteral("wednesday"))
+      .isEqualTo("Invalid bool value: 'wednesday'")
   }
 
   @Test
@@ -42,7 +44,8 @@ class NlPropertyTypeTest {
     assertThat(NlPropertyType.COLOR.validateLiteral("#123")).isNull()
     assertThat(NlPropertyType.COLOR.validateLiteral("#1BCCFF")).isNull()
     assertThat(NlPropertyType.COLOR.validateLiteral("#EE1BCCFF")).isNull()
-    assertThat(NlPropertyType.COLOR.validateLiteral("wednesday")).isEqualTo("Invalid color value: 'wednesday'")
+    assertThat(NlPropertyType.COLOR.validateLiteral("wednesday"))
+      .isEqualTo("Invalid color value: 'wednesday'")
   }
 
   @Test
@@ -53,7 +56,8 @@ class NlPropertyTypeTest {
     assertThat(NlPropertyType.DIMENSION.validateLiteral("12sp"))
     assertThat(NlPropertyType.DIMENSION.validateLiteral("200px"))
     assertThat(NlPropertyType.DIMENSION.validateLiteral("200pixels"))
-    assertThat(NlPropertyType.DIMENSION.validateLiteral("wednesday")).isEqualTo("Cannot resolve: 'wednesday'")
+    assertThat(NlPropertyType.DIMENSION.validateLiteral("wednesday"))
+      .isEqualTo("Cannot resolve: 'wednesday'")
   }
 
   @Test
@@ -67,8 +71,10 @@ class NlPropertyTypeTest {
     assertThat(NlPropertyType.DIMENSION_UNIT_LESS.validateLiteral("1.25")).isNull()
     assertThat(NlPropertyType.DIMENSION_UNIT_LESS.validateLiteral(".875")).isNull()
     assertThat(NlPropertyType.DIMENSION_UNIT_LESS.validateLiteral("78")).isNull()
-    assertThat(NlPropertyType.DIMENSION_UNIT_LESS.validateLiteral("wednesday")).isEqualTo("Cannot resolve: 'wednesday'")
-    assertThat(NlPropertyType.DIMENSION_UNIT_LESS.validateLiteral("any")).isEqualTo("Cannot resolve: 'any'")
+    assertThat(NlPropertyType.DIMENSION_UNIT_LESS.validateLiteral("wednesday"))
+      .isEqualTo("Cannot resolve: 'wednesday'")
+    assertThat(NlPropertyType.DIMENSION_UNIT_LESS.validateLiteral("any"))
+      .isEqualTo("Cannot resolve: 'any'")
   }
 
   @Test
@@ -79,7 +85,8 @@ class NlPropertyTypeTest {
     assertThat(NlPropertyType.FONT_SIZE.validateLiteral("12sp"))
     assertThat(NlPropertyType.FONT_SIZE.validateLiteral("200px"))
     assertThat(NlPropertyType.FONT_SIZE.validateLiteral("200pixels"))
-    assertThat(NlPropertyType.FONT_SIZE.validateLiteral("wednesday")).isEqualTo("Cannot resolve: 'wednesday'")
+    assertThat(NlPropertyType.FONT_SIZE.validateLiteral("wednesday"))
+      .isEqualTo("Cannot resolve: 'wednesday'")
   }
 
   @Test

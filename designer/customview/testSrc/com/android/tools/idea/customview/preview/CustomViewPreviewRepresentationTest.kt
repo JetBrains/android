@@ -26,12 +26,14 @@ import org.junit.Rule
 import org.junit.Test
 
 class CustomViewPreviewRepresentationTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun test() {
-    val file = projectRule.fixture.addFileToProject("src/com/example/CustomView.java", """
+    val file =
+      projectRule.fixture.addFileToProject(
+        "src/com/example/CustomView.java",
+        """
       package com.example;
 
       import android.view.View;
@@ -41,17 +43,20 @@ class CustomViewPreviewRepresentationTest {
           super();
         }
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     runBlocking {
       listOf(uiThread, workerThread).forEach { scope ->
-        val representation = withContext(scope) {
-          CustomViewPreviewRepresentation(
-            file,
-            buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL }).also {
-            Disposer.register(projectRule.fixture.testRootDisposable, it)
+        val representation =
+          withContext(scope) {
+            CustomViewPreviewRepresentation(
+                file,
+                buildStateProvider = { CustomViewVisualStateTracker.BuildState.SUCCESSFUL }
+              )
+              .also { Disposer.register(projectRule.fixture.testRootDisposable, it) }
           }
-        }
         TestCase.assertNotNull("failed to instantiate with scope $scope", representation)
       }
     }

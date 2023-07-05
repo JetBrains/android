@@ -17,15 +17,15 @@ package com.android.tools.idea.common.surface
 
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
-import org.junit.Test
-import org.mockito.Mockito
 import java.awt.BorderLayout
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
+import junit.framework.Assert.assertFalse
+import junit.framework.Assert.assertTrue
+import org.junit.Test
+import org.mockito.Mockito
 
 class DesignSurfaceHelperTest {
 

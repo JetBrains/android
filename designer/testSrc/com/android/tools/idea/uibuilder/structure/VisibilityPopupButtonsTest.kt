@@ -28,16 +28,15 @@ class VisibilityPopupButtonsTest : LayoutTestCase() {
 
   @Test
   fun testDefaultSelected() {
-    Visibility.values().forEach {
-      assertDefaultSelected(it)
-    }
+    Visibility.values().forEach { assertDefaultSelected(it) }
   }
 
   private fun assertDefaultSelected(visibility: Visibility) {
     var callbackTriggered = false
-    val buttons = VisibilityPopupButtons(SdkConstants.ANDROID_URI) { _: Visibility, _: String ->
-      callbackTriggered = true
-    }
+    val buttons =
+      VisibilityPopupButtons(SdkConstants.ANDROID_URI) { _: Visibility, _: String ->
+        callbackTriggered = true
+      }
     buttons.update(generateModel(visibility, Visibility.VISIBLE))
 
     val clicked = ArrayList<NlVisibilityButton>()
@@ -57,7 +56,8 @@ class VisibilityPopupButtonsTest : LayoutTestCase() {
       0,
       Visibility.values()[0],
       false,
-      generateModel(Visibility.GONE, Visibility.GONE))
+      generateModel(Visibility.GONE, Visibility.GONE)
+    )
     for (i in 1 until Visibility.values().size) {
       assertOneItemClicked(i, Visibility.values()[i])
     }
@@ -66,7 +66,8 @@ class VisibilityPopupButtonsTest : LayoutTestCase() {
       0,
       Visibility.values()[0],
       true,
-      generateModel(Visibility.GONE, Visibility.GONE))
+      generateModel(Visibility.GONE, Visibility.GONE)
+    )
     for (i in 1 until Visibility.values().size) {
       assertOneItemClicked(i, Visibility.values()[i], true)
     }
@@ -76,11 +77,11 @@ class VisibilityPopupButtonsTest : LayoutTestCase() {
     clickedButtonIndex: Int,
     expectedVisibility: Visibility,
     isToolsAttr: Boolean = false,
-    startModel: NlVisibilityModel = generateModel(Visibility.NONE, Visibility.NONE)) {
+    startModel: NlVisibilityModel = generateModel(Visibility.NONE, Visibility.NONE)
+  ) {
 
     var callbackTriggered = false
-    val popupContent = VisibilityPopupContent {
-      clickedVisibility: Visibility, uri: String ->
+    val popupContent = VisibilityPopupContent { clickedVisibility: Visibility, uri: String ->
       callbackTriggered = true
       assertEquals(expectedVisibility, clickedVisibility)
       if (isToolsAttr) {
@@ -110,9 +111,8 @@ class VisibilityPopupButtonsTest : LayoutTestCase() {
   fun testToggleDisabled() {
     var callbackTriggered = false
     val model = generateModel(Visibility.GONE, Visibility.VISIBLE)
-    val buttons = VisibilityPopupButtons(SdkConstants.ANDROID_URI) {_, _ ->
-      callbackTriggered = true
-    }
+    val buttons =
+      VisibilityPopupButtons(SdkConstants.ANDROID_URI) { _, _ -> callbackTriggered = true }
     buttons.update(model)
     val noneButton = buttons.buttons[0]
     val visibleButton = buttons.buttons[1]
@@ -121,9 +121,7 @@ class VisibilityPopupButtonsTest : LayoutTestCase() {
 
     // Click gone again.
     assertTrue(goneButton.isClicked)
-    goneButton.mouseListeners.forEach {
-      it.mouseClicked(null)
-    }
+    goneButton.mouseListeners.forEach { it.mouseClicked(null) }
 
     assertFalse(visibleButton.isClicked)
     assertFalse(noneButton.isClicked)

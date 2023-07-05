@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.visual
 
 import org.jetbrains.android.AndroidTestCase
 
-class VisualizationToolProjectSettingsTest: AndroidTestCase() {
+class VisualizationToolProjectSettingsTest : AndroidTestCase() {
 
   private var defaultScale: Double = 0.0
 
@@ -31,11 +31,9 @@ class VisualizationToolProjectSettingsTest: AndroidTestCase() {
     val settings = VisualizationToolProjectSettings.getInstance(project)
     try {
       settings.projectState.scale = defaultScale
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       addSuppressedException(t)
-    }
-    finally {
+    } finally {
       super.tearDown()
     }
   }

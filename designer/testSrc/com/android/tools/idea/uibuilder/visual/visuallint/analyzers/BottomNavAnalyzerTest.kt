@@ -25,16 +25,18 @@ class BottomNavAnalyzerTest : LayoutTestCase() {
 
   fun testBottomNavSmallWidth() {
     val model =
-      model("small_width_layout.xml",
-            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-              .withBounds(0, 0, 800, 1300)
-              .withMockView()
-              .children(
-                component("com.google.android.material.bottomnavigation.BottomNavigationView")
-                  .withBounds(0, 0, 800, 100)
-                  .withMockView()
-              )
-      ).build()
+      model(
+          "small_width_layout.xml",
+          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
+            .withBounds(0, 0, 800, 1300)
+            .withMockView()
+            .children(
+              component("com.google.android.material.bottomnavigation.BottomNavigationView")
+                .withBounds(0, 0, 800, 100)
+                .withMockView()
+            )
+        )
+        .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
     val issues = BottomNavAnalyzer.findIssues(renderResult, model)
     assertEquals(0, issues.size)
@@ -42,19 +44,24 @@ class BottomNavAnalyzerTest : LayoutTestCase() {
 
   fun testBottomNavLargeWidth() {
     val model =
-      model("large_width_layout.xml",
-            component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-              .withBounds(0, 0, 2000, 1300)
-              .withMockView()
-              .children(
-                component("com.google.android.material.bottomnavigation.BottomNavigationView")
-                  .withBounds(0, 0, 2000, 100)
-                  .withMockView()
-              )
-      ).build()
+      model(
+          "large_width_layout.xml",
+          component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
+            .withBounds(0, 0, 2000, 1300)
+            .withMockView()
+            .children(
+              component("com.google.android.material.bottomnavigation.BottomNavigationView")
+                .withBounds(0, 0, 2000, 100)
+                .withMockView()
+            )
+        )
+        .build()
     val renderResult = getRenderResultWithRootViews(ImmutableList.of(model.getRoot().viewInfo!!))
     val issues = BottomNavAnalyzer.findIssues(renderResult, model)
     assertEquals(1, issues.size)
-    assertEquals("Bottom navigation bar is not recommended for breakpoints over 600dp", issues[0].message)
+    assertEquals(
+      "Bottom navigation bar is not recommended for breakpoints over 600dp",
+      issues[0].message
+    )
   }
 }

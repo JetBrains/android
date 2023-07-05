@@ -29,13 +29,13 @@ class SelectNextAction(private val surface: DesignSurface<*>) : AnAction() {
     val selectionModel = surface.selectionModel
     val selection = selectionModel.selection
 
-    val next = if (selection.size == 1) {
-      val index = selectable.indexOf(selection[0])
-      selectable[(index + 1) % selectable.size]
-    }
-    else {
-      selectable.first()
-    }
+    val next =
+      if (selection.size == 1) {
+        val index = selectable.indexOf(selection[0])
+        selectable[(index + 1) % selectable.size]
+      } else {
+        selectable.first()
+      }
 
     selectionModel.setSelection(listOf(next))
     surface.repaint()

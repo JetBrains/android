@@ -28,15 +28,16 @@ import com.google.common.collect.HashBasedTable
 /**
  * Provider of default property values for NlComponent attributes.
  *
- * Layoutlib will generate a map from each view object to the
- * default value computed by each view class.
- * Currently this is only done for a few view classes example: TextView,
- * but this map could be more extensive in the future.
+ * Layoutlib will generate a map from each view object to the default value computed by each view
+ * class. Currently this is only done for a few view classes example: TextView, but this map could
+ * be more extensive in the future.
  */
-class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager): DefaultPropertyValueProvider {
+class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager) :
+  DefaultPropertyValueProvider {
   // Store the default values requested so far. Use this to detect default value changes.
   @GuardedBy("lookupPerformed")
-  private val lookupPerformed = HashBasedTable.create<NlComponent, ResourceReference, ResourceValue>()
+  private val lookupPerformed =
+    HashBasedTable.create<NlComponent, ResourceReference, ResourceValue>()
 
   // Store the default style values requested so far. Use this to detect default value changes.
   @GuardedBy("styleLookupPerformed")
@@ -57,11 +58,8 @@ class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager): De
       return provideDefaultStyleValue(property)
     }
     val namespace = ResourceNamespace.fromNamespaceUri(property.namespace) ?: return null
-    val reference =  ResourceReference.attr(namespace, property.name)
-    return property.components
-      .map { lookup(it, reference) }
-      .distinct()
-      .singleOrNull()
+    val reference = ResourceReference.attr(namespace, property.name)
+    return property.components.map { lookup(it, reference) }.distinct().singleOrNull()
   }
 
   /**
@@ -75,24 +73,16 @@ class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager): De
     return hasDefaultPropertyValuesChanged() || hasDefaultStyleValuesChanged()
   }
 
-  /**
-   * Clear the lookup tables used to detect default value changes.
-   */
+  /** Clear the lookup tables used to detect default value changes. */
   override fun clearCache() {
-    synchronized(lookupPerformed) {
-      lookupPerformed.clear()
-    }
-    synchronized(styleLookupPerformed) {
-      styleLookupPerformed.clear()
-    }
+    synchronized(lookupPerformed) { lookupPerformed.clear() }
+    synchronized(styleLookupPerformed) { styleLookupPerformed.clear() }
   }
 
   private fun lookup(component: NlComponent, reference: ResourceReference): ResourceValue? {
     val valueMap = sceneManager.defaultProperties[component.snapshot] ?: return null
     val value = valueMap[reference] ?: return null
-    synchronized(lookupPerformed) {
-      lookupPerformed.put(component, reference, value)
-    }
+    synchronized(lookupPerformed) { lookupPerformed.put(component, reference, value) }
     return value
   }
 
@@ -110,10 +100,7 @@ class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager): De
   }
 
   private fun provideDefaultStyleValue(property: NlPropertyItem): ResourceValue? {
-    val style = property.components
-                           .map { styleLookup(it) }
-                           .distinct()
-                           .singleOrNull() ?: return null
+    val style = property.components.map { styleLookup(it) }.distinct().singleOrNull() ?: return null
     val reference = ResourceReference.attr(style.namespace, ATTR_STYLE)
     return ResourceValueImpl(reference, "?" + style.name)
   }
@@ -132,9 +119,7 @@ class NlDefaultPropertyValueProvider(private val sceneManager: SceneManager): De
 
   private fun styleLookup(component: NlComponent): ResourceReference? {
     val value = sceneManager.defaultStyles[component.snapshot] ?: return null
-    synchronized(styleLookupPerformed) {
-      styleLookupPerformed[component] = value
-    }
+    synchronized(styleLookupPerformed) { styleLookupPerformed[component] = value }
     return value
   }
 }

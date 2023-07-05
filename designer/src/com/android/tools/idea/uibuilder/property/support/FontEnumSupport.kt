@@ -19,11 +19,11 @@ import com.android.SdkConstants.FONT_PREFIX
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.fonts.Fonts.Companion.AVAILABLE_FAMILIES
 import com.android.tools.fonts.ProjectFonts
-import com.android.tools.property.panel.api.EnumSupport
-import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.fonts.MoreFontsDialog
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.panel.api.EnumSupport
+import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.android.facet.AndroidFacet
@@ -31,10 +31,11 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Standard font [EnumSupport].
  *
- * Generates data for a fontFamily popup with 2 sections: user defined (Project) and framework (Android) defined fonts.
- * The bottom item is an action for opening the downloadable font dialog.
+ * Generates data for a fontFamily popup with 2 sections: user defined (Project) and framework
+ * (Android) defined fonts. The bottom item is an action for opening the downloadable font dialog.
  */
-class FontEnumSupport(private val facet: AndroidFacet, private val resolver: ResourceResolver?) : EnumSupport {
+class FontEnumSupport(private val facet: AndroidFacet, private val resolver: ResourceResolver?) :
+  EnumSupport {
   private val projectFonts = ProjectFonts(StudioResourceRepositoryManager.getInstance(facet))
 
   override val values: List<EnumValue>
@@ -43,7 +44,9 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
       val fonts = mutableListOf<EnumValue>()
 
       fonts.add(EnumValue.header(PROJECT_HEADER))
-      projectFonts.fonts.mapTo(fonts) { EnumValue.indented(value = FONT_PREFIX + it.name, display = it.name) }
+      projectFonts.fonts.mapTo(fonts) {
+        EnumValue.indented(value = FONT_PREFIX + it.name, display = it.name)
+      }
       if (fonts.size == 1) {
         fonts.removeAt(0)
       }

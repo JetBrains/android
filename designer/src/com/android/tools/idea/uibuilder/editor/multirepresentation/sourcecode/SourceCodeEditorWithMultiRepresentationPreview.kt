@@ -25,17 +25,29 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 
 /**
- * A [TextEditorWithMultiRepresentationPreview] where the preview part is [SourceCodePreview] and therefore it allows to have several
- * representations for a single source code file.
+ * A [TextEditorWithMultiRepresentationPreview] where the preview part is [SourceCodePreview] and
+ * therefore it allows to have several representations for a single source code file.
  */
-internal class SourceCodeEditorWithMultiRepresentationPreview(private val project: Project, textEditor: TextEditor, preview: SourceCodePreview) :
-  TextEditorWithMultiRepresentationPreview<SourceCodePreview>(project, textEditor, preview, "Source Code Editor With Preview") {
-  override fun getState(level: FileEditorStateLevel): SourceCodeEditorWithMultiRepresentationPreviewState =
+internal class SourceCodeEditorWithMultiRepresentationPreview(
+  private val project: Project,
+  textEditor: TextEditor,
+  preview: SourceCodePreview
+) :
+  TextEditorWithMultiRepresentationPreview<SourceCodePreview>(
+    project,
+    textEditor,
+    preview,
+    "Source Code Editor With Preview"
+  ) {
+  override fun getState(
+    level: FileEditorStateLevel
+  ): SourceCodeEditorWithMultiRepresentationPreviewState =
     SourceCodeEditorWithMultiRepresentationPreviewState(
       super.getState(level),
       textEditor.getState(level),
       preview.getState(level),
-      if (isPureTextEditor) null else layout)
+      if (isPureTextEditor) null else layout
+    )
 
   override fun setState(state: FileEditorState) {
     if (state is SourceCodeEditorWithMultiRepresentationPreviewState) {
@@ -51,8 +63,6 @@ internal class SourceCodeEditorWithMultiRepresentationPreview(private val projec
 
   override fun createRightToolbarActionGroup(): ActionGroup? =
     textEditor.editor.project?.let { project ->
-      LiveLiteralsStatusAction.getAction(project)?.let {
-        DefaultActionGroup(listOfNotNull(it))
-      }
+      LiveLiteralsStatusAction.getAction(project)?.let { DefaultActionGroup(listOfNotNull(it)) }
     }
 }

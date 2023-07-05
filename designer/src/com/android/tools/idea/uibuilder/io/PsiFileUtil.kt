@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("PsiFileUtil")
+
 package com.android.tools.idea.uibuilder.io
 
 import com.android.resources.ResourceFolderType

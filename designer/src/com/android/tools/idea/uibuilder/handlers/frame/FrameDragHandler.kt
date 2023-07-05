@@ -27,11 +27,12 @@ import com.android.tools.idea.uibuilder.api.*
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
 
-class FrameDragHandler(editor: ViewEditor,
-                       handler: ViewGroupHandler,
-                       layout: SceneComponent,
-                       components: List<NlComponent>,
-                       type: DragType
+class FrameDragHandler(
+  editor: ViewEditor,
+  handler: ViewGroupHandler,
+  layout: SceneComponent,
+  components: List<NlComponent>,
+  type: DragType
 ) : DragHandler(editor, handler, layout, components, type) {
 
   private val component: SceneComponent?
@@ -46,8 +47,7 @@ class FrameDragHandler(editor: ViewEditor,
       component.updateTargets()
       component.setDrawState(SceneComponent.DrawState.DRAG)
       layout.addChild(component)
-    }
-    else {
+    } else {
       component = null
     }
   }
@@ -60,7 +60,12 @@ class FrameDragHandler(editor: ViewEditor,
     dragTarget.mouseDown(x, y)
   }
 
-  override fun update(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, modifiers: Int, sceneContext: SceneContext): String? {
+  override fun update(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    modifiers: Int,
+    sceneContext: SceneContext
+  ): String? {
     val result = super.update(x, y, modifiers, sceneContext)
     if (component == null) {
       return "undefined"
@@ -71,8 +76,12 @@ class FrameDragHandler(editor: ViewEditor,
     return result
   }
 
-  override fun commit(@AndroidCoordinate x: Int, @AndroidCoordinate y: Int, modifiers: Int,
-                      insertType: InsertType) {
+  override fun commit(
+    @AndroidCoordinate x: Int,
+    @AndroidCoordinate y: Int,
+    modifiers: Int,
+    insertType: InsertType
+  ) {
     if (component != null) {
       dragTarget.mouseCancel()
       layout.scene.removeComponent(component)

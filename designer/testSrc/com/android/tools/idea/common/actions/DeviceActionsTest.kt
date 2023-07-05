@@ -16,8 +16,8 @@
 package com.android.tools.idea.common.actions
 
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.common.surface.TestDesignSurface
 import com.android.tools.configurations.Configuration
+import com.android.tools.idea.common.surface.TestDesignSurface
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceChangeListener
 import com.android.tools.idea.configurations.DeviceMenuAction
@@ -34,14 +34,9 @@ import org.junit.Test
 
 class NextDeviceActionTest {
 
-  @JvmField
-  @Rule
-  val appRule = ApplicationRule()
+  @JvmField @Rule val appRule = ApplicationRule()
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
-
+  @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
 
   @Test
   fun testNextDeviceAction() {
@@ -71,14 +66,9 @@ class NextDeviceActionTest {
 
 class PreviousDeviceActionTest {
 
-  @JvmField
-  @Rule
-  val appRule = ApplicationRule()
+  @JvmField @Rule val appRule = ApplicationRule()
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
-
+  @JvmField @Rule val projectRule = AndroidProjectRule.withAndroidModel().onEdt()
 
   @Test
   fun testPreviousDeviceAction() {
@@ -107,18 +97,25 @@ class PreviousDeviceActionTest {
 }
 
 private fun getSetDeviceActions(config: Configuration): List<SetDeviceAction> {
-  val menuAction = DeviceMenuAction({ config }, object: DeviceChangeListener {
-    override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
-  }).apply { updateActions(DataContext.EMPTY_CONTEXT) }
+  val menuAction =
+    DeviceMenuAction(
+        { config },
+        object : DeviceChangeListener {
+          override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
+        }
+      )
+      .apply { updateActions(DataContext.EMPTY_CONTEXT) }
 
-  return menuAction.getChildren(null)
+  return menuAction
+    .getChildren(null)
     .map { if (it is ActionGroup) it.getChildren(null) else arrayOf(it) }
     .flatMap { it.toList() }
     .filterIsInstance<SetDeviceAction>()
 }
 
 @Language("XML")
-private const val LAYOUT_FILE_CONTENT = """
+private const val LAYOUT_FILE_CONTENT =
+  """
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
   android:layout_height="match_parent"

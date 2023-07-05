@@ -26,19 +26,26 @@ import java.awt.Graphics2D
 
 /**
  * Decorator for GridLayout.
+ *
  * TODO: support RTL
  */
 open class GridLayoutDecorator : SceneDecorator() {
 
-  override fun addBackground(list: DisplayList, sceneContext: SceneContext, component: SceneComponent) {
+  override fun addBackground(
+    list: DisplayList,
+    sceneContext: SceneContext,
+    component: SceneComponent
+  ) {
     super.addBackground(list, sceneContext, component)
     with(getGridBarriers(component)) {
       // Add barrier lines
-      columnIndices.mapNotNull { getColumnValue(it) }
+      columnIndices
+        .mapNotNull { getColumnValue(it) }
         .distinct()
         .filter { it in left..right }
         .forEach { list.add(DrawLineCommand(it, top, it, bottom)) }
-      rowIndices.mapNotNull { getRowValue(it) }
+      rowIndices
+        .mapNotNull { getRowValue(it) }
         .distinct()
         .filter { it in top..bottom }
         .forEach { list.add(DrawLineCommand(left, it, right, it)) }
@@ -46,11 +53,12 @@ open class GridLayoutDecorator : SceneDecorator() {
   }
 }
 
-private class DrawLineCommand(@AndroidDpCoordinate val x1: Int,
-                              @AndroidDpCoordinate val y1: Int,
-                              @AndroidDpCoordinate val x2: Int,
-                              @AndroidDpCoordinate val y2: Int)
-  : DrawCommand {
+private class DrawLineCommand(
+  @AndroidDpCoordinate val x1: Int,
+  @AndroidDpCoordinate val y1: Int,
+  @AndroidDpCoordinate val x2: Int,
+  @AndroidDpCoordinate val y2: Int
+) : DrawCommand {
 
   override fun getLevel() = DrawCommand.CLIP_LEVEL
 
@@ -64,5 +72,6 @@ private class DrawLineCommand(@AndroidDpCoordinate val x1: Int,
   }
 
   // TODO: fix this serialize
-  override fun serialize(): String = "com.android.tools.idea.uibuilder.handlers.grid.draw.DrawLineCommand: ($x1, $y1) - ($x2, $y2)"
+  override fun serialize(): String =
+    "com.android.tools.idea.uibuilder.handlers.grid.draw.DrawLineCommand: ($x1, $y1) - ($x2, $y2)"
 }

@@ -24,7 +24,10 @@ val LAYER_FONT = JBUI.Fonts.create(Font.MONOSPACED, 9)
 fun Graphics2D.drawMultilineString(lines: String, x: Int, y: Int): Int {
   var lineStart = 0
   val fontMetrics = this.fontMetrics
-  lines.split('\n').forEach { this.drawString(it, x, y + lineStart); lineStart += fontMetrics.height }
+  lines.split('\n').forEach {
+    this.drawString(it, x, y + lineStart)
+    lineStart += fontMetrics.height
+  }
 
   return lineStart
 }

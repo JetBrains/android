@@ -33,9 +33,7 @@ class RelativePlaceholder(host: SceneComponent) : Placeholder(host) {
 
   override fun snap(info: SnappingInfo, retPoint: Point) = delegator.snap(info, retPoint)
 
-  /**
-   * TODO: implement the auto connection
-   */
+  /** TODO: implement the auto connection */
   override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) {
     val dropHandler = RelativeDropHandler(sceneComponent)
     dropHandler.updateAttributes(attributes, sceneComponent.drawX, sceneComponent.drawY)

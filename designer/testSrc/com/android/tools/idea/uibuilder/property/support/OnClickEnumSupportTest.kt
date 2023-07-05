@@ -22,12 +22,13 @@ import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
+import java.util.concurrent.Callable
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
-import java.util.concurrent.Callable
 
 @Language("JAVA")
-private const val MAIN_ACTIVITY = """
+private const val MAIN_ACTIVITY =
+  """
   package p1.p2;
 
   import android.app.Activity;
@@ -51,7 +52,8 @@ private const val MAIN_ACTIVITY = """
 """
 
 @Language("JAVA")
-private const val OTHER_ACTIVITY = """
+private const val OTHER_ACTIVITY =
+  """
   package p1.p2;
 
   import android.app.Activity;
@@ -75,7 +77,8 @@ private const val OTHER_ACTIVITY = """
 """
 
 @Language("JAVA")
-private const val THIRD_ACTIVITY = """
+private const val THIRD_ACTIVITY =
+  """
   package p1.p2;
 
   import android.app.Activity;
@@ -92,7 +95,7 @@ private const val THIRD_ACTIVITY = """
   }
 """
 
-class OnClickEnumSupportTest: AndroidTestCase() {
+class OnClickEnumSupportTest : AndroidTestCase() {
 
   fun testWithNoActivities() {
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = FRAME_LAYOUT)
@@ -132,7 +135,9 @@ class OnClickEnumSupportTest: AndroidTestCase() {
     val otherValues = allValues.subList(4, 6)
     assertThat(mainValues.map { it.display }).containsExactly("help", "onClick").inOrder()
     assertThat(mainValues.map { it.value }).containsExactly("help", "onClick").inOrder()
-    assertThat(otherValues.map { it.display }).containsExactly("onClick", "startProcessing").inOrder()
+    assertThat(otherValues.map { it.display })
+      .containsExactly("onClick", "startProcessing")
+      .inOrder()
     assertThat(otherValues.map { it.value }).containsExactly("onClick", "startProcessing").inOrder()
     assertThat(allValues.size).isEqualTo(6)
   }
@@ -141,7 +146,14 @@ class OnClickEnumSupportTest: AndroidTestCase() {
     myFixture.addClass(MAIN_ACTIVITY.trimIndent())
     myFixture.addClass(OTHER_ACTIVITY.trimIndent())
     myFixture.addClass(THIRD_ACTIVITY.trimIndent())
-    val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = FRAME_LAYOUT, activityName = activityName)
+    val util =
+      SupportTestUtil(
+        myFacet,
+        myFixture,
+        TEXT_VIEW,
+        parentTag = FRAME_LAYOUT,
+        activityName = activityName
+      )
     return OnClickEnumSupport(util.nlModel)
   }
 }

@@ -19,9 +19,9 @@ import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
+import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import javax.swing.JPanel
 
 open class TestPreviewRepresentation : PreviewRepresentation {
   internal var state: PreviewRepresentationState? = null
@@ -40,7 +40,10 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   }
 
   override fun onDeactivate() {
-    assertTrue("onDeactivate called more times than onActivate (nActivations = $nActivations)", nActivations > 0)
+    assertTrue(
+      "onDeactivate called more times than onActivate (nActivations = $nActivations)",
+      nActivations > 0
+    )
     nActivations--
   }
 
@@ -59,9 +62,11 @@ open class TestPreviewRepresentation : PreviewRepresentation {
   }
 }
 
-open class TestPreviewRepresentationProvider(override val displayName: String,
-                                             var isAccept: Boolean,
-                                             private val representation: PreviewRepresentation = TestPreviewRepresentation()) : PreviewRepresentationProvider {
+open class TestPreviewRepresentationProvider(
+  override val displayName: String,
+  var isAccept: Boolean,
+  private val representation: PreviewRepresentation = TestPreviewRepresentation()
+) : PreviewRepresentationProvider {
   override suspend fun accept(project: Project, psiFile: PsiFile) = isAccept
   override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation = representation
 }

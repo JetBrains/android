@@ -20,10 +20,13 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Cre
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateOnSwipe
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor
 
-/**
- * Click or Swipe Handler action.
- */
-class ClickOrSwipeAction(motionEditor: MotionEditor) : OpenPopUpAction("Create Click or Swipe Handler", MEIcons.CREATE_ON_STAR, ) {
+/** Click or Swipe Handler action. */
+class ClickOrSwipeAction(motionEditor: MotionEditor) :
+  OpenPopUpAction(
+    "Create Click or Swipe Handler",
+    MEIcons.CREATE_ON_STAR,
+  ) {
 
-  override val actions = listOf(PanelAction(CreateOnClick(), motionEditor), PanelAction(CreateOnSwipe(), motionEditor))
+  override val actions =
+    listOf(PanelAction(CreateOnClick(), motionEditor), PanelAction(CreateOnSwipe(), motionEditor))
 }

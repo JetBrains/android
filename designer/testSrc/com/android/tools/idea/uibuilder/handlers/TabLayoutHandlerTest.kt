@@ -25,7 +25,9 @@ class TabLayoutHandlerTest {
   @Test
   fun testXmlWithOldName() {
     val handler = TabLayoutHandler()
-    assertThat(handler.getXml(AndroidXConstants.TAB_LAYOUT.oldName(), XmlType.COMPONENT_CREATION)).isEqualTo("""
+    assertThat(handler.getXml(AndroidXConstants.TAB_LAYOUT.oldName(), XmlType.COMPONENT_CREATION))
+      .isEqualTo(
+        """
       <android.support.design.widget.TabLayout
           android:layout_width="match_parent"
           android:layout_height="wrap_content">
@@ -46,13 +48,17 @@ class TabLayoutHandlerTest {
               android:text="Wednesday" />
       </android.support.design.widget.TabLayout>
 
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
   }
 
   @Test
   fun testXmlWithNewName() {
     val handler = TabLayoutHandler()
-    assertThat(handler.getXml(AndroidXConstants.TAB_LAYOUT.newName(), XmlType.COMPONENT_CREATION)).isEqualTo("""
+    assertThat(handler.getXml(AndroidXConstants.TAB_LAYOUT.newName(), XmlType.COMPONENT_CREATION))
+      .isEqualTo(
+        """
       <com.google.android.material.tabs.TabLayout
           android:layout_width="match_parent"
           android:layout_height="wrap_content">
@@ -73,6 +79,8 @@ class TabLayoutHandlerTest {
               android:text="Wednesday" />
       </com.google.android.material.tabs.TabLayout>
 
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
   }
 }

@@ -36,9 +36,7 @@ interface InteractivePreviewUsageTracker {
     private val NOP_TRACKER = InteractiveNopTracker()
     private val MANAGER =
       DesignerUsageTrackerManager<InteractivePreviewUsageTracker, DesignSurface<*>>(
-        { executor, _, eventLogger ->
-          InteractivePreviewUsageTrackerImpl(executor, eventLogger)
-        },
+        { executor, _, eventLogger -> InteractivePreviewUsageTrackerImpl(executor, eventLogger) },
         NOP_TRACKER
       )
 

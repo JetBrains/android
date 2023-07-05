@@ -26,10 +26,13 @@ import org.jetbrains.android.facet.AndroidFacet
 
 private val DEFAULT_PROPERTY_SIDE_WIDTH = JBUI.scale(280)
 
-/**
- * Tool Window definition for the Properties Panel
- */
-class NlPropertiesPanelDefinition(facet: AndroidFacet, side: Side, split: Split, autoHide: AutoHide) :
+/** Tool Window definition for the Properties Panel */
+class NlPropertiesPanelDefinition(
+  facet: AndroidFacet,
+  side: Side,
+  split: Split,
+  autoHide: AutoHide
+) :
   ToolWindowDefinition<DesignSurface<*>>(
     "Attributes",
     StudioIcons.Shell.ToolWindows.ATTRIBUTES,
@@ -40,4 +43,5 @@ class NlPropertiesPanelDefinition(facet: AndroidFacet, side: Side, split: Split,
     DEFAULT_PROPERTY_SIDE_WIDTH,
     DEFAULT_BUTTON_SIZE,
     ALLOW_FLOATING or ALLOW_SPLIT_MODE,
-    { NlPropertiesPanelToolContent(facet, it) })
+    { NlPropertiesPanelToolContent(facet, it) }
+  )

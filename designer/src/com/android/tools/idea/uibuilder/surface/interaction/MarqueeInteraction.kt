@@ -27,17 +27,17 @@ import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.MouseDraggedEvent
 import com.android.tools.idea.common.surface.SceneView
 import com.intellij.util.containers.ContainerUtil
-import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Graphics2D
+import org.intellij.lang.annotations.JdkConstants
 
 /**
- * A [MarqueeInteraction] is an interaction for swiping out a selection rectangle.
- * With a modifier key, items that intersect the rectangle can be toggled
- * instead of added to the new selection set.
+ * A [MarqueeInteraction] is an interaction for swiping out a selection rectangle. With a modifier
+ * key, items that intersect the rectangle can be toggled instead of added to the new selection set.
  */
-class MarqueeInteraction(private val sceneView: SceneView, private val repaint: () -> Unit) : Interaction() {
-  /** The [Layer] drawn for the marquee.  */
+class MarqueeInteraction(private val sceneView: SceneView, private val repaint: () -> Unit) :
+  Interaction() {
+  /** The [Layer] drawn for the marquee. */
   private var overlay: MarqueeLayer? = null
   override fun begin(event: InteractionEvent) {
     assert(event is MouseDraggedEvent) {
@@ -54,7 +54,11 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
     }
   }
 
-  override fun update(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
+  override fun update(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) {
     if (overlay == null) {
       return
     }
@@ -76,11 +80,17 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
   override fun commit(event: InteractionEvent) { // Do nothing
   }
 
-  override fun cancel(event: InteractionEvent) { //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
+  override fun cancel(
+    event: InteractionEvent
+  ) { //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
     cancel(event.info.x, event.info.y, event.info.modifiersEx)
   }
 
-  override fun cancel(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
+  override fun cancel(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @JdkConstants.InputEventMask modifiersEx: Int
+  ) {
     sceneView.selectionModel.clear()
   }
 
@@ -95,55 +105,48 @@ class MarqueeInteraction(private val sceneView: SceneView, private val repaint: 
   }
 
   /**
-   * An [Layer] for the [MarqueeInteraction]; paints a selection
-   * overlay rectangle matching the mouse coordinate delta between gesture
-   * start and the current position.
+   * An [Layer] for the [MarqueeInteraction]; paints a selection overlay rectangle matching the
+   * mouse coordinate delta between gesture start and the current position.
    */
   private class MarqueeLayer(val colorSet: ColorSet) : Layer() {
-    @SwingCoordinate
-    private var x = 0
+    @SwingCoordinate private var x = 0
 
-    @SwingCoordinate
-    private var y = 0
+    @SwingCoordinate private var y = 0
 
-    @SwingCoordinate
-    private var w = 0
+    @SwingCoordinate private var w = 0
 
-    @SwingCoordinate
-    private var h = 0
+    @SwingCoordinate private var h = 0
 
-    @SwingCoordinate
-    private var mouseX = 0
+    @SwingCoordinate private var mouseX = 0
 
-    @SwingCoordinate
-    private var mouseY = 0
+    @SwingCoordinate private var mouseY = 0
 
-    @AndroidDpCoordinate
-    private var androidWidth = 0
+    @AndroidDpCoordinate private var androidWidth = 0
 
-    @AndroidDpCoordinate
-    private var androidHeight = 0
+    @AndroidDpCoordinate private var androidHeight = 0
 
     /**
      * Updates the attribute of the marquee rectangle.
      *
-     * @param x             The top left corner of the rectangle, x coordinate. The unit is swing (pixel)
-     * @param y             The top left corner of the rectangle, y coordinate. The unit is swing (pixel)
-     * @param w             Rectangle w. The unit is swing (pixel)
-     * @param h             Rectangle h. The unit is swing (pixel)
-     * @param mouseX        The x position of mouse. The unit is swing (pixel).
-     * @param mouseY        The y position of mouse. The unit is swing (pixel).
-     * @param androidWidth  The width of rectangle. The unit is android dp.
+     * @param x The top left corner of the rectangle, x coordinate. The unit is swing (pixel)
+     * @param y The top left corner of the rectangle, y coordinate. The unit is swing (pixel)
+     * @param w Rectangle w. The unit is swing (pixel)
+     * @param h Rectangle h. The unit is swing (pixel)
+     * @param mouseX The x position of mouse. The unit is swing (pixel).
+     * @param mouseY The y position of mouse. The unit is swing (pixel).
+     * @param androidWidth The width of rectangle. The unit is android dp.
      * @param androidHeight The height of rectangle. The unit is android dp.
      */
-    fun updateValues(@SwingCoordinate x: Int,
-                     @SwingCoordinate y: Int,
-                     @SwingCoordinate w: Int,
-                     @SwingCoordinate h: Int,
-                     @SwingCoordinate mouseX: Int,
-                     @SwingCoordinate mouseY: Int,
-                     @AndroidDpCoordinate androidWidth: Int,
-                     @AndroidDpCoordinate androidHeight: Int) {
+    fun updateValues(
+      @SwingCoordinate x: Int,
+      @SwingCoordinate y: Int,
+      @SwingCoordinate w: Int,
+      @SwingCoordinate h: Int,
+      @SwingCoordinate mouseX: Int,
+      @SwingCoordinate mouseY: Int,
+      @AndroidDpCoordinate androidWidth: Int,
+      @AndroidDpCoordinate androidHeight: Int
+    ) {
       this.x = x
       this.y = y
       this.w = w

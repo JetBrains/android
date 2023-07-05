@@ -24,11 +24,12 @@ import java.awt.event.KeyEvent
 import javax.swing.JTextField
 
 /**
- * Helper function to check if an action event is the key event is from JTextField.
- * In such case we may not process the event. For example, if the shortcut of an Action is a single key stroke, the action will be performed
- * when user is typing the text.
+ * Helper function to check if an action event is the key event is from JTextField. In such case we
+ * may not process the event. For example, if the shortcut of an Action is a single key stroke, the
+ * action will be performed when user is typing the text.
  */
 @UiThread
 fun isActionEventFromJTextField(event: AnActionEvent): Boolean {
-  return event.inputEvent is KeyEvent && IdeFocusManager.findInstanceByContext(event.dataContext).focusOwner is JTextField
+  return event.inputEvent is KeyEvent &&
+    IdeFocusManager.findInstanceByContext(event.dataContext).focusOwner is JTextField
 }

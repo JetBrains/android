@@ -32,8 +32,7 @@ class MotionIdPropertyItemTest {
   private val projectRule = AndroidProjectRule.withSdk()
   private val motionRule = MotionAttributeRule(projectRule)
 
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(motionRule).around(EdtRule())!!
+  @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(motionRule).around(EdtRule())!!
 
   @Test
   fun testIdValueIsPropagatedToMTag() {
@@ -41,6 +40,7 @@ class MotionIdPropertyItemTest {
     val property = motionRule.attributesModel.allProperties[TRANSITION]!![ANDROID_URI, ATTR_ID]
     property.value = "myOldTransitionIdValue"
     property.value = "myNewTransitionIdValue"
-    assertThat(motionRule.selection.motionSceneTag?.getAttributeValue(ATTR_ID)).isEqualTo("@+id/myNewTransitionIdValue")
+    assertThat(motionRule.selection.motionSceneTag?.getAttributeValue(ATTR_ID))
+      .isEqualTo("@+id/myNewTransitionIdValue")
   }
 }

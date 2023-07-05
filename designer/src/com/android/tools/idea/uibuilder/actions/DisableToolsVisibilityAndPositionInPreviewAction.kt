@@ -23,15 +23,18 @@ import icons.StudioIcons.LayoutEditor.Toolbar.TOOLS_ATTRIBUTE_OFF
 import icons.StudioIcons.LayoutEditor.Toolbar.TOOLS_ATTRIBUTE_ON
 
 /**
- * [ToggleAction] to enable or disable using 'tools' namespaced 'visibility' and 'layout_editor_absoluteX/Y' attributes in the Layout Editor
- * preview.
+ * [ToggleAction] to enable or disable using 'tools' namespaced 'visibility' and
+ * 'layout_editor_absoluteX/Y' attributes in the Layout Editor preview.
  *
- * Default state (not-selected) means 'visibility' and 'layout_editor_absoluteX/Y' tools attributes are enabled in the Layout file preview.
+ * Default state (not-selected) means 'visibility' and 'layout_editor_absoluteX/Y' tools attributes
+ * are enabled in the Layout file preview.
  */
-object DisableToolsVisibilityAndPositionInPreviewAction : ToggleAction(
-  "Toggle tools visibility and position",
-  "Disable or Enable 'tools:visibility' and 'tools:layout_editor_absoluteX/Y' attributes in the Layout preview.",
-  TOOLS_ATTRIBUTE_ON) {
+object DisableToolsVisibilityAndPositionInPreviewAction :
+  ToggleAction(
+    "Toggle tools visibility and position",
+    "Disable or Enable 'tools:visibility' and 'tools:layout_editor_absoluteX/Y' attributes in the Layout preview.",
+    TOOLS_ATTRIBUTE_ON
+  ) {
 
   override fun update(e: AnActionEvent) {
     super.update(e)
@@ -41,15 +44,15 @@ object DisableToolsVisibilityAndPositionInPreviewAction : ToggleAction(
   }
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    return e.getPreviewHandler()?.let {
-      !it.previewWithToolsVisibilityAndPosition
-    } ?: true
+    return e.getPreviewHandler()?.let { !it.previewWithToolsVisibilityAndPosition } ?: true
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    // state == true means that the action is enabled, which in this case means disable the tools attributes in preview.
+    // state == true means that the action is enabled, which in this case means disable the tools
+    // attributes in preview.
     e.getPreviewHandler()?.previewWithToolsVisibilityAndPosition = !state
   }
 
-  private fun AnActionEvent.getPreviewHandler(): LayoutPreviewHandler? = this.getData(LAYOUT_PREVIEW_HANDLER_KEY)
+  private fun AnActionEvent.getPreviewHandler(): LayoutPreviewHandler? =
+    this.getData(LAYOUT_PREVIEW_HANDLER_KEY)
 }

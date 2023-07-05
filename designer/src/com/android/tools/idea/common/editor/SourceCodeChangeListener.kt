@@ -24,11 +24,14 @@ import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.util.PsiTreeUtil
 
 /**
- * A PsiTreeChangeListener implementation that ignores all before- triggers and calls [onSourceCodeChanged] callback whenever byte-code
- * affecting source code in the [psiFile] is changed (changes in the comments are ignored)
+ * A PsiTreeChangeListener implementation that ignores all before- triggers and calls
+ * [onSourceCodeChanged] callback whenever byte-code affecting source code in the [psiFile] is
+ * changed (changes in the comments are ignored)
  */
-class SourceCodeChangeListener(private val psiFile: PsiFile,
-                               private val onSourceCodeChanged: (psiElement: PsiElement) -> Unit) : PsiTreeChangeAdapter() {
+class SourceCodeChangeListener(
+  private val psiFile: PsiFile,
+  private val onSourceCodeChanged: (psiElement: PsiElement) -> Unit
+) : PsiTreeChangeAdapter() {
   private fun elementChanged(eventPsiFile: PsiFile?, psiElement: PsiElement?) {
     if (psiElement == null || eventPsiFile != psiFile) {
       return

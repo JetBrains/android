@@ -24,14 +24,17 @@ import org.junit.Test
 import org.mockito.Mockito
 
 class AnimationToolbarTest {
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   @Test
   fun testControlFunctions() {
     val toolbar = runInEdtAndGet {
-      AnimationToolbar.createUnlimitedAnimationToolbar(projectRule.testRootDisposable, EMPTY_ANIMATION_LISTENER, 10L, 0L)
+      AnimationToolbar.createUnlimitedAnimationToolbar(
+        projectRule.testRootDisposable,
+        EMPTY_ANIMATION_LISTENER,
+        10L,
+        0L
+      )
     }
     val listener = MockitoKt.mock<AnimationControllerListener>()
     toolbar.registerAnimationControllerListener(listener)
@@ -55,7 +58,13 @@ class AnimationToolbarTest {
   fun testAnimationComplete() {
     // Set animation length as 2 second.
     val toolbar = runInEdtAndGet {
-      AnimationToolbar.createAnimationToolbar(projectRule.testRootDisposable, EMPTY_ANIMATION_LISTENER, 10L, 0L, 2 * 1000L)
+      AnimationToolbar.createAnimationToolbar(
+        projectRule.testRootDisposable,
+        EMPTY_ANIMATION_LISTENER,
+        10L,
+        0L,
+        2 * 1000L
+      )
     }
     toolbar.setLooping(false)
     val listener = MockitoKt.mock<AnimationControllerListener>()
@@ -69,6 +78,7 @@ class AnimationToolbarTest {
   }
 }
 
-private val EMPTY_ANIMATION_LISTENER = object : AnimationListener {
-  override fun animateTo(controller: AnimationController, framePositionMs: Long) = Unit
-}
+private val EMPTY_ANIMATION_LISTENER =
+  object : AnimationListener {
+    override fun animateTo(controller: AnimationController, framePositionMs: Long) = Unit
+  }

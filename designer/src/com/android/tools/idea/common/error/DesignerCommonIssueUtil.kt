@@ -20,8 +20,8 @@ import com.intellij.ui.tree.TreeVisitor
 import javax.swing.tree.TreePath
 
 /**
- * [TreeVisitor] to find the first issued node which has the same source file of the given [SceneView].
- * If there are multiple issues match, only the first appear one is chosen.
+ * [TreeVisitor] to find the first issued node which has the same source file of the given
+ * [SceneView]. If there are multiple issues match, only the first appear one is chosen.
  */
 class SceneViewIssueNodeVisitor(private val sceneView: SceneView) : TreeVisitor {
   override fun visit(path: TreePath): TreeVisitor.Action {

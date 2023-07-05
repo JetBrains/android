@@ -28,13 +28,14 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.command.WriteCommandAction
 import org.jetbrains.android.AndroidTestCase
 
-private const val PROJECT_TEXT_APPEARANCES = """
+private const val PROJECT_TEXT_APPEARANCES =
+  """
 <resources>
     <style name="MyTextStyle" parent="android:TextAppearance"/>
     <style name="TextAppearance.Blue" parent="MyTextStyle"/>
 </resources>"""
 
-class TextAppearanceEnumSupportTest: AndroidTestCase() {
+class TextAppearanceEnumSupportTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
@@ -52,29 +53,49 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
     val values = support.values
     val expectedProjectValues = listOf("@style/TextAppearance.Blue", "@style/MyTextStyle")
     val expectedProjectDisplayValues = listOf("Blue", "MyTextStyle")
-    val expectedAppCompatValues = listOf(
-      "@style/TextAppearance.AppCompat.Body1",
-      "@style/TextAppearance.AppCompat.Body2",
-      "@style/TextAppearance.AppCompat.Display1",
-      "@style/TextAppearance.AppCompat.Display2",
-      "@style/TextAppearance.AppCompat.Display3",
-      "@style/TextAppearance.AppCompat.Display4",
-      "@style/TextAppearance.AppCompat.Large",
-      "@style/TextAppearance.AppCompat.Medium",
-      "@style/TextAppearance.AppCompat.Small")
-    val expectedAppCompatDisplayValues = listOf(
-      "Body1",
-      "Body2",
-      "Display1",
-      "Display2",
-      "Display3",
-      "Display4",
-      "Large",
-      "Medium",
-      "Small")
+    val expectedAppCompatValues =
+      listOf(
+        "@style/TextAppearance.AppCompat.Body1",
+        "@style/TextAppearance.AppCompat.Body2",
+        "@style/TextAppearance.AppCompat.Display1",
+        "@style/TextAppearance.AppCompat.Display2",
+        "@style/TextAppearance.AppCompat.Display3",
+        "@style/TextAppearance.AppCompat.Display4",
+        "@style/TextAppearance.AppCompat.Large",
+        "@style/TextAppearance.AppCompat.Medium",
+        "@style/TextAppearance.AppCompat.Small"
+      )
+    val expectedAppCompatDisplayValues =
+      listOf(
+        "Body1",
+        "Body2",
+        "Display1",
+        "Display2",
+        "Display3",
+        "Display4",
+        "Large",
+        "Medium",
+        "Small"
+      )
     var index = 0
-    index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 3, expectedProjectValues, expectedProjectDisplayValues)
-    index = EnumValueUtil.checkSection(values, index, APPCOMPAT_HEADER, 10, expectedAppCompatValues, expectedAppCompatDisplayValues)
+    index =
+      EnumValueUtil.checkSection(
+        values,
+        index,
+        PROJECT_HEADER,
+        3,
+        expectedProjectValues,
+        expectedProjectDisplayValues
+      )
+    index =
+      EnumValueUtil.checkSection(
+        values,
+        index,
+        APPCOMPAT_HEADER,
+        10,
+        expectedAppCompatValues,
+        expectedAppCompatDisplayValues
+      )
     Truth.assertThat(index).isEqualTo(-1)
   }
 
@@ -88,29 +109,49 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
     val values = support.values
     val expectedProjectValues = listOf("@style/TextAppearance.Blue", "@style/MyTextStyle")
     val expectedProjectDisplayValues = listOf("Blue", "MyTextStyle")
-    val expectedAndroidValues = listOf(
-      "@android:style/TextAppearance.Material.Body1",
-      "@android:style/TextAppearance.Material.Body2",
-      "@android:style/TextAppearance.Material.Display1",
-      "@android:style/TextAppearance.Material.Display2",
-      "@android:style/TextAppearance.Material.Display3",
-      "@android:style/TextAppearance.Material.Display4",
-      "@android:style/TextAppearance.Material.Large",
-      "@android:style/TextAppearance.Material.Medium",
-      "@android:style/TextAppearance.Material.Small")
-    val expectedAndroidDisplayValues = listOf(
-      "Body1",
-      "Body2",
-      "Display1",
-      "Display2",
-      "Display3",
-      "Display4",
-      "Large",
-      "Medium",
-      "Small")
+    val expectedAndroidValues =
+      listOf(
+        "@android:style/TextAppearance.Material.Body1",
+        "@android:style/TextAppearance.Material.Body2",
+        "@android:style/TextAppearance.Material.Display1",
+        "@android:style/TextAppearance.Material.Display2",
+        "@android:style/TextAppearance.Material.Display3",
+        "@android:style/TextAppearance.Material.Display4",
+        "@android:style/TextAppearance.Material.Large",
+        "@android:style/TextAppearance.Material.Medium",
+        "@android:style/TextAppearance.Material.Small"
+      )
+    val expectedAndroidDisplayValues =
+      listOf(
+        "Body1",
+        "Body2",
+        "Display1",
+        "Display2",
+        "Display3",
+        "Display4",
+        "Large",
+        "Medium",
+        "Small"
+      )
     var index = 0
-    index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 3, expectedProjectValues, expectedProjectDisplayValues)
-    index = EnumValueUtil.checkSection(values, index, ANDROID_HEADER, 10, expectedAndroidValues, expectedAndroidDisplayValues)
+    index =
+      EnumValueUtil.checkSection(
+        values,
+        index,
+        PROJECT_HEADER,
+        3,
+        expectedProjectValues,
+        expectedProjectDisplayValues
+      )
+    index =
+      EnumValueUtil.checkSection(
+        values,
+        index,
+        ANDROID_HEADER,
+        10,
+        expectedAndroidValues,
+        expectedAndroidDisplayValues
+      )
     Truth.assertThat(index).isEqualTo(-1)
   }
 
@@ -125,36 +166,54 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
     val values = support.values
     val expectedProjectValues = listOf("@style/TextAppearance.Blue", "@style/MyTextStyle")
     val expectedProjectDisplayValues = listOf("Blue", "MyTextStyle")
-    val expectedAndroidValues = listOf(
-      "@android:style/TextAppearance.Material.Body1",
-      "@android:style/TextAppearance.Material.Body2",
-      "@android:style/TextAppearance.Material.Display1",
-      "@android:style/TextAppearance.Material.Display2",
-      "@android:style/TextAppearance.Material.Display3",
-      "@android:style/TextAppearance.Material.Display4",
-      "@android:style/TextAppearance.Material.Large",
-      "@android:style/TextAppearance.Material.Medium",
-      "@android:style/TextAppearance.Material.Small")
-    val expectedAndroidDisplayValues = listOf(
-      "Body1",
-      "Body2",
-      "Display1",
-      "Display2",
-      "Display3",
-      "Display4",
-      "Large",
-      "Medium",
-      "Small")
+    val expectedAndroidValues =
+      listOf(
+        "@android:style/TextAppearance.Material.Body1",
+        "@android:style/TextAppearance.Material.Body2",
+        "@android:style/TextAppearance.Material.Display1",
+        "@android:style/TextAppearance.Material.Display2",
+        "@android:style/TextAppearance.Material.Display3",
+        "@android:style/TextAppearance.Material.Display4",
+        "@android:style/TextAppearance.Material.Large",
+        "@android:style/TextAppearance.Material.Medium",
+        "@android:style/TextAppearance.Material.Small"
+      )
+    val expectedAndroidDisplayValues =
+      listOf(
+        "Body1",
+        "Body2",
+        "Display1",
+        "Display2",
+        "Display3",
+        "Display4",
+        "Large",
+        "Medium",
+        "Small"
+      )
     var index = 0
-    index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 3, expectedProjectValues, expectedProjectDisplayValues)
-    index = EnumValueUtil.checkSection(values, index, ANDROID_HEADER, 10, expectedAndroidValues, expectedAndroidDisplayValues)
+    index =
+      EnumValueUtil.checkSection(
+        values,
+        index,
+        PROJECT_HEADER,
+        3,
+        expectedProjectValues,
+        expectedProjectDisplayValues
+      )
+    index =
+      EnumValueUtil.checkSection(
+        values,
+        index,
+        ANDROID_HEADER,
+        10,
+        expectedAndroidValues,
+        expectedAndroidDisplayValues
+      )
     Truth.assertThat(index).isEqualTo(-1)
   }
 
   private fun deleteXmlTag(property: NlPropertyItem) {
     val tag = property.components.first().backend.tag!!
-    WriteCommandAction.writeCommandAction(project).run<Throwable> {
-      tag.delete()
-    }
+    WriteCommandAction.writeCommandAction(project).run<Throwable> { tag.delete() }
   }
 }

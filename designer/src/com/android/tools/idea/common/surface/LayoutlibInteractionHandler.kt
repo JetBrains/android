@@ -25,52 +25,57 @@ import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 
-/**
- * [InteractionHandler] used during interactive mode in the layout/compose previews.
- */
-class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface) : InteractionHandler {
-  override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? {
+/** [InteractionHandler] used during interactive mode in the layout/compose previews. */
+class LayoutlibInteractionHandler(private val surface: InteractableScenesSurface) :
+  InteractionHandler {
+  override fun createInteractionOnPressed(
+    mouseX: Int,
+    mouseY: Int,
+    modifiersEx: Int
+  ): Interaction? {
     val view = surface.getSceneViewAtOrPrimary(mouseX, mouseY) ?: return null
     return LayoutlibInteraction(view)
   }
 
-  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? =
+    null
 
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? = null
 
-  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? = null
+  override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? =
+    null
 
-  override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) { }
+  override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifiersEx: Int) {}
 
-  override fun singleClick(x: Int, y: Int, modifiersEx: Int) { }
+  override fun singleClick(x: Int, y: Int, modifiersEx: Int) {}
 
-  override fun doubleClick(x: Int, y: Int, modifiersEx: Int) { }
+  override fun doubleClick(x: Int, y: Int, modifiersEx: Int) {}
 
   override fun zoom(type: ZoomType, mouseX: Int, mouseY: Int) {
     surface.zoom(type, mouseX, mouseY)
   }
 
-  override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) { }
+  override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) {}
 
   override fun stayHovering(mouseX: Int, mouseY: Int) {
     surface.onHover(mouseX, mouseY)
   }
 
-  override fun popupMenuTrigger(mouseEvent: MouseEvent) { }
+  override fun popupMenuTrigger(mouseEvent: MouseEvent) {}
 
-  override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = surface.scene?.mouseCursor
+  override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? =
+    surface.scene?.mouseCursor
 
   override fun keyPressedWithoutInteraction(keyEvent: KeyEvent): Interaction? {
     return if (keyEvent.keyCode == DesignSurfaceShortcut.PAN.keyCode) {
       PanInteraction(surface.getData(PANNABLE_KEY.name) as? Pannable ?: surface)
-    }
-    else {
+    } else {
       val view = surface.focusedSceneView ?: return null
       return LayoutlibInteraction(view)
     }
   }
 
-  override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) { }
+  override fun keyReleasedWithoutInteraction(keyEvent: KeyEvent) {}
 
-  override fun mouseExited() { }
+  override fun mouseExited() {}
 }

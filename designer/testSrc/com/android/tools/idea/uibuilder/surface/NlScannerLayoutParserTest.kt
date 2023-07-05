@@ -60,9 +60,7 @@ class NlScannerLayoutParserTest {
     assertEquals(componentSize, layoutParser.viewToComponent.size)
     assertEquals(componentSize, layoutParser.idToComponent.size)
     assertTrue(layoutParser.viewToComponent.values.contains(component))
-    component.children.forEach {
-      assertTrue(layoutParser.viewToComponent.values.contains(it))
-    }
+    component.children.forEach { assertTrue(layoutParser.viewToComponent.values.contains(it)) }
     assertTrue(layoutParser.idToComponent.keys.contains(helper.lastUsedViewId))
   }
 
@@ -74,8 +72,7 @@ class NlScannerLayoutParserTest {
     layoutParser.buildViewToComponentMap(component)
 
     val result = helper.generateResult(component).build()
-    val issue = ScannerTestHelper.createTestIssueBuilder()
-      .setSrcId(helper.lastUsedIssueId).build()
+    val issue = ScannerTestHelper.createTestIssueBuilder().setSrcId(helper.lastUsedIssueId).build()
 
     val found = layoutParser.findComponent(issue, result.srcMap, result.nodeInfoMap)
 
@@ -91,8 +88,7 @@ class NlScannerLayoutParserTest {
     layoutParser.buildViewToComponentMap(component)
 
     val result = helper.generateResult(component).build()
-    val issue = ScannerTestHelper.createTestIssueBuilder()
-      .setSrcId(helper.lastUsedIssueId).build()
+    val issue = ScannerTestHelper.createTestIssueBuilder().setSrcId(helper.lastUsedIssueId).build()
 
     // Simulate render out of sync. View to component map no longer useful.
     // When render is out of sync with error update, new view instance is created

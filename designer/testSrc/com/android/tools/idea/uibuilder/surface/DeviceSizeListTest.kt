@@ -21,7 +21,7 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import org.jetbrains.android.AndroidTestBase
 
-class DeviceSizeListTest: AndroidTestBase() {
+class DeviceSizeListTest : AndroidTestBase() {
 
   private val NEXUS_5 = buildDeviceSize("Nexus 5", 900, 1760)
   private val NEXUS_6P = buildDeviceSize("Nexus 6p", 1131, 2011)
@@ -59,7 +59,13 @@ class DeviceSizeListTest: AndroidTestBase() {
     assertNull(list.snapToDevice(NEXUS_10.x + 121, NEXUS_10.y - 102, 2))
   }
 
-  private fun verifySnap(list: DeviceSizeList, device: DeviceSizeList.DeviceSize, x: Int, y: Int, snap: Int) {
+  private fun verifySnap(
+    list: DeviceSizeList,
+    device: DeviceSizeList.DeviceSize,
+    x: Int,
+    y: Int,
+    snap: Int
+  ) {
     val size = list.snapToDevice(x, y, snap)
     assertEquals(device.x, size!!.x)
     assertEquals(device.y, size.y)
@@ -73,7 +79,7 @@ class DeviceSizeListTest: AndroidTestBase() {
     return DeviceSizeList.DeviceSize.create(buildDevice(name), x, y)
   }
 
-  private fun buildDefaultSizeList() : DeviceSizeList {
+  private fun buildDefaultSizeList(): DeviceSizeList {
     val list = DeviceSizeList()
     list.myList.add(NEXUS_6P)
     list.myList.add(NEXUS_10)

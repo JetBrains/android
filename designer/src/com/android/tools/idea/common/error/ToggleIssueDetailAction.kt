@@ -24,7 +24,8 @@ class ToggleIssueDetailAction : ToggleAction() {
   override fun update(e: AnActionEvent) {
     e.presentation.text = "Show Issue Detail"
     e.presentation.isVisible = true
-    val issuePanel = e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() }
+    val issuePanel =
+      e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() }
     if (issuePanel == null) {
       e.presentation.isEnabled = false
       return
@@ -35,12 +36,14 @@ class ToggleIssueDetailAction : ToggleAction() {
   }
 
   override fun isSelected(e: AnActionEvent): Boolean {
-    val issuePanel = e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() }
+    val issuePanel =
+      e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() }
     return issuePanel?.sidePanelVisible ?: false
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    val issuePanel = e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() } ?: return
+    val issuePanel =
+      e.project?.let { IssuePanelService.getInstance(it).getSelectedSharedIssuePanel() } ?: return
     issuePanel.sidePanelVisible = state
   }
 }

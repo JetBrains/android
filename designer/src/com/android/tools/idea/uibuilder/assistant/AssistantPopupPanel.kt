@@ -25,35 +25,38 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
 
-
 private const val SIDE_PADDING = 12
 private val CONTENT_BORDER = JBUI.Borders.empty(6, SIDE_PADDING, 12, SIDE_PADDING)
 
 /**
- * Base panel for Assistant that applies the correct margin the the provided [content]
- * and displays a title label.
+ * Base panel for Assistant that applies the correct margin the the provided [content] and displays
+ * a title label.
  */
-open class AssistantPopupPanel @JvmOverloads constructor(
-  title: String = "Design-time View Attributes",
-  val content: JComponent? = null)
-  : AdtSecondaryPanel(
-  VerticalFlowLayout(0, 0)) {
+open class AssistantPopupPanel
+@JvmOverloads
+constructor(title: String = "Design-time View Attributes", val content: JComponent? = null) :
+  AdtSecondaryPanel(VerticalFlowLayout(0, 0)) {
 
-  private val titleLabel = JLabel(title, SwingConstants.LEADING).apply {
-    border = JBUI.Borders.merge(
-      JBUI.Borders.empty(8, SIDE_PADDING, 8, SIDE_PADDING),
-      JBUI.Borders.customLine(com.android.tools.adtui.common.border, 0, 0, 1, 0), true)
-    font = font.deriveFont(JBUI.scaleFontSize(10f))
-    isOpaque = false
-  }
-
-  private val contentWrapper = JPanel(BorderLayout()).apply {
-    border = CONTENT_BORDER
-    isOpaque = false
-    if (content != null) {
-      add(content)
+  private val titleLabel =
+    JLabel(title, SwingConstants.LEADING).apply {
+      border =
+        JBUI.Borders.merge(
+          JBUI.Borders.empty(8, SIDE_PADDING, 8, SIDE_PADDING),
+          JBUI.Borders.customLine(com.android.tools.adtui.common.border, 0, 0, 1, 0),
+          true
+        )
+      font = font.deriveFont(JBUI.scaleFontSize(10f))
+      isOpaque = false
     }
-  }
+
+  private val contentWrapper =
+    JPanel(BorderLayout()).apply {
+      border = CONTENT_BORDER
+      isOpaque = false
+      if (content != null) {
+        add(content)
+      }
+    }
 
   init {
     isOpaque = false

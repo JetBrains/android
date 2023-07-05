@@ -33,7 +33,7 @@ data class HelpPanelBundle(val bundleId: String, val bundleXml: String)
 
 /** Base tutorial bundle xml creator. */
 open class LayoutEditorHelpPanelAssistantBundleCreatorBase(val type: HelpPanelBundle) :
-    AssistantBundleCreator {
+  AssistantBundleCreator {
   override fun getBundleId(): String {
     return type.bundleId
   }
@@ -52,11 +52,12 @@ open class LayoutEditorHelpPanelAssistantBundleCreatorBase(val type: HelpPanelBu
  * close panel etc) within a project.
  */
 class HelpPanelToolWindowListener private constructor(private var project: Project) :
-    ToolWindowManagerListener, Disposable {
+  ToolWindowManagerListener, Disposable {
 
   companion object {
     /**
      * Maps action id to the HelpPanelType for metric tracking.
+     *
      * @param actionId the Bundle Id used for the assistant action
      * @param helpPanelType type to use for usage tracking.
      */

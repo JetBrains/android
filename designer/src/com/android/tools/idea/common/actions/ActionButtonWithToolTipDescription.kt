@@ -22,11 +22,14 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 
 /**
- * An [ActionButton] with a ToolTip that includes extended description as opposed to the usual [ActionButton] where ToolTip only includes
- * title text.
+ * An [ActionButton] with a ToolTip that includes extended description as opposed to the usual
+ * [ActionButton] where ToolTip only includes title text.
  */
-class ActionButtonWithToolTipDescription(action: AnAction, presentation: Presentation, place: String):
-  ActionButton(action, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
+class ActionButtonWithToolTipDescription(
+  action: AnAction,
+  presentation: Presentation,
+  place: String
+) : ActionButton(action, presentation, place, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE) {
   override fun updateToolTipText() {
     HelpTooltip.dispose(this)
     HelpTooltip()

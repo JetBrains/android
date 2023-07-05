@@ -39,12 +39,13 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 
-class NlPropertiesModelTest: LayoutTestCase() {
+class NlPropertiesModelTest : LayoutTestCase() {
 
   fun testPropertiesGeneratedEventWhenDesignSurfaceIsHookedUp() {
     // setup
     @Suppress("UNCHECKED_CAST")
-    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    val listener =
+      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.addListener(listener)
@@ -58,7 +59,8 @@ class NlPropertiesModelTest: LayoutTestCase() {
   fun testPropertiesGeneratedEventWhenSwitchingDesignSurface() {
     // setup
     @Suppress("UNCHECKED_CAST")
-    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    val listener =
+      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModelA = createNlModel(IMAGE_VIEW)
     val nlModelB = createNlModel(TEXT_VIEW)
@@ -77,8 +79,7 @@ class NlPropertiesModelTest: LayoutTestCase() {
 
   fun testPropertiesGeneratedEventAfterSelectionChange() {
     // setup
-    @Suppress("UNCHECKED_CAST")
-    val listener = TimingPropertiesModelListener()
+    @Suppress("UNCHECKED_CAST") val listener = TimingPropertiesModelListener()
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.surface = nlModel.surface
@@ -96,7 +97,8 @@ class NlPropertiesModelTest: LayoutTestCase() {
   fun testPropertiesGeneratedEventBeforeValueChangedEventAfterSelectionChange() {
     // setup
     @Suppress("UNCHECKED_CAST")
-    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    val listener =
+      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.surface = nlModel.surface
@@ -113,7 +115,8 @@ class NlPropertiesModelTest: LayoutTestCase() {
   fun testPropertyValuesChangedEventAfterModelChange() {
     // setup
     @Suppress("UNCHECKED_CAST")
-    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    val listener =
+      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
@@ -123,7 +126,9 @@ class NlPropertiesModelTest: LayoutTestCase() {
     waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
-    nlModel.surface.sceneManager!!.resourcesChanged(ImmutableSet.of(ResourceNotificationManager.Reason.EDIT))
+    nlModel.surface.sceneManager!!.resourcesChanged(
+      ImmutableSet.of(ResourceNotificationManager.Reason.EDIT)
+    )
     nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     verify(listener).propertyValuesChanged(model)
@@ -132,7 +137,8 @@ class NlPropertiesModelTest: LayoutTestCase() {
   fun testPropertyValuesChangedEventAfterLiveModelChange() {
     // setup
     @Suppress("UNCHECKED_CAST")
-    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    val listener =
+      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
@@ -152,7 +158,8 @@ class NlPropertiesModelTest: LayoutTestCase() {
   fun testPropertyValuesChangedEventAfterLiveComponentChange() {
     // setup
     @Suppress("UNCHECKED_CAST")
-    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    val listener =
+      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
@@ -175,9 +182,23 @@ class NlPropertiesModelTest: LayoutTestCase() {
     val textView = nlModel.find(TEXT_VIEW)!!
     val view = nlModel.surface.focusedSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
-    val property = NlPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE,
-                                  null, "", "", model, listOf(textView))
-    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
+    val property =
+      NlPropertyItem(
+        ANDROID_URI,
+        ATTR_TEXT_APPEARANCE,
+        NlPropertyType.STYLE,
+        null,
+        "",
+        "",
+        model,
+        listOf(textView)
+      )
+    manager.putDefaultPropertyValue(
+      textView,
+      ResourceNamespace.ANDROID,
+      ATTR_TEXT_APPEARANCE,
+      "?attr/textAppearanceSmall"
+    )
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
 
@@ -188,14 +209,30 @@ class NlPropertiesModelTest: LayoutTestCase() {
   fun testPropertyValuesChangesAfterRendering() {
     // setup
     @Suppress("UNCHECKED_CAST")
-    val listener = mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
+    val listener =
+      mock(PropertiesModelListener::class.java) as PropertiesModelListener<NlPropertyItem>
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
     val view = nlModel.surface.focusedSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
-    val property = NlPropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NlPropertyType.STYLE, null, "", "", model, listOf(textView))
-    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
+    val property =
+      NlPropertyItem(
+        ANDROID_URI,
+        ATTR_TEXT_APPEARANCE,
+        NlPropertyType.STYLE,
+        null,
+        "",
+        "",
+        model,
+        listOf(textView)
+      )
+    manager.putDefaultPropertyValue(
+      textView,
+      ResourceNamespace.ANDROID,
+      ATTR_TEXT_APPEARANCE,
+      "?attr/textAppearanceSmall"
+    )
     model.surface = nlModel.surface
     waitUntilLastSelectionUpdateCompleted(model)
     nlModel.surface.selectionModel.setSelection(listOf(textView))
@@ -209,7 +246,12 @@ class NlPropertiesModelTest: LayoutTestCase() {
     verify(listener, never()).propertyValuesChanged(model)
 
     // Value changed notification is expected since the default values have changed
-    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "@android:style/TextAppearance.Large")
+    manager.putDefaultPropertyValue(
+      textView,
+      ResourceNamespace.ANDROID,
+      ATTR_TEXT_APPEARANCE,
+      "@android:style/TextAppearance.Large"
+    )
     manager.fireRenderCompleted()
     nlModel.updateQueue.flush()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -276,17 +318,19 @@ class NlPropertiesModelTest: LayoutTestCase() {
   }
 
   /**
-   * Regression test for b/247726011. When sharing one [MergingUpdateQueue], different [NlPropertiesModel] should still schedule one update
-   * per model. When sharing a queue, the updates would be folded into the one incorrectly.
+   * Regression test for b/247726011. When sharing one [MergingUpdateQueue], different
+   * [NlPropertiesModel] should still schedule one update per model. When sharing a queue, the
+   * updates would be folded into the one incorrectly.
    */
   fun testMultipleModelsSharingQueue() {
     // setup
     var generated = 0
-    val listener = object: PropertiesModelListener<NlPropertyItem> {
-      override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
-        generated++
+    val listener =
+      object : PropertiesModelListener<NlPropertyItem> {
+        override fun propertiesGenerated(model: PropertiesModel<NlPropertyItem>) {
+          generated++
+        }
       }
-    }
 
     val queue = MergingUpdateQueue("MQ", 100, false, null, testRootDisposable)
     val model1 = NlPropertiesModel(testRootDisposable, myFacet, queue)
@@ -305,24 +349,27 @@ class NlPropertiesModelTest: LayoutTestCase() {
   }
 
   private fun createNlModel(vararg tag: String): SyncNlModel {
-    val builder = model(
-      "linear.xml",
-      component(LINEAR_LAYOUT)
-        .withBounds(0, 0, 1000, 1500)
-        .id("@id/linear")
-        .matchParentWidth()
-        .matchParentHeight()
-        .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
-        .children(
-          *tag.map {
-            component(it)
-              .withBounds(100, 100, 100, 100)
-              .id("@id/$it")
-              .width("wrap_content")
-              .height("wrap_content")
-          }.toTypedArray()
-        )
-    )
+    val builder =
+      model(
+        "linear.xml",
+        component(LINEAR_LAYOUT)
+          .withBounds(0, 0, 1000, 1500)
+          .id("@id/linear")
+          .matchParentWidth()
+          .matchParentHeight()
+          .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
+          .children(
+            *tag
+              .map {
+                component(it)
+                  .withBounds(100, 100, 100, 100)
+                  .id("@id/$it")
+                  .width("wrap_content")
+                  .height("wrap_content")
+              }
+              .toTypedArray()
+          )
+      )
     return builder.build()
   }
 
@@ -388,7 +435,7 @@ class NlPropertiesModelTest: LayoutTestCase() {
         "Model was not updated",
         { model.lastUpdateCompleted },
         10
-      );
+      )
     }
   }
 }

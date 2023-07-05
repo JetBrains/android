@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.idea.uibuilder.property.ui
+
 import com.android.SdkConstants
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
@@ -29,12 +30,10 @@ import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-/**
- * Custom panel to support direct editing of transition easing curves
- */
+/** Custom panel to support direct editing of transition easing curves */
 class EasingCurvePanel(
   private val model: NlPropertiesModel,
-  easingAttributeName : String,
+  easingAttributeName: String,
   properties: PropertiesTable<NlPropertyItem>
 ) : JPanel(BorderLayout()) {
 
@@ -47,11 +46,12 @@ class EasingCurvePanel(
   private var processingChange: Boolean = false
   private var processingModelUpdate: Boolean = false
 
-  private val modelListener = object: PropertiesModelListener<NlPropertyItem> {
-    override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
-      updateFromValues()
+  private val modelListener =
+    object : PropertiesModelListener<NlPropertyItem> {
+      override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+        updateFromValues()
+      }
     }
-  }
 
   init {
     val panelSize = JBUI.size(PANEL_WIDTH, PANEL_HEIGHT)
@@ -65,28 +65,33 @@ class EasingCurvePanel(
         processingChange = true
         if (transitionEasing != null) {
           var component = transitionEasing.componentName
-          TransactionGuard.submitTransaction(transitionEasing.model, Runnable {
-            NlWriteCommandActionUtil.run(transitionEasing.components,
-                                         "Set $component.${transitionEasing.name} to ${it.actionCommand}") {
-              var cubic = it.actionCommand
-              if (transitionEasing.name == "transitionEasing") {
-                when (cubic) {
-                  "cubic(0.2,0.2,0.8,0.8)" -> cubic = "linear"
-                  "cubic(0.4,0,0.2,1)" -> cubic = "standard"
-                  "cubic(0.4,0,1,1)" -> cubic = "accelerate"
-                  "cubic(0,0,0.2,1)" -> cubic = "decelerate"
+          TransactionGuard.submitTransaction(
+            transitionEasing.model,
+            Runnable {
+              NlWriteCommandActionUtil.run(
+                transitionEasing.components,
+                "Set $component.${transitionEasing.name} to ${it.actionCommand}"
+              ) {
+                var cubic = it.actionCommand
+                if (transitionEasing.name == "transitionEasing") {
+                  when (cubic) {
+                    "cubic(0.2,0.2,0.8,0.8)" -> cubic = "linear"
+                    "cubic(0.4,0,0.2,1)" -> cubic = "standard"
+                    "cubic(0.4,0,1,1)" -> cubic = "accelerate"
+                    "cubic(0,0,0.2,1)" -> cubic = "decelerate"
+                  }
+                } else {
+                  when (cubic) {
+                    "cubic(0.2,0.2,0.8,0.8)" -> cubic = "linear"
+                    "cubic(0.4,0,0.2,1)" -> cubic = "easeInOut"
+                    "cubic(0.4,0,1,1)" -> cubic = "easeIn"
+                    "cubic(0,0,0.2,1)" -> cubic = "easeOut"
+                  }
                 }
-              } else {
-                when (cubic) {
-                  "cubic(0.2,0.2,0.8,0.8)" -> cubic = "linear"
-                  "cubic(0.4,0,0.2,1)" -> cubic = "easeInOut"
-                  "cubic(0.4,0,1,1)" -> cubic = "easeIn"
-                  "cubic(0,0,0.2,1)" -> cubic = "easeOut"
-                }
+                transitionEasing.value = cubic
               }
-              transitionEasing.value = cubic
             }
-          })
+          )
         }
         processingChange = false
       }
@@ -113,15 +118,13 @@ class EasingCurvePanel(
     if (application.isReadAccessAllowed) {
       updateFromProperty()
     } else {
-      runReadAction {
-        updateFromProperty()
-      }
+      runReadAction { updateFromProperty() }
     }
   }
 
   private fun updateFromProperty() {
     transitionEasing?.value?.let {
-      var cubic : String? = it
+      var cubic: String? = it
       when (cubic) {
         // constraint ones
         "standard" -> cubic = "cubic(0.4,0,0.2,1)"
@@ -139,5 +142,4 @@ class EasingCurvePanel(
       processingModelUpdate = false
     }
   }
-
 }

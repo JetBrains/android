@@ -26,45 +26,113 @@ import com.android.resources.ResourceUrl
 import com.google.common.truth.Truth
 import org.jetbrains.android.AndroidTestCase
 
-class DerivedStyleFinderTest: AndroidTestCase() {
+class DerivedStyleFinderTest : AndroidTestCase() {
   private val android = ResourceNamespace.ANDROID
   private val auto = ResourceNamespace.RES_AUTO
   private var finder: DerivedStyleFinder? = null
-  private val theme = ResourceUrl.parseStyleParentReference("AppTheme")!!.resolve(
+  private val theme =
+    ResourceUrl.parseStyleParentReference("AppTheme")!!.resolve(
       ResourceNamespace.TODO(),
       ResourceNamespace.Resolver.EMPTY_RESOLVER
-  )
-  private var resolver: ResourceResolver? = ResourceResolver.create(
+    )
+  private var resolver: ResourceResolver? =
+    ResourceResolver.create(
       mapOf(
-          auto to mapOf(mkResourceValueMapPair(
+        auto to
+          mapOf(
+            mkResourceValueMapPair(
               mkStyleResourceValue(auto, "TextAppearance", "TextAppearance.AppCompat.Body1", ""),
               mkStyleResourceValue(auto, "Text34", "android:TextAppearance.Material", ""),
               mkStyleResourceValue(auto, "Text2", "Text34", ""),
               mkStyleResourceValue(auto, "AppTheme", "Theme.AppCompat", ""),
-
               mkStyleResourceValue(auto, "Theme.AppCompat", "android:Theme", "appcompat"),
-              mkStyleResourceValue(auto, "Base.TextAppearance.AppCompat", "android:TextAppearance.Material", "appcompat"),
-              mkStyleResourceValue(auto, "TextAppearance.AppCompat", "android:TextAppearance.Material", "appcompat"),
-              mkStyleResourceValue(auto, "TextAppearance.AppCompat.Body1", "TextAppearance.AppCompat", "appcompat"),
-              mkStyleResourceValue(auto, "TextAppearance.AppCompat.Body2", "TextAppearance.AppCompat", "appcompat"),
-              mkStyleResourceValue(auto, "Widget.AppCompat.TextView", "android:Widget.Material.TextView", "appcompat"),
-              mkStyleResourceValue(auto, "Widget.AppCompat.TextView.SpinnerItem", "Widget.AppCompat.TextView", "appcompat"),
-
+              mkStyleResourceValue(
+                auto,
+                "Base.TextAppearance.AppCompat",
+                "android:TextAppearance.Material",
+                "appcompat"
+              ),
+              mkStyleResourceValue(
+                auto,
+                "TextAppearance.AppCompat",
+                "android:TextAppearance.Material",
+                "appcompat"
+              ),
+              mkStyleResourceValue(
+                auto,
+                "TextAppearance.AppCompat.Body1",
+                "TextAppearance.AppCompat",
+                "appcompat"
+              ),
+              mkStyleResourceValue(
+                auto,
+                "TextAppearance.AppCompat.Body2",
+                "TextAppearance.AppCompat",
+                "appcompat"
+              ),
+              mkStyleResourceValue(
+                auto,
+                "Widget.AppCompat.TextView",
+                "android:Widget.Material.TextView",
+                "appcompat"
+              ),
+              mkStyleResourceValue(
+                auto,
+                "Widget.AppCompat.TextView.SpinnerItem",
+                "Widget.AppCompat.TextView",
+                "appcompat"
+              ),
               mkStyleResourceValue(auto, "Theme.Design", "Theme.AppCompat", "design"),
-              mkStyleResourceValue(auto, "Theme.Design.NoActionBar", "Theme.AppCompat", "design"))),
-
-          android to mapOf(mkResourceValueMapPair(
+              mkStyleResourceValue(auto, "Theme.Design.NoActionBar", "Theme.AppCompat", "design")
+            )
+          ),
+        android to
+          mapOf(
+            mkResourceValueMapPair(
               mkStyleResourceValue(android, "Theme", "", ""),
               mkStyleResourceValue(android, "Widget.TextView", "", ""),
-              mkStyleResourceValue(android, "Widget.Material.TextView", "android:Widget.TextView", ""),
+              mkStyleResourceValue(
+                android,
+                "Widget.Material.TextView",
+                "android:Widget.TextView",
+                ""
+              ),
               mkStyleResourceValue(android, "TextAppearance", "", ""),
-              mkStyleResourceValue(android, "internal.textappearance", "android:TextAppearance", ""),
-              mkStyleResourceValue(android, "TextAppearance.DeviceDefault", "android:TextAppearance", ""),
-              mkStyleResourceValue(android, "TextAppearance.Material", "android:TextAppearance", ""),
-              mkStyleResourceValue(android, "TextAppearance.Material.Body1", "android:TextAppearance.Material", ""),
-              mkStyleResourceValue(android, "TextAppearance.Material.Body2", "android:TextAppearance.Material", "")))
+              mkStyleResourceValue(
+                android,
+                "internal.textappearance",
+                "android:TextAppearance",
+                ""
+              ),
+              mkStyleResourceValue(
+                android,
+                "TextAppearance.DeviceDefault",
+                "android:TextAppearance",
+                ""
+              ),
+              mkStyleResourceValue(
+                android,
+                "TextAppearance.Material",
+                "android:TextAppearance",
+                ""
+              ),
+              mkStyleResourceValue(
+                android,
+                "TextAppearance.Material.Body1",
+                "android:TextAppearance.Material",
+                ""
+              ),
+              mkStyleResourceValue(
+                android,
+                "TextAppearance.Material.Body2",
+                "android:TextAppearance.Material",
+                ""
+              )
+            )
+          )
       ),
-      theme)
+      theme
+    )
 
   override fun setUp() {
     super.setUp()
@@ -79,9 +147,12 @@ class DerivedStyleFinderTest: AndroidTestCase() {
 
   fun testTextAppearances() {
     val textAppearanceStyle = resolve(android, "TextAppearance")
-    val styles = finder?.find(textAppearanceStyle, { true }, { style -> style.name })
+    val styles =
+      finder?.find(textAppearanceStyle, { true }, { style -> style.name })
         ?: failure("Missing filter")
-    Truth.assertThat(styles).named(dump(styles)).containsExactly(
+    Truth.assertThat(styles)
+      .named(dump(styles))
+      .containsExactly(
         resolve(auto, "Text2"),
         resolve(auto, "Text34"),
         resolve(auto, "TextAppearance"),
@@ -92,18 +163,24 @@ class DerivedStyleFinderTest: AndroidTestCase() {
         resolve(android, "TextAppearance.DeviceDefault"),
         resolve(android, "TextAppearance.Material"),
         resolve(android, "TextAppearance.Material.Body1"),
-        resolve(android, "TextAppearance.Material.Body2")).inOrder()
+        resolve(android, "TextAppearance.Material.Body2")
+      )
+      .inOrder()
   }
 
   fun testAppCompatThemes() {
     val appCompat = resolve(auto, "Theme.AppCompat")
-    val styles = finder?.find(appCompat, { true }, { style -> style.name })
-        ?: failure("Missing filter")
-    Truth.assertThat(styles).named(dump(styles)).containsExactly(
+    val styles =
+      finder?.find(appCompat, { true }, { style -> style.name }) ?: failure("Missing filter")
+    Truth.assertThat(styles)
+      .named(dump(styles))
+      .containsExactly(
         resolve(auto, "AppTheme"),
         resolve(auto, "Theme.AppCompat"),
         resolve(auto, "Theme.Design"),
-        resolve(auto, "Theme.Design.NoActionBar")).inOrder()
+        resolve(auto, "Theme.Design.NoActionBar")
+      )
+      .inOrder()
   }
 
   private fun dump(styles: List<StyleResourceValue>): String {
@@ -126,15 +203,29 @@ class DerivedStyleFinderTest: AndroidTestCase() {
     throw RuntimeException(message)
   }
 
-  private fun mkResourceValueMapPair(vararg styles: StyleResourceValue): Pair<ResourceType, ResourceValueMap> {
-    return Pair(ResourceType.STYLE, ResourceValueMap.create().apply {
-      for (style in styles) {
-        put(style)
+  private fun mkResourceValueMapPair(
+    vararg styles: StyleResourceValue
+  ): Pair<ResourceType, ResourceValueMap> {
+    return Pair(
+      ResourceType.STYLE,
+      ResourceValueMap.create().apply {
+        for (style in styles) {
+          put(style)
+        }
       }
-    })
+    )
   }
 
-  private fun mkStyleResourceValue(namespace: ResourceNamespace, name: String, parentStyle: String, library: String): StyleResourceValue {
-    return StyleResourceValueImpl(ResourceReference(namespace, ResourceType.STYLE, name), parentStyle, library)
+  private fun mkStyleResourceValue(
+    namespace: ResourceNamespace,
+    name: String,
+    parentStyle: String,
+    library: String
+  ): StyleResourceValue {
+    return StyleResourceValueImpl(
+      ResourceReference(namespace, ResourceType.STYLE, name),
+      parentStyle,
+      library
+    )
   }
 }

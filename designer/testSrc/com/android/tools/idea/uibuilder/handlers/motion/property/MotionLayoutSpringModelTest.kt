@@ -35,20 +35,13 @@ import org.mockito.MockitoAnnotations
 
 @RunsInEdt
 class MotionLayoutSpringModelTest {
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField
-  @Rule
-  val motionRule = MotionAttributeRule(projectRule)
+  @JvmField @Rule val motionRule = MotionAttributeRule(projectRule)
 
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
-  @Mock
-  private lateinit var listener: SpringModelChangeListener
+  @Mock private lateinit var listener: SpringModelChangeListener
   private lateinit var closeable: AutoCloseable
 
   @Before
@@ -69,7 +62,8 @@ class MotionLayoutSpringModelTest {
 
     springModel.addListener(listener)
     val transitionProps = motionRule.attributesModel.allProperties[MotionSceneAttrs.Tags.TRANSITION]
-    transitionProps!![SdkConstants.AUTO_URI, MotionSceneAttrs.Transition.ATTR_DURATION].value = "1000"
+    transitionProps!![SdkConstants.AUTO_URI, MotionSceneAttrs.Transition.ATTR_DURATION].value =
+      "1000"
     UIUtil.dispatchAllInvocationEvents()
 
     motionRule.selectTransition("start", "end")
@@ -86,9 +80,11 @@ class MotionLayoutSpringModelTest {
     val allProperties = motionRule.attributesModel.allProperties
     val transitionProp = allProperties[MotionSceneAttrs.Tags.TRANSITION]!!
     val onSwipeProp = allProperties[MotionSceneAttrs.Tags.ON_SWIPE]!!
-    val durationProp = transitionProp[SdkConstants.AUTO_URI, MotionSceneAttrs.Transition.ATTR_DURATION]!!
+    val durationProp =
+      transitionProp[SdkConstants.AUTO_URI, MotionSceneAttrs.Transition.ATTR_DURATION]!!
     val massProp = onSwipeProp[SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_MASS]!!
-    val dampingProp = onSwipeProp[SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_DAMPING]!!
+    val dampingProp =
+      onSwipeProp[SdkConstants.AUTO_URI, MotionSceneAttrs.OnSwipe.ATTR_SPRING_DAMPING]!!
 
     assertThat(durationProp.value).isEqualTo("2000")
     assertThat(massProp.value).isNull()

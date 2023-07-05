@@ -19,8 +19,10 @@ import com.android.tools.adtui.Pannable
 import java.awt.Component
 import javax.swing.JComponent
 
-class TestInteractable(override val pannable: Pannable,
-                       override val interactionPane: JComponent,
-                       override val cursorReceiver: Component?) : Interactable {
+class TestInteractable(
+  override val pannable: Pannable,
+  override val interactionPane: JComponent,
+  override val cursorReceiver: Component?
+) : Interactable {
   override fun repaintComponent() = Unit
 }

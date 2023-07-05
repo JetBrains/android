@@ -24,17 +24,18 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
-private val scrollViewInterfaces = setOf(
-  "com.android.internal.widget.ScrollingView",
-  "androidx.core.view.ScrollingView",
-  "androidx.core.view.NestedScrollingParent",
-  "androidx.core.view.NestedScrollingParent2",
-  "androidx.core.view.NestedScrollingParent3",
-)
+private val scrollViewInterfaces =
+  setOf(
+    "com.android.internal.widget.ScrollingView",
+    "androidx.core.view.ScrollingView",
+    "androidx.core.view.NestedScrollingParent",
+    "androidx.core.view.NestedScrollingParent2",
+    "androidx.core.view.NestedScrollingParent3",
+  )
 
 /**
- * [VisualLintAnalyzer] for issues where a child view is not fully contained within
- * the bounds of its parent.
+ * [VisualLintAnalyzer] for issues where a child view is not fully contained within the bounds of
+ * its parent.
  */
 object BoundsAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
@@ -43,7 +44,10 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
   override val backgroundEnabled: Boolean
     get() = BoundsAnalyzerInspection.boundsBackground
 
-  override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
+  override fun findIssues(
+    renderResult: RenderResult,
+    model: NlModel
+  ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews.filterNot { isScrollingView(it) })
     while (viewsToAnalyze.isNotEmpty()) {
@@ -73,9 +77,11 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
     val summary = "${nameWithId(view)} is partially hidden in layout"
     val provider = { count: Int ->
       HtmlBuilder()
-        .add("$viewName is partially hidden in layout because it is not contained within the bounds of its parent in ${
+        .add(
+          "$viewName is partially hidden in layout because it is not contained within the bounds of its parent in ${
           previewConfigurations(count)
-        }.")
+        }."
+        )
         .newline()
         .add("Fix this issue by adjusting the size or position of $viewName.")
     }
@@ -86,13 +92,12 @@ object BoundsAnalyzer : VisualLintAnalyzer() {
     if (view.viewObject is ScrollView) {
       return true
     }
-    return view.viewObject.javaClass.interfaces.any {
-      it.name in scrollViewInterfaces
-    }
+    return view.viewObject.javaClass.interfaces.any { it.name in scrollViewInterfaces }
   }
 }
 
-class BoundsAnalyzerInspection: VisualLintInspection(VisualLintErrorType.BOUNDS, "boundsBackground") {
+class BoundsAnalyzerInspection :
+  VisualLintInspection(VisualLintErrorType.BOUNDS, "boundsBackground") {
   companion object {
     var boundsBackground = true
   }

@@ -60,12 +60,16 @@ private fun PropertiesTable<NlPropertyItem>.contains(namespace: String, name: St
   return this.getOrNull(namespace, name) != null
 }
 
-private fun PropertiesTable<NlPropertyItem>.doesNotContain(namespace: String, name: String): Boolean {
+private fun PropertiesTable<NlPropertyItem>.doesNotContain(
+  namespace: String,
+  name: String
+): Boolean {
   return !this.contains(namespace, name)
 }
 
 class NlPropertiesProviderTest : PropertyTestCase() {
-  private val viewAttrs = listOf(ATTR_ID, ATTR_PADDING, ATTR_VISIBILITY, ATTR_TEXT_ALIGNMENT, ATTR_ELEVATION)
+  private val viewAttrs =
+    listOf(ATTR_ID, ATTR_PADDING, ATTR_VISIBILITY, ATTR_TEXT_ALIGNMENT, ATTR_ELEVATION)
   private val frameLayoutAttrs = listOf("layout_gravity")
   private val gridLayoutAttrs = listOf("layout_rowSpan", "layout_column")
   private val linearLayoutAttrs = listOf("layout_weight")
@@ -103,7 +107,12 @@ class NlPropertiesProviderTest : PropertyTestCase() {
     setUpAppCompat()
     val provider = NlPropertiesProvider(myFacet)
     val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
+    val properties =
+      provider.getProperties(
+        model,
+        null,
+        createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW))
+      )
     assertThat(properties.contains(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
@@ -112,7 +121,12 @@ class NlPropertiesProviderTest : PropertyTestCase() {
     setUpAppCompat()
     val provider = NlPropertiesProvider(myFacet)
     val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW)))
+    val properties =
+      provider.getProperties(
+        model,
+        null,
+        createComponents(component(TEXT_VIEW).viewObjectClassName(APPCOMPAT_TEXT_VIEW))
+      )
     assertThat(properties.doesNotContain(AUTO_URI, ATTR_FONT_FAMILY)).isTrue()
     assertThat(properties.contains(ANDROID_URI, ATTR_FONT_FAMILY)).isTrue()
   }
@@ -121,7 +135,12 @@ class NlPropertiesProviderTest : PropertyTestCase() {
     setUpAppCompat()
     val provider = NlPropertiesProvider(myFacet)
     val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
+    val properties =
+      provider.getProperties(
+        model,
+        null,
+        createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
+      )
     assertThat(properties.doesNotContain(ANDROID_URI, ATTR_SRC)).isTrue()
     assertThat(properties.contains(AUTO_URI, ATTR_SRC_COMPAT)).isTrue()
   }
@@ -150,8 +169,14 @@ class NlPropertiesProviderTest : PropertyTestCase() {
     setUpAppCompat()
     val provider = NlPropertiesProvider(myFacet)
     val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(model, null, createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW)))
-    assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName).isEqualTo(APPCOMPAT_IMAGE_VIEW)
+    val properties =
+      provider.getProperties(
+        model,
+        null,
+        createComponents(component(IMAGE_VIEW).viewObjectClassName(APPCOMPAT_IMAGE_VIEW))
+      )
+    assertThat(properties[ResourceNamespace.TODO().xmlNamespaceUri, ATTR_SRC_COMPAT].componentName)
+      .isEqualTo(APPCOMPAT_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_SCALE_TYPE].componentName).isEqualTo(FQCN_IMAGE_VIEW)
     assertThat(properties[ANDROID_URI, ATTR_VISIBILITY].componentName).isEqualTo(CLASS_VIEW)
   }
@@ -167,9 +192,16 @@ class NlPropertiesProviderTest : PropertyTestCase() {
   fun testPreferenceListForMinApi26() {
     val provider = NlPropertiesProvider(myFacet)
     val model = NlPropertiesModel(testRootDisposable, myFacet)
-    val properties = provider.getProperties(
-      model, null, createComponents(component(LIST_PREFERENCE).viewObjectClassName(FQCN_LINEAR_LAYOUT),
-                                    parentTag = PREFERENCE_SCREEN, resourceFolder = FD_RES_XML))
+    val properties =
+      provider.getProperties(
+        model,
+        null,
+        createComponents(
+          component(LIST_PREFERENCE).viewObjectClassName(FQCN_LINEAR_LAYOUT),
+          parentTag = PREFERENCE_SCREEN,
+          resourceFolder = FD_RES_XML
+        )
+      )
 
     // From ListPreference: (2)
     properties.check(ATTR_ENTRIES, NlPropertyType.STRING_ARRAY)

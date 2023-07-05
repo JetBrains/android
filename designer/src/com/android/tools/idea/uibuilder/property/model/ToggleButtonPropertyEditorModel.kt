@@ -15,25 +15,22 @@
  */
 package com.android.tools.idea.uibuilder.property.model
 
-import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.google.common.annotations.VisibleForTesting
 import javax.swing.Icon
 
 /**
  * A model controlling a [com.android.tools.idea.uibuilder.property.ui.ToggleButtonPropertyEditor]
  *
- * Which is a toggle button i.e. the user can select/un-select the button.
- * The model implements a [selected] property which uses the values specified
- * for [trueValue] and [falseValue].
+ * Which is a toggle button i.e. the user can select/un-select the button. The model implements a
+ * [selected] property which uses the values specified for [trueValue] and [falseValue].
  */
 class ToggleButtonPropertyEditorModel(
   val description: String,
   val icon: Icon,
-  @get:VisibleForTesting
-  val trueValue: String,
-  @get:VisibleForTesting
-  val falseValue: String,
+  @get:VisibleForTesting val trueValue: String,
+  @get:VisibleForTesting val falseValue: String,
   private val nlProperty: NlPropertyItem
 ) : BasePropertyEditorModel(nlProperty) {
 

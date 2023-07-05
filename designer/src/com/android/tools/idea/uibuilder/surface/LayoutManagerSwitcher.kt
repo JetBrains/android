@@ -18,17 +18,14 @@ package com.android.tools.idea.uibuilder.surface
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 
-/**
- * Interface to be used by components that can switch [SurfaceLayoutManager]s.
- */
+/** Interface to be used by components that can switch [SurfaceLayoutManager]s. */
 interface LayoutManagerSwitcher {
-  /**
-   * Returns true if the current selected [SurfaceLayoutManager] is [layoutManager].
-   */
+  /** Returns true if the current selected [SurfaceLayoutManager] is [layoutManager]. */
   fun isLayoutManagerSelected(layoutManager: SurfaceLayoutManager): Boolean
 
-  /**
-   * Sets a new [SurfaceLayoutManager].
-   */
-  fun setLayoutManager(layoutManager: SurfaceLayoutManager, sceneViewAlignment: DesignSurface.SceneViewAlignment = DesignSurface.SceneViewAlignment.CENTER)
+  /** Sets a new [SurfaceLayoutManager]. */
+  fun setLayoutManager(
+    layoutManager: SurfaceLayoutManager,
+    sceneViewAlignment: DesignSurface.SceneViewAlignment = DesignSurface.SceneViewAlignment.CENTER
+  )
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("DrawLassoUtil")
+
 package com.android.tools.idea.common.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
@@ -30,17 +31,19 @@ private const val SIZE_FONT = 12
 private val SIZE_TIP_TEXT_COLOR = Color.WHITE
 private val SIZE_TIP_TEXT_BACKGROUND = Color(0x80, 0x80, 0x80, 0xB0)
 
-fun drawLasso(g: Graphics2D,
-              colorSet: ColorSet,
-              @SwingCoordinate x: Int,
-              @SwingCoordinate y: Int,
-              @SwingCoordinate width: Int,
-              @SwingCoordinate height: Int,
-              @SwingCoordinate mouseX: Int,
-              @SwingCoordinate mouseY: Int,
-              @AndroidDpCoordinate dpWidth: Int,
-              @AndroidDpCoordinate dpHeight: Int,
-              showSize: Boolean) {
+fun drawLasso(
+  g: Graphics2D,
+  colorSet: ColorSet,
+  @SwingCoordinate x: Int,
+  @SwingCoordinate y: Int,
+  @SwingCoordinate width: Int,
+  @SwingCoordinate height: Int,
+  @SwingCoordinate mouseX: Int,
+  @SwingCoordinate mouseY: Int,
+  @AndroidDpCoordinate dpWidth: Int,
+  @AndroidDpCoordinate dpHeight: Int,
+  showSize: Boolean
+) {
   val originalColor = g.color
 
   g.color = colorSet.lassoSelectionBorder
@@ -61,12 +64,14 @@ fun drawLasso(g: Graphics2D,
     val sizeTipY = mouseY + SIZE_TIP_TO_MOUSE_DISTANCE
 
     g.color = SIZE_TIP_TEXT_BACKGROUND
-    g.fillRoundRect(sizeTipX,
-                    sizeTipY,
-                    rect.width.toInt() + SIZE_TIP_MARGIN * 2,
-                    rect.height.toInt() + SIZE_TIP_MARGIN * 2,
-                    SIZE_TIP_BACKGROUND_ARC,
-                    SIZE_TIP_BACKGROUND_ARC)
+    g.fillRoundRect(
+      sizeTipX,
+      sizeTipY,
+      rect.width.toInt() + SIZE_TIP_MARGIN * 2,
+      rect.height.toInt() + SIZE_TIP_MARGIN * 2,
+      SIZE_TIP_BACKGROUND_ARC,
+      SIZE_TIP_BACKGROUND_ARC
+    )
 
     g.color = SIZE_TIP_TEXT_COLOR
     g.drawString(sizeText, sizeTipX + SIZE_TIP_MARGIN, sizeTipY + fm.ascent + SIZE_TIP_MARGIN)

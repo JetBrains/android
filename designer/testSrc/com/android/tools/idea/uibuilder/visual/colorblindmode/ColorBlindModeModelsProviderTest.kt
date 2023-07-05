@@ -22,10 +22,10 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.visual.ColorBlindModeModelsProvider
 import com.android.tools.idea.uibuilder.visual.verifyAdaptiveShapeReflected
 import com.android.tools.idea.uibuilder.visual.verifyDeviceReflected
+import com.android.tools.idea.uibuilder.visual.verifyDeviceStateReflected
 import com.android.tools.idea.uibuilder.visual.verifyFontReflected
 import com.android.tools.idea.uibuilder.visual.verifyLocaleReflected
 import com.android.tools.idea.uibuilder.visual.verifyNightModeReflected
-import com.android.tools.idea.uibuilder.visual.verifyDeviceStateReflected
 import com.android.tools.idea.uibuilder.visual.verifyTargetReflected
 import com.android.tools.idea.uibuilder.visual.verifyThemeReflected
 import com.android.tools.idea.uibuilder.visual.verifyUiModeReflected
@@ -44,16 +44,14 @@ class ColorBlindModeModelsProviderTest : LayoutTestCase() {
   }
 
   fun testCreateColorBlindModeModels() {
-    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = ColorBlindModeModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
 
     assertNotEmpty(nlModels)
     val displayNames = ColorBlindMode.values().map { it.displayName }
-    nlModels.forEach {
-      assertTrue(displayNames.contains(it.modelDisplayName))
-    }
+    nlModels.forEach { assertTrue(displayNames.contains(it.modelDisplayName)) }
   }
 
   fun testReflectConfigurationFromSource() {
@@ -81,7 +79,8 @@ class ColorBlindModeModelsProviderTest : LayoutTestCase() {
 }
 
 @Language("Xml")
-private const val LAYOUT_FILE_CONTENT = """
+private const val LAYOUT_FILE_CONTENT =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"

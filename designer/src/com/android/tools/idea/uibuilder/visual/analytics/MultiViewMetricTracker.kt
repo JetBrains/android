@@ -23,20 +23,26 @@ import com.google.wireless.android.sdk.stats.MultiViewEvent.MultiViewEventType
 
 fun trackOpenConfigSet(surface: DesignSurface<*>, configSet: ConfigurationSet) {
   when (configSet) {
-    ConfigurationSet.PixelDevices -> trackSetCategory(surface, MultiViewEventType.OPEN_PIXEL_DEVICES)
+    ConfigurationSet.PixelDevices ->
+      trackSetCategory(surface, MultiViewEventType.OPEN_PIXEL_DEVICES)
     ConfigurationSet.WearDevices -> trackSetCategory(surface, MultiViewEventType.OPEN_WEAR_DEVICES)
-    ConfigurationSet.ProjectLocal -> trackSetCategory(surface, MultiViewEventType.OPEN_PROJECT_LOCALES)
-    ConfigurationSet.ColorBlindMode -> trackSetCategory(surface, MultiViewEventType.OPEN_COLOR_BLIND_MODE)
+    ConfigurationSet.ProjectLocal ->
+      trackSetCategory(surface, MultiViewEventType.OPEN_PROJECT_LOCALES)
+    ConfigurationSet.ColorBlindMode ->
+      trackSetCategory(surface, MultiViewEventType.OPEN_COLOR_BLIND_MODE)
     ConfigurationSet.LargeFont -> trackSetCategory(surface, MultiViewEventType.OPEN_LARGE_FONT)
-    ConfigurationSet.WindowSizeDevices -> trackSetCategory(surface, MultiViewEventType.OPEN_REFERENCE_DEVICES)
-    is UserDefinedCustom -> trackSetCategory(surface, MultiViewEventType.OPEN_USER_DEFINED_CUSTOM_SETS)
+    ConfigurationSet.WindowSizeDevices ->
+      trackSetCategory(surface, MultiViewEventType.OPEN_REFERENCE_DEVICES)
+    is UserDefinedCustom ->
+      trackSetCategory(surface, MultiViewEventType.OPEN_USER_DEFINED_CUSTOM_SETS)
     else -> trackSetCategory(surface, MultiViewEventType.UNKNOWN_EVENT_TYPE)
   }
 }
 
 fun trackLayoutValidationToggleIssuePanel(surface: DesignSurface<*>, visibility: Boolean) {
-  val event = if (visibility) MultiViewEvent.ToggleIssuePanel.OPEN_ISSUE_PANEL
-  else MultiViewEvent.ToggleIssuePanel.CLOSE_ISSUE_PANEL
+  val event =
+    if (visibility) MultiViewEvent.ToggleIssuePanel.OPEN_ISSUE_PANEL
+    else MultiViewEvent.ToggleIssuePanel.CLOSE_ISSUE_PANEL
   InternalMultiViewMetricTrackerFactory.getInstance(surface).trackToggleIssuePanel(event)
 }
 

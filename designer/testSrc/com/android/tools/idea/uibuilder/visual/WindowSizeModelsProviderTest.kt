@@ -36,14 +36,20 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
   }
 
   fun testCreateWindowSizeDeviceModels() {
-    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val file = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = WindowSizeModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
 
     assertNotEmpty(nlModels)
 
-    val windowSizeDeviceIds = listOf("_device_class_phone", "_device_class_foldable", "_device_class_tablet", "_device_class_desktop")
+    val windowSizeDeviceIds =
+      listOf(
+        "_device_class_phone",
+        "_device_class_foldable",
+        "_device_class_tablet",
+        "_device_class_desktop"
+      )
     for (nlModel in nlModels) {
       assertTrue(windowSizeDeviceIds.contains(nlModel.configuration.device!!.id))
     }
@@ -82,7 +88,8 @@ class WindowSizeModelsProviderTest : LayoutTestCase() {
 }
 
 @Language("Xml")
-private const val LAYOUT_FILE_CONTENT = """<?xml version="1.0" encoding="utf-8"?>
+private const val LAYOUT_FILE_CONTENT =
+  """<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
@@ -91,7 +98,8 @@ private const val LAYOUT_FILE_CONTENT = """<?xml version="1.0" encoding="utf-8"?
 """
 
 @Language("Xml")
-private const val DRAWABLE_FILE_CONTENT = """<?xml version="1.0" encoding="utf-8"?>
+private const val DRAWABLE_FILE_CONTENT =
+  """<?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
   android:shape="line">
 </shape>

@@ -24,26 +24,29 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
+import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.property.panel.api.ActionIconButton
 import com.android.tools.property.panel.api.FlagsPropertyGroupItem
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.dom.attrs.AttributeDefinition
 
 /**
  * A [NlPropertyItem] where it is possible to edit the name of the property.
  *
- * The property is initially created with an empty name and an unknown type.
- * When a name is specified, it is matched against all known attributes. If
- * found this property item will act as a delegate to the matched property.
+ * The property is initially created with an empty name and an unknown type. When a name is
+ * specified, it is matched against all known attributes. If found this property item will act as a
+ * delegate to the matched property.
  */
-class NlNewPropertyItem(model: NlPropertiesModel,
-                        var properties: PropertiesTable<NlPropertyItem>,
-                        val filter: (NlPropertyItem) -> Boolean = { true },
-                        val delegateUpdated: (NlNewPropertyItem) -> Unit = {})
-  : NlPropertyItem("", "", NlPropertyType.UNKNOWN, null, "", "", model, listOf()), NewPropertyItem,
-    FlagsPropertyGroupItem<NlFlagPropertyItem> {
+class NlNewPropertyItem(
+  model: NlPropertiesModel,
+  var properties: PropertiesTable<NlPropertyItem>,
+  val filter: (NlPropertyItem) -> Boolean = { true },
+  val delegateUpdated: (NlNewPropertyItem) -> Unit = {}
+) :
+  NlPropertyItem("", "", NlPropertyType.UNKNOWN, null, "", "", model, listOf()),
+  NewPropertyItem,
+  FlagsPropertyGroupItem<NlFlagPropertyItem> {
 
   override var namespace: String = ""
     get() = delegate?.namespace ?: field
@@ -88,17 +91,18 @@ class NlNewPropertyItem(model: NlPropertiesModel,
   override fun hashCode() = 517
 
   /**
-   * When the property name is set to something valid, the [delegate] will be not null.
-   * All remaining properties and functions should delegate to this [delegate] if present.
+   * When the property name is set to something valid, the [delegate] will be not null. All
+   * remaining properties and functions should delegate to this [delegate] if present.
    */
   override var delegate: NlPropertyItem? = null
     private set
 
-  override val nameEditingSupport = object : EditingSupport {
-    override val completion: EditorCompletion = { getPropertyNamesWithPrefix() }
-    override val allowCustomValues = false
-    override val validation = { text: String? -> validateName(text) }
-  }
+  override val nameEditingSupport =
+    object : EditingSupport {
+      override val completion: EditorCompletion = { getPropertyNamesWithPrefix() }
+      override val allowCustomValues = false
+      override val validation = { text: String? -> validateName(text) }
+    }
 
   override var value: String?
     get() = delegate?.value
@@ -147,7 +151,9 @@ class NlNewPropertyItem(model: NlPropertiesModel,
     }
     val prefix = value.substring(0, prefixIndex)
     val name = value.substring(prefixIndex + 1)
-    val namespace = namespaceResolver.prefixToUri(prefix) ?: if (prefix == TOOLS_PREFIX) TOOLS_URI else ANDROID_URI
+    val namespace =
+      namespaceResolver.prefixToUri(prefix)
+        ?: if (prefix == TOOLS_PREFIX) TOOLS_URI else ANDROID_URI
     return Pair(namespace, name)
   }
 
@@ -172,24 +178,30 @@ class NlNewPropertyItem(model: NlPropertiesModel,
 
   private fun getPropertyNamesWithPrefix(): List<String> {
     val resolver = namespaceResolver
-    val result = properties.values
-      .filter { filter(it) }
-      .map { getPropertyNameWithPrefix(it, resolver) }
-      .toMutableList()
+    val result =
+      properties.values
+        .filter { filter(it) }
+        .map { getPropertyNameWithPrefix(it, resolver) }
+        .toMutableList()
     properties.values
       .filter {
         it.designProperty.rawValue == null &&
-        it.name != ATTR_STYLE &&
-        properties.getOrNull(TOOLS_URI, it.name) == null
+          it.name != ATTR_STYLE &&
+          properties.getOrNull(TOOLS_URI, it.name) == null
       }
       .mapTo(result) { getPropertyNameWithPrefix(it.designProperty, resolver) }
     return result
   }
 
-  private fun getPropertyNameWithPrefix(property: NlPropertyItem, resolver: ResourceNamespace.Resolver): String {
+  private fun getPropertyNameWithPrefix(
+    property: NlPropertyItem,
+    resolver: ResourceNamespace.Resolver
+  ): String {
     val name = property.name
     val prefixFromResolver = resolver.uriToPrefix(property.namespace)
-    val prefix = if (prefixFromResolver.isNullOrEmpty() && property.namespace == TOOLS_URI) TOOLS_PREFIX else prefixFromResolver
+    val prefix =
+      if (prefixFromResolver.isNullOrEmpty() && property.namespace == TOOLS_URI) TOOLS_PREFIX
+      else prefixFromResolver
     return if (prefix.isNullOrEmpty()) name else "$prefix:$name"
   }
 
@@ -199,8 +211,10 @@ class NlNewPropertyItem(model: NlPropertiesModel,
     val property = findDelegate(propertyNamespace, propertyName)
     return when {
       value.isEmpty() -> EDITOR_NO_ERROR
-      property == null -> Pair(EditingErrorCategory.ERROR, "No property found by the name: '$value'")
-      property.rawValue != null -> Pair(EditingErrorCategory.ERROR, "A property by the name: '$value' is already specified")
+      property == null ->
+        Pair(EditingErrorCategory.ERROR, "No property found by the name: '$value'")
+      property.rawValue != null ->
+        Pair(EditingErrorCategory.ERROR, "A property by the name: '$value' is already specified")
       else -> EDITOR_NO_ERROR
     }
   }

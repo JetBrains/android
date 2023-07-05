@@ -23,41 +23,43 @@ import com.intellij.platform.backend.documentation.DocumentationResult
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.presentation.TargetPresentation
 import com.intellij.pom.Navigatable
-import org.jetbrains.concurrency.Promise
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
+import org.jetbrains.concurrency.Promise
 
-/**
- * DocumentationTarget for Nele properties.
- */
+/** DocumentationTarget for Nele properties. */
 class NlPropertyDocumentationTarget(
   private val currentPropertyItem: () -> Promise<PTableItem?>,
   private val currentSelectedComponent: () -> NlComponent?
 ) : DocumentationTarget, Pointer<NlPropertyDocumentationTarget> {
 
-  override fun computePresentation(): TargetPresentation = TargetPresentation.builder("").presentation()
+  override fun computePresentation(): TargetPresentation =
+    TargetPresentation.builder("").presentation()
 
   override fun createPointer(): Pointer<NlPropertyDocumentationTarget> = this
 
   override fun dereference(): NlPropertyDocumentationTarget = this
 
-  /**
-   * Provide a way to "Jump to source" of the component being inspected.
-   */
+  /** Provide a way to "Jump to source" of the component being inspected. */
   override val navigatable: Navigatable?
     get() = currentSelectedComponent()?.navigatable
 
   override fun computeDocumentation(): DocumentationResult {
-    return DocumentationResult.asyncDocumentation(object : Supplier<DocumentationResult.Documentation?> {
-      val item = currentPropertyItem()
-      override fun get(): DocumentationResult.Documentation? {
-        try {
-          val property = item.blockingGet(100, TimeUnit.MILLISECONDS) as? NlPropertyItem ?: return null
-          return DocumentationResult.documentation(HelpActions.createHelpText(property, allowEmptyDescription = true))
-        } catch (ex: Exception) {
-          return null
+    return DocumentationResult.asyncDocumentation(
+      object : Supplier<DocumentationResult.Documentation?> {
+        val item = currentPropertyItem()
+        override fun get(): DocumentationResult.Documentation? {
+          try {
+            val property =
+              item.blockingGet(100, TimeUnit.MILLISECONDS) as? NlPropertyItem ?: return null
+            return DocumentationResult.documentation(
+              HelpActions.createHelpText(property, allowEmptyDescription = true)
+            )
+          } catch (ex: Exception) {
+            return null
+          }
         }
       }
-    })
+    )
   }
 }

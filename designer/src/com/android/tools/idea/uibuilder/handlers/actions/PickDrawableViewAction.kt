@@ -30,28 +30,31 @@ import java.util.EnumSet
  * Action for picking drawable resource. The reference of resource will set to
  * [namespace]:[attribute] attribute after action performed.
  */
-class PickDrawableViewAction(private val namespace: String?, private val attribute: String)
-  : DirectViewAction(StudioIcons.LayoutEditor.Extras.PIPETTE, "Drawable") {
+class PickDrawableViewAction(private val namespace: String?, private val attribute: String) :
+  DirectViewAction(StudioIcons.LayoutEditor.Extras.PIPETTE, "Drawable") {
 
-  override fun perform(editor: ViewEditor,
-                       handler: ViewHandler,
-                       component: NlComponent,
-                       selectedChildren: MutableList<NlComponent>,
-                       modifiers: Int) {
+  override fun perform(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    component: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    modifiers: Int
+  ) {
     val tag = component.tag ?: return
     val types = EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP)
 
-    val dialog = createResourcePickerDialog(
-      dialogTitle = "Choose an Image",
-      currentValue = null,
-      facet = component.model.facet,
-      resourceTypes = types,
-      defaultResourceType = null,
-      showColorStateLists = true,
-      showSampleData = false,
-      showThemeAttributes = true,
-      file = tag.containingFile.virtualFile
-    )
+    val dialog =
+      createResourcePickerDialog(
+        dialogTitle = "Choose an Image",
+        currentValue = null,
+        facet = component.model.facet,
+        resourceTypes = types,
+        defaultResourceType = null,
+        showColorStateLists = true,
+        showSampleData = false,
+        showThemeAttributes = true,
+        file = tag.containingFile.virtualFile
+      )
 
     if (dialog.showAndGet()) {
       if (dialog.resourceName != null) {
@@ -59,9 +62,7 @@ class PickDrawableViewAction(private val namespace: String?, private val attribu
         attr.setAttribute(namespace, attribute, dialog.resourceName)
         // Remove sample data attribute.
         attr.removeAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_SRC_COMPAT)
-        NlWriteCommandActionUtil.run(component, "Update Image") {
-          attr.commit()
-        }
+        NlWriteCommandActionUtil.run(component, "Update Image") { attr.commit() }
       }
     }
   }

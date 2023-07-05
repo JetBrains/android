@@ -26,9 +26,7 @@ import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
 
 private const val TEXT_FIELD_MAX_DP_WIDTH = 488
-/**
- * [VisualLintAnalyzer] for issues where a text field is wider than the recommended 488dp.
- */
+/** [VisualLintAnalyzer] for issues where a text field is wider than the recommended 488dp. */
 object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.TEXT_FIELD_SIZE
@@ -36,7 +34,10 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
   override val backgroundEnabled: Boolean
     get() = TextFieldSizeAnalyzerInspection.textFieldSizeBackground
 
-  override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
+  override fun findIssues(
+    renderResult: RenderResult,
+    model: NlModel
+  ): List<VisualLintIssueContent> {
     val issues = mutableListOf<VisualLintIssueContent>()
     val viewsToAnalyze = ArrayDeque(renderResult.rootViews)
     while (viewsToAnalyze.isNotEmpty()) {
@@ -61,15 +62,20 @@ object TextFieldSizeAnalyzer : VisualLintAnalyzer() {
     val summary = "The text field ${nameWithId(view)} is too wide"
     val provider = { count: Int ->
       HtmlBuilder()
-        .add("The text field ${simpleName(view)} is wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp in ${previewConfigurations(count)}.")
+        .add(
+          "The text field ${simpleName(view)} is wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp in ${previewConfigurations(count)}."
+        )
         .newline()
-        .add("Material Design recommends text fields to be no wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp")
+        .add(
+          "Material Design recommends text fields to be no wider than ${TEXT_FIELD_MAX_DP_WIDTH}dp"
+        )
     }
     return VisualLintIssueContent(view, summary, provider)
   }
 }
 
-class TextFieldSizeAnalyzerInspection: VisualLintInspection(VisualLintErrorType.TEXT_FIELD_SIZE, "textFieldSizeBackground") {
+class TextFieldSizeAnalyzerInspection :
+  VisualLintInspection(VisualLintErrorType.TEXT_FIELD_SIZE, "textFieldSizeBackground") {
   companion object {
     var textFieldSizeBackground = true
   }

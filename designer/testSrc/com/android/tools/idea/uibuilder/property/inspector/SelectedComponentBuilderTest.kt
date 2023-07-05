@@ -25,19 +25,15 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
+import javax.swing.JLabel
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.JLabel
 
 @RunsInEdt
 class SelectedComponentBuilderTest {
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   @Test
   fun testSelectedComponent() {
@@ -69,7 +65,8 @@ class SelectedComponentBuilderTest {
     val idComponent = component.components[1] as JLabel
     assertThat(idComponent.text).isEqualTo("@+id/textview")
 
-    val idProperty = util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID, NlPropertyType.ID)
+    val idProperty =
+      util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID, NlPropertyType.ID)
     idProperty.value = ""
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
     util.model.firePropertyValueChangeIfNeeded()

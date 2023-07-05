@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-
 class TransformsPanelTest {
 
   @Test

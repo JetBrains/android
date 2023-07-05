@@ -19,20 +19,20 @@ import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.google.common.annotations.VisibleForTesting
 
-/**
- * List of [DeviceSize]. Optimized for [snapToDevice]
- */
+/** List of [DeviceSize]. Optimized for [snapToDevice] */
 class DeviceSizeList {
 
   /**
-   * Pair [Device] and its size (x, y) Android coordinate. Use [create] to construct.
-   * Use [rotate] to represent landscape.
+   * Pair [Device] and its size (x, y) Android coordinate. Use [create] to construct. Use [rotate]
+   * to represent landscape.
    */
-  class DeviceSize private constructor(
+  class DeviceSize
+  private constructor(
     val device: Device,
     @AndroidCoordinate val x: Int,
     @AndroidCoordinate val y: Int,
-    var rotate: Boolean = false) : Comparable<DeviceSize> {
+    var rotate: Boolean = false
+  ) : Comparable<DeviceSize> {
 
     override fun compareTo(other: DeviceSize): Int {
       return COMPARATOR.compare(this, other)
@@ -40,12 +40,9 @@ class DeviceSizeList {
 
     companion object {
       private val COMPARATOR =
-        Comparator.comparingInt<DeviceSize> { it.x }
-          .thenComparingInt { it.y }
+        Comparator.comparingInt<DeviceSize> { it.x }.thenComparingInt { it.y }
 
-      /**
-       * Create DeviceSize where x <= y always. This is useful for sorting.
-       */
+      /** Create DeviceSize where x <= y always. This is useful for sorting. */
       fun create(device: Device, x: Int, y: Int): DeviceSize {
         if (x <= y) {
           return DeviceSize(device, x, y)
@@ -66,12 +63,9 @@ class DeviceSizeList {
     }
   }
 
-  @VisibleForTesting
-  val myList = ArrayList<DeviceSize>()
+  @VisibleForTesting val myList = ArrayList<DeviceSize>()
 
-  /**
-   * Add new device size to the list. Make sure that at the end of the add call [sort]
-   */
+  /** Add new device size to the list. Make sure that at the end of the add call [sort] */
   fun add(device: Device, px: Int, py: Int) {
     myList.add(DeviceSize.create(device, px, py))
   }
@@ -81,10 +75,14 @@ class DeviceSizeList {
   }
 
   /**
-   * Precondition: [sort] must have been called at least once.
-   * Find the device that is within [snapThreshold] if it exists. Return null otherwise.
+   * Precondition: [sort] must have been called at least once. Find the device that is within
+   * [snapThreshold] if it exists. Return null otherwise.
    */
-  fun snapToDevice(@AndroidCoordinate px: Int, @AndroidCoordinate py: Int, snapThreshold: Int): DeviceSize? {
+  fun snapToDevice(
+    @AndroidCoordinate px: Int,
+    @AndroidCoordinate py: Int,
+    snapThreshold: Int
+  ): DeviceSize? {
     val reverse = px > py
     val x = if (reverse) py else px
     val y = if (reverse) px else py
@@ -102,13 +100,13 @@ class DeviceSizeList {
     var end = myList.size - 1
 
     // Find the closest point in the sorted list.
-    while(start <= end) {
+    while (start <= end) {
 
       val mid = (start + end) / 2
       val p = myList[mid]
 
       if (isInRange(snapThreshold, x, y, p.x, p.y)) {
-       return p
+        return p
       }
 
       if (p.x < x) {
@@ -121,7 +119,7 @@ class DeviceSizeList {
   }
 
   private fun isInRange(threshold: Int, x: Int, y: Int, px: Int, py: Int): Boolean {
-    if (Math.abs(x - px) < threshold && Math.abs(y - py) < threshold){
+    if (Math.abs(x - px) < threshold && Math.abs(y - py) < threshold) {
       return true
     }
     return false

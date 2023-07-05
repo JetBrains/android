@@ -32,26 +32,22 @@ import org.mockito.Mockito.mock
 
 class SelectActionsTest : LayoutTestCase() {
   fun testSelectNextAction() {
-    val model = model("model.xml",
-                      component(LINEAR_LAYOUT)
-                        .withBounds(0, 0, 100, 100)
-                        .id("@+id/outer")
-                        .children(
-                          component(BUTTON)
-                            .withBounds(0, 0, 10, 10)
-                            .id("@+id/button"),
-                          component(LINEAR_LAYOUT)
-                            .withBounds(10, 0, 90, 100)
-                            .id("@+id/inner")
-                            .children(
-                              component(TEXT_VIEW)
-                                .withBounds(10, 0, 10, 10)
-                                .id("@+id/textView1")
-                            ),
-                          component(TEXT_VIEW)
-                            .withBounds(20, 0, 10, 10)
-                            .id("@+id/textView2")
-                        )).build()
+    val model =
+      model(
+          "model.xml",
+          component(LINEAR_LAYOUT)
+            .withBounds(0, 0, 100, 100)
+            .id("@+id/outer")
+            .children(
+              component(BUTTON).withBounds(0, 0, 10, 10).id("@+id/button"),
+              component(LINEAR_LAYOUT)
+                .withBounds(10, 0, 90, 100)
+                .id("@+id/inner")
+                .children(component(TEXT_VIEW).withBounds(10, 0, 10, 10).id("@+id/textView1")),
+              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2")
+            )
+        )
+        .build()
 
     val surface = NlDesignSurface.build(project, project)
     surface.model = model
@@ -68,26 +64,22 @@ class SelectActionsTest : LayoutTestCase() {
   }
 
   fun testSelectPreviousAction() {
-    val model = model("model.xml",
-                      component(LINEAR_LAYOUT)
-                        .withBounds(0, 0, 100, 100)
-                        .id("@+id/outer")
-                        .children(
-                          component(BUTTON)
-                            .withBounds(0, 0, 10, 10)
-                            .id("@+id/button"),
-                          component(LINEAR_LAYOUT)
-                            .withBounds(10, 0, 90, 100)
-                            .id("@+id/inner")
-                            .children(
-                              component(TEXT_VIEW)
-                                .withBounds(10, 0, 10, 10)
-                                .id("@+id/textView1")
-                            ),
-                          component(TEXT_VIEW)
-                            .withBounds(20, 0, 10, 10)
-                            .id("@+id/textView2")
-                        )).build()
+    val model =
+      model(
+          "model.xml",
+          component(LINEAR_LAYOUT)
+            .withBounds(0, 0, 100, 100)
+            .id("@+id/outer")
+            .children(
+              component(BUTTON).withBounds(0, 0, 10, 10).id("@+id/button"),
+              component(LINEAR_LAYOUT)
+                .withBounds(10, 0, 90, 100)
+                .id("@+id/inner")
+                .children(component(TEXT_VIEW).withBounds(10, 0, 10, 10).id("@+id/textView1")),
+              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2")
+            )
+        )
+        .build()
 
     val surface = NlDesignSurface.build(project, project)
     surface.model = model
@@ -104,26 +96,22 @@ class SelectActionsTest : LayoutTestCase() {
   }
 
   fun testSelectAllAction() {
-    val model = model("model.xml",
-                      component(LINEAR_LAYOUT)
-                        .withBounds(0, 0, 100, 100)
-                        .id("@+id/outer")
-                        .children(
-                          component(BUTTON)
-                            .withBounds(0, 0, 10, 10)
-                            .id("@+id/button"),
-                          component(LINEAR_LAYOUT)
-                            .withBounds(10, 0, 90, 100)
-                            .id("@+id/inner")
-                            .children(
-                              component(TEXT_VIEW)
-                                .withBounds(10, 0, 10, 10)
-                                .id("@+id/textView1")
-                            ),
-                          component(TEXT_VIEW)
-                            .withBounds(20, 0, 10, 10)
-                            .id("@+id/textView2")
-                        )).build()
+    val model =
+      model(
+          "model.xml",
+          component(LINEAR_LAYOUT)
+            .withBounds(0, 0, 100, 100)
+            .id("@+id/outer")
+            .children(
+              component(BUTTON).withBounds(0, 0, 10, 10).id("@+id/button"),
+              component(LINEAR_LAYOUT)
+                .withBounds(10, 0, 90, 100)
+                .id("@+id/inner")
+                .children(component(TEXT_VIEW).withBounds(10, 0, 10, 10).id("@+id/textView1")),
+              component(TEXT_VIEW).withBounds(20, 0, 10, 10).id("@+id/textView2")
+            )
+        )
+        .build()
 
     val surface = NlDesignSurface.build(project, project)
     surface.model = model
@@ -138,7 +126,10 @@ class SelectActionsTest : LayoutTestCase() {
     val action = SelectAllAction(surface)
 
     action.actionPerformed(mock(AnActionEvent::class.java))
-    AndroidTestCase.assertEquals(listOf(outer, button, inner, textView1, textView2), surface.selectionModel.selection)
+    AndroidTestCase.assertEquals(
+      listOf(outer, button, inner, textView1, textView2),
+      surface.selectionModel.selection
+    )
   }
 
   private fun performAction(action: AnAction, surface: DesignSurface<*>, id: String) {

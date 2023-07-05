@@ -21,9 +21,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.AnActionButton
 import javax.swing.Icon
 
-/**
- * Action which will open popup with other [actions].
- */
+/** Action which will open popup with other [actions]. */
 abstract class OpenPopUpAction : AnActionButton {
 
   constructor(name: String, icon: Icon) : super(name, icon)
@@ -31,10 +29,12 @@ abstract class OpenPopUpAction : AnActionButton {
 
   abstract val actions: List<PanelAction>
   override fun actionPerformed(e: AnActionEvent) {
-    // Context should be set to actions in popup as otherwise it will use component which already could be not available.
+    // Context should be set to actions in popup as otherwise it will use component which already
+    // could be not available.
     actions.forEach { it.context = e.inputEvent.component }
-    val menu = JBPopupFactory.getInstance().createActionGroupPopup(
-      null, DefaultActionGroup(actions), e.dataContext, null, true)
+    val menu =
+      JBPopupFactory.getInstance()
+        .createActionGroupPopup(null, DefaultActionGroup(actions), e.dataContext, null, true)
     menu.showUnderneathOf(e.inputEvent.component)
   }
 }

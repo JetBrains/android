@@ -19,7 +19,5 @@ import com.android.SdkConstants
 
 private val rootTags = setOf(SdkConstants.TAG_ANIMATION_LIST)
 
-/**
- * File type for <animation-list> xml file.
- */
+/** File type for <animation-list> xml file. */
 object AnimationListFileType : DrawableFileType(rootTags)

@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.scene.target
 
 /**
- * Indicates drag [Target]s that cannot be converted to [CommonDragTarget] yet due to design limitations.
+ * Indicates drag [Target]s that cannot be converted to [CommonDragTarget] yet due to design
+ * limitations.
  */
 interface LegacyDragTarget

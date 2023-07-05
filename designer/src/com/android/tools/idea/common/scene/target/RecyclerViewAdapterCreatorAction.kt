@@ -36,24 +36,27 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 
-class RecyclerViewAdapterCreatorAction @JvmOverloads constructor(
-  assistantLabel: String = "Generate Recycler View Adapter"
-) : DirectViewAction(null, assistantLabel) {
+class RecyclerViewAdapterCreatorAction
+@JvmOverloads
+constructor(assistantLabel: String = "Generate Recycler View Adapter") :
+  DirectViewAction(null, assistantLabel) {
 
-  override fun perform(editor: ViewEditor,
-                       handler: ViewHandler,
-                       component: NlComponent,
-                       selectedChildren: MutableList<NlComponent>,
-                       modifiers: Int) {
+  override fun perform(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    component: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    modifiers: Int
+  ) {
     showWizardWithOptions(component, "Choose the adapter option", "Choose the adapter option")
   }
 
-  /**
-   * Trying to show multiple options at the first wizard.
-   */
-  private fun showWizardWithOptions(component: NlComponent,
-                                    commandName: String,
-                                    dialogTitle: String) {
+  /** Trying to show multiple options at the first wizard. */
+  private fun showWizardWithOptions(
+    component: NlComponent,
+    commandName: String,
+    dialogTitle: String
+  ) {
     val projectSyncInvoker: ProjectSyncInvoker = DefaultProjectSyncInvoker()
     val facet = AndroidFacet.getInstance(component.model.module)!!
     val project = facet.module.project
@@ -63,27 +66,36 @@ class RecyclerViewAdapterCreatorAction @JvmOverloads constructor(
 
     assert(moduleTemplates.isNotEmpty())
 
-    val renderModel = fromFacet(
-      facet, initialPackageSuggestion, moduleTemplates[0], commandName,
-      projectSyncInvoker, true, GENERATE_RECYCLER)
+    val renderModel =
+      fromFacet(
+        facet,
+        initialPackageSuggestion,
+        moduleTemplates[0],
+        commandName,
+        projectSyncInvoker,
+        true,
+        GENERATE_RECYCLER
+      )
 
     // Remove ".xml" from the name.
     currentRecyclerViewLayout = component.model.file.name
-    currentRecyclerViewLayout = currentRecyclerViewLayout.substring(0, currentRecyclerViewLayout.length - 4)
+    currentRecyclerViewLayout =
+      currentRecyclerViewLayout.substring(0, currentRecyclerViewLayout.length - 4)
 
-    val template = listOf(
-      recyclerViewAdapterNoFragmentTemplate,
-      recyclerViewAdapterFragmentTemplate)
+    val template =
+      listOf(recyclerViewAdapterNoFragmentTemplate, recyclerViewAdapterFragmentTemplate)
 
-    val chooseTypeStep: SkippableWizardStep<*> = ChooseCustomFragmentTemplatesStep(renderModel, targetDirectory, template)
+    val chooseTypeStep: SkippableWizardStep<*> =
+      ChooseCustomFragmentTemplatesStep(renderModel, targetDirectory, template)
 
-    val wizardBuilder = ModelWizard.Builder().apply {
-      addStep(chooseTypeStep)
-    }
+    val wizardBuilder = ModelWizard.Builder().apply { addStep(chooseTypeStep) }
 
     // Must be launched from dispatch thread.
     ApplicationManager.getApplication().invokeLater {
-      StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle).setProject(project).build().show()
+      StudioWizardDialogBuilder(wizardBuilder.build(), dialogTitle)
+        .setProject(project)
+        .build()
+        .show()
     }
   }
 
@@ -97,4 +109,3 @@ class RecyclerViewAdapterCreatorAction @JvmOverloads constructor(
     return targetDirectory
   }
 }
-

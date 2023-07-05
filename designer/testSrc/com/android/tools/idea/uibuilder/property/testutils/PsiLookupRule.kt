@@ -20,10 +20,8 @@ import com.intellij.psi.PsiClass
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.ExternalResource
 
-/**
- * Rule for PsiClass lookup.
- */
-class PsiLookupRule(private val facet: () -> AndroidFacet?): ExternalResource() {
+/** Rule for PsiClass lookup. */
+class PsiLookupRule(private val facet: () -> AndroidFacet?) : ExternalResource() {
   private var lookup: NlPsiLookup? = null
 
   fun classOf(tagName: String): PsiClass? = lookup?.classOf(tagName)

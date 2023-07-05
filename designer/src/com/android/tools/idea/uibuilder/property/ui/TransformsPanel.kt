@@ -29,7 +29,6 @@ import com.intellij.openapi.application.TransactionGuard
 import com.intellij.openapi.application.runReadAction
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -39,11 +38,13 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSlider
 import javax.swing.border.EmptyBorder
+import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Custom panel to support direct editing of transforms (rotation, etc.)
- */
-class TransformsPanel(private val model: NlPropertiesModel, properties: PropertiesTable<NlPropertyItem>) : JPanel(BorderLayout()) {
+/** Custom panel to support direct editing of transforms (rotation, etc.) */
+class TransformsPanel(
+  private val model: NlPropertiesModel,
+  properties: PropertiesTable<NlPropertyItem>
+) : JPanel(BorderLayout()) {
 
   private val PANEL_WIDTH = 200
   private val PANEL_HEIGHT = PANEL_WIDTH + 80
@@ -63,11 +64,12 @@ class TransformsPanel(private val model: NlPropertiesModel, properties: Properti
   private var listLabels = ArrayList<JLabel>()
   private var listValueLabels = ArrayList<JLabel>()
 
-  private val modelListener = object: PropertiesModelListener<NlPropertyItem> {
-    override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
-      updateFromValues()
+  private val modelListener =
+    object : PropertiesModelListener<NlPropertyItem> {
+      override fun propertyValuesChanged(model: PropertiesModel<NlPropertyItem>) {
+        updateFromValues()
+      }
     }
-  }
 
   init {
     val panelSize = JBUI.size(PANEL_WIDTH, PANEL_HEIGHT)
@@ -95,27 +97,30 @@ class TransformsPanel(private val model: NlPropertiesModel, properties: Properti
     listValueLabels.add(rotationYValue)
     listValueLabels.add(rotationZValue)
 
-    val mouseClickX = object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        if (e.clickCount == 2) {
-          rotationX.value = 0
+    val mouseClickX =
+      object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          if (e.clickCount == 2) {
+            rotationX.value = 0
+          }
         }
       }
-    }
-    val mouseClickY = object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        if (e.clickCount == 2) {
-          rotationY.value = 0
+    val mouseClickY =
+      object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          if (e.clickCount == 2) {
+            rotationY.value = 0
+          }
         }
       }
-    }
-    val mouseClickZ = object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        if (e.clickCount == 2) {
-          rotationZ.value = 0
+    val mouseClickZ =
+      object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          if (e.clickCount == 2) {
+            rotationZ.value = 0
+          }
         }
       }
-    }
 
     rotationX.addMouseListener(mouseClickX)
     rotationY.addMouseListener(mouseClickY)
@@ -207,7 +212,7 @@ class TransformsPanel(private val model: NlPropertiesModel, properties: Properti
         label.font = font
         label.border = indent
       }
-      val placeholder = JLabel();
+      val placeholder = JLabel()
       placeholder.font = font
       placeholder.text = "XXXX"
       val columnSize = placeholder.preferredSize
@@ -221,7 +226,6 @@ class TransformsPanel(private val model: NlPropertiesModel, properties: Properti
   override fun addNotify() {
     super.addNotify()
     model.addListener(modelListener)
-
   }
 
   override fun removeNotify() {
@@ -229,21 +233,26 @@ class TransformsPanel(private val model: NlPropertiesModel, properties: Properti
     model.removeListener(modelListener)
   }
 
-  private fun writeValue(property : NlPropertyItem?, value : String) {
+  private fun writeValue(property: NlPropertyItem?, value: String) {
     if (property == null) {
       return
     }
     val component = property.componentName
-    var propertyValue : String? = value
+    var propertyValue: String? = value
     if (propertyValue == "0") {
       propertyValue = null // set to null as it's the default value
     }
-    TransactionGuard.submitTransaction(property.model, Runnable {
-      NlWriteCommandActionUtil.run(property.components,
-                                   "Set $component.${property.name} to $propertyValue") {
-        property.value = propertyValue
+    TransactionGuard.submitTransaction(
+      property.model,
+      Runnable {
+        NlWriteCommandActionUtil.run(
+          property.components,
+          "Set $component.${property.name} to $propertyValue"
+        ) {
+          property.value = propertyValue
+        }
       }
-    })
+    )
   }
 
   private fun updateFromValues() {
@@ -254,9 +263,7 @@ class TransformsPanel(private val model: NlPropertiesModel, properties: Properti
     if (application.isReadAccessAllowed) {
       updateFromProperty()
     } else {
-      runReadAction {
-        updateFromProperty()
-      }
+      runReadAction { updateFromProperty() }
     }
   }
 
@@ -286,8 +293,7 @@ class TransformsPanel(private val model: NlPropertiesModel, properties: Properti
     val stringValue = property?.value?.ifEmpty { "0" } ?: "0"
     return try {
       stringValue.toDouble()
-    }
-    catch (ex: NumberFormatException) {
+    } catch (ex: NumberFormatException) {
       0.0
     }
   }

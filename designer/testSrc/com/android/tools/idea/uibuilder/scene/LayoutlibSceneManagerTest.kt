@@ -27,12 +27,13 @@ import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
 import org.assertj.core.api.Assertions.assertThat
 
-class LayoutlibSceneManagerTest: SceneTest() {
+class LayoutlibSceneManagerTest : SceneTest() {
 
   private lateinit var myLayoutlibSceneManager: LayoutlibSceneManager
 
   override fun setUp() {
-    // we register it manually here in the tests context, but in production it should be handled by NlEditorProvider
+    // we register it manually here in the tests context, but in production it should be handled by
+    // NlEditorProvider
     DesignerTypeRegistrar.register(PreferenceScreenFileType)
     super.setUp()
     myLayoutlibSceneManager = (myScene.designSurface as NlDesignSurface).sceneManagers.first()
@@ -133,11 +134,13 @@ class LayoutlibSceneManagerTest: SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model(FD_RES_XML, "preference.xml",
-                 component(PREFERENCE_SCREEN)
-                   .withBounds(0, 0, 1000, 1000)
-                   .matchParentWidth()
-                   .matchParentHeight()
+    return model(
+      FD_RES_XML,
+      "preference.xml",
+      component(PREFERENCE_SCREEN)
+        .withBounds(0, 0, 1000, 1000)
+        .matchParentWidth()
+        .matchParentHeight()
     )
   }
 }

@@ -15,23 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.property
 
-/**
- * Specifies how default property values are provided.
- */
+/** Specifies how default property values are provided. */
 interface DefaultPropertyValueProvider {
 
-  /**
-   * Return the default value of the specified [property] as a string.
-   */
+  /** Return the default value of the specified [property] as a string. */
   fun provideDefaultValue(property: NlPropertyItem): String? = null
 
-  /**
-   * Return true if the default values may have changed since they were generated last.
-   */
+  /** Return true if the default values may have changed since they were generated last. */
   fun hasDefaultValuesChanged(): Boolean = false
 
-  /**
-   * Clear any cache property values.
-   */
+  /** Clear any cache property values. */
   fun clearCache() {}
 }

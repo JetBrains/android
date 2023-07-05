@@ -21,8 +21,9 @@ import com.android.tools.idea.common.model.NlDependencyManager
 import org.jetbrains.android.facet.AndroidFacet
 
 internal fun AndroidFacet?.hasMaterial3Dependency(): Boolean {
-  val materialLibVersion = NlDependencyManager.getInstance()
-    .getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, this ?: return false)
+  val materialLibVersion =
+    NlDependencyManager.getInstance()
+      .getModuleDependencyVersion(GoogleMavenArtifactId.ANDROIDX_DESIGN, this ?: return false)
 
   // Material3 starts in 1.5
   return materialLibVersion?.let { it > Version.prefixInfimum("1.5.0") } ?: false

@@ -19,7 +19,6 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.undo.UndoManager
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.util.Computable
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.util.ui.UIUtil

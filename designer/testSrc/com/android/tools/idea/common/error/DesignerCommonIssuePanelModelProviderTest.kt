@@ -25,9 +25,7 @@ import org.junit.Test
 
 class DesignerCommonIssuePanelModelProviderTest {
 
-  @Rule
-  @JvmField
-  val rule = AndroidProjectRule.inMemory().onEdt()
+  @Rule @JvmField val rule = AndroidProjectRule.inMemory().onEdt()
 
   @Test
   fun testAsyncDesignerCommonIssuePanelModelProvider() {

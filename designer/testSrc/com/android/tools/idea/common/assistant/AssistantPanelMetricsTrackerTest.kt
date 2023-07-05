@@ -26,11 +26,12 @@ class AssistantPanelMetricsTrackerTest : AndroidTestCase() {
   fun testLogOpen() {
     var eventBuilder: DesignEditorHelpPanelEvent.Builder? = null
     val type = HelpPanelType.FULL_ALL
-    val metric = object : AssistantPanelMetricsTracker(type) {
-      override fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
-        eventBuilder = event
+    val metric =
+      object : AssistantPanelMetricsTracker(type) {
+        override fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
+          eventBuilder = event
+        }
       }
-    }
     metric.logOpen()
     assertTrue(metric.timer.isRunning)
     assertNotNull(eventBuilder)
@@ -41,11 +42,12 @@ class AssistantPanelMetricsTrackerTest : AndroidTestCase() {
   fun testLogCLose() {
     var eventBuilder: DesignEditorHelpPanelEvent.Builder? = null
     val type = HelpPanelType.FULL_ALL
-    val metric = object : AssistantPanelMetricsTracker(type) {
-      override fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
-        eventBuilder = event
+    val metric =
+      object : AssistantPanelMetricsTracker(type) {
+        override fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
+          eventBuilder = event
+        }
       }
-    }
 
     metric.logOpen()
     Thread.sleep(100L)

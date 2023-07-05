@@ -30,7 +30,10 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 class NlFlagsPropertyItemTest : PropertyTestCase() {
 
   fun testTextStyleProperty() {
-    val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD))
+    val components =
+      createComponents(
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
+      )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     assertThat(property.children).hasSize(3)
     val normal = property.flag(TextStyle.VALUE_NORMAL)
@@ -45,7 +48,10 @@ class NlFlagsPropertyItemTest : PropertyTestCase() {
   }
 
   fun testSetTextStyleProperty() {
-    val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD))
+    val components =
+      createComponents(
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
+      )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     val italic = property.flag(TextStyle.VALUE_ITALIC)
 
@@ -58,7 +64,10 @@ class NlFlagsPropertyItemTest : PropertyTestCase() {
   }
 
   fun testSetAndResetTextStyleProperty() {
-    val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD))
+    val components =
+      createComponents(
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_STYLE, TextStyle.VALUE_BOLD)
+      )
     val property = createFlagsPropertyItem(ATTR_TEXT_STYLE, NlPropertyType.STRING, components)
     val bold = property.flag(TextStyle.VALUE_BOLD)
     val italic = property.flag(TextStyle.VALUE_ITALIC)
@@ -75,7 +84,10 @@ class NlFlagsPropertyItemTest : PropertyTestCase() {
   }
 
   fun testCenterImpliesMultipleEffectiveFlags() {
-    val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER))
+    val components =
+      createComponents(
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER)
+      )
     val property = createFlagsPropertyItem(ATTR_GRAVITY, NlPropertyType.STRING, components)
     val center = property.flag(GRAVITY_VALUE_CENTER)
     val centerHorizontal = property.flag(GRAVITY_VALUE_CENTER_HORIZONTAL)
@@ -92,40 +104,55 @@ class NlFlagsPropertyItemTest : PropertyTestCase() {
 
   fun testValidate() {
     myFixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
-    val components = createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER))
+    val components =
+      createComponents(
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_GRAVITY, GRAVITY_VALUE_CENTER)
+      )
     val property = createFlagsPropertyItem(ATTR_GRAVITY, NlPropertyType.STRING, components)
     assertThat(property.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.editingSupport.validation("left")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(property.editingSupport.validation("start|bottom")).isEqualTo(EDITOR_NO_ERROR)
-    assertThat(property.editingSupport.validation("start|wednesday|bottom")).isEqualTo(
-      Pair(EditingErrorCategory.ERROR, "Invalid value: 'wednesday'"))
-    assertThat(property.editingSupport.validation("start|wednesday|bottom|winter|left|january")).isEqualTo(
-      Pair(EditingErrorCategory.ERROR, "Invalid values: 'wednesday', 'winter', 'january'"))
-    assertThat(property.editingSupport.validation("@bool/useBorder")).isEqualTo(
-      Pair(EditingErrorCategory.ERROR, "Unexpected resource type: 'bool' expected: string"))
-    assertThat(property.editingSupport.validation("@string/hello")).isEqualTo(
-      Pair(EditingErrorCategory.ERROR, "Invalid value: 'Hello'"))
+    assertThat(property.editingSupport.validation("start|wednesday|bottom"))
+      .isEqualTo(Pair(EditingErrorCategory.ERROR, "Invalid value: 'wednesday'"))
+    assertThat(property.editingSupport.validation("start|wednesday|bottom|winter|left|january"))
+      .isEqualTo(
+        Pair(EditingErrorCategory.ERROR, "Invalid values: 'wednesday', 'winter', 'january'")
+      )
+    assertThat(property.editingSupport.validation("@bool/useBorder"))
+      .isEqualTo(
+        Pair(EditingErrorCategory.ERROR, "Unexpected resource type: 'bool' expected: string")
+      )
+    assertThat(property.editingSupport.validation("@string/hello"))
+      .isEqualTo(Pair(EditingErrorCategory.ERROR, "Invalid value: 'Hello'"))
     assertThat(property.editingSupport.validation("@string/myGravity")).isEqualTo(EDITOR_NO_ERROR)
-    assertThat(property.editingSupport.validation("@string/errGravity")).isEqualTo(
-      Pair(EditingErrorCategory.ERROR, "Invalid value: 'wednesday'"))
+    assertThat(property.editingSupport.validation("@string/errGravity"))
+      .isEqualTo(Pair(EditingErrorCategory.ERROR, "Invalid value: 'wednesday'"))
   }
 
-  private fun createFlagsPropertyItem(attrName: String, type: NlPropertyType, components: List<NlComponent>): NlFlagsPropertyItem {
+  private fun createFlagsPropertyItem(
+    attrName: String,
+    type: NlPropertyType,
+    components: List<NlComponent>
+  ): NlFlagsPropertyItem {
     val model = NlPropertiesModel(testRootDisposable, myFacet)
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     val definition =
-        frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
+      frameworkResourceManager
+        ?.attributeDefinitions
+        ?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
     return NlFlagsPropertyItem(ANDROID_URI, attrName, type, definition!!, "", "", model, components)
   }
 
   @Language("XML")
-  private val VALUE_RESOURCES = """<?xml version="1.0" encoding="utf-8"?>
+  private val VALUE_RESOURCES =
+    """<?xml version="1.0" encoding="utf-8"?>
     <resources>
       <bool name="useBorder">true</bool>
       <string name="hello">Hello</string>
       <string name="myGravity">start|bottom</string>
       <string name="errGravity">start|wednesday|end</string>
     </resources>
-  """.trimIndent()
+  """
+      .trimIndent()
 }

@@ -24,22 +24,26 @@ import java.util.concurrent.Executor
 import java.util.concurrent.RejectedExecutionException
 import java.util.function.Consumer
 
-/**
- * Internal motion usage tracker.
- */
+/** Internal motion usage tracker. */
 internal interface InternalMotionTracker {
   fun track(eventType: MotionLayoutEditorEvent.MotionLayoutEditorEventType)
 }
 
 /**
- * Factory for creating the tracker that shares thread pool, user agreeing log opt-in policy, event drop-policy etc.
+ * Factory for creating the tracker that shares thread pool, user agreeing log opt-in policy, event
+ * drop-policy etc.
  */
 internal class InternalMotionTrackerFactory {
 
   companion object {
     private val NOP_TRACKER = MotionNopTracker()
-    private val MANAGER = DesignerUsageTrackerManager<InternalMotionTracker, DesignSurface<*>>(
-      { executor, surface, eventLogger -> MotionUsageTrackerImpl(executor, surface, eventLogger) }, NOP_TRACKER)
+    private val MANAGER =
+      DesignerUsageTrackerManager<InternalMotionTracker, DesignSurface<*>>(
+        { executor, surface, eventLogger ->
+          MotionUsageTrackerImpl(executor, surface, eventLogger)
+        },
+        NOP_TRACKER
+      )
 
     /**
      * Gets a shared instance of the tracker.
@@ -57,31 +61,33 @@ internal class InternalMotionTrackerFactory {
  * @param surface - key used by [UsageTracker] for session info
  * @param myConsumer - Consumer that eventually calls [UsageTracker.log]
  */
-private class MotionUsageTrackerImpl internal constructor(
+private class MotionUsageTrackerImpl
+internal constructor(
   private val myExecutor: Executor,
   private val surface: DesignSurface<*>?,
-  private val myConsumer: Consumer<AndroidStudioEvent.Builder>) : InternalMotionTracker {
+  private val myConsumer: Consumer<AndroidStudioEvent.Builder>
+) : InternalMotionTracker {
 
   override fun track(eventType: MotionLayoutEditorEvent.MotionLayoutEditorEventType) {
     try {
       myExecutor.execute {
-        val event = AndroidStudioEvent.newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.MOTION_LAYOUT_EDITOR_EVENT)
-          .setMotionLayoutEditorEvent(MotionLayoutEditorEvent.newBuilder().setType(eventType).build())
+        val event =
+          AndroidStudioEvent.newBuilder()
+            .setKind(AndroidStudioEvent.EventKind.MOTION_LAYOUT_EDITOR_EVENT)
+            .setMotionLayoutEditorEvent(
+              MotionLayoutEditorEvent.newBuilder().setType(eventType).build()
+            )
         surface?.model?.let { event.setApplicationId(surface.model!!.facet) }
 
         myConsumer.accept(event)
       }
-    }
-    catch (e: RejectedExecutionException) {
+    } catch (e: RejectedExecutionException) {
       // We are hitting the throttling limit
     }
   }
 }
 
-/**
- * No-op impl.
- */
+/** No-op impl. */
 private class MotionNopTracker : InternalMotionTracker {
   override fun track(eventType: MotionLayoutEditorEvent.MotionLayoutEditorEventType) {
     // No op

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawCommand
@@ -25,9 +25,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.animation.Animation
 import java.awt.Color
 import java.awt.Graphics2D
 
-/**
- * Draw a snap target
- */
+/** Draw a snap target */
 class DrawSnapTarget : DrawRegion {
   internal var myMode: Int = 0
 
@@ -38,11 +36,13 @@ class DrawSnapTarget : DrawRegion {
     myMode = Integer.parseInt(sp[c++])
   }
 
-  constructor(@SwingCoordinate x: Int,
-              @SwingCoordinate y: Int,
-              @SwingCoordinate width: Int,
-              @SwingCoordinate height: Int,
-              mode: Int) : super(x, y, width, height) {
+  constructor(
+    @SwingCoordinate x: Int,
+    @SwingCoordinate y: Int,
+    @SwingCoordinate width: Int,
+    @SwingCoordinate height: Int,
+    mode: Int
+  ) : super(x, y, width, height) {
     myMode = mode
   }
 
@@ -72,13 +72,15 @@ class DrawSnapTarget : DrawRegion {
     val NORMAL: Int = 0
     val OVER: Int = 1
 
-    fun add(list: DisplayList,
-            transform: SceneContext,
-            @AndroidDpCoordinate left: kotlin.Float,
-            @AndroidDpCoordinate top: kotlin.Float,
-            @AndroidDpCoordinate right: kotlin.Float,
-            @AndroidDpCoordinate bottom: kotlin.Float,
-            isOver: Boolean) {
+    fun add(
+      list: DisplayList,
+      transform: SceneContext,
+      @AndroidDpCoordinate left: kotlin.Float,
+      @AndroidDpCoordinate top: kotlin.Float,
+      @AndroidDpCoordinate right: kotlin.Float,
+      @AndroidDpCoordinate bottom: kotlin.Float,
+      isOver: Boolean
+    ) {
       @SwingCoordinate val l = transform.getSwingXDip(left)
       @SwingCoordinate val t = transform.getSwingYDip(top)
       @SwingCoordinate val w = transform.getSwingDimensionDip(right - left)

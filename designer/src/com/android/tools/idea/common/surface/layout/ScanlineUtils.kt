@@ -45,25 +45,26 @@ import com.android.tools.idea.uibuilder.surface.layout.PositionableContent
  * We will also find the top side of D and the left side of C.
  */
 
-/**
- * A list of scanline coordinates.
- */
+/** A list of scanline coordinates. */
 typealias ScanlineList = List<Int>
 
 /**
- * Maps the [Collection<SceneView>] into a [ScanlineList] by applying the given function. The returned
- * list will be sorted.
+ * Maps the [Collection<SceneView>] into a [ScanlineList] by applying the given function. The
+ * returned list will be sorted.
  */
-fun Collection<PositionableContent>.findAllScanlines(dimensionProcessor: (PositionableContent) -> Int): ScanlineList = map(dimensionProcessor).sorted()
+fun Collection<PositionableContent>.findAllScanlines(
+  dimensionProcessor: (PositionableContent) -> Int
+): ScanlineList = map(dimensionProcessor).sorted()
 
 /**
- * Finds the closest scanline to [key] that is smaller or equals to key. If there is no smaller scanline than key,
- * the method returns [default].
+ * Finds the closest scanline to [key] that is smaller or equals to key. If there is no smaller
+ * scanline than key, the method returns [default].
  */
 fun findSmallerScanline(scanLines: ScanlineList, key: Int, default: Int): Int {
   val index = scanLines.binarySearch(key)
   if (index < 0) {
-    // The element is not present so binarySearch returned the insertion point. The smaller item is the one before
+    // The element is not present so binarySearch returned the insertion point. The smaller item is
+    // the one before
     // the insertion point.
     val insertionIndex = -index - 1
     return if (insertionIndex - 1 < 0) default else scanLines[insertionIndex - 1]
@@ -73,13 +74,14 @@ fun findSmallerScanline(scanLines: ScanlineList, key: Int, default: Int): Int {
 }
 
 /**
- * Finds the closest scanline to [key] that is larger or equals to key. If there is no larger scanline than key,
- * the method returns [default].
+ * Finds the closest scanline to [key] that is larger or equals to key. If there is no larger
+ * scanline than key, the method returns [default].
  */
 fun findLargerScanline(scanLines: ScanlineList, key: Int, default: Int): Int {
   val index = scanLines.binarySearch(key)
   if (index < 0) {
-    // The element is not present so binarySearch returned the insertion point. The larger item is the one at
+    // The element is not present so binarySearch returned the insertion point. The larger item is
+    // the one at
     // the insertion point.
     val insertionIndex = -index - 1
     return if (insertionIndex >= scanLines.size) default else scanLines[insertionIndex]

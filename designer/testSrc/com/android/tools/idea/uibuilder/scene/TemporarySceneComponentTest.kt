@@ -22,7 +22,7 @@ import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 
-open class TemporarySceneComponentTest: SceneTest() {
+open class TemporarySceneComponentTest : SceneTest() {
 
   fun testSetDragging() {
     val mockNlComponent = LayoutTestUtilities.createMockComponent()
@@ -39,10 +39,9 @@ open class TemporarySceneComponentTest: SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model("temporary_scene_test.xml",
-        component(LINEAR_LAYOUT)
-            .withBounds(0, 0, 2000, 2000)
-            .matchParentWidth()
-            .matchParentHeight())
+    return model(
+      "temporary_scene_test.xml",
+      component(LINEAR_LAYOUT).withBounds(0, 0, 2000, 2000).matchParentWidth().matchParentHeight()
+    )
   }
 }

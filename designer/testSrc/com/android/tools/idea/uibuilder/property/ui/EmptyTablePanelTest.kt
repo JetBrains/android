@@ -26,8 +26,8 @@ import com.android.tools.property.ptable.PTableModelUpdateListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.junit.Test
 import kotlin.properties.Delegates
+import org.junit.Test
 
 class EmptyTablePanelTest {
 
@@ -48,14 +48,17 @@ class EmptyTablePanelTest {
 
   private class AddAction : AnAction(null, "Declared Attributes", null) {
     override fun actionPerformed(event: AnActionEvent) {
-      TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+      TODO(
+        "not implemented"
+      ) // To change body of created functions use File | Settings | File Templates.
     }
   }
 
-  private class MyPTableModel: PTableModel {
+  private class MyPTableModel : PTableModel {
     private val listeners = mutableListOf<PTableModelUpdateListener>()
 
-    override var items: List<PTableItem> by Delegates.observable(emptyList()) { _, _, _ -> fireUpdate() }
+    override var items: List<PTableItem> by
+      Delegates.observable(emptyList()) { _, _, _ -> fireUpdate() }
 
     override var editedItem: PTableItem? = null
 

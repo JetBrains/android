@@ -18,27 +18,25 @@ package com.android.tools.idea.uibuilder.property.testutils
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 
 /**
- * This file has data from analyzing the framework code in Android S (API 31).
- * The result were incomplete such that a number of attributes
- * had to be remapped by hand (from the online documentation).
+ * This file has data from analyzing the framework code in Android S (API 31). The result were
+ * incomplete such that a number of attributes had to be remapped by hand (from the online
+ * documentation).
  *
- * This file is assumed to be the truth about the attribute
- * types used in the framework. Use this file to verify any
- * type mappings of android framework attributes.
+ * This file is assumed to be the truth about the attribute types used in the framework. Use this
+ * file to verify any type mappings of android framework attributes.
  *
- * Note: when adding attribute names to this list after updating the framework
- * or a library please look up the code that is reading the attribute.
- * Examples:
+ * Note: when adding attribute names to this list after updating the framework or a library please
+ * look up the code that is reading the attribute. Examples:
  *
- * | Function                         | Type                            | Notes                                 |
- * | -------------------------------- | ------------------------------- | --------------------------------------|
- * | TypedArray.getDrawable           | NlPropertyType.DRAWABLE         |                                       |
- * | TypedArray.getColor              | NlPropertyType.COLOR            | Make sure this is not a color list !! |
- * | TypedArray.getColorStateList     | NlPropertyType.COLOR_STATE_LIST |                                       |
- * | TypedArray.getDimensionPixelSize | NlPropertyType.DIMENSION        |                                       |
- * | TypedArray.getResourceId         | NlPropertyType.ID               |                                       |
- * | TypedArray.getInt                | NlPropertyType.ENUM             | If attrs.xml defines this as an enum  |
- * |                                  | NlPropertyType.INTEGER          | If this is not an enum                |
+ * |Function                        |Type                           |Notes                                |
+ * |--------------------------------|-------------------------------|-------------------------------------|
+ * |TypedArray.getDrawable          |NlPropertyType.DRAWABLE        |                                     |
+ * |TypedArray.getColor             |NlPropertyType.COLOR           |Make sure this is not a color list !!|
+ * |TypedArray.getColorStateList    |NlPropertyType.COLOR_STATE_LIST|                                     |
+ * |TypedArray.getDimensionPixelSize|NlPropertyType.DIMENSION       |                                     |
+ * |TypedArray.getResourceId        |NlPropertyType.ID              |                                     |
+ * |TypedArray.getInt               |NlPropertyType.ENUM            |If attrs.xml defines this as an enum |
+ * |                                |NlPropertyType.INTEGER         |If this is not an enum               |
  */
 object AndroidAttributeFact {
 
@@ -431,7 +429,7 @@ object AndroidAttributeFact {
       "amPmTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "animationResolution" -> return NlPropertyType.INTEGER
       "autoLink" -> return NlPropertyType.FLAGS
-      "autoSizePresetSizes" -> return NlPropertyType.ARRAY  // Dimension array
+      "autoSizePresetSizes" -> return NlPropertyType.ARRAY // Dimension array
       "autoSizeTextType" -> return NlPropertyType.ENUM
       "backgroundTintMode" -> return NlPropertyType.ENUM
       "breakStrategy" -> return NlPropertyType.ENUM
@@ -1316,7 +1314,9 @@ object AndroidAttributeFact {
       "userVisible" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "usesCleartextTraffic" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "value" -> return NlPropertyType.FLOAT
-      "values" -> return NlPropertyType.ARRAY  // array of float for com.google.android.material.slider.RangeSlider
+      "values" ->
+        return NlPropertyType
+          .ARRAY // array of float for com.google.android.material.slider.RangeSlider
       "valueFrom" -> return NlPropertyType.FLOAT
       "valueTo" -> return NlPropertyType.FLOAT
       "valueType" -> return NlPropertyType.INTEGER
@@ -1353,4 +1353,3 @@ object AndroidAttributeFact {
     }
   }
 }
-

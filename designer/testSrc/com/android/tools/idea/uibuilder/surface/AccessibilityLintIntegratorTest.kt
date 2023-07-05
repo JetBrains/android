@@ -34,8 +34,7 @@ import org.mockito.MockitoAnnotations
 @RunWith(JUnit4::class)
 class AccessibilityLintIntegratorTest {
 
-  @Mock
-  lateinit var mockModel: NlModel
+  @Mock lateinit var mockModel: NlModel
 
   @Before
   fun setUp() {

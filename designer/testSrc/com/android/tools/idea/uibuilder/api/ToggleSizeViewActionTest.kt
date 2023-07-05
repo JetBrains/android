@@ -25,11 +25,9 @@ import com.android.tools.idea.uibuilder.scene.SceneTest
 import com.intellij.util.ui.EmptyIcon
 import junit.framework.TestCase
 
-class ToggleSizeViewActionTest: SceneTest() {
+class ToggleSizeViewActionTest : SceneTest() {
 
-  /**
-   * Regression test for b/143964703
-   */
+  /** Regression test for b/143964703 */
   fun testNoExceptionWhenPerform() {
     val action = ToggleSizeViewAction("Toggle", ATTR_WIDTH, EmptyIcon.ICON_0, EmptyIcon.ICON_0)
 
@@ -40,27 +38,28 @@ class ToggleSizeViewActionTest: SceneTest() {
     try {
       action.setSelected(editor, root.getLayoutHandler {}!!, root, listOf(text), true)
       action.setSelected(editor, root.getLayoutHandler {}!!, root, listOf(text), false)
-    }
-    catch (error: AssertionError) {
+    } catch (error: AssertionError) {
       TestCase.fail("AssertionError \"$error\" should not happen")
     }
   }
 
   override fun createModel(): ModelBuilder {
-    return model("layout.xml",
-                 component(LINEAR_LAYOUT)
-                   .id("@id/root")
-                   .withBounds(0, 0, 2000, 2000)
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(TEXT_VIEW)
-                       .withBounds(200, 200, 200, 200)
-                       .id("@id/myText")
-                       .width("100dp")
-                       .height("100dp")
-                       .withAttribute("android:layout_x", "100dp")
-                       .withAttribute("android:layout_y", "100dp")
-                   ))
+    return model(
+      "layout.xml",
+      component(LINEAR_LAYOUT)
+        .id("@id/root")
+        .withBounds(0, 0, 2000, 2000)
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(TEXT_VIEW)
+            .withBounds(200, 200, 200, 200)
+            .id("@id/myText")
+            .width("100dp")
+            .height("100dp")
+            .withAttribute("android:layout_x", "100dp")
+            .withAttribute("android:layout_y", "100dp")
+        )
+    )
   }
 }

@@ -27,34 +27,44 @@ const val SIZE = 8
 object LinearPlaceholderFactory {
 
   @JvmStatic
-  fun createVerticalPlaceholder(host: SceneComponent,
-                                anchor: SceneComponent?,
-                                snappedY: Int,
-                                left: Int,
-                                right: Int
+  fun createVerticalPlaceholder(
+    host: SceneComponent,
+    anchor: SceneComponent?,
+    snappedY: Int,
+    left: Int,
+    right: Int
   ): Placeholder = VerticalPlaceholder(host, anchor, snappedY, left, right)
 
   @JvmStatic
-  fun createHorizontalPlaceholder(host: SceneComponent,
-                                  anchor: SceneComponent?,
-                                  snappedX: Int,
-                                  top: Int,
-                                  bottom: Int
+  fun createHorizontalPlaceholder(
+    host: SceneComponent,
+    anchor: SceneComponent?,
+    snappedX: Int,
+    top: Int,
+    bottom: Int
   ): Placeholder = HorizontalPlaceholder(host, anchor, snappedX, top, bottom)
 
-  private abstract class LinearPlaceholder(host: SceneComponent, private val anchor: SceneComponent?) : Placeholder(host) {
+  private abstract class LinearPlaceholder(
+    host: SceneComponent,
+    private val anchor: SceneComponent?
+  ) : Placeholder(host) {
 
-    override fun findNextSibling(appliedComponent: SceneComponent, newParent: SceneComponent): SceneComponent? = anchor
+    override fun findNextSibling(
+      appliedComponent: SceneComponent,
+      newParent: SceneComponent
+    ): SceneComponent? = anchor
 
-    override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) = Unit
+    override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) =
+      Unit
   }
 
-  private class VerticalPlaceholder(host: SceneComponent,
-                                    anchor: SceneComponent?,
-                                    private val snappedY: Int,
-                                    left: Int,
-                                    right: Int
-  ): LinearPlaceholder(host, anchor) {
+  private class VerticalPlaceholder(
+    host: SceneComponent,
+    anchor: SceneComponent?,
+    private val snappedY: Int,
+    left: Int,
+    right: Int
+  ) : LinearPlaceholder(host, anchor) {
     override val region = Region(left, snappedY - SIZE, right, snappedY + SIZE, host.depth)
 
     override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
@@ -68,11 +78,12 @@ object LinearPlaceholderFactory {
     }
   }
 
-  private class HorizontalPlaceholder(host: SceneComponent,
-                                      anchor: SceneComponent?,
-                                      private val snappedX: Int,
-                                      top: Int,
-                                      bottom: Int
+  private class HorizontalPlaceholder(
+    host: SceneComponent,
+    anchor: SceneComponent?,
+    private val snappedX: Int,
+    top: Int,
+    bottom: Int
   ) : LinearPlaceholder(host, anchor) {
     override val region = Region(snappedX - SIZE, top, snappedX + SIZE, bottom, host.depth)
 

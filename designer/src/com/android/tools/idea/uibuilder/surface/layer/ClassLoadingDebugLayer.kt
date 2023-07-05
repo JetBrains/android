@@ -21,18 +21,18 @@ import com.android.tools.idea.uibuilder.surface.LAYER_FONT
 import com.android.tools.idea.uibuilder.surface.drawMultilineString
 import com.intellij.openapi.module.Module
 import com.intellij.ui.JBColor
-import org.jetbrains.android.uipreview.HATCHERY
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.RenderingHints
+import org.jetbrains.android.uipreview.HATCHERY
 
 private const val PROGRESS_HEIGHT = 20
 private const val PROGRESS_WIDTH = 100
 
 /**
- * Draws an overlay layer to display current state of the [ModuleClassLoaderHatchery] for the [module]. Each Clutch in the hatchery is
- * visually represented by a labelled column of progress bars each of which displays the progress of class loading in each of the
- * [ModuleClassLoader].
+ * Draws an overlay layer to display current state of the [ModuleClassLoaderHatchery] for the
+ * [module]. Each Clutch in the hatchery is visually represented by a labelled column of progress
+ * bars each of which displays the progress of class loading in each of the [ModuleClassLoader].
  */
 class ClassLoadingDebugLayer(val module: Module) : Layer() {
   override fun paint(gc: Graphics2D) {
@@ -58,7 +58,12 @@ class ClassLoadingDebugLayer(val module: Module) : Layer() {
           it.states.forEach { stat ->
             g.setColorAndAlpha(Color.GREEN)
             g.drawRect(startX + horShift, startY + vertShift, PROGRESS_WIDTH, PROGRESS_HEIGHT)
-            g.fillRect(startX + horShift, startY + vertShift, PROGRESS_WIDTH * stat.progress / stat.toDo, PROGRESS_HEIGHT)
+            g.fillRect(
+              startX + horShift,
+              startY + vertShift,
+              PROGRESS_WIDTH * stat.progress / stat.toDo,
+              PROGRESS_HEIGHT
+            )
             vertShift += 2 * PROGRESS_HEIGHT
           }
           horShift += PROGRESS_WIDTH + PROGRESS_WIDTH / 2

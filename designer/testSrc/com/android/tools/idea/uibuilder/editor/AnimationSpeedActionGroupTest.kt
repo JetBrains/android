@@ -23,9 +23,7 @@ import org.junit.Test
 import org.mockito.Mockito
 
 class AnimationSpeedActionGroupTest {
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   @Test
   fun testChangingSpeed() {

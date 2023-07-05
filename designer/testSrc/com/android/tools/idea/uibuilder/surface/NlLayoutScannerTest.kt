@@ -46,13 +46,10 @@ import org.mockito.MockitoAnnotations
 
 @RunWith(JUnit4::class)
 class NlLayoutScannerTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
-  @Mock
-  lateinit var mockSurface: NlDesignSurface
-  @Mock
-  lateinit var mockModel: NlModel
+  @Mock lateinit var mockSurface: NlDesignSurface
+  @Mock lateinit var mockModel: NlModel
 
   @Before
   fun setUp() {
@@ -73,12 +70,14 @@ class NlLayoutScannerTest {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     usageTracker.resetLastTrackedEvent()
 
-    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(),
-                           IssueSource.NONE,
-                           mockModel)
+    val issue =
+      NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(), IssueSource.NONE, mockModel)
     scanner.issuePanelListener.onIssueExpanded(issue, true)
 
-    LayoutTestCase.assertEquals(LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT, usageTracker.lastTrackedEvent)
+    LayoutTestCase.assertEquals(
+      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT,
+      usageTracker.lastTrackedEvent
+    )
   }
 
   @Test
@@ -87,9 +86,8 @@ class NlLayoutScannerTest {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     usageTracker.resetLastTrackedEvent()
 
-    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(),
-                           IssueSource.NONE,
-                           mockModel)
+    val issue =
+      NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(), IssueSource.NONE, mockModel)
     scanner.issuePanelListener.onIssueExpanded(issue, false)
 
     LayoutTestCase.assertNull(usageTracker.lastTrackedEvent)
@@ -101,12 +99,14 @@ class NlLayoutScannerTest {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     usageTracker.resetLastTrackedEvent()
 
-    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(),
-                           IssueSource.NONE,
-                           mockModel)
+    val issue =
+      NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(), IssueSource.NONE, mockModel)
     scanner.issuePanelListener.onIssueExpanded(issue, true)
 
-    LayoutTestCase.assertEquals(LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT, usageTracker.lastTrackedEvent)
+    LayoutTestCase.assertEquals(
+      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT,
+      usageTracker.lastTrackedEvent
+    )
   }
 
   @Test
@@ -115,9 +115,8 @@ class NlLayoutScannerTest {
     val usageTracker = CommonUsageTracker.getInstance(mockSurface) as CommonNopTracker
     usageTracker.resetLastTrackedEvent()
 
-    val issue = NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(),
-                           IssueSource.NONE,
-                           mockModel)
+    val issue =
+      NlAtfIssue(ScannerTestHelper.createTestIssueBuilder().build(), IssueSource.NONE, mockModel)
     scanner.issuePanelListener.onIssueExpanded(issue, false)
 
     LayoutTestCase.assertNull(usageTracker.lastTrackedEvent)
@@ -140,9 +139,10 @@ class NlLayoutScannerTest {
   @Test
   fun addListener() {
     val scanner = createScanner()
-    val listener = object : NlLayoutScanner.Listener {
-      override fun lintUpdated(result: ValidatorResult?) { }
-    }
+    val listener =
+      object : NlLayoutScanner.Listener {
+        override fun lintUpdated(result: ValidatorResult?) {}
+      }
 
     scanner.addListener(listener)
 
@@ -152,9 +152,10 @@ class NlLayoutScannerTest {
   @Test
   fun removeListener() {
     val scanner = createScanner()
-    val listener = object : NlLayoutScanner.Listener {
-      override fun lintUpdated(result: ValidatorResult?) { }
-    }
+    val listener =
+      object : NlLayoutScanner.Listener {
+        override fun lintUpdated(result: ValidatorResult?) {}
+      }
     scanner.addListener(listener)
     assertTrue(scanner.listeners.contains(listener))
 
@@ -167,16 +168,18 @@ class NlLayoutScannerTest {
     val scanner = createScanner()
     val model = ScannerTestHelper().buildModel(0)
     val scannerConfig = LayoutScannerEnabled()
-    val manager = Mockito.mock(LayoutlibSceneManager::class.java).also {
-      Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
-      Mockito.`when`(it.model).thenReturn(model)
-    }
-    val renderResult = Mockito.mock(RenderResult::class.java)
-    val listener = object : NlLayoutScanner.Listener {
-      override fun lintUpdated(result: ValidatorResult?) {
-        scanner.removeListener(this)
+    val manager =
+      Mockito.mock(LayoutlibSceneManager::class.java).also {
+        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+        Mockito.`when`(it.model).thenReturn(model)
       }
-    }
+    val renderResult = Mockito.mock(RenderResult::class.java)
+    val listener =
+      object : NlLayoutScanner.Listener {
+        override fun lintUpdated(result: ValidatorResult?) {
+          scanner.removeListener(this)
+        }
+      }
     scanner.addListener(listener)
 
     scanner.validateAndUpdateLint(mapOf(manager to renderResult))
@@ -191,18 +194,20 @@ class NlLayoutScannerTest {
     val componentSize = 0
     val model = helper.buildModel(componentSize)
     val scannerConfig = LayoutScannerEnabled()
-    val manager = Mockito.mock(LayoutlibSceneManager::class.java).also {
-      Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
-      Mockito.`when`(it.model).thenReturn(model)
-    }
+    val manager =
+      Mockito.mock(LayoutlibSceneManager::class.java).also {
+        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+        Mockito.`when`(it.model).thenReturn(model)
+      }
     val renderResult = Mockito.mock(RenderResult::class.java)
 
     var listenerTriggered = false
-    val listener = object : NlLayoutScanner.Listener {
-      override fun lintUpdated(result: ValidatorResult?) {
-        listenerTriggered = true
+    val listener =
+      object : NlLayoutScanner.Listener {
+        override fun lintUpdated(result: ValidatorResult?) {
+          listenerTriggered = true
+        }
       }
-    }
     scanner.addListener(listener)
 
     scanner.validateAndUpdateLint(mapOf(manager to renderResult))
@@ -219,18 +224,20 @@ class NlLayoutScannerTest {
     val componentSize = 0
     val model = helper.buildModel(componentSize)
     val scannerConfig = LayoutScannerEnabled()
-    val manager = Mockito.mock(LayoutlibSceneManager::class.java).also {
-      Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
-      Mockito.`when`(it.model).thenReturn(model)
-    }
+    val manager =
+      Mockito.mock(LayoutlibSceneManager::class.java).also {
+        Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+        Mockito.`when`(it.model).thenReturn(model)
+      }
     val renderResult = helper.mockRenderResult(model)
 
     var listenerTriggered = false
-    val listener = object : NlLayoutScanner.Listener {
-      override fun lintUpdated(result: ValidatorResult?) {
-        listenerTriggered = true
+    val listener =
+      object : NlLayoutScanner.Listener {
+        override fun lintUpdated(result: ValidatorResult?) {
+          listenerTriggered = true
+        }
       }
-    }
     scanner.addListener(listener)
 
     scanner.validateAndUpdateLint(mapOf(manager to renderResult))
@@ -249,11 +256,12 @@ class NlLayoutScannerTest {
     val renderResult = helper.mockRenderResult(model)
 
     var validatorResult: ValidatorResult? = null
-    val listener = object : NlLayoutScanner.Listener {
-      override fun lintUpdated(result: ValidatorResult?) {
-        validatorResult = result
+    val listener =
+      object : NlLayoutScanner.Listener {
+        override fun lintUpdated(result: ValidatorResult?) {
+          validatorResult = result
+        }
       }
-    }
     scanner.addListener(listener)
 
     scanner.updateLint(renderResult, renderResult.validatorResult as ValidatorResult, model)
@@ -276,34 +284,38 @@ class NlLayoutScannerTest {
       ScannerTestHelper.createTestIssueBuilder()
         .setLevel(ValidatorData.Level.ERROR)
         .setType(ValidatorData.Type.INTERNAL_ERROR)
-        .build())
+        .build()
+    )
     resultToInject.mIssues.add(
       ScannerTestHelper.createTestIssueBuilder()
         .setLevel(ValidatorData.Level.VERBOSE)
         .setType(ValidatorData.Type.ACCESSIBILITY)
-        .build())
+        .build()
+    )
     resultToInject.mIssues.add(
       ScannerTestHelper.createTestIssueBuilder()
         .setLevel(ValidatorData.Level.INFO)
         .setType(ValidatorData.Type.ACCESSIBILITY)
-        .build())
+        .build()
+    )
 
     // Run the scanner core code.
     val validatorResult = resultToInject.build()
     val renderResult = helper.mockRenderResult(model, validatorResult)
 
     var validatorResultReceived: ValidatorResult? = null
-    val listener = object : NlLayoutScanner.Listener {
-      override fun lintUpdated(result: ValidatorResult?) {
-        validatorResultReceived = result
+    val listener =
+      object : NlLayoutScanner.Listener {
+        override fun lintUpdated(result: ValidatorResult?) {
+          validatorResultReceived = result
+        }
       }
-    }
     scanner.addListener(listener)
     scanner.updateLint(renderResult, validatorResult, model)
 
     // Expect the results to be filtered.
     assertNotNull(validatorResult)
-    assertEquals( 3, validatorResultReceived!!.issues.size)
+    assertEquals(3, validatorResultReceived!!.issues.size)
     assertTrue("Issue from Validator Result must be filtered.", scanner.issues.isEmpty())
     assertTrue("Maps must be cleaned after the scan.", scanner.isParserCleaned())
   }

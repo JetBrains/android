@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
-import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.HeaderEnumValue
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.vfs.VirtualFile
@@ -28,8 +28,14 @@ class FontEnumSupportTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
     myFixture.copyFileToProject("fonts/customfont.ttf", "res/font/customfont.ttf")
-    myFixture.copyFileToProject("fonts/my_circular_font_family_1.xml", "res/font/my_circular_font_family_1.xml")
-    myFixture.copyFileToProject("fonts/my_circular_font_family_2.xml", "res/font/my_circular_font_family_2.xml")
+    myFixture.copyFileToProject(
+      "fonts/my_circular_font_family_1.xml",
+      "res/font/my_circular_font_family_1.xml"
+    )
+    myFixture.copyFileToProject(
+      "fonts/my_circular_font_family_2.xml",
+      "res/font/my_circular_font_family_2.xml"
+    )
     file = myFixture.copyFileToProject("fonts/roboto.xml", "res/font/roboto.xml")
   }
 
@@ -80,7 +86,12 @@ class FontEnumSupportTest : AndroidTestCase() {
     assertThat((enumValue as HeaderEnumValue).header).isEqualTo(header)
   }
 
-  private fun checkEnumValue(enumValue: EnumValue, value: String, display: String, indented: Boolean = true) {
+  private fun checkEnumValue(
+    enumValue: EnumValue,
+    value: String,
+    display: String,
+    indented: Boolean = true
+  ) {
     assertThat(enumValue.value).isEqualTo(value)
     assertThat(enumValue.display).isEqualTo(display)
     assertThat(enumValue.indented).isEqualTo(indented)

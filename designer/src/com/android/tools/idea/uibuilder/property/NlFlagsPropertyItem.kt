@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.property
 import com.android.SdkConstants
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
+import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.property.panel.api.FlagPropertyItem
 import com.android.tools.property.panel.api.FlagsPropertyGroupItem
@@ -30,7 +31,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ArrayUtil
 import com.intellij.util.containers.stream
 import com.intellij.util.text.nullize
-import com.android.tools.dom.attrs.AttributeDefinition
 
 /**
  * Special version of [NlPropertyItem] for flag attributes.
@@ -49,8 +49,20 @@ open class NlFlagsPropertyItem(
   components: List<NlComponent>,
   optionalValue1: Any? = null,
   optionalValue2: Any? = null
-) : NlPropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, components, optionalValue1, optionalValue2),
-    FlagsPropertyItem<NlFlagPropertyItem> {
+) :
+  NlPropertyItem(
+    namespace,
+    name,
+    type,
+    attrDefinition,
+    componentName,
+    libraryName,
+    model,
+    components,
+    optionalValue1,
+    optionalValue2
+  ),
+  FlagsPropertyItem<NlFlagPropertyItem> {
   private val _flags = mutableListOf<NlFlagPropertyItem>()
   private val _lastValues = mutableSetOf<String>()
   private var _lastValue: String? = null
@@ -78,7 +90,7 @@ open class NlFlagsPropertyItem(
   override val children: List<NlFlagPropertyItem>
     get() {
       if (_flags.isEmpty()) {
-          attrDefinition.values.mapTo(_flags) { NlFlagPropertyItem(this, it, lookupMaskValue(it)) }
+        attrDefinition.values.mapTo(_flags) { NlFlagPropertyItem(this, it, lookupMaskValue(it)) }
       }
       return _flags
     }
@@ -105,7 +117,8 @@ open class NlFlagsPropertyItem(
       }
       flagsValue = resolveValue(flagsValue) ?: flagsValue
     }
-    val unknown = VALUE_SPLITTER.split(flagsValue).toSet().minus(children.map { it.name }).map { "'$it'" }
+    val unknown =
+      VALUE_SPLITTER.split(flagsValue).toSet().minus(children.map { it.name }).map { "'$it'" }
     return when {
       unknown.isEmpty() -> EDITOR_NO_ERROR
       unknown.size == 1 -> Pair(EditingErrorCategory.ERROR, "Invalid value: ${unknown.first()}")
@@ -121,7 +134,8 @@ open class NlFlagsPropertyItem(
     val values = lastValues
     val builder = StringBuilder()
     // Enumerate over the values in attrDefinition to get a consistent order:
-    attrDefinition.values.stream()
+    attrDefinition.values
+      .stream()
       .filter { it == add || (values.contains(it) && it != remove) }
       .forEach { builder.append("|").append(it) }
     value = if (builder.isEmpty()) null else builder.substring(1)
@@ -178,22 +192,25 @@ open class NlFlagsPropertyItem(
     //
     // Override the value mapping for gravity: top, bottom, left, right, start, end
     // to NOT include the center values.
-    if (namespace == SdkConstants.ANDROID_URI && name == SdkConstants.ATTR_GRAVITY && GRAVITY_OVERRIDES.contains(value)) {
+    if (
+      namespace == SdkConstants.ANDROID_URI &&
+        name == SdkConstants.ATTR_GRAVITY &&
+        GRAVITY_OVERRIDES.contains(value)
+    ) {
       mappedValue = mappedValue and GRAVITY_MAPPED_VALUE_CENTER.inv()
     }
     return mappedValue
   }
 
   companion object {
-    private val GRAVITY_OVERRIDES = Sets.newHashSet("top", "bottom", "right", "left", "start", "end")
+    private val GRAVITY_OVERRIDES =
+      Sets.newHashSet("top", "bottom", "right", "left", "start", "end")
     private const val GRAVITY_MAPPED_VALUE_CENTER = 0x11
     private val VALUE_SPLITTER = Splitter.on("|").trimResults()
   }
 }
 
-/**
- * Flags property that can be expanded in a properties table.
- */
+/** Flags property that can be expanded in a properties table. */
 class NlFlagsPropertyGroupItem(
   namespace: String,
   name: String,
@@ -205,17 +222,43 @@ class NlFlagsPropertyGroupItem(
   components: List<NlComponent>,
   optionalValue1: Any? = null,
   optionalValue2: Any? = null
-) : NlFlagsPropertyItem(namespace, name, type, attrDefinition, componentName, libraryName, model, components, optionalValue1,
-                        optionalValue2), FlagsPropertyGroupItem<NlFlagPropertyItem>
+) :
+  NlFlagsPropertyItem(
+    namespace,
+    name,
+    type,
+    attrDefinition,
+    componentName,
+    libraryName,
+    model,
+    components,
+    optionalValue1,
+    optionalValue2
+  ),
+  FlagsPropertyGroupItem<NlFlagPropertyItem>
 
 /**
  * Specifies a single flag in a flags attribute.
  *
  * A generated [PropertyItem] which can be used in an editor in the property inspector.
  */
-class NlFlagPropertyItem(override val flags: NlFlagsPropertyItem, name: String, override val maskValue: Int) :
-  NlPropertyItem(flags.namespace, name, NlPropertyType.BOOLEAN, null, flags.componentName, "", flags.model,
-                 flags.components, flags.optionalValue1, flags.optionalValue2),
+class NlFlagPropertyItem(
+  override val flags: NlFlagsPropertyItem,
+  name: String,
+  override val maskValue: Int
+) :
+  NlPropertyItem(
+    flags.namespace,
+    name,
+    NlPropertyType.BOOLEAN,
+    null,
+    flags.componentName,
+    "",
+    flags.model,
+    flags.components,
+    flags.optionalValue1,
+    flags.optionalValue2
+  ),
   FlagPropertyItem {
 
   override val isReference: Boolean
@@ -226,7 +269,9 @@ class NlFlagPropertyItem(override val flags: NlFlagsPropertyItem, name: String, 
 
   override var value: String?
     get() = rawValue
-    set(value) { actualValue = value?.equals(SdkConstants.VALUE_TRUE, true) == true }
+    set(value) {
+      actualValue = value?.equals(SdkConstants.VALUE_TRUE, true) == true
+    }
 
   override var actualValue: Boolean
     get() = flags.isFlagSet(this)

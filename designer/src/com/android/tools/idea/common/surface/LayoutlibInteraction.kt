@@ -21,7 +21,8 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import java.awt.Cursor
 
 /**
- * An implementation of [Interaction] that passes interaction events to layoutlib via [LayoutlibSceneManager]
+ * An implementation of [Interaction] that passes interaction events to layoutlib via
+ * [LayoutlibSceneManager]
  */
 class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
   override fun commit(event: InteractionEvent) {
@@ -32,16 +33,23 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
   override fun end(x: Int, y: Int, modifiersEx: Int) {
     val androidX = Coordinates.getAndroidX(sceneView, x)
     val androidY = Coordinates.getAndroidY(sceneView, y)
-    when(val sceneManager = sceneView.sceneManager) {
-      is LayoutlibSceneManager -> sceneManager.triggerTouchEventAsync(RenderSession.TouchEventType.RELEASE, androidX, androidY)
+    when (val sceneManager = sceneView.sceneManager) {
+      is LayoutlibSceneManager ->
+        sceneManager.triggerTouchEventAsync(
+          RenderSession.TouchEventType.RELEASE,
+          androidX,
+          androidY
+        )
     }
     sceneView.surface.repaint()
   }
 
   override fun begin(event: InteractionEvent) {
     when (event) {
-      is MousePressedEvent -> begin(event.eventObject.x, event.eventObject.y, event.eventObject.modifiersEx)
-      is KeyPressedEvent -> (sceneView.sceneManager as? LayoutlibSceneManager)?.triggerKeyEventAsync(event.eventObject)
+      is MousePressedEvent ->
+        begin(event.eventObject.x, event.eventObject.y, event.eventObject.modifiersEx)
+      is KeyPressedEvent ->
+        (sceneView.sceneManager as? LayoutlibSceneManager)?.triggerKeyEventAsync(event.eventObject)
       else -> {}
     }
   }
@@ -50,8 +58,9 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
     super.begin(x, y, modifiersEx)
     val androidX = Coordinates.getAndroidX(sceneView, myStartX)
     val androidY = Coordinates.getAndroidY(sceneView, myStartY)
-    when(val sceneManager = sceneView.sceneManager) {
-      is LayoutlibSceneManager -> sceneManager.triggerTouchEventAsync(RenderSession.TouchEventType.PRESS, androidX, androidY)
+    when (val sceneManager = sceneView.sceneManager) {
+      is LayoutlibSceneManager ->
+        sceneManager.triggerTouchEventAsync(RenderSession.TouchEventType.PRESS, androidX, androidY)
     }
   }
 
@@ -74,8 +83,10 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
         sceneView.context.setMouseLocation(mouseX, mouseY)
         update(mouseX, mouseY, event.eventObject.modifiersEx)
       }
-      is KeyPressedEvent -> (sceneView.sceneManager as? LayoutlibSceneManager)?.triggerKeyEventAsync(event.eventObject)
-      is KeyReleasedEvent -> (sceneView.sceneManager as? LayoutlibSceneManager)?.triggerKeyEventAsync(event.eventObject)
+      is KeyPressedEvent ->
+        (sceneView.sceneManager as? LayoutlibSceneManager)?.triggerKeyEventAsync(event.eventObject)
+      is KeyReleasedEvent ->
+        (sceneView.sceneManager as? LayoutlibSceneManager)?.triggerKeyEventAsync(event.eventObject)
       else -> {}
     }
   }
@@ -84,8 +95,9 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
     super.update(x, y, modifiersEx)
     val androidX = Coordinates.getAndroidX(sceneView, x)
     val androidY = Coordinates.getAndroidY(sceneView, y)
-    when(val sceneManager = sceneView.sceneManager) {
-      is LayoutlibSceneManager -> sceneManager.triggerTouchEventAsync(RenderSession.TouchEventType.DRAG, androidX, androidY)
+    when (val sceneManager = sceneView.sceneManager) {
+      is LayoutlibSceneManager ->
+        sceneManager.triggerTouchEventAsync(RenderSession.TouchEventType.DRAG, androidX, androidY)
     }
     sceneView.surface.repaint()
   }

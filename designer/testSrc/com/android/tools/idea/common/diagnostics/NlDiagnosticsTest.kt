@@ -41,13 +41,19 @@ class NlDiagnosticsTest {
 
     val surface1 = object : NlDiagnosticKey {}
     val surface2 = object : NlDiagnosticKey {}
-    assertNotEquals(NlDiagnosticsManager.getWriteInstance(surface1), NlDiagnosticsManager.getWriteInstance(surface2))
-    assertNotEquals(NlDiagnosticsManager.getReadInstance(surface1), NlDiagnosticsManager.getReadInstance(surface2))
+    assertNotEquals(
+      NlDiagnosticsManager.getWriteInstance(surface1),
+      NlDiagnosticsManager.getWriteInstance(surface2)
+    )
+    assertNotEquals(
+      NlDiagnosticsManager.getReadInstance(surface1),
+      NlDiagnosticsManager.getReadInstance(surface2)
+    )
   }
 
   @Test
   fun testRecording() {
-    val surface =  object : NlDiagnosticKey {}
+    val surface = object : NlDiagnosticKey {}
     val write = NlDiagnosticsManager.getWriteInstance(surface)
     val read = NlDiagnosticsManager.getReadInstance(surface)
 

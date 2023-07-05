@@ -42,51 +42,59 @@ private const val WORKBENCH_NAME = "NELE_EDITOR"
 
 const val NL_EDITOR_ID = "android-designer2"
 
-private val LAYOUT_EDITOR_SUPPORTED_ACTIONS = setOf(NlSupportedActions.SWITCH_DEVICE,
-                                                    NlSupportedActions.SWITCH_DEVICE_ORIENTATION,
-                                                    NlSupportedActions.SWITCH_DESIGN_MODE,
-                                                    NlSupportedActions.SWITCH_NIGHT_MODE,
-                                                    NlSupportedActions.TOGGLE_ISSUE_PANEL)
+private val LAYOUT_EDITOR_SUPPORTED_ACTIONS =
+  setOf(
+    NlSupportedActions.SWITCH_DEVICE,
+    NlSupportedActions.SWITCH_DEVICE_ORIENTATION,
+    NlSupportedActions.SWITCH_DESIGN_MODE,
+    NlSupportedActions.SWITCH_NIGHT_MODE,
+    NlSupportedActions.TOGGLE_ISSUE_PANEL
+  )
 
 class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, project) {
 
   override fun getEditorId() = NL_EDITOR_ID
 
   override fun createEditorPanel() =
-    DesignerEditorPanel(this, myProject, myFile, WorkBench(myProject, WORKBENCH_NAME, this, this),
-                        {
-                          NlDesignSurface.builder(myProject, this)
-                            .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
-                            .setSceneManagerProvider { surface, model ->
-                              NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
-                                visualLintMode = if (StudioFlags.NELE_VISUAL_LINT_ALWAYS_RUN.get()) {
-                                  VisualLintMode.RUN_IN_BACKGROUND
-                                } else {
-                                  VisualLintMode.DISABLED
-                                }
-                              }
-                            }
-                            .build()
-                        },
-                        NlComponentRegistrar,
-                        { toolWindowDefinitions(it) },
-                        AndroidEditorSettings.getInstance().globalState.preferredSurfaceState())
+    DesignerEditorPanel(
+      this,
+      myProject,
+      myFile,
+      WorkBench(myProject, WORKBENCH_NAME, this, this),
+      {
+        NlDesignSurface.builder(myProject, this)
+          .setSupportedActions(LAYOUT_EDITOR_SUPPORTED_ACTIONS)
+          .setSceneManagerProvider { surface, model ->
+            NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
+              visualLintMode =
+                if (StudioFlags.NELE_VISUAL_LINT_ALWAYS_RUN.get()) {
+                  VisualLintMode.RUN_IN_BACKGROUND
+                } else {
+                  VisualLintMode.DISABLED
+                }
+            }
+          }
+          .build()
+      },
+      NlComponentRegistrar,
+      { toolWindowDefinitions(it) },
+      AndroidEditorSettings.getInstance().globalState.preferredSurfaceState()
+    )
 
-  private fun toolWindowDefinitions(facet: AndroidFacet): List<ToolWindowDefinition<DesignSurface<*>>> {
+  private fun toolWindowDefinitions(
+    facet: AndroidFacet
+  ): List<ToolWindowDefinition<DesignSurface<*>>> {
     val definitions = ImmutableList.builder<ToolWindowDefinition<DesignSurface<*>>>()
 
     definitions.add(PaletteDefinition(myProject, Side.LEFT, Split.TOP, AutoHide.DOCKED))
     definitions.add(NlPropertiesPanelDefinition(facet, Side.RIGHT, Split.TOP, AutoHide.DOCKED))
     if (StudioFlags.NELE_NEW_COMPONENT_TREE.get()) {
-      definitions.add(NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED))
+      definitions.add(
+        NlComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED)
+      )
     } else {
       definitions.add(
-        NlLegacyComponentTreeDefinition(
-          myProject,
-          Side.LEFT,
-          Split.BOTTOM,
-          AutoHide.DOCKED
-        )
+        NlLegacyComponentTreeDefinition(myProject, Side.LEFT, Split.BOTTOM, AutoHide.DOCKED)
       )
     }
     return definitions.build()
@@ -95,9 +103,10 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
   override fun getName() = "Design"
 }
 
-fun AndroidEditorSettings.GlobalState.preferredSurfaceState() = when(preferredEditorMode) {
-  AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
-  AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
-  AndroidEditorSettings.EditorMode.DESIGN -> DesignerEditorPanel.State.FULL
-  else -> DesignerEditorPanel.State.FULL // default
-}
+fun AndroidEditorSettings.GlobalState.preferredSurfaceState() =
+  when (preferredEditorMode) {
+    AndroidEditorSettings.EditorMode.CODE -> DesignerEditorPanel.State.DEACTIVATED
+    AndroidEditorSettings.EditorMode.SPLIT -> DesignerEditorPanel.State.SPLIT
+    AndroidEditorSettings.EditorMode.DESIGN -> DesignerEditorPanel.State.FULL
+    else -> DesignerEditorPanel.State.FULL // default
+  }

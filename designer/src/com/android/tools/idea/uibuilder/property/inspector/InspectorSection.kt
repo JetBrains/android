@@ -21,14 +21,16 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
 
-val neleDesignPropertySections = listOf(
-  InspectorSection.DECLARED,
-  InspectorSection.LAYOUT,
-  InspectorSection.FAVORITES,
-  InspectorSection.COMMON,
-  InspectorSection.TRANSFORMS,
-  InspectorSection.REFERENCES,
-  InspectorSection.ALL)
+val neleDesignPropertySections =
+  listOf(
+    InspectorSection.DECLARED,
+    InspectorSection.LAYOUT,
+    InspectorSection.FAVORITES,
+    InspectorSection.COMMON,
+    InspectorSection.TRANSFORMS,
+    InspectorSection.REFERENCES,
+    InspectorSection.ALL
+  )
 
 enum class InspectorSection(val title: String) {
   DECLARED("Declared Attributes"),
@@ -36,7 +38,7 @@ enum class InspectorSection(val title: String) {
   FAVORITES("Favorite Attributes"),
   COMMON("Common Attributes"),
   TRANSFORMS("Transforms"),
-  TRANSITION("View Transition"),                // MotionPropertyEditor only
+  TRANSITION("View Transition"), // MotionPropertyEditor only
   TRANSITION_MODIFIERS("Transition Modifiers"), // MotionPropertyEditor only
   REFERENCES("Referenced Views"),
   ALL("All Attributes");
@@ -52,17 +54,22 @@ enum class InspectorSection(val title: String) {
       PropertiesComponent.getInstance().setValue(propertyName, value, defaultValue)
     }
 
-  val action = object : ToggleAction(title) {
-    override fun isSelected(event: AnActionEvent) = visible
+  val action =
+    object : ToggleAction(title) {
+      override fun isSelected(event: AnActionEvent) = visible
 
-    override fun setSelected(event: AnActionEvent, state: Boolean) {
-      visible = !visible
-      getPropertiesToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))?.firePropertiesGenerated()
-    }
+      override fun setSelected(event: AnActionEvent, state: Boolean) {
+        visible = !visible
+        getPropertiesToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))
+          ?.firePropertiesGenerated()
+      }
 
-    override fun update(event: AnActionEvent) {
-      super.update(event)
-      event.presentation.isVisible = getPropertiesToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))?.isInspectorSectionsActive ?: false
+      override fun update(event: AnActionEvent) {
+        super.update(event)
+        event.presentation.isVisible =
+          getPropertiesToolContent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT))
+            ?.isInspectorSectionsActive
+            ?: false
+      }
     }
-  }
 }

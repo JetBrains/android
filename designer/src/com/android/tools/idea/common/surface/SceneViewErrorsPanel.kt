@@ -27,23 +27,19 @@ import javax.swing.border.LineBorder
  * [JPanel] to be displayed when a given [SceneView] has render errors.
  *
  * The panel uses a [TabularLayout] with the following [TabularLayout.Constraint]s:
- *        ______________________________
- *  10px |                             |
- *       |_____________________________|
- *       |     |                 |     |
- *       |     |                 |     |
- *       |10 px|  panelContent   |10 px|
- *       |     |                 |     |
- *       |     |                 |     |
- *        ______________________________
- *  10px |                             |
- *       |_____________________________|
+ * ______________________________ 10px | | |_____________________________| | | | | | | | | |10 px|
+ * panelContent |10 px| | | | | | | | | ______________________________ 10px | |
+ * |_____________________________|
  */
-class SceneViewErrorsPanel(private val isPanelVisible: () -> Boolean = { true }) : JPanel(TabularLayout("10px,*,10px", "10px,*,10px")) {
+class SceneViewErrorsPanel(private val isPanelVisible: () -> Boolean = { true }) :
+  JPanel(TabularLayout("10px,*,10px", "10px,*,10px")) {
 
   private val size = JBUI.size(150, 100)
 
-  private val label = JBLabel("<html>Some issues were found while trying to render this preview.</html>").apply { foreground = Gray._119 }
+  private val label =
+    JBLabel("<html>Some issues were found while trying to render this preview.</html>").apply {
+      foreground = Gray._119
+    }
 
   init {
     add(label, TabularLayout.Constraint(1, 1))

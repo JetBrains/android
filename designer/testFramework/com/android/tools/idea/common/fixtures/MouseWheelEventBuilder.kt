@@ -20,11 +20,10 @@ import com.android.tools.adtui.common.SwingCoordinate
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelEvent.WHEEL_UNIT_SCROLL
 
-class MouseWheelEventBuilder(@SwingCoordinate x: Int, @SwingCoordinate y: Int) : MouseEventBuilder(x, y) {
+class MouseWheelEventBuilder(@SwingCoordinate x: Int, @SwingCoordinate y: Int) :
+  MouseEventBuilder(x, y) {
 
-  /**
-   * By default we assume it only scroll 1 tick.
-   */
+  /** By default we assume it only scroll 1 tick. */
   private var scrollAmount: Int = 1
   private var scrollType: Int = WHEEL_UNIT_SCROLL
   private var unitsToScroll: Int = 1
@@ -35,23 +34,18 @@ class MouseWheelEventBuilder(@SwingCoordinate x: Int, @SwingCoordinate y: Int) :
 
   override fun withButton(button: Int) = super.withButton(button) as MouseWheelEventBuilder
 
-  override fun withClickCount(clickCount: Int) = super.withClickCount(clickCount) as MouseWheelEventBuilder
+  override fun withClickCount(clickCount: Int) =
+    super.withClickCount(clickCount) as MouseWheelEventBuilder
 
   override fun withId(id: Int) = super.withId(id) as MouseWheelEventBuilder
 
-  /**
-   * Set the amount (number of tick). By default it is 1
-   */
+  /** Set the amount (number of tick). By default it is 1 */
   fun withAmount(scrollAmount: Int) = apply { this.scrollAmount = scrollAmount }
 
-  /**
-   * Set the type of scrolling, by default it is [WHEEL_UNIT_SCROLL]
-   */
+  /** Set the type of scrolling, by default it is [WHEEL_UNIT_SCROLL] */
   fun withScrollType(scrollType: Int) = apply { this.scrollType = scrollType }
 
-  /**
-   * Set the amount of one tick. By default it is 1
-   */
+  /** Set the amount of one tick. By default it is 1 */
   fun withUnitToScroll(unitsToScroll: Int) = apply { this.unitsToScroll = unitsToScroll }
 
   override fun build(): MouseWheelEvent {

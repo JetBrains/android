@@ -21,14 +21,12 @@ import com.android.tools.idea.assistant.OpenAssistSidePanelAction
 import com.android.tools.idea.common.assistant.HelpPanelBundle
 import com.android.tools.idea.common.assistant.HelpPanelToolWindowListener
 import com.android.tools.idea.common.assistant.LayoutEditorHelpPanelAssistantBundleCreatorBase
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
-
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 
@@ -96,7 +94,8 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 
   private fun tagName(e: AnActionEvent): String {
-    // Copy the string here rather than holding onto a field within XmlTag so it can be freely released.
+    // Copy the string here rather than holding onto a field within XmlTag so it can be freely
+    // released.
     return "" + getTag(e)?.name
   }
 
@@ -105,20 +104,18 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
       return Type.NONE
     }
 
-    return getDirectType(tagName).let{ type ->
+    return getDirectType(tagName).let { type ->
       if (type != Type.NONE) {
         return@let type
       }
       /**
-       * For Data Binding. It has the format like:
-       * <layout>
-       *   <data>  </data>
-       *   <androidx...ConstraintLayout>
+       * For Data Binding. It has the format like: <layout> <data> </data>
+       * <androidx...ConstraintLayout>
        */
       if (SdkConstants.TAG_LAYOUT == tagName) {
-          val tag = getTag(e) ?: return@let Type.NONE
-          return@let getChildrenType(tag)
-        }
+        val tag = getTag(e) ?: return@let Type.NONE
+        return@let getChildrenType(tag)
+      }
       return@let type
     }
   }
@@ -164,7 +161,6 @@ class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   }
 }
 
-
 private val motionLayoutHelpPanelBundle =
   HelpPanelBundle(MOTION_EDITOR_BUNDLE_ID, "/motionlayout_help_assistance_bundle.xml")
 
@@ -182,4 +178,3 @@ class ConstraintLayoutPanelAssistantBundleCreator :
 
 class LayoutEditorPanelAssistantBundleCreator :
   LayoutEditorHelpPanelAssistantBundleCreatorBase(fullHelpPanelBundle)
-

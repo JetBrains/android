@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property
 
+import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property.NlIdPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertiesModel
 import com.intellij.psi.xml.XmlAttributeValue
-import com.android.tools.dom.attrs.AttributeDefinition
 
-/**
- * Property item for an ID.
- */
+/** Property item for an ID. */
 class MotionIdPropertyItem(
   model: NlPropertiesModel,
   definition: AttributeDefinition?,
@@ -31,15 +29,18 @@ class MotionIdPropertyItem(
   components: List<NlComponent>,
   optionalValue1: Any? = null,
   optionalValue2: Any? = null
-): NlIdPropertyItem(model, definition, componentName, components, optionalValue1, optionalValue2) {
+) : NlIdPropertyItem(model, definition, componentName, components, optionalValue1, optionalValue2) {
 
-  /**
-   * Override the default get method and delegate to the model.
-   */
+  /** Override the default get method and delegate to the model. */
   override val rawValue: String?
     get() = model.getPropertyValue(this)
 
-  override fun renameRefactoring(value: XmlAttributeValue?, oldId: String, newId: String, newValue: String?): Boolean {
+  override fun renameRefactoring(
+    value: XmlAttributeValue?,
+    oldId: String,
+    newId: String,
+    newValue: String?
+  ): Boolean {
     if (!super.renameRefactoring(value, oldId, newId, newValue)) {
       return false
     }
@@ -50,13 +51,12 @@ class MotionIdPropertyItem(
   /**
    * Update the attribute values in the selected motion scene tag.
    *
-   * This is a special case where the rename processor is updating the XmlTag directly.
-   * The MTag layer is not used for writing which causes the cached values to be out of sync,
-   * which later can cause selection problems.
-   * see https://issuetracker.google.com/issues/147511820
+   * This is a special case where the rename processor is updating the XmlTag directly. The MTag
+   * layer is not used for writing which causes the cached values to be out of sync, which later can
+   * cause selection problems. see https://issuetracker.google.com/issues/147511820
    *
-   * Update the in memory MTag attribute here to reflect the value just written to the PSI.
-   * A subsequent MTag rebuild will then be able to keep the current selection.
+   * Update the in memory MTag attribute here to reflect the value just written to the PSI. A
+   * subsequent MTag rebuild will then be able to keep the current selection.
    */
   private fun updateMTagAttribute(newValue: String?) {
     val selection = MotionLayoutAttributesModel.getMotionSelection(this)

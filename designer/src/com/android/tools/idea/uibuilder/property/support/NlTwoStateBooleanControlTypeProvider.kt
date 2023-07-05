@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.property.support
 
+import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.EnumSupportProvider
-import com.android.tools.idea.uibuilder.property.NlPropertyItem
 
-class NlTwoStateBooleanControlTypeProvider(enumSupportProvider: EnumSupportProvider<NlPropertyItem>)
-  : NlControlTypeProvider(enumSupportProvider) {
+class NlTwoStateBooleanControlTypeProvider(
+  enumSupportProvider: EnumSupportProvider<NlPropertyItem>
+) : NlControlTypeProvider(enumSupportProvider) {
 
   override fun invoke(actual: NlPropertyItem): ControlType {
     val type = super.invoke(actual)

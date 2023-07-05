@@ -28,14 +28,10 @@ import com.intellij.openapi.wm.ToolWindowType
 import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 
-/**
- * The default width for first time open.
- */
+/** The default width for first time open. */
 private const val DEFAULT_WINDOW_WIDTH = 500
 
-/**
- * Handle the editor change event and response it to the content.
- */
+/** Handle the editor change event and response it to the content. */
 interface VisualizationEditorChangeHandler {
 
   val visualizationContent: VisualizationContent?
@@ -43,48 +39,61 @@ interface VisualizationEditorChangeHandler {
   fun onFileClose(source: FileEditorManager, toolWindow: ToolWindow, file: VirtualFile)
 }
 
-/**
- * Handle the editor change and file close event synchronously.
- */
-class SyncVisualizationEditorChangeHandler(private val contentProvider: VisualizationContentProvider) : VisualizationEditorChangeHandler {
+/** Handle the editor change and file close event synchronously. */
+class SyncVisualizationEditorChangeHandler(
+  private val contentProvider: VisualizationContentProvider
+) : VisualizationEditorChangeHandler {
 
   private var toolWindowContent: VisualizationContent? = null
   override val visualizationContent: VisualizationContent?
     get() = toolWindowContent
 
-  override fun onFileEditorChange(newEditor: FileEditor?, project: Project, toolWindow: ToolWindow) {
+  override fun onFileEditorChange(
+    newEditor: FileEditor?,
+    project: Project,
+    toolWindow: ToolWindow
+  ) {
     if (toolWindow.isDisposed) {
       return
     }
     if (toolWindowContent == null) {
       val form = contentProvider.createVisualizationForm(project, toolWindow)
       toolWindowContent = form
-      project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
-        override fun stateChanged(manager: ToolWindowManager) {
-          if (project.isDisposed) {
-            return
-          }
-          if (VisualizationToolSettings.getInstance().globalState.isFirstTimeOpen && toolWindow is ToolWindowEx) {
-            val width = toolWindow.getComponent().width
-            toolWindow.stretchWidth(DEFAULT_WINDOW_WIDTH - width)
-          }
-          VisualizationToolSettings.getInstance().globalState.isFirstTimeOpen = false
-          val visible = toolWindow.isVisible
-          if (toolWindow.isAvailable) {
-            // The tool window may become unavailable by tool window manager, for example, switching from a layout editor to a text editor.
-            // Here we want to trace the user-changed visibility, which only happens when tool window is available.
-            VisualizationToolSettings.getInstance().globalState.isVisible = visible
-          }
-          if (!Disposer.isDisposed(form)) {
-            if (visible) {
-              form.activate()
+      project.messageBus
+        .connect()
+        .subscribe(
+          ToolWindowManagerListener.TOPIC,
+          object : ToolWindowManagerListener {
+            override fun stateChanged(manager: ToolWindowManager) {
+              if (project.isDisposed) {
+                return
+              }
+              if (
+                VisualizationToolSettings.getInstance().globalState.isFirstTimeOpen &&
+                  toolWindow is ToolWindowEx
+              ) {
+                val width = toolWindow.getComponent().width
+                toolWindow.stretchWidth(DEFAULT_WINDOW_WIDTH - width)
+              }
+              VisualizationToolSettings.getInstance().globalState.isFirstTimeOpen = false
+              val visible = toolWindow.isVisible
+              if (toolWindow.isAvailable) {
+                // The tool window may become unavailable by tool window manager, for example,
+                // switching from a layout editor to a text editor.
+                // Here we want to trace the user-changed visibility, which only happens when tool
+                // window is available.
+                VisualizationToolSettings.getInstance().globalState.isVisible = visible
+              }
+              if (!Disposer.isDisposed(form)) {
+                if (visible) {
+                  form.activate()
+                } else {
+                  form.deactivate()
+                }
+              }
             }
-            else {
-              form.deactivate()
-            }
           }
-        }
-      })
+        )
     }
     if (Disposer.isDisposed(toolWindowContent!!)) {
       return
@@ -98,12 +107,19 @@ class SyncVisualizationEditorChangeHandler(private val contentProvider: Visualiz
       var restoreFocus: Runnable? = null
       if (toolWindow.type == ToolWindowType.WINDOWED) {
         // Ugly hack: Fix for b/68148499
-        // We never want the preview to take focus when the content of the preview changes because of a file change.
-        // Even when the preview is restored after being closed (move from Java file to an XML file).
+        // We never want the preview to take focus when the content of the preview changes because
+        // of a file change.
+        // Even when the preview is restored after being closed (move from Java file to an XML
+        // file).
         // There is no way to show the tool window without also taking the focus.
         // This hack is a workaround that sets the focus back to editor.
-        // Note, that this may be wrong in certain circumstances, but should be OK for most scenarios.
-        restoreFocus = Runnable { IdeFocusManager.getInstance(project).doWhenFocusSettlesDown { restoreFocusToEditor(newEditor) } }
+        // Note, that this may be wrong in certain circumstances, but should be OK for most
+        // scenarios.
+        restoreFocus = Runnable {
+          IdeFocusManager.getInstance(project).doWhenFocusSettlesDown {
+            restoreFocusToEditor(newEditor)
+          }
+        }
       }
       toolWindow.activate(restoreFocus, false, false)
     }

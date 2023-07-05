@@ -27,6 +27,7 @@ import javax.swing.JPanel
 
 /**
  * [DumbService] implementation to be used in tests.
+ *
  * TODO(b/228294269): Move this to the dedicated testutil module.
  */
 class TestDumbService(
@@ -57,27 +58,37 @@ class TestDumbService(
     }
   }
 
-  override fun waitForSmartMode() { }
+  override fun waitForSmartMode() {}
 
-  override fun smartInvokeLater(runnable: Runnable) { }
+  override fun smartInvokeLater(runnable: Runnable) {}
 
-  override fun smartInvokeLater(runnable: Runnable, modalityState: ModalityState) { }
+  override fun smartInvokeLater(runnable: Runnable, modalityState: ModalityState) {}
 
-  override fun queueTask(task: DumbModeTask) { }
+  override fun queueTask(task: DumbModeTask) {}
 
-  override fun cancelTask(task: DumbModeTask) { }
+  override fun cancelTask(task: DumbModeTask) {}
 
-  override fun cancelAllTasksAndWait() { }
+  override fun cancelAllTasksAndWait() {}
 
-  override fun completeJustSubmittedTasks() { }
+  override fun completeJustSubmittedTasks() {}
 
-  override fun wrapGently(dumbUnawareContent: JComponent, parentDisposable: Disposable): JComponent = JPanel()
+  override fun wrapGently(
+    dumbUnawareContent: JComponent,
+    parentDisposable: Disposable
+  ): JComponent = JPanel()
 
-  override fun wrapWithSpoiler(dumbAwareContent: JComponent, updateRunnable: Runnable, parentDisposable: Disposable): JComponent = JPanel()
+  override fun wrapWithSpoiler(
+    dumbAwareContent: JComponent,
+    updateRunnable: Runnable,
+    parentDisposable: Disposable
+  ): JComponent = JPanel()
 
-  override fun showDumbModeNotification(message: String) { }
+  override fun showDumbModeNotification(message: String) {}
 
-  override fun showDumbModeActionBalloon(balloonText: String, runWhenSmartAndBalloonStillShowing: Runnable) { }
+  override fun showDumbModeActionBalloon(
+    balloonText: String,
+    runWhenSmartAndBalloonStillShowing: Runnable
+  ) {}
 
   override fun getProject(): Project = project
 

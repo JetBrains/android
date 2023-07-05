@@ -25,7 +25,8 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import java.awt.BorderLayout
 import javax.swing.JPanel
 
-class MotionLayoutAssistantPanel(val designSurface: DesignSurface<*>, val component: NlComponent) : JPanel() {
+class MotionLayoutAssistantPanel(val designSurface: DesignSurface<*>, val component: NlComponent) :
+  JPanel() {
   val toolbar: AnimationToolbar
 
   init {
@@ -33,15 +34,22 @@ class MotionLayoutAssistantPanel(val designSurface: DesignSurface<*>, val compon
 
     val helper = MotionLayoutComponentHelper.create(component)
     val maxTimeMs = helper.maxTimeMs
-    toolbar = AnimationToolbar.createAnimationToolbar({}, object : AnimationListener {
-      override fun animateTo(controller: AnimationController, framePositionMs: Long) {
-        val sceneManager = designSurface.sceneManager as? LayoutlibSceneManager
-        if (sceneManager != null) {
-          sceneManager.setElapsedFrameTimeMs(framePositionMs)
-          helper.progress = (framePositionMs - 500L) / maxTimeMs.toFloat()
-        }
-      }
-    }, 16, 500L, maxTimeMs + 500L)
+    toolbar =
+      AnimationToolbar.createAnimationToolbar(
+        {},
+        object : AnimationListener {
+          override fun animateTo(controller: AnimationController, framePositionMs: Long) {
+            val sceneManager = designSurface.sceneManager as? LayoutlibSceneManager
+            if (sceneManager != null) {
+              sceneManager.setElapsedFrameTimeMs(framePositionMs)
+              helper.progress = (framePositionMs - 500L) / maxTimeMs.toFloat()
+            }
+          }
+        },
+        16,
+        500L,
+        maxTimeMs + 500L
+      )
     add(toolbar)
   }
 

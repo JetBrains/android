@@ -34,18 +34,15 @@ import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
-/**
- * Test base class used in some property tests.
- */
+/** Test base class used in some property tests. */
 abstract class PropertyTestCase : MinApiLayoutTestCase() {
 
   /**
    * Create components corresponding to the specified component [descriptors].
    *
-   * This method creates a NlModel with a LinearLayout that contains the
-   * components specified.
-   *  - Bounds are always added.
-   *  - IDs are set to the tagName if an ID is not specified.
+   * This method creates a NlModel with a LinearLayout that contains the components specified.
+   * - Bounds are always added.
+   * - IDs are set to the tagName if an ID is not specified.
    */
   fun createComponents(
     vararg descriptors: ComponentDescriptor,
@@ -60,41 +57,41 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
         descriptor.id(NEW_ID_PREFIX + descriptor.tagName)
       }
     }
-    val builder = when (resourceFolder) {
-      FD_RES_XML -> model(
-        resourceFolder,
-        "preferences.xml",
-        component(parentTag)
-          .withBounds(0, 0, 1000, 1500)
-          .children(*descriptors)
-      )
-
-      FD_RES_LAYOUT -> model(
-        resourceFolder,
-        "linear.xml",
-        component(parentTag)
-          .withBounds(0, 0, 1000, 1500)
-          .id("@id/linear")
-          .matchParentWidth()
-          .matchParentHeight()
-          .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
-          .children(*descriptors)
-      )
-
-      else -> throw NotImplementedError()
-    }
+    val builder =
+      when (resourceFolder) {
+        FD_RES_XML ->
+          model(
+            resourceFolder,
+            "preferences.xml",
+            component(parentTag).withBounds(0, 0, 1000, 1500).children(*descriptors)
+          )
+        FD_RES_LAYOUT ->
+          model(
+            resourceFolder,
+            "linear.xml",
+            component(parentTag)
+              .withBounds(0, 0, 1000, 1500)
+              .id("@id/linear")
+              .matchParentWidth()
+              .matchParentHeight()
+              .withAttribute(TOOLS_URI, ATTR_CONTEXT, "com.example.MyActivity")
+              .children(*descriptors)
+          )
+        else -> throw NotImplementedError()
+      }
     val nlModel = builder.build()
     val result = mutableListOf<NlComponent>()
     when (resourceFolder) {
-      FD_RES_XML -> descriptors.mapNotNullTo(result) { descriptor -> nlModel.find { it.tagName == descriptor.tagName } }
+      FD_RES_XML ->
+        descriptors.mapNotNullTo(result) { descriptor ->
+          nlModel.find { it.tagName == descriptor.tagName }
+        }
       else -> descriptors.mapNotNullTo(result) { nlModel.find(stripPrefixFromId(it.id!!)) }
     }
     return result
   }
 
-  /**
-   * Create a [NlPropertyItem] for testing purposes.
-   */
+  /** Create a [NlPropertyItem] for testing purposes. */
   fun createPropertyItem(
     attrNamespace: String,
     attrName: String,
@@ -107,7 +104,9 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
     val resourceManagers = ModuleResourceManagers.getInstance(myFacet)
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     val definition =
-        frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
+      frameworkResourceManager
+        ?.attributeDefinitions
+        ?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
     return NlPropertyItem(attrNamespace, attrName, type, definition, "", "", model, components)
   }
 

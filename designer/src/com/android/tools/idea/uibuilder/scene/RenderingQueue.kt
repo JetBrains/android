@@ -20,9 +20,7 @@ import com.intellij.util.Alarm
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 
-/**
- * Simple render [Update]s scheduling interface.
- */
+/** Simple render [Update]s scheduling interface. */
 interface RenderingQueue {
   fun queue(update: Update)
   fun deactivate() {}
@@ -31,12 +29,20 @@ interface RenderingQueue {
 private const val RENDER_DELAY_MS = 10
 
 /**
- * A wrapper around [MergingUpdateQueue] for thread-safe task scheduling. Used for scheduling render calls.
+ * A wrapper around [MergingUpdateQueue] for thread-safe task scheduling. Used for scheduling render
+ * calls.
  */
 class MergingRenderingQueue(parentDisposable: Disposable) : RenderingQueue {
-  private val renderingQueue: MergingUpdateQueue = MergingUpdateQueue(
-    "android.layout.rendering", RENDER_DELAY_MS, true, null,
-    parentDisposable, null, Alarm.ThreadToUse.POOLED_THREAD)
+  private val renderingQueue: MergingUpdateQueue =
+    MergingUpdateQueue(
+      "android.layout.rendering",
+      RENDER_DELAY_MS,
+      true,
+      null,
+      parentDisposable,
+      null,
+      Alarm.ThreadToUse.POOLED_THREAD
+    )
 
   init {
     renderingQueue.setRestartTimerOnAdd(true)
@@ -44,7 +50,7 @@ class MergingRenderingQueue(parentDisposable: Disposable) : RenderingQueue {
 
   @Synchronized
   override fun deactivate() {
-      renderingQueue.cancelAllUpdates()
+    renderingQueue.cancelAllUpdates()
   }
 
   @Synchronized

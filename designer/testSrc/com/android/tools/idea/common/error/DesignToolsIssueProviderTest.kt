@@ -32,9 +32,7 @@ import org.junit.Test
 import org.mockito.Mockito.`when`
 
 class DesignToolsIssueProviderTest {
-  @JvmField
-  @Rule
-  val rule = EdtAndroidProjectRule(AndroidProjectRule.inMemory())
+  @JvmField @Rule val rule = EdtAndroidProjectRule(AndroidProjectRule.inMemory())
 
   @Test
   fun testProvideIssues() {
@@ -48,7 +46,9 @@ class DesignToolsIssueProviderTest {
     assertEquals(1, provider.getFilteredIssues().size)
 
     val source2 = Any()
-    messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source2, listOf(TestIssue(), TestIssue()))
+    messageBus
+      .syncPublisher(IssueProviderListener.TOPIC)
+      .issueUpdated(source2, listOf(TestIssue(), TestIssue()))
     assertEquals(3, provider.getFilteredIssues().size)
 
     messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source1, emptyList())
@@ -65,7 +65,8 @@ class DesignToolsIssueProviderTest {
     val provider = DesignToolsIssueProvider(rule.testRootDisposable, rule.project, EmptyFilter)
     assertTrue(provider.getFilteredIssues().isEmpty())
 
-    provider.viewOptionFilter = DesignerCommonIssueProvider.Filter { issue -> issue.summary.contains("keyword") }
+    provider.viewOptionFilter =
+      DesignerCommonIssueProvider.Filter { issue -> issue.summary.contains("keyword") }
 
     val issue1 = TestIssue(summary = "I have keyword")
     val issue2 = TestIssue(summary = "I have something")
@@ -75,15 +76,19 @@ class DesignToolsIssueProviderTest {
     messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, issueList)
     assertEquals(2, provider.getFilteredIssues().size)
 
-    provider.viewOptionFilter = DesignerCommonIssueProvider.Filter { issue -> issue.summary.contains("have") }
+    provider.viewOptionFilter =
+      DesignerCommonIssueProvider.Filter { issue -> issue.summary.contains("have") }
     assertEquals(3, provider.getFilteredIssues().size)
 
-    provider.viewOptionFilter = DesignerCommonIssueProvider.Filter { issue -> issue.summary.contains("something") }
+    provider.viewOptionFilter =
+      DesignerCommonIssueProvider.Filter { issue -> issue.summary.contains("something") }
     assertEquals(1, provider.getFilteredIssues().size)
 
     val anotherSource = Any()
     val anotherIssueList = listOf(TestIssue("a keyword"), TestIssue("something"))
-    messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(anotherSource, anotherIssueList)
+    messageBus
+      .syncPublisher(IssueProviderListener.TOPIC)
+      .issueUpdated(anotherSource, anotherIssueList)
     assertEquals(2, provider.getFilteredIssues().size)
 
     messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
@@ -93,7 +98,12 @@ class DesignToolsIssueProviderTest {
   @Test
   fun testFileClosed() {
     val messageBus = rule.project.messageBus
-    val provider = DesignToolsIssueProvider(rule.testRootDisposable, rule.project, SelectedEditorFilter(rule.project))
+    val provider =
+      DesignToolsIssueProvider(
+        rule.testRootDisposable,
+        rule.project,
+        SelectedEditorFilter(rule.project)
+      )
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
     val file = runInEdtAndGet {
@@ -102,7 +112,9 @@ class DesignToolsIssueProviderTest {
       layoutFile
     }
     runInEdtAndWait {
-      messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(Any(), listOf(TestIssue(source = IssueSourceWithFile(file))))
+      messageBus
+        .syncPublisher(IssueProviderListener.TOPIC)
+        .issueUpdated(Any(), listOf(TestIssue(source = IssueSourceWithFile(file))))
     }
     assertEquals(1, provider.getFilteredIssues().size)
 
@@ -113,7 +125,12 @@ class DesignToolsIssueProviderTest {
   @Test
   fun testDoNotShowVisualLintIssueWhenTheirSourceFilesAreNotSelected() {
     val messageBus = rule.project.messageBus
-    val provider = DesignToolsIssueProvider(rule.testRootDisposable, rule.project, SelectedEditorFilter(rule.project))
+    val provider =
+      DesignToolsIssueProvider(
+        rule.testRootDisposable,
+        rule.project,
+        SelectedEditorFilter(rule.project)
+      )
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
     val ktFile = rule.fixture.addFileToProject("src/KtFile.kt", "").virtualFile
@@ -125,7 +142,10 @@ class DesignToolsIssueProviderTest {
     `when`(fakeNlComponent.model).thenReturn(fakeNlModel)
 
     val ktFileIssues = listOf(TestIssue(source = IssueSourceWithFile(ktFile, "")))
-    val visualLintIssues = listOf(createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, listOf(fakeNlComponent), ""))
+    val visualLintIssues =
+      listOf(
+        createTestVisualLintRenderIssue(VisualLintErrorType.BOUNDS, listOf(fakeNlComponent), "")
+      )
 
     val ktSource = Any()
     val layoutSource = VisualLintService.getInstance(rule.project).issueModel
@@ -134,7 +154,9 @@ class DesignToolsIssueProviderTest {
     messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(ktSource, ktFileIssues)
     assertEquals(ktFileIssues, provider.getFilteredIssues())
 
-    messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(layoutSource, visualLintIssues)
+    messageBus
+      .syncPublisher(IssueProviderListener.TOPIC)
+      .issueUpdated(layoutSource, visualLintIssues)
     // Visual lint issue should not be displayed because the current selected file is Kotlin file.
     assertEquals(ktFileIssues, provider.getFilteredIssues())
   }

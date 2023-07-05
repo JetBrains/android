@@ -17,16 +17,16 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.intellij.ui.ComponentUtil
 import com.intellij.ui.components.JBTextField
+import javax.swing.JButton
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import javax.swing.JButton
 
 class CustomConfigurationSetCreatePaletteTest {
 
   @Test
   fun testSetNameCannotBeBlank() {
-    val palette = CustomConfigurationSetCreatePalette { }
+    val palette = CustomConfigurationSetCreatePalette {}
 
     val textField = ComponentUtil.findComponentsOfType(palette, JBTextField::class.java).single()
     val addButton = ComponentUtil.findComponentsOfType(palette, JButton::class.java).single()

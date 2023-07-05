@@ -29,12 +29,7 @@ class NlVisibilityButtonCellRendererTest {
     val list = NlVisibilityJBList()
     val presentation = ButtonPresentation(Visibility.NONE, false)
 
-    val button = renderer.getListCellRendererComponent(
-      list,
-      presentation,
-      0,
-      false,
-      false)
+    val button = renderer.getListCellRendererComponent(list, presentation, 0, false, false)
     assertNotNull(button)
     assertTrue(button is NlVisibilityButton)
     assertEquals(presentation.visibility, (button as NlVisibilityButton).visibility)

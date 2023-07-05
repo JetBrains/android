@@ -32,15 +32,16 @@ class LocaleModelsProviderTest : LayoutTestCase() {
   }
 
   fun testCreateDifferentModelsForDifferentLocales() {
-    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
-    val enFile = myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT);
+    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    val enFile = myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = LocaleModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
 
     // There is 1 locale "en" in this project.
     // LocaleModelsProvider should provide 2 NlModels, one for no locale and one for en locale.
-    // NlModel of default locale is for res/layout/test.xml, and NlModel of en locale is for res/layout-en/test.xml.
+    // NlModel of default locale is for res/layout/test.xml, and NlModel of en locale is for
+    // res/layout-en/test.xml.
 
     assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
     assertEquals(Locale.ANY, nlModels[0].configuration.locale)
@@ -50,7 +51,7 @@ class LocaleModelsProviderTest : LayoutTestCase() {
   }
 
   fun testUsingDefaultWhenThereIsNoSpecificLayout() {
-    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
+    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
     myFixture.addFileToProject("/res/values-en/value.xml", VALUE_FILE_CONTENT)
 
     // There is 1 locale "en" in this project.
@@ -62,16 +63,18 @@ class LocaleModelsProviderTest : LayoutTestCase() {
     assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
     assertEquals(Locale.ANY, nlModels[0].configuration.locale)
 
-    // Because there is no res/layout-en/test.xml, the NlModel of en locale should use /res/layout/test.xml as its file.
+    // Because there is no res/layout-en/test.xml, the NlModel of en locale should use
+    // /res/layout/test.xml as its file.
     assertEquals(defaultFile.virtualFile, nlModels[1].virtualFile)
     assertEquals(Locale.create("en"), nlModels[1].configuration.locale)
   }
 
   fun testOpenLocaleFile() {
-    // When opening locale file, the returned NlModel list should be same as opening default (no locale) file.
+    // When opening locale file, the returned NlModel list should be same as opening default (no
+    // locale) file.
 
-    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT);
-    val enFile = myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT);
+    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    val enFile = myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
 
     val modelsProvider = LocaleModelsProvider
     val nlModels = modelsProvider.createNlModels(testRootDisposable, enFile, myFacet)
@@ -107,7 +110,8 @@ class LocaleModelsProviderTest : LayoutTestCase() {
 }
 
 @Language("XML")
-private const val LAYOUT_FILE_CONTENT = """
+private const val LAYOUT_FILE_CONTENT =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
@@ -117,7 +121,8 @@ private const val LAYOUT_FILE_CONTENT = """
 """
 
 @Language("XML")
-private const val VALUE_FILE_CONTENT = """
+private const val VALUE_FILE_CONTENT =
+  """
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="my_value">Value</string>

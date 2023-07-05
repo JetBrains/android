@@ -15,18 +15,19 @@
  */
 package com.android.tools.idea.common.scene.target
 
-import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.common.AdtUiCursorType
+import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.AndroidDpCoordinate
+import com.android.tools.idea.common.model.addComponentsAndSelectedIfCreated
 import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.common.scene.SceneContext
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.common.scene.draw.ColorSet
 import com.android.tools.idea.common.scene.draw.DisplayList
@@ -38,13 +39,10 @@ import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawTop
-import com.android.tools.idea.common.model.addComponentsAndSelectedIfCreated
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
-import org.intellij.lang.annotations.JdkConstants
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Graphics2D
@@ -52,61 +50,49 @@ import java.awt.Point
 import java.awt.Stroke
 import java.awt.event.InputEvent
 import kotlin.math.abs
+import org.intellij.lang.annotations.JdkConstants
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 
 private const val DEBUG_RENDERER = false
 
 private const val MIN_SIZE = 16
 
-class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
-                                                 private val fromToolWindow: Boolean = false)
-  : BaseTarget() {
+class CommonDragTarget
+@JvmOverloads
+constructor(sceneComponent: SceneComponent, private val fromToolWindow: Boolean = false) :
+  BaseTarget() {
 
-  /**
-   * List of dragged components. The first entry is the one which user start dragging.
-   */
+  /** List of dragged components. The first entry is the one which user start dragging. */
   private lateinit var draggedComponents: List<SceneComponent>
 
-  /**
-   * List of new selected components. This is a list of new selection after mouse interaction.
-   */
+  /** List of new selected components. This is a list of new selection after mouse interaction. */
   private var newSelectedComponents: List<SceneComponent> = emptyList()
 
-  /**
-   * List of initial positions of dragged components
-   */
+  /** List of initial positions of dragged components */
   private lateinit var initialPositions: List<Point>
 
-  /**
-   * Offsets of every selected components. Their units are AndroidDpCoordinate
-   */
+  /** Offsets of every selected components. Their units are AndroidDpCoordinate */
   private lateinit var offsets: List<Point>
 
-  /**
-   * Mouse position when start dragging.
-   */
+  /** Mouse position when start dragging. */
   @AndroidDpCoordinate private val firstMouse = Point(-1, -1)
 
   /**
-   * The collected placeholder.
-   * Needs to be lazy because [myComponent] doesn't exist when constructing the [Target].
-   * But it will be set immediately after [Target] is created.
+   * The collected placeholder. Needs to be lazy because [myComponent] doesn't exist when
+   * constructing the [Target]. But it will be set immediately after [Target] is created.
    */
   private lateinit var placeholders: List<Placeholder>
   private lateinit var dominatePlaceholders: List<Placeholder>
   private lateinit var recessivePlaceholders: List<Placeholder>
 
-  /**
-   * Host of placeholders. This is used for rendering.
-   */
+  /** Host of placeholders. This is used for rendering. */
   private var placeholderHosts: Set<SceneComponent> = emptySet()
 
   private var currentSnappedPlaceholder: Placeholder? = null
 
   var insertType: InsertType = InsertType.MOVE
 
-  /**
-   * To handle Live Rendering case.
-   */
+  /** To handle Live Rendering case. */
   private val targetSnapper = TargetSnapper()
 
   init {
@@ -118,19 +104,20 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     super.setComponent(component)
   }
 
-  override fun layout(sceneTransform: SceneContext,
-                      @AndroidDpCoordinate l: Int,
-                      @AndroidDpCoordinate t: Int,
-                      @AndroidDpCoordinate r: Int,
-                      @AndroidDpCoordinate b: Int): Boolean {
+  override fun layout(
+    sceneTransform: SceneContext,
+    @AndroidDpCoordinate l: Int,
+    @AndroidDpCoordinate t: Int,
+    @AndroidDpCoordinate r: Int,
+    @AndroidDpCoordinate b: Int
+  ): Boolean {
     val left: Int
     val right: Int
     if (r - l < MIN_SIZE) {
       val d = (MIN_SIZE - (r - l)) / 2
       left = l - d
       right = r + d
-    }
-    else {
+    } else {
       left = l
       right = r
     }
@@ -141,8 +128,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       val d = (MIN_SIZE - (b - t)) / 2
       top = t - d
       bottom = b + d
-    }
-    else {
+    } else {
       top = t
       bottom = b
     }
@@ -157,7 +143,14 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   override fun render(list: DisplayList, sceneContext: SceneContext) {
     @Suppress("ConstantConditionIf")
     if (DEBUG_RENDERER) {
-      list.addRect(sceneContext, myLeft, myTop, myRight, myBottom, if (mIsOver) JBColor.yellow else JBColor.green)
+      list.addRect(
+        sceneContext,
+        myLeft,
+        myTop,
+        myRight,
+        myBottom,
+        if (mIsOver) JBColor.yellow else JBColor.green
+      )
       list.addLine(sceneContext, myLeft, myTop, myRight, myBottom, JBColor.red)
       list.addLine(sceneContext, myLeft, myBottom, myRight, myTop, JBColor.red)
     }
@@ -171,11 +164,25 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
           when {
             ph == snappedPlaceholder -> {
               // Snapped Placeholder
-              list.add(DrawSnappedPlaceholder(ph.region.left, ph.region.top, ph.region.right, ph.region.bottom))
+              list.add(
+                DrawSnappedPlaceholder(
+                  ph.region.left,
+                  ph.region.top,
+                  ph.region.right,
+                  ph.region.bottom
+                )
+              )
             }
             ph.associatedComponent == snappedPlaceholder.associatedComponent -> {
               // Sibling of snapped Placeholder
-              list.add(DrawSiblingsOfSnappedPlaceholder(ph.region.left, ph.region.top, ph.region.right, ph.region.bottom))
+              list.add(
+                DrawSiblingsOfSnappedPlaceholder(
+                  ph.region.left,
+                  ph.region.top,
+                  ph.region.right,
+                  ph.region.bottom
+                )
+              )
             }
             else -> Unit // Do nothing for Placeholders in different host
           }
@@ -186,8 +193,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
         // Render hosts
         if (h == snappedPlaceholder?.host) {
           list.add(DrawHoveredHost(h.drawLeft, h.drawTop, h.drawRight, h.drawBottom))
-        }
-        else {
+        } else {
           list.add(DrawNonHoveredHost(h.drawLeft, h.drawTop, h.drawRight, h.drawBottom))
         }
       }
@@ -205,17 +211,20 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     val scene = component.scene
     val selection = scene.selection
     val selectedSceneComponents = selection.mapNotNull { scene.getSceneComponent(it) }
-    draggedComponents = if (myComponent !in selectedSceneComponents) {
-      // In case the dragging is started without selecting first. This happens when dragging an unselected component.
-      listOf(component)
-    }
-    else {
-      // Make sure myComponent is the first one which is interacted with user.
-      // Note that myComponent may not be the first one in selection, since user may drag the component which is not selected first.
-      sequenceOf(component).plus(selectedSceneComponents.filterNot { it == myComponent }).toList()
-    }
+    draggedComponents =
+      if (myComponent !in selectedSceneComponents) {
+        // In case the dragging is started without selecting first. This happens when dragging an
+        // unselected component.
+        listOf(component)
+      } else {
+        // Make sure myComponent is the first one which is interacted with user.
+        // Note that myComponent may not be the first one in selection, since user may drag the
+        // component which is not selected first.
+        sequenceOf(component).plus(selectedSceneComponents.filterNot { it == myComponent }).toList()
+      }
 
-    placeholders = component.scene.getPlaceholders(component, draggedComponents).filter { it.host != component }
+    placeholders =
+      component.scene.getPlaceholders(component, draggedComponents).filter { it.host != component }
 
     val dominateBuilder = ImmutableList.builder<Placeholder>()
     val recessiveBuilder = ImmutableList.builder<Placeholder>()
@@ -228,10 +237,10 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     initialPositions = draggedComponents.map { Point(it.drawX, it.drawY) }
     offsets = draggedComponents.map { Point(-1, -1) }
 
-
     if (fromToolWindow) {
       if (!draggedComponents.isEmpty()) {
-        // When dragging from Tool window, makes the primary dragged point is in the center of widget.
+        // When dragging from Tool window, makes the primary dragged point is in the center of
+        // widget.
         // We assign the offset here because the component is not really clicked.
         val primaryComponent = draggedComponents[0]
         offsets[0].x = primaryComponent.drawWidth / 2
@@ -242,12 +251,13 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
         // Calculate distance between primary and other components.
         for (i in 1 until draggedComponents.size) {
-          offsets[i].x = offsets[0].x + primaryX - draggedComponents[i].getDrawX(System.currentTimeMillis())
-          offsets[i].y = offsets[0].y + primaryY - draggedComponents[i].getDrawY(System.currentTimeMillis())
+          offsets[i].x =
+            offsets[0].x + primaryX - draggedComponents[i].getDrawX(System.currentTimeMillis())
+          offsets[i].y =
+            offsets[0].y + primaryY - draggedComponents[i].getDrawY(System.currentTimeMillis())
         }
       }
-    }
-    else {
+    } else {
       // Drag inside the component, leave the dragged point same as the clicked point.
       draggedComponents.forEachIndexed { index, sceneComponent ->
         offsets[index].x = x - sceneComponent.getDrawX(System.currentTimeMillis())
@@ -260,18 +270,26 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     targetSnapper.gatherNotches(myComponent)
   }
 
-  override fun mouseDrag(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>, ignored: SceneContext) {
+  override fun mouseDrag(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    unused: List<Target>,
+    ignored: SceneContext
+  ) {
     draggedComponents.forEach { it.isDragging = true }
     snap(x, y)
     myComponent.scene.repaint()
   }
 
   /**
-   * Snap the component to the [placeholders].
-   * This function applies the snapped placeholder and adjust the position of [myComponent].
-   * When placeholder is overlapped, the higher [Region.level] get snapped.
+   * Snap the component to the [placeholders]. This function applies the snapped placeholder and
+   * adjust the position of [myComponent]. When placeholder is overlapped, the higher [Region.level]
+   * get snapped.
    */
-  private fun snap(@AndroidDpCoordinate mouseX: Int, @AndroidDpCoordinate mouseY: Int): Placeholder? {
+  private fun snap(
+    @AndroidDpCoordinate mouseX: Int,
+    @AndroidDpCoordinate mouseY: Int
+  ): Placeholder? {
     // We use primary component to do snap
     val left = mouseX - offsets[0].x
     val top = mouseY - offsets[0].y
@@ -321,10 +339,13 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
     // TODO: Makes Live Rendering works when dragging widget between different ViewGroups
     if (isPlaceholderLiveUpdatable(ph)) {
-      // For Live Rendering in ConstraintLayout. Live Rendering only works when component is dragged in the same ConstraintLayout
+      // For Live Rendering in ConstraintLayout. Live Rendering only works when component is dragged
+      // in the same ConstraintLayout
       draggedComponents.forEachIndexed { index, it ->
-        val expectedX = if (index == 0) targetSnapperX else targetSnapperX + offsets[0].x - offsets[index].x
-        val expectedY = if (index == 0) targetSnapperY else targetSnapperY + offsets[0].y - offsets[index].y
+        val expectedX =
+          if (index == 0) targetSnapperX else targetSnapperX + offsets[0].x - offsets[index].x
+        val expectedY =
+          if (index == 0) targetSnapperY else targetSnapperY + offsets[0].y - offsets[index].y
         var modification = ComponentModification(it.authoritativeNlComponent, "Dragging component")
         ph!!.updateLiveAttribute(it, modification, expectedX, expectedY)
         modification.apply()
@@ -334,20 +355,24 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
         myComponent.authoritativeNlComponent.fireLiveChangeEvent()
       }
       myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
-    }
-    else {
+    } else {
       if (currentSnappedPlaceholder?.dominate == true) {
         draggedComponents.forEach { it.setPosition(snappedX, snappedY) }
-      }
-      else {
-        draggedComponents.forEachIndexed { index, it -> it.setPosition(mouseX - offsets[index].x, mouseY - offsets[index].y) }
+      } else {
+        draggedComponents.forEachIndexed { index, it ->
+          it.setPosition(mouseX - offsets[index].x, mouseY - offsets[index].y)
+        }
       }
       myComponent.scene.markNeedsLayout(Scene.NO_LAYOUT)
     }
     return ph
   }
 
-  override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {
+  override fun mouseRelease(
+    @AndroidDpCoordinate x: Int,
+    @AndroidDpCoordinate y: Int,
+    unused: List<Target>
+  ) {
     if (!myComponent.isDragging) {
       val isClicked = abs(x - firstMouse.x) <= 1 && abs(y - firstMouse.y) <= 1
       if (isClicked) {
@@ -355,20 +380,23 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
         // it means that the user clicked the component without dragging.
         newSelectedComponents = listOf(myComponent)
       }
-    }
-    else {
+    } else {
       draggedComponents.forEach { it.isDragging = false }
       val ph = snap(x, y)
       if (ph != null) {
         // TODO: Makes Notch works when dragging from other layouts to Constraint Layout.
         if (ToggleAutoConnectAction.isAutoconnectOn()) {
-          targetSnapper.applyNotches(draggedComponents[0].authoritativeNlComponent.startAttributeTransaction())
+          targetSnapper.applyNotches(
+            draggedComponents[0].authoritativeNlComponent.startAttributeTransaction()
+          )
         }
         applyPlaceholder(ph)
-      }
-      else {
+      } else {
         draggedComponents.forEachIndexed { index, sceneComponent ->
-          sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
+          sceneComponent.setPosition(
+            firstMouse.x - offsets[index].x,
+            firstMouse.y - offsets[index].y
+          )
         }
         if (myComponent.scene.isLiveRenderingEnabled) {
           draggedComponents.forEach {
@@ -387,8 +415,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   }
 
   /**
-   * Apply the given [Placeholder]. Returns true if succeed, false otherwise.
-   * write to file directly.
+   * Apply the given [Placeholder]. Returns true if succeed, false otherwise. write to file
+   * directly.
    */
   @VisibleForTesting
   fun applyPlaceholder(placeholder: Placeholder) {
@@ -398,49 +426,54 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     val componentsToAdd = draggedComponents.map { it.authoritativeNlComponent }
     val anchor = placeholder.findNextSibling(myComponent, placeholder.host)?.nlComponent
 
-    val attributesTransactions = draggedComponents.map {
-      val modification = ComponentModification(it.authoritativeNlComponent, "Drag component")
-      if (!isPlaceholderLiveUpdatable(placeholder)
-          || (placeholder is MotionLayoutPlaceholder)) {
-        placeholder.updateAttribute(it, modification)
+    val attributesTransactions =
+      draggedComponents.map {
+        val modification = ComponentModification(it.authoritativeNlComponent, "Drag component")
+        if (!isPlaceholderLiveUpdatable(placeholder) || (placeholder is MotionLayoutPlaceholder)) {
+          placeholder.updateAttribute(it, modification)
+        }
+        modification
       }
-      modification
-    }
 
-    model.addComponentsAndSelectedIfCreated(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface.selectionModel) {
+    model.addComponentsAndSelectedIfCreated(
+      componentsToAdd,
+      parent,
+      anchor,
+      insertType,
+      myComponent.scene.designSurface.selectionModel
+    ) {
       attributesTransactions.forEach { it.commit() }
       myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }
   }
 
-  /**
-   * Function to check if the attribute is updated during dragging.
-   */
+  /** Function to check if the attribute is updated during dragging. */
   private fun isPlaceholderLiveUpdatable(placeholder: Placeholder?) =
-    placeholder != null && placeholder.isLiveUpdatable && placeholder.host == myComponent.parent && myComponent !is TemporarySceneComponent
+    placeholder != null &&
+      placeholder.isLiveUpdatable &&
+      placeholder.host == myComponent.parent &&
+      myComponent !is TemporarySceneComponent
 
-  /**
-   * Apply any pending transactions on mouse released.
-   */
+  /** Apply any pending transactions on mouse released. */
   private fun handleRemainingComponentsOnRelease() {
-    draggedComponents.mapNotNull { draggedComponent ->
-      // We only need to apply changes if there are any pending.
-      if (draggedComponent.authoritativeNlComponent.attributeTransaction?.hasPendingChanges() == true)
-        draggedComponent.authoritativeNlComponent
-      else null
-    }.ifNotEmpty {
-      NlWriteCommandActionUtil.run(
-        this,
-        "Drag component"
-      ) {
-        this.forEach { it.attributeTransaction?.commit() }
+    draggedComponents
+      .mapNotNull { draggedComponent ->
+        // We only need to apply changes if there are any pending.
+        if (
+          draggedComponent.authoritativeNlComponent.attributeTransaction?.hasPendingChanges() ==
+            true
+        )
+          draggedComponent.authoritativeNlComponent
+        else null
       }
-    }
+      .ifNotEmpty {
+        NlWriteCommandActionUtil.run(this, "Drag component") {
+          this.forEach { it.attributeTransaction?.commit() }
+        }
+      }
   }
 
-  /**
-   * Reset the status when the dragging is canceled.
-   */
+  /** Reset the status when the dragging is canceled. */
   override fun mouseCancel() {
     draggedComponents.forEach { it.isDragging = false }
     placeholderHosts = emptySet()
@@ -451,7 +484,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       // Rollback the transaction. Some attributes may be changed due to live rendering.
       val nlComponent = component.authoritativeNlComponent
       if (nlComponent.startAttributeTransaction().rollback()) {
-        // Has pending value means it has live change, fire live change event since it is changed back.
+        // Has pending value means it has live change, fire live change event since it is changed
+        // back.
         nlComponent.fireLiveChangeEvent()
       }
     }
@@ -466,33 +500,33 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
     return if ((modifiersEx and InputEvent.ALT_DOWN_MASK) != 0 && myComponent.isSelected) {
       AdtUiCursorsProvider.getInstance().getCursor(AdtUiCursorType.MOVE)
-    }
-    else {
+    } else {
       Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
     }
   }
 
-  override fun isHittable() = if (myComponent.isSelected) myComponent.canShowBaseline() || !myComponent.isDragging else true
+  override fun isHittable() =
+    if (myComponent.isSelected) myComponent.canShowBaseline() || !myComponent.isDragging else true
 
   companion object {
 
-    /**
-     * Determine if the [Target] could be replaced by [CommonDragTarget]
-     */
+    /** Determine if the [Target] could be replaced by [CommonDragTarget] */
     @JvmStatic
-    fun isSupported(target: Target): Boolean = when (target) {
-      !is NonPlaceholderDragTarget -> false
-      is LegacyDragTarget -> false
-      else -> true
-    }
+    fun isSupported(target: Target): Boolean =
+      when (target) {
+        !is NonPlaceholderDragTarget -> false
+        is LegacyDragTarget -> false
+        else -> true
+      }
   }
 }
 
-private abstract class BasePlaceholderDrawRegion(@AndroidDpCoordinate private val x1: Int,
-                                                 @AndroidDpCoordinate private val y1: Int,
-                                                 @AndroidDpCoordinate private val x2: Int,
-                                                 @AndroidDpCoordinate private val y2: Int)
-  : DrawRegion() {
+private abstract class BasePlaceholderDrawRegion(
+  @AndroidDpCoordinate private val x1: Int,
+  @AndroidDpCoordinate private val y1: Int,
+  @AndroidDpCoordinate private val x2: Int,
+  @AndroidDpCoordinate private val y2: Int
+) : DrawRegion() {
 
   final override fun paint(g: Graphics2D, sceneContext: SceneContext) {
     val defColor = g.color
@@ -501,10 +535,12 @@ private abstract class BasePlaceholderDrawRegion(@AndroidDpCoordinate private va
 
     g.clip = sceneContext.renderableBounds
 
-    setBounds(sceneContext.getSwingXDip(x1.toFloat()),
-              sceneContext.getSwingYDip(y1.toFloat()),
-              sceneContext.getSwingDimensionDip((x2 - x1).toFloat()),
-              sceneContext.getSwingDimensionDip((y2 - y1).toFloat()))
+    setBounds(
+      sceneContext.getSwingXDip(x1.toFloat()),
+      sceneContext.getSwingYDip(y1.toFloat()),
+      sceneContext.getSwingDimensionDip((x2 - x1).toFloat()),
+      sceneContext.getSwingDimensionDip((y2 - y1).toFloat())
+    )
 
     getBackgroundColor(sceneContext.colorSet)?.let {
       g.color = it
@@ -527,11 +563,12 @@ private abstract class BasePlaceholderDrawRegion(@AndroidDpCoordinate private va
   abstract fun getBorderStroke(colorSet: ColorSet): Stroke
 }
 
-private class DrawSnappedPlaceholder(@AndroidDpCoordinate x1: Int,
-                                     @AndroidDpCoordinate y1: Int,
-                                     @AndroidDpCoordinate x2: Int,
-                                     @AndroidDpCoordinate y2: Int)
-  : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
+private class DrawSnappedPlaceholder(
+  @AndroidDpCoordinate x1: Int,
+  @AndroidDpCoordinate y1: Int,
+  @AndroidDpCoordinate x2: Int,
+  @AndroidDpCoordinate y2: Int
+) : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
 
   override fun getBackgroundColor(colorSet: ColorSet): Color? = colorSet.dragReceiverBackground
 
@@ -540,24 +577,27 @@ private class DrawSnappedPlaceholder(@AndroidDpCoordinate x1: Int,
   override fun getBorderStroke(colorSet: ColorSet): Stroke = colorSet.dragReceiverStroke
 }
 
-private class DrawSiblingsOfSnappedPlaceholder(@AndroidDpCoordinate x1: Int,
-                                               @AndroidDpCoordinate y1: Int,
-                                               @AndroidDpCoordinate x2: Int,
-                                               @AndroidDpCoordinate y2: Int)
-  : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
+private class DrawSiblingsOfSnappedPlaceholder(
+  @AndroidDpCoordinate x1: Int,
+  @AndroidDpCoordinate y1: Int,
+  @AndroidDpCoordinate x2: Int,
+  @AndroidDpCoordinate y2: Int
+) : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
 
-  override fun getBackgroundColor(colorSet: ColorSet): Color? = colorSet.dragReceiverSiblingBackground
+  override fun getBackgroundColor(colorSet: ColorSet): Color? =
+    colorSet.dragReceiverSiblingBackground
 
   override fun getBorderColor(colorSet: ColorSet): Color = colorSet.dragReceiverSiblingBackground
 
   override fun getBorderStroke(colorSet: ColorSet): Stroke = colorSet.dragReceiverSiblingStroke
 }
 
-private class DrawHoveredHost(@AndroidDpCoordinate x1: Int,
-                              @AndroidDpCoordinate y1: Int,
-                              @AndroidDpCoordinate x2: Int,
-                              @AndroidDpCoordinate y2: Int)
-  : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
+private class DrawHoveredHost(
+  @AndroidDpCoordinate x1: Int,
+  @AndroidDpCoordinate y1: Int,
+  @AndroidDpCoordinate x2: Int,
+  @AndroidDpCoordinate y2: Int
+) : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
 
   override fun getBackgroundColor(colorSet: ColorSet): Color? = null
 
@@ -566,11 +606,12 @@ private class DrawHoveredHost(@AndroidDpCoordinate x1: Int,
   override fun getBorderStroke(colorSet: ColorSet): Stroke = colorSet.dragReceiverStroke
 }
 
-private class DrawNonHoveredHost(@AndroidDpCoordinate x1: Int,
-                                 @AndroidDpCoordinate y1: Int,
-                                 @AndroidDpCoordinate x2: Int,
-                                 @AndroidDpCoordinate y2: Int)
-  : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
+private class DrawNonHoveredHost(
+  @AndroidDpCoordinate x1: Int,
+  @AndroidDpCoordinate y1: Int,
+  @AndroidDpCoordinate x2: Int,
+  @AndroidDpCoordinate y2: Int
+) : BasePlaceholderDrawRegion(x1, y1, x2, y2) {
 
   override fun getBackgroundColor(colorSet: ColorSet): Color? = null
 

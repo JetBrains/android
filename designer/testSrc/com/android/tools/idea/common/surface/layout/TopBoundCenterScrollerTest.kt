@@ -16,12 +16,12 @@
 package com.android.tools.idea.common.surface.layout
 
 import com.android.testutils.MockitoKt
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class TopBoundCenterScrollerTest {
 
@@ -95,7 +95,8 @@ class TopBoundCenterScrollerTest {
 
     let {
       val widthZeroSize = Dimension(0, 100)
-      val viewport = TestDesignSurfaceViewport(widthZeroSize, viewRect, viewComponent = viewComponent)
+      val viewport =
+        TestDesignSurfaceViewport(widthZeroSize, viewRect, viewComponent = viewComponent)
 
       val currentPosition = Point(viewport.viewPosition)
       val scroller = TopBoundCenterScroller(widthZeroSize, viewRect.location)
@@ -105,7 +106,8 @@ class TopBoundCenterScrollerTest {
 
     let {
       val heightZeroSize = Dimension(100, 0)
-      val viewport = TestDesignSurfaceViewport(heightZeroSize, viewRect, viewComponent = viewComponent)
+      val viewport =
+        TestDesignSurfaceViewport(heightZeroSize, viewRect, viewComponent = viewComponent)
 
       val currentPosition = Point(viewport.viewPosition)
       val scroller = TopBoundCenterScroller(heightZeroSize, viewRect.location)

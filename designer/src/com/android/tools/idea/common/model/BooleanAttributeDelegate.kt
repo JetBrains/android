@@ -20,13 +20,15 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 /**
- * Delegate for boolean attributes.
- * [defaultForSet], if specified and non-null, indicates what value should be represented by an absence of the property when <b>setting</b>
- * only. (null will still be returned when getting if the attribute is unset).
+ * Delegate for boolean attributes. [defaultForSet], if specified and non-null, indicates what value
+ * should be represented by an absence of the property when <b>setting</b> only. (null will still be
+ * returned when getting if the attribute is unset).
  */
-open class BooleanAttributeDelegate(private val namespace: String?, private val propertyName: String,
-                                    private val defaultForSet: Boolean? = false)
-  : ReadWriteProperty<NlComponent, Boolean?> {
+open class BooleanAttributeDelegate(
+  private val namespace: String?,
+  private val propertyName: String,
+  private val defaultForSet: Boolean? = false
+) : ReadWriteProperty<NlComponent, Boolean?> {
 
   // This has to be separate rather than just using default arguments due to KT-8834
   constructor(namespace: String?, propertyName: String) : this(namespace, propertyName, false)
@@ -36,13 +38,16 @@ open class BooleanAttributeDelegate(private val namespace: String?, private val 
   }
 
   override operator fun setValue(thisRef: NlComponent, property: KProperty<*>, value: Boolean?) {
-    thisRef.setAttribute(namespace, propertyName, if (value == defaultForSet) null else value?.toString())
+    thisRef.setAttribute(
+      namespace,
+      propertyName,
+      if (value == defaultForSet) null else value?.toString()
+    )
   }
 }
 
-class BooleanAutoAttributeDelegate(propertyName: String, default: Boolean?)
-  : BooleanAttributeDelegate(SdkConstants.AUTO_URI, propertyName, default)
-{
+class BooleanAutoAttributeDelegate(propertyName: String, default: Boolean?) :
+  BooleanAttributeDelegate(SdkConstants.AUTO_URI, propertyName, default) {
   // This has to be separate rather than just using default arguments due to KT-8834
   constructor(propertyName: String) : this(propertyName, false)
 }

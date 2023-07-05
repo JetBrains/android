@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl
 import com.android.tools.idea.uibuilder.model.getViewHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 
-class ScaleTypeViewActionTest: SceneTest() {
+class ScaleTypeViewActionTest : SceneTest() {
 
   fun testChangeScaleType() {
     val imageView = myModel.find("imageView")!!
@@ -37,19 +37,20 @@ class ScaleTypeViewActionTest: SceneTest() {
   }
 
   override fun createModel(): ModelBuilder {
-    return model("constraint.xml",
-                 component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-                   .withBounds(0, 0, 1000, 1000)
-                   .id("@id/constraint")
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(SdkConstants.IMAGE_VIEW)
-                       .withBounds(0, 0, 200, 200)
-                       .id("@id/imageView")
-                       .width("100dp")
-                       .height("100dp")
-                   )
+    return model(
+      "constraint.xml",
+      component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
+        .withBounds(0, 0, 1000, 1000)
+        .id("@id/constraint")
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(SdkConstants.IMAGE_VIEW)
+            .withBounds(0, 0, 200, 200)
+            .id("@id/imageView")
+            .width("100dp")
+            .height("100dp")
+        )
     )
   }
 }

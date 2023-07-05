@@ -27,9 +27,12 @@ class MenuHandlerTest {
 
   @Test
   fun testMenuCannotBeAddedToMenu() {
-    val menu1: NlComponent = mock<NlComponent>().apply { whenever(this.tagName).thenReturn(TAG_MENU) }
-    val menu2: NlComponent = mock<NlComponent>().apply { whenever(this.tagName).thenReturn(TAG_MENU) }
-    val item: NlComponent = mock<NlComponent>().apply { whenever(this.tagName).thenReturn(TAG_ITEM) }
+    val menu1: NlComponent =
+      mock<NlComponent>().apply { whenever(this.tagName).thenReturn(TAG_MENU) }
+    val menu2: NlComponent =
+      mock<NlComponent>().apply { whenever(this.tagName).thenReturn(TAG_MENU) }
+    val item: NlComponent =
+      mock<NlComponent>().apply { whenever(this.tagName).thenReturn(TAG_ITEM) }
     val handler = MenuHandler()
     assertThat(handler.acceptsChild(menu1, menu2)).isFalse()
     assertThat(handler.acceptsChild(menu2, menu1)).isFalse()

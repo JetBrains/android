@@ -20,9 +20,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.troubleshooting.TroubleInfoCollector
 import com.intellij.util.ui.UIUtil
 
-/**
- * A [TroubleInfoCollector] for [IssuePanelService] status.
- */
+/** A [TroubleInfoCollector] for [IssuePanelService] status. */
 internal class IssuePanelServiceTroubleInfoCollector : TroubleInfoCollector {
   override fun collectInfo(project: Project): String {
     val issuePanelService = IssuePanelService.getInstance(project)

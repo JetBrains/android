@@ -39,28 +39,38 @@ private const val PREVIEW_OUT_OF_DATE = "The preview is out of date"
 private const val BUILD_AND_REFRESH = "Build & Refresh"
 
 private fun requestBuild(project: Project, module: Module) =
-  GradleBuildInvoker.getInstance(project).compileJava(setOf(module).toTypedArray(), TestCompileType.NONE)
+  GradleBuildInvoker.getInstance(project)
+    .compileJava(setOf(module).toTypedArray(), TestCompileType.NONE)
 
-internal class CustomViewPreviewNotificationProvider : EditorNotifications.Provider<EditorNotificationPanel>() {
-  private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.notification")
+internal class CustomViewPreviewNotificationProvider :
+  EditorNotifications.Provider<EditorNotificationPanel>() {
+  private val COMPONENT_KEY =
+    Key.create<EditorNotificationPanel>("android.tools.compose.preview.notification")
 
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
+  override fun createNotificationPanel(
+    file: VirtualFile,
+    fileEditor: FileEditor,
+    project: Project
+  ): EditorNotificationPanel? {
     val previewManager = fileEditor.getCustomViewPreviewManager() ?: return null
     val module = ModuleUtil.findModuleForFile(file, project) ?: return null
     return when (previewManager.notificationsState) {
-      CustomViewPreviewManager.NotificationsState.CODE_MODIFIED -> EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
-        setText(PREVIEW_OUT_OF_DATE)
-        createActionLabel("$BUILD_AND_REFRESH${getBuildAndRefreshShortcut().asString()}") {
-          requestBuild(project, module)
+      CustomViewPreviewManager.NotificationsState.CODE_MODIFIED ->
+        EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
+          setText(PREVIEW_OUT_OF_DATE)
+          createActionLabel("$BUILD_AND_REFRESH${getBuildAndRefreshShortcut().asString()}") {
+            requestBuild(project, module)
+          }
         }
-      }
-      CustomViewPreviewManager.NotificationsState.BUILDING -> EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
-        setText("Building...")
-        icon(AnimatedIcon.Default())
-      }
-      CustomViewPreviewManager.NotificationsState.BUILD_FAILED -> EditorNotificationPanel(LightColors.RED, EditorNotificationPanel.Status.Error).apply {
-        setText("Correct preview cannot be displayed until after a successful build.")
-      }
+      CustomViewPreviewManager.NotificationsState.BUILDING ->
+        EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
+          setText("Building...")
+          icon(AnimatedIcon.Default())
+        }
+      CustomViewPreviewManager.NotificationsState.BUILD_FAILED ->
+        EditorNotificationPanel(LightColors.RED, EditorNotificationPanel.Status.Error).apply {
+          setText("Correct preview cannot be displayed until after a successful build.")
+        }
       else -> null
     }
   }
@@ -68,14 +78,12 @@ internal class CustomViewPreviewNotificationProvider : EditorNotifications.Provi
   override fun getKey() = COMPONENT_KEY
 }
 
-
 internal fun requestBuildForSurface(surface: DesignSurface<*>) {
-  surface.models.map { it.module }.distinct().forEach {
-    requestBuild(surface.project, it)
-  }
+  surface.models.map { it.module }.distinct().forEach { requestBuild(surface.project, it) }
 }
 /**
- * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh of the surface.
+ * [AnAction] that triggers a compilation of the current module. The build will automatically
+ * trigger a refresh of the surface.
  */
 internal class ForceCompileAndRefreshAction(private val surface: DesignSurface<*>) :
   AnAction(BUILD_AND_REFRESH, null, REFRESH_BUTTON) {

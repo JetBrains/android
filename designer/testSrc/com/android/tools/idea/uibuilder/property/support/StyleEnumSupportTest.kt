@@ -29,7 +29,8 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
-private const val PROJECT_STYLES = """
+private const val PROJECT_STYLES =
+  """
 <resources>
     <style name="MyButtonStyle" parent="Widget.AppCompat.Button"/>
     <style name="MyButtonStyle.Blue"/>
@@ -37,13 +38,9 @@ private const val PROJECT_STYLES = """
 
 class StyleEnumSupportTest {
 
-  @JvmField
-  @Rule
-  val myProjectRule = AndroidProjectRule.withSdk().initAndroid(true)
+  @JvmField @Rule val myProjectRule = AndroidProjectRule.withSdk().initAndroid(true)
 
-  @JvmField
-  @Rule
-  val myEdtRule = EdtRule()
+  @JvmField @Rule val myEdtRule = EdtRule()
 
   @RunsInEdt
   @Test
@@ -57,34 +54,61 @@ class StyleEnumSupportTest {
     val values = support.values
     val expectedProjectValues = listOf("@style/MyButtonStyle", "@style/MyButtonStyle.Blue")
     val expectedProjectDisplayValues = listOf("MyButtonStyle", "MyButtonStyle.Blue")
-    val expectedAppCompatValues = listOf(
-      "@style/Widget.AppCompat.Button",
-      "@style/Widget.AppCompat.Button.Borderless",
-      "@style/Widget.AppCompat.Button.Borderless.Colored",
-      "@style/Widget.AppCompat.Button.ButtonBar.AlertDialog",
-      "@style/Widget.AppCompat.Button.Colored",
-      "@style/Widget.AppCompat.Button.Small")
-    val expectedAppCompatDisplayValues = listOf(
-      "Widget.AppCompat.Button",
-      "Widget.AppCompat.Button.Borderless",
-      "Widget.AppCompat.Button.Borderless.Colored",
-      "Widget.AppCompat.Button.ButtonBar.AlertDialog",
-      "Widget.AppCompat.Button.Colored",
-      "Widget.AppCompat.Button.Small")
-    val expectedAndroidValues = listOf(
-      "@android:style/Widget.Button",
-      "@android:style/Widget.Button.Inset",
-      "@android:style/Widget.Button.Small",
-      "@android:style/Widget.Button.Toggle")
-    val expectedAndroidDisplayValues = listOf(
-      "Widget.Button",
-      "Widget.Button.Inset",
-      "Widget.Button.Small",
-      "Widget.Button.Toggle")
+    val expectedAppCompatValues =
+      listOf(
+        "@style/Widget.AppCompat.Button",
+        "@style/Widget.AppCompat.Button.Borderless",
+        "@style/Widget.AppCompat.Button.Borderless.Colored",
+        "@style/Widget.AppCompat.Button.ButtonBar.AlertDialog",
+        "@style/Widget.AppCompat.Button.Colored",
+        "@style/Widget.AppCompat.Button.Small"
+      )
+    val expectedAppCompatDisplayValues =
+      listOf(
+        "Widget.AppCompat.Button",
+        "Widget.AppCompat.Button.Borderless",
+        "Widget.AppCompat.Button.Borderless.Colored",
+        "Widget.AppCompat.Button.ButtonBar.AlertDialog",
+        "Widget.AppCompat.Button.Colored",
+        "Widget.AppCompat.Button.Small"
+      )
+    val expectedAndroidValues =
+      listOf(
+        "@android:style/Widget.Button",
+        "@android:style/Widget.Button.Inset",
+        "@android:style/Widget.Button.Small",
+        "@android:style/Widget.Button.Toggle"
+      )
+    val expectedAndroidDisplayValues =
+      listOf("Widget.Button", "Widget.Button.Inset", "Widget.Button.Small", "Widget.Button.Toggle")
     var index = 0
-    index = checkSection(values, index, PROJECT_HEADER, 3, expectedProjectValues, expectedProjectDisplayValues)
-    index = checkSection(values, index, APPCOMPAT_HEADER, 7, expectedAppCompatValues, expectedAppCompatDisplayValues)
-    index = checkSection(values, index, ANDROID_HEADER, -40, expectedAndroidValues, expectedAndroidDisplayValues)
+    index =
+      checkSection(
+        values,
+        index,
+        PROJECT_HEADER,
+        3,
+        expectedProjectValues,
+        expectedProjectDisplayValues
+      )
+    index =
+      checkSection(
+        values,
+        index,
+        APPCOMPAT_HEADER,
+        7,
+        expectedAppCompatValues,
+        expectedAppCompatDisplayValues
+      )
+    index =
+      checkSection(
+        values,
+        index,
+        ANDROID_HEADER,
+        -40,
+        expectedAndroidValues,
+        expectedAndroidDisplayValues
+      )
     assertThat(index).isEqualTo(-1)
   }
 }

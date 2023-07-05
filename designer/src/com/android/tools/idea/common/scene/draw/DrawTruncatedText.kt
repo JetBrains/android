@@ -23,21 +23,18 @@ import com.android.tools.idea.common.scene.SceneContext
 import java.awt.Color
 import java.awt.Graphics2D
 
-/**
- * [DrawTruncatedText] draws a string in the specified rectangle and truncates if necessary
- */
-
-data class DrawTruncatedText(private val myText: String,
-                             private val myRectangle: SwingRectangle,
-                             private val myColor: Color,
-                             private val myFont: SwingFont,
-                             private val myIsCentered: Boolean) : DrawCommandBase() {
+/** [DrawTruncatedText] draws a string in the specified rectangle and truncates if necessary */
+data class DrawTruncatedText(
+  private val myText: String,
+  private val myRectangle: SwingRectangle,
+  private val myColor: Color,
+  private val myFont: SwingFont,
+  private val myIsCentered: Boolean
+) : DrawCommandBase() {
 
   private var myTruncatedText = ""
-  @SwingCoordinate
-  private var myX = 0f
-  @SwingCoordinate
-  private var myY = 0f
+  @SwingCoordinate private var myX = 0f
+  @SwingCoordinate private var myY = 0f
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val fontValue = myFont.value

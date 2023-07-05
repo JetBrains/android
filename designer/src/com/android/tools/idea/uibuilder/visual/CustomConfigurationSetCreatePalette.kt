@@ -36,8 +36,8 @@ private const val CUSTOM_SET_NAME = "Create a Custom Category"
 private const val HORIZONTAL_BORDER_PX = 12
 private const val FIELD_VERTICAL_BORDER_PX = 3
 
-class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit)
-  : AdtPrimaryPanel(BorderLayout()) {
+class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit) :
+  AdtPrimaryPanel(BorderLayout()) {
   private var customSetName: String = "Custom"
   private val addButton: JButton
 
@@ -52,12 +52,28 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit)
     optionPanel.border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, 0, 0, 0)
     add(optionPanel, BorderLayout.CENTER)
 
-    optionPanel.add(JBLabel("Name").apply {
-      border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, HORIZONTAL_BORDER_PX, FIELD_VERTICAL_BORDER_PX, 0)
-    })
-    optionPanel.add(createNameOptionPanel().apply {
-      border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, 0, FIELD_VERTICAL_BORDER_PX, HORIZONTAL_BORDER_PX)
-    })
+    optionPanel.add(
+      JBLabel("Name").apply {
+        border =
+          JBUI.Borders.empty(
+            FIELD_VERTICAL_BORDER_PX,
+            HORIZONTAL_BORDER_PX,
+            FIELD_VERTICAL_BORDER_PX,
+            0
+          )
+      }
+    )
+    optionPanel.add(
+      createNameOptionPanel().apply {
+        border =
+          JBUI.Borders.empty(
+            FIELD_VERTICAL_BORDER_PX,
+            0,
+            FIELD_VERTICAL_BORDER_PX,
+            HORIZONTAL_BORDER_PX
+          )
+      }
+    )
 
     addButton = JButton()
     add(createAddButtonPanel(addButton), BorderLayout.SOUTH)
@@ -83,12 +99,14 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit)
     val panel = AdtPrimaryPanel(BorderLayout())
     // It is okay to have duplicated name
     val editTextField = JBTextField(customSetName)
-    editTextField.document.addDocumentListener(object : DocumentAdapter() {
-      override fun textChanged(e: DocumentEvent) {
-        customSetName = e.document.getText(0, e.document.length) ?: ""
-        addButton.isEnabled = customSetName.isNotBlank()
+    editTextField.document.addDocumentListener(
+      object : DocumentAdapter() {
+        override fun textChanged(e: DocumentEvent) {
+          customSetName = e.document.getText(0, e.document.length) ?: ""
+          addButton.isEnabled = customSetName.isNotBlank()
+        }
       }
-    })
+    )
 
     editTextField.isFocusable = true
     panel.add(editTextField, BorderLayout.CENTER)
@@ -99,18 +117,21 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit)
 
   private fun createAddButtonPanel(button: JButton): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    panel.border = JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, 50, FIELD_VERTICAL_BORDER_PX * 3, 50)
-    val action = object : AbstractAction() {
-      override fun actionPerformed(e: ActionEvent) {
-        val setName = customSetName
-        if (setName.isBlank()) {
-          // Logically this should not happen. This is added in case the UI is not updated immediately.
-          UIManager.getLookAndFeel().provideErrorFeedback(addButton)
-          return
+    panel.border =
+      JBUI.Borders.empty(FIELD_VERTICAL_BORDER_PX, 50, FIELD_VERTICAL_BORDER_PX * 3, 50)
+    val action =
+      object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+          val setName = customSetName
+          if (setName.isBlank()) {
+            // Logically this should not happen. This is added in case the UI is not updated
+            // immediately.
+            UIManager.getLookAndFeel().provideErrorFeedback(addButton)
+            return
+          }
+          onCreated(setName)
         }
-        onCreated(setName)
       }
-    }
     button.action = action
 
     addButton.text = "Add"
@@ -121,5 +142,6 @@ class CustomConfigurationSetCreatePalette(val onCreated: (String) -> Unit)
     return panel
   }
 
-  override fun requestFocusInWindow(): Boolean = defaultFocusComponent?.requestFocusInWindow() ?: false
+  override fun requestFocusInWindow(): Boolean =
+    defaultFocusComponent?.requestFocusInWindow() ?: false
 }

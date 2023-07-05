@@ -21,31 +21,37 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.uibuilder.scout.Scout
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 
-class ScoutInferTestWithIncludeTest: SceneTest() {
+class ScoutInferTestWithIncludeTest : SceneTest() {
   override fun createModel(): ModelBuilder =
-    model("constraint.xml",
-          component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
-            .id("@+id/content_main")
-            .withBounds(0, 0, 2000, 2000)
+    model(
+      "constraint.xml",
+      component(AndroidXConstants.CONSTRAINT_LAYOUT.defaultName())
+        .id("@+id/content_main")
+        .withBounds(0, 0, 2000, 2000)
+        .width("match_parent")
+        .height("match_parent")
+        .children(
+          component(SdkConstants.TEXT_VIEW)
+            .id("@+id/textview")
+            .withBounds(900, 980, 200, 40)
             .width("match_parent")
-            .height("match_parent")
-            .children(
-              component(SdkConstants.TEXT_VIEW)
-                .id("@+id/textview")
-                .withBounds(900, 980, 200, 40)
-                .width("match_parent")
-                .height("match_parent"),
-              component(SdkConstants.TAG_INCLUDE)
-                .id("@+id/the_include")
-                .withAttribute("layout", "@layout/test_layout")
-                .withBounds(900, 980, 200, 40)
-            ))
+            .height("match_parent"),
+          component(SdkConstants.TAG_INCLUDE)
+            .id("@+id/the_include")
+            .withAttribute("layout", "@layout/test_layout")
+            .withBounds(900, 980, 200, 40)
+        )
+    )
 
   // Regression test for b/219886505
   fun testInferWithIncludeDoesNotThrow() {
-    runWriteCommandAction(myFacet.module.project) { Scout.inferConstraintsAndCommit(myModel.components) }
-    myScreen.get("@+id/content_main")
-      .expectXml("""
+    runWriteCommandAction(myFacet.module.project) {
+      Scout.inferConstraintsAndCommit(myModel.components)
+    }
+    myScreen
+      .get("@+id/content_main")
+      .expectXml(
+        """
         <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:id="@+id/content_main"
@@ -67,6 +73,8 @@ class ScoutInferTestWithIncludeTest: SceneTest() {
                 app:layout_constraintStart_toStartOf="@+id/textview"
                 app:layout_constraintTop_toTopOf="parent" />
         </android.support.constraint.ConstraintLayout>
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
   }
 }

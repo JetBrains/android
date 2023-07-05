@@ -21,11 +21,11 @@ import org.assertj.core.util.VisibleForTesting
 import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 
 /**
- * The purpose of this startup activity is to make sure the [IssuePanelService] is created after project is opened.
- * The [IssuePanelService] creates and setups [DesignerCommonIssuePanel] and [DesignerCommonIssueModel] when it is constructed. IJ create
- * the project service lazily, so we explicit get the instance to make it be created.
- * TODO? (b/235832774): Consider to move the setup of [DesignerCommonIssuePanel] and [DesignerCommonIssueModel] from [IssuePanelService] to
- * here?
+ * The purpose of this startup activity is to make sure the [IssuePanelService] is created after
+ * project is opened. The [IssuePanelService] creates and setups [DesignerCommonIssuePanel] and
+ * [DesignerCommonIssueModel] when it is constructed. IJ create the project service lazily, so we
+ * explicit get the instance to make it be created. TODO? (b/235832774): Consider to move the setup
+ * of [DesignerCommonIssuePanel] and [DesignerCommonIssueModel] from [IssuePanelService] to here?
  */
 class IssuePanelStartupActivity : StartupActivity {
   override fun runActivity(project: Project) {
@@ -37,7 +37,8 @@ class IssuePanelStartupActivity : StartupActivity {
 
   @VisibleForTesting
   fun setupIssuePanel(project: Project) {
-    // IJ's framework does not construct the instance of service before it is used.  Getting the instance to make sure the shared issue
+    // IJ's framework does not construct the instance of service before it is used.  Getting the
+    // instance to make sure the shared issue
     // panel is created.
     IssuePanelService.getInstance(project)
   }

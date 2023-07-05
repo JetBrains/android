@@ -21,13 +21,11 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
-
-/**
- * The dropdown action used to choose the configuration set in visualization tool.
- */
-class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
-                                 defaultSet: ConfigurationSet)
-  : DropDownAction(null, "Configuration Set", null) {
+/** The dropdown action used to choose the configuration set in visualization tool. */
+class ConfigurationSetMenuAction(
+  private val listener: ConfigurationSetListener,
+  defaultSet: ConfigurationSet
+) : DropDownAction(null, "Configuration Set", null) {
 
   private var currentConfigurationSet = defaultSet
 
@@ -58,17 +56,20 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
     }
   }
 
-  private inner class SetConfigurationSetAction(private val configurationSet: ConfigurationSet)
-    : AnAction(configurationSet.name,
-               "Set configuration set to ${configurationSet.name}",
-               if (currentConfigurationSet === configurationSet) StudioIcons.Common.CHECKED else null) {
+  private inner class SetConfigurationSetAction(private val configurationSet: ConfigurationSet) :
+    AnAction(
+      configurationSet.name,
+      "Set configuration set to ${configurationSet.name}",
+      if (currentConfigurationSet === configurationSet) StudioIcons.Common.CHECKED else null
+    ) {
 
     override fun actionPerformed(e: AnActionEvent) {
       selectConfigurationSet(configurationSet)
     }
 
     override fun update(e: AnActionEvent) {
-      e.presentation.icon = if (currentConfigurationSet.id === configurationSet.id) StudioIcons.Common.CHECKED else null
+      e.presentation.icon =
+        if (currentConfigurationSet.id === configurationSet.id) StudioIcons.Common.CHECKED else null
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

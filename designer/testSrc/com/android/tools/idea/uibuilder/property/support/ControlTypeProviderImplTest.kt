@@ -23,6 +23,7 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.dom.attrs.AttributeDefinition
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
@@ -33,23 +34,26 @@ import com.android.tools.property.panel.api.EnumSupportProvider
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.android.tools.dom.attrs.AttributeDefinition
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 
 @RunsInEdt
 class ControlTypeProviderImplTest {
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @JvmField @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   @Test
   fun testFlagEditorForFlagProperties() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val definition = AttributeDefinition(ResourceNamespace.RES_AUTO, "definition", null, listOf(AttributeFormat.FLAGS))
+    val definition =
+      AttributeDefinition(
+        ResourceNamespace.RES_AUTO,
+        "definition",
+        null,
+        listOf(AttributeFormat.FLAGS)
+      )
     val property = util.makeFlagsProperty(ANDROID_URI, definition)
     val enumSupportProvider = createEnumSupportProvider()
     val enumSupport = mock(EnumSupport::class.java)
@@ -72,7 +76,8 @@ class ControlTypeProviderImplTest {
   @Test
   fun testBooleanForBooleanTypes() {
     val util = SupportTestUtil(projectRule, TEXT_VIEW)
-    val property = util.makeProperty(ANDROID_URI, ATTR_CLICKABLE, NlPropertyType.THREE_STATE_BOOLEAN)
+    val property =
+      util.makeProperty(ANDROID_URI, ATTR_CLICKABLE, NlPropertyType.THREE_STATE_BOOLEAN)
     val enumSupportProvider = createEnumSupportProvider()
     val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
     assertThat(controlTypeProvider(property)).isEqualTo(ControlType.THREE_STATE_BOOLEAN)

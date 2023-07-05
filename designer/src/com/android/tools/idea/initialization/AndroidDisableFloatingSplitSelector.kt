@@ -18,11 +18,9 @@ package com.android.tools.idea.initialization
 import com.intellij.ide.ApplicationInitializedListener
 import com.intellij.openapi.util.registry.Registry
 
-/**
- * [ApplicationInitializedListener] that disables the floating split/code/design selector.
- */
+/** [ApplicationInitializedListener] that disables the floating split/code/design selector. */
 @Suppress("UnstableApiUsage")
-class AndroidDisableFloatingSplitSelector: ApplicationInitializedListener {
+class AndroidDisableFloatingSplitSelector : ApplicationInitializedListener {
   override fun componentsInitialized() {
     Registry.get("ide.text.editor.with.preview.show.floating.toolbar").setValue(false)
   }

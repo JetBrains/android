@@ -26,16 +26,19 @@ import java.awt.Color
 import java.awt.Graphics2D
 import javax.swing.Icon
 
-class DrawIcon(private val icon: Icon,
-               private val rectangle: SwingRectangle,
-               private val color: Color? = null) : DrawCommandBase() {
+class DrawIcon(
+  private val icon: Icon,
+  private val rectangle: SwingRectangle,
+  private val color: Color? = null
+) : DrawCommandBase() {
 
   override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     g.setRenderingHints(HQ_RENDERING_HINTS)
     val coloredIcon = color?.let { ColoredIconGenerator.generateColoredIcon(icon, it) } ?: icon
-    val image = IconLoader.toImage(coloredIcon, ScaleContext.create(g)).let {
-      ImageUtil.scaleImage(it, rectangle.width.toInt(), rectangle.height.toInt())
-    }
+    val image =
+      IconLoader.toImage(coloredIcon, ScaleContext.create(g)).let {
+        ImageUtil.scaleImage(it, rectangle.width.toInt(), rectangle.height.toInt())
+      }
     UIUtil.drawImage(g, image, rectangle.x.toInt(), rectangle.y.toInt(), null)
   }
 }

@@ -19,6 +19,9 @@ import com.android.tools.adtui.swing.FakeUi
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.ui.components.JBLabel
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JPanel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -26,9 +29,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JPanel
 
 class SceneViewErrorsPanelTest {
 
@@ -36,18 +36,17 @@ class SceneViewErrorsPanelTest {
   private lateinit var panelParent: JPanel
 
   companion object {
-    @JvmField
-    @ClassRule
-    val appRule = ApplicationRule()
+    @JvmField @ClassRule val appRule = ApplicationRule()
   }
 
   @Before
   fun setUp() {
     invokeAndWaitIfNeeded {
-      panelParent = JPanel().apply {
-        layout = BorderLayout()
-        size = Dimension(1000, 800)
-      }
+      panelParent =
+        JPanel().apply {
+          layout = BorderLayout()
+          size = Dimension(1000, 800)
+        }
       fakeUi = FakeUi(panelParent, 1.0, true)
       fakeUi.root.validate()
     }
@@ -70,7 +69,11 @@ class SceneViewErrorsPanelTest {
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
     invokeAndWaitIfNeeded { fakeUi.root.validate() }
 
-    assertNotNull(fakeUi.findComponent<JBLabel> { it.text.contains("Some issues were found while trying to render this preview") })
+    assertNotNull(
+      fakeUi.findComponent<JBLabel> {
+        it.text.contains("Some issues were found while trying to render this preview")
+      }
+    )
   }
 
   @Test

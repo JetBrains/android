@@ -23,9 +23,7 @@ import org.junit.Test
 
 class DesignerCommonIssueRootTest {
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testCreateNoFileNode() {
@@ -35,7 +33,9 @@ class DesignerCommonIssueRootTest {
     val issues = listOf(issue1, issue2, issue3)
     val provider = DesignerCommonIssueTestProvider(listOf(issue1, issue2, issue3))
     val root = DesignerCommonIssueRoot(null, provider) { LayoutValidationNodeFactory }
-    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
+    root.setComparator(
+      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
+    )
 
     // The issues have no source file results NoFileNode
     val noFileNode = LayoutValidationNoFileNode(root)
@@ -77,11 +77,18 @@ class DesignerCommonIssueRootTest {
     val provider = DesignerCommonIssueTestProvider(issues)
 
     val root = DesignerCommonIssueRoot(null, provider) { LayoutValidationNodeFactory }
-    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
+    root.setComparator(
+      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
+    )
 
     // The order of node is sorted by the file name alphabetically.
     // And the NoFileNode will always be the last one.
-    val expected = listOf(IssuedFileNode(file1, root), IssuedFileNode(file2, root), LayoutValidationNoFileNode(root))
+    val expected =
+      listOf(
+        IssuedFileNode(file1, root),
+        IssuedFileNode(file2, root),
+        LayoutValidationNoFileNode(root)
+      )
     assertEquals(expected, root.getChildren())
   }
 
@@ -97,7 +104,9 @@ class DesignerCommonIssueRootTest {
 
     val provider = DesignerCommonIssueTestProvider(issues)
     val root = DesignerCommonIssueRoot(null, provider) { LayoutValidationNodeFactory }
-    root.setComparator(DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true))
+    root.setComparator(
+      DesignerCommonIssueNodeComparator(sortedBySeverity = true, sortedByName = true)
+    )
 
     // The order of issues in same child node is same as the given order from IssueProvider
     val fileNode = IssuedFileNode(file, root)
@@ -123,29 +132,35 @@ class DesignerCommonIssueRootTest {
     val noFileIssueB = TestIssue(summary = "no file issueB")
     val noFileIssueC = TestIssue(summary = "no file issueC")
 
-    val allIssues = listOf(
-      file1IssueA,
-      file2IssueC,
-      file1IssueB,
-      noFileIssueA,
-      file2IssueA,
-      file1IssueC,
-      file2IssueB,
-      noFileIssueC,
-      noFileIssueB,
-    )
+    val allIssues =
+      listOf(
+        file1IssueA,
+        file2IssueC,
+        file1IssueB,
+        noFileIssueA,
+        file2IssueA,
+        file1IssueC,
+        file2IssueB,
+        noFileIssueC,
+        noFileIssueB,
+      )
 
     val provider = DesignerCommonIssueTestProvider(allIssues)
     val root = DesignerCommonIssueRoot(null, provider) { LayoutValidationNodeFactory }
 
     val fileNode1 = IssuedFileNode(file1, root)
-    val fileNode1Children = listOf(file1IssueA, file1IssueB, file1IssueC).map { IssueNode(file1, it, fileNode1) }.toList()
+    val fileNode1Children =
+      listOf(file1IssueA, file1IssueB, file1IssueC).map { IssueNode(file1, it, fileNode1) }.toList()
 
     val fileNode2 = IssuedFileNode(file2, root)
-    val fileNode2Children = listOf(file2IssueA, file2IssueB, file2IssueC).map { IssueNode(file2, it, fileNode2) }.toList()
+    val fileNode2Children =
+      listOf(file2IssueA, file2IssueB, file2IssueC).map { IssueNode(file2, it, fileNode2) }.toList()
 
     val noFileNode = LayoutValidationNoFileNode(root)
-    val noFileNodeChildren = listOf(noFileIssueA, noFileIssueB, noFileIssueC).map { IssueNode(null, it, noFileNode) }.toList()
+    val noFileNodeChildren =
+      listOf(noFileIssueA, noFileIssueB, noFileIssueC)
+        .map { IssueNode(null, it, noFileNode) }
+        .toList()
 
     assertEquals(listOf(fileNode1, fileNode2, noFileNode), root.getChildren())
     assertEquals(fileNode1Children, fileNode1.getChildren())

@@ -27,9 +27,14 @@ object PreferenceScreenFileType : LayoutEditorFileType("preference_screen") {
   override fun getLayoutEditorStateType() = LayoutEditorState.Type.PREFERENCE_SCREEN
 
   override fun isResourceTypeOf(file: PsiFile) =
-    file is XmlFile && FileDescriptionUtils.isResourceOfTypeWithRootTag(file,
-                                                                        ResourceFolderType.XML,
-                                                                        listOf(PREFERENCE_SCREEN,
-                                                                               CLASS_PREFERENCE_SCREEN_ANDROIDX.oldName(),
-                                                                               CLASS_PREFERENCE_SCREEN_ANDROIDX.newName()))
+    file is XmlFile &&
+      FileDescriptionUtils.isResourceOfTypeWithRootTag(
+        file,
+        ResourceFolderType.XML,
+        listOf(
+          PREFERENCE_SCREEN,
+          CLASS_PREFERENCE_SCREEN_ANDROIDX.oldName(),
+          CLASS_PREFERENCE_SCREEN_ANDROIDX.newName()
+        )
+      )
 }

@@ -28,44 +28,35 @@ import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.ui.update.MergingUpdateQueue
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertEquals
-import java.util.concurrent.TimeUnit
 
-
-/**
- * Extension to run operations on the [Document] associated to the given [PsiFile]
- */
+/** Extension to run operations on the [Document] associated to the given [PsiFile] */
 private fun PsiFile.runOnDocument(runnable: (PsiDocumentManager, Document) -> Unit) {
   val documentManager = PsiDocumentManager.getInstance(project)
   val document = documentManager.getDocument(this)!!
 
-  WriteCommandAction.runWriteCommandAction(project) {
-    runnable(documentManager, document)
+  WriteCommandAction.runWriteCommandAction(project) { runnable(documentManager, document) }
+}
+/** Extension to replace the first occurrence of the [find] string to [replace] */
+private fun PsiFile.replaceStringOnce(find: String, replace: String) =
+  runOnDocument { documentManager, document ->
+    documentManager.commitDocument(document)
+
+    val index = text.indexOf(find)
+    assert(index != -1) { "\"$find\" not found in the given file" }
+
+    document.replaceString(index, index + find.length, replace)
+    documentManager.commitDocument(document)
   }
-}
-/**
- * Extension to replace the first occurrence of the [find] string to [replace]
- */
-private fun PsiFile.replaceStringOnce(find: String, replace: String) = runOnDocument { documentManager, document ->
-  documentManager.commitDocument(document)
-
-  val index = text.indexOf(find)
-  assert(index != -1) { "\"$find\" not found in the given file"}
-
-  document.replaceString(index, index + find.length, replace)
-  documentManager.commitDocument(document)
-}
-/**
- * Helper class do test change tracking and asserting on specific types of changes.
- */
+/** Helper class do test change tracking and asserting on specific types of changes. */
 private class ChangeTracker {
   private var refreshCounter = 0
 
@@ -73,9 +64,7 @@ private class ChangeTracker {
     refreshCounter = 0
   }
 
-  /**
-   * Called when a non-code change happens an a refresh would be required.
-   */
+  /** Called when a non-code change happens an a refresh would be required. */
   fun onRefresh(lastUpdatedNanos: Long) {
     refreshCounter++
   }
@@ -92,16 +81,15 @@ private class ChangeTracker {
     assertEquals(refresh, refreshCounter)
   }
 
-  /**
-   * Asserts that the given [runnable] triggers refresh notification.
-   */
+  /** Asserts that the given [runnable] triggers refresh notification. */
   fun assertRefreshed(runnable: () -> Unit) = assertWithCounters(refresh = 1, runnable = runnable)
 }
 
 class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
   fun testSingleFileChangeTests() {
     @Language("kotlin")
-    val startFileContent = """
+    val startFileContent =
+      """
       import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.runtime.Composable
 
@@ -132,36 +120,35 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
       fun NoComposablePreview(label: String) {
 
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
 
     val tracker = ChangeTracker()
-    val testMergeQueue = MergingUpdateQueue("Document change queue",
-                                            0,
-                                            true,
-                                            null,
-                                            testRootDisposable).apply {
-      isPassThrough = true
-    }
-    setupChangeListener(project,
-                        composeTest,
-                        tracker::onRefresh,
-                        testRootDisposable,
-                        mergeQueue = testMergeQueue)
+    val testMergeQueue =
+      MergingUpdateQueue("Document change queue", 0, true, null, testRootDisposable).apply {
+        isPassThrough = true
+      }
+    setupChangeListener(
+      project,
+      composeTest,
+      tracker::onRefresh,
+      testRootDisposable,
+      mergeQueue = testMergeQueue
+    )
 
     tracker.assertRefreshed {
       composeTest.replaceStringOnce("name = \"preview2\"", "name = \"preview2B\"")
     }
-    tracker.assertRefreshed {
-      composeTest.replaceStringOnce("heightDp = 2", "heightDp = 50")
-    }
-    tracker.assertRefreshed {
-      composeTest.replaceStringOnce("@Preview", "//@Preview")
-    }
+    tracker.assertRefreshed { composeTest.replaceStringOnce("heightDp = 2", "heightDp = 50") }
+    tracker.assertRefreshed { composeTest.replaceStringOnce("@Preview", "//@Preview") }
 
     tracker.assertRefreshed {
-      composeTest.replaceStringOnce("NoComposablePreview(\"hello\")", "NoComposablePreview(\"bye\")")
+      composeTest.replaceStringOnce(
+        "NoComposablePreview(\"hello\")",
+        "NoComposablePreview(\"bye\")"
+      )
     }
     tracker.assertRefreshed {
       composeTest.replaceStringOnce("NoComposablePreview(\"bye\")", "NoPreviewComposable()")
@@ -177,7 +164,8 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
 
   fun testOnSaveTriggers() {
     @Language("kotlin")
-    val startFileContent = """
+    val startFileContent =
+      """
       import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.runtime.Composable
 
@@ -185,38 +173,37 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
       @Preview
       fun Preview1() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
 
-    val testMergeQueue = MergingUpdateQueue("Document change queue",
-                                            0,
-                                            true,
-                                            null,
-                                            testRootDisposable).apply {
-      isPassThrough = true
-    }
+    val testMergeQueue =
+      MergingUpdateQueue("Document change queue", 0, true, null, testRootDisposable).apply {
+        isPassThrough = true
+      }
     var saveCount = 0
-    setupOnSaveListener(project,
-                        composeTest,
-                        { saveCount++ },
-                        testRootDisposable,
-                        mergeQueue = testMergeQueue)
+    setupOnSaveListener(
+      project,
+      composeTest,
+      { saveCount++ },
+      testRootDisposable,
+      mergeQueue = testMergeQueue
+    )
     assertEquals(0, saveCount)
     FileDocumentManager.getInstance().saveAllDocuments()
     // No pending changes
     assertEquals(0, saveCount)
 
-    composeTest.runOnDocument { _, document ->
-      document.insertString(0, "// Just a comment\n")
-    }
+    composeTest.runOnDocument { _, document -> document.insertString(0, "// Just a comment\n") }
     FileDocumentManager.getInstance().saveAllDocuments()
     assertEquals(1, saveCount)
   }
 
   fun testChangeFlow(): Unit = runBlocking {
     @Language("kotlin")
-    val startFileContent = """
+    val startFileContent =
+      """
       import androidx.compose.ui.tooling.preview.Preview
       import androidx.compose.runtime.Composable
 
@@ -224,13 +211,16 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
       @Preview
       fun Preview1() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     val composeTest = myFixture.addFileToProject("src/Test.kt", startFileContent)
     val ready = CompletableDeferred<Unit>()
-    val changes = async(workerThread) {
-      documentChangeFlow(composeTest, testRootDisposable, onReady = { ready.complete(Unit) })
-        .take(3).toList()
-    }
+    val changes =
+      async(workerThread) {
+        documentChangeFlow(composeTest, testRootDisposable, onReady = { ready.complete(Unit) })
+          .take(3)
+          .toList()
+      }
     ready.await()
 
     repeat(3) {
@@ -242,8 +232,6 @@ class ChangeManagerTest : LightJavaCodeInsightFixtureTestCase() {
       }
     }
 
-    withTimeout(TimeUnit.SECONDS.toMillis(3)) {
-      assertEquals(3, changes.await().size)
-    }
+    withTimeout(TimeUnit.SECONDS.toMillis(3)) { assertEquals(3, changes.await().size) }
   }
 }

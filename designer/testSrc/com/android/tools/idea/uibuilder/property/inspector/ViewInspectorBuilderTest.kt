@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property.inspector
 
+import com.android.AndroidXConstants.BOTTOM_NAVIGATION_VIEW
+import com.android.AndroidXConstants.FLOATING_ACTION_BUTTON
+import com.android.AndroidXConstants.TAB_LAYOUT
+import com.android.AndroidXConstants.TEXT_INPUT_LAYOUT
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ADDITIONAL_PADDING_END_FOR_ICON
 import com.android.SdkConstants.ATTR_ADDITIONAL_PADDING_START_FOR_ICON
@@ -131,16 +135,12 @@ import com.android.SdkConstants.ATTR_TINT
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BOTTOM_APP_BAR
-import com.android.AndroidXConstants.BOTTOM_NAVIGATION_VIEW
 import com.android.SdkConstants.BUTTON
 import com.android.SdkConstants.CHIP
 import com.android.SdkConstants.CHIP_GROUP
-import com.android.AndroidXConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.MATERIAL_BUTTON
-import com.android.AndroidXConstants.TAB_LAYOUT
-import com.android.AndroidXConstants.TEXT_INPUT_LAYOUT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -156,15 +156,14 @@ import org.junit.Test
 
 @RunsInEdt
 class ViewInspectorBuilderTest {
-  @JvmField @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setUp() {
-    projectRule.fixture.testDataPath = resolveWorkspacePath("tools/adt/idea/designer/testData/property/").toString()
+    projectRule.fixture.testDataPath =
+      resolveWorkspacePath("tools/adt/idea/designer/testData/property/").toString()
     addManifest(projectRule.fixture)
   }
 
@@ -243,7 +242,10 @@ class ViewInspectorBuilderTest {
   @Test
   fun testBottomAppBar() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("BottomAppBar.java", "src/java/com/google/android/material/bottomappbar/BottomAppBar.java")
+    projectRule.fixture.copyFileToProject(
+      "BottomAppBar.java",
+      "src/java/com/google/android/material/bottomappbar/BottomAppBar.java"
+    )
     val util = InspectorTestUtil(projectRule, BOTTOM_APP_BAR, parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
@@ -263,8 +265,14 @@ class ViewInspectorBuilderTest {
   @Test
   fun testMaterialButton() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("AppCompatButton.java", "src/java/android/support/v7/widget/MaterialButton.java")
-    projectRule.fixture.copyFileToProject("MaterialButton.java", "src/java/com/google/android/material/button/MaterialButton.java")
+    projectRule.fixture.copyFileToProject(
+      "AppCompatButton.java",
+      "src/java/android/support/v7/widget/MaterialButton.java"
+    )
+    projectRule.fixture.copyFileToProject(
+      "MaterialButton.java",
+      "src/java/com/google/android/material/button/MaterialButton.java"
+    )
     val util = InspectorTestUtil(projectRule, MATERIAL_BUTTON, parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
@@ -298,7 +306,10 @@ class ViewInspectorBuilderTest {
   @Test
   fun testChipGroup() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("ChipGroup.java", "src/java/com/google/android/material/chip/ChipGroup.java")
+    projectRule.fixture.copyFileToProject(
+      "ChipGroup.java",
+      "src/java/com/google/android/material/chip/ChipGroup.java"
+    )
     val util = InspectorTestUtil(projectRule, CHIP_GROUP, parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
@@ -318,9 +329,18 @@ class ViewInspectorBuilderTest {
   @Test
   fun testChip() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("AppCompatCheckBox.java", "src/java/android/support/v7/widget/AppCompatCheckBox.java")
-    projectRule.fixture.copyFileToProject("Chip.java", "src/java/com/google/android/material/chip/Chip.java")
-    projectRule.fixture.copyFileToProject("ChipGroup.java", "src/java/com/google/android/material/chip/ChipGroup.java")
+    projectRule.fixture.copyFileToProject(
+      "AppCompatCheckBox.java",
+      "src/java/android/support/v7/widget/AppCompatCheckBox.java"
+    )
+    projectRule.fixture.copyFileToProject(
+      "Chip.java",
+      "src/java/com/google/android/material/chip/Chip.java"
+    )
+    projectRule.fixture.copyFileToProject(
+      "ChipGroup.java",
+      "src/java/com/google/android/material/chip/ChipGroup.java"
+    )
     val util = InspectorTestUtil(projectRule, CHIP, parentTag = CHIP_GROUP)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
@@ -342,8 +362,12 @@ class ViewInspectorBuilderTest {
   @Test
   fun testBottomNavigationView() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("BottomNavigationView.java", "src/java/android/support/design/widget/BottomNavigationView.java")
-    val util = InspectorTestUtil(projectRule, BOTTOM_NAVIGATION_VIEW.oldName(), parentTag = LINEAR_LAYOUT)
+    projectRule.fixture.copyFileToProject(
+      "BottomNavigationView.java",
+      "src/java/android/support/design/widget/BottomNavigationView.java"
+    )
+    val util =
+      InspectorTestUtil(projectRule, BOTTOM_NAVIGATION_VIEW.oldName(), parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
@@ -363,9 +387,12 @@ class ViewInspectorBuilderTest {
   @Test
   fun testBottomNavigationViewX() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("BottomNavigationViewX.java",
-                                          "src/java/com/google/android/material/bottomnavigation/BottomNavigationView.java")
-    val util = InspectorTestUtil(projectRule, BOTTOM_NAVIGATION_VIEW.newName(), parentTag = LINEAR_LAYOUT)
+    projectRule.fixture.copyFileToProject(
+      "BottomNavigationViewX.java",
+      "src/java/com/google/android/material/bottomnavigation/BottomNavigationView.java"
+    )
+    val util =
+      InspectorTestUtil(projectRule, BOTTOM_NAVIGATION_VIEW.newName(), parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
@@ -385,9 +412,12 @@ class ViewInspectorBuilderTest {
   @Test
   fun testFloatingActionButton() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("FloatingActionButton.java",
-                                          "src/java/android/support/design/floatingactionbutton/FloatingActionButton.java")
-    val util = InspectorTestUtil(projectRule, FLOATING_ACTION_BUTTON.oldName(), parentTag = LINEAR_LAYOUT)
+    projectRule.fixture.copyFileToProject(
+      "FloatingActionButton.java",
+      "src/java/android/support/design/floatingactionbutton/FloatingActionButton.java"
+    )
+    val util =
+      InspectorTestUtil(projectRule, FLOATING_ACTION_BUTTON.oldName(), parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
@@ -415,9 +445,12 @@ class ViewInspectorBuilderTest {
   @Test
   fun testFloatingActionButtonX() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("FloatingActionButtonX.java",
-                                          "src/java/com/google/android/material/floatingactionbutton/FloatingActionButton.java")
-    val util = InspectorTestUtil(projectRule, FLOATING_ACTION_BUTTON.newName(), parentTag = LINEAR_LAYOUT)
+    projectRule.fixture.copyFileToProject(
+      "FloatingActionButtonX.java",
+      "src/java/com/google/android/material/floatingactionbutton/FloatingActionButton.java"
+    )
+    val util =
+      InspectorTestUtil(projectRule, FLOATING_ACTION_BUTTON.newName(), parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
@@ -445,7 +478,10 @@ class ViewInspectorBuilderTest {
   @Test
   fun testTabLayout() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("TabLayout.java", "src/java/android/support/design/TabLayout.java")
+    projectRule.fixture.copyFileToProject(
+      "TabLayout.java",
+      "src/java/android/support/design/TabLayout.java"
+    )
     val util = InspectorTestUtil(projectRule, TAB_LAYOUT.oldName(), parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
@@ -486,7 +522,10 @@ class ViewInspectorBuilderTest {
   @Test
   fun testTabLayoutX() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("TabLayoutX.java", "src/java/com/google/android/material/tabs/TabLayout.java")
+    projectRule.fixture.copyFileToProject(
+      "TabLayoutX.java",
+      "src/java/com/google/android/material/tabs/TabLayout.java"
+    )
     val util = InspectorTestUtil(projectRule, TAB_LAYOUT.newName(), parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
@@ -527,8 +566,12 @@ class ViewInspectorBuilderTest {
   @Test
   fun testTextInputLayout() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("TextInputLayout.java", "src/java/android/support/design/text/TextInputLayout.java")
-    val util = InspectorTestUtil(projectRule, TEXT_INPUT_LAYOUT.oldName(), parentTag = LINEAR_LAYOUT)
+    projectRule.fixture.copyFileToProject(
+      "TextInputLayout.java",
+      "src/java/android/support/design/text/TextInputLayout.java"
+    )
+    val util =
+      InspectorTestUtil(projectRule, TEXT_INPUT_LAYOUT.oldName(), parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
@@ -564,8 +607,12 @@ class ViewInspectorBuilderTest {
   @Test
   fun testTextInputLayoutX() {
     projectRule.fixture.copyFileToProject("material.xml", "res/values/material.xml")
-    projectRule.fixture.copyFileToProject("TextInputLayoutX.java", "src/java/com/google/android/material/textfield/TextInputLayout.java")
-    val util = InspectorTestUtil(projectRule, TEXT_INPUT_LAYOUT.newName(), parentTag = LINEAR_LAYOUT)
+    projectRule.fixture.copyFileToProject(
+      "TextInputLayoutX.java",
+      "src/java/com/google/android/material/textfield/TextInputLayout.java"
+    )
+    val util =
+      InspectorTestUtil(projectRule, TEXT_INPUT_LAYOUT.newName(), parentTag = LINEAR_LAYOUT)
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
@@ -601,8 +648,7 @@ class ViewInspectorBuilderTest {
   private fun addImageViewProperties(util: InspectorTestUtil, withAppCompat: Boolean) {
     if (withAppCompat) {
       util.addProperty(AUTO_URI, ATTR_SRC_COMPAT, NlPropertyType.DRAWABLE)
-    }
-    else {
+    } else {
       util.addProperty(ANDROID_URI, ATTR_SRC, NlPropertyType.DRAWABLE)
     }
     util.addProperty(ANDROID_URI, ATTR_CONTENT_DESCRIPTION, NlPropertyType.STRING)

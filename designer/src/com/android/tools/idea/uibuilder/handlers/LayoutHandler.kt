@@ -30,11 +30,14 @@ import com.android.tools.idea.uibuilder.handlers.frame.FrameDragHandler
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler
 import java.awt.Point
 
-/**
- * Handler for the <layout> tag
- */
+/** Handler for the <layout> tag */
 class LayoutHandler : FrameLayoutHandler() {
-  override fun createDragHandler(editor: ViewEditor, layout: SceneComponent, components: List<NlComponent>, type: DragType): DragHandler {
+  override fun createDragHandler(
+    editor: ViewEditor,
+    layout: SceneComponent,
+    components: List<NlComponent>,
+    type: DragType
+  ): DragHandler {
     return FrameDragHandler(editor, this, layout, components, type)
   }
 
@@ -46,7 +49,8 @@ class LayoutHandler : FrameLayoutHandler() {
     return "<layout>"
   }
 
-  override fun getPlaceholders(component: SceneComponent, draggedComponents: List<SceneComponent>) = listOf(LayoutPlaceholder(component))
+  override fun getPlaceholders(component: SceneComponent, draggedComponents: List<SceneComponent>) =
+    listOf(LayoutPlaceholder(component))
 }
 
 class LayoutPlaceholder(host: SceneComponent) : Placeholder(host) {
@@ -60,7 +64,8 @@ class LayoutPlaceholder(host: SceneComponent) : Placeholder(host) {
   }
 
   override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
-    // Only allow to add component when there is no root View. Having only <data> tag is acceptable since it is not a View.
+    // Only allow to add component when there is no root View. Having only <data> tag is acceptable
+    // since it is not a View.
     if (!(host.nlComponent.children.any { it.tagName != SdkConstants.TAG_DATA })) {
       if (region.contains(info.centerX, info.centerY)) {
         retPoint.x = info.left
@@ -71,5 +76,6 @@ class LayoutPlaceholder(host: SceneComponent) : Placeholder(host) {
     return false
   }
 
-  override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) = Unit
+  override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) =
+    Unit
 }

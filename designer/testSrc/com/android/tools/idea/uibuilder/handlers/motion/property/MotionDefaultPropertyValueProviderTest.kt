@@ -31,13 +31,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class MotionDefaultPropertyValueProviderTest {
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.onDisk()
+  @JvmField @Rule val projectRule = AndroidProjectRule.onDisk()
 
-  @JvmField
-  @Rule
-  val motionRule = MotionAttributeRule(projectRule)
+  @JvmField @Rule val motionRule = MotionAttributeRule(projectRule)
 
   @Test
   fun testConstraintFromLayout() {

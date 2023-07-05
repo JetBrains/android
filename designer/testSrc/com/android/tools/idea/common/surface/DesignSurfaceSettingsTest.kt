@@ -19,7 +19,7 @@ import com.android.tools.idea.common.BackedTestFile
 import org.jetbrains.android.AndroidTestCase
 
 @Suppress("UnstableApiUsage")
-class DesignSurfaceSettingsTest: AndroidTestCase() {
+class DesignSurfaceSettingsTest : AndroidTestCase() {
 
   private lateinit var defaultFilePathToZoomLevelMap: MutableMap<String, Double>
 
@@ -33,11 +33,9 @@ class DesignSurfaceSettingsTest: AndroidTestCase() {
     val settings = SurfaceState()
     try {
       settings.filePathToZoomLevelMap = defaultFilePathToZoomLevelMap
-    }
-    catch (t: Throwable) {
+    } catch (t: Throwable) {
       addSuppressedException(t)
-    }
-    finally {
+    } finally {
       super.tearDown()
     }
   }

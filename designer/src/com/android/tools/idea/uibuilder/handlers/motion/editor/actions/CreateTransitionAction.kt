@@ -23,13 +23,18 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Cre
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateKeyTrigger
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor
 
-/**
- * Create Transition action.
- */
-class CreateTransitionAction(private val motionEditor: MotionEditor) : OpenPopUpAction("Create KeyFrames", MEIcons.CREATE_KEYFRAME) {
+/** Create Transition action. */
+class CreateTransitionAction(private val motionEditor: MotionEditor) :
+  OpenPopUpAction("Create KeyFrames", MEIcons.CREATE_KEYFRAME) {
 
-  private val panels = listOf(CreateKeyPosition(), CreateKeyAttribute(), CreateKeyTrigger(), CreateKeyCycle(), CreateKeyTimeCycle())
+  private val panels =
+    listOf(
+      CreateKeyPosition(),
+      CreateKeyAttribute(),
+      CreateKeyTrigger(),
+      CreateKeyCycle(),
+      CreateKeyTimeCycle()
+    )
 
   override val actions = panels.map { panel -> PanelAction(panel, motionEditor) }
-
 }

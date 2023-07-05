@@ -31,12 +31,17 @@ import com.intellij.psi.xml.XmlFile
 
 class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
   private val motionLayout = nlModel.components.single()
-  private val motionScene = MotionSceneTag.parse(motionLayout, nlModel.project, sceneFile.virtualFile, sceneFile)
+  private val motionScene =
+    MotionSceneTag.parse(motionLayout, nlModel.project, sceneFile.virtualFile, sceneFile)
   private val meModel = MeModel(motionScene, convertToNlComponentTag(motionLayout), null, null)
 
   fun createConstraintSet(id: String): MotionSelection {
     val tag = findConstraintSet(id)
-    return MotionSelection(MotionEditorSelector.Type.CONSTRAINT_SET, arrayOf(tag), nlModel.components)
+    return MotionSelection(
+      MotionEditorSelector.Type.CONSTRAINT_SET,
+      arrayOf(tag),
+      nlModel.components
+    )
   }
 
   fun createConstraint(setId: String, id: String): MotionSelection {
@@ -54,42 +59,63 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
     return MotionSelection(MotionEditorSelector.Type.TRANSITION, arrayOf(tag), nlModel.components)
   }
 
-  fun createKeyFrame(start: String, end: String, keyType: String, framePosition: Int, target: String): MotionSelection {
+  fun createKeyFrame(
+    start: String,
+    end: String,
+    keyType: String,
+    framePosition: Int,
+    target: String
+  ): MotionSelection {
     val component = nlModel.find(target) ?: motionLayout
     val keyFrameSet = findKeyFrameSet(start, end)
     val keyFrame = findKeyFrame(keyFrameSet, keyType, framePosition, target) as MTag
-    return MotionSelection(MotionEditorSelector.Type.KEY_FRAME, arrayOf(keyFrame), listOf(component))
+    return MotionSelection(
+      MotionEditorSelector.Type.KEY_FRAME,
+      arrayOf(keyFrame),
+      listOf(component)
+    )
   }
 
   private fun findConstraintSet(id: String): MotionSceneTag {
-    return motionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET)
-             .firstOrNull { id == Utils.stripID(it.getAttributeValue(SdkConstants.ATTR_ID)) }
-             as? MotionSceneTag ?: throw error("ConstraintSet not found: $id")
+    return motionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET).firstOrNull {
+      id == Utils.stripID(it.getAttributeValue(SdkConstants.ATTR_ID))
+    } as? MotionSceneTag
+      ?: throw error("ConstraintSet not found: $id")
   }
 
   private fun findTransition(start: String, end: String): MotionSceneTag {
     return motionScene.getChildTags(MotionSceneAttrs.Tags.TRANSITION).firstOrNull {
-      start == Utils.stripID(it.getAttributeValue(MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START)) &&
-      end == Utils.stripID(it.getAttributeValue(MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END))
-    } as? MotionSceneTag ?: throw error("Transition not found: start=$start, end=$end")
+      start ==
+        Utils.stripID(it.getAttributeValue(MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_START)) &&
+        end ==
+          Utils.stripID(it.getAttributeValue(MotionSceneAttrs.Transition.ATTR_CONSTRAINTSET_END))
+    } as? MotionSceneTag
+      ?: throw error("Transition not found: start=$start, end=$end")
   }
 
   private fun findKeyFrameSet(start: String, end: String): MotionSceneTag {
     val transition = findTransition(start, end)
-    return transition.getChildTags(MotionSceneAttrs.Tags.KEY_FRAME_SET)?.single()
-             as? MotionSceneTag ?: throw error("KeyFrameSet not found: start=$start, end=$end")
+    return transition.getChildTags(MotionSceneAttrs.Tags.KEY_FRAME_SET)?.single() as? MotionSceneTag
+      ?: throw error("KeyFrameSet not found: start=$start, end=$end")
   }
 
   private fun findConstraint(constraintSet: MotionSceneTag, id: String): MotionSceneTag? {
-    return constraintSet.getChildTags(MotionSceneAttrs.Tags.CONSTRAINT)
-             .firstOrNull { id == Utils.stripID(it.getAttributeValue(SdkConstants.ATTR_ID)) } as? MotionSceneTag
+    return constraintSet.getChildTags(MotionSceneAttrs.Tags.CONSTRAINT).firstOrNull {
+      id == Utils.stripID(it.getAttributeValue(SdkConstants.ATTR_ID))
+    } as? MotionSceneTag
   }
 
-  private fun findKeyFrame(keyFrameSet: MotionSceneTag, keyType: String, framePosition: Int, target: String): MotionSceneTag? {
+  private fun findKeyFrame(
+    keyFrameSet: MotionSceneTag,
+    keyType: String,
+    framePosition: Int,
+    target: String
+  ): MotionSceneTag? {
     return keyFrameSet.getChildTags(keyType).singleOrNull {
       framePosition.toString() == it.getAttributeValue(MotionSceneAttrs.Key.FRAME_POSITION) &&
-      target == Utils.stripID(it.getAttributeValue(MotionSceneAttrs.Key.MOTION_TARGET))
-    } as? MotionSceneTag ?: error("$keyType not found at position: $framePosition and target: $target")
+        target == Utils.stripID(it.getAttributeValue(MotionSceneAttrs.Key.MOTION_TARGET))
+    } as? MotionSceneTag
+      ?: error("$keyType not found at position: $framePosition and target: $target")
   }
 
   private fun convertToNlComponentTag(component: NlComponent): NlComponentTag {

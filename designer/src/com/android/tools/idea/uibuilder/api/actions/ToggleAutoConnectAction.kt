@@ -29,30 +29,42 @@ private const val DEFAULT_AUTO_CONNECT_VALUE = false
 private const val AUTO_CONNECTION_ON_TOOLTIP = "Enable Autoconnection to Parent"
 private const val AUTO_CONNECTION_OFF_TOOLTIP = "Disable Autoconnection to Parent"
 
-class ToggleAutoConnectAction : ToggleViewAction(StudioIcons.LayoutEditor.Toolbar.AUTO_CORRECT_OFF,
-                                                 StudioIcons.LayoutEditor.Toolbar.AUTO_CONNECT,
-                                                 AUTO_CONNECTION_ON_TOOLTIP,
-                                                 AUTO_CONNECTION_OFF_TOOLTIP) {
+class ToggleAutoConnectAction :
+  ToggleViewAction(
+    StudioIcons.LayoutEditor.Toolbar.AUTO_CORRECT_OFF,
+    StudioIcons.LayoutEditor.Toolbar.AUTO_CONNECT,
+    AUTO_CONNECTION_ON_TOOLTIP,
+    AUTO_CONNECTION_OFF_TOOLTIP
+  ) {
 
-  override fun isSelected(editor: ViewEditor, handler: ViewHandler, parent: NlComponent, selectedChildren: List<NlComponent>) =
+  override fun isSelected(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    parent: NlComponent,
+    selectedChildren: List<NlComponent>
+  ) =
     PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, DEFAULT_AUTO_CONNECT_VALUE)
 
-  override fun setSelected(editor: ViewEditor,
-                           handler: ViewHandler,
-                           parent: NlComponent,
-                           selectedChildren: List<NlComponent>,
-                           selected: Boolean) {
+  override fun setSelected(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    parent: NlComponent,
+    selectedChildren: List<NlComponent>,
+    selected: Boolean
+  ) {
     val analyticsManager = editor.scene.designSurface?.analyticsManager as? NlAnalyticsManager
     if (analyticsManager != null) {
       analyticsManager.trackToggleAutoConnect(selected)
     }
-    PropertiesComponent.getInstance().setValue(AUTO_CONNECT_PREF_KEY, selected, DEFAULT_AUTO_CONNECT_VALUE)
+    PropertiesComponent.getInstance()
+      .setValue(AUTO_CONNECT_PREF_KEY, selected, DEFAULT_AUTO_CONNECT_VALUE)
   }
 
   companion object {
     @JvmStatic
     fun isAutoconnectOn(): Boolean {
-      return PropertiesComponent.getInstance().getBoolean(AUTO_CONNECT_PREF_KEY, DEFAULT_AUTO_CONNECT_VALUE)
+      return PropertiesComponent.getInstance()
+        .getBoolean(AUTO_CONNECT_PREF_KEY, DEFAULT_AUTO_CONNECT_VALUE)
     }
   }
 }

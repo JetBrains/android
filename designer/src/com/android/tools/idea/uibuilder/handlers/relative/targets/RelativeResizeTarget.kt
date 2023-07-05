@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.relative.targets
 
-import com.android.tools.idea.common.model.AttributesTransaction
-import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
-
 import com.android.SdkConstants.*
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget.Type.*
+import com.android.tools.idea.uibuilder.scene.target.ResizeWithSnapBaseTarget
 
 /**
  * Target to handle the resizing of RelativeLayout's children
+ *
  * TODO: Handle the resizing in RTL mode
  */
 class RelativeResizeTarget(type: ResizeBaseTarget.Type) : ResizeWithSnapBaseTarget(type) {

@@ -211,20 +211,19 @@ fun UMethod?.isAnnotatedWith(annotationFqn: String) = runReadAction {
  * Returns the [UMethod] annotated by this [UAnnotation], or null if it is not annotating a method,
  * or if the method is not also annotated with [annotationFqn].
  */
-fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMethod? =
-  runReadAction {
-    val uMethod =
-      getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
-    if (uMethod.isAnnotatedWith(annotationFqn)) uMethod else null
-  }
+fun UAnnotation.getContainingUMethodAnnotatedWith(annotationFqn: String): UMethod? = runReadAction {
+  val uMethod =
+    getContainingUMethod() ?: javaPsi?.parentOfType<PsiMethod>()?.toUElement(UMethod::class.java)
+  if (uMethod.isAnnotatedWith(annotationFqn)) uMethod else null
+}
 
 /**
  * Returns a [CachedValueProvider] that provides values of type [T] from the methods annotated with
- * [annotationFqn] and [shortAnnotationName], with the properties enforced by the [annotationFilter],
- * from [vFile] of [project]. Technically, this function could just return a collection of methods,
- * but [toValues] might be slow to calculate so caching the values rather than methods is more
- * useful. To benefit from caching make sure the same parameters are passed to the function call as
- * all the parameters constitute the key.
+ * [annotationFqn] and [shortAnnotationName], with the properties enforced by the
+ * [annotationFilter], from [vFile] of [project]. Technically, this function could just return a
+ * collection of methods, but [toValues] might be slow to calculate so caching the values rather
+ * than methods is more useful. To benefit from caching make sure the same parameters are passed to
+ * the function call as all the parameters constitute the key.
  */
 private fun <T> findAnnotatedMethodsCachedValues(
   project: Project,
@@ -292,29 +291,29 @@ suspend fun <T> findAnnotatedMethodsValues(
 ): Collection<T> {
   val psiFile = getPsiFileSafely(project, vFile) ?: return emptyList()
   return withContext(AndroidDispatchers.workerThread) {
-      val promiseResult = runReadAction {
-        CachedValuesManager.getManager(project)
-          .getCachedValue(
-            psiFile,
-            CacheKeysManager.getInstance(project)
-              .getKey(
-                CachedValuesKey(annotationFqn, shortAnnotationName, annotationFilter, toValues)
-              ),
-            findAnnotatedMethodsCachedValues(
-              project,
-              vFile,
-              annotationFqn,
-              shortAnnotationName,
-              annotationFilter,
-              toValues
-            )
+    val promiseResult = runReadAction {
+      CachedValuesManager.getManager(project)
+        .getCachedValue(
+          psiFile,
+          CacheKeysManager.getInstance(project)
+            .getKey(
+              CachedValuesKey(annotationFqn, shortAnnotationName, annotationFilter, toValues)
+            ),
+          findAnnotatedMethodsCachedValues(
+            project,
+            vFile,
+            annotationFqn,
+            shortAnnotationName,
+            annotationFilter,
+            toValues
           )
-      }
-      try {
-        return@withContext promiseResult.await()
-      } catch (_: Throwable) {
-        return@withContext emptyList()
-      }
+        )
+    }
+    try {
+      return@withContext promiseResult.await()
+    } catch (_: Throwable) {
+      return@withContext emptyList()
+    }
   }
 }
 

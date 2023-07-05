@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.visual
 
 import org.jetbrains.android.AndroidTestCase
 
-class VisualizationToolSettingsTest: AndroidTestCase() {
+class VisualizationToolSettingsTest : AndroidTestCase() {
 
   private var defaultVisible: Boolean = false
   private var defaultShowDecoration: Boolean = false

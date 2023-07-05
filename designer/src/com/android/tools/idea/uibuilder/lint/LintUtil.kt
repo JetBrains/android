@@ -28,7 +28,6 @@ import java.awt.datatransfer.StringSelection
 import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
-
 /** Create a simple default hyper links to open the given [url]. */
 fun createDefaultHyperLinkListener(): HyperlinkListener {
   return HyperlinkListener {
@@ -36,8 +35,7 @@ fun createDefaultHyperLinkListener(): HyperlinkListener {
     if (it.eventType == HyperlinkEvent.EventType.ACTIVATED) {
       try {
         BrowserUtil.browse(url)
-      }
-      catch (exception: Exception) {
+      } catch (exception: Exception) {
         val project: Project? = null
         val builder = StringBuilder()
         builder.append("Unable to open a default browser. \n")
@@ -49,10 +47,7 @@ fun createDefaultHyperLinkListener(): HyperlinkListener {
           builder.append("\"$url\"")
         }
 
-        Messages.showErrorDialog(
-          project,
-          builder.toString(),
-          "Error")
+        Messages.showErrorDialog(project, builder.toString(), "Error")
       }
     }
   }

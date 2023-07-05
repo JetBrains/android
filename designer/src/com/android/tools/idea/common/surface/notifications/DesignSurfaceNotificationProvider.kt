@@ -24,15 +24,18 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 
-private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.uibuilder.editor.notification")
+private val COMPONENT_KEY =
+  Key.create<EditorNotificationPanel>("android.tools.uibuilder.editor.notification")
 
-/**
- * A [EditorNotifications.Provider] for the [DesignSurface].
- */
+/** A [EditorNotifications.Provider] for the [DesignSurface]. */
 class DesignSurfaceNotificationProvider : EditorNotifications.Provider<EditorNotificationPanel>() {
   override fun getKey(): Key<EditorNotificationPanel> = COMPONENT_KEY
 
-  override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
+  override fun createNotificationPanel(
+    file: VirtualFile,
+    fileEditor: FileEditor,
+    project: Project
+  ): EditorNotificationPanel? {
     val surface: DesignSurface<*> = (fileEditor as? NlEditor)?.component?.surface ?: return null
     return if (!surface.isRefreshing && surface.sceneManagers.any { it.isOutOfDate }) {
       EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {

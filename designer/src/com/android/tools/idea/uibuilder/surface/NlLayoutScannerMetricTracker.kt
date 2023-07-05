@@ -31,24 +31,23 @@ import com.intellij.lang.annotation.HighlightSeverity
 class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
 
   /** Track expanded issues so we don't log them multiple times */
-  @VisibleForTesting
-  val expanded = HashSet<Issue>()
+  @VisibleForTesting val expanded = HashSet<Issue>()
 
   /** Tracks all issues created by atf. */
   fun trackIssues(issues: Set<Issue>, renderMetric: RenderResultMetricData) {
-    val atfIssues = issues
-      .filterIsInstance<NlAtfIssue>()
-      .filter { it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING }
+    val atfIssues =
+      issues.filterIsInstance<NlAtfIssue>().filter {
+        it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING
+      }
     if (atfIssues.isEmpty()) {
       return
     }
 
     CommonUsageTracker.getInstance(surface).logStudioEvent(
-      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT) { event ->
+      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT
+    ) { event ->
       val atfResultBuilder = AtfAuditResult.newBuilder()
-      atfIssues.forEach { issue ->
-        atfResultBuilder.addCounts(atfResultCountBuilder(issue))
-      }
+      atfIssues.forEach { issue -> atfResultBuilder.addCounts(atfResultCountBuilder(issue)) }
       atfResultBuilder
         .setAuditDurationMs(renderMetric.scanMs)
         .setTotalRenderTimeMs(renderMetric.renderMs)
@@ -67,7 +66,8 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
     expanded.add(issue)
 
     CommonUsageTracker.getInstance(surface).logStudioEvent(
-      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT) { event ->
+      LayoutEditorEvent.LayoutEditorEventType.ATF_AUDIT_RESULT
+    ) { event ->
       val atfResultBuilder = AtfAuditResult.newBuilder()
       atfResultBuilder.addCounts(atfResultCountBuilder(issue).setErrorExpanded(true))
       event.setAtfAuditResult(atfResultBuilder)
@@ -77,21 +77,22 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
   /** Track the ignore button is clicked by user. */
   fun trackIgnoreButtonClicked(issue: ValidatorData.Issue) {
     CommonUsageTracker.getInstance(surface).logStudioEvent(
-      LayoutEditorEvent.LayoutEditorEventType.IGNORE_ATF_RESULT) { event ->
+      LayoutEditorEvent.LayoutEditorEventType.IGNORE_ATF_RESULT
+    ) { event ->
       event.setIgnoreAtfResultEvent(
-        IgnoreAtfResultEvent.newBuilder().setAtfResult(atfResultDetailBuilder(issue)))
+        IgnoreAtfResultEvent.newBuilder().setAtfResult(atfResultDetailBuilder(issue))
+      )
     }
   }
 
   /** Track the fix button is clicked by user. */
   fun trackApplyFixButtonClicked(issue: ValidatorData.Issue) {
     CommonUsageTracker.getInstance(surface).logStudioEvent(
-      LayoutEditorEvent.LayoutEditorEventType.APPLY_ATF_FIX) { event ->
+      LayoutEditorEvent.LayoutEditorEventType.APPLY_ATF_FIX
+    ) { event ->
       val applyAtfFixBuilder = ApplyAtfFixEvent.newBuilder()
       applyAtfFixBuilder.setAtfResult(atfResultDetailBuilder(issue))
-      issue.mFix?.let {
-        applyAtfFixBuilder.setAtfFix(atfFixDetailBuilder(it))
-      }
+      issue.mFix?.let { applyAtfFixBuilder.setAtfFix(atfFixDetailBuilder(it)) }
       event.setApplyAtfFixEvent(applyAtfFixBuilder)
     }
   }
@@ -101,12 +102,13 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
   }
 
   private fun atfResultDetailBuilder(issue: ValidatorData.Issue): AtfResultDetail.Builder {
-    val resultType =  when (issue.mLevel) {
-      ValidatorData.Level.ERROR -> AtfAuditResult.AtfResultCount.CheckResultType.ERROR
-      ValidatorData.Level.WARNING -> AtfAuditResult.AtfResultCount.CheckResultType.WARNING
-      ValidatorData.Level.INFO -> AtfAuditResult.AtfResultCount.CheckResultType.INFO
-      else -> AtfAuditResult.AtfResultCount.CheckResultType.UNKNOWN
-    }
+    val resultType =
+      when (issue.mLevel) {
+        ValidatorData.Level.ERROR -> AtfAuditResult.AtfResultCount.CheckResultType.ERROR
+        ValidatorData.Level.WARNING -> AtfAuditResult.AtfResultCount.CheckResultType.WARNING
+        ValidatorData.Level.INFO -> AtfAuditResult.AtfResultCount.CheckResultType.INFO
+        else -> AtfAuditResult.AtfResultCount.CheckResultType.UNKNOWN
+      }
     return AtfResultDetail.newBuilder().setCheckName(issue.mSourceClass).setResultType(resultType)
   }
 
@@ -114,8 +116,8 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
     return AtfFixDetail.newBuilder().setFixType(getAtfFixType(fix))
   }
 
-  private fun getAtfFixType(fix: ValidatorData.Fix):AtfFixDetail.AtfFixType {
-    return when(fix) {
+  private fun getAtfFixType(fix: ValidatorData.Fix): AtfFixDetail.AtfFixType {
+    return when (fix) {
       is ValidatorData.SetViewAttributeFix -> AtfFixDetail.AtfFixType.SET_VIEW_ATTRIBUTE
       is ValidatorData.RemoveViewAttributeFix -> AtfFixDetail.AtfFixType.REMOVE_VIEW_ATTRIBUTE
       is ValidatorData.CompoundFix -> AtfFixDetail.AtfFixType.COMPOUND
@@ -124,10 +126,9 @@ class NlLayoutScannerMetricTracker(private val surface: NlDesignSurface) {
   }
 
   private fun atfResultCountBuilder(issue: NlAtfIssue): AtfAuditResult.AtfResultCount.Builder {
-    val atfResultCountBuilder = AtfAuditResult.AtfResultCount.newBuilder().setCheckName(issue.srcClass)
-    issue.result.mFix?.let {
-      atfResultCountBuilder.addFixes(atfFixDetailBuilder(it))
-    }
+    val atfResultCountBuilder =
+      AtfAuditResult.AtfResultCount.newBuilder().setCheckName(issue.srcClass)
+    issue.result.mFix?.let { atfResultCountBuilder.addFixes(atfFixDetailBuilder(it)) }
     atfResultCountBuilder.setResultType(
       when (issue.result.mLevel) {
         ValidatorData.Level.ERROR -> AtfAuditResult.AtfResultCount.CheckResultType.ERROR
@@ -145,5 +146,5 @@ data class RenderResultMetricData(
   var scanMs: Long = -1,
   var renderMs: Long = -1,
   var componentCount: Int = -1,
-  var isRenderResultSuccess: Boolean = false) {
-}
+  var isRenderResultSuccess: Boolean = false
+) {}

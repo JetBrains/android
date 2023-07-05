@@ -27,7 +27,8 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 
 /**
- * Actions for editable designer editor file types. Includes the [PanSurfaceAction] since it'll only work for that kind of files.
+ * Actions for editable designer editor file types. Includes the [PanSurfaceAction] since it'll only
+ * work for that kind of files.
  */
 class EditableDesignSurfaceActionGroups : EditorActionsToolbarActionGroups {
 
@@ -38,15 +39,10 @@ class EditableDesignSurfaceActionGroups : EditorActionsToolbarActionGroups {
     get() = createZoomLabelGroup()
 
   override val otherGroups: List<ActionGroup>
-    get() = listOf(
-      DefaultActionGroup().apply {
-        add(PanSurfaceAction)
-      })
+    get() = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) })
 }
 
-/**
- * Populates the most basic/common actions that can be used on the DesignSurface.
- */
+/** Populates the most basic/common actions that can be used on the DesignSurface. */
 class BasicDesignSurfaceActionGroups : EditorActionsToolbarActionGroups {
 
   override val zoomControlsGroup: ActionGroup

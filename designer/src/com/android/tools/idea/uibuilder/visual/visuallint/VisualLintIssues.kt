@@ -21,10 +21,7 @@ import java.util.concurrent.ConcurrentHashMap
 /** List of visual lint issues. */
 class VisualLintIssues {
 
-  /**
-   * Range based hashed map - used for detecting different config same issues.
-   * Source of truth.
-   */
+  /** Range based hashed map - used for detecting different config same issues. Source of truth. */
   private val _map = ConcurrentHashMap<Int, Issue>()
 
   /** For accessing by type. To be used later for categorization. */

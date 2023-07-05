@@ -26,10 +26,14 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.ide.CopyPasteManager
 
-class PasteWithNewIds : AnAction("Paste with New Ids", "Paste Views from Clipboard and generate new ids", AllIcons.Actions.MenuPaste) {
+class PasteWithNewIds :
+  AnAction(
+    "Paste with New Ids",
+    "Paste Views from Clipboard and generate new ids",
+    AllIcons.Actions.MenuPaste
+  ) {
   companion object {
-    @JvmStatic
-    val PASTE_WITH_NEW_IDS_KEY: DataKey<Boolean> = DataKey.create("create_new_ids")
+    @JvmStatic val PASTE_WITH_NEW_IDS_KEY: DataKey<Boolean> = DataKey.create("create_new_ids")
   }
 
   private var loadedPasteAction: AnAction? = null

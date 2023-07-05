@@ -15,20 +15,23 @@
  */
 package com.android.tools.idea.uibuilder.handlers
 
-import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.common.model.NlAttributesHolder
-import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
+import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
 import java.awt.Point
 
 @SwingCoordinate private const val SIZE = 8
 
-class TabLayoutPlaceholder(tabLayoutComponent: SceneComponent, private val tabItemAnchor: SceneComponent?)
-  : Placeholder(tabLayoutComponent) {
+class TabLayoutPlaceholder(
+  tabLayoutComponent: SceneComponent,
+  private val tabItemAnchor: SceneComponent?
+) : Placeholder(tabLayoutComponent) {
 
-  private val snappedX = tabItemAnchor?.drawX ?: (tabLayoutComponent.drawX + tabLayoutComponent.drawWidth)
+  private val snappedX =
+    tabItemAnchor?.drawX ?: (tabLayoutComponent.drawX + tabLayoutComponent.drawWidth)
 
   override val region: Region
     get() {
@@ -37,10 +40,12 @@ class TabLayoutPlaceholder(tabLayoutComponent: SceneComponent, private val tabIt
       return Region(snappedX - SIZE, top, snappedX + SIZE, bottom, host.depth)
     }
 
-  override fun findNextSibling(appliedComponent: SceneComponent, newParent: SceneComponent) = tabItemAnchor
+  override fun findNextSibling(appliedComponent: SceneComponent, newParent: SceneComponent) =
+    tabItemAnchor
 
   // Dragging in TabLayout just change the order. No attribute is changed.
-  override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) = Unit
+  override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) =
+    Unit
 
   override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
     val r = region

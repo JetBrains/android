@@ -21,29 +21,32 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
+import kotlin.test.assertNotNull
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertNotNull
 
 class VisualizationToolWindowFactoryTest {
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   @Test
   fun testToolWindowIsRegistered() {
     // VisualizationTestToolWindowManager loads the tool window from extension point.
-    val toolManager = VisualizationTestToolWindowManager(projectRule.project, projectRule.fixture.testRootDisposable)
+    val toolManager =
+      VisualizationTestToolWindowManager(
+        projectRule.project,
+        projectRule.fixture.testRootDisposable
+      )
     projectRule.replaceProjectService(ToolWindowManager::class.java, toolManager)
-    assertNotNull(ToolWindowManager.getInstance(projectRule.project).getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID))
+    assertNotNull(
+      ToolWindowManager.getInstance(projectRule.project)
+        .getToolWindow(VisualizationToolWindowFactory.TOOL_WINDOW_ID)
+    )
   }
 
   @Test
@@ -54,7 +57,8 @@ class VisualizationToolWindowFactoryTest {
     assertFalse(factory.shouldBeAvailable(projectRule.project))
 
     // Available when a layout file is opened.
-    val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    val layoutFile =
+      projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
     }
@@ -65,7 +69,8 @@ class VisualizationToolWindowFactoryTest {
     }
 
     // Not available when there is no opened layout file.
-    val ktFile = projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
+    val ktFile =
+      projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       projectRule.fixture.openFileInEditor(ktFile.virtualFile)
     }
@@ -78,17 +83,24 @@ class VisualizationToolWindowFactoryTest {
     val factory = VisualizationToolWindowFactory()
     WriteCommandAction.runWriteCommandAction(projectRule.project) { factory.init(toolWindow) }
 
-    val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
-    val ktFile = projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
+    val layoutFile =
+      projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    val ktFile =
+      projectRule.fixture.addFileToProject("src/my_test_project/SomeFile.kt", KT_FILE_TEXT)
 
-
-    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
+    }
     assertTrue(toolWindow.isAvailable)
 
-    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(ktFile.virtualFile) }
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      projectRule.fixture.openFileInEditor(ktFile.virtualFile)
+    }
     assertFalse(toolWindow.isAvailable)
 
-    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
+    }
     assertTrue(toolWindow.isAvailable)
 
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
@@ -104,7 +116,8 @@ class VisualizationToolWindowFactoryTest {
     val factory = VisualizationToolWindowFactory()
     factory.init(toolWindow)
 
-    val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    val layoutFile =
+      projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
     WriteCommandAction.runWriteCommandAction(projectRule.project) {
       projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
     }
@@ -121,28 +134,34 @@ class VisualizationToolWindowFactoryTest {
     val toolWindow = VisualizationTestToolWindow(projectRule.project)
     val factory = VisualizationToolWindowFactory()
 
-    val layoutFile = projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
-    WriteCommandAction.runWriteCommandAction(projectRule.project) { projectRule.fixture.openFileInEditor(layoutFile.virtualFile) }
+    val layoutFile =
+      projectRule.fixture.addFileToProject("res/layout/my_layout.xml", LAYOUT_FILE_TEXT)
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      projectRule.fixture.openFileInEditor(layoutFile.virtualFile)
+    }
 
     factory.init(toolWindow)
     assertFalse(toolWindow.isAvailable)
 
-    projectRule.project.messageBus.syncPublisher(ToolWindowManagerListener.TOPIC).toolWindowsRegistered(
-      listOf(VisualizationToolWindowFactory.TOOL_WINDOW_ID), ToolWindowManager.getInstance(projectRule.project)
-    )
+    projectRule.project.messageBus
+      .syncPublisher(ToolWindowManagerListener.TOPIC)
+      .toolWindowsRegistered(
+        listOf(VisualizationToolWindowFactory.TOOL_WINDOW_ID),
+        ToolWindowManager.getInstance(projectRule.project)
+      )
 
     assertTrue(toolWindow.isAvailable)
   }
 }
 
-@Language("kotlin")
-private const val KT_FILE_TEXT = """
+@Language("kotlin") private const val KT_FILE_TEXT = """
 package my_test_project
 object SomeFile
 """
 
 @Language("xml")
-private const val LAYOUT_FILE_TEXT = """<?xml version="1.0" encoding="utf-8"?>
+private const val LAYOUT_FILE_TEXT =
+  """<?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
   android:layout_height="match_parent" />"""

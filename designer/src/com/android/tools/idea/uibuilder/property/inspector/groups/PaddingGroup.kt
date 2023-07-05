@@ -16,17 +16,19 @@
 package com.android.tools.idea.uibuilder.property.inspector.groups
 
 import com.android.SdkConstants
-import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
+import com.android.tools.property.panel.api.PropertiesTable
 
 class PaddingGroup(properties: PropertiesTable<NlPropertyItem>) :
-  AbstractMarginGroup("padding",
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_LEFT),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_RIGHT),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_START),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_END),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_TOP),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_BOTTOM),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_PADDING_HORIZONTAL),
-                      properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_PADDING_VERTICAL))
+  AbstractMarginGroup(
+    "padding",
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_LEFT),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_RIGHT),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_START),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_END),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_TOP),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_PADDING_BOTTOM),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_PADDING_HORIZONTAL),
+    properties.getOrNull(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_PADDING_VERTICAL)
+  )

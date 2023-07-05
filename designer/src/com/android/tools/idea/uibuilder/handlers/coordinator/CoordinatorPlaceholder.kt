@@ -28,32 +28,58 @@ import java.awt.Point
 
 const val SIZE = 20
 
-class CoordinatorPlaceholder(host: SceneComponent, private val anchor: SceneComponent, private val type: Type) : Placeholder(host) {
+class CoordinatorPlaceholder(
+  host: SceneComponent,
+  private val anchor: SceneComponent,
+  private val type: Type
+) : Placeholder(host) {
 
   override val associatedComponent: SceneComponent
     get() = anchor
 
   override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) {
-    attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY, getAnchorGravity())
-    attributes.setAttribute(SdkConstants.AUTO_URI, SdkConstants.ATTR_LAYOUT_ANCHOR,
-                            SdkConstants.NEW_ID_PREFIX + anchor.nlComponent.ensureLiveId())
+    attributes.setAttribute(
+      SdkConstants.AUTO_URI,
+      SdkConstants.ATTR_LAYOUT_ANCHOR_GRAVITY,
+      getAnchorGravity()
+    )
+    attributes.setAttribute(
+      SdkConstants.AUTO_URI,
+      SdkConstants.ATTR_LAYOUT_ANCHOR,
+      SdkConstants.NEW_ID_PREFIX + anchor.nlComponent.ensureLiveId()
+    )
   }
 
-  private val left = when (type) {
-    Type.LEFT_TOP, Type.LEFT, Type.LEFT_BOTTOM -> anchor.drawX
-    Type.TOP, Type.CENTER, Type.BOTTOM -> anchor.drawCenterX - SIZE / 2
-    Type.RIGHT_TOP, Type.RIGHT, Type.RIGHT_BOTTOM -> anchor.drawX + anchor.drawWidth - SIZE
-  }
-  private val top = when (type) {
-    Type.LEFT_TOP, Type.TOP, Type.RIGHT_TOP -> anchor.drawY
-    Type.LEFT, Type.CENTER, Type.RIGHT -> anchor.drawCenterY - SIZE / 2
-    Type.LEFT_BOTTOM, Type.BOTTOM, Type.RIGHT_BOTTOM -> anchor.drawY + anchor.drawHeight - SIZE
-  }
+  private val left =
+    when (type) {
+      Type.LEFT_TOP,
+      Type.LEFT,
+      Type.LEFT_BOTTOM -> anchor.drawX
+      Type.TOP,
+      Type.CENTER,
+      Type.BOTTOM -> anchor.drawCenterX - SIZE / 2
+      Type.RIGHT_TOP,
+      Type.RIGHT,
+      Type.RIGHT_BOTTOM -> anchor.drawX + anchor.drawWidth - SIZE
+    }
+  private val top =
+    when (type) {
+      Type.LEFT_TOP,
+      Type.TOP,
+      Type.RIGHT_TOP -> anchor.drawY
+      Type.LEFT,
+      Type.CENTER,
+      Type.RIGHT -> anchor.drawCenterY - SIZE / 2
+      Type.LEFT_BOTTOM,
+      Type.BOTTOM,
+      Type.RIGHT_BOTTOM -> anchor.drawY + anchor.drawHeight - SIZE
+    }
   private val right = left + SIZE
   private val bottom = top + SIZE
 
   /**
-   * Make the level higher than the anchor itself otherwise $CoordinatePlaceholder cannot be snapped when anchor is a ViewGroup.
+   * Make the level higher than the anchor itself otherwise $CoordinatePlaceholder cannot be snapped
+   * when anchor is a ViewGroup.
    */
   override val region = Region(left, top, right, bottom, anchor.depth + 1)
 
@@ -66,17 +92,18 @@ class CoordinatorPlaceholder(host: SceneComponent, private val anchor: SceneComp
     return false
   }
 
-  private fun getAnchorGravity() = when (type) {
-    Type.LEFT -> "start|center"
-    Type.RIGHT -> "end|center"
-    Type.TOP -> "top|center"
-    Type.BOTTOM -> "bottom|center"
-    Type.LEFT_TOP -> "start|top"
-    Type.LEFT_BOTTOM -> "start|bottom"
-    Type.CENTER -> "center"
-    Type.RIGHT_TOP -> "end|top"
-    Type.RIGHT_BOTTOM -> "end|bottom"
-  }
+  private fun getAnchorGravity() =
+    when (type) {
+      Type.LEFT -> "start|center"
+      Type.RIGHT -> "end|center"
+      Type.TOP -> "top|center"
+      Type.BOTTOM -> "bottom|center"
+      Type.LEFT_TOP -> "start|top"
+      Type.LEFT_BOTTOM -> "start|bottom"
+      Type.CENTER -> "center"
+      Type.RIGHT_TOP -> "end|top"
+      Type.RIGHT_BOTTOM -> "end|bottom"
+    }
 
   enum class Type {
     LEFT_TOP,

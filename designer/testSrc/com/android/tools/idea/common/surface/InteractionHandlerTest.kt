@@ -28,10 +28,6 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Rule
-import org.junit.Test
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
@@ -41,42 +37,67 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 import javax.swing.JComponent
 import javax.swing.JPanel
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
 
 class InteractionHandlerTest {
 
-  @Rule
-  @JvmField
-  val rule = AndroidProjectRule.inMemory()
+  @Rule @JvmField val rule = AndroidProjectRule.inMemory()
 
   @Test
   fun testDesignSurfaceToolbarVisibility() {
     val handlerProvider: Function<DesignSurface<SceneManager>, InteractionHandler> = Function {
       object : InteractionHandlerBase(it) {
-        override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
-        override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
+        override fun createInteractionOnPressed(
+          mouseX: Int,
+          mouseY: Int,
+          modifiersEx: Int
+        ): Interaction? = null
+        override fun createInteractionOnDrag(
+          mouseX: Int,
+          mouseY: Int,
+          modifiersEx: Int
+        ): Interaction? = null
       }
     }
 
-    val actionManagerProvider: Function<DesignSurface<SceneManager>, ActionManager<out DesignSurface<in SceneManager>>> = Function {
-      object : ActionManager<DesignSurface<SceneManager>>(it) {
-        override fun registerActionsShortcuts(component: JComponent) = Unit
+    val actionManagerProvider:
+      Function<DesignSurface<SceneManager>, ActionManager<out DesignSurface<in SceneManager>>> =
+      Function {
+        object : ActionManager<DesignSurface<SceneManager>>(it) {
+          override fun registerActionsShortcuts(component: JComponent) = Unit
 
-        override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup = DefaultActionGroup()
+          override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup =
+            DefaultActionGroup()
 
-        override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup = DefaultActionGroup()
+          override fun getToolbarActions(selection: MutableList<NlComponent>): DefaultActionGroup =
+            DefaultActionGroup()
+        }
       }
-    }
 
-    val surface = Surface(rule.project, rule.testRootDisposable, handlerProvider, actionManagerProvider)
+    val surface =
+      Surface(rule.project, rule.testRootDisposable, handlerProvider, actionManagerProvider)
     val toolbar = surface.actionManager.designSurfaceToolbar
 
     val otherComponent = JPanel()
     val listeners = Toolkit.getDefaultToolkit().awtEventListeners
 
-    val enterToSurfaceEvent = MouseEventBuilder(99, 99).withComponent(surface).withId(MouseEvent.MOUSE_ENTERED).build()
-    val exitFromSurfaceEvent = MouseEventBuilder(101, 101).withComponent(surface).withId(MouseEvent.MOUSE_EXITED).build()
-    val enterToOtherEvent = MouseEventBuilder(101, 101).withComponent(otherComponent).withId(MouseEvent.MOUSE_ENTERED).build()
-    val exitFromOtherEvent = MouseEventBuilder(99, 99).withComponent(otherComponent).withId(MouseEvent.MOUSE_EXITED).build()
+    val enterToSurfaceEvent =
+      MouseEventBuilder(99, 99).withComponent(surface).withId(MouseEvent.MOUSE_ENTERED).build()
+    val exitFromSurfaceEvent =
+      MouseEventBuilder(101, 101).withComponent(surface).withId(MouseEvent.MOUSE_EXITED).build()
+    val enterToOtherEvent =
+      MouseEventBuilder(101, 101)
+        .withComponent(otherComponent)
+        .withId(MouseEvent.MOUSE_ENTERED)
+        .build()
+    val exitFromOtherEvent =
+      MouseEventBuilder(99, 99)
+        .withComponent(otherComponent)
+        .withId(MouseEvent.MOUSE_EXITED)
+        .build()
 
     run {
       // Simulate moving mouse from surface to other
@@ -94,23 +115,30 @@ class InteractionHandlerTest {
   }
 }
 
-private class Surface(project: Project, disposable: Disposable,
-                      interact: Function<DesignSurface<SceneManager>, InteractionHandler>,
-                      actionManager: Function<DesignSurface<SceneManager>, ActionManager<out DesignSurface<in SceneManager>>>)
-  : DesignSurface<SceneManager>(project,
-                                disposable,
-                                actionManager,
-                                interact,
-                                Function { TestLayoutManager(it) },
-                                Function { TestActionHandler(it) },
-                                ZoomControlsPolicy.AUTO_HIDE) {
+private class Surface(
+  project: Project,
+  disposable: Disposable,
+  interact: Function<DesignSurface<SceneManager>, InteractionHandler>,
+  actionManager:
+    Function<DesignSurface<SceneManager>, ActionManager<out DesignSurface<in SceneManager>>>
+) :
+  DesignSurface<SceneManager>(
+    project,
+    disposable,
+    actionManager,
+    interact,
+    Function { TestLayoutManager(it) },
+    Function { TestActionHandler(it) },
+    ZoomControlsPolicy.AUTO_HIDE
+  ) {
   override fun getSelectionAsTransferable(): ItemTransferable {
     return ItemTransferable(DnDTransferItem(0, ImmutableList.of()))
   }
 
   override fun getFitScale(): Double = 1.0
 
-  override fun createSceneManager(model: NlModel) = TestSceneManager(model, this).apply { updateSceneView() }
+  override fun createSceneManager(model: NlModel) =
+    TestSceneManager(model, this).apply { updateSceneView() }
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
 
@@ -122,7 +150,8 @@ private class Surface(project: Project, disposable: Disposable,
 
   override fun getScrollToVisibleOffset() = Dimension()
 
-  override fun forceUserRequestedRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
+  override fun forceUserRequestedRefresh(): CompletableFuture<Void> =
+    CompletableFuture.completedFuture(null)
 
   override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 

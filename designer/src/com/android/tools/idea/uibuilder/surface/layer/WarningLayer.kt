@@ -32,33 +32,41 @@ import java.awt.RenderingHints
 import java.awt.Shape
 import java.awt.geom.Area
 
-class WarningLayer(private val screenView: ScreenView, private val issuesProvider: () -> List<Issue>) : Layer() {
+class WarningLayer(
+  private val screenView: ScreenView,
+  private val issuesProvider: () -> List<Issue>
+) : Layer() {
 
   override fun paint(gc: Graphics2D) {
     val screenShape: Shape? = screenView.screenShape
     gc.color = JBColor.ORANGE
     gc.stroke = NlConstants.DASHED_STROKE
     val selectedIssueSources = getSelectedIssues().map { it.source }
-    val relevantComponents = selectedIssueSources.filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
-      .flatMap { it.components }
-      .filter { it.model == screenView.sceneManager.model }
+    val relevantComponents =
+      selectedIssueSources
+        .filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
+        .flatMap { it.components }
+        .filter { it.model == screenView.sceneManager.model }
     relevantComponents.forEach {
       gc.drawRect(
         Coordinates.getSwingX(screenView, it.x),
         Coordinates.getSwingY(screenView, it.y),
         Coordinates.getSwingDimension(screenView, it.w),
-        Coordinates.getSwingDimension(screenView, it.h))
+        Coordinates.getSwingDimension(screenView, it.h)
+      )
     }
     gc.stroke = NlConstants.SOLID_STROKE
     val clip = gc.clip
     if (screenShape != null) {
       gc.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-      gc.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC)
+      gc.setRenderingHint(
+        RenderingHints.KEY_INTERPOLATION,
+        RenderingHints.VALUE_INTERPOLATION_BICUBIC
+      )
       gc.draw(screenShape)
       val screenShapeClip = Area(screenShape).apply { intersect(Area(clip)) }
       gc.clip = screenShapeClip
-    }
-    else {
+    } else {
       val sceneSize = screenView.scaledContentSize
       gc.drawRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
       gc.clipRect(screenView.x, screenView.y, sceneSize.width, sceneSize.height)
@@ -68,7 +76,8 @@ class WarningLayer(private val screenView: ScreenView, private val issuesProvide
         Coordinates.getSwingX(screenView, it.x),
         Coordinates.getSwingY(screenView, it.y),
         Coordinates.getSwingDimension(screenView, it.w),
-        Coordinates.getSwingDimension(screenView, it.h))
+        Coordinates.getSwingDimension(screenView, it.h)
+      )
     }
     gc.clip = clip
   }
@@ -76,7 +85,9 @@ class WarningLayer(private val screenView: ScreenView, private val issuesProvide
   override val isVisible: Boolean
     get() {
       val selectedIssues = getSelectedIssues()
-      return selectedIssues.filterIsInstance<VisualLintHighlightingIssue>().any { it.shouldHighlight(screenView.sceneManager.model) }
+      return selectedIssues.filterIsInstance<VisualLintHighlightingIssue>().any {
+        it.shouldHighlight(screenView.sceneManager.model)
+      }
     }
 
   private fun getSelectedIssues(): List<Issue> {

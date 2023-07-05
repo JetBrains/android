@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.handlers
 
 import com.android.SdkConstants.ANDROIDX_VIEW_PAGER2_LIB_ARTIFACT
 import com.android.SdkConstants.ATTR_VISIBILITY
-
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler
 import com.google.common.collect.ImmutableList
 

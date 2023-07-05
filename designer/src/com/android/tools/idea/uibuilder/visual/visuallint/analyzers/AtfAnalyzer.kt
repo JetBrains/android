@@ -23,14 +23,10 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfAnalysis
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import com.android.tools.rendering.RenderResult
 import com.android.utils.HtmlBuilder
-import com.google.android.apps.common.testing.accessibility.framework.checks.DuplicateClickableBoundsCheck
 
-/**
- * [VisualLintAnalyzer] for issues coming from the Accessibility Testing Framework.
- */
+/** [VisualLintAnalyzer] for issues coming from the Accessibility Testing Framework. */
 object AtfAnalyzer : VisualLintAnalyzer() {
   override val type: VisualLintErrorType
     get() = VisualLintErrorType.ATF
@@ -38,10 +34,11 @@ object AtfAnalyzer : VisualLintAnalyzer() {
   override val backgroundEnabled: Boolean
     get() = AtfAnalyzerInspection.atfBackground
 
-  /**
-   * Analyze the given [RenderResult] for issues related to ATF that overlaps with visual lint.
-   */
-  override fun findIssues(renderResult: RenderResult, model: NlModel): List<VisualLintIssueContent> {
+  /** Analyze the given [RenderResult] for issues related to ATF that overlaps with visual lint. */
+  override fun findIssues(
+    renderResult: RenderResult,
+    model: NlModel
+  ): List<VisualLintIssueContent> {
     if (!StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) {
       return emptyList()
     }
@@ -56,7 +53,7 @@ object AtfAnalyzer : VisualLintAnalyzer() {
   }
 }
 
-class AtfAnalyzerInspection: VisualLintInspection(VisualLintErrorType.ATF, "atfBackground") {
+class AtfAnalyzerInspection : VisualLintInspection(VisualLintErrorType.ATF, "atfBackground") {
   companion object {
     var atfBackground = true
   }

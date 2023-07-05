@@ -23,13 +23,9 @@ import com.android.SdkConstants.ANDROID_URI
  * Using this interface to restrict the modification of attributes.
  */
 interface NlAttributesReader {
-  /**
-   * Get an attribute value by given [namespace] and [attribute].
-   */
+  /** Get an attribute value by given [namespace] and [attribute]. */
   fun getAttribute(namespace: String?, attribute: String): String?
 
-  /**
-   * Gets an attribute value from the [ANDROID_URI] namespace.
-   */
+  /** Gets an attribute value from the [ANDROID_URI] namespace. */
   fun getAndroidAttribute(attribute: String): String?
 }

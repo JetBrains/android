@@ -18,14 +18,10 @@ package com.android.tools.idea.uibuilder.lint
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.error.NlComponentIssueSource
-import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import com.intellij.lang.ASTNode
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.xml.XmlChildRole
 import org.jsoup.Jsoup
 
 typealias CommonPanelIssueSet = MutableSet<CommonProblemsPanelIssue>
@@ -44,26 +40,29 @@ class CommonProblemsPanelIssue(issue: Issue) : Issue() {
       when (source) {
         is VisualLintIssueProvider.VisualLintIssueSource -> {
           source.components.forEach { component ->
-            component.getTextRange()?.let { return it }
-        }}
+            component.getTextRange()?.let {
+              return it
+            }
+          }
+        }
         is NlComponentIssueSource -> return source.component?.getTextRange()
-
       }
 
       return null
     }
 
   /** Returns formatted plain strings (from html description) */
-  val formattedDescription: String get() = Jsoup.parse(this.description).text()
+  val formattedDescription: String
+    get() = Jsoup.parse(this.description).text()
 
   override fun equals(other: Any?): Boolean {
     if (other === this) return true
     if (other !is CommonProblemsPanelIssue) return false
-    return other.severity == severity
-           && other.summary == summary
-           && other.description == description
-           && other.category == category
-           && other.range == range
+    return other.severity == severity &&
+      other.summary == summary &&
+      other.description == description &&
+      other.category == category &&
+      other.range == range
   }
 
   override fun hashCode(): Int {
@@ -78,12 +77,13 @@ class CommonProblemsPanelIssue(issue: Issue) : Issue() {
 }
 
 /** Displays all issues in [annotationResult] to [holder] with appropriate range as source text */
-fun showIssuesInCommonProblemsPanel(annotationResult: CommonPanelIssueSet?, holder: AnnotationHolder) {
+fun showIssuesInCommonProblemsPanel(
+  annotationResult: CommonPanelIssueSet?,
+  holder: AnnotationHolder
+) {
   annotationResult?.forEach { issue ->
     val builder = holder.newAnnotation(issue.severity, issue.formattedDescription)
-    issue.range?.let {
-      builder.range(it)
-    }
+    issue.range?.let { builder.range(it) }
     builder.needsUpdateOnTyping(true).create()
   }
 }

@@ -33,6 +33,10 @@ import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertNotEmpty
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.swing.JComponent
+import javax.swing.JPanel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -49,18 +53,15 @@ import org.junit.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.MockitoAnnotations
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.swing.JComponent
-import javax.swing.JPanel
 
 class MultiRepresentationPreviewTest {
   private lateinit var multiPreview: UpdatableMultiRepresentationPreview
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
-  private val project: Project get() = projectRule.project
-  private val myFixture: CodeInsightTestFixture get() = projectRule.fixture
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
+  private val project: Project
+    get() = projectRule.project
+  private val myFixture: CodeInsightTestFixture
+    get() = projectRule.fixture
 
   @Before
   fun setUp() {
@@ -73,20 +74,25 @@ class MultiRepresentationPreviewTest {
     Disposer.dispose(multiPreview)
   }
 
-  private class UpdatableMultiRepresentationPreview(psiFile: PsiFile,
-                                                    editor: Editor,
-                                                    providers: List<PreviewRepresentationProvider>) :
-    MultiRepresentationPreview(psiFile, editor, providers) {
+  private class UpdatableMultiRepresentationPreview(
+    psiFile: PsiFile,
+    editor: Editor,
+    providers: List<PreviewRepresentationProvider>
+  ) : MultiRepresentationPreview(psiFile, editor, providers) {
 
-    val currentState: MultiRepresentationPreviewFileEditorState get() = getState(FileEditorStateLevel.FULL)
+    val currentState: MultiRepresentationPreviewFileEditorState
+      get() = getState(FileEditorStateLevel.FULL)
 
     fun updateRepresentationsInTestAsync() = updateRepresentationsAsync()
   }
 
-  private suspend fun createMultiRepresentation(psiFile: PsiFile,
-                                                editor: Editor,
-                                                providers: List<PreviewRepresentationProvider>,
-                                                initialState: MultiRepresentationPreviewFileEditorState? = MultiRepresentationPreviewFileEditorState()) =
+  private suspend fun createMultiRepresentation(
+    psiFile: PsiFile,
+    editor: Editor,
+    providers: List<PreviewRepresentationProvider>,
+    initialState: MultiRepresentationPreviewFileEditorState? =
+      MultiRepresentationPreviewFileEditorState()
+  ) =
     UpdatableMultiRepresentationPreview(psiFile, editor, providers).apply {
       Disposer.register(projectRule.testRootDisposable, this)
       onInit()
@@ -119,10 +125,13 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = createMultiRepresentation(sampleFile,
-                                             myFixture.editor,
-                                             listOf(),
-                                             MultiRepresentationPreviewFileEditorState("for"))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(),
+        MultiRepresentationPreviewFileEditorState("for")
+      )
 
     multiPreview.updateRepresentationsInTestAsync().await()
 
@@ -138,10 +147,12 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(TestPreviewRepresentationProvider("Accepting", true)))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(TestPreviewRepresentationProvider("Accepting", true))
+      )
 
     assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
@@ -153,7 +164,6 @@ class MultiRepresentationPreviewTest {
     assertNull(multiPreview.currentRepresentation)
     assertEquals("foo", multiPreview.currentRepresentationName)
     assertEquals("foo", multiPreview.currentState.selectedRepresentationName)
-
 
     multiPreview.currentRepresentationName = "Accepting"
 
@@ -167,10 +177,13 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(TestPreviewRepresentationProvider("Accepting", true)), MultiRepresentationPreviewFileEditorState("Accepting"))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(TestPreviewRepresentationProvider("Accepting", true)),
+        MultiRepresentationPreviewFileEditorState("Accepting")
+      )
 
     assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
@@ -187,10 +200,13 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(TestPreviewRepresentationProvider("Accepting", true)), MultiRepresentationPreviewFileEditorState("Accepting"))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(TestPreviewRepresentationProvider("Accepting", true)),
+        MultiRepresentationPreviewFileEditorState("Accepting")
+      )
 
     assertNotNull(multiPreview.currentRepresentation)
     UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting")
@@ -203,10 +219,12 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(TestPreviewRepresentationProvider("NonAccepting", false)))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(TestPreviewRepresentationProvider("NonAccepting", false))
+      )
 
     assertNull(multiPreview.currentRepresentation)
     assertEmpty(multiPreview.representationNames)
@@ -225,16 +243,23 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(
-        TestPreviewRepresentationProvider("Accepting1", true),
-        TestPreviewRepresentationProvider("Accepting2", true),
-        TestPreviewRepresentationProvider("NonAccepting", false)))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(
+          TestPreviewRepresentationProvider("Accepting1", true),
+          TestPreviewRepresentationProvider("Accepting2", true),
+          TestPreviewRepresentationProvider("NonAccepting", false)
+        )
+      )
 
     assertNotNull(multiPreview.currentRepresentation)
-    UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting1", "Accepting2")
+    UsefulTestCase.assertContainsOrdered(
+      multiPreview.representationNames,
+      "Accepting1",
+      "Accepting2"
+    )
     UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "NonAccepting")
     assertEquals("Accepting1", multiPreview.currentRepresentationName)
     assertEquals("Accepting1", multiPreview.currentState.selectedRepresentationName)
@@ -250,16 +275,23 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(
-        TestPreviewRepresentationProvider("Accepting1", true),
-        TestPreviewRepresentationProvider("Accepting2", true),
-        TestPreviewRepresentationProvider("NonAccepting", false)),
-      MultiRepresentationPreviewFileEditorState("Accepting2"))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(
+          TestPreviewRepresentationProvider("Accepting1", true),
+          TestPreviewRepresentationProvider("Accepting2", true),
+          TestPreviewRepresentationProvider("NonAccepting", false)
+        ),
+        MultiRepresentationPreviewFileEditorState("Accepting2")
+      )
 
-    UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting1", "Accepting2")
+    UsefulTestCase.assertContainsOrdered(
+      multiPreview.representationNames,
+      "Accepting1",
+      "Accepting2"
+    )
     UsefulTestCase.assertDoesntContain(multiPreview.representationNames, "NonAccepting")
     assertEquals("Accepting2", multiPreview.currentRepresentationName)
 
@@ -277,13 +309,13 @@ class MultiRepresentationPreviewTest {
 
     val conditionallyAccepting = TestPreviewRepresentationProvider("ConditionallyAccepting", false)
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(
-        TestPreviewRepresentationProvider("Accepting", true),
-        conditionallyAccepting),
-      MultiRepresentationPreviewFileEditorState("ConditionallyAccepting"))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(TestPreviewRepresentationProvider("Accepting", true), conditionallyAccepting),
+        MultiRepresentationPreviewFileEditorState("ConditionallyAccepting")
+      )
 
     // ConditionalAccepting is not available so it will not be restored by the surface load.
     assertEquals("Accepting", multiPreview.currentRepresentationName)
@@ -297,7 +329,11 @@ class MultiRepresentationPreviewTest {
     conditionallyAccepting.isAccept = true
     multiPreview.updateRepresentationsInTestAsync().await()
 
-    UsefulTestCase.assertContainsOrdered(multiPreview.representationNames, "Accepting", "ConditionallyAccepting")
+    UsefulTestCase.assertContainsOrdered(
+      multiPreview.representationNames,
+      "Accepting",
+      "ConditionallyAccepting"
+    )
 
     multiPreview.currentRepresentationName = "ConditionallyAccepting"
 
@@ -320,22 +356,27 @@ class MultiRepresentationPreviewTest {
     val initiallyAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
     whenever(initiallyAcceptedRepresentation.component).thenReturn(JPanel())
     val initiallyAcceptingProvider =
-      TestPreviewRepresentationProvider("initialRepresentation", true, initiallyAcceptedRepresentation)
+      TestPreviewRepresentationProvider(
+        "initialRepresentation",
+        true,
+        initiallyAcceptedRepresentation
+      )
 
     val laterAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
     whenever(laterAcceptedRepresentation.component).thenReturn(JPanel())
-    val laterAcceptingProvider = TestPreviewRepresentationProvider("laterRepresentation", false, laterAcceptedRepresentation)
+    val laterAcceptingProvider =
+      TestPreviewRepresentationProvider("laterRepresentation", false, laterAcceptedRepresentation)
 
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(
-        initiallyAcceptingProvider,
-        laterAcceptingProvider),
-      MultiRepresentationPreviewFileEditorState("initialRepresentation"))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(initiallyAcceptingProvider, laterAcceptingProvider),
+        MultiRepresentationPreviewFileEditorState("initialRepresentation")
+      )
     multiPreview.updateRepresentationsInTestAsync().await()
 
     Mockito.verify(initiallyAcceptedRepresentation, never()).registerShortcuts(any())
@@ -367,14 +408,16 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(
-        TestPreviewRepresentationProvider("Accepting1", true, representation1),
-        TestPreviewRepresentationProvider("Accepting2", true, representation2),
-        TestPreviewRepresentationProvider("NonAccepting", false, representation3)
-      ))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(
+          TestPreviewRepresentationProvider("Accepting1", true, representation1),
+          TestPreviewRepresentationProvider("Accepting2", true, representation2),
+          TestPreviewRepresentationProvider("NonAccepting", false, representation3)
+        )
+      )
 
     multiPreview.updateNotifications()
 
@@ -390,17 +433,20 @@ class MultiRepresentationPreviewTest {
 
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(
-        TestPreviewRepresentationProvider("Accepting1", true),
-        TestPreviewRepresentationProvider("Accepting2", true),
-        TestPreviewRepresentationProvider("Accepting3", true)),
-      MultiRepresentationPreviewFileEditorState("Accepting2", listOf(
-        Representation("Accepting1", state1),
-        Representation("Accepting3", state3)
-      )))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(
+          TestPreviewRepresentationProvider("Accepting1", true),
+          TestPreviewRepresentationProvider("Accepting2", true),
+          TestPreviewRepresentationProvider("Accepting3", true)
+        ),
+        MultiRepresentationPreviewFileEditorState(
+          "Accepting2",
+          listOf(Representation("Accepting1", state1), Representation("Accepting3", state3))
+        )
+      )
     multiPreview.updateRepresentationsInTestAsync().await()
     assertNull((multiPreview.currentRepresentation as TestPreviewRepresentation).state)
     multiPreview.currentRepresentationName = "Accepting1"
@@ -418,14 +464,16 @@ class MultiRepresentationPreviewTest {
     val representation1 = TestPreviewRepresentation()
     val representation2 = TestPreviewRepresentation()
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(
-        TestPreviewRepresentationProvider("Representation1", true, representation1),
-        TestPreviewRepresentationProvider("Representation2", true, representation2)
-      ),
-      MultiRepresentationPreviewFileEditorState("Representation1"))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(
+          TestPreviewRepresentationProvider("Representation1", true, representation1),
+          TestPreviewRepresentationProvider("Representation2", true, representation2)
+        ),
+        MultiRepresentationPreviewFileEditorState("Representation1")
+      )
 
     assertEquals(1, representation1.nActivations)
     assertEquals(0, representation2.nActivations)
@@ -454,13 +502,13 @@ class MultiRepresentationPreviewTest {
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
     val representation1 = TestPreviewRepresentation()
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(
-        TestPreviewRepresentationProvider("Representation1", true, representation1)
-      ),
-      MultiRepresentationPreviewFileEditorState("Representation1"))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(TestPreviewRepresentationProvider("Representation1", true, representation1)),
+        MultiRepresentationPreviewFileEditorState("Representation1")
+      )
 
     multiPreview.onActivate()
     assertEquals(1, representation1.nActivations)
@@ -472,21 +520,26 @@ class MultiRepresentationPreviewTest {
 
   @Test
   fun testCaretNotification() = runBlocking {
-    val sampleFile = myFixture.addFileToProject("src/Preview.kt", """
+    val sampleFile =
+      myFixture.addFileToProject(
+        "src/Preview.kt",
+        """
       // Line 1
       // Line 2
       // Line 3
       // Line 4
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
     val representation1 = TestPreviewRepresentation()
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(
-        TestPreviewRepresentationProvider("Representation1", true, representation1)
-      ),
-      MultiRepresentationPreviewFileEditorState("Representation1"))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(TestPreviewRepresentationProvider("Representation1", true, representation1)),
+        MultiRepresentationPreviewFileEditorState("Representation1")
+      )
     multiPreview.updateRepresentationsInTestAsync().await()
 
     withContext(uiThread) {
@@ -521,11 +574,13 @@ class MultiRepresentationPreviewTest {
 
     val conditionalProvider = TestPreviewRepresentationProvider("Representation1", true)
 
-    multiPreview = createMultiRepresentation(
-      sampleFile,
-      myFixture.editor,
-      listOf(conditionalProvider),
-      MultiRepresentationPreviewFileEditorState("Representation1"))
+    multiPreview =
+      createMultiRepresentation(
+        sampleFile,
+        myFixture.editor,
+        listOf(conditionalProvider),
+        MultiRepresentationPreviewFileEditorState("Representation1")
+      )
 
     multiPreview.onActivate()
 
@@ -554,15 +609,10 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    invokeAndWaitIfNeeded {
-      DumbServiceImpl.getInstance(project).isDumb = true
-    }
+    invokeAndWaitIfNeeded { DumbServiceImpl.getInstance(project).isDumb = true }
     val provider = TestPreviewRepresentationProvider("Accepting", false)
     val futureMultiPreview = async {
-      createMultiRepresentation(
-        sampleFile,
-        myFixture.editor,
-        listOf(provider))
+      createMultiRepresentation(sampleFile, myFixture.editor, listOf(provider))
     }
 
     invokeAndWaitIfNeeded {
@@ -585,20 +635,23 @@ class MultiRepresentationPreviewTest {
     val representations = mutableListOf<PreviewRepresentation>()
     val enabled = AtomicBoolean()
 
-    val provider = object : PreviewRepresentationProvider {
-      override val displayName = "foo"
-      override suspend fun accept(project: Project, psiFile: PsiFile) = enabled.get()
+    val provider =
+      object : PreviewRepresentationProvider {
+        override val displayName = "foo"
+        override suspend fun accept(project: Project, psiFile: PsiFile) = enabled.get()
 
-      @Synchronized
-      override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
-        val representation = TestPreviewRepresentation()
-        representations.add(representation)
-        return representation
+        @Synchronized
+        override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+          val representation = TestPreviewRepresentation()
+          representations.add(representation)
+          return representation
+        }
       }
-    }
 
-    // TODO(b/236234873): Figure out why coroutines need this kind of warmup. Simply doing several [launch]s does not help.
-    // The first time the coroutine code in updateRepresentations and setStateAndUpdateRepresentations is executed sequentially or with
+    // TODO(b/236234873): Figure out why coroutines need this kind of warmup. Simply doing several
+    // [launch]s does not help.
+    // The first time the coroutine code in updateRepresentations and
+    // setStateAndUpdateRepresentations is executed sequentially or with
     // a significant delay between each other. Therefore, we warm them up.
     createMultiRepresentation(sampleFile, myFixture.editor, listOf(), null).also {
       val promise = it.updateRepresentationsInTestAsync()
@@ -629,19 +682,21 @@ class MultiRepresentationPreviewTest {
     val createRepresentationLatch = CountDownLatch(1)
     val parentDisposedLatch = CountDownLatch(1)
 
-    val provider = object : PreviewRepresentationProvider {
-      override val displayName: RepresentationName = "Representation"
-      override suspend fun accept(project: Project, psiFile: PsiFile) = true
-      override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
-        createRepresentationLatch.countDown()
-        // Only return the representation when the parent is already disposed
-        parentDisposedLatch.await()
-        assertFalse(Disposer.isDisposed(representation))
-        return representation
+    val provider =
+      object : PreviewRepresentationProvider {
+        override val displayName: RepresentationName = "Representation"
+        override suspend fun accept(project: Project, psiFile: PsiFile) = true
+        override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+          createRepresentationLatch.countDown()
+          // Only return the representation when the parent is already disposed
+          parentDisposedLatch.await()
+          assertFalse(Disposer.isDisposed(representation))
+          return representation
+        }
       }
-    }
 
-    multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(provider))
+    multiPreview =
+      UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(provider))
 
     // Essentially the same as Init but async
     val promise = multiPreview.updateRepresentationsInTestAsync()
@@ -667,30 +722,33 @@ class MultiRepresentationPreviewTest {
     val startLatch = CountDownLatch(1)
     val busyLatch = CountDownLatch(1)
 
-    val provider = object : PreviewRepresentationProvider {
-      override val displayName: RepresentationName = "Representation"
-      override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
-        startLatch.countDown()
-        busyLatch.await()
-        delay(1) // Make this throw CancellationException
-        return true
+    val provider =
+      object : PreviewRepresentationProvider {
+        override val displayName: RepresentationName = "Representation"
+        override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
+          startLatch.countDown()
+          busyLatch.await()
+          delay(1) // Make this throw CancellationException
+          return true
+        }
+        override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
+          return TestPreviewRepresentation()
+        }
       }
-      override fun createRepresentation(psiFile: PsiFile): PreviewRepresentation {
-        return TestPreviewRepresentation()
-      }
-    }
 
     val errors = mutableListOf<String?>()
-    val failingOnErrorLogger = object : DefaultLogger("") {
-      override fun error(message: String?, t: Throwable?, vararg details: String?) {
-        errors.add(message)
+    val failingOnErrorLogger =
+      object : DefaultLogger("") {
+        override fun error(message: String?, t: Throwable?, vararg details: String?) {
+          errors.add(message)
+        }
       }
-    }
     val previousFactory = Logger.getFactory()
     try {
       Logger.setFactory { failingOnErrorLogger }
 
-      multiPreview = UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(provider))
+      multiPreview =
+        UpdatableMultiRepresentationPreview(sampleFile, myFixture.editor, listOf(provider))
       multiPreview.updateRepresentationsInTestAsync()
       startLatch.await()
       Disposer.dispose(multiPreview)

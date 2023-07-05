@@ -38,8 +38,10 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class VisualizationActionManager(surface: NlDesignSurface,
-                                 private val visualizationModelsProvider: () -> VisualizationModelsProvider) : NlActionManager(surface) {
+class VisualizationActionManager(
+  surface: NlDesignSurface,
+  private val visualizationModelsProvider: () -> VisualizationModelsProvider
+) : NlActionManager(surface) {
   private val zoomInAction: AnAction = ZoomInAction.getInstance()
   private val zoomOutAction: AnAction = ZoomOutAction.getInstance()
   private val zoomToFitAction: AnAction = ZoomToFitAction.getInstance()
@@ -61,24 +63,31 @@ class VisualizationActionManager(surface: NlDesignSurface,
     val visualizationModel = visualizationModelsProvider() as? CustomModelsProvider ?: return null
     return if (sceneView.scene.sceneManager.model.dataContext.getData(IS_CUSTOM_MODEL) == true) {
       JPanel(BorderLayout()).apply {
-        // For now, we just display a mock toolbar. This will be replaced in the future with SceneView the toolbar.
-        add(CommonButton(StudioIcons.Common.CLOSE).apply {
-          verticalAlignment = JLabel.CENTER
-          isRolloverEnabled = true
+        // For now, we just display a mock toolbar. This will be replaced in the future with
+        // SceneView the toolbar.
+        add(
+          CommonButton(StudioIcons.Common.CLOSE).apply {
+            verticalAlignment = JLabel.CENTER
+            isRolloverEnabled = true
 
-          addActionListener {
-            visualizationModel.removeCustomConfigurationAttributes(model)
-          }
-        }, BorderLayout.LINE_END)
+            addActionListener { visualizationModel.removeCustomConfigurationAttributes(model) }
+          },
+          BorderLayout.LINE_END
+        )
       }
-    }
-    else {
+    } else {
       null
     }
   }
 
   override fun getSceneViewRightBar(sceneView: SceneView): JComponent {
-    return object: JBLabel(ColoredIconGenerator.generateColoredIcon(StudioIcons.Common.WARNING_INLINE, JBColor.background())) {
+    return object :
+      JBLabel(
+        ColoredIconGenerator.generateColoredIcon(
+          StudioIcons.Common.WARNING_INLINE,
+          JBColor.background()
+        )
+      ) {
       init {
         isOpaque = true
         background = Color.ORANGE
@@ -90,7 +99,10 @@ class VisualizationActionManager(surface: NlDesignSurface,
 }
 
 fun SceneView.visualLintWarning(): Issue? {
-  val issue = IssuePanelService.getInstance(surface.project).getSelectedIssues()
-    .filterIsInstance<VisualLintHighlightingIssue>().firstOrNull { it.shouldHighlight(sceneManager.model) }
+  val issue =
+    IssuePanelService.getInstance(surface.project)
+      .getSelectedIssues()
+      .filterIsInstance<VisualLintHighlightingIssue>()
+      .firstOrNull { it.shouldHighlight(sceneManager.model) }
   return issue as? Issue
 }

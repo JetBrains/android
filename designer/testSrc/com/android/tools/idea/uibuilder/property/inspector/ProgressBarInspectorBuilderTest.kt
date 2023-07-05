@@ -41,11 +41,9 @@ import org.junit.Test
 
 @RunsInEdt
 class ProgressBarInspectorBuilderTest {
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @JvmField @Rule val projectRule = AndroidProjectRule.inMemory()
 
-  @JvmField @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   @Test
   fun testNotApplicableWhenRequiredPropertyIsMissing() {
@@ -105,7 +103,8 @@ class ProgressBarInspectorBuilderTest {
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+    assertThat(getHiddenProperties(util))
+      .containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
   }
 
   @Test
@@ -118,7 +117,8 @@ class ProgressBarInspectorBuilderTest {
     util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_TRUE
     UIUtil.dispatchAllInvocationEvents()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_PROGRESS_DRAWABLE, ATTR_PROGRESS_TINT, ATTR_MAXIMUM, ATTR_PROGRESS)
+    assertThat(getHiddenProperties(util))
+      .containsExactly(ATTR_PROGRESS_DRAWABLE, ATTR_PROGRESS_TINT, ATTR_MAXIMUM, ATTR_PROGRESS)
   }
 
   @Test
@@ -131,7 +131,8 @@ class ProgressBarInspectorBuilderTest {
     util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_FALSE
     UIUtil.dispatchAllInvocationEvents()
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+    assertThat(getHiddenProperties(util))
+      .containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
   }
 
   @Test
@@ -143,19 +144,22 @@ class ProgressBarInspectorBuilderTest {
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+    assertThat(getHiddenProperties(util))
+      .containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
     val model = getIndeterminateModel(util)
 
     // test
     util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_TRUE
     UIUtil.dispatchAllInvocationEvents()
     model.refresh()
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_PROGRESS_DRAWABLE, ATTR_PROGRESS_TINT, ATTR_MAXIMUM, ATTR_PROGRESS)
+    assertThat(getHiddenProperties(util))
+      .containsExactly(ATTR_PROGRESS_DRAWABLE, ATTR_PROGRESS_TINT, ATTR_MAXIMUM, ATTR_PROGRESS)
 
     util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_FALSE
     UIUtil.dispatchAllInvocationEvents()
     model.refresh()
-    assertThat(getHiddenProperties(util)).containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
+    assertThat(getHiddenProperties(util))
+      .containsExactly(ATTR_INDETERMINATE_DRAWABLE, ATTR_INDETERMINATE_TINT)
   }
 
   private fun addRequiredProperties(util: InspectorTestUtil) {

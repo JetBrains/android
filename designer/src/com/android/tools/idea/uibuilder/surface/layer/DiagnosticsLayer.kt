@@ -39,28 +39,34 @@ private const val MAX_TIME_BAR_LENGTH = 50
 private const val TIME_BAR_WIDTH = 6
 private const val TIME_BAR_SPACE = 2
 private const val TIME_BAR_COUNT = 20
-private const val TIME_BAR_BOX_WIDTH = TIME_BAR_COUNT * TIME_BAR_WIDTH + (TIME_BAR_COUNT - 1) * TIME_BAR_SPACE
+private const val TIME_BAR_BOX_WIDTH =
+  TIME_BAR_COUNT * TIME_BAR_WIDTH + (TIME_BAR_COUNT - 1) * TIME_BAR_SPACE
 
-private fun colorForRenderTime(renderTimeMs: Long): Color = when {
-  renderTimeMs > 60 -> JBColor.RED
-  renderTimeMs > 40 -> JBColor.YELLOW
-  renderTimeMs > 20 -> JBColor.BLUE
-  else -> JBColor.GREEN
-}
+private fun colorForRenderTime(renderTimeMs: Long): Color =
+  when {
+    renderTimeMs > 60 -> JBColor.RED
+    renderTimeMs > 40 -> JBColor.YELLOW
+    renderTimeMs > 20 -> JBColor.BLUE
+    else -> JBColor.GREEN
+  }
 
-
-class DiagnosticsLayer(private val diagnosticKey: NlDiagnosticKey, private val project: Project) : Layer() {
+class DiagnosticsLayer(private val diagnosticKey: NlDiagnosticKey, private val project: Project) :
+  Layer() {
   private fun getDiagnosticsString(diagnostics: NlDiagnosticsRead): String {
     val runtime = Runtime.getRuntime()
     val freeMemPct = runtime.freeMemory().toDouble() / runtime.totalMemory() * 100
     val lastRenderMs = diagnostics.lastRenders().takeLast(1).firstOrNull() ?: -1
     val poolStats = StudioRenderService.getInstance(project).sharedImagePool.stats
 
-    val bucketStats = poolStats?.bucketStats?.joinToString("\n") {
-      " (${it.minWidth}x${it.minHeight} s=${it.maxSize()}) " + "lastAccess=${
+    val bucketStats =
+      poolStats?.bucketStats?.joinToString("\n") {
+        " (${it.minWidth}x${it.minHeight} s=${it.maxSize()}) " +
+          "lastAccess=${
         TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - it.lastAccessTimeMs)
-      }s ago " + "hits=${it.bucketHits()} misses=${it.bucketMisses()} wasFull=${it.bucketWasFull()} hadSpace=${it.imageWasReturned()}"
-    } ?: ""
+      }s ago " +
+          "hits=${it.bucketHits()} misses=${it.bucketMisses()} wasFull=${it.bucketWasFull()} hadSpace=${it.imageWasReturned()}"
+      }
+        ?: ""
 
     return """
       |General
@@ -75,12 +81,16 @@ class DiagnosticsLayer(private val diagnosticKey: NlDiagnosticKey, private val p
       |
       |Buckets
       |${bucketStats}
-    """.trimMargin()
+    """
+      .trimMargin()
   }
 
   override fun paint(graphics2D: Graphics2D) {
     val gc = graphics2D.create() as Graphics2D
-    gc.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+    gc.setRenderingHint(
+      RenderingHints.KEY_TEXT_ANTIALIASING,
+      RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+    )
     gc.setColorAndAlpha(JBColor.BLUE)
     gc.font = LAYER_FONT
 

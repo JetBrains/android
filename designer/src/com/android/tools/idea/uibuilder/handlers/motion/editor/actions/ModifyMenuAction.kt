@@ -22,16 +22,15 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.AnActionButton
 
-/**
- * Modify Menu action.
- */
+/** Modify Menu action. */
 abstract class ModifyMenuAction : AnActionButton("Modify Constraint Set", MEIcons.EDIT_MENU) {
 
   abstract val actions: List<AnAction>
 
   override fun actionPerformed(e: AnActionEvent) {
-    val menu = JBPopupFactory.getInstance().createActionGroupPopup(
-      null, DefaultActionGroup(actions), e.dataContext, null, true)
+    val menu =
+      JBPopupFactory.getInstance()
+        .createActionGroupPopup(null, DefaultActionGroup(actions), e.dataContext, null, true)
     menu.showUnderneathOf(e.inputEvent.component)
   }
 }

@@ -85,15 +85,16 @@ private fun parseChildren(
 }
 
 /**
- * Returns the text coming from the [AccessibilityNodeInfo] associated with this [ViewInfo],
- * or null if there is no [AccessibilityNodeInfo].
+ * Returns the text coming from the [AccessibilityNodeInfo] associated with this [ViewInfo], or null
+ * if there is no [AccessibilityNodeInfo].
  */
-fun ViewInfo.getAccessibilityText() = (accessibilityObject as? AccessibilityNodeInfo)?.text?.toString()
+fun ViewInfo.getAccessibilityText() =
+  (accessibilityObject as? AccessibilityNodeInfo)?.text?.toString()
 
 /**
- * Returns the source id from the [AccessibilityNodeInfo] associated with this [ViewInfo].
- * If the [AccessibilityNodeInfo] does not exist, but viewObject is a [View], this creates
- * an [AccessibilityNodeInfo] for that [View] first.
+ * Returns the source id from the [AccessibilityNodeInfo] associated with this [ViewInfo]. If the
+ * [AccessibilityNodeInfo] does not exist, but viewObject is a [View], this creates an
+ * [AccessibilityNodeInfo] for that [View] first.
  */
 fun ViewInfo.getAccessibilitySourceId(): Long {
   if (accessibilityObject != null) {

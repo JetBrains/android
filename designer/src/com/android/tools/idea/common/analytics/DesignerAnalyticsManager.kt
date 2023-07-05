@@ -22,7 +22,8 @@ import com.google.wireless.android.sdk.stats.LayoutEditorEvent
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 
 /**
- * Handles analytics that are common across design tools. Acts as an interface between [DesignSurface] and [CommonUsageTracker].
+ * Handles analytics that are common across design tools. Acts as an interface between
+ * [DesignSurface] and [CommonUsageTracker].
  */
 open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
 
@@ -31,12 +32,13 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
   private var panelState: DesignerEditorPanel.State = DesignerEditorPanel.State.DEACTIVATED
 
   val editorMode
-    get() = when (panelState) {
-    DesignerEditorPanel.State.FULL -> LayoutEditorState.Mode.DESIGN_MODE
-    // We map split mode to PREVIEW_MODE to keep consistency with past data
-    DesignerEditorPanel.State.SPLIT -> LayoutEditorState.Mode.PREVIEW_MODE
-    DesignerEditorPanel.State.DEACTIVATED -> LayoutEditorState.Mode.UNKOWN_MODE
-  }
+    get() =
+      when (panelState) {
+        DesignerEditorPanel.State.FULL -> LayoutEditorState.Mode.DESIGN_MODE
+        // We map split mode to PREVIEW_MODE to keep consistency with past data
+        DesignerEditorPanel.State.SPLIT -> LayoutEditorState.Mode.PREVIEW_MODE
+        DesignerEditorPanel.State.DEACTIVATED -> LayoutEditorState.Mode.UNKOWN_MODE
+      }
 
   open val layoutType = LayoutEditorState.Type.UNKNOWN_TYPE
 
@@ -44,31 +46,38 @@ open class DesignerAnalyticsManager(protected var surface: DesignSurface<*>) {
 
   fun trackUnknownEvent() = track(LayoutEditorEvent.LayoutEditorEventType.UNKNOWN_EVENT_TYPE)
 
-  fun trackZoom(type: ZoomType) = when (type) {
-    ZoomType.ACTUAL -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL)
-    ZoomType.IN -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN)
-    ZoomType.OUT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT)
-    ZoomType.FIT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT)
-    else -> Unit // ignore unrecognized zoom type.
-  }
+  fun trackZoom(type: ZoomType) =
+    when (type) {
+      ZoomType.ACTUAL -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_ACTUAL)
+      ZoomType.IN -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_IN)
+      ZoomType.OUT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_OUT)
+      ZoomType.FIT -> track(LayoutEditorEvent.LayoutEditorEventType.ZOOM_FIT)
+      else -> Unit // ignore unrecognized zoom type.
+    }
 
   /**
-   * Sets the [DesignerEditorPanel.State] so all related tracking, like rendering has the information about the state. If you want to log
-   * an editor mode change that was triggered by the user, you should use [trackSelectEditorMode] instead.
+   * Sets the [DesignerEditorPanel.State] so all related tracking, like rendering has the
+   * information about the state. If you want to log an editor mode change that was triggered by the
+   * user, you should use [trackSelectEditorMode] instead.
    */
   fun setEditorModeWithoutTracking(panelState: DesignerEditorPanel.State) {
     this.panelState = panelState
   }
 
-  fun trackSelectEditorMode(panelState: DesignerEditorPanel.State) = when (panelState) {
-    DesignerEditorPanel.State.FULL -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
-    DesignerEditorPanel.State.SPLIT -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
-    DesignerEditorPanel.State.DEACTIVATED -> track(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
-  }
+  fun trackSelectEditorMode(panelState: DesignerEditorPanel.State) =
+    when (panelState) {
+      DesignerEditorPanel.State.FULL ->
+        track(LayoutEditorEvent.LayoutEditorEventType.SELECT_VISUAL_MODE)
+      DesignerEditorPanel.State.SPLIT ->
+        track(LayoutEditorEvent.LayoutEditorEventType.SELECT_SPLIT_MODE)
+      DesignerEditorPanel.State.DEACTIVATED ->
+        track(LayoutEditorEvent.LayoutEditorEventType.SELECT_TEXT_MODE)
+    }
 
   fun trackIssuePanel(minimized: Boolean) =
     if (minimized) track(LayoutEditorEvent.LayoutEditorEventType.MINIMIZE_ERROR_PANEL)
     else track(LayoutEditorEvent.LayoutEditorEventType.RESTORE_ERROR_PANEL)
 
-  protected fun track(type: LayoutEditorEvent.LayoutEditorEventType) = CommonUsageTracker.getInstance(surface).logAction(type)
+  protected fun track(type: LayoutEditorEvent.LayoutEditorEventType) =
+    CommonUsageTracker.getInstance(surface).logAction(type)
 }

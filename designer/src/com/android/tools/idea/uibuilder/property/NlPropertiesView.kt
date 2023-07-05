@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.property
 
-import com.android.tools.property.panel.api.EditorProvider
-import com.android.tools.property.panel.api.PropertiesView
-import com.android.tools.property.panel.api.Watermark
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.property.inspector.AllAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property.inspector.CommonAttributesInspectorBuilder
@@ -31,12 +28,17 @@ import com.android.tools.idea.uibuilder.property.inspector.SelectedComponentBuil
 import com.android.tools.idea.uibuilder.property.inspector.TransformsAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
 import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
+import com.android.tools.property.panel.api.EditorProvider
+import com.android.tools.property.panel.api.PropertiesView
+import com.android.tools.property.panel.api.Watermark
 
 private const val VIEW_NAME = "LayoutEditor"
 private const val WATERMARK_MESSAGE = "No component selected."
-private const val WATERMARK_ACTION_MESSAGE = "Select a component in the Component Tree or on the Design Surface."
+private const val WATERMARK_ACTION_MESSAGE =
+  "Select a component in the Component Tree or on the Design Surface."
 
-class NlPropertiesView(model : NlPropertiesModel) : PropertiesView<NlPropertyItem>(VIEW_NAME, model) {
+class NlPropertiesView(model: NlPropertiesModel) :
+  PropertiesView<NlPropertyItem>(VIEW_NAME, model) {
   private val enumSupportProvider = NlEnumSupportProvider(model)
   private val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)

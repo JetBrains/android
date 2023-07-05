@@ -27,15 +27,15 @@ import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.idea.validator.ValidatorUtil
 import com.android.tools.rendering.RenderResult
-import com.google.android.apps.common.testing.accessibility.framework.checks.DuplicateClickableBoundsCheck
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.util.EnumSet
 
-class VisualLintAtfAnalysis(
-  private val model: NlModel): Disposable {
+class VisualLintAtfAnalysis(private val model: NlModel) : Disposable {
 
-  /** Parses the layout and stores all metadata required for linking issues to source [NlComponent] */
+  /**
+   * Parses the layout and stores all metadata required for linking issues to source [NlComponent]
+   */
   private val layoutParser = NlScannerLayoutParser()
 
   /** Render specific metrics data */
@@ -57,9 +57,7 @@ class VisualLintAtfAnalysis(
     LayoutValidator.setPaused(false)
   }
 
-  /**
-   * Validate the layout and update the lint accordingly.
-   */
+  /** Validate the layout and update the lint accordingly. */
   fun validateAndUpdateLint(renderResult: RenderResult): List<VisualLintAtfIssue> {
     when (val validatorResult = renderResult.validatorResult) {
       is ValidatorHierarchy -> {
@@ -68,10 +66,16 @@ class VisualLintAtfAnalysis(
           return ArrayList<VisualLintAtfIssue>()
         }
 
-        val policy = ValidatorData.Policy(
-          EnumSet.of(ValidatorData.Type.ACCESSIBILITY,
-                     ValidatorData.Type.RENDER),
-          EnumSet.of(ValidatorData.Level.ERROR, ValidatorData.Level.WARNING, ValidatorData.Level.INFO, ValidatorData.Level.VERBOSE))
+        val policy =
+          ValidatorData.Policy(
+            EnumSet.of(ValidatorData.Type.ACCESSIBILITY, ValidatorData.Type.RENDER),
+            EnumSet.of(
+              ValidatorData.Level.ERROR,
+              ValidatorData.Level.WARNING,
+              ValidatorData.Level.INFO,
+              ValidatorData.Level.VERBOSE
+            )
+          )
 
         val validated = ValidatorUtil.generateResults(policy, validatorResult)
         return validateAndUpdateLint(renderResult, validated)
@@ -85,7 +89,8 @@ class VisualLintAtfAnalysis(
 
   private fun validateAndUpdateLint(
     renderResult: RenderResult,
-    validatorResult: ValidatorResult): MutableList<VisualLintAtfIssue> {
+    validatorResult: ValidatorResult
+  ): MutableList<VisualLintAtfIssue> {
     layoutParser.clear()
 
     val issues = ArrayList<VisualLintAtfIssue>()
@@ -101,9 +106,12 @@ class VisualLintAtfAnalysis(
       val root = components[0]
       layoutParser.buildViewToComponentMap(root)
       validatorResult.issues.forEach {
-        if ((it.mLevel == ValidatorData.Level.ERROR || it.mLevel == ValidatorData.Level.WARNING) &&
-            it.mType == ValidatorData.Type.ACCESSIBILITY) {
-          val component = layoutParser.findComponent(it, validatorResult.srcMap, validatorResult.nodeInfoMap)
+        if (
+          (it.mLevel == ValidatorData.Level.ERROR || it.mLevel == ValidatorData.Level.WARNING) &&
+            it.mType == ValidatorData.Type.ACCESSIBILITY
+        ) {
+          val component =
+            layoutParser.findComponent(it, validatorResult.srcMap, validatorResult.nodeInfoMap)
           if (component == null) {
             issuesWithoutSources++
           } else {
@@ -130,16 +138,17 @@ class VisualLintAtfAnalysis(
 class VisualLintAtfIssue(
   result: ValidatorData.Issue,
   val component: NlComponent,
-  private val sourceModel: NlModel) :
-  NlAtfIssue(result, IssueSource.fromNlComponent(component), sourceModel), VisualLintHighlightingIssue {
+  private val sourceModel: NlModel
+) :
+  NlAtfIssue(result, IssueSource.fromNlComponent(component), sourceModel),
+  VisualLintHighlightingIssue {
 
-  private val visualLintIssueSource = VisualLintIssueProvider.VisualLintIssueSource(setOf(sourceModel), listOf(component))
+  private val visualLintIssueSource =
+    VisualLintIssueProvider.VisualLintIssueSource(setOf(sourceModel), listOf(component))
   override val source: IssueSource
     get() = visualLintIssueSource
 
   override fun shouldHighlight(model: NlModel): Boolean {
     return sourceModel == model
   }
-
 }
-

@@ -28,8 +28,7 @@ import org.junit.Test
 
 class ProgressBarHandlerTest {
 
-  @get:Rule
-  val myRule = AndroidProjectRule.inMemory()
+  @get:Rule val myRule = AndroidProjectRule.inMemory()
 
   @Test
   fun getIconFromShortStyleName() {
@@ -53,7 +52,10 @@ class ProgressBarHandlerTest {
   }
 
   private fun createProgressBar(styleValue: String): NlComponent {
-    val progressBar = createNlModelFromTagName(AndroidFacet.getInstance(myRule.module)!!).getRoot().addChild(progressBarTag(styleValue))
+    val progressBar =
+      createNlModelFromTagName(AndroidFacet.getInstance(myRule.module)!!)
+        .getRoot()
+        .addChild(progressBarTag(styleValue))
     Truth.assertThat(progressBar.tagName).isEqualTo(SdkConstants.PROGRESS_BAR)
     Truth.assertThat(progressBar.getAttribute(null, "style")).isEqualTo(styleValue)
     return progressBar
@@ -61,7 +63,7 @@ class ProgressBarHandlerTest {
 }
 
 private fun progressBarTag(styleValue: String): String {
-  //language=XML
+  // language=XML
   return """<ProgressBar
       android:id="@+id/progressBar"
       style="$styleValue"

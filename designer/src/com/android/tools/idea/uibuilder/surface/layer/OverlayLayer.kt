@@ -20,24 +20,23 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.AlphaComposite
 import java.awt.Dimension
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.font.TextLayout
 import java.awt.image.BufferedImage
+import org.jetbrains.annotations.VisibleForTesting
 
-@VisibleForTesting
-const val PLACEHOLDER_TEXT = "Loading Overlay..."
+@VisibleForTesting const val PLACEHOLDER_TEXT = "Loading Overlay..."
 
-@VisibleForTesting
-const val PLACEHOLDER_ALPHA = 0.7f
+@VisibleForTesting const val PLACEHOLDER_ALPHA = 0.7f
 
-/**
- * The Overlay Layer to be displayed on top of the layout preview
- */
-class OverlayLayer(private val sceneView: SceneView, private val overlayConfiguration: () -> OverlayConfiguration) : Layer() {
+/** The Overlay Layer to be displayed on top of the layout preview */
+class OverlayLayer(
+  private val sceneView: SceneView,
+  private val overlayConfiguration: () -> OverlayConfiguration
+) : Layer() {
   private var screenViewSize = Dimension()
   private fun paintPlaceholder(g: Graphics2D) {
     g.composite = AlphaComposite.SrcOver.derive(PLACEHOLDER_ALPHA)
@@ -45,8 +44,7 @@ class OverlayLayer(private val sceneView: SceneView, private val overlayConfigur
     g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
     if (sceneView.screenShape != null) {
       g.fill(sceneView.screenShape)
-    }
-    else {
+    } else {
       g.fillRect(sceneView.x, sceneView.y, screenViewSize.width, screenViewSize.height)
     }
     g.font = UIUtil.getFont(UIUtil.FontSize.NORMAL, null)
@@ -67,7 +65,10 @@ class OverlayLayer(private val sceneView: SceneView, private val overlayConfigur
       return
     }
     g.composite = AlphaComposite.SrcOver.derive(overlayConfiguration.overlayAlpha)
-    g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+    g.setRenderingHint(
+      RenderingHints.KEY_INTERPOLATION,
+      RenderingHints.VALUE_INTERPOLATION_BILINEAR
+    )
     g.drawImage(image, sceneView.x, sceneView.y, screenViewSize.width, screenViewSize.height, null)
   }
 
@@ -77,8 +78,7 @@ class OverlayLayer(private val sceneView: SceneView, private val overlayConfigur
       screenViewSize = sceneView.getScaledContentSize(screenViewSize)
       if (overlayConfiguration.isPlaceholderVisible) {
         paintPlaceholder(gc)
-      }
-      else {
+      } else {
         paintOverlay(gc, overlayConfiguration.overlayImage)
       }
     }

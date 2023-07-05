@@ -30,9 +30,25 @@ import org.mockito.Mockito
 
 class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
 
-  private fun createModel(propertyValue: String?, trueValue: String, falseValue: String): ToggleButtonPropertyEditorModel {
-    val property = createPropertyItem(ANDROID_URI, ATTR_TEXT_ALIGNMENT, NlPropertyType.STRING, createTextView(propertyValue))
-    return ToggleButtonPropertyEditorModel("description", TEXT_ALIGN_CENTER, trueValue, falseValue, property)
+  private fun createModel(
+    propertyValue: String?,
+    trueValue: String,
+    falseValue: String
+  ): ToggleButtonPropertyEditorModel {
+    val property =
+      createPropertyItem(
+        ANDROID_URI,
+        ATTR_TEXT_ALIGNMENT,
+        NlPropertyType.STRING,
+        createTextView(propertyValue)
+      )
+    return ToggleButtonPropertyEditorModel(
+      "description",
+      TEXT_ALIGN_CENTER,
+      trueValue,
+      falseValue,
+      property
+    )
   }
 
   @Test
@@ -53,13 +69,19 @@ class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
     checkSetSelected("right", "left", "right", false, "right")
   }
 
-  private fun checkSetSelected(propertyValue: String?, trueValue: String, falseValue: String, setValue: Boolean, expected: String?) {
+  private fun checkSetSelected(
+    propertyValue: String?,
+    trueValue: String,
+    falseValue: String,
+    setValue: Boolean,
+    expected: String?
+  ) {
     val model = createModel(propertyValue, trueValue, falseValue)
     val listener = Mockito.mock(ValueChangedListener::class.java)
     model.addListener(listener)
 
     model.selected = setValue
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
     assertThat(model.property.value).isEqualTo(expected)
   }
@@ -68,7 +90,9 @@ class ToggleButtonPropertyEditorModelTest : PropertyTestCase() {
     return if (propertyValue == null) {
       createComponents(component(TEXT_VIEW))
     } else {
-      createComponents(component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_ALIGNMENT, propertyValue))
+      createComponents(
+        component(TEXT_VIEW).withAttribute(ANDROID_URI, ATTR_TEXT_ALIGNMENT, propertyValue)
+      )
     }
   }
 }

@@ -18,8 +18,8 @@ package com.android.tools.idea.uibuilder.property.ui
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.KeyStrokes
-import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.idea.uibuilder.property.model.HorizontalEditorPanelModel
+import com.android.tools.property.panel.api.PropertyEditorModel
 import java.awt.FlowLayout
 import javax.swing.JComponent
 
@@ -28,7 +28,8 @@ import javax.swing.JComponent
  *
  * Intercept left and right arrows and ask the model to move focus to the next editor.
  */
-class HorizontalEditorPanel(private val model: HorizontalEditorPanelModel): AdtSecondaryPanel(FlowLayout(FlowLayout.LEADING, 2, 2)) {
+class HorizontalEditorPanel(private val model: HorizontalEditorPanelModel) :
+  AdtSecondaryPanel(FlowLayout(FlowLayout.LEADING, 2, 2)) {
 
   init {
     registerKeyboardAction({ model.prior() }, KeyStrokes.LEFT, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)

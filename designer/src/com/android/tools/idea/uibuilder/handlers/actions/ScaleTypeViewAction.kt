@@ -35,24 +35,27 @@ enum class ScaleType(val icon: Icon?, val displayName: String, val attributeValu
   MATRIX(null, "Matrix", "matrix"),
 }
 
-class ScaleTypeViewAction(private val namespace: String?,
-                          private val attribute: String,
-                          private val type: ScaleType)
-  : DirectViewAction(type.icon, type.displayName) {
-  override fun perform(editor: ViewEditor,
-                       handler: ViewHandler,
-                       component: NlComponent,
-                       selectedChildren: MutableList<NlComponent>,
-                       modifiers: Int) {
+class ScaleTypeViewAction(
+  private val namespace: String?,
+  private val attribute: String,
+  private val type: ScaleType
+) : DirectViewAction(type.icon, type.displayName) {
+  override fun perform(
+    editor: ViewEditor,
+    handler: ViewHandler,
+    component: NlComponent,
+    selectedChildren: MutableList<NlComponent>,
+    modifiers: Int
+  ) {
     val attr = component.startAttributeTransaction()
     attr.setAttribute(namespace, attribute, type.attributeValue)
-    NlWriteCommandActionUtil.run(component, "Change Scale Type") {
-      attr.commit()
-    }
+    NlWriteCommandActionUtil.run(component, "Change Scale Type") { attr.commit() }
   }
 }
 
-class ScaleTypesViewActionMenu(namespace: String?, attribute: String)
-  : ViewActionMenu("",
-                   StudioIcons.LayoutEditor.Motion.MAX_SCALE,
-                   ScaleType.values().map { ScaleTypeViewAction(namespace, attribute, it) })
+class ScaleTypesViewActionMenu(namespace: String?, attribute: String) :
+  ViewActionMenu(
+    "",
+    StudioIcons.LayoutEditor.Motion.MAX_SCALE,
+    ScaleType.values().map { ScaleTypeViewAction(namespace, attribute, it) }
+  )

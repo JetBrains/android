@@ -16,7 +16,6 @@
 package com.android.tools.idea
 
 import com.android.tools.idea.actions.DesignerActions
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.keymap.KeymapExtension
 import com.intellij.openapi.keymap.KeymapGroup
@@ -25,32 +24,16 @@ import com.intellij.openapi.keymap.impl.ui.ActionsTreeUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Condition
 
-/**
- * The section name displayed in Preferences -> Keymap
- */
+/** The section name displayed in Preferences -> Keymap */
 private const val KEYMAP_SECTION_NAME = "Android Design Tools"
 
 /**
- * This class add the Keymap section of Android Design Tools which shows as Preferences -> Keymap -> [KEYMAP_SECTION_NAME].
- * Its structure would looks like:
+ * This class add the Keymap section of Android Design Tools which shows as Preferences -> Keymap ->
+ * [KEYMAP_SECTION_NAME]. Its structure would looks like:
  *
- * Android Design Tools
- *   common_action1
- *   common_action2
- *   ...
- *   Layout Editor
- *     layout_editor_action1
- *     layout_editor_action2
- *     ...
- *   Navigation Editor
- *     navigation_editor_action1
- *     navigation_editor_action2
- *     ...
- *   another_tool1
- *     ...
- *   another_tool2
- *     ...
- *   ...
+ * Android Design Tools common_action1 common_action2 ... Layout Editor layout_editor_action1
+ * layout_editor_action2 ... Navigation Editor navigation_editor_action1 navigation_editor_action2
+ * ... another_tool1 ... another_tool2 ... ...
  */
 class DesignerKeymapExtension : KeymapExtension {
   override fun createGroup(filtered: Condition<in AnAction>, project: Project?): KeymapGroup? {

@@ -18,7 +18,8 @@ package com.android.tools.idea.actions
 import com.intellij.openapi.actionSystem.DataKey
 
 @JvmField
-val LAYOUT_PREVIEW_HANDLER_KEY = DataKey.create<LayoutPreviewHandler>(LayoutPreviewHandler::class.java.name)
+val LAYOUT_PREVIEW_HANDLER_KEY =
+  DataKey.create<LayoutPreviewHandler>(LayoutPreviewHandler::class.java.name)
 
 /** Interface for components that can render and manage previews from a Layout file. */
 interface LayoutPreviewHandler {

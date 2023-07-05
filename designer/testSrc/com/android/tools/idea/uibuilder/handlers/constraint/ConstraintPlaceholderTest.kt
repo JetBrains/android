@@ -94,8 +94,20 @@ class ConstraintPlaceholderTest : SceneTest() {
 
     applyPlaceholderToSceneComponent(textView, placeholder)
 
-    assertEquals("50dp", textView.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-    assertEquals("60dp", textView.nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
+    assertEquals(
+      "50dp",
+      textView.nlComponent.getAttribute(
+        SdkConstants.TOOLS_URI,
+        SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X
+      )
+    )
+    assertEquals(
+      "60dp",
+      textView.nlComponent.getAttribute(
+        SdkConstants.TOOLS_URI,
+        SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y
+      )
+    )
   }
 
   fun testDraggingComponentOutsideWillRemoveAllConstraintLayoutAttributes() {
@@ -103,10 +115,22 @@ class ConstraintPlaceholderTest : SceneTest() {
     val textView2 = myScreen.get("@id/textView2").sceneComponent!!
 
     textView2.nlComponent.let {
-      assertEquals("parent", it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF))
-      assertEquals("linear", it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF))
-      assertEquals("0.632", it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS))
-      assertEquals("0dp", it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
+      assertEquals(
+        "parent",
+        it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF)
+      )
+      assertEquals(
+        "linear",
+        it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF)
+      )
+      assertEquals(
+        "0.632",
+        it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS)
+      )
+      assertEquals(
+        "0dp",
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
     }
 
     myInteraction.select("textView2", true)
@@ -121,9 +145,13 @@ class ConstraintPlaceholderTest : SceneTest() {
 
     textView2AfterDrag.nlComponent.let {
       assertNull(it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF))
-      assertNull(it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF))
+      assertNull(
+        it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF)
+      )
       assertNull(it.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS))
-      assertNull(it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
+      assertNull(
+        it.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+      )
     }
   }
 
@@ -139,51 +167,108 @@ class ConstraintPlaceholderTest : SceneTest() {
       placeholder.updateLiveAttribute(guideline, transaction, root.drawX + 300, root.centerY)
       NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
 
-      assertEquals("300dp", nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN))
-      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END))
-      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT))
+      assertEquals(
+        "300dp",
+        nlComponent.getAttribute(
+          SdkConstants.SHERPA_URI,
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN
+        )
+      )
+      assertNull(
+        nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END)
+      )
+      assertNull(
+        nlComponent.getAttribute(
+          SdkConstants.SHERPA_URI,
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
+        )
+      )
     }
 
     run {
       // Test dragging with end attribute
       NlWriteCommandActionUtil.run(nlComponent, "") {
-        nlComponent.removeAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN)
-        nlComponent.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END, "50dp")
+        nlComponent.removeAttribute(
+          SdkConstants.SHERPA_URI,
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN
+        )
+        nlComponent.setAttribute(
+          SdkConstants.SHERPA_URI,
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END,
+          "50dp"
+        )
       }
 
       val transaction = nlComponent.startAttributeTransaction()
       placeholder.updateLiveAttribute(guideline, transaction, root.drawX + 400, root.centerY)
       NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
 
-      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN))
-      assertEquals("100dp", nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END))
-      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT))
+      assertNull(
+        nlComponent.getAttribute(
+          SdkConstants.SHERPA_URI,
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN
+        )
+      )
+      assertEquals(
+        "100dp",
+        nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END)
+      )
+      assertNull(
+        nlComponent.getAttribute(
+          SdkConstants.SHERPA_URI,
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
+        )
+      )
     }
 
     run {
       // Test dragging with percent attribute
       NlWriteCommandActionUtil.run(nlComponent, "") {
-        nlComponent.removeAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END)
-        nlComponent.setAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT, "0.2")
+        nlComponent.removeAttribute(
+          SdkConstants.SHERPA_URI,
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END
+        )
+        nlComponent.setAttribute(
+          SdkConstants.SHERPA_URI,
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT,
+          "0.2"
+        )
       }
 
       val transaction = nlComponent.startAttributeTransaction()
       placeholder.updateLiveAttribute(guideline, transaction, root.drawX + 350, root.centerY)
       NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
 
-      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN))
-      assertNull(nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END))
-      assertEquals("0.7", nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT))
+      assertNull(
+        nlComponent.getAttribute(
+          SdkConstants.SHERPA_URI,
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN
+        )
+      )
+      assertNull(
+        nlComponent.getAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_END)
+      )
+      assertEquals(
+        "0.7",
+        nlComponent.getAttribute(
+          SdkConstants.SHERPA_URI,
+          SdkConstants.LAYOUT_CONSTRAINT_GUIDE_PERCENT
+        )
+      )
     }
   }
 
   fun testDraggingMatchParentComponentFromPalette() {
-    val model = model("linear.xml",
-                      component(SdkConstants.LINEAR_LAYOUT)
-                        .withBounds(0, 0, 100, 100)
-                        .id("@id/match_parent_linear")
-                        .matchParentWidth()
-                        .matchParentHeight()).build()
+    val model =
+      model(
+          "linear.xml",
+          component(SdkConstants.LINEAR_LAYOUT)
+            .withBounds(0, 0, 100, 100)
+            .id("@id/match_parent_linear")
+            .matchParentWidth()
+            .matchParentHeight()
+        )
+        .build()
 
     // To simulate dragging from Palette, we add a Layout from another model.
     val root = myScreen.get("@id/constraint").sceneComponent!!
@@ -195,24 +280,45 @@ class ConstraintPlaceholderTest : SceneTest() {
 
     // Dragging it into layout
     val transaction = nlComponent.startAttributeTransaction()
-    placeholder.updateLiveAttribute(tempSceneComponent, transaction, root.drawX + 30, root.drawY + 250)
+    placeholder.updateLiveAttribute(
+      tempSceneComponent,
+      transaction,
+      root.drawX + 30,
+      root.drawY + 250
+    )
     NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
 
-    assertEquals("16dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-    assertEquals("116dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
-    assertEquals("68dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH))
-    assertEquals("368dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT))
+    assertEquals(
+      "16dp",
+      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+    )
+    assertEquals(
+      "116dp",
+      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+    )
+    assertEquals(
+      "68dp",
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH)
+    )
+    assertEquals(
+      "368dp",
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT)
+    )
 
     Scout.setMargin(Scout.DEFAULT_MARGIN)
   }
 
   fun testDraggingMatchParentComponentFromPalette2() {
-    val model = model("linear.xml",
-                      component(SdkConstants.LINEAR_LAYOUT)
-                        .withBounds(0, 0, 100, 100)
-                        .id("@id/match_parent_linear")
-                        .matchParentWidth()
-                        .matchParentHeight()).build()
+    val model =
+      model(
+          "linear.xml",
+          component(SdkConstants.LINEAR_LAYOUT)
+            .withBounds(0, 0, 100, 100)
+            .id("@id/match_parent_linear")
+            .matchParentWidth()
+            .matchParentHeight()
+        )
+        .build()
 
     // To simulate dragging from Palette, we add a Layout from another model.
     val root = myScreen.get("@id/constraint").sceneComponent!!
@@ -224,54 +330,100 @@ class ConstraintPlaceholderTest : SceneTest() {
 
     // Dragging it into layout
     val transaction = nlComponent.startAttributeTransaction()
-    placeholder.updateLiveAttribute(tempSceneComponent, transaction, root.drawX + 480, root.drawY + 50)
+    placeholder.updateLiveAttribute(
+      tempSceneComponent,
+      transaction,
+      root.drawX + 480,
+      root.drawY + 50
+    )
     NlWriteCommandActionUtil.run(nlComponent, "") { transaction.commit() }
 
-    assertEquals("417dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X))
-    assertEquals("16dp", nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y))
-    assertEquals("67dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH))
-    assertEquals("68dp", nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT))
+    assertEquals(
+      "417dp",
+      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X)
+    )
+    assertEquals(
+      "16dp",
+      nlComponent.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y)
+    )
+    assertEquals(
+      "67dp",
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH)
+    )
+    assertEquals(
+      "68dp",
+      nlComponent.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT)
+    )
 
     Scout.setMargin(Scout.DEFAULT_MARGIN)
   }
 
   override fun createModel(): ModelBuilder {
-    return model("constraint.xml",
-                 component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
-                   .withBounds(0, 0, 1000, 1000)
-                   .id("@id/constraint")
-                   .matchParentWidth()
-                   .matchParentHeight()
-                   .children(
-                     component(SdkConstants.TEXT_VIEW)
-                       .withBounds(0, 0, 200, 200)
-                       .id("@id/textView")
-                       .width("100dp")
-                       .height("100dp"),
-                     component(SdkConstants.TEXT_VIEW)
-                       .withBounds(200, 0, 200, 200)
-                       .id("@id/textView2")
-                       .width("100dp")
-                       .height("100dp")
-                       .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF, "parent")
-                       .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, "linear")
-                       .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, "0.632")
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "0dp"),
-                     component(SdkConstants.LINEAR_LAYOUT)
-                       .withBounds(200, 200, 800, 800)
-                       .id("@id/linear")
-                       .width("400dp")
-                       .height("400dp")
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, "100dp")
-                       .withAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, "100dp"),
-                     component(AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.newName())
-                       .withBounds(800, 0, 1, 1000)
-                       .id("@id/guideline")
-                       .wrapContentHeight()
-                       .wrapContentWidth()
-                       .withAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_ORIENTATION, SdkConstants.VALUE_VERTICAL)
-                       .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN, "400dp")
-                   )
+    return model(
+      "constraint.xml",
+      component(AndroidXConstants.CONSTRAINT_LAYOUT.newName())
+        .withBounds(0, 0, 1000, 1000)
+        .id("@id/constraint")
+        .matchParentWidth()
+        .matchParentHeight()
+        .children(
+          component(SdkConstants.TEXT_VIEW)
+            .withBounds(0, 0, 200, 200)
+            .id("@id/textView")
+            .width("100dp")
+            .height("100dp"),
+          component(SdkConstants.TEXT_VIEW)
+            .withBounds(200, 0, 200, 200)
+            .id("@id/textView2")
+            .width("100dp")
+            .height("100dp")
+            .withAttribute(
+              SdkConstants.SHERPA_URI,
+              SdkConstants.ATTR_LAYOUT_TOP_TO_TOP_OF,
+              "parent"
+            )
+            .withAttribute(
+              SdkConstants.SHERPA_URI,
+              SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF,
+              "linear"
+            )
+            .withAttribute(SdkConstants.SHERPA_URI, SdkConstants.ATTR_LAYOUT_VERTICAL_BIAS, "0.632")
+            .withAttribute(
+              SdkConstants.TOOLS_URI,
+              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
+              "0dp"
+            ),
+          component(SdkConstants.LINEAR_LAYOUT)
+            .withBounds(200, 200, 800, 800)
+            .id("@id/linear")
+            .width("400dp")
+            .height("400dp")
+            .withAttribute(
+              SdkConstants.TOOLS_URI,
+              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X,
+              "100dp"
+            )
+            .withAttribute(
+              SdkConstants.TOOLS_URI,
+              SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y,
+              "100dp"
+            ),
+          component(AndroidXConstants.CONSTRAINT_LAYOUT_GUIDELINE.newName())
+            .withBounds(800, 0, 1, 1000)
+            .id("@id/guideline")
+            .wrapContentHeight()
+            .wrapContentWidth()
+            .withAttribute(
+              SdkConstants.ANDROID_URI,
+              SdkConstants.ATTR_ORIENTATION,
+              SdkConstants.VALUE_VERTICAL
+            )
+            .withAttribute(
+              SdkConstants.SHERPA_URI,
+              SdkConstants.LAYOUT_CONSTRAINT_GUIDE_BEGIN,
+              "400dp"
+            )
+        )
     )
   }
 }

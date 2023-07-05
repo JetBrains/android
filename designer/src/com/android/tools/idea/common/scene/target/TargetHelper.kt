@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 @file:JvmName("TargetHelper")
+
 package com.android.tools.idea.common.scene.target
 
-fun Target.isAbove(other: Target) = this.preferenceLevel > other.preferenceLevel
-                                    || (this.preferenceLevel == other.preferenceLevel && this.component.depth > other.component.depth)
+fun Target.isAbove(other: Target) =
+  this.preferenceLevel > other.preferenceLevel ||
+    (this.preferenceLevel == other.preferenceLevel && this.component.depth > other.component.depth)

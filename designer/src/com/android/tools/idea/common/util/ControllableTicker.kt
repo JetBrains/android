@@ -22,13 +22,16 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 /**
- * A utility that allows to schedule regular calls of [onTick] callback with a period of [period]. The calls do not start until [start] is
- * called. [stop] will stop the calls. Call [start] again to restart the calls without recreating the object.
+ * A utility that allows to schedule regular calls of [onTick] callback with a period of [period].
+ * The calls do not start until [start] is called. [stop] will stop the calls. Call [start] again to
+ * restart the calls without recreating the object.
  */
 class ControllableTicker(
   private val onTick: () -> Unit,
   private val period: Duration,
-  private val executorProvider: () -> ScheduledExecutorService = { Executors.newScheduledThreadPool(1) }
+  private val executorProvider: () -> ScheduledExecutorService = {
+    Executors.newScheduledThreadPool(1)
+  }
 ) : Disposable {
   private var executor: ScheduledExecutorService? = null
 
@@ -47,9 +50,7 @@ class ControllableTicker(
       it.shutdown()
       try {
         it.awaitTermination(period.toNanos(), TimeUnit.NANOSECONDS)
-      }
-      catch (e: InterruptedException) {
-      }
+      } catch (e: InterruptedException) {}
     }
     executor = null
   }

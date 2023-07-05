@@ -52,8 +52,12 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, parentTag: String = "", fileName: String = "layout.xml")
-  : SupportTestUtil(projectRule, *tags, parentTag = parentTag, fileName = fileName) {
+class InspectorTestUtil(
+  projectRule: AndroidProjectRule,
+  vararg tags: String,
+  parentTag: String = "",
+  fileName: String = "layout.xml"
+) : SupportTestUtil(projectRule, *tags, parentTag = parentTag, fileName = fileName) {
 
   private val _properties: Table<String, String, NlPropertyItem> = HashBasedTable.create()
 
@@ -64,7 +68,8 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
   val inspector = FakeInspectorPanel()
 
   init {
-    // Make sure the initial property load by model is done before replacing the properties in the model:
+    // Make sure the initial property load by model is done before replacing the properties in the
+    // model:
     NlPropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model)
 
     model.setPropertiesInTest(properties)
@@ -92,9 +97,11 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
 
   fun checkTitle(line: Int, title: String) = inspector.checkTitle(line, title)
 
-  fun checkTitle(line: Int, title: String, expandable: Boolean): FakeInspectorLineModel = inspector.checkTitle(line, title, expandable)
+  fun checkTitle(line: Int, title: String, expandable: Boolean): FakeInspectorLineModel =
+    inspector.checkTitle(line, title, expandable)
 
-  fun checkEditor(line: Int, namespace: String, name: String) = inspector.checkEditor(line, namespace, name)
+  fun checkEditor(line: Int, namespace: String, name: String) =
+    inspector.checkEditor(line, namespace, name)
 
   fun checkTable(line: Int): FakeTableLineModel = inspector.checkTable(line)
 
@@ -106,14 +113,18 @@ class InspectorTestUtil(projectRule: AndroidProjectRule, vararg tags: String, pa
     return lineModel
   }
 
-  fun performAction(line: Int, action: Int, icon: Icon) = inspector.performAction(line, action, icon)
+  fun performAction(line: Int, action: Int, icon: Icon) =
+    inspector.performAction(line, action, icon)
 }
 
-class FakeEditorProviderImpl(model: NlPropertiesModel): EditorProvider<NlPropertyItem> {
+class FakeEditorProviderImpl(model: NlPropertiesModel) : EditorProvider<NlPropertyItem> {
   private val enumSupportProvider = NlEnumSupportProvider(model)
   private val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
 
-  override fun createEditor(property: NlPropertyItem, context: EditorContext): Pair<PropertyEditorModel, JComponent> {
+  override fun createEditor(
+    property: NlPropertyItem,
+    context: EditorContext
+  ): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
 
     return when (val type = controlTypeProvider(property)) {

@@ -23,13 +23,12 @@ import com.google.common.annotations.VisibleForTesting
 /**
  * Model for an editor with one or more sub editors.
  *
- * This model forwards focus requests to the first sub editor, and provides
- * a way to move focus between the sub editors.
+ * This model forwards focus requests to the first sub editor, and provides a way to move focus
+ * between the sub editors.
  */
 class HorizontalEditorPanelModel(property: PropertyItem) : BasePropertyEditorModel(property) {
 
-  @VisibleForTesting
-  val models = mutableListOf<PropertyEditorModel>()
+  @VisibleForTesting val models = mutableListOf<PropertyEditorModel>()
 
   fun add(childModel: PropertyEditorModel) {
     models.add(childModel)
@@ -49,7 +48,6 @@ class HorizontalEditorPanelModel(property: PropertyItem) : BasePropertyEditorMod
 
   private val focusIndex: Int
     get() = models.indexOfFirst { it.hasFocus }
-
 
   override fun requestFocus() {
     models.firstOrNull()?.requestFocus()

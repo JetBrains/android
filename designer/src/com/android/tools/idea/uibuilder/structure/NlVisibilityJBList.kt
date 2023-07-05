@@ -31,30 +31,31 @@ class NlVisibilityJBList : JBList<ButtonPresentation>(), Disposable {
   private var popupMenu: NlVisibilityPopupMenu? = null
 
   @VisibleForTesting
-  val mouseListener = object: MouseAdapter() {
-    override fun mouseMoved(e: MouseEvent?) {
-      updateCurrentlyHovered(e)
-    }
-
-    override fun mouseEntered(e: MouseEvent?) {
-      updateCurrentlyHovered(e)
-    }
-
-    override fun mouseClicked(e: MouseEvent?) {
-      if (e == null || e.button != MouseEvent.BUTTON1 || e.clickCount != 1) {
-        return
+  val mouseListener =
+    object : MouseAdapter() {
+      override fun mouseMoved(e: MouseEvent?) {
+        updateCurrentlyHovered(e)
       }
-      val clickedIndex = locationToIndex(e.point)
-      if (clickedIndex != -1 && clickedIndex < model.size) {
-        onMouseClicked(e.point)
+
+      override fun mouseEntered(e: MouseEvent?) {
+        updateCurrentlyHovered(e)
+      }
+
+      override fun mouseClicked(e: MouseEvent?) {
+        if (e == null || e.button != MouseEvent.BUTTON1 || e.clickCount != 1) {
+          return
+        }
+        val clickedIndex = locationToIndex(e.point)
+        if (clickedIndex != -1 && clickedIndex < model.size) {
+          onMouseClicked(e.point)
+        }
+      }
+
+      override fun mouseExited(e: MouseEvent?) {
+        currHovered = -1
+        repaint()
       }
     }
-
-    override fun mouseExited(e: MouseEvent?) {
-      currHovered = -1
-      repaint()
-    }
-  }
 
   init {
     addMouseMotionListener(mouseListener)
@@ -78,7 +79,7 @@ class NlVisibilityJBList : JBList<ButtonPresentation>(), Disposable {
       model.getElementAt(clickedIndex).model?.let {
         currClicked = clickedIndex
         currModel = it
-        val y = currClicked * NlVisibilityButton.HEIGHT + NlVisibilityButton.HEIGHT/2
+        val y = currClicked * NlVisibilityButton.HEIGHT + NlVisibilityButton.HEIGHT / 2
         val x = NlVisibilityButton.WIDTH
         val p = Point(x, y)
 

@@ -18,7 +18,8 @@ package com.android.tools.idea.uibuilder.surface
 import org.intellij.lang.annotations.Language
 
 @Language("XML")
-const val DUP_BOUNDS_LAYOUT = """
+const val DUP_BOUNDS_LAYOUT =
+  """
   <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -50,7 +51,8 @@ const val DUP_BOUNDS_LAYOUT = """
 """
 
 @Language("XML")
-const val TEXT_COLOR_CONTRAST_SIMPLE = """
+const val TEXT_COLOR_CONTRAST_SIMPLE =
+  """
   <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -71,7 +73,8 @@ const val TEXT_COLOR_CONTRAST_SIMPLE = """
 """
 
 @Language("XML")
-const val TEXT_COLOR_CONTRAST_COMPLEX = """
+const val TEXT_COLOR_CONTRAST_COMPLEX =
+  """
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -116,4 +119,3 @@ const val TEXT_COLOR_CONTRAST_COMPLEX = """
         android:textColor="@android:color/holo_blue_dark"/>
 </LinearLayout>
   """
-

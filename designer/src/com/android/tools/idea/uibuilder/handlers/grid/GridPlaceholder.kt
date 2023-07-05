@@ -23,12 +23,13 @@ import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SnappingInfo
 import java.awt.Point
 
-class GridPlaceholder(override val region: Region,
-                      private val row: Int,
-                      private val column: Int,
-                      private val namespace: String,
-                      host: SceneComponent)
-  : Placeholder(host) {
+class GridPlaceholder(
+  override val region: Region,
+  private val row: Int,
+  private val column: Int,
+  private val namespace: String,
+  host: SceneComponent
+) : Placeholder(host) {
 
   override fun snap(info: SnappingInfo, retPoint: Point): Boolean {
     if (region.contains(info.centerX, info.centerY)) {

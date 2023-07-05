@@ -17,21 +17,20 @@ package com.android.tools.idea.common.surface
 
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.Zoomable
-import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.SwingCoordinate
 import com.intellij.openapi.actionSystem.DataProvider
 
 /**
  * This defines an interface of the [LayoutlibInteractionHandler] downstream client.
  *
- * The client is supposed to work with panning interaction, basic mouse and keyboard events and basic zooming.
- * It is also supposed to be a [ScenesOwner] so that interactions can be passed directly to the [Scene]s.
- * [DataProvider] is only required to support [Pannable] delegating.
+ * The client is supposed to work with panning interaction, basic mouse and keyboard events and
+ * basic zooming. It is also supposed to be a [ScenesOwner] so that interactions can be passed
+ * directly to the [Scene]s. [DataProvider] is only required to support [Pannable] delegating.
  *
- * TODO(b/228294269):
- * Consider expanding this to generic [InteractionHandler] use.
- * This interface should be just a pure combination of other interfaces. The methods should be moved to a different interface.
- * This interface should not extend [DataProvider]. This is only done so because of [Pannable] can be obtained with [PANNABLE_KEY].
+ * TODO(b/228294269): Consider expanding this to generic [InteractionHandler] use. This interface
+ *   should be just a pure combination of other interfaces. The methods should be moved to a
+ *   different interface. This interface should not extend [DataProvider]. This is only done so
+ *   because of [Pannable] can be obtained with [PANNABLE_KEY].
  */
 interface InteractableScenesSurface : Pannable, Zoomable, DataProvider, ScenesOwner {
 

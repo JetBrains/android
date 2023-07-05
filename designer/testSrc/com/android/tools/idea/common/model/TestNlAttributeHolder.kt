@@ -23,8 +23,7 @@ class TestNlAttributeHolder : NlAttributesHolder {
     val key = Pair(namespace, attribute)
     if (value == null) {
       attributes.remove(key)
-    }
-    else {
+    } else {
       attributes[key] = value
     }
   }

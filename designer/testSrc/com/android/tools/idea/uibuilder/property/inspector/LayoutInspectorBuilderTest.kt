@@ -33,11 +33,9 @@ import org.junit.Test
 
 @RunsInEdt
 class LayoutInspectorBuilderTest {
-  @JvmField @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField @Rule
-  val edtRule = EdtRule()
+  @JvmField @Rule val edtRule = EdtRule()
 
   @Test
   fun testLinearLayout() {

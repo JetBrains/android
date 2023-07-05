@@ -23,8 +23,7 @@ import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelAction
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
 
-open class AssistantPanelMetricsTracker(
-  private val type: HelpPanelType) {
+open class AssistantPanelMetricsTracker(private val type: HelpPanelType) {
   @VisibleForTesting val timer: Stopwatch = Stopwatch.createUnstarted()
 
   fun logOpen() {
@@ -59,12 +58,17 @@ open class AssistantPanelMetricsTracker(
 
   @VisibleForTesting
   open fun logEvent(event: DesignEditorHelpPanelEvent.Builder) {
-    log(AndroidStudioEvent.newBuilder()
-          .setKind(AndroidStudioEvent.EventKind.DESIGN_EDITOR_HELP_PANEL_EVENT)
-          .setDesignEditorHelpPanelEvent(event))
+    log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DESIGN_EDITOR_HELP_PANEL_EVENT)
+        .setDesignEditorHelpPanelEvent(event)
+    )
   }
 
-  private fun createEventBuilder(type: HelpPanelType, action: HelpPanelAction): DesignEditorHelpPanelEvent.Builder {
+  private fun createEventBuilder(
+    type: HelpPanelType,
+    action: HelpPanelAction
+  ): DesignEditorHelpPanelEvent.Builder {
     val event: DesignEditorHelpPanelEvent.Builder = DesignEditorHelpPanelEvent.newBuilder()
     event.helpPanelType = type
     event.action = action
