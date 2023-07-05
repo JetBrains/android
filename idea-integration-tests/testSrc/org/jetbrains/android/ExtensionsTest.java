@@ -17,7 +17,8 @@ public class ExtensionsTest extends LightPlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    AndroidRunConfigurations inst = ApplicationManager.getApplication().getService(AndroidRunConfigurations.class);
+
+    AndroidRunConfigurations inst = AndroidRunConfigurations.getInstance(getProject());
     assertNotNull("Seems that android-plugin.xml has not been loaded", inst);
   }
 

@@ -16,9 +16,9 @@
 package com.android.tools.idea.project
 
 import com.android.AndroidProjectTypes
-import com.android.annotations.concurrency.Slow
-import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.instantapp.InstantApps
+import com.android.tools.idea.model.MergedManifestManager
+import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -26,39 +26,112 @@ import com.android.tools.idea.run.TargetSelectionMode
 import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.android.tools.idea.run.util.LaunchUtils
 import com.intellij.execution.RunManager
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.writeAction
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.withBackgroundProgress
+import com.intellij.openapi.project.Project
 import com.intellij.util.PathUtil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.launch
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidBundle
 
-class AndroidRunConfigurations {
-  @Slow
-  @WorkerThread
-  fun createRunConfiguration(facet: AndroidFacet) {
-    runBlockingCancellable {
-      // Android run configuration should always be created with the main module
-      val module = facet.mainModule
-        val configurationFactory = AndroidRunConfigurationType.getInstance().factory
-        val configurations = RunManager.getInstance(module.project).getConfigurationsList(configurationFactory.type)
+@Service(Service.Level.PROJECT)
+class AndroidRunConfigurations(
+  private val project: Project,
+  private val coroutineScope: CoroutineScope
+) {
+  fun setupRunConfigurations() {
+    coroutineScope.launch {
+      withBackgroundProgress(project, AndroidBundle.message("android.progress.title.setting.up.run.configurations")) {
+        val configurations = readAction {
+          project.getAndroidFacets()
+            .filter { it.configuration.isAppProject }
+        }
+
         for (configuration in configurations) {
-          if (configuration is AndroidRunConfiguration && configuration.configurationModule.module == module) {
-            // There is already a run configuration for this module.
-            return@runBlockingCancellable
+          if (!shouldCreateRunConfiguration(configuration)) continue
+
+          writeAction {
+            if (configuration.isDisposed) return@writeAction
+
+            addRunConfiguration(configuration)
           }
         }
-
-        val isWatchFeatureRequired = withContext(Dispatchers.IO) { LaunchUtils.isWatchFeatureRequired(facet) }
-        if (isWatchFeatureRequired && !hasDefaultLauncherActivity(facet)) {
-          // Don't create Wear Apps Configurations, as the user can launch Wear Surfaces from the gutter
-          return@runBlockingCancellable
-        }
-
-        addRunConfiguration(facet)
+      }
     }
+  }
+
+  fun setupRunConfigurationsBlocking() {
+    val configurations = ReadAction.compute<List<AndroidFacet>, Throwable> {
+      project.getAndroidFacets()
+        .filter { it.configuration.isAppProject && shouldCreateRunConfigurationBlocking(it) }
+    }
+
+    for (facet in configurations) {
+      ApplicationManager.getApplication().invokeAndWait {
+        WriteAction.run<Throwable> {
+          if (!facet.isDisposed) {
+            addRunConfiguration(facet)
+          }
+        }
+      }
+    }
+  }
+
+  private suspend fun shouldCreateRunConfiguration(facet: AndroidFacet): Boolean {
+    val manifestFuture = readAction {
+      if (facet.isDisposed) return@readAction null
+
+      val module = facet.mainModule
+      val configurationFactory = AndroidRunConfigurationType.getInstance().factory
+      val configurations = RunManager.getInstance(module.project).getConfigurationsList(configurationFactory.type)
+
+      if (configurations.hasAndroidRunConfigurationForModule(module)) {
+        // There is already a run configuration for this module.
+        return@readAction null
+      }
+      MergedManifestManager.getMergedManifest(facet.module)
+    }
+
+    if (manifestFuture == null) return false
+    val snapshot = manifestFuture.await() // do not call under read lock!
+
+    return readAction {
+      val isWatchFeatureRequired = LaunchUtils.isWatchFeatureRequired(snapshot)
+      val hasDefaultLauncherActivity = hasDefaultLauncherActivity(facet)
+      val requiresAndroidWatchRunConfiguration = isWatchFeatureRequired && !hasDefaultLauncherActivity
+      // Don't create Wear Apps Configurations, as the user can launch Wear Surfaces from the gutter
+      !requiresAndroidWatchRunConfiguration
+    }
+  }
+
+  private fun shouldCreateRunConfigurationBlocking(facet: AndroidFacet): Boolean {
+    if (facet.isDisposed) return false
+
+    val module = facet.mainModule
+    val configurationFactory = AndroidRunConfigurationType.getInstance().factory
+    val configurations = RunManager.getInstance(module.project).getConfigurationsList(configurationFactory.type)
+
+    if (configurations.hasAndroidRunConfigurationForModule(module)) {
+      // There is already a run configuration for this module.
+      return false
+    }
+
+    val isWatchFeatureRequired = LaunchUtils.isWatchFeatureRequired(facet)
+    val hasDefaultLauncherActivity = hasDefaultLauncherActivity(facet)
+    val requiresAndroidWatchRunConfiguration = isWatchFeatureRequired && !hasDefaultLauncherActivity
+    // Don't create Wear Apps Configurations, as the user can launch Wear Surfaces from the gutter
+    return !requiresAndroidWatchRunConfiguration
   }
 
   private fun addRunConfiguration(facet: AndroidFacet) {
@@ -85,14 +158,17 @@ class AndroidRunConfigurations {
     }
   }
 
+  private fun List<RunConfiguration>.hasAndroidRunConfigurationForModule(mainModule: Module): Boolean = any { configuration ->
+    configuration is AndroidRunConfiguration && configuration.configurationModule.module == mainModule
+  }
+
   private fun hasDefaultLauncherActivity(facet: AndroidFacet): Boolean {
     val manifest = Manifest.getMainManifest(facet) ?: return false
-    return runReadAction { DefaultActivityLocator.hasDefaultLauncherActivity(manifest) }
+    return DefaultActivityLocator.hasDefaultLauncherActivity(manifest)
   }
 
   companion object {
     @JvmStatic
-    val instance: AndroidRunConfigurations
-      get() = ApplicationManager.getApplication().getService(AndroidRunConfigurations::class.java)
+    fun getInstance(project: Project): AndroidRunConfigurations = project.service<AndroidRunConfigurations>()
   }
 }
