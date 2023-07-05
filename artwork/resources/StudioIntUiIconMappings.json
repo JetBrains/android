@@ -17,7 +17,8 @@
         "note.svg": "studio/icons/app-quality-insights/note.svg",
         "regressed-signal.svg": "studio/icons/app-quality-insights/regressed-signal.svg",
         "repetitive-signal.svg": "studio/icons/app-quality-insights/repetitive-signal.svg",
-        "send.svg": "studio/icons/app-quality-insights/send.svg"
+        "send.svg": "studio/icons/app-quality-insights/send.svg",
+        "details.svg": "studio/icons/app-quality-insights/details.svg"
       },
       "avd": {
         "connection-generic.svg": "studio/icons/avd/connection-generic.svg",

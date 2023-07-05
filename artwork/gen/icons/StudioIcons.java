@@ -18,6 +18,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon ANR_INLINE = load("studio/icons/app-quality-insights/anr-inline.svg", -31792792, 2);
     /** 16x16 */ public static final @NotNull Icon ANR_WITH_NOTE = load("studio/icons/app-quality-insights/anr-with-note.svg", -1793246121, 2);
     /** 16x16 */ public static final @NotNull Icon ANR = load("studio/icons/app-quality-insights/anr.svg", -1805352346, 2);
+    /** 16x16 */ public static final @NotNull Icon DETAILS = load("studio/icons/app-quality-insights/details.svg", 452130390, 2);
     /** 16x16 */ public static final @NotNull Icon EARLY_SIGNAL = load("studio/icons/app-quality-insights/early-signal.svg", 375581230, 2);
     /** 16x16 */ public static final @NotNull Icon FATAL_INLINE = load("studio/icons/app-quality-insights/fatal-inline.svg", 438498415, 2);
     /** 16x16 */ public static final @NotNull Icon FATAL_WITH_NOTE = load("studio/icons/app-quality-insights/fatal-with-note.svg", -1323725973, 2);
