@@ -45,8 +45,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
     /** The interactive preview is stopping but it has not been fully disposed yet. */
     STOPPING;
 
-    fun isStartingOrReady() = this == STARTING || this == READY
-    fun isStoppingOrDisabled() = this == STOPPING || this == DISABLED
     fun isStartingOrStopping() = this == STARTING || this == STOPPING
   }
   /**

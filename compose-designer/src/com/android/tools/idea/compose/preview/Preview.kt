@@ -287,7 +287,23 @@ class ComposePreviewRepresentation(
   private val project
     get() = psiFilePointer.project
 
-  private val interactiveModeFlow = MutableStateFlow(ComposePreviewManager.InteractiveMode.DISABLED)
+  private val interactiveMode: ComposePreviewManager.InteractiveMode
+    get() =
+      when (val currentMode = mode) {
+        is PreviewMode.Switching ->
+          when {
+            currentMode.currentMode is PreviewMode.Interactive ->
+              ComposePreviewManager.InteractiveMode.STOPPING
+            currentMode.newMode is PreviewMode.Interactive ->
+              ComposePreviewManager.InteractiveMode.STARTING
+            else -> ComposePreviewManager.InteractiveMode.DISABLED
+          }
+        is PreviewMode.Interactive -> ComposePreviewManager.InteractiveMode.READY
+        else -> ComposePreviewManager.InteractiveMode.DISABLED
+      }
+
+  private val isStartingOrInInteractiveMode: Boolean
+    get() = currentOrNextMode is PreviewMode.Interactive
 
   private val refreshManager = ComposePreviewRefreshManager.getInstance(project)
 
@@ -299,7 +315,7 @@ class ComposePreviewRepresentation(
       onResumeActivate = { activate(true) },
       onDeactivate = {
         log.debug("onDeactivate")
-        if (interactiveModeFlow.value.isStartingOrReady()) {
+        if (isStartingOrInInteractiveMode) {
           interactiveManager.pause()
         }
         // The editor is scheduled to be deactivated, deactivate its issue model to avoid
@@ -568,11 +584,10 @@ class ComposePreviewRepresentation(
     }
 
   private fun startInteractivePreview(instance: ComposePreviewElementInstance) {
-    if (interactiveModeFlow.value.isStartingOrReady()) return
+    if (mode is PreviewMode.Interactive) return
     log.debug("New single preview element focus: $instance")
     requestVisibilityAndNotificationsUpdate()
-    interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.STARTING
-    // We should call this before assigning newValue to instanceIdFilter
+    // We should call this before assigning the instance to singlePreviewElementInstance
     val quickRefresh = shouldQuickRefresh()
     val peerPreviews = filteredPreviewElementsInstancesFlow.value.size
     singlePreviewElementInstance = instance
@@ -589,7 +604,6 @@ class ComposePreviewRepresentation(
       // While in interactive mode, display a small ripple when clicking
       surface.enableMouseClickDisplay()
       surface.background = INTERACTIVE_BACKGROUND_COLOR
-      interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.READY
       ActivityTracker.getInstance().inc()
     }
   }
@@ -604,15 +618,12 @@ class ComposePreviewRepresentation(
     forceRefresh().join()
   }
 
-  private fun onInteractivePreviewStop() {
-    interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.STOPPING
+  private suspend fun onInteractivePreviewStop() {
     surface.disableMouseClickDisplay()
     requestVisibilityAndNotificationsUpdate()
     interactiveManager.stop()
     filterFlow.value = ComposePreviewElementsModel.Filter.Disabled
-    forceRefresh().invokeOnCompletion {
-      interactiveModeFlow.value = ComposePreviewManager.InteractiveMode.DISABLED
-    }
+    forceRefresh().join()
   }
 
   private fun updateAnimationPanelVisibility() {
@@ -988,7 +999,7 @@ class ComposePreviewRepresentation(
 
             if (
               !EssentialsMode.isEnabled() &&
-                interactiveModeFlow.value.isStoppingOrDisabled() &&
+                mode !is PreviewMode.Interactive &&
                 !isAnimationPreviewEnabled &&
                 !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             )
@@ -1022,7 +1033,7 @@ class ComposePreviewRepresentation(
 
     surface.activate()
 
-    if (interactiveModeFlow.value.isStartingOrReady()) {
+    if (isStartingOrInInteractiveMode) {
       interactiveManager.resume()
     }
 
@@ -1044,7 +1055,7 @@ class ComposePreviewRepresentation(
     if (EssentialsMode.isEnabled()) return
     if (isModificationTriggered) return // We do not move the preview while the user is typing
     if (!StudioFlags.COMPOSE_PREVIEW_SCROLL_ON_CARET_MOVE.get()) return
-    if (interactiveModeFlow.value.isStartingOrReady()) return
+    if (isStartingOrInInteractiveMode) return
     // If we have not changed line, ignore
     if (event.newPosition.line == event.oldPosition.line) return
     val offset = event.editor.logicalPositionToOffset(event.newPosition)
@@ -1075,7 +1086,7 @@ class ComposePreviewRepresentation(
 
   override fun dispose() {
     isDisposed.set(true)
-    if (interactiveModeFlow.value == ComposePreviewManager.InteractiveMode.READY) {
+    if (mode is PreviewMode.Interactive) {
       interactiveManager.stop()
     }
   }
@@ -1115,7 +1126,7 @@ class ComposePreviewRepresentation(
         !isRefreshing &&
           (projectBuildStatus as? ProjectStatus.OutOfDate)?.areResourcesOutOfDate ?: false,
         isRefreshing,
-        interactiveModeFlow.value,
+        interactiveMode,
       )
 
     // This allows us to display notifications synchronized with any other change detection. The
@@ -1147,7 +1158,7 @@ class ComposePreviewRepresentation(
     configureLayoutlibSceneManager(
       layoutlibSceneManager,
       showDecorations = displaySettings.showDecoration,
-      isInteractive = interactiveModeFlow.value.isStartingOrReady(),
+      isInteractive = isStartingOrInInteractiveMode,
       requestPrivateClassLoader = usePrivateClassLoader(),
       runAtfChecks = atfChecksEnabled,
       runVisualLinting = visualLintingEnabled,
@@ -1462,9 +1473,7 @@ class ComposePreviewRepresentation(
    * includes the compose framework).
    */
   private fun usePrivateClassLoader() =
-    interactiveModeFlow.value.isStartingOrReady() ||
-      isAnimationPreviewEnabled ||
-      shouldQuickRefresh()
+    isStartingOrInInteractiveMode || isAnimationPreviewEnabled || shouldQuickRefresh()
 
   override fun invalidate() {
     invalidated.set(true)
