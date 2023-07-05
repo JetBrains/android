@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.project.AndroidNotification
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.intellij.notification.NotificationType
@@ -83,10 +84,7 @@ class MigrateJdkConfigToGradleJavaHomeListener : GradleSyncListenerWithRoot {
     project: Project,
     rootProjectPath: @SystemIndependent String,
   ) {
-    AndroidNotification.getInstance(project).showBalloon(
-      AndroidBundle.message("project.migrated.to.gradle.local.java.home.title"),
-      AndroidBundle.message("project.migrated.to.gradle.local.java.home.message", File(rootProjectPath).name),
-      NotificationType.INFORMATION,
+    val hyperlinks: List<NotificationHyperlink> = listOfNotNull(
       OpenUrlHyperlink(
         AndroidBundle.message("project.migrated.to.gradle.local.java.home.info.url"),
         AndroidBundle.message("project.migrated.to.gradle.local.java.home.info")
@@ -96,6 +94,13 @@ class MigrateJdkConfigToGradleJavaHomeListener : GradleSyncListenerWithRoot {
         rootProjectPath,
         text = AndroidBundle.message("project.migrated.to.gradle.local.java.home.button")
       )
+    )
+
+    AndroidNotification.getInstance(project).showBalloon(
+      AndroidBundle.message("project.migrated.to.gradle.local.java.home.title"),
+      AndroidBundle.message("project.migrated.to.gradle.local.java.home.message", File(rootProjectPath).name),
+      NotificationType.INFORMATION,
+      *hyperlinks.toTypedArray()
     )
   }
 }
