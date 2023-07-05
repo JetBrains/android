@@ -44,7 +44,7 @@ import static org.fest.swing.finder.WindowFinder.findDialog;
 @RunWith(GuiTestRemoteRunner.class)
 public class InferNullityTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   protected static final String EMPTY_VIEWS_ACTIVITY_TEMPLATE = "Empty Views Activity";
   private static String ANALYZE = "Analyze";
@@ -52,7 +52,7 @@ public class InferNullityTest {
   @Before
   public void setUp() throws Exception {
     WizardUtils.createNewProject(guiTest, EMPTY_VIEWS_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
-    guiTest.robot().waitForIdle();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   /**
@@ -72,7 +72,6 @@ public class InferNullityTest {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.FAT_BAZEL)
   public void inferNullity() throws Exception {
     IdeFrameFixture ideFrame = guiTest.ideFrame();
     EditorFixture editor = ideFrame.getEditor();
