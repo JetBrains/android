@@ -150,8 +150,9 @@ public class RenderSecurityManager extends SecurityManager {
   public static RenderSecurityManager create(
     @Nullable String sdkPath,
     @Nullable String projectPath,
-    boolean restrictReads) {
-    return new RenderSecurityManager(sdkPath, projectPath, restrictReads, RenderSecurityManagerDefaults.getDefaultAllowedPaths(), RenderService::isRenderThread);
+    boolean restrictReads,
+    @NotNull String[] allowedPaths) {
+    return new RenderSecurityManager(sdkPath, projectPath, restrictReads, allowedPaths, RenderService::isRenderThread);
   }
 
   /**
