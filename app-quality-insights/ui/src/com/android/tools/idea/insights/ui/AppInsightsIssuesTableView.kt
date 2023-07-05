@@ -117,7 +117,10 @@ class AppInsightsIssuesTableView(
                 }
               }
               if (model.items != issues.value.value.items) {
-                suppressListener(table) { model.items = issues.value.value.items }
+                suppressListener(table) {
+                  model.items = issues.value.value.items
+                  table.updateColumnSizes()
+                }
               }
               if (table.selectedObject != issues.value.value.selected) {
                 LOGGER.info(
