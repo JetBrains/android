@@ -25,6 +25,7 @@ import com.android.SdkConstants.LINEAR_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.testutils.waitForCondition
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.uibuilder.LayoutTestCase
@@ -33,8 +34,10 @@ import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.collect.ImmutableSet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
+import java.util.concurrent.TimeUnit
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -431,11 +434,15 @@ class NlPropertiesModelTest : LayoutTestCase() {
     // then we also need to wait for events on the UI thread.
     fun waitUntilLastSelectionUpdateCompleted(model: NlPropertiesModel) {
       model.updateQueue.flush()
-      PlatformTestUtil.waitWithEventsDispatching(
-        "Model was not updated",
-        { model.lastUpdateCompleted },
-        10
-      )
+      if (ApplicationManager.getApplication().isDispatchThread) {
+        PlatformTestUtil.waitWithEventsDispatching(
+          "Model was not updated",
+          { model.lastUpdateCompleted },
+          10
+        )
+      } else {
+        waitForCondition(10, TimeUnit.SECONDS) { model.lastUpdateCompleted }
+      }
     }
   }
 }

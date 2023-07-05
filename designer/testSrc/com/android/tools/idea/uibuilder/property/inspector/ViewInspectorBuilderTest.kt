@@ -148,17 +148,14 @@ import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.openapi.application.runReadAction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-@RunsInEdt
 class ViewInspectorBuilderTest {
-  @JvmField @Rule val edtRule = EdtRule()
 
-  @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setUp() {
@@ -173,7 +170,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
@@ -194,7 +191,7 @@ class ViewInspectorBuilderTest {
     util.removeProperty(ANDROID_URI, ATTR_BACKGROUND)
     util.removeProperty(ANDROID_URI, ATTR_BACKGROUND_TINT)
     util.removeProperty(ANDROID_URI, ATTR_ON_CLICK)
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, ANDROID_URI, ATTR_STATE_LIST_ANIMATOR)
@@ -209,7 +206,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addImageViewProperties(util, true)
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, AUTO_URI, ATTR_SRC_COMPAT)
     util.checkEditor(2, TOOLS_URI, ATTR_SRC_COMPAT)
@@ -227,7 +224,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addImageViewProperties(util, false)
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_SRC)
     util.checkEditor(2, TOOLS_URI, ATTR_SRC)
@@ -250,7 +247,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, AUTO_URI, ATTR_BACKGROUND_TINT)
@@ -277,7 +274,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     assertThat(util.inspector.lines).hasSize(22)
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
@@ -314,7 +311,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, AUTO_URI, ATTR_CHIP_SPACING)
@@ -345,7 +342,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, ANDROID_URI, ATTR_CHECKABLE)
@@ -371,7 +368,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, AUTO_URI, ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED)
@@ -396,7 +393,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, AUTO_URI, ATTR_ITEM_HORIZONTAL_TRANSLATION_ENABLED)
@@ -421,7 +418,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_SRC)
     util.checkEditor(2, "", ATTR_STYLE)
@@ -454,7 +451,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_SRC)
     util.checkEditor(2, "", ATTR_STYLE)
@@ -486,7 +483,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, AUTO_URI, ATTR_TAB_INDICATOR_COLOR)
@@ -530,7 +527,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, AUTO_URI, ATTR_TAB_INDICATOR_COLOR)
@@ -575,7 +572,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_TEXT_COLOR_HINT)
     util.checkEditor(2, ANDROID_URI, ATTR_HINT)
@@ -616,7 +613,7 @@ class ViewInspectorBuilderTest {
     val builder = ViewInspectorBuilder(projectRule.project, util.editorProvider)
     val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     util.loadProperties()
-    builder.attachToInspector(util.inspector, util.properties) { generator.title }
+    runReadAction { builder.attachToInspector(util.inspector, util.properties) { generator.title } }
     util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, ANDROID_URI, ATTR_TEXT_COLOR_HINT)
     util.checkEditor(2, ANDROID_URI, ATTR_HINT)

@@ -42,8 +42,7 @@ import com.android.tools.property.ptable.PTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.openapi.application.runReadAction
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
 import javax.swing.JTable
@@ -51,13 +50,9 @@ import javax.swing.TransferHandler
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 
-@RunsInEdt
 class FavoritesInspectorBuilderTest {
-  private val projectRule = AndroidProjectRule.withSdk()
-
-  @get:Rule val ruleChain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Before
   fun setUp() {
@@ -204,7 +199,7 @@ class FavoritesInspectorBuilderTest {
     val lineModel = util.checkTable(1)
     val table = PTable.create(lineModel.tableModel).component
     val transferHandler = table.transferHandler
-    transferHandler.importData(table, StringSelection("backgroundTint\t#22FF22"))
+    runReadAction { transferHandler.importData(table, StringSelection("backgroundTint\t#22FF22")) }
     assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY))
       .isEqualTo("tools:gravity;:visibility;:backgroundTint;")
   }
@@ -221,9 +216,9 @@ class FavoritesInspectorBuilderTest {
     val table = PTable.create(lineModel.tableModel).component as JTable
     val transferHandler = table.transferHandler
     assertThat(transferHandler.getSourceActions(table)).isEqualTo(TransferHandler.COPY_OR_MOVE)
-    table.setRowSelectionInterval(0, 0)
+    runReadAction { table.setRowSelectionInterval(0, 0) }
     val clipboard: Clipboard = mock()
-    transferHandler.exportToClipboard(table, clipboard, TransferHandler.MOVE)
+    runReadAction { transferHandler.exportToClipboard(table, clipboard, TransferHandler.MOVE) }
     assertThat(PropertiesComponent.getInstance().getValue(FAVORITES_PROPERTY))
       .isEqualTo("tools:gravity;:visibility;")
   }

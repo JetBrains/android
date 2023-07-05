@@ -85,7 +85,7 @@ class NlPropertiesProvider(private val facet: AndroidFacet) : PropertiesProvider
   ): PropertiesTable<NlPropertyItem> {
     assert(!EventQueue.isDispatchThread() || ApplicationManager.getApplication().isUnitTestMode)
 
-    if (components.isEmpty()) {
+    if (components.isEmpty() || facet.isDisposed) {
       return PropertiesTable.emptyTable()
     }
 

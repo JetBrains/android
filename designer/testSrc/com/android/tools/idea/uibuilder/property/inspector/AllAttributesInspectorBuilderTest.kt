@@ -40,12 +40,9 @@ import org.junit.rules.RuleChain
 
 private const val CONSTRAINT_LAYOUT_ID = "constraint"
 
-@RunsInEdt
 class AllAttributesInspectorBuilderTest {
 
-  @JvmField @Rule val projectRule = AndroidProjectRule.withSdk()
-
-  @JvmField @Rule val edtRule = EdtRule()
+  @get:Rule val projectRule = AndroidProjectRule.withSdk()
 
   @Test
   fun testAllAttributes() {
