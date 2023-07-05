@@ -16,7 +16,8 @@
 package com.android.tools.rendering.api
 
 /**
- * Mapping that based on app:navGraph attribute value returns the corresponding @layout for the corresponding fragment or null is not found.
+ * Mapping that based on app:navGraph attribute value returns the corresponding @layout for the
+ * corresponding fragment or null is not found.
  */
 fun interface NavGraphResolver {
   fun resolve(navGraph: String): String?

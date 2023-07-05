@@ -29,10 +29,11 @@ interface IncludeReference {
 
   companion object {
     @JvmField
-    val NONE = object : IncludeReference {
-      override fun getFromXmlFile(project: Project): RenderXmlFile? = null
-      override val fromPath: File = File("")
-      override val fromResourceUrl: String = ""
-    }
+    val NONE =
+      object : IncludeReference {
+        override fun getFromXmlFile(project: Project): RenderXmlFile? = null
+        override val fromPath: File = File("")
+        override val fromResourceUrl: String = ""
+      }
   }
 }

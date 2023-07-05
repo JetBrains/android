@@ -20,29 +20,29 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 
 /**
- * When executing the user code some code paths may take significantly longer time when executed the first time. This happens because the
- * [ClassLoader] has to load the classes used in those paths first. If that happens e.g. in interactive preview this produces visual
- * glitches and might even affect the logic. In order to prevent this from happening, we load the classes in advance.
+ * When executing the user code some code paths may take significantly longer time when executed the
+ * first time. This happens because the [ClassLoader] has to load the classes used in those paths
+ * first. If that happens e.g. in interactive preview this produces visual glitches and might even
+ * affect the logic. In order to prevent this from happening, we load the classes in advance.
  */
 @JvmOverloads
 fun preload(
   classLoader: ClassLoader,
   isActive: () -> Boolean,
   classesToPreload: Collection<String>,
-  executor: Executor = MoreExecutors.directExecutor()) {
+  executor: Executor = MoreExecutors.directExecutor()
+) {
   val classLoaderRef = WeakReference(classLoader)
 
   executor.execute {
-      val theClassLoader = classLoaderRef.get() ?: return@execute
-      for (classToPreload in classesToPreload) {
-        try {
-          if (!isActive()) {
-            break
-          }
-          theClassLoader.loadClass(classToPreload)
+    val theClassLoader = classLoaderRef.get() ?: return@execute
+    for (classToPreload in classesToPreload) {
+      try {
+        if (!isActive()) {
+          break
         }
-        catch (_: NoClassDefFoundError) {}
-        catch (_: ClassNotFoundException) {}
-      }
+        theClassLoader.loadClass(classToPreload)
+      } catch (_: NoClassDefFoundError) {} catch (_: ClassNotFoundException) {}
     }
+  }
 }

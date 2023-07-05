@@ -19,10 +19,10 @@ import com.intellij.openapi.diagnostic.Logger
 import org.apache.log4j.Level
 
 /**
- * A [Logger] that is used for testing sandboxing. This will simulate a property access during error logging that does not happen in the
- * unit test logging but does happen in production.
+ * A [Logger] that is used for testing sandboxing. This will simulate a property access during error
+ * logging that does not happen in the unit test logging but does happen in production.
  */
-class TestLoggerWithPropertyAccess(private val delegate: Logger): Logger() {
+class TestLoggerWithPropertyAccess(private val delegate: Logger) : Logger() {
   override fun isDebugEnabled(): Boolean = delegate.isDebugEnabled
   override fun debug(message: String?) = delegate.debug(message)
   override fun debug(t: Throwable?) = delegate.debug(t)
@@ -35,6 +35,5 @@ class TestLoggerWithPropertyAccess(private val delegate: Logger): Logger() {
     System.getProperties()
     delegate.error(message, t, *details)
   }
-  @Suppress("UnstableApiUsage")
-  override fun setLevel(level: Level) = delegate.setLevel(level)
+  @Suppress("UnstableApiUsage") override fun setLevel(level: Level) = delegate.setLevel(level)
 }

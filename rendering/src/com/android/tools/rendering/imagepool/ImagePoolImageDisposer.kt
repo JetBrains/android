@@ -24,25 +24,23 @@ import java.util.function.Consumer
 object ImagePoolImageDisposer {
   private val disposerLock = Any()
   private val lockedDisposeImage: Multiset<DisposableImage> = ConcurrentHashMultiset.create()
-  private val pendingDispose: MutableSet<DisposableImage> = Collections.newSetFromMap(CollectionFactory.createConcurrentWeakMap())
+  private val pendingDispose: MutableSet<DisposableImage> =
+    Collections.newSetFromMap(CollectionFactory.createConcurrentWeakMap())
 
   /**
-   * Runs the given block of code avoiding the image to be disposed while the block is running.
-   * If the image is disposed 1 or more times within the execution of the block or in a separate block, the image
-   * will be disposed after the last dispose lock is released.
+   * Runs the given block of code avoiding the image to be disposed while the block is running. If
+   * the image is disposed 1 or more times within the execution of the block or in a separate block,
+   * the image will be disposed after the last dispose lock is released.
    */
   fun ImagePool.Image.runWithDisposeLock(block: ImagePool.Image.() -> Unit) {
     if (this !is DisposableImage || !isValid) {
       block(this)
       return
     }
-    synchronized(disposerLock) {
-      lockedDisposeImage.add(this)
-    }
+    synchronized(disposerLock) { lockedDisposeImage.add(this) }
     try {
       block(this)
-    }
-    finally {
+    } finally {
       val wasLastLock = synchronized(disposerLock) { lockedDisposeImage.remove(this, 1) == 1 }
       if (wasLastLock) {
         // This was the last lock, if the image was waiting to be released, now it's the time.
@@ -54,22 +52,20 @@ object ImagePoolImageDisposer {
   }
 
   /**
-   * Runs the given block of code avoiding the image to be disposed while the block is running.
-   * If the image is disposed 1 or more times within the execution of the block or in a separate block, the image
-   * will be disposed after the last dispose lock is related.
+   * Runs the given block of code avoiding the image to be disposed while the block is running. If
+   * the image is disposed 1 or more times within the execution of the block or in a separate block,
+   * the image will be disposed after the last dispose lock is related.
    *
    * This is the same as [runWithDisposeLock] but more convenient for Java users.
    */
   @JvmStatic
   fun runWithDisposeLock(image: ImagePool.Image, block: Consumer<ImagePool.Image>) {
-    image.runWithDisposeLock {
-      block.accept(this)
-    }
+    image.runWithDisposeLock { block.accept(this) }
   }
 
   /**
-   * Requests manually disposing the current image, this might happen at some point in the future
-   * or not at all if the image is not [DisposableImage].
+   * Requests manually disposing the current image, this might happen at some point in the future or
+   * not at all if the image is not [DisposableImage].
    */
   @JvmStatic
   fun disposeImage(image: ImagePool.Image) {

@@ -17,10 +17,9 @@ package com.android.tools.rendering
 
 import com.android.tools.rendering.classloading.ModuleClassLoaderDiagnosticsRead
 
-/**
- * Class to record stats from a render result.
- */
-data class RenderResultStats constructor(
+/** Class to record stats from a render result. */
+data class RenderResultStats
+constructor(
   /** Inflate duration in ms or -1 if unknown. */
   val inflateDurationMs: Long = -1,
   /** Render duration in ms or -1 if unknown. */
@@ -30,22 +29,26 @@ data class RenderResultStats constructor(
   /** Total class loading duration of -1 if unknown. */
   val totalClassLoadDurationMs: Long = -1,
   /** Total class rewrite duration of -1 if unknown. */
-  val totalClassRewriteDurationMs: Long = -1) {
+  val totalClassRewriteDurationMs: Long = -1
+) {
 
-  constructor(inflateDurationMs: Long = -1, renderDurationMs: Long = -1, classLoaderStats: ModuleClassLoaderDiagnosticsRead?) :
-    this(inflateDurationMs, renderDurationMs,
-         classLoaderStats?.classesFound ?: -1,
-         classLoaderStats?.accumulatedFindTimeMs ?: -1,
-         classLoaderStats?.accumulatedRewriteTimeMs ?: -1)
+  constructor(
+    inflateDurationMs: Long = -1,
+    renderDurationMs: Long = -1,
+    classLoaderStats: ModuleClassLoaderDiagnosticsRead?
+  ) : this(
+    inflateDurationMs,
+    renderDurationMs,
+    classLoaderStats?.classesFound ?: -1,
+    classLoaderStats?.accumulatedFindTimeMs ?: -1,
+    classLoaderStats?.accumulatedRewriteTimeMs ?: -1
+  )
 
-  /**
-   * Total render time (inflate + render).
-   */
+  /** Total render time (inflate + render). */
   val totalRenderDurationMs: Long =
     if (inflateDurationMs != -1L || renderDurationMs != -1L) {
       inflateDurationMs.coerceAtLeast(0) + renderDurationMs.coerceAtLeast(0)
-    }
-    else -1
+    } else -1
 
   fun combine(stats: RenderResultStats): RenderResultStats =
     RenderResultStats(
@@ -53,10 +56,11 @@ data class RenderResultStats constructor(
       renderDurationMs = maxOf(renderDurationMs, stats.renderDurationMs),
       classesFound = maxOf(classesFound, stats.classesFound),
       totalClassLoadDurationMs = maxOf(totalClassLoadDurationMs, stats.totalClassLoadDurationMs),
-      totalClassRewriteDurationMs = maxOf(totalClassRewriteDurationMs, stats.totalClassRewriteDurationMs))
+      totalClassRewriteDurationMs =
+        maxOf(totalClassRewriteDurationMs, stats.totalClassRewriteDurationMs)
+    )
 
   companion object {
-    @JvmStatic
-    val EMPTY = RenderResultStats()
+    @JvmStatic val EMPTY = RenderResultStats()
   }
 }

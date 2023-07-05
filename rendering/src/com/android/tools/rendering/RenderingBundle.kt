@@ -16,18 +16,15 @@
 package com.android.tools.rendering
 
 import com.intellij.reference.SoftReference
-import org.jetbrains.annotations.NonNls
-import org.jetbrains.annotations.PropertyKey
 import java.lang.ref.Reference
 import java.text.MessageFormat
 import java.util.ResourceBundle
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.PropertyKey
 
-/**
- * Messages bundle.
- */
+/** Messages bundle. */
 object RenderingBundle {
-  @NonNls
-  private const val BUNDLE_NAME = "messages.RenderingBundle"
+  @NonNls private const val BUNDLE_NAME = "messages.RenderingBundle"
   private var ourBundle: Reference<ResourceBundle?>? = null
   private val bundle: ResourceBundle?
     private get() {
@@ -41,11 +38,14 @@ object RenderingBundle {
 
   @JvmStatic
   fun message(@PropertyKey(resourceBundle = BUNDLE_NAME) key: String, vararg params: Any): String {
-    return readFromBundleAndFormat(
-      bundle!!, key, *params)
+    return readFromBundleAndFormat(bundle!!, key, *params)
   }
 
-  private fun readFromBundleAndFormat(bundle: ResourceBundle, key: String, vararg params: Any): String {
+  private fun readFromBundleAndFormat(
+    bundle: ResourceBundle,
+    key: String,
+    vararg params: Any
+  ): String {
     val rawValue = bundle.getString(key)
     val locale = bundle.locale
     val format = MessageFormat(rawValue, locale)

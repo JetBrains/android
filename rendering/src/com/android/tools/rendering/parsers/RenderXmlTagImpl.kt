@@ -29,7 +29,8 @@ internal class RenderXmlTagImpl(
   override var parentTag: RenderXmlTag? = null
   private val namespaceToPrefix = prefixToNamespace.map { it.value to it.key }.toMap()
   override val namespacePrefix = namespaceToPrefix[namespace] ?: ""
-  override val name: String = if (namespacePrefix.isEmpty()) localName else "$namespacePrefix:$localName"
+  override val name: String =
+    if (namespacePrefix.isEmpty()) localName else "$namespacePrefix:$localName"
 
   override val localNamespaceDeclarations: Map<String, String> = prefixToNamespace
 

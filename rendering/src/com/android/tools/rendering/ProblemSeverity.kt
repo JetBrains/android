@@ -20,4 +20,3 @@ enum class ProblemSeverity {
   WARNING,
   ERROR
 }
-

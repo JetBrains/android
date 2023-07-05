@@ -16,13 +16,16 @@
 package com.android.tools.rendering.parsers
 
 /** Simple implementation of [RenderXmlAttribute]. */
-internal class RenderXmlAttributeImpl(override val value: String?,
-                             override val localName: String,
-                             override val namespace: String,
-                             override val namespacePrefix: String) : RenderXmlAttribute {
+internal class RenderXmlAttributeImpl(
+  override val value: String?,
+  override val localName: String,
+  override val namespace: String,
+  override val namespacePrefix: String
+) : RenderXmlAttribute {
   override val isNamespaceDeclaration: Boolean
     get() = name.startsWith("xmlns") && (name.length == 5 || name[5] == ':')
   override val bindingExprDefault: String?
     get() = null
-  override val name: String = if(namespacePrefix.isEmpty()) localName else "$namespacePrefix:$localName"
+  override val name: String =
+    if (namespacePrefix.isEmpty()) localName else "$namespacePrefix:$localName"
 }

@@ -39,9 +39,7 @@ internal class ModuleClassLoadedDiagnosticsImplTest {
 
   @Test
   fun testHierarchicalTimeCounter() {
-    /**
-     * Simple extension to allow adding counters without any children.
-     */
+    /** Simple extension to allow adding counters without any children. */
     fun HierarchicalTimeCounter.add(value: Long) {
       start("")
       end("", value)
@@ -49,10 +47,10 @@ internal class ModuleClassLoadedDiagnosticsImplTest {
 
     val counter = HierarchicalTimeCounter()
     counter.start("A")
-      counter.start("B")
-        counter.add(100L)
-        counter.add(100L)
-      assertEquals("Self time is expected to be 100ms", 100L, counter.end("B", 300L))
+    counter.start("B")
+    counter.add(100L)
+    counter.add(100L)
+    assertEquals("Self time is expected to be 100ms", 100L, counter.end("B", 300L))
     counter.add(100L)
     counter.add(100L)
     assertEquals(400, counter.end("A", 900L))
@@ -63,8 +61,6 @@ internal class ModuleClassLoadedDiagnosticsImplTest {
     val counter = HierarchicalTimeCounter()
     counter.start("A")
     counter.start("B")
-    assertThrows(IllegalStateException::class.java) {
-      counter.end("A", 100L)
-    }
+    assertThrows(IllegalStateException::class.java) { counter.end("A", 100L) }
   }
 }

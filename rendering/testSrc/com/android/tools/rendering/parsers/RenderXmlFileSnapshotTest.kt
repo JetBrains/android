@@ -18,17 +18,15 @@ package com.android.tools.rendering.parsers
 import com.android.resources.ResourceFolderType
 import com.intellij.mock.MockProject
 import com.intellij.openapi.util.Disposer
+import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 class RenderXmlFileSnapshotTest {
-  @JvmField
-  @Rule
-  val tmpFolder = TemporaryFolder()
+  @JvmField @Rule val tmpFolder = TemporaryFolder()
 
   private val project = MockProject(null, Disposer.newDisposable())
 
@@ -50,7 +48,9 @@ class RenderXmlFileSnapshotTest {
             android:text="Botón"
           />
         </LinearLayout>
-      """.trimIndent().toByteArray()
+      """
+        .trimIndent()
+        .toByteArray()
     )
 
     val xmlFile = RenderXmlFileSnapshot(project, stringsFile.absolutePath)
@@ -65,18 +65,21 @@ class RenderXmlFileSnapshotTest {
     val buttonTag = linearLayoutTag.subTags[0]
     assertEquals("Button", buttonTag.name)
     // Checking that non-ascii characters work
-    assertEquals("Botón", buttonTag.getAttribute("text", "http://schemas.android.com/apk/res/android")?.value)
+    assertEquals(
+      "Botón",
+      buttonTag.getAttribute("text", "http://schemas.android.com/apk/res/android")?.value
+    )
   }
-
 
   @Test
   fun testInMemoryXmlFileSnapshot() {
-    val xmlFile = RenderXmlFileSnapshot(
-      project,
-      "drawable.xml",
-      ResourceFolderType.DRAWABLE,
-      // language=XML
-      """
+    val xmlFile =
+      RenderXmlFileSnapshot(
+        project,
+        "drawable.xml",
+        ResourceFolderType.DRAWABLE,
+        // language=XML
+        """
         <vector xmlns:android="http://schemas.android.com/apk/res/android"
           android:width="24dp"
           android:height="24dp"
@@ -93,7 +96,8 @@ class RenderXmlFileSnapshotTest {
               android:strokeColor="#33FFFFFF"
               android:strokeWidth="0.8" />
         </vector>
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     assertEquals("drawable.xml", xmlFile.name)
     assertEquals("drawable.xml", xmlFile.relativePath)
@@ -105,6 +109,9 @@ class RenderXmlFileSnapshotTest {
     val pathTag = vectorTag.subTags[0]
     assertEquals("path", pathTag.name)
     // Checking that non-ascii characters work
-    assertEquals("M0,0h108v108h-108z", pathTag.getAttribute("pathData", "http://schemas.android.com/apk/res/android")?.value)
+    assertEquals(
+      "M0,0h108v108h-108z",
+      pathTag.getAttribute("pathData", "http://schemas.android.com/apk/res/android")?.value
+    )
   }
 }

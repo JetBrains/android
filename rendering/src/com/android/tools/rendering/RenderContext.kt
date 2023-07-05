@@ -29,7 +29,8 @@ class RenderContext(
   val minSdkVersion = module.info.minSdkVersion
   val targetSdkVersion = module.info.targetSdkVersion
   /**
-   * Specifies the type of the resource if rendering is for resource file or null if it not for a resource file.
+   * Specifies the type of the resource if rendering is for resource file or null if it not for a
+   * resource file.
    */
   var folderType: ResourceFolderType? = null
 }

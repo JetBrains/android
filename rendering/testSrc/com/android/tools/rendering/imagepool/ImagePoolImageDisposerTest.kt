@@ -16,17 +16,17 @@
 package com.android.tools.rendering.imagepool
 
 import com.android.tools.rendering.imagepool.ImagePoolImageDisposer.runWithDisposeLock
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Test
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.GraphicsConfiguration
 import java.awt.image.BufferedImage
 import java.util.concurrent.CountDownLatch
 import java.util.function.Consumer
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
-private class TestDisposableImage: ImagePool.Image, DisposableImage {
+private class TestDisposableImage : ImagePool.Image, DisposableImage {
   private var isDisposed = false
 
   override fun dispose() {
@@ -35,9 +35,20 @@ private class TestDisposableImage: ImagePool.Image, DisposableImage {
 
   override fun getWidth(): Int = 0
   override fun getHeight(): Int = 0
-  override fun drawImageTo(g: Graphics, dx1: Int, dy1: Int, dx2: Int, dy2: Int, sx1: Int, sy1: Int, sx2: Int, sy2: Int) {}
+  override fun drawImageTo(
+    g: Graphics,
+    dx1: Int,
+    dy1: Int,
+    dx2: Int,
+    dy2: Int,
+    sx1: Int,
+    sy1: Int,
+    sx2: Int,
+    sy2: Int
+  ) {}
   override fun paint(command: Consumer<Graphics2D>?) {}
-  override fun getCopy(gc: GraphicsConfiguration?, x: Int, y: Int, w: Int, h: Int): BufferedImage? = null
+  override fun getCopy(gc: GraphicsConfiguration?, x: Int, y: Int, w: Int, h: Int): BufferedImage? =
+    null
   override fun isValid(): Boolean = !isDisposed
 }
 
@@ -84,18 +95,17 @@ class ImagePoolImageDisposerTest {
     val latch = CountDownLatch(1)
     val disposableImage = TestDisposableImage()
     Thread {
-      disposableImage.runWithDisposeLock {
-        threadStarted.countDown()
-        latch.await()
+        disposableImage.runWithDisposeLock {
+          threadStarted.countDown()
+          latch.await()
+        }
+        threadEnded.countDown()
       }
-      threadEnded.countDown()
-    }.start()
+      .start()
     threadStarted.await()
     // The disposableImage is not locked and can not be disposed
     assertTrue(disposableImage.isValid)
-    repeat(5) {
-      ImagePoolImageDisposer.disposeImage(disposableImage)
-    }
+    repeat(5) { ImagePoolImageDisposer.disposeImage(disposableImage) }
     // Image can not be disposed yet
     assertTrue(disposableImage.isValid)
     latch.countDown()

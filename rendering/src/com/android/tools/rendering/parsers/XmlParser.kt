@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 @file:JvmName("XmlParser")
+
 package com.android.tools.rendering.parsers
 
+import java.io.StringReader
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
-import java.io.StringReader
 
 /** Parses xml from [xmlString] into a [RenderXmlTag] hierarchy returning root tag. */
 fun parseRootTag(xmlString: String): RenderXmlTag {
@@ -34,20 +35,22 @@ private fun getTags(parser: XmlPullParser): List<RenderXmlTagImpl> {
   while (XmlPullParser.END_DOCUMENT != eventType && XmlPullParser.END_TAG != eventType) {
     if (XmlPullParser.START_TAG == eventType) {
       val namespaceCount = parser.getNamespaceCount(parser.depth)
-      val prefixToNamespace = (0 until namespaceCount).map {
-        val prefix = parser.getNamespacePrefix(it)
-        val namespace = parser.getNamespace(prefix)
-        prefix to namespace
-      }
+      val prefixToNamespace =
+        (0 until namespaceCount).map {
+          val prefix = parser.getNamespacePrefix(it)
+          val namespace = parser.getNamespace(prefix)
+          prefix to namespace
+        }
       val namespaceMap = prefixToNamespace.toMap()
       val reverseNamespaceMap = prefixToNamespace.associate { it.second to it.first }
-      val attrs = (0 until parser.attributeCount).map {
-        val name = parser.getAttributeName(it)
-        val namespace = parser.getAttributeNamespace(it)
-        val prefix = reverseNamespaceMap[namespace] ?: ""
-        val value = parser.getAttributeValue(it)
-        RenderXmlAttributeImpl(value, name, namespace, prefix)
-      }
+      val attrs =
+        (0 until parser.attributeCount).map {
+          val name = parser.getAttributeName(it)
+          val namespace = parser.getAttributeNamespace(it)
+          val prefix = reverseNamespaceMap[namespace] ?: ""
+          val value = parser.getAttributeValue(it)
+          RenderXmlAttributeImpl(value, name, namespace, prefix)
+        }
       val tagName = parser.name
       val tagNamespace = parser.namespace
       parser.next()
@@ -56,8 +59,7 @@ private fun getTags(parser: XmlPullParser): List<RenderXmlTagImpl> {
       childTags.forEach { it.parentTag = newTag }
       tags.add(newTag)
       eventType = parser.eventType
-    }
-    else {
+    } else {
       eventType = parser.next()
     }
   }

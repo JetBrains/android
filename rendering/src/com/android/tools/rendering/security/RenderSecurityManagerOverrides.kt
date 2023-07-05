@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 @file:JvmName("RenderPropertiesAccessUtil")
+
 package com.android.tools.rendering.security
 
 import com.intellij.openapi.extensions.ExtensionPointName
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
- * Extension point for providing build-system-specific overrides for select
- * [RenderSecurityManager] methods.
+ * Extension point for providing build-system-specific overrides for select [RenderSecurityManager]
+ * methods.
  */
 interface RenderSecurityManagerOverrides {
   fun allowsPropertiesAccess(): Boolean
@@ -33,7 +34,7 @@ val EP_NAME: ExtensionPointName<RenderSecurityManagerOverrides> =
   ExtensionPointName("com.android.rendering.renderSecurityManagerOverrides")
 
 /**
- * Returns true if any registered [RenderSecurityManagerOverrides] extension allows
- * system property access during layout rendering, false otherwise.
+ * Returns true if any registered [RenderSecurityManagerOverrides] extension allows system property
+ * access during layout rendering, false otherwise.
  */
 fun isPropertyAccessAllowed() = EP_NAME.extensions.any { it.allowsPropertiesAccess() }

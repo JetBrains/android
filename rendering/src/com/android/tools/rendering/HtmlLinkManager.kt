@@ -23,7 +23,13 @@ import java.io.File
 import java.net.MalformedURLException
 
 interface HtmlLinkManager {
-  fun handleUrl(url: String, module: Module?, file: PsiFile?, hasRenderResult: Boolean, surface: RefreshableSurface)
+  fun handleUrl(
+    url: String,
+    module: Module?,
+    file: PsiFile?,
+    hasRenderResult: Boolean,
+    surface: RefreshableSurface
+  )
 
   fun createBuildModuleUrl(): String = URL_BUILD_MODULE
 
@@ -43,12 +49,17 @@ interface HtmlLinkManager {
 
   fun createNewClassUrl(className: String): String = "$URL_CREATE_CLASS$className"
 
-  fun createOpenStackUrl(className: String, methodName: String, fileName: String, lineNumber: Int): String =
-    "$URL_OPEN$className#$methodName;$fileName:$lineNumber"
+  fun createOpenStackUrl(
+    className: String,
+    methodName: String,
+    fileName: String,
+    lineNumber: Int
+  ): String = "$URL_OPEN$className#$methodName;$fileName:$lineNumber"
 
   fun createReplaceTagsUrl(from: String, to: String): String = "$URL_REPLACE_TAGS$from/$to"
 
-  fun createEditAttributeUrl(attribute: String, value: String): String = "$URL_EDIT_ATTRIBUTE$attribute/$value";
+  fun createEditAttributeUrl(attribute: String, value: String): String =
+    "$URL_EDIT_ATTRIBUTE$attribute/$value"
 
   fun createDisableSandboxUrl(): String = URL_DISABLE_SANDBOX
 
@@ -57,10 +68,14 @@ interface HtmlLinkManager {
   fun createClearCacheUrl(): String = URL_CLEAR_CACHE_AND_NOTIFY
 
   fun createAddDependencyUrl(artifactId: String): String = "$URL_ADD_DEPENDENCY$artifactId"
-  fun createAddDebugDependencyUrl(artifactId: String): String = "$URL_ADD_DEBUG_DEPENDENCY$artifactId"
+  fun createAddDebugDependencyUrl(artifactId: String): String =
+    "$URL_ADD_DEBUG_DEPENDENCY$artifactId"
 
-  fun createReplaceAttributeValueUrl(attribute: String, oldValue: String, newValue: String): String =
-    "$URL_REPLACE_ATTRIBUTE_VALUE$attribute/$oldValue/$newValue"
+  fun createReplaceAttributeValueUrl(
+    attribute: String,
+    oldValue: String,
+    newValue: String
+  ): String = "$URL_REPLACE_ATTRIBUTE_VALUE$attribute/$oldValue/$newValue"
 
   fun createIgnoreFragmentsUrl(): String = URL_ACTION_IGNORE_FRAGMENTS
 
@@ -68,14 +83,15 @@ interface HtmlLinkManager {
 
   fun createPickLayoutUrl(activityName: String): String = "$URL_ASSIGN_LAYOUT_URL$activityName"
 
-  fun createAssignLayoutUrl(activityName: String, layout: String): String = "$URL_ASSIGN_LAYOUT_URL$activityName:$layout"
+  fun createAssignLayoutUrl(activityName: String, layout: String): String =
+    "$URL_ASSIGN_LAYOUT_URL$activityName:$layout"
 
   companion object {
     /**
      * Creates a file url for the given file and line position
      *
-     * @param file   the file
-     * @param line   the line, or -1 if not known
+     * @param file the file
+     * @param line the line, or -1 if not known
      * @param column the column, or 0 if not known
      * @return a URL which points to a given position in a file
      */
@@ -86,14 +102,12 @@ interface HtmlLinkManager {
         if (line != -1) {
           return if (column > 0) {
             "$fileUrl:$line:$column"
-          }
-          else {
+          } else {
             "$fileUrl:$line"
           }
         }
         fileUrl
-      }
-      catch (e: MalformedURLException) {
+      } catch (e: MalformedURLException) {
         // Ignore
         Logger.getInstance(HtmlLinkManager::class.java).error(e)
         null
@@ -101,17 +115,25 @@ interface HtmlLinkManager {
     }
 
     @JvmField
-    val NOOP_LINK_MANAGER = object : HtmlLinkManager {
-      override fun handleUrl(url: String, module: Module?, file: PsiFile?, hasRenderResult: Boolean, surface: RefreshableSurface) { }
-      override fun createCommandLink(command: CommandLink): String  = ""
-      override fun createRunnableLink(runnable: Runnable): String = ""
-    }
+    val NOOP_LINK_MANAGER =
+      object : HtmlLinkManager {
+        override fun handleUrl(
+          url: String,
+          module: Module?,
+          file: PsiFile?,
+          hasRenderResult: Boolean,
+          surface: RefreshableSurface
+        ) {}
+        override fun createCommandLink(command: CommandLink): String = ""
+        override fun createRunnableLink(runnable: Runnable): String = ""
+      }
 
     @JvmField
-    val NOOP_SURFACE = object : RefreshableSurface {
-      override fun handleRefreshRenderUrl() { }
-      override fun requestRender() { }
-    }
+    val NOOP_SURFACE =
+      object : RefreshableSurface {
+        override fun handleRefreshRenderUrl() {}
+        override fun requestRender() {}
+      }
   }
 
   interface RefreshableSurface {

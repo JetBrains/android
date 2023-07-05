@@ -30,8 +30,9 @@ import com.android.tools.sdk.AndroidPlatform
 import com.intellij.psi.PsiFile
 
 /**
- * An interface proving access to the general environment specific functionality, primarily related to Intellij IDEA. The interface itself
- * is Intellij/Studio agnostic so that when used outside of studio this can be easily stubbed/nooped or implemented differently.
+ * An interface proving access to the general environment specific functionality, primarily related
+ * to Intellij IDEA. The interface itself is Intellij/Studio agnostic so that when used outside of
+ * studio this can be easily stubbed/nooped or implemented differently.
  *
  * In the future, functionality related to DumbService, read/writeAction etc. can be added here.
  */
@@ -51,7 +52,10 @@ interface EnvironmentContext {
   fun getNavGraphResolver(resourceResolver: ResourceResolver): NavGraphResolver
 
   /** Returns a [RenderSecurityManager] for the SDK path and project path. */
-  fun createRenderSecurityManager(projectPath: String?, platform: AndroidPlatform?): RenderSecurityManager
+  fun createRenderSecurityManager(
+    projectPath: String?,
+    platform: AndroidPlatform?
+  ): RenderSecurityManager
 
   fun getOriginalFile(psiFile: PsiFile): PsiFile
 

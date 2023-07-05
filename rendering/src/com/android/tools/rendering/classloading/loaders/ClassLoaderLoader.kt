@@ -20,21 +20,26 @@ import com.android.tools.rendering.classloading.fromPackageNameToBinaryName
 import com.google.common.io.ByteStreams
 
 /**
- * A [DelegatingClassLoader.Loader] that delegates the class finding to a given [ClassLoader]. This is different
- * to using a [ClassLoader] directly because it does NOT define the class, it only loads the bytes from disk. This
- * allows for other [DelegatingClassLoader.Loader]s to do additional transformations, caching or anything needed
- * before the actual definition of the class happens.
+ * A [DelegatingClassLoader.Loader] that delegates the class finding to a given [ClassLoader]. This
+ * is different to using a [ClassLoader] directly because it does NOT define the class, it only
+ * loads the bytes from disk. This allows for other [DelegatingClassLoader.Loader]s to do additional
+ * transformations, caching or anything needed before the actual definition of the class happens.
  */
-class ClassLoaderLoader @JvmOverloads constructor(private val classLoader: ClassLoader,
-                                                  private val onLoadedClass: (String, String, ByteArray) -> Unit = { _, _, _ -> })
-  : DelegatingClassLoader.Loader {
+class ClassLoaderLoader
+@JvmOverloads
+constructor(
+  private val classLoader: ClassLoader,
+  private val onLoadedClass: (String, String, ByteArray) -> Unit = { _, _, _ -> }
+) : DelegatingClassLoader.Loader {
   override fun loadClass(fqcn: String): ByteArray? {
     val diskName = fqcn.fromPackageNameToBinaryName() + SdkConstants.DOT_CLASS
     val classUrl = classLoader.getResource(diskName) ?: return null
-    // We do not request the stream from URL because it is problematic, see https://stackoverflow.com/questions/7071761
-    val bytes = classLoader.getResourceAsStream(diskName).use {
-      ByteStreams.toByteArray(it ?: return@use null)
-    }
+    // We do not request the stream from URL because it is problematic, see
+    // https://stackoverflow.com/questions/7071761
+    val bytes =
+      classLoader.getResourceAsStream(diskName).use {
+        ByteStreams.toByteArray(it ?: return@use null)
+      }
 
     if (bytes != null) {
       onLoadedClass(fqcn, classUrl.path, bytes)

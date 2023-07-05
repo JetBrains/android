@@ -17,9 +17,7 @@ package com.android.tools.rendering.tracking
 
 import com.android.tools.rendering.RenderTask
 
-/**
- * Class that represents a [RenderTask] allocation point.
- */
+/** Class that represents a [RenderTask] allocation point. */
 abstract class StackTraceCapture {
   abstract val stackTrace: List<StackTraceElement>
   abstract fun bind(renderTask: RenderTask)

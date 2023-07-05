@@ -23,7 +23,9 @@ import org.junit.Test
 class XmlParserTest {
   @Test
   fun test() {
-    @Language("XML") val layoutString = """
+    @Language("XML")
+    val layoutString =
+      """
       <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="vertical">
@@ -43,8 +45,14 @@ class XmlParserTest {
     assertEquals("vertical", rootAttr!!.value)
     val button = rootTag.subTags.find { it.name == "Button" }
     assertNotNull(button)
-    assertEquals("wrap_content", button!!.getAttribute("layout_width", "http://schemas.android.com/apk/res/android")!!.value)
-    assertEquals("Click me", button.getAttribute("text", "http://schemas.android.com/apk/res/android")!!.value)
+    assertEquals(
+      "wrap_content",
+      button!!.getAttribute("layout_width", "http://schemas.android.com/apk/res/android")!!.value
+    )
+    assertEquals(
+      "Click me",
+      button.getAttribute("text", "http://schemas.android.com/apk/res/android")!!.value
+    )
     val textView = rootTag.subTags.find { it.name == "TextView" }
     assertNotNull(textView)
   }

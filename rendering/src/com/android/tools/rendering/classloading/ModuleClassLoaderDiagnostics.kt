@@ -16,54 +16,42 @@
 package com.android.tools.rendering.classloading
 
 import com.intellij.openapi.diagnostic.Logger
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.PriorityQueue
 import java.util.Stack
 import java.util.concurrent.atomic.LongAdder
+import org.jetbrains.annotations.VisibleForTesting
 
-/**
- * Interface for reading [ModuleClassLoader] stats.
- */
+/** Interface for reading [ModuleClassLoader] stats. */
 interface ModuleClassLoaderDiagnosticsRead {
-  /**
-   * The total number of classes loaded so far by the [ModuleClassLoader].
-   */
+  /** The total number of classes loaded so far by the [ModuleClassLoader]. */
   val classesFound: Long
 
-  /**
-   * The total time used finding classes by the [ModuleClassLoader].
-   */
+  /** The total time used finding classes by the [ModuleClassLoader]. */
   val accumulatedFindTimeMs: Long
 
-  /**
-   * The total time used rewriting classes by the [ModuleClassLoader].
-   */
+  /** The total time used rewriting classes by the [ModuleClassLoader]. */
   val accumulatedRewriteTimeMs: Long
 }
 
-/**
- * Interface for writing [ModuleClassLoader] stats.
- */
-interface ModuleClassLoaderDiagnosticsWrite: ModuleClassLoaderDiagnosticsRead {
-  /**
-   * Called when [ClassLoader.loadClass] stats.
-   */
+/** Interface for writing [ModuleClassLoader] stats. */
+interface ModuleClassLoaderDiagnosticsWrite : ModuleClassLoaderDiagnosticsRead {
+  /** Called when [ClassLoader.loadClass] stats. */
   fun classLoadStart(fqn: String)
 
   /**
    * Called when [ClassLoader.loadClass] finishes.
+   *
    * @param fqn the Fully Qualified Name of the class.
    * @param timeMs time in milliseconds that the load took.
    */
   fun classLoadedEnd(fqn: String, timeMs: Long)
 
-  /**
-   * Called when [ClassLoader.findClass] stats.
-   */
+  /** Called when [ClassLoader.findClass] stats. */
   fun classFindStart(fqn: String)
 
   /**
    * Called when [ClassLoader.findClass] ends.
+   *
    * @param fqn the Fully Qualified Name of the class.
    * @param wasFound true if the class was found or false otherwise.
    * @param timeMs time in milliseconds that the lookup took.
@@ -72,6 +60,7 @@ interface ModuleClassLoaderDiagnosticsWrite: ModuleClassLoaderDiagnosticsRead {
 
   /**
    * Called when a class has been rewritten.
+   *
    * @param fqn the Fully Qualified Name of the class.
    * @param length size of the original class.
    * @param timeMs time in milliseconds that the rewrite took.
@@ -79,9 +68,7 @@ interface ModuleClassLoaderDiagnosticsWrite: ModuleClassLoaderDiagnosticsRead {
   fun classRewritten(fqn: String, length: Int, timeMs: Long)
 }
 
-/**
- * Nop implementation of the stats, to use in production.
- */
+/** Nop implementation of the stats, to use in production. */
 @VisibleForTesting
 object NopModuleClassLoadedDiagnostics : ModuleClassLoaderDiagnosticsWrite {
   override fun classLoadStart(fqn: String) {}
@@ -95,16 +82,15 @@ object NopModuleClassLoadedDiagnostics : ModuleClassLoaderDiagnosticsWrite {
 }
 
 /**
- * A counter that allows accounting for self time and total time. Self time is the time spent running the operation excluding the
- * time used by the children. Total time is self time + total time of all children.
- * The counters do not have units so it's up to the client to make sure the units are consistent.
+ * A counter that allows accounting for self time and total time. Self time is the time spent
+ * running the operation excluding the time used by the children. Total time is self time + total
+ * time of all children. The counters do not have units so it's up to the client to make sure the
+ * units are consistent.
  */
 class HierarchicalTimeCounter {
   private var childrenTime = 0L
 
-  /**
-   * Stack of the current running counts with pairs of the key and the current childrenTime.
-   */
+  /** Stack of the current running counts with pairs of the key and the current childrenTime. */
   private val counterStack: Stack<Pair<String, Long>> = Stack()
 
   @Synchronized
@@ -121,31 +107,23 @@ class HierarchicalTimeCounter {
       val selfTime = totalTime - childrenTime
       childrenTime = totalTime + siblingsTotalTime
       selfTime
-    }
-    else {
-      Logger.getInstance(HierarchicalTimeCounter::class.java).warn("Unbalanced start/end calls. Received $key (expected $poppedKey)")
+    } else {
+      Logger.getInstance(HierarchicalTimeCounter::class.java)
+        .warn("Unbalanced start/end calls. Received $key (expected $poppedKey)")
       throw IllegalStateException()
     }
   }
 }
 
-/**
- * Implementation that records and saves the loading times and counts for classes.
- */
+/** Implementation that records and saves the loading times and counts for classes. */
 @VisibleForTesting
 class ModuleClassLoadedDiagnosticsImpl : ModuleClassLoaderDiagnosticsWrite {
-  /**
-   * A single class find report with the name and time.
-   */
+  /** A single class find report with the name and time. */
   private data class ClassFoundReport(val fqn: String, val timeMs: Long)
 
-  /**
-   * [HierarchicalTimeCounter] for the load time.
-   */
+  /** [HierarchicalTimeCounter] for the load time. */
   private val totalLoadTimeCounterMs = HierarchicalTimeCounter()
-  /**
-   * [HierarchicalTimeCounter] for the find time.
-   */
+  /** [HierarchicalTimeCounter] for the find time. */
   private val totalFindTimeCounterMs = HierarchicalTimeCounter()
 
   /** Captures the total time of the [ModuleClassLoader#loadClass] calls. */
@@ -157,7 +135,8 @@ class ModuleClassLoadedDiagnosticsImpl : ModuleClassLoaderDiagnosticsWrite {
   /** Counts the total time spent rewriting classes in this class loader. */
   private val totalRewriteTimeMs = LongAdder()
   /** Keeps the slowest classes by [ModuleClassLoader#loadClass] found time. */
-  private val foundClasses = PriorityQueue<ClassFoundReport>(100, Comparator.comparing { it.timeMs })
+  private val foundClasses =
+    PriorityQueue<ClassFoundReport>(100, Comparator.comparing { it.timeMs })
 
   override fun classLoadStart(fqn: String) {
     totalLoadTimeCounterMs.start(fqn)
@@ -166,8 +145,7 @@ class ModuleClassLoadedDiagnosticsImpl : ModuleClassLoaderDiagnosticsWrite {
   override fun classLoadedEnd(fqn: String, timeMs: Long) {
     try {
       totalLoadTimeMs.add(totalLoadTimeCounterMs.end(fqn, timeMs))
-    } catch (_: IllegalStateException) {
-    }
+    } catch (_: IllegalStateException) {}
   }
 
   override fun classFindStart(fqn: String) {
@@ -177,8 +155,7 @@ class ModuleClassLoadedDiagnosticsImpl : ModuleClassLoaderDiagnosticsWrite {
   override fun classFindEnd(fqn: String, wasFoud: Boolean, timeMs: Long) {
     try {
       totalFindTimeMs.add(totalFindTimeCounterMs.end(fqn, timeMs))
-    } catch (_: IllegalStateException) {
-    }
+    } catch (_: IllegalStateException) {}
     totalClassesFound.increment()
     foundClasses.add(ClassFoundReport(fqn, timeMs))
   }

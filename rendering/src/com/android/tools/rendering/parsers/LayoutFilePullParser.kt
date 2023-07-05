@@ -17,34 +17,30 @@
 
 package com.android.tools.rendering.parsers
 
+import com.android.SdkConstants.*
 import com.android.ide.common.rendering.api.ILayoutPullParser
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ValueXmlHelper
 import com.android.ide.common.util.PathString
+import com.android.support.FragmentTagUtil.isFragmentTag
 import com.android.tools.rendering.LayoutMetadata
 import com.android.tools.res.FileResourceReader
 import org.xmlpull.v1.XmlPullParser
 
-import com.android.SdkConstants.*
-import com.android.support.FragmentTagUtil.isFragmentTag
-
-/**
- * Creates a new [ILayoutPullParser] for the given XML file.
- */
+/** Creates a new [ILayoutPullParser] for the given XML file. */
 fun create(xml: PathString, namespace: ResourceNamespace): ILayoutPullParser? {
   val parser = FileResourceReader.createXmlPullParser(xml) ?: return null
   return LayoutPullParserImpl(parser, namespace)
 }
 
 /**
- * Modified [XmlPullParser] that adds the methods of [ILayoutPullParser], and performs
- * other layout-specific parser behavior like translating fragment tags into include tags.
+ * Modified [XmlPullParser] that adds the methods of [ILayoutPullParser], and performs other
+ * layout-specific parser behavior like translating fragment tags into include tags.
  */
-private class LayoutPullParserImpl constructor(
-  private val delegate: XmlPullParser,
-  private val layoutNamespace: ResourceNamespace
-) : ILayoutPullParser, XmlPullParser by delegate {
-  /** The layout to be shown for the current `<fragment>` tag. Usually null.  */
+private class LayoutPullParserImpl
+constructor(private val delegate: XmlPullParser, private val layoutNamespace: ResourceNamespace) :
+  ILayoutPullParser, XmlPullParser by delegate {
+  /** The layout to be shown for the current `<fragment>` tag. Usually null. */
   private var fragmentLayout: String? = null
 
   // --- Layoutlib API methods.
@@ -92,8 +88,7 @@ private class LayoutPullParserImpl constructor(
       if (fragmentLayout != null) {
         return VIEW_INCLUDE
       }
-    }
-    else {
+    } else {
       fragmentLayout = null
     }
 
@@ -108,9 +103,11 @@ private class LayoutPullParserImpl constructor(
     var value: String? = delegate.getAttributeValue(namespace, localName)
 
     // On the fly convert match_parent to fill_parent for compatibility with older platforms.
-    if (VALUE_MATCH_PARENT == value &&
+    if (
+      VALUE_MATCH_PARENT == value &&
         (ATTR_LAYOUT_WIDTH == localName || ATTR_LAYOUT_HEIGHT == localName) &&
-        ANDROID_URI == namespace) {
+        ANDROID_URI == namespace
+    ) {
       return VALUE_FILL_PARENT
     }
 
@@ -119,15 +116,16 @@ private class LayoutPullParserImpl constructor(
         // Allow the tools namespace to override the framework attributes at design time.
         val designValue = delegate.getAttributeValue(TOOLS_URI, localName)
         if (designValue != null) {
-          value = if (value == null || !designValue.isEmpty()) {
-            designValue
-          }
-          else {
-            null // An empty value of the design time attribute erases the value of the runtime attribute if it was set.
-          }
+          value =
+            if (value == null || !designValue.isEmpty()) {
+              designValue
+            } else {
+              // An empty value of the design time attribute erases the value of the runtime
+              // attribute if it was set.
+              null
+            }
         }
-      }
-      else if (value == null) {
+      } else if (value == null) {
         // Auto-convert http://schemas.android.com/apk/res-auto resources. The lookup
         // will be for the current application's resource package, e.g.
         // http://schemas.android.com/apk/res/foo.bar, but the XML document will

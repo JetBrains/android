@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidXmlFiles")
+
 package com.android.tools.rendering
 
 import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.rendering.parsers.RenderXmlFile
 
-/** Looks up the declared associated context/activity for the given XML file and returns the resolved fully qualified name if found. */
+/**
+ * Looks up the declared associated context/activity for the given XML file and returns the resolved
+ * fully qualified name if found.
+ */
 fun getDeclaredContextFqcn(resourcePackage: String?, xmlFile: RenderXmlFile): String? {
-  val context = xmlFile.getRootTagAttribute(ATTR_CONTEXT, TOOLS_URI);
+  val context = xmlFile.getRootTagAttribute(ATTR_CONTEXT, TOOLS_URI)
   if (!context.isNullOrEmpty()) {
     val startsWithDot = context[0] == '.'
     if (startsWithDot || context.indexOf('.') == -1) {
@@ -31,5 +35,5 @@ fun getDeclaredContextFqcn(resourcePackage: String?, xmlFile: RenderXmlFile): St
     }
     return context
   }
-  return null;
+  return null
 }

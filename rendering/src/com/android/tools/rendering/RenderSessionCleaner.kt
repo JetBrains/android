@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("RenderSessionCleaner")
+
 package com.android.tools.rendering
 
 import com.android.AndroidXConstants
@@ -32,19 +33,21 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 /**
- * We run user code and code of 3rd party libraries when rendering user previews. Many 3rd party libraries have global static variables
- * that retain parts of the user code, that in turn does not allow us to free the resources in time and produces memory leaks.
+ * We run user code and code of 3rd party libraries when rendering user previews. Many 3rd party
+ * libraries have global static variables that retain parts of the user code, that in turn does not
+ * allow us to free the resources in time and produces memory leaks.
  *
- * This file contains a collection of functions that allow for cleaning [RenderSession] and related [LayoutlibCallbackImpl] (essentially
- * used as a [ClassLoader]) when it is safe to do so.
+ * This file contains a collection of functions that allow for cleaning [RenderSession] and related
+ * [LayoutlibCallbackImpl] (essentially used as a [ClassLoader]) when it is safe to do so.
  */
-
 private val LOG = Logger.getInstance("RenderSessionDisposer")
 
 private const val SNAPSHOT_KT_FQN = "androidx.compose.runtime.snapshots.SnapshotKt"
 private const val FONT_REQUEST_WORKER_FQN = "androidx.core.provider.FontRequestWorker"
-private const val WINDOW_RECOMPOSER_ANDROID_KT_FQN = "androidx.compose.ui.platform.WindowRecomposer_androidKt"
-private const val LOCAL_BROADCAST_MANAGER_FQN = "androidx.localbroadcastmanager.content.LocalBroadcastManager"
+private const val WINDOW_RECOMPOSER_ANDROID_KT_FQN =
+  "androidx.compose.ui.platform.WindowRecomposer_androidKt"
+private const val LOCAL_BROADCAST_MANAGER_FQN =
+  "androidx.localbroadcastmanager.content.LocalBroadcastManager"
 
 private const val GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker"
 
@@ -54,8 +57,8 @@ private const val ANDROID_UI_DISPATCHER_COMPANION_FQN = "$ANDROID_UI_DISPATCHER_
 private const val COMBINED_CONTEXT_FQN = "${INTERNAL_PACKAGE}kotlin.coroutines.CombinedContext"
 
 /**
- * Initiates a custom [RenderSession] disposal, involving clearing several static collections including some Compose-related objects as well
- * as executing default [RenderSession.dispose].
+ * Initiates a custom [RenderSession] disposal, involving clearing several static collections
+ * including some Compose-related objects as well as executing default [RenderSession.dispose].
  *
  * Returns a [CompletableFuture] that completes when the custom disposal process finishes.
  */
@@ -66,12 +69,13 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
   if (classLoader.hasLoadedClass(CLASS_COMPOSE_VIEW_ADAPTER)) {
     try {
       val composeViewAdapter: Class<*> = classLoader.findClass(CLASS_COMPOSE_VIEW_ADAPTER)
-      // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we have to perform this filtering
-      disposeMethod = Arrays.stream(composeViewAdapter.methods).filter { m: Method ->
-        m.name.contains("dispose")
-      }.findFirst()
-    }
-    catch (ex: ClassNotFoundException) {
+      // Kotlin bytecode generation converts dispose() method into dispose$ui_tooling() therefore we
+      // have to perform this filtering
+      disposeMethod =
+        Arrays.stream(composeViewAdapter.methods)
+          .filter { m: Method -> m.name.contains("dispose") }
+          .findFirst()
+    } catch (ex: ClassNotFoundException) {
       LOG.debug("$CLASS_COMPOSE_VIEW_ADAPTER class not found", ex)
     }
     if (disposeMethod.isEmpty) {
@@ -85,9 +89,9 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
       if (animationScale is Map<*, *>) {
         (animationScale as MutableMap<*, *>).clear()
       }
-    }
-    catch (ex: ReflectiveOperationException) {
-      // If the WindowRecomposer does not exist or the animationScale does not exist anymore, ignore.
+    } catch (ex: ReflectiveOperationException) {
+      // If the WindowRecomposer does not exist or the animationScale does not exist anymore,
+      // ignore.
       LOG.debug("Unable to dispose the recompose animationScale", ex)
     }
     applyObserversRef.set(WeakReference(findApplyObservers(classLoader)))
@@ -99,14 +103,12 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
   disposeMethod.ifPresent { m: Method -> m.isAccessible = true }
   val finalDisposeMethod = disposeMethod
   return RenderService.getRenderAsyncActionExecutor().runAsyncAction(
-    RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
+    RenderAsyncActionExecutor.RenderingTopic.CLEAN
+  ) {
     finalDisposeMethod.ifPresent { m: Method? ->
       this@dispose.execute(
         Runnable {
-          this@dispose.rootViews.forEach(
-            Consumer { v: ViewInfo? ->
-              disposeIfCompose(v!!, m!!)
-            })
+          this@dispose.rootViews.forEach(Consumer { v: ViewInfo? -> disposeIfCompose(v!!, m!!) })
         }
       )
     }
@@ -126,9 +128,10 @@ fun RenderSession.dispose(classLoader: LayoutlibCallbackImpl): CompletableFuture
 }
 
 /**
- * Performs dispose() call against View object associated with [ViewInfo] if that object is an instance of [ComposeViewAdapter]
+ * Performs dispose() call against View object associated with [ViewInfo] if that object is an
+ * instance of [ComposeViewAdapter]
  *
- * @param viewInfo      a [ViewInfo] associated with the View object to be potentially disposed of
+ * @param viewInfo a [ViewInfo] associated with the View object to be potentially disposed of
  * @param disposeMethod a dispose method to be executed against View object
  */
 private fun disposeIfCompose(viewInfo: ViewInfo, disposeMethod: Method) {
@@ -138,11 +141,9 @@ private fun disposeIfCompose(viewInfo: ViewInfo, disposeMethod: Method) {
   }
   try {
     disposeMethod.invoke(viewObject)
-  }
-  catch (ex: IllegalAccessException) {
+  } catch (ex: IllegalAccessException) {
     LOG.warn("Unexpected error while disposing compose view", ex)
-  }
-  catch (ex: InvocationTargetException) {
+  } catch (ex: InvocationTargetException) {
     LOG.warn("Unexpected error while disposing compose view", ex)
   }
 }
@@ -153,20 +154,21 @@ private fun findToRunTrampolined(classLoader: LayoutlibCallbackImpl): MutableCol
     val uiDispatcherCompanion = classLoader.findClass(ANDROID_UI_DISPATCHER_COMPANION_FQN)
     val uiDispatcherCompanionField = uiDispatcher.getDeclaredField("Companion")
     val uiDispatcherCompanionObj = uiDispatcherCompanionField[null]
-    val getMainMethod = uiDispatcherCompanion.getDeclaredMethod("getMain").apply { isAccessible = true }
+    val getMainMethod =
+      uiDispatcherCompanion.getDeclaredMethod("getMain").apply { isAccessible = true }
     val mainObj = getMainMethod.invoke(uiDispatcherCompanionObj)
     val combinedContext = classLoader.findClass(COMBINED_CONTEXT_FQN)
     val elementField = combinedContext.getDeclaredField("element").apply { isAccessible = true }
     val uiDispatcherObj = elementField[mainObj]
 
-    val toRunTrampolinedField = uiDispatcher.getDeclaredField("toRunTrampolined").apply { isAccessible = true }
+    val toRunTrampolinedField =
+      uiDispatcher.getDeclaredField("toRunTrampolined").apply { isAccessible = true }
     val toRunTrampolinedObj = toRunTrampolinedField[uiDispatcherObj]
     if (toRunTrampolinedObj is MutableCollection<*>) {
       return toRunTrampolinedObj
     }
     LOG.warn("AndroidUiDispatcher.toRunTrampolined found but it is not a MutableCollection")
-  }
-  catch (ex: ReflectiveOperationException) {
+  } catch (ex: ReflectiveOperationException) {
     LOG.warn("Unable to find AndroidUiDispatcher.toRunTrampolined", ex)
   }
   return null
@@ -182,8 +184,7 @@ private fun findApplyObservers(classLoader: LayoutlibCallbackImpl): MutableColle
       return applyObservers
     }
     LOG.warn("SnapshotsKt.applyObservers found but it is not a List")
-  }
-  catch (ex: ReflectiveOperationException) {
+  } catch (ex: ReflectiveOperationException) {
     LOG.warn("Unable to find SnapshotsKt.applyObservers", ex)
   }
   return null
@@ -209,19 +210,19 @@ fun clearFontRequestWorker(classLoader: LayoutlibCallbackImpl) {
     val pendingReplies = pendingRepliesField[fontRequestWorker]
     // Clear the SimpleArrayMap
     pendingReplies.javaClass.getMethod("clear").invoke(pendingReplies)
-  }
-  catch (ex: ReflectiveOperationException) {
-    // If the FontRequestWorker does not exist or the PENDING_REPLIES does not exist anymore, ignore.
+  } catch (ex: ReflectiveOperationException) {
+    // If the FontRequestWorker does not exist or the PENDING_REPLIES does not exist anymore,
+    // ignore.
     LOG.debug("Unable to dispose the PENDING_REPLIES", ex)
   }
 }
 
-/**
- * Clear static gap worker variable used by Recycler View.
- */
+/** Clear static gap worker variable used by Recycler View. */
 fun clearGapWorkerCache(classLoader: LayoutlibCallbackImpl) {
-  if (!classLoader.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.newName()) &&
-      !classLoader.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.oldName())) {
+  if (
+    !classLoader.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.newName()) &&
+      !classLoader.hasLoadedClass(AndroidXConstants.RECYCLER_VIEW.oldName())
+  ) {
     // If RecyclerView has not been loaded, we do not need to care about the GapWorker cache
     return
   }
@@ -233,18 +234,17 @@ fun clearGapWorkerCache(classLoader: LayoutlibCallbackImpl) {
 
     // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
     RenderService.getRenderAsyncActionExecutor().runAsyncAction(
-      RenderAsyncActionExecutor.RenderingTopic.CLEAN) {
+      RenderAsyncActionExecutor.RenderingTopic.CLEAN
+    ) {
       try {
         val gapWorkerFieldValue = gapWorkerField[null] as ThreadLocal<*>
         gapWorkerFieldValue.set(null)
         LOG.debug("GapWorker was cleared")
-      }
-      catch (e: IllegalAccessException) {
+      } catch (e: IllegalAccessException) {
         LOG.debug(e)
       }
     }
-  }
-  catch (t: Throwable) {
+  } catch (t: Throwable) {
     LOG.debug(t)
   }
 }

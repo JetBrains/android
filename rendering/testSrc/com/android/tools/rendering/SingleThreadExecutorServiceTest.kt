@@ -78,19 +78,22 @@ class SingleThreadExecutorServiceTest {
       )
 
     var exception: Throwable? = null
-    executor.submit {
-      assertTrue(executor.hasSpawnedCurrentThread())
-
-      Thread {
-        // Child threads must also return hasSpawnedCurrentThread
+    executor
+      .submit {
         assertTrue(executor.hasSpawnedCurrentThread())
-      }.also {
-        it.setUncaughtExceptionHandler { t, e -> exception = e  }
-        it.start()
-        it.join()
+
+        Thread {
+            // Child threads must also return hasSpawnedCurrentThread
+            assertTrue(executor.hasSpawnedCurrentThread())
+          }
+          .also {
+            it.setUncaughtExceptionHandler { t, e -> exception = e }
+            it.start()
+            it.join()
+          }
+        exception?.let { throw it }
       }
-      exception?.let { throw it }
-    }.get()
+      .get()
     assertFalse(executor.hasSpawnedCurrentThread())
   }
 }

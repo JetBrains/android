@@ -19,6 +19,9 @@ import com.intellij.openapi.module.Module
 
 /** Interface providing [Module]. */
 fun interface IdeaModuleProvider {
-  /** Reference to [Module]. Should only be accessed from studio code, because it can not be implemented outside of studio. */
+  /**
+   * Reference to [Module]. Should only be accessed from studio code, because it can not be
+   * implemented outside of studio.
+   */
   fun getIdeaModule(): Module
 }

@@ -29,13 +29,15 @@ class RenderXmlFileSnapshot(
   fileContent: String,
 ) : RenderXmlFile {
 
-  constructor(project: Project, filePath: PathString) :
-    this(
-      project,
-      filePath.fileName,
-      ResourceFolderType.getFolderType(filePath.parentFileName!!),
-      filePath.toFile()!!.readBytes().toString(Charsets.UTF_8)
-    )
+  constructor(
+    project: Project,
+    filePath: PathString
+  ) : this(
+    project,
+    filePath.fileName,
+    ResourceFolderType.getFolderType(filePath.parentFileName!!),
+    filePath.toFile()!!.readBytes().toString(Charsets.UTF_8)
+  )
 
   constructor(project: Project, filePath: String) : this(project, PathString(filePath))
 
@@ -45,7 +47,9 @@ class RenderXmlFileSnapshot(
   override val resourceNamespace: ResourceNamespace = ResourceNamespace.RES_AUTO
 
   override fun getRootTagAttribute(attribute: String, namespace: String?): String? =
-    (namespace?.let { rootTag.getAttribute(namespace, attribute) } ?: rootTag.getAttribute(attribute))?.value
+    (namespace?.let { rootTag.getAttribute(namespace, attribute) }
+        ?: rootTag.getAttribute(attribute))
+      ?.value
 
   override fun get(): PsiFile {
     throw NotImplementedError("Getting PsiFile from XmlFileSnapshot is not supported.")
