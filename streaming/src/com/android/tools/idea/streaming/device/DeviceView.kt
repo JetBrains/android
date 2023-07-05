@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.constrainInside
 import com.android.tools.idea.streaming.core.contains
@@ -132,8 +133,7 @@ internal class DeviceView(
   val isConnected: Boolean
     get() = connectionState == ConnectionState.CONNECTED
 
-  override val deviceSerialNumber: String
-    get() = deviceClient.deviceSerialNumber
+  override val deviceId: DeviceId = DeviceId.ofPhysicalDevice(deviceClient.deviceSerialNumber)
 
   /**
    * Orientation of the device display according to Android's

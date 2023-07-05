@@ -703,6 +703,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<EditorNotificationPanel>()?.text).isEqualTo("Hold Shift to control camera")
 
     // Check that the notification is removed when the emulator view loses focus.
+    focusManager.focusOwner = null
     val focusLostEvent = FocusEvent(emulatorView, FocusEvent.FOCUS_LOST, false, null)
     for (listener in emulatorView.focusListeners) {
       listener.focusLost(focusLostEvent)
@@ -710,6 +711,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(ui.findComponent<EditorNotificationPanel>()).isNull()
 
     // Check that the notification is displayed again when the emulator view gains focus.
+    focusManager.focusOwner = emulatorView
     val focusGainedEvent = FocusEvent(emulatorView, FocusEvent.FOCUS_GAINED, false, null)
     for (listener in emulatorView.focusListeners) {
       listener.focusGained(focusGainedEvent)

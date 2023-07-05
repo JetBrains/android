@@ -43,14 +43,16 @@ import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_E
 
 /** Executes an action related to device streaming. */
-fun executeStreamingAction(actionId: String, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR) {
+fun executeStreamingAction(actionId: String, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR,
+                           modifiers: Int = CTRL_DOWN_MASK) {
   val action = ActionManager.getInstance().getAction(actionId)
-  executeStreamingAction(action, source, project, place)
+  executeStreamingAction(action, source, project, place, modifiers)
 }
 
 /** Executes an action related to device streaming. */
-fun executeStreamingAction(action: AnAction, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR) {
-  val event = createTestEvent(source, project, place)
+fun executeStreamingAction(action: AnAction, source: Component, project: Project, place: String = ActionPlaces.TOOLBAR,
+                           modifiers: Int = CTRL_DOWN_MASK) {
+  val event = createTestEvent(source, project, place, modifiers)
   action.update(event)
   assertThat(event.presentation.isEnabledAndVisible).isTrue()
   action.actionPerformed(event)
@@ -69,8 +71,9 @@ fun updateAndGetActionPresentation(action: AnAction, source: Component, project:
   return event.presentation
 }
 
-fun createTestEvent(source: Component, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT): AnActionEvent {
-  val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_E, CHAR_UNDEFINED)
+fun createTestEvent(source: Component, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT,
+                    modifiers: Int = CTRL_DOWN_MASK): AnActionEvent {
+  val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
   return AnActionEvent(inputEvent, TestDataContext(source, project), place, Presentation(), ActionManager.getInstance(), 0)
 }
 

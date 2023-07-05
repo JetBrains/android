@@ -19,7 +19,12 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.streaming.actions.InputForwardingStateStorage
+import com.intellij.ide.DataManager
+import com.intellij.ide.KeyboardAwareFocusOwner
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.containers.ContainerUtil
@@ -58,10 +63,13 @@ import kotlin.math.roundToInt
  * [com.android.tools.idea.streaming.device.DeviceView].
  */
 @Suppress("UseJBColor")
-abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable {
+abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Disposable, KeyboardAwareFocusOwner {
 
-  /** Serial number of the device sown in the view. */
-  abstract val deviceSerialNumber: String
+  /** Serial number of the device shown in the view. */
+  val deviceSerialNumber: String
+    get() = deviceId.serialNumber
+  /** ID of the device shown in the view. */
+  abstract val deviceId: DeviceId
   /** Area of the window occupied by the device display image in physical pixels. */
   var displayRectangle: Rectangle? = null
     protected set
@@ -288,6 +296,18 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     // Device display coordinates.
     return normalized.scaledUnbiased(imageSize, deviceDisplaySize)
   }
+
+  protected fun isInputForwardingEnabled(): Boolean {
+    return InputForwardingStateStorage.
+        getInstance(CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this)) ?: return false).
+        isInputForwardingEnabled(deviceId)
+  }
+
+  override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
+    return isInputForwardingEnabled()
+  }
+
+  internal open fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {}
 
  /** Attempts to restore a lost device connection. */
   protected inner class Reconnector(val reconnectLabel: String, private val progressMessage: String, val reconnect: suspend () -> Unit) {

@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.benchmark
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.location
 import com.android.tools.idea.testing.disposable
@@ -386,7 +387,7 @@ class DeviceAdapterTest {
       Disposer.register(projectRule.disposable, this)
     }
 
-    override val deviceSerialNumber: String = "test"
+    override val deviceId: DeviceId = DeviceId.ofPhysicalDevice("test")
     override val displayOrientationQuadrants = 0
     override val apiLevel: Int
       get() = 0

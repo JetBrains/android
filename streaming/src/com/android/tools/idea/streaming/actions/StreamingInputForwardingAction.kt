@@ -16,9 +16,10 @@
 package com.android.tools.idea.streaming.actions
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
-import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
+import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
+import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -42,6 +43,7 @@ internal class StreamingInputForwardingAction : ToggleAction("Input Forwarding")
   override fun setSelected(event: AnActionEvent, selected: Boolean) {
     val deviceId = getDeviceId(event) ?: return
     event.project?.getService(InputForwardingStateStorage::class.java)?.setInputForwardingEnabled(deviceId, selected)
+    getDisplayView(event)?.inputForwardingStateChanged(event, selected)
   }
 
   override fun update(event: AnActionEvent) {
@@ -53,18 +55,16 @@ internal class StreamingInputForwardingAction : ToggleAction("Input Forwarding")
     }
   }
 
+  private fun getDisplayView(event: AnActionEvent): AbstractDisplayView? {
+    return event.getData(EMULATOR_VIEW_KEY) ?: event.getData(DEVICE_VIEW_KEY)
+  }
+
   private fun getDeviceId(event: AnActionEvent): DeviceId? {
-    val emulatorController = event.getData(EMULATOR_CONTROLLER_KEY)
-    if (emulatorController != null) {
-      return DeviceId.ofEmulator(emulatorController.emulatorId)
-    }
-    val serialNumber = event.getData(SERIAL_NUMBER_KEY) ?: return null
-    return DeviceId.ofPhysicalDevice(serialNumber)
+    return getDisplayView(event)?.deviceId
   }
 }
 
 @Service(Service.Level.PROJECT)
-@VisibleForTesting
 internal class InputForwardingStateStorage {
   private val enabledDevices = mutableSetOf<String>()
 
