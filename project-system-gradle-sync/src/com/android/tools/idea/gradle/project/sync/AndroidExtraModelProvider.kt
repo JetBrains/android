@@ -167,7 +167,13 @@ private fun buildModelsAndMap(
       getChildren = {
         runCatching {
           if (gradleSupportsBuildSrcAsCompositeMember) {
-            it.editableBuilds.all
+            val builds = it.editableBuilds.all
+            if (builds.isEmpty()) {
+              it.includedBuilds.all
+            }
+            else {
+              builds
+            }
           } else {
             it.includedBuilds.all
           }
