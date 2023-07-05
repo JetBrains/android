@@ -72,9 +72,7 @@ import org.jetbrains.uast.toUElementOfType
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
 
-// Max allowed API
 const val MAX_WIDTH = 2000
-
 const val MAX_HEIGHT = 2000
 
 /** Default background to be used by the rendered elements when showBackground is set to true. */
