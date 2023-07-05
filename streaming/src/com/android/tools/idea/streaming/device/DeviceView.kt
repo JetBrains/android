@@ -34,6 +34,7 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.DeviceClient.AgentTerminationListener
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN
@@ -82,6 +83,7 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
+import java.awt.event.InputEvent
 import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
@@ -91,8 +93,8 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CHAR_UNDEFINED
 import java.awt.event.KeyEvent.KEY_PRESSED
+import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_BACK_SPACE
-import java.awt.event.KeyEvent.VK_CONTROL
 import java.awt.event.KeyEvent.VK_DELETE
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_ENTER
@@ -183,6 +185,8 @@ internal class DeviceView(
     }
   /** Last coordinates of the mouse pointer while the first button is pressed, null when the first button is released. */
   private var lastTouchCoordinates: Point? = null
+  /** Whether the last observed mouse event was in display. */
+  private var wasInsideDisplay = false
 
   init {
     Disposer.register(disposableParent, this)
@@ -395,6 +399,10 @@ internal class DeviceView(
     }
   }
 
+  override fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {
+    updateMultiTouchMode(event.inputEvent)
+  }
+
   private fun startClipboardSynchronization() {
     val synchronizer = clipboardSynchronizer
     if (synchronizer == null) {
@@ -522,6 +530,9 @@ internal class DeviceView(
       if (!isConnected) {
         return
       }
+      if (isInputForwardingEnabled()) {
+        return
+      }
       if (event.isAltDown || event.isControlDown || event.isMetaDown) {
         return
       }
@@ -543,21 +554,27 @@ internal class DeviceView(
     }
 
     private fun keyPressedOrReleased(event: KeyEvent) {
-      val keyCode = event.keyCode
-      val modifiers = event.modifiersEx
-
-      if (keyCode == VK_CONTROL) {
-        if (modifiers == CTRL_DOWN_MASK) {
-          multiTouchMode = true
-        }
-        else if ((modifiers and CTRL_DOWN_MASK) == 0) {
-          multiTouchMode = false
-        }
-      }
+      updateMultiTouchMode(event)
 
       if (!isConnected) {
         return
       }
+
+      if (isInputForwardingEnabled()) {
+        val action = when (event.id) {
+          KEY_PRESSED -> ACTION_DOWN
+          KEY_RELEASED -> ACTION_UP
+          else -> return
+        }
+        val metaState = modifiersToMetaState(event.modifiersEx)
+        val akeycode = VK_TO_AKEYCODE[event.keyCode] ?: return
+        deviceController?.sendControlMessage(KeyEventMessage(action, akeycode, metaState))
+        event.consume()
+        return
+      }
+
+      val keyCode = event.keyCode
+      val modifiers = event.modifiersEx
       val androidKeyStroke = hostKeyStrokeToAndroidKeyStroke(keyCode, modifiers)
       if (androidKeyStroke == null) {
         if (modifiers == 0) {
@@ -680,7 +697,7 @@ internal class DeviceView(
         sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE)
       }
       lastTouchCoordinates = null
-      multiTouchMode = false
+      updateMultiTouchMode(event)
     }
 
     override fun mouseDragged(event: MouseEvent) {
@@ -721,13 +738,16 @@ internal class DeviceView(
       if (scrollType != MouseWheelEvent.WHEEL_UNIT_SCROLL) return 1.0f
       return (preciseWheelRotation * scrollAmount).absoluteValue.toFloat() * ANDROID_SCROLL_ADJUSTMENT_FACTOR
     }
+  }
 
-    private fun updateMultiTouchMode(event: MouseEvent) {
-      val oldMultiTouchMode = multiTouchMode
-      multiTouchMode = isInsideDisplay(event) && (event.modifiersEx and CTRL_DOWN_MASK) != 0
-      if (multiTouchMode && oldMultiTouchMode) {
-        repaint() // If multi-touch mode changed above, the repaint method was already called.
-      }
+  private fun updateMultiTouchMode(event: InputEvent) {
+    val oldMultiTouchMode = multiTouchMode
+    if (event is MouseEvent) {
+      wasInsideDisplay = isInsideDisplay(event)
+    }
+    multiTouchMode = wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !isInputForwardingEnabled()
+    if (multiTouchMode && oldMultiTouchMode) {
+      repaint() // If multi-touch mode changed above, the repaint method was already called.
     }
   }
 

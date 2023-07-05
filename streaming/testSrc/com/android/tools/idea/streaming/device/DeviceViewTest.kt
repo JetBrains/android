@@ -30,6 +30,7 @@ import com.android.tools.adtui.swing.replaceKeyboardFocusManager
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.idea.concurrency.AndroidExecutors
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
@@ -40,10 +41,13 @@ import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
 import com.android.tools.idea.testing.executeCapturingLoggedErrors
+import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION
 import com.intellij.ide.ClipboardSynchronizer
+import com.intellij.ide.DataManager
+import com.intellij.ide.impl.HeadlessDataManager
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN_WITH_SELECTION
@@ -74,6 +78,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestDataProvider
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ConcurrencyUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
@@ -94,6 +99,7 @@ import java.awt.PointerInfo
 import java.awt.Rectangle
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_PRESSED
 import java.awt.event.KeyEvent.VK_BACK_SPACE
@@ -151,6 +157,8 @@ internal class DeviceViewTest {
   @Before
   fun setUp() {
     device = agentRule.connectDevice("Pixel 5", 30, Dimension(1080, 2340))
+    StudioFlags.STREAMING_INPUT_FORWARDING_BUTTON.override(true, testRootDisposable)
+    (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
   }
 
   @Test
@@ -666,6 +674,84 @@ internal class DeviceViewTest {
     val altMReleasedEvent = KeyEvent(view, KeyEvent.KEY_RELEASED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
     KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMReleasedEvent)
     assertThat(altMReleasedEvent.isConsumed).isFalse()
+  }
+
+  @Test
+  fun testKeyPreprocessingSkippedWhenInputForwardingEnabled() {
+    createDeviceView(250, 500)
+
+    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+
+    assertThat(view.skipKeyEventDispatcher(
+      KeyEvent(view, KEY_PRESSED, System.nanoTime(), 0, KeyEvent.VK_M, KeyEvent.VK_M.toChar()))).isTrue()
+  }
+
+  @Test
+  fun testCtrlAndAlphabeticalKeysSentWhenInputForwardingEnabled() {
+    createDeviceView(250, 500)
+
+    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+    fakeUi.keyboard.setFocus(view)
+
+    fakeUi.keyboard.press(VK_CONTROL)
+    assertThat(agent.getNextControlMessage(2, SECONDS)).
+        isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
+
+    fakeUi.keyboard.press(KeyEvent.VK_S)
+    assertThat(agent.getNextControlMessage(2, SECONDS)).
+        isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_S, AMETA_CTRL_ON))
+
+    fakeUi.keyboard.release(KeyEvent.VK_S)
+    assertThat(agent.getNextControlMessage(2, SECONDS)).
+        isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_S, AMETA_CTRL_ON))
+
+    fakeUi.keyboard.release(VK_CONTROL)
+    assertThat(agent.getNextControlMessage(2, SECONDS)).
+        isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
+  }
+
+  @Test
+  fun testDisableMultiTouchDuringInputForwarding() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    createDeviceView(50, 100)
+    waitForFrame()
+    assertThat(view.displayRectangle).isEqualTo(Rectangle(4, 0, 92, 200))
+
+    val mousePosition = Point(30, 30)
+    val pointerInfo = mock<PointerInfo>()
+    whenever(pointerInfo.location).thenReturn(mousePosition)
+    val mouseInfoMock = mockStatic<MouseInfo>(testRootDisposable)
+    mouseInfoMock.whenever<Any?> { MouseInfo.getPointerInfo() }.thenReturn(pointerInfo)
+
+    // Start multi-touch
+    fakeUi.keyboard.setFocus(view)
+    fakeUi.mouse.moveTo(mousePosition)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+      MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_HOVER_MOVE, 0))
+    fakeUi.keyboard.press(VK_CONTROL)
+    fakeUi.layoutAndDispatchEvents()
+    assertAppearance("MultiTouch1")
+
+    // Enable input forwarding
+    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+
+    // Check if multitouch indicator is hidden
+    fakeUi.layoutAndDispatchEvents()
+    assertAppearance("MultiTouch4")
+
+    // Pressing mouse should generate mouse events instead of touch
+    fakeUi.mouse.press(mousePosition)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+      MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_DOWN, 0))
+
+    // Disable input forwarding
+    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project, modifiers = InputEvent.CTRL_DOWN_MASK)
+
+    // Check if multitouch indicator is shown again
+    fakeUi.layoutAndDispatchEvents()
+    assertAppearance("MultiTouch2")
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
