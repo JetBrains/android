@@ -44,6 +44,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import java.io.File;
@@ -150,12 +151,14 @@ public class ModelBuilder {
       // deactivated.
       model.activate(ModelBuilder.class);
     }
-    WriteAction.run(() -> {
+    EdtTestUtil.runInEdtAndWait(() -> WriteAction.run(() -> {
       // TODO(b/194482298): Refactor below functions, to create DesignSurface<?> first then add the NlModel.
       DesignSurface<? extends SceneManager> surface = DesignSurfaceTestUtil.createMockSurfaceWithModel(project, project, myManagerFactory,
-                                                                                                       mySurfaceClass, myInteractionHandlerCreator, model);
+                                                                                                       mySurfaceClass,
+                                                                                                       myInteractionHandlerCreator,
+                                                                                                       model);
       model.setDesignSurface(surface);
-    });
+    }));
     if (activate) model.flushPendingUpdates();
     return model;
   }
@@ -172,7 +175,7 @@ public class ModelBuilder {
   public SyncNlModel buildWithoutSurface() {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();
-    return WriteAction.compute(() -> {
+    return EdtTestUtil.runInEdtAndGet(() -> WriteAction.compute(() -> {
       String xml = toXml();
       try {
         assertNotNull(xml, XmlUtils.parseDocument(xml, true));
@@ -205,7 +208,7 @@ public class ModelBuilder {
         model.getConfiguration().setDevice(myDevice, true);
       }
       return model;
-    });
+    }));
   }
 
   @Nullable
