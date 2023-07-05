@@ -511,7 +511,7 @@ class MavenClassRegistryTest {
               artifact = "androidx.activity:activity",
               importedItemFqName = "androidx.activity.ComponentActivity",
               importedItemPackageName = "androidx.activity",
-              version = "1.7.1"
+              version = "1.7.2"
             )
           )
         )
@@ -522,7 +522,7 @@ class MavenClassRegistryTest {
               artifact = "androidx.activity:activity",
               importedItemFqName = "androidx.activity.OnBackPressedDispatcher",
               importedItemPackageName = "androidx.activity",
-              version = "1.7.1"
+              version = "1.7.2"
             )
           )
         )
