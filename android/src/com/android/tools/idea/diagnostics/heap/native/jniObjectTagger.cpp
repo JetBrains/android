@@ -20,10 +20,6 @@ struct ObjectMapNode {
     jboolean is_retained_by_platform : 1;
 };
 
-struct ObjectMapExtendedNode {
-    jint owning_roots_hashcode;
-};
-
 jvmtiEnv *jvmti;
 
 jmethodID stack_node_constructor;
@@ -31,7 +27,6 @@ jmethodID heap_snapshot_traverse_node_constructor;
 std::stack<StackNode*> depth_first_search_stack;
 
 std::unordered_map<int, ObjectMapNode*> object_id_to_traverse_node_map;
-std::unordered_map<int, ObjectMapExtendedNode*> object_id_to_traverse_node_extended_map;
 
 JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getObjectTag
   (JNIEnv *env, jclass klass, jobject obj) {
@@ -212,27 +207,15 @@ std::unordered_map<int, ObjectMapNode*>::iterator objectIdToTraverseNodeMapErase
     return object_id_to_traverse_node_map.erase(it);
 }
 
-std::unordered_map<int, ObjectMapExtendedNode*>::iterator objectIdToTraverseNodeExtendedMapEraseIterator
-    (JNIEnv *env, std::unordered_map<int, ObjectMapExtendedNode*>::iterator it) {
-    if (it == object_id_to_traverse_node_extended_map.end()) {
-      return it;
-    }
-    delete it->second;
-    return object_id_to_traverse_node_extended_map.erase(it);
-}
-
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_cacheHeapSnapshotTraverseNodeConstructorId
     (JNIEnv *env, jclass klass, jclass heap_traverse_node_class) {
-    heap_snapshot_traverse_node_constructor = env->GetMethodID(heap_traverse_node_class, "<init>", "(Ljava/lang/Object;BJJIZZI)V");
+    heap_snapshot_traverse_node_constructor = env->GetMethodID(heap_traverse_node_class, "<init>", "(Ljava/lang/Object;BJJIZZ)V");
 }
 
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_clearObjectIdToTraverseNodeMap
     (JNIEnv *env, jclass klass) {
     for (auto it = object_id_to_traverse_node_map.begin(); it != object_id_to_traverse_node_map.end(); ) {
         it = objectIdToTraverseNodeMapEraseIterator(env, it);
-    }
-    for (auto it = object_id_to_traverse_node_extended_map.begin(); it != object_id_to_traverse_node_extended_map.end(); ) {
-        it = objectIdToTraverseNodeExtendedMapEraseIterator(env, it);
     }
 }
 
@@ -244,22 +227,6 @@ JNIEXPORT jint JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverse
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_removeElementFromObjectIdToTraverseNodeMap
     (JNIEnv *env, jclass klass, jint id) {
     objectIdToTraverseNodeMapEraseIterator(env, object_id_to_traverse_node_map.find(id));
-    objectIdToTraverseNodeExtendedMapEraseIterator(env, object_id_to_traverse_node_extended_map.find(id));
-}
-
-JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_putOrUpdateObjectIdToExtendedTraverseNodeMap
-    (JNIEnv *env, jclass klass, jint id, jint owning_roots_hashcode) {
-    ObjectMapExtendedNode* extended_node;
-
-    auto it = object_id_to_traverse_node_extended_map.find(id);
-    if (it != object_id_to_traverse_node_extended_map.end()) {
-      extended_node = it->second;
-    }
-    else {
-      extended_node = new ObjectMapExtendedNode();
-      object_id_to_traverse_node_extended_map.insert({id, extended_node});
-    }
-    extended_node->owning_roots_hashcode = owning_roots_hashcode;
 }
 
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_putOrUpdateObjectIdToTraverseNodeMap
@@ -290,21 +257,13 @@ JNIEXPORT jobject JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTrave
       return NULL;
     }
     ObjectMapNode* node = element_iterator->second;
-    jint owning_roots_hashcode = 0;
-    if (!object_id_to_traverse_node_extended_map.empty()) {
-      auto it = object_id_to_traverse_node_extended_map.find(id);
-      if (it != object_id_to_traverse_node_extended_map.end()) {
-        owning_roots_hashcode = it->second->owning_roots_hashcode;
-      }
-    }
     return env->NewObject(heap_traverse_node_class, heap_snapshot_traverse_node_constructor, node->obj_ref,
                                                                                       node->ref_weight,
                                                                                       node->owned_by_component_mask,
                                                                                       node->retained_mask,
                                                                                       node->retained_mask_for_categories,
                                                                                       node->is_merge_point,
-                                                                                      node->is_retained_by_platform,
-                                                                                      owning_roots_hashcode);
+                                                                                      node->is_retained_by_platform);
 }
 
 JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM *vm, char *options, void *reserved) {

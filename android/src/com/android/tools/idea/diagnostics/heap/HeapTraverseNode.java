@@ -31,7 +31,6 @@ class HeapTraverseNode {
   public int retainedMaskForCategories;
   public boolean isMergePoint;
   public boolean isRetainedByPlatform;
-  public int owningRootsSetHashcode;
 
   HeapTraverseNode(@Nullable final Object obj,
                    @NotNull RefWeight ownershipWeight,
@@ -39,8 +38,7 @@ class HeapTraverseNode {
                    long retainedMask,
                    int retainedMaskForCategories,
                    boolean isMergePoint,
-                   boolean isRetainedByPlatform,
-                   int owningRootsSetHashcode) {
+                   boolean isRetainedByPlatform) {
     weakReference = new WeakReference<>(obj);
     this.ownershipWeight = ownershipWeight;
     this.ownedByComponentMask = ownedByComponentMask;
@@ -48,7 +46,6 @@ class HeapTraverseNode {
     this.retainedMaskForCategories = retainedMaskForCategories;
     this.isMergePoint = isMergePoint;
     this.isRetainedByPlatform = isRetainedByPlatform;
-    this.owningRootsSetHashcode = owningRootsSetHashcode;
   }
 
   HeapTraverseNode(@Nullable final Object obj,
@@ -57,10 +54,9 @@ class HeapTraverseNode {
                    long retainedMask,
                    int retainedMaskForCategories,
                    boolean isMergePoint,
-                   boolean isRetainedByPlatform,
-                   int owningRootsSetHashcode) {
+                   boolean isRetainedByPlatform) {
     this(obj, refWeightFromByte(ownershipWeight), ownedByComponentMask, retainedMask, retainedMaskForCategories, isMergePoint,
-         isRetainedByPlatform, owningRootsSetHashcode);
+         isRetainedByPlatform);
   }
 
   @Nullable
@@ -85,7 +81,7 @@ class HeapTraverseNode {
     DISPOSER_TREE_REFERENCE((byte)6);
 
     private final byte value;
-    private RefWeight(byte value) {
+    RefWeight(byte value) {
       this.value = value;
     }
 
@@ -130,8 +126,6 @@ class HeapTraverseNode {
                                                           int retainedMaskForCategories,
                                                           boolean isMergePoint,
                                                           boolean isRetainedByPlatform);
-  static native void putOrUpdateObjectIdToExtendedTraverseNodeMap(int id,
-                                                                  int owningRootsSetHashcode);
 
   /**
    * @return the size of the native id to {@link HeapTraverseNode} map.
