@@ -42,7 +42,6 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.keymap.KeymapUtil
-import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
@@ -51,7 +50,6 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
-import org.jetbrains.android.util.AndroidBundle
 import java.awt.Dimension
 import java.awt.Insets
 import java.awt.Point
@@ -60,19 +58,6 @@ import javax.swing.JComponent
 const val MANUAL_LIVE_EDIT_ACTION_ID = "Compose.Live.Edit.ManualLiveEdit"
 const val REFRESH_ACTION_ID = "Compose.Live.Edit.Refresh"
 const val SHOW_LOGCAT_ACTION_ID = "Compose.Live.Edit.ShowLogcat"
-
-/**
- * [AnAction] that opens the Live Edit settings page for the user to enable/disable live edit.
- */
-class ConfigureLiveEditStatusAction : AnAction(AndroidBundle.message("live.edit.configurable.action.name")) {
-  override fun actionPerformed(e: AnActionEvent) {
-    ShowSettingsUtil.getInstance().showSettingsDialog(e.project, LiveEditConfigurable::class.java)
-  }
-
-  override fun getActionUpdateThread(): ActionUpdateThread {
-    return ActionUpdateThread.BGT
-  }
-}
 
 /**
  * [AnAction] that triggers a compilation of the current module. The build will automatically
