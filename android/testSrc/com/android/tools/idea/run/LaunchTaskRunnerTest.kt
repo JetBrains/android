@@ -50,6 +50,8 @@ import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.blockingContext
+import com.intellij.testFramework.common.timeoutRunBlocking
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.content.Content
@@ -83,7 +85,11 @@ class LaunchTaskRunnerTest {
   @Before
   fun setUp() {
     val androidFacet = projectRule.project.gradleModule(":app")!!.androidFacet
-    AndroidRunConfigurations.instance.createRunConfiguration(androidFacet!!)
+    timeoutRunBlocking {
+      blockingContext {
+        AndroidRunConfigurations.instance.createRunConfiguration(androidFacet!!)
+      }
+    }
   }
 
   @After
