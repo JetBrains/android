@@ -39,6 +39,11 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.GridBagLayout
@@ -49,11 +54,6 @@ import javax.swing.JPanel
 import javax.swing.KeyStroke
 import javax.swing.LayoutFocusTraversalPolicy
 import javax.swing.SwingConstants
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.VisibleForTesting
 
 private const val ZOOM_IN = "Zoom in"
 private const val ZOOM_OUT = "Zoom out"
@@ -83,7 +83,7 @@ class NetworkInspectorTab(
     Disposer.register(parentDisposable, this)
     val parentPanel = JPanel(BorderLayout())
     parentPanel.background = DEFAULT_BACKGROUND
-    val splitter = ThreeComponentsSplitter(parentDisposable)
+    val splitter = ThreeComponentsSplitter()
     splitter.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     splitter.dividerWidth = 0
     splitter.setDividerMouseZoneSize(-1)

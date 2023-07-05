@@ -99,7 +99,7 @@ public class WorkBenchTest extends WorkBenchTestCase {
     registerProjectService(FileEditorManager.class, myFileEditorManager);
     myContent = new JPanel();
     myContent.setPreferredSize(new Dimension(500, 400));
-    mySplitter = new ThreeComponentsSplitter(getTestRootDisposable());
+    mySplitter = new ThreeComponentsSplitter();
     myPropertiesComponent = PropertiesComponent.getInstance();
     myModel = new SideModel<>(getProject());
     myLeftMinimizePanel = spy(new MinimizedPanel<>(Side.RIGHT, myModel));

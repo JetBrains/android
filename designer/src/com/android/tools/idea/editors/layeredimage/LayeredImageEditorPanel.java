@@ -53,7 +53,7 @@ class LayeredImageEditorPanel extends JPanel implements DesignerEditorPanelFacad
     contentPanel.add(toolbar);
     contentPanel.add(editorComponent);
 
-    myContentSplitter = new ThreeComponentsSplitter(this);
+    myContentSplitter = new ThreeComponentsSplitter();
     myContentSplitter.setDividerWidth(0);
     myContentSplitter.setDividerMouseZoneSize(Registry.intValue("ide.splitter.mouseZone"));
     myContentSplitter.setInnerComponent(contentPanel);

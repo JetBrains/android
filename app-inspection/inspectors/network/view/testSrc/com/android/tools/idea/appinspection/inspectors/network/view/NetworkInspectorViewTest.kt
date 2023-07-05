@@ -36,12 +36,6 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.util.concurrent.TimeUnit
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.LayoutFocusTraversalPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -50,6 +44,12 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.LayoutFocusTraversalPolicy
 
 private fun createSpeedEvent(
   time: Long,
@@ -115,7 +115,7 @@ class NetworkInspectorViewTest {
 
     val parentPanel = JPanel(BorderLayout())
     parentPanel.background = DEFAULT_BACKGROUND
-    val splitter = ThreeComponentsSplitter(disposableRule.disposable)
+    val splitter = ThreeComponentsSplitter()
     splitter.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     splitter.dividerWidth = 0
     splitter.setDividerMouseZoneSize(-1)
