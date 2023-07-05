@@ -19,7 +19,10 @@ import static com.android.tools.idea.ui.GuiTestingService.isInTestingMode;
 import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 
+import com.android.annotations.concurrency.Slow;
+import com.android.ide.common.repository.AgpVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.util.StudioPathManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -50,6 +53,16 @@ public class EmbeddedDistributionPaths {
       return ImmutableList.of();
     }
     return doFindAndroidStudioLocalMavenRepoPaths();
+  }
+
+  @Slow
+  public List<File> getNewProjectLocalMavenRepos(AgpVersion agpVersion) {
+    // Only include the local repositories if the supplied version is not available in gmaven
+    // but is available in the local development repos
+    if (AgpVersions.INSTANCE.onlyAvailableInDevelopmentOfflineRepo(agpVersion)) {
+      return doFindAndroidStudioLocalMavenRepoPaths();
+    }
+    return ImmutableList.of();
   }
 
   @VisibleForTesting

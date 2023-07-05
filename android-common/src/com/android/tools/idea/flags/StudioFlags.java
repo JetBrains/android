@@ -665,9 +665,23 @@ public final class StudioFlags {
     "For internal use only. Enables injection of device serial from the IDE into Gradle build.",
     false
   );
+
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
-    "Makes Gradle use development offline repositories such as /out/repo", StudioPathManager.isRunningFromSources());
+    "Uses the development offline repositories " +
+    "(which can come from STUDIO_CUSTOM_REPO or from a local build of AGP when running studio from IDEA) " +
+    "in the new project templates and for determining which versions of AGP are avaliable for the upgrade assistant.",
+    StudioPathManager.isRunningFromSources());
+
+  public static final Flag<Boolean> INJECT_EXTRA_GRADLE_REPOSITORIES_WITH_INIT_SCRIPT = Flag.create(
+    GRADLE_IDE, "inject.repos.with.init.script",
+    "Inject repositories using a Gradle init script",
+    "Also inject any development offline repos (if gradle.ide.development.offline.repos is set) " +
+    "and the customised GMAVEN_TEST_BASE_URL if set using a Gradle init script at every build and sync invocation. " +
+    "Note this this is disabled by default as it can break projects that would otherwise sync and build correctly with " +
+    "published versions of AGP, including the relatively common case of projects that depend on AGP in buildSrc.",
+    false);
+
   public static final Flag<Boolean> BUILD_ANALYZER_JETIFIER_ENABLED = Flag.create(
     GRADLE_IDE, "build.analyzer.jetifier.warning", "Enable Jetifier usage analyzis",
     "Enable Jetifier usage analyzis is Build Analyzer.", true);

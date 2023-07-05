@@ -43,6 +43,7 @@ import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.AgpVersion;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacetConfiguration;
@@ -344,6 +345,9 @@ public final class GradleUtil {
   }
 
   public static void attemptToUseEmbeddedGradle(@NotNull Project project) {
+    if (!StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get()) {
+      return;
+    }
     if (IdeInfo.getInstance().isAndroidStudio()) {
       GradleWrapper gradleWrapper = GradleWrapper.find(project);
       if (gradleWrapper != null) {

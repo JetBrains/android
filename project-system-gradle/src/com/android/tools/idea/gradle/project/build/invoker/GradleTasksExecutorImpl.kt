@@ -255,7 +255,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           commandLineArguments.addAll(myRequest.commandLineArguments)
 
           // Inject embedded repository if it's enabled by user.
-          if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !GuiTestingService.isInTestingMode()) {
+          if (!GuiTestingService.isInTestingMode()) {
             GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments)
             GradleUtil.attemptToUseEmbeddedGradle(project)
           }

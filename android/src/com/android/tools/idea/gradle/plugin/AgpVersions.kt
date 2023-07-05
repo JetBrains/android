@@ -92,12 +92,19 @@ object AgpVersions {
 
   @Slow
   fun getAvailableVersions(): Set<AgpVersion> {
-    val gmavenVersions = IdeGoogleMavenRepository.getAgpVersions()
-    val repoPaths = EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths()
-      .takeIf { it.isNotEmpty() } ?: return gmavenVersions
-    val localRepoVersions = repoPaths.asSequence()
+    return IdeGoogleMavenRepository.getAgpVersions().union(getDevelopmentLocalRepoVersions())
+  }
+
+  @Slow
+  private fun getDevelopmentLocalRepoVersions(): List<AgpVersion> {
+    return EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths().asSequence()
       .flatMap { MavenRepositories.getAllVersions(it.toPath(), AGP_APP_PLUGIN_MARKER.module) }
       .mapNotNullTo(mutableListOf()) { AgpVersion.tryParse(it.toString()) }
-    return gmavenVersions.union(localRepoVersions)
   }
+
+  @Slow
+  fun onlyAvailableInDevelopmentOfflineRepo(version: AgpVersion): Boolean {
+    return getDevelopmentLocalRepoVersions().contains(version) && !IdeGoogleMavenRepository.getAgpVersions().contains(version)
+  }
+
 }

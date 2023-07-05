@@ -117,9 +117,7 @@ public class CommandLineArgs {
     if (isTestingMode) {
       // We store the command line args, the GUI test will later on verify that the correct values were passed to the sync process.
       application.putUserData(GRADLE_SYNC_COMMAND_LINE_OPTIONS_KEY, toStringArray(args));
-    }
-
-    if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() && !isTestingMode) {
+    } else {
       myInitScripts.addLocalMavenRepoInitScriptCommandLineArg(args);
     }
 

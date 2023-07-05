@@ -21,6 +21,7 @@ import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
+import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -49,7 +50,7 @@ fun RecipeExecutor.androidProjectRecipe(
   }
 
   val settingsFile = topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
-  save(androidProjectGradleSettings(appTitle, useGradleKts), settingsFile)
+  save(androidProjectGradleSettings(appTitle, data.agpVersion, useGradleKts), settingsFile)
   save(
     androidProjectGradleProperties(addAndroidXSupport, language == Language.Kotlin, data.overridePathCheck),
     topOut.resolve(FN_GRADLE_PROPERTIES))
