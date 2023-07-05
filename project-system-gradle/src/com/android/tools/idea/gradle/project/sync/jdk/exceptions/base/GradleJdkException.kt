@@ -48,7 +48,7 @@ abstract class GradleJdkException(
       .firstOrNull { (_, jdkPath) -> ExternalSystemJdkUtil.isValidJdk(jdkPath)}
       ?.let { (jdkName, jdkPath) ->
         JdkUtils.setProjectGradleJdk(project, gradleRootPath, jdkPath)
-        val jdkVersion = JavaSdk.getInstance().getVersionString(jdkPath)
+        val jdkVersion = JavaSdk.getInstance().getVersionString(jdkPath)  ?: "<unknown>"
         showRecoveredGradleJdkNotification(
           project = project,
           gradleRootPath = gradleRootPath,
