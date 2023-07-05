@@ -17,32 +17,19 @@ package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.project.AndroidRunConfigurations
-import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import org.jetbrains.annotations.SystemIndependent
-
 
 class SetUpRunConfigurationsSyncListener : GradleSyncListenerWithRoot {
   override fun syncSucceeded(project: Project, rootProjectPath: @SystemIndependent String) {
     if (ExternalSystemUtil.isNoBackgroundMode()) {
-      setUpRunConfigurations(project)
-    } else {
-      ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Setting up run configurations...") {
-        override fun run(indicator: ProgressIndicator) {
-          setUpRunConfigurations(project)
-        }
-      })
+      // We rely on the fact that we run in tests or headless mode, and there is no need for ProgressIndicator.
+      project.service<AndroidRunConfigurations>().setupRunConfigurationsBlocking()
+    }
+    else {
+      project.service<AndroidRunConfigurations>().setupRunConfigurations()
     }
   }
 }
-
-private fun setUpRunConfigurations(project: Project) {
-  project.getAndroidFacets().filter { it.configuration.isAppProject }.forEach {
-    AndroidRunConfigurations.instance.createRunConfiguration(it)
-  }
-}
-

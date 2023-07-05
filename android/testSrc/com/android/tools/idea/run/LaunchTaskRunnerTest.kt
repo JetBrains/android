@@ -33,8 +33,6 @@ import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.flags.override
-import com.android.tools.idea.testing.gradleModule
-import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.ExecutionException
@@ -49,8 +47,6 @@ import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.openapi.progress.blockingContext
-import com.intellij.testFramework.common.timeoutRunBlocking
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.content.Content
@@ -83,12 +79,7 @@ class LaunchTaskRunnerTest {
 
   @Before
   fun setUp() {
-    val androidFacet = projectRule.project.gradleModule(":app")!!.androidFacet
-    timeoutRunBlocking {
-      blockingContext {
-        AndroidRunConfigurations.instance.createRunConfiguration(androidFacet!!)
-      }
-    }
+    AndroidRunConfigurations.getInstance(projectRule.project).setupRunConfigurationsBlocking()
   }
 
   @After

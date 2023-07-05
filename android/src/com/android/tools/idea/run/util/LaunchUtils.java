@@ -34,6 +34,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -71,15 +72,29 @@ public class LaunchUtils {
     }
 
     try {
-      MergedManifestSnapshot info = MergedManifestManager.getMergedManifest(facet.getModule()).get();
-      Element usesFeatureElem = info.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
-      if (usesFeatureElem != null) {
-        String required = usesFeatureElem.getAttributeNS(ANDROID_URI, ATTRIBUTE_REQUIRED);
-        return isEmpty(required) || VALUE_TRUE.equals(required);
+      MergedManifestSnapshot info;
+      if (ExternalSystemUtil.isNoBackgroundMode()) {
+        info = MergedManifestManager.getFreshSnapshotInCallingThread(facet.getModule());
       }
+      else {
+        info = MergedManifestManager.getMergedManifest(facet.getModule()).get();
+      }
+
+      return isWatchFeatureRequired(info);
     }
     catch (ExecutionException | InterruptedException ex) {
       Logger.getInstance(LaunchUtils.class).warn(ex);
+    }
+    return false;
+  }
+
+  @Slow
+  @WorkerThread
+  public static boolean isWatchFeatureRequired(@NotNull MergedManifestSnapshot info) {
+    Element usesFeatureElem = info.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
+    if (usesFeatureElem != null) {
+      String required = usesFeatureElem.getAttributeNS(ANDROID_URI, ATTRIBUTE_REQUIRED);
+      return isEmpty(required) || VALUE_TRUE.equals(required);
     }
     return false;
   }
