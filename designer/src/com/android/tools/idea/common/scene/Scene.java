@@ -400,7 +400,7 @@ public class Scene implements SelectionListener, Disposable {
    * @return true if we need to repaint the screen
    */
   public void buildDisplayList(@NotNull DisplayList displayList, long time, SceneView sceneView) {
-    buildDisplayList(displayList, time, SceneContext.get(sceneView));
+    buildDisplayList(displayList, time, sceneView.getContext());
   }
 
   /**

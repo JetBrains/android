@@ -64,7 +64,7 @@ public class SceneLayer extends Layer {
    */
   @Override
   public void paint(@NotNull Graphics2D g2) {
-    SceneContext sceneContext = SceneContext.get(mySceneView);
+    SceneContext sceneContext = mySceneView.getContext();
     if (!myTemporaryShow && !myShowOnHover && !myShowAlways && !myAlwaysShowSelection) {
       return;
     }

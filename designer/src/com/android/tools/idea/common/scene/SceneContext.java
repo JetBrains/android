@@ -171,17 +171,6 @@ public abstract class SceneContext {
     return lazySingleton;
   }
 
-  /**
-   * Get a {@link SceneContext} for the given {@link SceneView}.
-   *
-   * @deprecated Use {@link SceneView#getContext()} instead.
-   */
-  @Deprecated
-  @NotNull
-  public static SceneContext get(@NotNull SceneView sceneView) {
-    return sceneView.getContext();
-  }
-
   @Nullable
   public DesignSurface<?> getSurface() {
     return null;

@@ -314,7 +314,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
-    textView.layout(SceneContext.get(screenView), 0);
+    textView.layout(screenView.getContext(), 0);
 
     int mouseX = Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth());
     int mouseY = Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight());
@@ -394,7 +394,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
-    textView.layout(SceneContext.get(screenView), 0);
+    textView.layout(screenView.getContext(), 0);
 
     int mouseX = Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth());
     int mouseY = Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight());

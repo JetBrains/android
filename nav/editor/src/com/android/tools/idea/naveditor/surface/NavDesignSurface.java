@@ -202,7 +202,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
         if (scene != null) {
           SceneComponent sceneComponent = scene.getSceneComponent(selection);
           if (sceneComponent != null) {
-            Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, SceneContext.get(getFocusedSceneView()));
+            Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, getFocusedSceneView().getContext());
             if (p2d != null) {
               return new Point((int)p2d.x, (int)p2d.y);
             }

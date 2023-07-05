@@ -94,7 +94,7 @@ class ActionHitProviderTest : NavTestCase() {
     scene.sceneManager.layout(false)
 
     val navView = NavView(model.surface as NavDesignSurface, scene.sceneManager)
-    val context = SceneContext.get(navView)
+    val context = navView.context
     scene.layout(0, context)
 
     val verifier = { color: Color ->

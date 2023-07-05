@@ -223,7 +223,7 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     val view = NavView(surface, surface.sceneManager!!)
 
-    surface.scene!!.layout(0, SceneContext.get(view))
+    surface.scene!!.layout(0, view.context)
     val fragment = surface.scene!!.getSceneComponent("fragment1")!!
     val x = Coordinates.getSwingX(view, fragment.drawX) + 5
     val y = Coordinates.getSwingY(view, fragment.drawY) + 5

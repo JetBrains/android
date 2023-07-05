@@ -324,7 +324,7 @@ public class DragDropInteraction extends Interaction {
 
     Project project = mySceneView.getSceneManager().getModel().getProject();
     ViewGroupHandler handler = findViewGroupHandlerAt(x, y);
-    SceneContext sceneContext = SceneContext.get(mySceneView);
+    SceneContext sceneContext = mySceneView.getContext();
     SceneComponent viewgroup =
       mySceneView.getScene().findComponent(sceneContext,
                                            Coordinates.getAndroidXDip(mySceneView, x),
@@ -453,7 +453,7 @@ public class DragDropInteraction extends Interaction {
       return null;
     }
     SceneComponent component =
-      sceneView.getScene().findComponent(SceneContext.get(sceneView),
+      sceneView.getScene().findComponent(sceneView.getContext(),
                                          Coordinates.getAndroidXDip(sceneView, x),
                                          Coordinates.getAndroidYDip(sceneView, y));
 

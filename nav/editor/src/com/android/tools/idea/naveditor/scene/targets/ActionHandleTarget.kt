@@ -116,7 +116,7 @@ class ActionHandleTarget(component: SceneComponent) : BaseTarget() {
     val scene = myComponent.scene
     myComponent.parent?.nlComponent?.removeClientProperty(DRAG_CREATE_IN_PROGRESS)
     component.isDragging = false
-    scene.findComponent(SceneContext.get(component.scene.sceneManager.sceneView), x, y)?.let { closestComponent ->
+    scene.findComponent(component.scene.sceneManager.sceneView.context, x, y)?.let { closestComponent ->
       if (closestComponent !== component.scene.root && !closestComponent.id.isNullOrEmpty()) {
         createAction(closestComponent)?.let { action ->
           NavUsageTracker.getInstance(action.model).createEvent(NavEditorEvent.NavEditorEventType.CREATE_ACTION)

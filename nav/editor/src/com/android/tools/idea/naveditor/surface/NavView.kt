@@ -35,7 +35,7 @@ class NavView(surface: NavDesignSurface, sceneManager: SceneManager) : SceneView
   override fun getContentSize(dimension: Dimension?): Dimension {
     val result = dimension ?: Dimension()
 
-    result.height = Coordinates.dpToPx(this, sceneManager.scene.root?.drawHeight ?: 0)
+    result.height = Coordinates.dpToPx(this, scene.root?.drawHeight ?: 0)
     result.width = Coordinates.dpToPx(this, sceneManager.scene.root?.drawWidth ?: 0)
     return result
   }

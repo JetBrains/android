@@ -360,7 +360,7 @@ public class Coordinates {
   public static NlComponent findComponent(@NotNull SceneView view,
                                           @SwingCoordinate int swingX,
                                           @SwingCoordinate int swingY) {
-    SceneContext sceneContext = SceneContext.get(view);
+    SceneContext sceneContext = view.getContext();
     @AndroidDpCoordinate int x = getAndroidXDip(view, swingX);
     @AndroidDpCoordinate int y = getAndroidYDip(view, swingY);
 

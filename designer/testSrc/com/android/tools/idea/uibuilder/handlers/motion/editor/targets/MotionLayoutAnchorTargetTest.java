@@ -205,7 +205,7 @@ public class MotionLayoutAnchorTargetTest extends SceneTest {
   private AnchorTarget createEdgeAnchorTarget(@NotNull SceneComponent component, AnchorTarget.Type type) {
     MotionLayoutAnchorTarget target = new MotionLayoutAnchorTarget(type, true);
     target.setComponent(component);
-    target.layout(SceneContext.get(mySceneManager.getSceneView()),
+    target.layout(mySceneManager.getSceneView().getContext(),
                   component.getDrawX(),
                   component.getDrawY(),
                   component.getDrawX() + component.getDrawWidth(),
@@ -218,7 +218,7 @@ public class MotionLayoutAnchorTargetTest extends SceneTest {
     ScenePicker.HitElementListener hitListener = Mockito.mock(ScenePicker.HitElementListener.class);
     picker.setSelectListener(hitListener);
 
-    anchorTarget.addHit(SceneContext.get(myScene.getSceneManager().getSceneView()), picker, 0);
+    anchorTarget.addHit(myScene.getSceneManager().getSceneView().getContext(), picker, 0);
 
     for (Point p : nonHitPoints) {
       picker.find(p.x, p.y);
@@ -244,11 +244,11 @@ public class MotionLayoutAnchorTargetTest extends SceneTest {
       .toArray(AnchorTarget[]::new)[0];
 
     // Try to hover on Anchor
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), (int) leftAnchor.getCenterX(), (int) leftAnchor.getCenterY(), 0);
+    myScene.mouseHover(mySceneManager.getSceneView().getContext(), (int) leftAnchor.getCenterX(), (int) leftAnchor.getCenterY(), 0);
     assertTrue(leftAnchor.isMouseHovered());
 
     // Move mouse out to SceneView. Should not have any hovered Target.
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), -2, -2, 0);
+    myScene.mouseHover(mySceneManager.getSceneView().getContext(), -2, -2, 0);
     myScene.getSceneComponents().stream()
       .flatMap(component -> component.getTargets().stream())
       .forEach(target -> assertFalse(target.isMouseHovered()));
@@ -265,9 +265,9 @@ public class MotionLayoutAnchorTargetTest extends SceneTest {
       .toArray(AnchorTarget[]::new)[0];
 
     // Try to hover on edge
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + 5, 0);
+    myScene.mouseHover(mySceneManager.getSceneView().getContext(), inner.getDrawX(), inner.getDrawY() + 5, 0);
     assertFalse(leftEdgeAnchor.isMouseHovered());
-    myScene.mouseHover(SceneContext.get(mySceneManager.getSceneView()), inner.getDrawX(), inner.getDrawY() + inner.getDrawHeight() - 5, 0);
+    myScene.mouseHover(mySceneManager.getSceneView().getContext(), inner.getDrawX(), inner.getDrawY() + inner.getDrawHeight() - 5, 0);
     assertFalse(leftEdgeAnchor.isMouseHovered());
   }
 
@@ -356,7 +356,7 @@ public class MotionLayoutAnchorTargetTest extends SceneTest {
   }
 
   private void renderAnchorTargetsToDisplayList(@NotNull SceneComponent component, @NotNull DisplayList displayList) {
-    SceneContext context = SceneContext.get(mySceneManager.getSceneView());
+    SceneContext context = mySceneManager.getSceneView().getContext();
     component.getTargets()
       .stream()
       .filter(it -> it instanceof AnchorTarget)
