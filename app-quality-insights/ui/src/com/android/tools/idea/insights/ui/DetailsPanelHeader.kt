@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
+import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.IssueState
@@ -33,13 +34,12 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
-import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JPanel
 import javax.swing.border.CompoundBorder
 import org.jetbrains.annotations.VisibleForTesting
 
-class DetailsPanelHeader(editor: Editor) : JPanel(BorderLayout()) {
+class DetailsPanelHeader(editor: Editor) : JPanel(TabularLayout("*,Fit", "Fit")) {
   @VisibleForTesting val titleLabel = SimpleColoredComponent()
 
   private val wrapAction =
@@ -57,7 +57,8 @@ class DetailsPanelHeader(editor: Editor) : JPanel(BorderLayout()) {
       .createActionToolbar("StackTraceToolbar", DefaultActionGroup(wrapAction), true)
 
   init {
-    add(titleLabel, BorderLayout.WEST)
+    border = JBUI.Borders.empty()
+    add(titleLabel, TabularLayout.Constraint(0, 0))
     toolbar.targetComponent = this
     toolbar.layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
     toolbar.setReservePlaceAutoPopupIcon(false)
@@ -66,7 +67,7 @@ class DetailsPanelHeader(editor: Editor) : JPanel(BorderLayout()) {
       isOpaque = false
       isVisible = false
     }
-    add(toolbar.component, BorderLayout.EAST)
+    add(toolbar.component, TabularLayout.Constraint(0, 1))
     border =
       CompoundBorder(JBUI.Borders.customLineBottom(JBColor.border()), JBUI.Borders.empty(0, 8))
     preferredSize = Dimension(0, JBUIScale.scale(28))
