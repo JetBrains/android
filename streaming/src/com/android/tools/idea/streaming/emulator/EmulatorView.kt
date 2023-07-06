@@ -701,6 +701,7 @@ class EmulatorView(
   }
 
   override fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {
+    super.inputForwardingStateChanged(event, enabled)
     updateCameraPromptAndMultiTouchFeedback(event.inputEvent)
   }
 
@@ -758,6 +759,25 @@ class EmulatorView(
     }
   }
 
+  override val inputForwarding: InputForwarding = object : InputForwarding() {
+    override fun sendToDevice(id: Int, keyCode: Int, modifierEx: Int) {
+      if (!isConnected) {
+        return
+      }
+      val keyName = VK_TO_DOM_KEY_NAME[keyCode] ?: return
+      val eventType = when (id) {
+        KeyEvent.KEY_PRESSED -> KeyEventType.keydown
+        KeyEvent.KEY_RELEASED -> KeyEventType.keyup
+        else -> return
+      }
+      val grpcEvent = KeyboardEvent.newBuilder()
+          .setKey(keyName)
+          .setEventType(eventType)
+          .build()
+      emulator.sendKey(grpcEvent)
+    }
+  }
+
   private inner class MyKeyListener  : KeyAdapter() {
 
     private var cachedKeyStrokeMap: Map<KeyStroke, EmulatorKeyStroke>? = null
@@ -805,7 +825,7 @@ class EmulatorView(
     override fun keyPressed(event: KeyEvent) {
       updateCameraPromptAndMultiTouchFeedback(event)
       if (isInputForwardingEnabled()) {
-        forwardInputEvent(event)
+        inputForwarding.forwardEvent(event)
         return
       }
 
@@ -831,7 +851,7 @@ class EmulatorView(
       updateCameraPromptAndMultiTouchFeedback(event)
 
       if (isInputForwardingEnabled()) {
-        forwardInputEvent(event)
+        inputForwarding.forwardEvent(event)
         return
       }
 
@@ -928,24 +948,6 @@ class EmulatorView(
       for (keyStroke in KeymapUtil.getKeyStrokes(KeymapUtil.getActiveKeymapShortcuts(actionId))) {
         put(keyStroke, androidKeystroke)
       }
-    }
-
-    private fun forwardInputEvent(event: KeyEvent) {
-      event.consume()
-      if (!isConnected) {
-        return
-      }
-      val keyName = VK_TO_DOM_KEY_NAME[event.keyCode] ?: return
-      val eventType = when (event.id) {
-        KeyEvent.KEY_PRESSED -> KeyEventType.keydown
-        KeyEvent.KEY_RELEASED -> KeyEventType.keyup
-        else -> return
-      }
-      val grpcEvent = KeyboardEvent.newBuilder()
-          .setKey(keyName)
-          .setEventType(eventType)
-          .build()
-      emulator.sendKey(grpcEvent)
     }
   }
 

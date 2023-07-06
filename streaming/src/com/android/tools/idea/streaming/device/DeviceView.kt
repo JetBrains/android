@@ -402,6 +402,7 @@ internal class DeviceView(
   }
 
   override fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {
+    super.inputForwardingStateChanged(event, enabled)
     updateMultiTouchMode(event.inputEvent)
   }
 
@@ -519,6 +520,20 @@ internal class DeviceView(
     }
   }
 
+  override val inputForwarding = object : InputForwarding() {
+    override fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {
+      if (!isConnected) return
+      val action = when (id) {
+        KEY_PRESSED -> ACTION_DOWN
+        KEY_RELEASED -> ACTION_UP
+        else -> return
+      }
+      val metaState = modifiersToMetaState(modifiersEx)
+      val akeycode = VK_TO_AKEYCODE[keyCode] ?: return
+      deviceController?.sendControlMessage(KeyEventMessage(action, akeycode, metaState))
+    }
+  }
+
   private inner class MyKeyListener  : KeyAdapter() {
 
     var cachedKeyStrokeMap: Map<KeyStroke, AndroidKeyStroke>? = null
@@ -575,15 +590,7 @@ internal class DeviceView(
       }
 
       if (isInputForwardingEnabled()) {
-        val action = when (event.id) {
-          KEY_PRESSED -> ACTION_DOWN
-          KEY_RELEASED -> ACTION_UP
-          else -> return
-        }
-        val metaState = modifiersToMetaState(event.modifiersEx)
-        val akeycode = VK_TO_AKEYCODE[event.keyCode] ?: return
-        deviceController?.sendControlMessage(KeyEventMessage(action, akeycode, metaState))
-        event.consume()
+        inputForwarding.forwardEvent(event)
         return
       }
 
@@ -628,16 +635,6 @@ internal class DeviceView(
         else -> AKEYCODE_UNKNOWN
       }
     }
-
-    private fun modifiersToMetaState(modifiers: Int): Int {
-      return modifierToMetaState(modifiers, SHIFT_DOWN_MASK,  AMETA_SHIFT_ON) or
-             modifierToMetaState(modifiers, CTRL_DOWN_MASK,  AMETA_CTRL_ON) or
-             modifierToMetaState(modifiers, META_DOWN_MASK,  AMETA_META_ON) or
-             modifierToMetaState(modifiers, ALT_DOWN_MASK,  AMETA_ALT_ON)
-    }
-
-    private fun modifierToMetaState(modifiers: Int, modifierMask: Int, metaState: Int) =
-        if ((modifiers and modifierMask) != 0) metaState else 0
 
     private fun buildKeyStrokeMap(): Map<KeyStroke, AndroidKeyStroke> {
       return mutableMapOf<KeyStroke, AndroidKeyStroke>().apply {
@@ -767,5 +764,15 @@ internal class DeviceView(
     // trying different numbers until scrolling felt usable.
     @VisibleForTesting
     internal const val ANDROID_SCROLL_ADJUSTMENT_FACTOR = 0.125f
+
+    private fun modifiersToMetaState(modifiers: Int): Int {
+      return modifierToMetaState(modifiers, SHIFT_DOWN_MASK, AMETA_SHIFT_ON) or
+        modifierToMetaState(modifiers, CTRL_DOWN_MASK, AMETA_CTRL_ON) or
+        modifierToMetaState(modifiers, META_DOWN_MASK, AMETA_META_ON) or
+        modifierToMetaState(modifiers, ALT_DOWN_MASK, AMETA_ALT_ON)
+    }
+
+    private fun modifierToMetaState(modifiers: Int, modifierMask: Int, metaState: Int) =
+      if ((modifiers and modifierMask) != 0) metaState else 0
   }
 }

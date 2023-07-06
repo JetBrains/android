@@ -44,6 +44,8 @@ import java.awt.RadialGradientPaint
 import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.event.ActionEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.geom.Area
@@ -105,6 +107,8 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
 
   private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
 
+  protected open val inputForwarding: InputForwarding = InputForwarding()
+
   init {
     background = primaryPanelBackground
     addToCenter(disconnectedStatePanel)
@@ -113,6 +117,11 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, emptySet())
     setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
                           setOf(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK)))
+    addFocusListener(object : FocusAdapter() {
+      override fun focusLost(event: FocusEvent) {
+        inputForwarding.resetMetaKeys()
+      }
+    })
   }
 
   protected fun drawMultiTouchFeedback(graphics: Graphics2D, displayRectangle: Rectangle, dragging: Boolean) {
@@ -317,7 +326,46 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     return true
   }
 
-  internal abstract fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean)
+  internal open fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {
+    if (!enabled) inputForwarding.resetMetaKeys()
+  }
+
+  protected open class InputForwarding {
+    private var pressedModifierKeys = 0
+    companion object {
+      private val vkToMask = mapOf(
+        KeyEvent.VK_SHIFT to InputEvent.SHIFT_DOWN_MASK,
+        KeyEvent.VK_CONTROL to InputEvent.CTRL_DOWN_MASK,
+        KeyEvent.VK_ALT to InputEvent.ALT_DOWN_MASK,
+        KeyEvent.VK_META to InputEvent.META_DOWN_MASK,
+        KeyEvent.VK_ALT_GRAPH to InputEvent.ALT_GRAPH_DOWN_MASK,
+      )
+    }
+
+    fun forwardEvent(event: KeyEvent) {
+      event.consume()
+      vkToMask[event.keyCode]?.let {
+        when (event.id) {
+          KeyEvent.KEY_PRESSED -> pressedModifierKeys = pressedModifierKeys or it
+          KeyEvent.KEY_RELEASED -> pressedModifierKeys = pressedModifierKeys and it.inv()
+          else -> {}
+        }
+      }
+      sendToDevice(event.id, event.keyCode, event.modifiersEx)
+    }
+
+    fun resetMetaKeys() {
+      if (pressedModifierKeys == 0) return
+      for ((vk, mask) in vkToMask) {
+        if (pressedModifierKeys and mask == 0) continue
+        pressedModifierKeys = pressedModifierKeys and mask.inv()
+        sendToDevice(KeyEvent.KEY_RELEASED, vk, pressedModifierKeys)
+      }
+      pressedModifierKeys = 0
+    }
+
+    open fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {}
+  }
 
  /** Attempts to restore a lost device connection. */
   protected inner class Reconnector(val reconnectLabel: String, private val progressMessage: String, val reconnect: suspend () -> Unit) {

@@ -25,6 +25,7 @@ import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.actions.ZoomType
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
@@ -94,9 +95,7 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import java.awt.Component
-import java.awt.DefaultKeyboardFocusManager
 import java.awt.Dimension
-import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
@@ -150,6 +149,7 @@ internal class DeviceViewTest {
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
   private lateinit var view: DeviceView
   private lateinit var fakeUi: FakeUi
+  private lateinit var focusManager: FakeKeyboardFocusManager
 
   private val testRootDisposable
     get() = agentRule.disposable
@@ -163,6 +163,7 @@ internal class DeviceViewTest {
     device = agentRule.connectDevice("Pixel 5", 30, Dimension(1080, 2340))
     StudioFlags.STREAMING_INPUT_FORWARDING_BUTTON.override(true, testRootDisposable)
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
+    focusManager = FakeKeyboardFocusManager(testRootDisposable)
   }
 
   @Test
@@ -469,14 +470,12 @@ internal class DeviceViewTest {
       }
     }
 
-    val mockFocusManager: DefaultKeyboardFocusManager = mock()
-    whenever(mockFocusManager.processKeyEvent(any(Component::class.java), any(KeyEvent::class.java))).thenCallRealMethod()
-    replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
-
-    mockFocusManager.processKeyEvent(
-      view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
-
-    Mockito.verify(mockFocusManager, Mockito.atLeast(1)).focusNextComponent(eq(view))
+    focusManager = Mockito.spy(focusManager)
+    replaceKeyboardFocusManager(focusManager, testRootDisposable)
+    focusManager.focusOwner = view
+    focusManager.processKeyEvent(
+        view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
+    Mockito.verify(focusManager, Mockito.atLeast(1)).focusNextComponent(eq(view))
   }
 
   @Test
@@ -689,11 +688,11 @@ internal class DeviceViewTest {
     createDeviceView(500, 1000)
 
     val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMPressedEvent)
+    focusManager.redispatchEvent(view, altMPressedEvent)
     assertThat(altMPressedEvent.isConsumed).isFalse()
 
     val altMReleasedEvent = KeyEvent(view, KeyEvent.KEY_RELEASED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
-    KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMReleasedEvent)
+    focusManager.redispatchEvent(view, altMReleasedEvent)
     assertThat(altMReleasedEvent.isConsumed).isFalse()
   }
 
@@ -833,6 +832,48 @@ internal class DeviceViewTest {
     // Check if multitouch indicator is shown again
     fakeUi.layoutAndDispatchEvents()
     assertAppearance("MultiTouch2")
+  }
+
+  @Test
+  fun testMetaKeysReleasedWhenInputForwardingDisabled() {
+    createDeviceView(50, 100)
+
+    // Enable Input forwarding
+    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+
+    // Press Ctrl
+    focusManager.focusOwner = view
+    fakeUi.keyboard.press(VK_CONTROL)
+
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+      KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
+
+    // Disable Input forwarding
+    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+      KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
+  }
+
+  @Test
+  fun testMetaKeysReleasedWhenLostFocusDuringInputForwarding() {
+    createDeviceView(50, 100)
+
+    // Enable Input forwarding
+    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+
+    // Press Ctrl
+    focusManager.focusOwner = view
+    fakeUi.keyboard.press(VK_CONTROL)
+
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
+
+    // Lose focus
+    focusManager.focusOwner = null
+
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+      KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {

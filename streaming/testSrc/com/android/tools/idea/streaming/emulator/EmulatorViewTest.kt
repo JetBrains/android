@@ -925,6 +925,62 @@ class EmulatorViewTest {
         " touches { x: 381 y: 1999 identifier: 1 pressure: 1024 expiration: NEVER_EXPIRE }")
   }
 
+  @Test
+  fun testMetaKeysReleasedWhenInputForwardingDisabled() {
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+    val container = createScrollPane(view)
+    val ui = FakeUi(container, 2.0)
+
+    // Enable Input forwarding
+    emulatorViewRule.executeAction("android.streaming.input.forwarding", view)
+
+    // Press Ctrl
+    focusManager.focusOwner = view
+    ui.keyboard.press(VK_CONTROL)
+
+    emulator.getNextGrpcCall(2, SECONDS).apply {
+      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      assertThat(shortDebugString(request)).isEqualTo("key: \"Control\"")
+    }
+
+    // Disable Input forwarding
+    emulatorViewRule.executeAction("android.streaming.input.forwarding", view)
+
+    emulator.getNextGrpcCall(2, SECONDS).apply {
+      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      assertThat(shortDebugString(request)).isEqualTo("eventType: keyup key: \"Control\"")
+    }
+  }
+
+  @Test
+  fun testMetaKeysReleasedWhenLostFocusDuringInputForwarding() {
+    val view = emulatorViewRule.newEmulatorView()
+    val emulator = emulatorViewRule.getFakeEmulator(view)
+    val container = createScrollPane(view)
+    val ui = FakeUi(container, 2.0)
+
+    // Enable Input forwarding
+    emulatorViewRule.executeAction("android.streaming.input.forwarding", view)
+
+    // Press Ctrl
+    focusManager.focusOwner = view
+    ui.keyboard.press(VK_CONTROL)
+
+    emulator.getNextGrpcCall(2, SECONDS).apply {
+      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      assertThat(shortDebugString(request)).isEqualTo("key: \"Control\"")
+    }
+
+    // Lose focus
+    focusManager.focusOwner = null
+
+    emulator.getNextGrpcCall(2, SECONDS).apply {
+      assertThat(methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
+      assertThat(shortDebugString(request)).isEqualTo("eventType: keyup key: \"Control\"")
+    }
+  }
+
   private fun createScrollPane(view: Component): JScrollPane {
     return JScrollPane(view).apply {
       border = null
