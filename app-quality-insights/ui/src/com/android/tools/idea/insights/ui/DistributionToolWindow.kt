@@ -34,7 +34,7 @@ object DistributionToolWindow {
   ): ToolWindowDefinition<AppInsightsToolWindowContext> {
     return ToolWindowDefinition(
       "Details",
-      StudioIcons.DatabaseInspector.TABLE,
+      StudioIcons.AppQualityInsights.DETAILS,
       "APP_INSIGHTS_DETAILS",
       Side.RIGHT,
       Split.TOP,
