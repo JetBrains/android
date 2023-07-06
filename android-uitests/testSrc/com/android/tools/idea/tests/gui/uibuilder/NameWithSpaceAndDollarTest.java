@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.Language;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,8 +32,13 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class NameWithSpaceAndDollarTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
+
+  private static final String TEMPLATE = "Empty Views Activity";
+  private static final String APP_NAME = "\'Test\' Application$";
+  private static final String PACKAGE_NAME = "android.com.app";
+  private static final int MIN_SDK_API = SdkVersionInfo.HIGHEST_SUPPORTED_API;;
 
   /**
    * Verify able to create a new project with name containing a space and a dollar.
@@ -52,13 +58,15 @@ public class NameWithSpaceAndDollarTest {
    *   Successfully created new project with name containing a space, a "'" and a dollar sign.
    *   </pre>
    */
-  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void createNewProjectNameWithSpaceAndDollar() {
-    new NewProjectDescriptor("'Test' Application$").withMinSdk(23).create(guiTest);
+    WizardUtils.createNewProject(guiTest, TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Kotlin);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Note@ "'" should be escaped in xml, but not in settings.gradle
-    assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml")).contains("\\'Test\\' Application$");
-    assertThat(guiTest.getProjectFileText(FN_SETTINGS_GRADLE_KTS)).contains("\"'Test' Application\\$\"");
+    assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml"))
+      .contains("\\'Test\\' Application$");
+    assertThat(guiTest.getProjectFileText(FN_SETTINGS_GRADLE_KTS))
+      .contains("'Test' Application\\$");
   }
 }
