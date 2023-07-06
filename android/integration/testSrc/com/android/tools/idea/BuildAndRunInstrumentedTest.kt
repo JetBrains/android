@@ -25,7 +25,7 @@ import org.junit.Test
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
 
-
+// TODO(b/279220000): Run button is grayed out in the failing tests while debug button is not.
 @Ignore
 class BuildAndRunInstrumentedTest {
   @JvmField
