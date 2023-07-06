@@ -80,7 +80,7 @@ class SyncProject_AGP_80Test: SyncedProjectTest(agpVersion = AGP_80)
 
 class OldAgpTestProjectTest: TestProjectTest() {
   @Test
-  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["LATEST"])
+  @OldAgpTest(agpVersions = ["7.1.0"], gradleVersions = ["7.2"])
   override fun testMigratePackageAttribute_agp71() {
     super.testMigratePackageAttribute_agp71()
   }
