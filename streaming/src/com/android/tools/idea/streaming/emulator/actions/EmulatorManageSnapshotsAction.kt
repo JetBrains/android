@@ -44,7 +44,7 @@ class EmulatorManageSnapshotsAction : AbstractEmulatorAction() {
 /**
  * Shows a "Manage Snapshots" dialog associated with [emulatorView].
  */
-fun showManageSnapshotsDialog(emulatorView: EmulatorView, project: Project): DialogWrapper {
+internal fun showManageSnapshotsDialog(emulatorView: EmulatorView, project: Project): DialogWrapper {
   var dialogWrapper = openDialogs[emulatorView]
   if (dialogWrapper == null) {
     val emulator = emulatorView.emulator
@@ -63,7 +63,7 @@ fun showManageSnapshotsDialog(emulatorView: EmulatorView, project: Project): Dia
  * Returns the "Manage Snapshots" dialog associated with [emulatorView], or null if no such dialog
  * is shown.
  */
-fun findManageSnapshotDialog(emulatorView: EmulatorView): DialogWrapper? {
+internal fun findManageSnapshotDialog(emulatorView: EmulatorView): DialogWrapper? {
   return openDialogs[emulatorView]
 }
 
@@ -85,6 +85,6 @@ private fun closeDuplicateDialogs(emulator: EmulatorController, project: Project
 }
 
 @VisibleForTesting
-fun getOpenManageSnapshotsDialogs(): Map<EmulatorView, DialogWrapper> = openDialogs
+internal fun getOpenManageSnapshotsDialogs(): Map<EmulatorView, DialogWrapper> = openDialogs
 
 private val openDialogs = mutableMapOf<EmulatorView, DialogWrapper>()
