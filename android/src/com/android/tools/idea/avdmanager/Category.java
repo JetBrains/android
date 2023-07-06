@@ -71,7 +71,7 @@ enum Category {
     return Arrays.stream(values())
       .filter(category -> category.myPredicate.test(definition))
       .findFirst()
-      .orElseThrow(() -> new IllegalArgumentException(definition.toString()));
+      .orElse(PHONE);
   }
 
   @NotNull

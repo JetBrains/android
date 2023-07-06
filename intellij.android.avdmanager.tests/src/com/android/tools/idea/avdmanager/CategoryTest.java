@@ -106,4 +106,16 @@ public final class CategoryTest {
     // Assert
     assertEquals(Category.LEGACY, category);
   }
+
+  @Test
+  public void valueOfDefinitionFallsBackToPhone() {
+    // Arrange
+    var definition = Definitions.mockDefinition("chromeos", Definitions.mockHardware(0), "Pixelbook (beta)", "Pixelbook (beta)");
+
+    // Act
+    var category = Category.valueOfDefinition(definition);
+
+    // Assert
+    assertEquals(Category.PHONE, category);
+  }
 }
