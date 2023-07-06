@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
  * Changes a folding pose of a foldable physical device.
  * Value semantics is intended for comparisons in tests.
  */
-internal data class FoldingAction(val foldingState: FoldingState) : AbstractDeviceAction() {
+internal data class DeviceFoldingAction(val foldingState: FoldingState) : AbstractDeviceAction() {
 
   init {
     templatePresentation.text = foldingState.name

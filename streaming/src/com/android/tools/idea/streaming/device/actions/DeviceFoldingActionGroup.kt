@@ -28,7 +28,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 /**
  * Displays a popup menu of available folding states of a foldable device.
  */
-internal class FoldingActionGroup : DefaultActionGroup(), DumbAware {
+internal class DeviceFoldingActionGroup : DefaultActionGroup(), DumbAware {
 
   init {
     templatePresentation.isPerformGroup = true
@@ -38,9 +38,9 @@ internal class FoldingActionGroup : DefaultActionGroup(), DumbAware {
     val controller = getDeviceController(event) ?: return
     val currentFoldingState = controller.currentFoldingState
     val popup = JBPopupFactory.getInstance().createActionGroupPopup(
-        null, this, event.dataContext, JBPopupFactory.ActionSelectionAid.MNEMONICS, true, null, -1,
-        { action -> action is FoldingAction && action.foldingState.id == currentFoldingState?.id },
-        ActionPlaces.getPopupPlace(DEVICE_MAIN_TOOLBAR_ID))
+      null, this, event.dataContext, JBPopupFactory.ActionSelectionAid.MNEMONICS, true, null, -1,
+      { action -> action is DeviceFoldingAction && action.foldingState.id == currentFoldingState?.id },
+      ActionPlaces.getPopupPlace(DEVICE_MAIN_TOOLBAR_ID))
     event.findComponentForAction(this)?.let { popup.showUnderneathOf(it) } ?: popup.showInFocusCenter()
   }
 
@@ -49,7 +49,7 @@ internal class FoldingActionGroup : DefaultActionGroup(), DumbAware {
       return emptyArray()
     }
     val controller = getDeviceController(event) ?: return emptyArray()
-    return controller.supportedFoldingStates.map { FoldingAction(it) }.toTypedArray()
+    return controller.supportedFoldingStates.map { DeviceFoldingAction(it) }.toTypedArray()
   }
 
   override fun update(event: AnActionEvent) {

@@ -30,7 +30,7 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
-import com.android.tools.idea.streaming.device.actions.FoldingAction
+import com.android.tools.idea.streaming.device.actions.DeviceFoldingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
@@ -267,13 +267,13 @@ class DeviceToolWindowPanelTest {
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
     assertThat(foldingActions).asList().containsExactly(
-        FoldingAction(FoldingState(0, "Closed", true)),
-        FoldingAction(FoldingState(1, "Tent", true)),
-        FoldingAction(FoldingState(2, "Half-Open", true)),
-        FoldingAction(FoldingState(3, "Open", true)),
-        FoldingAction(FoldingState(4, "Rear Display", true)),
-        FoldingAction(FoldingState(5, "Both Displays", true)),
-        FoldingAction(FoldingState(6, "Flipped", true)))
+      DeviceFoldingAction(FoldingState(0, "Closed", true)),
+      DeviceFoldingAction(FoldingState(1, "Tent", true)),
+      DeviceFoldingAction(FoldingState(2, "Half-Open", true)),
+      DeviceFoldingAction(FoldingState(3, "Open", true)),
+      DeviceFoldingAction(FoldingState(4, "Rear Display", true)),
+      DeviceFoldingAction(FoldingState(5, "Both Displays", true)),
+      DeviceFoldingAction(FoldingState(6, "Flipped", true)))
     for (action in foldingActions) {
       action.update(event)
       assertThat(event.presentation.isEnabled).isTrue()
