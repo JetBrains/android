@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 public class EmulatorTestRule extends ExternalResource {
 
-  public static final long DEFAULT_EMULATOR_WAIT_SECONDS = 240;
+  public static final long DEFAULT_EMULATOR_WAIT_SECONDS = 300;
 
   private static final String DEFAULT_AVD_NAME = "device under test";
 
