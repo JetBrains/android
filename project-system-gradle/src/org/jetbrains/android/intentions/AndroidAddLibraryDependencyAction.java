@@ -23,7 +23,9 @@ import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GoogleMavenArtifactId;
+import com.android.tools.idea.gradle.dependencies.DependenciesHelper;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames;
@@ -72,14 +74,9 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
   }
 
   @Nullable
-  private static GradleBuildModel getGradleBuildModel(@NotNull Project project, @NotNull PsiFile file) {
+  private static Module getModule(@NotNull Project project, @NotNull PsiFile file) {
     ProjectFileIndex index = ProjectRootManager.getInstance(project).getFileIndex();
-    Module module = index.getModuleForFile(file.getVirtualFile());
-    if (module == null) {
-      return null;
-    }
-
-    return GradleBuildModel.get(module);
+    return index.getModuleForFile(file.getVirtualFile());
   }
 
   /**
@@ -130,6 +127,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
    * @param coordinateString
    */
   private static void addDependency(final @NotNull Project project,
+                                    final @NotNull ProjectBuildModel projectModel,
                                     final @NotNull GradleBuildModel buildModel,
                                     @NotNull String coordinateString) {
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateString);
@@ -139,18 +137,18 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
     final ArtifactDependencySpec newDependency =
       ArtifactDependencySpec.create(coordinate.getArtifactId(), coordinate.getGroupId(), coordinate.getRevision());
 
-    WriteCommandAction.runWriteCommandAction(project, new Runnable() {
-      @Override
-      public void run() {
-        buildModel.dependencies().addArtifact(CommonConfigurationNames.IMPLEMENTATION, newDependency);
-        buildModel.applyChanges();
-      }
+    WriteCommandAction.runWriteCommandAction(project, () -> {
+      DependenciesHelper helper = new DependenciesHelper(projectModel);
+      helper.addDependency(CommonConfigurationNames.IMPLEMENTATION, newDependency.compactNotation(), buildModel);
+      projectModel.applyChanges();
     });
   }
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    final GradleBuildModel buildModel = getGradleBuildModel(project, file);
+    Module module = getModule(project, file);
+    final ProjectBuildModel projectModel = ProjectBuildModel.get(project);
+    final GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
     if (buildModel == null) {
       return;
     }
@@ -168,7 +166,7 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
           if (selectedValue == null) {
             return;
           }
-          addDependency(project, buildModel, (String)selectedValue);
+          addDependency(project, projectModel, buildModel, (String)selectedValue);
         }
       }
     }).createPopup();
