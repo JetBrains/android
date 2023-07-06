@@ -54,7 +54,7 @@ object FeatureSurveys {
       NotificationType.INFORMATION
     )
 
-    notification.addAction(FeatureSurveyNotificationAction(surveyFileName, survey))
+    notification.addAction(FeatureSurveyNotificationAction(survey))
 
     ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
@@ -106,6 +106,7 @@ object FeatureSurveys {
       !config.hasSpecificIntervalCompleted() ||
       !config.hasSpecificIntervalCancelled() ||
       !config.hasIdleIntervalMs() -> DEFAULT_FEATURE_SURVEY_CONFIG
+
       else -> config
     }
   }

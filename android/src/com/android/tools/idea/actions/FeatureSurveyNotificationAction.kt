@@ -15,15 +15,13 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.tools.analytics.AnalyticsSettings
 import com.android.tools.idea.serverflags.protos.Survey
-import com.android.tools.idea.stats.FeatureSurveys
 import com.android.tools.idea.stats.createDialog
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class FeatureSurveyNotificationAction(val name: String, val survey: Survey) : NotificationAction("Take survey") {
+class FeatureSurveyNotificationAction(val survey: Survey) : NotificationAction("Take survey") {
   override fun actionPerformed(e: AnActionEvent, notification: Notification) {
     val dialog = createDialog(survey)
     dialog.show()

@@ -1664,5 +1664,10 @@ public final class StudioFlags {
     Flag.create(STUDIOBOT, "enabled", "Enable Studio Bot", "Enable Studio Bot Tool Window", true);
   // endregion STUDIO_BOT
 
+  // region EXPERIMENTAL_UI
+  private static final FlagGroup EXPERIMENTAL_UI = new FlagGroup(FLAGS, "experimentalui", "Experimental UI");
+  public static final Flag<Boolean> EXPERIMENTAL_UI_SURVEY_ENABLED =
+    Flag.create(EXPERIMENTAL_UI, "enabled", "Enable Experimental UI Survey", "Enable the experimental UI survey.", true);
+  // endregion STUDIO_BOT
   private StudioFlags() { }
 }

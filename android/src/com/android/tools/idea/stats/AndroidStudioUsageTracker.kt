@@ -22,8 +22,10 @@ import com.android.tools.analytics.CommonMetricsData
 import com.android.tools.analytics.HostData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.actions.FeatureSurveyNotificationAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.diagnostics.report.DefaultMetricsLogFileProvider
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.serverflags.FOLLOWUP_SURVEY
 import com.android.tools.idea.serverflags.SATISFACTION_SURVEY
 import com.android.tools.idea.serverflags.ServerFlagService
@@ -46,6 +48,9 @@ import com.intellij.ide.AppLifecycleListener
 import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.ide.ui.LafManager
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
@@ -54,9 +59,6 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.registry.RegistryManager
-import com.intellij.openapi.util.registry.RegistryValue
-import com.intellij.openapi.util.registry.RegistryValueListener
 import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
@@ -175,6 +177,7 @@ object AndroidStudioUsageTracker {
     studioPing()
     scheduler.scheduleWithFixedDelay({ studioPing() }, 1, 1, TimeUnit.DAYS)
 
+    updateNewUISettings()
   }
 
   private fun subscribeToEvents() {
@@ -236,20 +239,58 @@ object AndroidStudioUsageTracker {
   }
 
   private fun logNewUI() {
-    val newUI: Boolean
-    try {
-      newUI = ExperimentalUI.isNewUI()
-    } catch (_: Throwable) {
-      // Don't send the message if the new UI check fails
-      return
-    }
+    val enabled =
+      try {
+        ExperimentalUI.isNewUI()
+      }
+      catch (_: Throwable) {
+        // Don't send the message if the new UI check fails
+        return
+      }
     UsageTracker.log(
       AndroidStudioEvent.newBuilder().apply {
         kind = EventKind.INTELLIJ_NEW_UI_STATE_EVENT
         intellijNewUiStateEvent = IntelliJNewUIState.newBuilder().apply {
-          isEnabled = newUI
+          isEnabled = enabled
         }.build()
       })
+  }
+
+  // Persist the initial new UI state for this session, so the
+  // next session can detect whether this session has disabled it
+  private fun updateNewUISettings() {
+    val enabled =
+      try {
+        ExperimentalUI.isNewUI()
+      }
+      catch (_: Throwable) {
+        return
+      }
+
+    val instance = ExperimentalUISettings.getInstance()
+
+    // If the user disabled the new UI during the previous
+    // session, display a survey asking them why
+    if (StudioFlags.EXPERIMENTAL_UI_SURVEY_ENABLED.get() && !enabled && instance.enabled) {
+      showNewUISurvey();
+    }
+
+    instance.enabled = enabled
+  }
+
+  private fun showNewUISurvey() {
+    val notificationGroup =
+      NotificationGroupManager.getInstance().getNotificationGroup("Feature Survey") ?: return
+
+    val notification = notificationGroup.createNotification(
+      "New UI Survey",
+      "We noticed that you recently disabled the New UI. Please tell us why so we can improve the experience.",
+      NotificationType.INFORMATION
+    )
+
+    notification.addAction(FeatureSurveyNotificationAction(EXPERIMENTAL_UI_INTERACTION_SURVEY))
+
+    ApplicationManager.getApplication().invokeLater { Notifications.Bus.notify(notification) }
   }
 
   private fun processUserSentiment() {
@@ -356,7 +397,6 @@ object AndroidStudioUsageTracker {
   }
 
 
-
   /**
    * Retrieves the corresponding [ProductDetails.IdeTheme] based on current IDE's settings
    */
@@ -370,6 +410,7 @@ object AndroidStudioUsageTracker {
           "high contrast" -> ProductDetails.IdeTheme.HIGH_CONTRAST
           else -> ProductDetails.IdeTheme.CUSTOM
         }
+
       UIUtil.isUnderIntelliJLaF() ->
         // When the theme is IntelliJ, there are mac and window specific registries that govern whether the theme refers to the native
         // themes, or the newer, platform-agnostic Light theme. UIUtil.isUnderWin10LookAndFeel() and UIUtil.isUnderDefaultMacTheme() take
@@ -379,6 +420,7 @@ object AndroidStudioUsageTracker {
           UIUtil.isUnderDefaultMacTheme() -> ProductDetails.IdeTheme.LIGHT_MAC_NATIVE
           else -> ProductDetails.IdeTheme.LIGHT
         }
+
       else -> ProductDetails.IdeTheme.UNKNOWN_THEME
     }
   }
