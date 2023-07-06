@@ -38,7 +38,8 @@ class DesignToolsIssueProviderTest {
   fun testProvideIssues() {
     val messageBus = rule.project.messageBus
 
-    val provider = DesignToolsIssueProvider(rule.testRootDisposable, rule.project, EmptyFilter)
+    val provider =
+      DesignToolsIssueProvider(rule.testRootDisposable, rule.project, EmptyFilter, null)
     assertTrue(provider.getFilteredIssues().isEmpty())
 
     val source1 = Any()
@@ -59,10 +60,60 @@ class DesignToolsIssueProviderTest {
   }
 
   @Test
+  fun testProvideIssuesWithDifferentProviders() {
+    val messageBus = rule.project.messageBus
+
+    val provider1 =
+      DesignToolsIssueProvider(rule.testRootDisposable, rule.project, EmptyFilter, "MyComposable")
+    val provider2 =
+      DesignToolsIssueProvider(
+        rule.testRootDisposable,
+        rule.project,
+        EmptyFilter,
+        "MyOtherComposable"
+      )
+    assertTrue(provider1.getFilteredIssues().isEmpty())
+    assertTrue(provider2.getFilteredIssues().isEmpty())
+
+    val source = VisualLintService.getInstance(rule.project).issueModel
+    source.uiCheckInstanceId = "MyComposable"
+    messageBus
+      .syncPublisher(IssueProviderListener.UI_CHECK)
+      .issueUpdated(source, listOf(TestIssue()))
+    assertEquals(1, provider1.getFilteredIssues().size)
+    assertEquals(0, provider2.getFilteredIssues().size)
+
+    source.uiCheckInstanceId = "MyOtherComposable"
+    messageBus
+      .syncPublisher(IssueProviderListener.UI_CHECK)
+      .issueUpdated(source, listOf(TestIssue(), TestIssue()))
+    assertEquals(1, provider1.getFilteredIssues().size)
+    assertEquals(2, provider2.getFilteredIssues().size)
+
+    messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
+    assertEquals(1, provider1.getFilteredIssues().size)
+    assertEquals(2, provider2.getFilteredIssues().size)
+
+    messageBus.syncPublisher(IssueProviderListener.UI_CHECK).issueUpdated(source, emptyList())
+    assertEquals(1, provider1.getFilteredIssues().size)
+    assertEquals(0, provider2.getFilteredIssues().size)
+
+    source.uiCheckInstanceId = "MyComposable"
+    messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, emptyList())
+    assertEquals(1, provider1.getFilteredIssues().size)
+    assertEquals(0, provider2.getFilteredIssues().size)
+
+    messageBus.syncPublisher(IssueProviderListener.UI_CHECK).issueUpdated(source, emptyList())
+    assertEquals(0, provider1.getFilteredIssues().size)
+    assertEquals(0, provider2.getFilteredIssues().size)
+  }
+
+  @Test
   fun testViewOptionFilter() {
     val messageBus = rule.project.messageBus
 
-    val provider = DesignToolsIssueProvider(rule.testRootDisposable, rule.project, EmptyFilter)
+    val provider =
+      DesignToolsIssueProvider(rule.testRootDisposable, rule.project, EmptyFilter, null)
     assertTrue(provider.getFilteredIssues().isEmpty())
 
     provider.viewOptionFilter =
@@ -102,7 +153,8 @@ class DesignToolsIssueProviderTest {
       DesignToolsIssueProvider(
         rule.testRootDisposable,
         rule.project,
-        SelectedEditorFilter(rule.project)
+        SelectedEditorFilter(rule.project),
+        null
       )
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 
@@ -129,7 +181,8 @@ class DesignToolsIssueProviderTest {
       DesignToolsIssueProvider(
         rule.testRootDisposable,
         rule.project,
-        SelectedEditorFilter(rule.project)
+        SelectedEditorFilter(rule.project),
+        null
       )
     val fileEditorManager = FileEditorManager.getInstance(rule.project)
 

@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.AnActionButton
 import icons.StudioIcons
 
@@ -52,10 +53,14 @@ class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
     val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val instanceId = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) ?: return
     manager.setMode(PreviewMode.UiCheck(selected = instanceId))
-    e.project?.let {
-      IssuePanelService.getInstance(it)
-        .setIssuePanelVisibility(true, IssuePanelService.Tab.DESIGN_TOOLS)
-    }
+
+    val problemsWindow =
+      e.project?.let { ToolWindowManager.getInstance(it).getToolWindow(ProblemsView.ID) } ?: return
+    val contentManager = problemsWindow.contentManager
+    contentManager.contents
+      .firstOrNull { it.tabName == instanceId.instanceId }
+      ?.let { contentManager.setSelectedContent(it) }
+    problemsWindow.show()
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT

@@ -38,6 +38,9 @@ import javax.swing.event.HyperlinkListener
 class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), Disposable {
   private val issues = VisualLintIssues()
 
+  /** If using in UI Check mode, represents the Compose Preview instance being checked. */
+  var uiCheckInstanceId: String? = null
+
   init {
     Disposer.register(parentDisposable, this)
   }

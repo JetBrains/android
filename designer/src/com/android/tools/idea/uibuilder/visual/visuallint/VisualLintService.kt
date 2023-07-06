@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.visual.visuallint
 
 import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.tools.idea.common.error.IssueModel
+import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
@@ -90,7 +91,7 @@ class VisualLintService(val project: Project) : Disposable {
     }
   }
 
-  val issueModel: IssueModel
+  val issueModel: VisualLintIssueModel
 
   private val basicAnalyzers = listOf(BoundsAnalyzer, OverlapAnalyzer, AtfAnalyzer)
   private val adaptiveAnalyzers =
@@ -133,7 +134,7 @@ class VisualLintService(val project: Project) : Disposable {
     // prevent Project leaks if the constructor throws an exception sooner, because that could make
     // the IssueModel never to be disposed,
     // since it will be registered as the child of a broken VisualLintService object.
-    issueModel = IssueModel(this, project)
+    issueModel = VisualLintIssueModel(this, project)
   }
 
   private fun getIgnoredTypesFromProfile(profile: InspectionProfile) {
@@ -179,6 +180,7 @@ class VisualLintService(val project: Project) : Disposable {
         removeAllIssueProviders()
         issueProvider.clear()
         val wasAdded = issueModel.addIssueProvider(issueProvider, true)
+        issueModel.uiCheckInstanceId = issueProvider.uiCheckInstanceId
         if (wasAdded) {
           Disposer.register(parentDisposable) { issueModel.removeIssueProvider(issueProvider) }
         }
@@ -251,7 +253,7 @@ class VisualLintService(val project: Project) : Disposable {
           )
       }
       hasTimedOut.set(!latch.await(visualLintTimeout, TimeUnit.SECONDS))
-      issueModel.updateErrorsList()
+      issueModel.updateErrorsList(IssueProviderListener.UI_CHECK)
       LOG.debug(
         "Visual Lint analysis finished, ${issueModel.issueCount} ${if (issueModel.issueCount > 1) "errors" else "error"} found"
       )
@@ -280,7 +282,7 @@ class VisualLintService(val project: Project) : Disposable {
       )
     }
     hasTimedOut.set(!latch.await(visualLintTimeout, TimeUnit.SECONDS))
-    issueModel.updateErrorsList()
+    issueModel.updateErrorsList(IssueProviderListener.UI_CHECK)
   }
 
   /**
@@ -382,6 +384,13 @@ fun createRenderResult(model: NlModel, runAtfChecks: Boolean): CompletableFuture
         newTask.dispose()
       }
     }
+}
+
+class VisualLintIssueModel(parentDisposable: Disposable, project: Project) :
+  IssueModel(parentDisposable, project) {
+
+  /** If using in UI Check mode, represents the Compose Preview instance being checked. */
+  var uiCheckInstanceId: String? = null
 }
 
 enum class VisualLintMode {

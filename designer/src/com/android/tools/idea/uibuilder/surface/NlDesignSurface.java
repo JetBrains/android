@@ -1138,4 +1138,9 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   Dimension getScrollableViewMinSize() {
     return myScrollableViewMinSize;
   }
+
+  @NotNull
+  public VisualLintIssueProvider getVisualLintIssueProvider() {
+    return myVisualLintIssueProvider;
+  }
 }

@@ -27,6 +27,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ModalityUiUtil;
+import com.intellij.util.messages.Topic;
 import icons.StudioIcons;
 import java.util.Collections;
 import java.util.HashSet;
@@ -55,7 +56,7 @@ public class IssueModel implements Disposable {
   protected int myWarningCount;
   protected int myErrorCount;
   @VisibleForTesting
-  public final Runnable myUpdateCallback = () -> updateErrorsList();
+  public final Runnable myUpdateCallback = this::updateErrorsList;
 
   private final Set<IssueProvider> myIssueProviders = new HashSet<>();
 
@@ -137,6 +138,10 @@ public class IssueModel implements Disposable {
   }
 
   public void updateErrorsList() {
+    updateErrorsList(IssueProviderListener.TOPIC);
+  }
+
+  public void updateErrorsList(Topic<IssueProviderListener> topic) {
     myWarningCount = 0;
     myErrorCount = 0;
     ImmutableList.Builder<Issue> issueListBuilder = ImmutableList.builder();
@@ -161,7 +166,7 @@ public class IssueModel implements Disposable {
     // Run listeners on the UI thread
     myListeners.forEach(IssueModelListener::errorModelChanged);
     if (myIsActivated.get()) {
-      myProject.getMessageBus().syncPublisher(IssueProviderListener.TOPIC).issueUpdated(this, newIssueList);
+      myProject.getMessageBus().syncPublisher(topic).issueUpdated(this, newIssueList);
     }
   }
 

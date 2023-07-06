@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.error
 
 import com.android.annotations.concurrency.GuardedBy
+import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueModel
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
@@ -74,7 +75,8 @@ operator fun DesignerCommonIssueProvider.Filter.plus(
 class DesignToolsIssueProvider(
   parentDisposable: Disposable,
   project: Project,
-  private val issueFilter: DesignerCommonIssueProvider.Filter
+  private val issueFilter: DesignerCommonIssueProvider.Filter,
+  val instanceId: String?
 ) : DesignerCommonIssueProvider<Any> {
   private val mapLock = Any()
 
@@ -93,9 +95,18 @@ class DesignToolsIssueProvider(
 
   init {
     Disposer.register(parentDisposable, this)
+    val topic =
+      if (instanceId != null) IssueProviderListener.UI_CHECK else IssueProviderListener.TOPIC
     messageBusConnection.subscribe(
-      IssueProviderListener.TOPIC,
+      topic,
       IssueProviderListener { source, issues ->
+        // If in UI Check, only update if issues come from the preview that this provider is
+        // associated with
+        if (
+          instanceId != null &&
+            (source !is VisualLintIssueModel || source.uiCheckInstanceId != instanceId)
+        )
+          return@IssueProviderListener
         synchronized(mapLock) {
           if (issues.isEmpty()) {
             sourceToIssueMap.remove(source)

@@ -78,6 +78,8 @@ import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.Magnificator;
 import com.intellij.ui.components.ZoomableViewport;
+import com.intellij.ui.content.ContentManagerEvent;
+import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.AsyncProcessIcon;
@@ -120,6 +122,7 @@ import javax.swing.JViewport;
 import javax.swing.OverlayLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.event.TreeSelectionListener;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -287,6 +290,17 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
 
   @NotNull
   private final IssueListener myIssueListener;
+
+  @NotNull
+  private final TreeSelectionListener myIssuePanelSelectionListener = e -> repaint();
+
+  @NotNull
+  private final ContentManagerListener myIssuePanelTabListener = new ContentManagerListener() {
+    @Override
+    public void selectionChanged(@NotNull ContentManagerEvent event) {
+      repaint();
+    }
+  };
 
   public DesignSurface(
     @NotNull Project project,
@@ -1954,5 +1968,15 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   @NotNull
   public IssueListener getIssueListener() {
     return myIssueListener;
+  }
+
+  @NotNull
+  public TreeSelectionListener getIssuePanelSelectionListener() {
+    return myIssuePanelSelectionListener;
+  }
+
+  @NotNull
+  public ContentManagerListener getIssuePanelTabListener() {
+    return myIssuePanelTabListener;
   }
 }

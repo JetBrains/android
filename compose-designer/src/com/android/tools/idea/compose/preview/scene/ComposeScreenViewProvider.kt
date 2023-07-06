@@ -77,9 +77,13 @@ class ComposeScreenViewProvider(private val previewManager: ComposePreviewManage
             )
             add(
               WarningLayer(it) {
-                if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get())
+                if (!StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
+                  listOfNotNull(surface.issuePanel.selectedIssue)
+                } else if (previewManager.isUiCheckPreview) {
                   IssuePanelService.getInstance(surface.project).getSelectedIssues()
-                else listOfNotNull(surface.issuePanel.selectedIssue)
+                } else {
+                  emptyList()
+                }
               }
             )
             StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {

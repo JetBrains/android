@@ -30,7 +30,7 @@ class DesignerCommonIssuePanelModelProviderTest {
   @Test
   fun testAsyncDesignerCommonIssuePanelModelProvider() {
     val provider = AsyncDesignerCommonIssuePanelModelProvider()
-    val model = provider.model
+    val model = provider.createModel()
 
     // The async provider must be a InvokerSupplier
     assertInstanceOf<InvokerSupplier>(model)

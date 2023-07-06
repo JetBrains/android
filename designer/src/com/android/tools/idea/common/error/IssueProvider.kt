@@ -44,6 +44,11 @@ fun interface IssueProviderListener {
         IssueProviderListener::class.java,
         Topic.BroadcastDirection.NONE
       )
+
+    @Topic.ProjectLevel
+    @JvmField
+    val UI_CHECK: Topic<IssueProviderListener> =
+      Topic("UI Check", IssueProviderListener::class.java, Topic.BroadcastDirection.NONE)
   }
 
   /** Updates the list of issues coming from the given source. */
