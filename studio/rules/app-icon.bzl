@@ -15,7 +15,7 @@ _STUDIO_PATH_ICNS = "Contents/Resources/studio.icns"
 _STUDIO_PATH_ICO = "bin/studio.ico"
 _STUDIO_PATH_SVG = "bin/studio.svg"
 _STUDIO_PATH_SVG_MACOS = "Contents/bin/studio.svg"
-_STUDIO_PATH_WINDOWS_EXE = "bin/studio.exe"
+_STUDIO_PATH_WINDOWS_EXE = "bin/studio64.exe"
 
 def _app_icon_impl(ctx):
     return AppIconInfo(
@@ -52,7 +52,7 @@ def _modify_exe_launcher(ctx, out, windows_exe, ico_file):
     # This number refers to IDI_WINLAUNCHER, or IDI_ICON in openjdk.
     icon_id = "2000"
     ctx.actions.run(
-        inputs = [ico_file],
+        inputs = [ico_file, windows_exe],
         outputs = [out],
         arguments = [windows_exe.path, ico_file.path, icon_id, out.path],
         executable = ctx.executable._replace_exe_icon,
@@ -77,22 +77,22 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
     new_file_map = {k: v for k, v in file_map.items()}
     if platform_name == "linux":
         if icon_info.png:
-            file_map[_STUDIO_PATH_PNG] = icon_info.png
+            new_file_map[_STUDIO_PATH_PNG] = icon_info.png
         if icon_info.svg:
-            file_map[_STUDIO_PATH_SVG] = icon_info.svg
+            new_file_map[_STUDIO_PATH_SVG] = icon_info.svg
     if platform_name in ["mac", "mac_arm"]:
         if icon_info.icns:
-            file_map[_STUDIO_PATH_ICNS] = icon_info.icns
+            new_file_map[_STUDIO_PATH_ICNS] = icon_info.icns
         if icon_info.svg:
-            file_map[_STUDIO_PATH_SVG_MACOS] = icon_info.svg
+            new_file_map[_STUDIO_PATH_SVG_MACOS] = icon_info.svg
     if platform_name == "win":
         if icon_info.ico:
-            file_map[_STUDIO_PATH_ICO] = icon_info.ico
+            new_file_map[_STUDIO_PATH_ICO] = icon_info.ico
             new_win_exe = ctx.actions.declare_file(ctx.attr.name + ".windows-launcher.exe")
-            win_exe = file_map[_STUDIO_PATH_WINDOWS_EXE]
+            win_exe = new_file_map[_STUDIO_PATH_WINDOWS_EXE]
             _modify_exe_launcher(ctx, new_win_exe, win_exe, icon_info.ico)
-            file_map[_STUDIO_PATH_WINDOWS_EXE] = new_win_exe
+            new_file_map[_STUDIO_PATH_WINDOWS_EXE] = new_win_exe
         if icon_info.svg:
-            file_map[_STUDIO_PATH_SVG] = icon_info.svg
+            new_file_map[_STUDIO_PATH_SVG] = icon_info.svg
 
     return new_file_map
