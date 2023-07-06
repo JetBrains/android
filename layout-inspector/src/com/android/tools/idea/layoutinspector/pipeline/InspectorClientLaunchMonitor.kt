@@ -113,7 +113,7 @@ class InspectorClientLaunchMonitor(
     // CancellationExceptions will be forwarded to LayoutInspector.logError no need to handle it
     // here.
     if (t !is CancellationException) {
-      logAttachError(t.toAttachErrorInfo().code)
+      logAttachErrorToMetrics(t.toAttachErrorInfo().code)
     }
     stop()
   }
@@ -201,7 +201,7 @@ class InspectorClientLaunchMonitor(
         .warn(
           "Client $client timed out during attach at step $currentProgress on the users request"
         )
-      logAttachError(AttachErrorCode.CONNECT_TIMEOUT)
+      logAttachErrorToMetrics(AttachErrorCode.CONNECT_TIMEOUT)
       client?.disconnect()
     }
   }
@@ -209,7 +209,7 @@ class InspectorClientLaunchMonitor(
   private val adbClient: Client?
     get() = client?.process?.let { AdbUtils.getAdbFuture(project).get()?.findClient(it) }
 
-  private fun logAttachError(errorCode: AttachErrorCode) {
+  private fun logAttachErrorToMetrics(errorCode: AttachErrorCode) {
     val stats = client?.stats ?: DisconnectedClient.stats
     LayoutInspectorSessionMetrics(null, client?.process, null)
       .logEvent(
