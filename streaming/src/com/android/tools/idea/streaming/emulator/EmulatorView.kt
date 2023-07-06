@@ -654,7 +654,7 @@ class EmulatorView(
 
     override fun onNext(response: EmulatorNotification) {
       if (EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS.get()) {
-        LOG.info("Notification ${response.event}")
+        LOG.info("Received notification: ${shortDebugString(response)}")
       }
 
       if (notificationReceiver != this) {
