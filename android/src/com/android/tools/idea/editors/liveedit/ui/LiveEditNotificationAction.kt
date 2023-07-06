@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.editors.liveedit.ui
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.tools.adtui.compose.ComposeStatus
 import com.android.tools.adtui.compose.InformationPopup
@@ -25,9 +26,11 @@ import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
+import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -193,7 +196,20 @@ class LiveEditIssueNotificationAction(
 }
 
 private fun shouldHideImpl(status: ComposeStatus, dataContext: DataContext): Boolean {
-  return status == LiveEditStatus.Disabled && dataContext.getData(PlatformDataKeys.TOOL_WINDOW)?.id != RUNNING_DEVICES_TOOL_WINDOW_ID
+  if (status != LiveEditStatus.Disabled) {
+    // Always show when it's an active status, even if error.
+    return false
+  }
+  val toolWindowId = dataContext.getData(PlatformDataKeys.TOOL_WINDOW)
+  if (toolWindowId == null || toolWindowId.id != RUNNING_DEVICES_TOOL_WINDOW_ID) {
+    return true
+  }
+  // Only show for running deviecs tool window.
+  val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return true
+  val serial = dataContext.getData(SERIAL_NUMBER_KEY) ?: return true
+  val device = AndroidDebugBridge.getBridge()?.devices?.find { it.serialNumber == serial } ?: return true
+  // Only show when the device supports Live Edit and the project is Compose.
+  return !LiveEditProjectMonitor.supportLiveEdits(device) || !LiveEditService.usesCompose(project)
 }
 
 /**
