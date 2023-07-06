@@ -4,7 +4,13 @@
     <exclude-output />
     <orderEntry type="module-library">
       <library name="compilerCommon.antlr_runtime.shaded" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr_runtime.shaded_jar:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr_runtime.shaded_jar:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr_runtime.shaded_jar/223.0.1.0/compilerCommon.antlr_runtime.shaded_jar-223.0.1.0.jar">
+              <sha256sum>f4d89fb56ed9582984e5323802ca4891795577542c8d0c03ec75bfea5378bc36</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr_runtime.shaded_jar/223.0.1.0/compilerCommon.antlr_runtime.shaded_jar-223.0.1.0.jar!/" />
         </CLASSES>
@@ -14,7 +20,13 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="compilerCommon.antlr.shaded" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr.shaded_jar:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compilerCommon.antlr.shaded_jar:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr.shaded_jar/223.0.1.0/compilerCommon.antlr.shaded_jar-223.0.1.0.jar">
+              <sha256sum>aef79cb486e1960725923d36409b3c19f71a842fd949e73cf420c8762a9c415a</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compilerCommon.antlr.shaded_jar/223.0.1.0/compilerCommon.antlr.shaded_jar-223.0.1.0.jar!/" />
         </CLASSES>
@@ -31,7 +43,13 @@
     <orderEntry type="module" module-name="android.sdktools.db-compilerCommon" />
     <orderEntry type="module-library">
       <library name="juniversalchardet" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.googlecode.juniversalchardet:juniversalchardet:1.0.3" />
+        <properties include-transitive-deps="false" maven-id="com.googlecode.juniversalchardet:juniversalchardet:1.0.3">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3.jar">
+              <sha256sum>757bfe906193b8b651e79dc26cd67d6b55d0770a2cdfb0381591504f779d4a76</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3.jar!/" />
         </CLASSES>
@@ -42,7 +60,13 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module-library">
       <library name="javapoet" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.squareup:javapoet:1.10.0" />
+        <properties include-transitive-deps="false" maven-id="com.squareup:javapoet:1.10.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/com/squareup/javapoet/1.10.0/javapoet-1.10.0.jar">
+              <sha256sum>20ef4b82e43ff7c652281a21313cf3b941092467add3fa73509c26f6969efdab</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/squareup/javapoet/1.10.0/javapoet-1.10.0.jar!/" />
         </CLASSES>
@@ -52,7 +76,13 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="auto-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.google.auto:auto-common:0.10" />
+        <properties include-transitive-deps="false" maven-id="com.google.auto:auto-common:0.10">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/com/google/auto/auto-common/0.10/auto-common-0.10.jar">
+              <sha256sum>b876b5fddaceeba7d359667f6c4fb8c6f8658da1ab902ffb79ec9a415deede5f</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/google/auto/auto-common/0.10/auto-common-0.10.jar!/" />
         </CLASSES>
@@ -64,7 +94,13 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-db-compiler" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler/223.0.1.0/studio.compiler-223.0.1.0.jar">
+              <sha256sum>d30efda307988f6a83199c349904ffcbad5f5f6433bd8f5726d5883e04abf8f2</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler/223.0.1.0/studio.compiler-223.0.1.0.jar!/" />
         </CLASSES>
@@ -74,7 +110,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-db-compiler-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.compiler_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler_test/223.0.1.0/studio.compiler_test-223.0.1.0.jar">
+              <sha256sum>eeb3a37d14df27694438a639c950f78b041e327d3b921a6dd3ae811751124426</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.compiler_test/223.0.1.0/studio.compiler_test-223.0.1.0.jar!/" />
         </CLASSES>

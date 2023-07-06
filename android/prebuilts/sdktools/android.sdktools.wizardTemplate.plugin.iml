@@ -7,7 +7,13 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-wizardTemplate.plugin" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.plugin:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.plugin:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin/223.0.1.0/studio.intellij.android.wizardTemplate.plugin-223.0.1.0.jar">
+              <sha256sum>ff81f3d216cfcf6944352655608cb1b372f42513ba87bf907ffb4ad7754dad6a</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin/223.0.1.0/studio.intellij.android.wizardTemplate.plugin-223.0.1.0.jar!/" />
         </CLASSES>
@@ -17,7 +23,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-wizardTemplate.plugin-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.plugin_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.intellij.android.wizardTemplate.plugin_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin_test/223.0.1.0/studio.intellij.android.wizardTemplate.plugin_test-223.0.1.0.jar">
+              <sha256sum>a7191af31a7dcec5ce17b87f45024fc692c515b2c149dded2777dc2c123a1edd</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.intellij.android.wizardTemplate.plugin_test/223.0.1.0/studio.intellij.android.wizardTemplate.plugin_test-223.0.1.0.jar!/" />
         </CLASSES>

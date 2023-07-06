@@ -14,7 +14,13 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-resource-repository" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.resource-repository:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.resource-repository:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository/223.0.1.0/studio.android.sdktools.resource-repository-223.0.1.0.jar">
+              <sha256sum>33db8f323b286f737a5e44238ec2090cefe073a20c73c52560748406cbfe72e6</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository/223.0.1.0/studio.android.sdktools.resource-repository-223.0.1.0.jar!/" />
         </CLASSES>
@@ -24,7 +30,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-resource-repository-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.resource-repository_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.resource-repository_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository_test/223.0.1.0/studio.android.sdktools.resource-repository_test-223.0.1.0.jar">
+              <sha256sum>41f55b51ed5c1bdd387000c3d15e30914605886ce6891f0dc98dbf744f2a5b74</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.resource-repository_test/223.0.1.0/studio.android.sdktools.resource-repository_test-223.0.1.0.jar!/" />
         </CLASSES>

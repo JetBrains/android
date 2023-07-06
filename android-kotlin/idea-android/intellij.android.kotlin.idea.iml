@@ -19,7 +19,13 @@
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module-library">
       <library name="jb-r8" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:jb-r8:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/223.0.1.0/jb-r8-223.0.1.0.jar">
+              <sha256sum>1c237d8045d2eff0c093363d8e22cd29014c8c4ec540185656cfb4eb3007b6f8</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/jb-r8/223.0.1.0/jb-r8-223.0.1.0.jar!/" />
         </CLASSES>

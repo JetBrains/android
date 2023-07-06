@@ -8,7 +8,13 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-flags" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.flags:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.flags:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.flags/223.0.1.0/studio.android.sdktools.flags-223.0.1.0.jar">
+              <sha256sum>76438a9516e06421bf345012533de4964d09d3af921f2486b10dc1c4edfb6f85</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.flags/223.0.1.0/studio.android.sdktools.flags-223.0.1.0.jar!/" />
         </CLASSES>
@@ -18,7 +24,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-flags-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.flags_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.flags_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.flags_test/223.0.1.0/studio.android.sdktools.flags_test-223.0.1.0.jar">
+              <sha256sum>be56761d7bb6d78bc973ed8b279242322eebe94b1edd74bc9d0ea40c0fa6da2c</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.flags_test/223.0.1.0/studio.android.sdktools.flags_test-223.0.1.0.jar!/" />
         </CLASSES>

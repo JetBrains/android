@@ -7,7 +7,13 @@
     <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
     <orderEntry type="module-library" exported="">
       <library name="android-libversion" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libversion:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libversion:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libversion/223.0.1.0/libversion-223.0.1.0.jar">
+              <sha256sum>d9433d15c572e15797749110c46da08782a35c48cd407d670d5083dc70255e24</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libversion/223.0.1.0/libversion-223.0.1.0.jar!/" />
         </CLASSES>
@@ -17,7 +23,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="">
       <library name="precompiled-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.common:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.common:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.common/223.0.1.0/studio.android.sdktools.common-223.0.1.0.jar">
+              <sha256sum>732fcd5f6d3387ab5d137d575cb582b6ee4f76bcd3b1770bc1cf14780c98f471</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.common/223.0.1.0/studio.android.sdktools.common-223.0.1.0.jar!/" />
         </CLASSES>
@@ -27,7 +39,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-common-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.common_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.common_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.common_test/223.0.1.0/studio.android.sdktools.common_test-223.0.1.0.jar">
+              <sha256sum>c4ed2e61a0d749743fcd7c647714f0ec3f2c948e2c681bdfe663628e8db09638</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.common_test/223.0.1.0/studio.android.sdktools.common_test-223.0.1.0.jar!/" />
         </CLASSES>

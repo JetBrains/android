@@ -8,7 +8,13 @@
     <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-adblib.tools" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.tools:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.tools:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools/223.0.1.0/studio.android.sdktools.adblib.tools-223.0.1.0.jar">
+              <sha256sum>b2cc4d2cc59ecc73a0c6264b386bd715f3d86aa7b847a6de8d704ca84336383f</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools/223.0.1.0/studio.android.sdktools.adblib.tools-223.0.1.0.jar!/" />
         </CLASSES>
@@ -18,7 +24,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-adblib.tools-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.tools_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.adblib.tools_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools_test/223.0.1.0/studio.android.sdktools.adblib.tools_test-223.0.1.0.jar">
+              <sha256sum>9e67b90b17ccdaf127873854a0a95a15956d6efe2c81e08e8d6ceaf34ec51533</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.adblib.tools_test/223.0.1.0/studio.android.sdktools.adblib.tools_test-223.0.1.0.jar!/" />
         </CLASSES>

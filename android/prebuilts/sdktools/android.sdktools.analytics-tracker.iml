@@ -12,7 +12,13 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-analytics-tracker" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-tracker:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-tracker:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-tracker/223.0.1.0/analytics-tracker-223.0.1.0.jar">
+              <sha256sum>fcdc0ce7e941ecd867c7d25be0a9a25367440c551f1d61d8d81f297f7eef12b3</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-tracker/223.0.1.0/analytics-tracker-223.0.1.0.jar!/" />
         </CLASSES>
@@ -22,7 +28,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-analytics-tracker-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-tracker_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-tracker_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-tracker_test/223.0.1.0/analytics-tracker_test-223.0.1.0.jar">
+              <sha256sum>e9d765445baeb4abbc6cecabdbf99d3f9b2e8989bd9eafa4e045b6555753b9d8</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-tracker_test/223.0.1.0/analytics-tracker_test-223.0.1.0.jar!/" />
         </CLASSES>

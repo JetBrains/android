@@ -13,7 +13,13 @@
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-device-provisioner" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.device-provisioner:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.device-provisioner:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner/223.0.1.0/studio.android.sdktools.device-provisioner-223.0.1.0.jar">
+              <sha256sum>7fbcd1d7d7a9d2de6330a870fb226c94f4812c9dbb285e50229135323a676501</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner/223.0.1.0/studio.android.sdktools.device-provisioner-223.0.1.0.jar!/" />
         </CLASSES>
@@ -23,7 +29,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-device-provisioner-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.device-provisioner_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.device-provisioner_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner_test/223.0.1.0/studio.android.sdktools.device-provisioner_test-223.0.1.0.jar">
+              <sha256sum>02d3c416fa19eae26aff551cc63bed519c651876cb4600273520cf29d23ad47a</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.device-provisioner_test/223.0.1.0/studio.android.sdktools.device-provisioner_test-223.0.1.0.jar!/" />
         </CLASSES>

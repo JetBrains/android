@@ -18,7 +18,13 @@
     <orderEntry type="module" module-name="intellij.platform.util" scope="TEST" />
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-testutils" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils/223.0.1.0/studio.android.sdktools.testutils-223.0.1.0.jar">
+              <sha256sum>c4ed2e61a0d749743fcd7c647714f0ec3f2c948e2c681bdfe663628e8db09638</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils/223.0.1.0/studio.android.sdktools.testutils-223.0.1.0.jar!/" />
         </CLASSES>
@@ -28,7 +34,13 @@
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-testutils-test" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils_test:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.testutils_test:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/223.0.1.0/studio.android.sdktools.testutils_test-223.0.1.0.jar">
+              <sha256sum>4eb627a9e819c9dfb860a96e3710292605e0510c3bc303d1abbde4f4bcba9552</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.testutils_test/223.0.1.0/studio.android.sdktools.testutils_test-223.0.1.0.jar!/" />
         </CLASSES>

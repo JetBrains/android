@@ -12,7 +12,13 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library name="precompiled-android-annotations" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.android-annotations:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.android-annotations:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.android-annotations/223.0.1.0/studio.android.sdktools.android-annotations-223.0.1.0.jar">
+              <sha256sum>4013a7184f41205bb08169bd3080fe757aeffe684e886ffb6428eb24a220ce23</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.android-annotations/223.0.1.0/studio.android.sdktools.android-annotations-223.0.1.0.jar!/" />
         </CLASSES>
@@ -22,7 +28,13 @@
     </orderEntry>
     <orderEntry type="module-library" scope="TEST">
       <library name="precompiled-common" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.common:223.0.1.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:studio.android.sdktools.common:223.0.1.0">
+          <verification>
+            <artifact url="file://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.common/223.0.1.0/studio.android.sdktools.common-223.0.1.0.jar">
+              <sha256sum>732fcd5f6d3387ab5d137d575cb582b6ee4f76bcd3b1770bc1cf14780c98f471</sha256sum>
+            </artifact>
+          </verification>
+        </properties>
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/studio.android.sdktools.common/223.0.1.0/studio.android.sdktools.common-223.0.1.0.jar!/" />
         </CLASSES>
