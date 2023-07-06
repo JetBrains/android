@@ -44,6 +44,8 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     BAD_MIN_API("Live Edit min-api detection failure", "%", false, Status.BAD_MIN_API),
 
     INTERNAL_ERROR("Internal Error", "%", false, Status.INTERNAL_ERROR),
+    INTERNAL_ERROR_NO_BINDING_CONTEXT("Internal Error", "%", false, Status.INTERNAL_ERROR), // TODO: Separate Tracking Metrics.
+
     KNOWN_ISSUE("Known Issue", "%", true, Status.KNOWN_ISSUE),
   }
 
@@ -62,6 +64,9 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
 
     fun internalError(details: String, cause: Throwable? = null) =
       LiveEditUpdateException(Error.INTERNAL_ERROR, details, null, cause)
+
+    fun internalErrorNoBindContext(details: String) =
+      LiveEditUpdateException(Error.INTERNAL_ERROR_NO_BINDING_CONTEXT, details, null, null)
 
     fun nonKotlin(file: PsiFile) =
       LiveEditUpdateException(Error.NON_KOTLIN, source = file, cause = null)

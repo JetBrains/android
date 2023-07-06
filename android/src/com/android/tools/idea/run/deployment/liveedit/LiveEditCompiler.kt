@@ -21,6 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalErrorNoBindContext
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugar
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarRequest
@@ -32,6 +33,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.output.OutputFile
@@ -99,15 +101,21 @@ class LiveEditCompiler(val project: Project) {
     val compileCmd = {
       var outputBuilder = LiveEditCompilerOutput.Builder()
       for ((file, input) in changedFiles.asMap()) {
-        // Compiler pass
-        compileKtFile(file, input, outputBuilder)
-        val outputs = outputBuilder.build()
-        logger.dumpCompilerOutputs(outputs.classes)
+        try {
+          // Compiler pass
+          compileKtFile(file, input, outputBuilder)
+          val outputs = outputBuilder.build()
+          logger.dumpCompilerOutputs(outputs.classes)
 
-        // Desugaring pass
-        val request = LiveEditDesugarRequest(outputs, apiVersions)
-        desugaredOutputs = desugarer.desugar(request)
-        logger.dumpDesugarOutputs(desugaredOutputs!!.classes)
+          // Desugaring pass
+          val request = LiveEditDesugarRequest(outputs, apiVersions)
+          desugaredOutputs = desugarer.desugar(request)
+          logger.dumpDesugarOutputs(desugaredOutputs!!.classes)
+        } catch (e : LiveEditUpdateException) {
+          throw e
+        } catch (t : Throwable) {
+          throw internalError("Unexpected error during compilation command", file, t)
+        }
       }
     }
 
@@ -123,10 +131,18 @@ class LiveEditCompiler(val project: Project) {
     if (giveWritePriority) {
       success = progressManager.runInReadActionWithWriteActionPriority(compileCmd, progressManager.progressIndicator)
     } else {
-      ApplicationManager.getApplication().runReadAction(compileCmd)
+      ApplicationManager.getApplication().runReadAction(toComputable(compileCmd))?.let { throw it }
     }
-
     return if (success) Optional.of(desugaredOutputs!!) else Optional.empty()
+  }
+
+  private fun toComputable(cmd : () -> Unit) = Computable<Exception?> {
+    try {
+      cmd()
+    } catch (e : Exception) {
+      return@Computable e
+    }
+    return@Computable null
   }
 
   private fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
@@ -216,7 +232,8 @@ class LiveEditCompiler(val project: Project) {
       when(val element = input.element) {
         // When the edit event was contained in a function
         is KtFunction -> {
-          val desc = generationState.bindingContext[BindingContext.FUNCTION, element]!!
+          val desc = generationState.bindingContext[BindingContext.FUNCTION, element]
+                     ?: throw internalErrorNoBindContext("No binding context for ${element.javaClass.name}")
           if (desc.hasComposableAnnotation()) {
             // When a Composable is a lambda, we actually need to take into account of all the parent groups of that Composable
             val parentGroup = input.parentGroups.takeIf { element !is KtNamedFunction }
