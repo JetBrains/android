@@ -1,5 +1,5 @@
 """Version information for Android Studio."""
-visibility(["//tools/adt/idea/studio"])
+visibility(["//tools/adt/idea/studio", "//tools/vendor/google/asfp/studio"])
 
 STUDIO_CODENAME = "Iguana"
 STUDIO_VERSION = "Canary"
