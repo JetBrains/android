@@ -267,7 +267,7 @@ public class SessionProfilersView extends StudioProfilersView {
               myProfiler.getIdeServices().getFeatureTracker().trackSessionsPanelResized();
             }
           }
-        }, mySplitter);
+        }, SessionProfilersView.this);
       }
     });
   }
