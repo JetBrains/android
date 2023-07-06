@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorFa
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyUiModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PropertyUiModelImpl
 import com.android.tools.idea.gradle.structure.configurables.ui.TextRenderer
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.noExtractButtonPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.SimplePropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.simplePropertyEditor
@@ -51,10 +52,11 @@ object DeclaredLibraryDependencyUiProperties {
     property: ModelPropertyT,
     variablesScope: PsVariablesScope?,
     cellEditor: TableCellEditor?,
+    validator: PropertyEditorValidator?,
     logValueEdited: () -> Unit ->
     val editor: SimplePropertyEditor<PropertyT, ModelPropertyCore<PropertyT>> =
       if (dependency.canExtractVariable()) {
-        simplePropertyEditor(project, module, model, property, variablesScope, cellEditor, logValueEdited)
+        simplePropertyEditor(project, module, model, property, variablesScope, cellEditor, validator, logValueEdited)
       }
       else {
         noExtractButtonPropertyEditor(project, module, model, property, variablesScope, cellEditor, logValueEdited)

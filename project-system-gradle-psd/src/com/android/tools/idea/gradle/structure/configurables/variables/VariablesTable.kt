@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.configurables.variables
 
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.structure.configurables.PsContext
+import com.android.tools.idea.gradle.structure.configurables.ui.PropertyEditorValidator
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.PropertyCellEditor
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.renderAnyTo
@@ -540,7 +541,18 @@ class VariablesTable private constructor(
               .also { invokeLater { nextCell(ActionEvent(this, ActionEvent.ACTION_PERFORMED, null), editingRow, editingColumn) } }
           }
         }
-      val editor = uiProperty.createEditor(context, psProject, null, variable, enterHandlingProxyCellEditor)
+
+      val validator = when (val node = tree.getPathForRow(row).lastPathComponent) {
+        is VariablesBaseNode -> when (node.parent) {
+          is VersionCatalogNode -> node.validateStringValue()
+          else -> null
+        }
+
+        else -> null
+      }?.let { PropertyEditorValidator(project, it) }
+
+      val editor = uiProperty.createEditor(context, psProject, null, variable, enterHandlingProxyCellEditor, validator)
+
       addTabKeySupportTo(editor.component)
       return editor
     }
@@ -730,6 +742,12 @@ open class VariablesBaseNode(
       name.indexOf(" ") != -1 -> "Variable name cannot have whitespaces."
       DISALLOWED_IN_NAME.indexIn(name) >= 0 -> "Build type name cannot contain any of $DISALLOWED_MESSAGE: '$name'"
       variablesScope?.filter { it.name != currentName }?.any { it.name == name } ?: false -> "Duplicate variable name: '$name'"
+      else -> null
+    }
+  }
+  fun validateStringValue(): (String) -> String? = { name ->
+    when {
+      name.isEmpty() -> "Variable value cannot be empty."
       else -> null
     }
   }
