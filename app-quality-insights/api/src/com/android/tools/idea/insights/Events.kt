@@ -107,7 +107,7 @@ data class DeviceType(val name: String) : GroupAware<DeviceType> {
   override fun compareTo(other: DeviceType) = name.compareTo(other.name)
   override val groupName = name
   companion object {
-    val UNKNOWN = DeviceType("")
+    val UNKNOWN = DeviceType("Unknown")
   }
 }
 
