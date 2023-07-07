@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,7 +57,7 @@ open class TestComposePreviewManager(
     mode = newMode
   }
 
-  override fun back() {}
+  override fun restorePrevious() {}
 
   override fun dispose() {}
 }

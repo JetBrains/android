@@ -65,6 +65,9 @@ import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
 import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
+import com.android.tools.idea.preview.modes.CommonPreviewModeManager
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.needsBuild
@@ -124,7 +127,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -286,6 +288,9 @@ class ComposePreviewRepresentation(
   private val project
     get() = psiFilePointer.project
 
+  private val previewModeManager: PreviewModeManager =
+    CommonPreviewModeManager(scope = this, onEnter = ::onEnter, onExit = ::onExit)
+
   private val interactiveMode: ComposePreviewManager.InteractiveMode
     get() =
       when (val currentMode = mode) {
@@ -395,18 +400,6 @@ class ComposePreviewRepresentation(
    */
   private val hasRenderedAtLeastOnce = AtomicBoolean(false)
 
-  /**
-   * Flow representing the [ComposePreviewManager]'s current [PreviewMode]. This flow is used by
-   * [mode] in order to implement the [PreviewModeManager] interface. The flow is collected and, if
-   * the current mode in the flow is [PreviewMode.Switching], then the [onExit] and [onEnter]
-   * methods are called.
-   */
-  private val modeFlow = MutableStateFlow<PreviewMode>(PreviewMode.Default)
-
-  /** The [ComposePreviewManager]'s current [PreviewMode] */
-  override val mode: PreviewMode
-    get() = modeFlow.value
-
   private val isAnimationPreviewEnabled: Boolean
     get() = currentOrNextMode is PreviewMode.AnimationInspection
 
@@ -439,29 +432,6 @@ class ComposePreviewRepresentation(
           )
         }
       )
-
-    // Launch handling of Preview modes
-    launch {
-      // Keep track of the last mode that was set to ensure it is correctly disposed
-      var lastMode = modeFlow.value
-      modeFlow.collectLatest {
-        when (it) {
-          // TODO(b/290173523): this should be handled in a separate class
-          is PreviewMode.Switching -> {
-            // We can not interrupt the state change to ensure the change is done correctly
-            withContext(NonCancellable) {
-              onExit(lastMode)
-              onEnter(it.newMode)
-              lastMode = it.newMode
-              restoreMode = it.currentMode
-            }
-            withUiContext { currentLayoutMode = it.newMode.layoutMode }
-            modeFlow.value = it.newMode
-          }
-          else -> Unit
-        }
-      }
-    }
   }
 
   /**
@@ -754,14 +724,6 @@ class ComposePreviewRepresentation(
         }
       }
     }
-
-  /**
-   * With entering one of the [PreviewMode.Focus] modes (interactive, animation, etc. ) previous
-   * mode is saved into [restoreMode]. After exiting the special mode [restoreMode] is set.
-   *
-   * TODO(b/293257529) Need to restore selected tab as well in Gallery mode.
-   */
-  private var restoreMode: PreviewMode.Settable? = null
 
   init {
     updateGalleryMode()
@@ -1172,13 +1134,6 @@ class ComposePreviewRepresentation(
     }
 
     return newStatus
-  }
-
-  override fun back() {
-    restoreMode?.let {
-      setMode(it)
-      restoreMode = null
-    }
   }
 
   /**
@@ -1707,15 +1662,12 @@ class ComposePreviewRepresentation(
     }
   }
 
-  override fun setMode(newMode: PreviewMode.Settable) {
-    val currentMode = currentOrNextMode
-    if (currentMode == newMode) {
-      log.debug("Mode was already $newMode")
-      return
-    }
+  override val mode
+    get() = previewModeManager.mode
 
-    modeFlow.value = PreviewMode.Switching(currentMode, newMode)
-  }
+  override fun setMode(newMode: PreviewMode.Settable) = previewModeManager.setMode(newMode)
+
+  override fun restorePrevious() = previewModeManager.restorePrevious()
 
   private suspend fun onEnter(mode: PreviewMode) {
     when (mode) {
@@ -1727,14 +1679,14 @@ class ComposePreviewRepresentation(
         surface.repaint()
       }
       is PreviewMode.Interactive -> {
-        startInteractivePreview(mode.selected)
+        startInteractivePreview(mode.selected as ComposePreviewElementInstance)
       }
       is PreviewMode.UiCheck -> {
-        startUiCheckPreview(mode.selected)
+        startUiCheckPreview(mode.selected as ComposePreviewElementInstance)
       }
       is PreviewMode.AnimationInspection -> {
         ComposePreviewAnimationManager.onAnimationInspectorOpened()
-        singlePreviewElementInstance = mode.selected
+        singlePreviewElementInstance = mode.selected as ComposePreviewElementInstance
         sceneComponentProvider.enabled = false
 
         withContext(uiThread) {
@@ -1756,11 +1708,13 @@ class ComposePreviewRepresentation(
       }
       is PreviewMode.Gallery -> {
         surface.background = Colors.DEFAULT_BACKGROUND_COLOR
-        singlePreviewElementInstance = mode.selected
+        singlePreviewElementInstance = mode.selected as ComposePreviewElementInstance
       }
       is PreviewMode.Switching,
       is PreviewMode.Settable -> {}
     }
+
+    withUiContext { currentLayoutMode = mode.layoutMode }
   }
 
   private suspend fun onExit(mode: PreviewMode) {

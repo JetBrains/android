@@ -25,9 +25,9 @@ import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
-import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType

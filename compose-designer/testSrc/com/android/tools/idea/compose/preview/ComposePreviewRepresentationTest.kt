@@ -27,6 +27,7 @@ import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate

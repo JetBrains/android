@@ -17,9 +17,9 @@ package com.android.tools.idea.compose.preview.gallery
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent.createTestEvent

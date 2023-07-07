@@ -24,7 +24,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.idea.compose.preview.ParametrizedComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.PreviewElementTemplateInstanceProvider
-import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
@@ -34,6 +33,7 @@ import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForRe
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.preview.StaticPreviewProvider
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT

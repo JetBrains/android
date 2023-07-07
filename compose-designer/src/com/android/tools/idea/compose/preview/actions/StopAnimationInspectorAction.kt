@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton

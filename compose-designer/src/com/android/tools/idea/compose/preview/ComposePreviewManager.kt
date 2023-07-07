@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,9 +75,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
   }
 
   fun status(): Status
-
-  /** Return to previously selected [PreviewMode]. */
-  fun back()
 
   /**
    * [StateFlow] of available named groups in this preview. The editor can contain multiple groups
@@ -161,7 +160,7 @@ class NopComposePreviewManager : ComposePreviewManager {
   }
 
   override fun invalidate() {}
-  override fun back() {}
+  override fun restorePrevious() {}
   override fun dispose() {}
 }
 

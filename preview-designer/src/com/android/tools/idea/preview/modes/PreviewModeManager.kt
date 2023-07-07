@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.preview.modes
 
+import com.android.tools.idea.compose.preview.LayoutMode
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElement
 
@@ -51,6 +52,9 @@ interface PreviewModeManager {
    * [PreviewMode.Transitive] before being set to [mode].
    */
   fun setMode(newMode: PreviewMode.Settable)
+
+  /** Sets the mode to the previous mode, if any. */
+  fun restorePrevious()
 }
 
 /**
@@ -72,20 +76,16 @@ sealed class PreviewMode {
 
   sealed class Focus<T : PreviewElement>(val selected: T) : Settable()
   class UiCheck(
-    selected: ComposePreviewElementInstance,
+    selected: PreviewElement,
     val atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get(),
     val visualLintingEnabled: Boolean = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get()
-  ) : Focus<ComposePreviewElementInstance>(selected)
+  ) : Focus<PreviewElement>(selected)
   // TODO(b/290579083): extract Essential mode outside of PreviewMode
-  class Gallery(selected: ComposePreviewElementInstance) :
-    Focus<ComposePreviewElementInstance>(selected) {
+  class Gallery(selected: PreviewElement) : Focus<PreviewElement>(selected) {
     override val layoutMode: LayoutMode = LayoutMode.Gallery
   }
-
-  class Interactive(selected: ComposePreviewElementInstance) :
-    Focus<ComposePreviewElementInstance>(selected)
-  class AnimationInspection(selected: ComposePreviewElementInstance) :
-    Focus<ComposePreviewElementInstance>(selected)
+  class Interactive(selected: PreviewElement) : Focus<PreviewElement>(selected)
+  class AnimationInspection(selected: PreviewElement) : Focus<PreviewElement>(selected)
 
   /**
    * The preview is currently transitioning from [currentMode] to [newMode]. If a state needs a
@@ -93,5 +93,5 @@ sealed class PreviewMode {
    * This is the case for example for [Interactive] where the transition from and to the state might
    * take some time.
    */
-  class Switching(val currentMode: Settable, val newMode: Settable) : Transitive()
+  data class Switching(val currentMode: Settable, val newMode: Settable) : Transitive()
 }

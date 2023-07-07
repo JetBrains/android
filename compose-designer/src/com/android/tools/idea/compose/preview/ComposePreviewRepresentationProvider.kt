@@ -34,6 +34,7 @@ import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStatic
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview

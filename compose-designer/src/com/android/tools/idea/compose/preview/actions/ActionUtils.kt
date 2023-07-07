@@ -18,10 +18,9 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.PreviewMode
-import com.android.tools.idea.compose.preview.PreviewModeManager
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
+import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
@@ -59,7 +58,7 @@ private class ComposePreviewDefaultWrapper(actions: List<AnAction>) : DefaultAct
  * @param e the [AnActionEvent] holding the context of the action
  */
 internal fun navigateBack(e: AnActionEvent) {
-  findComposePreviewManagersForContext(e.dataContext).forEach { it.back() }
+  findComposePreviewManagersForContext(e.dataContext).forEach { it.restorePrevious() }
 }
 
 /**
