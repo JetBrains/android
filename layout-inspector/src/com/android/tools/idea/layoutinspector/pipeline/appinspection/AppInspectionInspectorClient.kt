@@ -225,19 +225,29 @@ class AppInspectionInspectorClient(
       }
       .recover { t ->
         notifyError(t)
-        logError(t)
-        handleConnectionError(t)
+        val expectedError = handleConnectionError(t)
+        if (!expectedError) {
+          logError(t)
+        }
         throw t
       }
   }
 
-  private fun handleConnectionError(throwable: Throwable) {
+  /**
+   * Handles a connection error.
+   *
+   * @return true if the error is expected, false if it's unexpected.
+   */
+  private fun handleConnectionError(throwable: Throwable): Boolean {
     if (throwable is CancellationException) {
-      return
+      return true
     }
 
     val errorCode = throwable.toAttachErrorInfo().code
     launchMonitor.logAttachErrorToMetrics(errorCode)
+
+    return errorCode != AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR &&
+      errorCode != AttachErrorCode.UNKNOWN_ERROR_CODE
   }
 
   private fun logError(throwable: Throwable) {

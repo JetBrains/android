@@ -53,8 +53,7 @@ data class AttachErrorInfo(val code: AttachErrorCode, val args: Map<String, Stri
 
 /**
  * Convert an exception to an [AttachErrorInfo] which has enough information for generating a
- * message for the user and logging to analytics. If the exception is unexpected (i.e. we cannot
- * predict a proper user message) then the exception is logged to the crash db.
+ * message for the user and logging to analytics.
  */
 fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
   return when (this) {
@@ -73,14 +72,8 @@ fun Throwable.toAttachErrorInfo(): AttachErrorInfo {
     is TransportNonExistingFileException ->
       AttachErrorCode.TRANSPORT_PUSH_FAILED_FILE_NOT_FOUND.toInfo("path" to path)
     is AppInspectionArtifactNotFoundException -> this.toAttachErrorInfo()
-    is AppInspectionServiceException -> {
-      logUnexpectedError(InspectorConnectionError(this))
-      AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR.toInfo()
-    }
-    else -> {
-      logUnexpectedError(InspectorConnectionError(this))
-      AttachErrorCode.UNKNOWN_ERROR_CODE.toInfo()
-    }
+    is AppInspectionServiceException -> AttachErrorCode.UNKNOWN_APP_INSPECTION_ERROR.toInfo()
+    else -> AttachErrorCode.UNKNOWN_ERROR_CODE.toInfo()
   }
 }
 
