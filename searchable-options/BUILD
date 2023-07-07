@@ -18,6 +18,7 @@ py_test(
         "//tools/adt/idea/studio:android-studio.mac.zip",
         "//tools/adt/idea/studio:android-studio.plugin.lst",
     ],
+    imports = ["."],
     tags = [
         "block_network",
         "no_windows",
