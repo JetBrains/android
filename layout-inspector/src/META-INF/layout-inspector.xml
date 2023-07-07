@@ -15,8 +15,10 @@
   -->
 <idea-plugin>
 
-  <actions>
-    <action id="Android.RunLayoutInspector" class="com.android.tools.idea.layoutinspector.ShowLayoutInspectorAction">
+  <actions resource-bundle="messages.LayoutInspectorBundle">
+    <action id="Android.RunLayoutInspector"
+            class="com.android.tools.idea.layoutinspector.ShowLayoutInspectorAction"
+            icon="StudioIcons.Shell.Menu.LAYOUT_INSPECTOR">
       <add-to-group group-id="AndroidToolsGroup" />
     </action>
 
@@ -28,8 +30,6 @@
         icon="AllIcons.Actions.Find" >
       <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
     </action>
-
-
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">

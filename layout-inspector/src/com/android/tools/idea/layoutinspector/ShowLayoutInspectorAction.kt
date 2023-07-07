@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector
 
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.facet.ui.FacetDependentToolWindow
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.wm.ToolWindowManager
@@ -24,11 +25,9 @@ import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 
-class ShowLayoutInspectorAction : DumbAwareAction(
-  AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
-  AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
-  StudioIcons.Shell.Menu.LAYOUT_INSPECTOR
-) {
+internal class ShowLayoutInspectorAction : DumbAwareAction() {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     val project = e.project
     e.presentation.isEnabled = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID)
