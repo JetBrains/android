@@ -19,26 +19,16 @@ import com.android.testutils.MockitoKt
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
-import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
 import com.android.tools.idea.insights.ui.vcs.VCS_INFO_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.intellij.execution.filters.ExceptionFilters
-import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.impl.ConsoleViewImpl
-import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.event.CaretListener
-import com.intellij.openapi.editor.event.VisibleAreaListener
 import com.intellij.openapi.editor.impl.EditorImpl
-import com.intellij.openapi.editor.impl.event.EditorEventMulticasterImpl
 import com.intellij.openapi.util.Disposer
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.EditorMouseFixture
@@ -74,17 +64,9 @@ class InsightsTrackerTest {
       }
     }
 
-    // Init console and set up filters.
-    val consoleBuilder =
-      TextConsoleBuilderFactory.getInstance().createBuilder(projectRule.project).apply {
-        filters(ExceptionFilters.getFilters(GlobalSearchScope.allScope(projectRule.project)))
-      }
-
     console =
-      (consoleBuilder.console as ConsoleViewImpl).apply {
+      initConsoleWithFilters(projectRule.project).apply {
         Disposer.register(projectRule.testRootDisposable, this)
-        addMessageFilter(InsightsAttachInlayDiffLinkFilter(this))
-        component // call to init editor
       }
 
     val listenerForTracking = ListenerForTracking(console, tracker, projectRule.project)
@@ -106,43 +88,13 @@ class InsightsTrackerTest {
 
   @After
   fun tearDown() {
-    // Here we explicitly remove listeners added in `EditorMouseHoverPopupManager` to sidestep false
-    // leakages as the lifecycles of those listeners are tied to the application, and it's not
-    // excluded when checking leaks. (I filed https://youtrack.jetbrains.com/issue/IDEA-323699 --
-    // hopefully it could be resolved.)
-    val editorEventMulticaster =
-      EditorFactory.getInstance().eventMulticaster as EditorEventMulticasterImpl
-
-    editorEventMulticaster.listeners.onEach { (key, value) ->
-      when (key) {
-        CaretListener::class.java -> {
-          val listener =
-            value.firstOrNull {
-              it.javaClass.name.startsWith(
-                "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$"
-              )
-            } as? CaretListener
-              ?: return@onEach
-          editorEventMulticaster.removeCaretListener(listener)
-        }
-        VisibleAreaListener::class.java -> {
-          val listener =
-            value.firstOrNull {
-              it.javaClass.name.startsWith(
-                "com.intellij.openapi.editor.EditorMouseHoverPopupManager\$"
-              )
-            } as? VisibleAreaListener
-              ?: return@onEach
-          editorEventMulticaster.removeVisibleAreaListener(listener)
-        }
-      }
-    }
+    cleanUpListenersFromEditorMouseHoverPopupManager()
   }
 
   @Test
   fun `log hyperlink`() {
     // Print and apply filters
-    console.print(
+    console.printAndHighlight(
       """
         java.lang.NullPointerException:
             test.simple.MainActivity.onCreate(MainActivity.kt:4)
@@ -176,7 +128,7 @@ class InsightsTrackerTest {
   fun `log diff inlay`() {
     // Print and apply filters
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, ISSUE1.sampleEvent.appVcsInfo)
-    console.print(
+    console.printAndHighlight(
       """
         java.lang.NullPointerException:
             test.simple.MainActivity.onCreate(MainActivity.kt:4)
@@ -208,12 +160,4 @@ class InsightsTrackerTest {
 
 private fun Editor.mouse(): EditorMouseFixture {
   return EditorMouseFixture(this as EditorImpl)
-}
-
-private fun ConsoleViewImpl.print(text: String) {
-  print(text, ConsoleViewContentType.NORMAL_OUTPUT)
-
-  WriteAction.run<RuntimeException>(this::flushDeferredText)
-  waitAllRequests()
-  editor.caretModel.moveToOffset(0)
 }

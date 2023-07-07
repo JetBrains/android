@@ -67,10 +67,8 @@ internal fun goToDiff(context: ContextDataForDiff, project: Project) {
   DiffManager.getInstance().showDiff(project, requestChain, DiffDialogHints.DEFAULT)
 }
 
-class InsightsDiffRequestChain(
-  private val context: ContextDataForDiff,
-  private val project: Project
-) : ChangeDiffRequestChain.Async() {
+class InsightsDiffRequestChain(val context: ContextDataForDiff, val project: Project) :
+  ChangeDiffRequestChain.Async() {
   override fun loadRequestProducers(): ListSelection<out ChangeDiffRequestChain.Producer> {
     try {
       val changeContext =
