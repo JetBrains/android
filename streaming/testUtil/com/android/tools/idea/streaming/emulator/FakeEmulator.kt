@@ -119,7 +119,6 @@ import com.android.emulator.snapshot.SnapshotOuterClass.Image as SnapshotImage
 /**
  * Fake emulator for use in tests. Provides in-process gRPC services.
  */
-@Suppress("UseJBColor")
 class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory: Path) {
 
   val avdId = StringUtil.trimExtensions(avdFolder.fileName.toString())
@@ -332,7 +331,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   }
 
   private fun drawDisplayImage(size: Dimension, displayId: Int): BufferedImage {
-    @Suppress("UndesirableClassUsage")
     val image = BufferedImage(size.width, size.height, TYPE_INT_ARGB)
     val g = image.createGraphics()
     g.paint = Color.WHITE
@@ -1585,7 +1583,6 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
 private class ColorScheme(val start1: Color, val end1: Color, val start2: Color, val end2: Color)
 
-@Suppress("UseJBColor")
 private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 219, 216), Color(212, 230, 241), Color(84, 153, 199)),
                                    ColorScheme(Color(154, 236, 99), Color(230, 250, 216), Color(238, 212, 241), Color(188, 84, 199)),
                                    ColorScheme(Color(99, 222, 236), Color(216, 247, 250), Color(241, 223, 212), Color(199, 130, 84)),
