@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.insights.GroupAware
 import com.android.tools.idea.insights.MultiSelection
@@ -39,6 +40,7 @@ import java.util.Enumeration
 import javax.swing.JPanel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,15 +59,20 @@ import org.mockito.Mockito.`when`
 
 data class SimpleValue(val groupingKey: String, val title: String)
 
-private val VALUE1 = WithCount(1, SimpleValue("1", "Title1"))
+private val VALUE1 = WithCount(4, SimpleValue("1", "Title1"))
 private val VALUE2 = WithCount(2, SimpleValue("1", "Title2"))
 private val VALUE3 = WithCount(1, SimpleValue("3", "Title 3"))
+private val VALUE4 = WithCount(3, SimpleValue("2", "Title2"))
+private val VALUE5 = WithCount(1, SimpleValue("2", "Title 3"))
 
 class TreeDropDownActionTest {
   private val projectRule = AndroidProjectRule.inMemory()
   private val popupRule = JBPopupRule()
 
   @get:Rule val ruleChain = RuleChain.outerRule(projectRule).around(popupRule)!!
+
+  private val scope: CoroutineScope
+    get() = AndroidCoroutineScope(projectRule.testRootDisposable)
 
   @org.junit.Ignore("b/250064419")
   @Test
@@ -80,7 +87,7 @@ class TreeDropDownActionTest {
         TreeDropDownAction(
           "values",
           flow,
-          projectRule.project.coroutineScope,
+          scope,
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -131,7 +138,7 @@ class TreeDropDownActionTest {
         TreeDropDownAction(
           "values",
           flow,
-          projectRule.project.coroutineScope,
+          scope,
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -176,7 +183,7 @@ class TreeDropDownActionTest {
         TreeDropDownAction(
           "values",
           flow,
-          projectRule.project.coroutineScope,
+          scope,
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -253,7 +260,7 @@ class TreeDropDownActionTest {
         TreeDropDownAction(
           "values",
           flow,
-          projectRule.project.coroutineScope,
+          scope,
           groupNameSupplier = SimpleValue::groupingKey,
           nameSupplier = SimpleValue::title,
           onSelected = {},
@@ -281,6 +288,69 @@ class TreeDropDownActionTest {
           )
         )
         .isTrue()
+    }
+
+  @Test
+  fun `popup shows items in descending order of total count and respects filters`(): Unit =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val panel = JPanel(BorderLayout())
+      val fakeUi = FakeUi(panel)
+
+      val flow =
+        MutableStateFlow(
+          MultiSelection(
+            setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
+            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5)
+          )
+        )
+
+      val dropdown =
+        TreeDropDownAction(
+          "values",
+          flow,
+          scope,
+          groupNameSupplier = SimpleValue::groupingKey,
+          nameSupplier = SimpleValue::title,
+          onSelected = {},
+          getLocationOnScreen = { fakeUi.getPosition(this) }
+        )
+
+      waitForCondition(1000) { dropdown.selectionState.value.items.size == 5 }
+
+      val actionGroups = DefaultActionGroup().apply { add(dropdown) }
+      val toolbar =
+        ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
+          targetComponent = panel
+        }
+      panel.add(toolbar.component, BorderLayout.CENTER)
+      toolbar.updateActionsImmediately()
+
+      val actionButton = toolbar.component.getComponent(0) as ActionButton
+      actionButton.click()
+      dropdown.titleState.waitForValue("All values")
+
+      // Expected Order (brackets represent grouping)
+      // (VALUE1, VALUE2), (VALUE4, VALUE5), (VALUE3)
+      val (group1, group2, group3) = lastPopup.root.checkedChildren()
+      assertThat(group1.userObject).isEqualTo("1")
+      assertThat(group1.checkedChildren().map { it.userObject })
+        .containsExactly(VALUE1, VALUE2)
+        .inOrder()
+      assertThat(group2.userObject).isEqualTo("2")
+      assertThat(group2.checkedChildren().map { it.userObject })
+        .containsExactly(VALUE4, VALUE5)
+        .inOrder()
+      assertThat(group3.userObject).isEqualTo(VALUE3)
+
+      // Ordering should respect the filter.
+      // Expect: VALUE4, VALUE2
+      lastPopup.searchTextField.text = "title2"
+      assertThat(lastPopup.root.checkedChildren().map { it.userObject })
+        .containsExactly("2", "1")
+        .inOrder()
+      assertThat(lastPopup.root.checkedChildren().map { it.checkedChildren().single().userObject })
+        .containsExactly(VALUE4, VALUE2)
+        .inOrder()
     }
 
   private val lastPopup: TreeDropDownPopup<SimpleValue, GroupAware.Empty>

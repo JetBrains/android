@@ -292,27 +292,44 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     return treeTable
   }
 
+  private fun filterGroupAndSortItems(
+    filter: (String) -> Boolean
+  ): List<FilteredGroup<WithCount<T>>> =
+    selection.items
+      .groupBy { groupNameSupplier(it.value) }
+      .mapNotNull { entry ->
+        val filteredValues =
+          if (filter(entry.key)) {
+            entry.value
+          } else {
+            entry.value.filter { filter(nameSupplier(it.value)) }
+          }
+        val sum = filteredValues.sumOf { it.count }
+        if (filteredValues.isEmpty()) {
+          null
+        } else {
+          sum to FilteredGroup(entry.key, filteredValues, entry.value.size > 1)
+        }
+      }
+      .sortedByDescending { it.first }
+      .map { it.second }
+
   private fun updateTreeNodes(filter: (String) -> Boolean): Set<T> {
     root.removeAllChildren()
-    val groupedValues = selection.items.groupBy { groupNameSupplier(it.value) }
-    groupedValues.forEach { (groupingKey, values) ->
+
+    val groupedValues = filterGroupAndSortItems(filter)
+    groupedValues.forEach { (groupingKey, values, wasMultiple) ->
       val node =
-        if (values.size == 1) {
+        if (!wasMultiple) {
           values.single().let { withCount ->
-            if (filter(nameSupplier(withCount.value))) {
-              CheckedTreeNode(withCount).apply { isChecked = withCount in selection.selected }
-            } else null
+            CheckedTreeNode(withCount).apply { isChecked = withCount in selection.selected }
           }
         } else {
           val node =
             CheckedTreeNode(groupingKey).apply {
-              values
-                .filter { withCount ->
-                  filter(groupingKey) || filter(nameSupplier(withCount.value))
-                }
-                .forEach { value ->
-                  add(CheckedTreeNode(value).apply { isChecked = value in selection.selected })
-                }
+              values.forEach { value ->
+                add(CheckedTreeNode(value).apply { isChecked = value in selection.selected })
+              }
             }
           if (node.childCount > 0) node else null
         }
@@ -373,6 +390,16 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
       checkedItem.checkMatching(newState, predicate)
     }
   }
+
+  private data class FilteredGroup<T>(
+    val groupName: String,
+    val values: List<T>,
+    // Represents whether this filtered group originally had multiple items. This affects how the
+    // filtered value will be shown in the dropdown. If it belonged to a group with multiple items,
+    // then it will be shown as a collapsible node. Otherwise if it belonged to a group by itself,
+    // then it will be shown as a leaf node.
+    val wasMultiple: Boolean
+  )
 }
 
 private inline fun <reified T> JPanel.children(): Sequence<T> = sequence {
