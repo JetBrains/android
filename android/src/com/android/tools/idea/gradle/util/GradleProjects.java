@@ -57,8 +57,6 @@ public final class GradleProjects {
    * @return {@code true} if the project can be imported as a Gradle project, {@code false} otherwise.
    */
   public static boolean canImportAsGradleProject(@NotNull VirtualFile importSource) {
-    VirtualFile target = findGradleTarget(importSource);
-    return target != null && (GradleConstants.EXTENSION.equals(target.getExtension()) ||
-                              target.getName().endsWith(GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION));
+    return findGradleTarget(importSource) != null;
   }
 }
