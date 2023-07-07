@@ -1776,7 +1776,7 @@ MODULE                        : project.ads-sdk-implementation
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
+            ApiLevel                      : 33
             CodeName                      : TiramisuPrivacySandbox
             ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
@@ -1841,7 +1841,7 @@ MODULE                        : project.ads-sdk-implementation
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
+                ApiLevel                      : 33
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             VectorDrawables
@@ -1998,7 +1998,7 @@ MODULE                        : project.ads-sdk-implementation
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
+                ApiLevel                      : 33
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -2286,7 +2286,7 @@ MODULE                        : project.app
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
+            ApiLevel                      : 33
             CodeName                      : TiramisuPrivacySandbox
             ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
@@ -2359,7 +2359,7 @@ MODULE                        : project.app
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
+                ApiLevel                      : 33
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             VectorDrawables
@@ -2526,7 +2526,7 @@ MODULE                        : project.app
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
+                ApiLevel                      : 33
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             VersionCode                   : 1
@@ -3517,7 +3517,7 @@ MODULE                        : project.app-with-dynamic-feature
             ApiLevel                      : <SDK_VERSION>
             ApiString                     : <SDK_VERSION>
         targetSdk
-            ApiLevel                      : <SDK_VERSION>
+            ApiLevel                      : 33
             CodeName                      : TiramisuPrivacySandbox
             ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
@@ -3591,7 +3591,7 @@ MODULE                        : project.app-with-dynamic-feature
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
+                ApiLevel                      : 33
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             VectorDrawables
@@ -3758,7 +3758,7 @@ MODULE                        : project.app-with-dynamic-feature
                 ApiLevel                      : <SDK_VERSION>
                 ApiString                     : <SDK_VERSION>
             TargetSdkVersion
-                ApiLevel                      : <SDK_VERSION>
+                ApiLevel                      : 33
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             VersionCode                   : 1

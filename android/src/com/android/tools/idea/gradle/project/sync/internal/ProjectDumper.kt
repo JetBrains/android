@@ -146,6 +146,7 @@ class ProjectDumper(
   fun String.toPrintableString(): String = if (this == SdkConstants.CURRENT_BUILD_TOOLS_VERSION) "<CURRENT_BUILD_TOOLS_VERSION>"
   else this
 
+  fun String.replaceCurrentSdkVersion(apiLevel: Int, codename: String?) = if (apiLevel == SdkVersionInfo.HIGHEST_KNOWN_API && codename == null) "<SDK_VERSION>" else this
   fun String.replaceCurrentSdkVersion(): String = replace(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API.toString(), "<SDK_VERSION>")
   fun String.replaceCurrentBuildToolsVersion(): String = replace(SdkConstants.CURRENT_BUILD_TOOLS_VERSION.toString(), "<BUILD_TOOLS_VERSION>")
 

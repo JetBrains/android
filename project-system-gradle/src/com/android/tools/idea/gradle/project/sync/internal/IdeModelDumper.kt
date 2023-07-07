@@ -809,18 +809,18 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     private fun IdeApiVersion.dump(name: String) {
       head(name)
       nest {
-        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion() }
+        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion(apiLevel, codename) }
         prop("CodeName") { codename }
-        prop("ApiString") { apiString.replaceCurrentSdkVersion() }
+        prop("ApiString") { apiString.replaceCurrentSdkVersion(apiLevel, codename) }
       }
     }
 
     fun AndroidVersion.dump(name: String) {
       head(name)
       nest {
-        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion() }
+        prop("ApiLevel") { apiLevel.toString().replaceCurrentSdkVersion(apiLevel, codename) }
         prop("CodeName") { codename }
-        prop("ApiString") { apiString.replaceCurrentSdkVersion() }
+        prop("ApiString") { apiString.replaceCurrentSdkVersion(apiLevel, codename) }
       }
     }
 
