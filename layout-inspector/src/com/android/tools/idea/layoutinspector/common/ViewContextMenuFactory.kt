@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -52,17 +53,6 @@ fun showViewContextMenu(
   val group =
     object : ActionGroup("", true) {
       override fun getChildren(event: AnActionEvent?): Array<AnAction> {
-        val showAllAction =
-          object : AnAction("Show All") {
-            override fun actionPerformed(event: AnActionEvent) {
-              inspectorModel.showAll()
-            }
-
-            override fun update(actionEvent: AnActionEvent) {
-              actionEvent.presentation.isEnabled = inspectorModel.hasHiddenNodes()
-            }
-          }
-
         val result = mutableListOf<AnAction>()
         if (views.size > 1) {
           val viewMenu = DropDownAction("Select View", null, null)
@@ -78,7 +68,7 @@ fun showViewContextMenu(
             result.add(ShowOnlySubtreeAction(inspectorModel, client, topView))
             result.add(ShowOnlyParentsAction(inspectorModel, client, topView))
           }
-          result.add(showAllAction)
+          result.add(ShowAllAction(inspectorModel))
         }
         result.add(GotoDeclarationAction)
         return result.toTypedArray()
@@ -118,6 +108,18 @@ fun showViewContextMenu(
   popupComponent.show(source, x, y)
 }
 
+private class ShowAllAction(private val inspectorModel: InspectorModel) : AnAction("Show All") {
+  override fun actionPerformed(event: AnActionEvent) {
+    inspectorModel.showAll()
+  }
+
+  override fun update(actionEvent: AnActionEvent) {
+    actionEvent.presentation.isVisible =
+      !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    actionEvent.presentation.isEnabled = inspectorModel.hasHiddenNodes()
+  }
+}
+
 private class HideSubtreeAction(
   val inspectorModel: InspectorModel,
   val client: InspectorClient,
@@ -126,6 +128,11 @@ private class HideSubtreeAction(
   override fun actionPerformed(event: AnActionEvent) {
     client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     inspectorModel.hideSubtree(topView)
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isVisible = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
   }
 }
 
@@ -138,6 +145,11 @@ private class ShowOnlySubtreeAction(
     client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     inspectorModel.showOnlySubtree(topView)
   }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isVisible = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+  }
 }
 
 private class ShowOnlyParentsAction(
@@ -148,6 +160,11 @@ private class ShowOnlyParentsAction(
   override fun actionPerformed(event: AnActionEvent) {
     client.updateScreenshotType(AndroidWindow.ImageType.SKP, -1f)
     inspectorModel.showOnlyParents(topView)
+  }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    e.presentation.isVisible = !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
   }
 }
 

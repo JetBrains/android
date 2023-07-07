@@ -32,11 +32,13 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPopupMenu
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -160,6 +162,40 @@ class ViewContextMenuFactoryTest {
   }
 
   @Test
+  fun testActionsVisibility() {
+    val model = inspectorModel!!
+
+    val previous = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = false
+
+    showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
+    val actions = createdGroup?.getChildren(event)?.toList()
+
+    actions?.forEach {
+      val event = createFakeEvent()
+      it.update(event)
+      assertThat(event.presentation.isVisible).isTrue()
+    }
+
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
+
+    actions?.forEach {
+      val event = createFakeEvent()
+      it.update(event)
+
+      when (it.templateText) {
+        "Show All" -> assertThat(event.presentation.isVisible).isFalse()
+        "Hide Subtree" -> assertThat(event.presentation.isVisible).isFalse()
+        "Show Only Subtree" -> assertThat(event.presentation.isVisible).isFalse()
+        "Show Only Parents" -> assertThat(event.presentation.isVisible).isFalse()
+        else -> assertThat(event.presentation.isVisible).isTrue()
+      }
+    }
+
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = previous
+  }
+
+  @Test
   fun testMultipleViews() {
     val model = inspectorModel!!
     showViewContextMenu(
@@ -279,3 +315,6 @@ class ViewContextMenuFactoryLegacyTest {
     assertThat(model.selection).isEqualTo(model[ROOT])
   }
 }
+
+private fun createFakeEvent(): AnActionEvent =
+  AnActionEvent.createFromDataContext("", null, DataContext.EMPTY_CONTEXT)
