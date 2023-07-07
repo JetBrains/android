@@ -27,7 +27,6 @@ import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorSessionMetrics
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisticsImpl
@@ -123,7 +122,10 @@ class AppInspectionInspectorClient(
   var composeInspector: ComposeLayoutInspectorClient? = null
     private set
 
-  private val loggingExceptionHandler = CoroutineExceptionHandler { _, t -> handleError(t) }
+  private val loggingExceptionHandler = CoroutineExceptionHandler { _, t ->
+    notifyError(t)
+    logError(t)
+  }
 
   private var debugViewAttributesChanged = false
 
@@ -180,7 +182,7 @@ class AppInspectionInspectorClient(
             stats,
             coroutineScope,
             composeInspector,
-            ::notifyError,
+            this::notifyError,
             ::fireRootsEvent,
             ::fireTreeEvent,
             launchMonitor
@@ -222,24 +224,31 @@ class AppInspectionInspectorClient(
         model.modificationListeners.remove(updateListener)
       }
       .recover { t ->
-        handleError(t)
+        notifyError(t)
+        logError(t)
         throw t
       }
   }
 
-  /** Handles the error by logging it if necessary and notifying listeners. */
-  private fun handleError(throwable: Throwable) {
+  private fun logError(throwable: Throwable) {
+    when (throwable) {
+      is CancellationException -> {}
+      is ConnectionFailedException -> {
+        Logger.getInstance(AppInspectionInspectorClient::class.java).warn(throwable.message)
+      }
+      else -> {
+        logUnexpectedError(InspectorConnectionError(throwable))
+      }
+    }
+  }
+
+  /** Crate user-visible error message from [throwable] and notify [errorCallbacks]. */
+  private fun notifyError(throwable: Throwable) {
     val userVisibleErrorMessage =
       when (throwable) {
         is CancellationException -> null
-        is ConnectionFailedException -> {
-          Logger.getInstance(LayoutInspector::class.java).warn(throwable.message)
-          throwable.message
-        }
-        else -> {
-          logUnexpectedError(InspectorConnectionError(throwable))
-          "An unknown error happened."
-        }
+        is ConnectionFailedException -> throwable.message
+        else -> "An unknown error happened."
       }
 
     if (userVisibleErrorMessage != null) {
@@ -260,7 +269,8 @@ class AppInspectionInspectorClient(
         skiaParser.shutdown()
         logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
       } catch (t: Throwable) {
-        handleError(t)
+        notifyError(t)
+        logError(t)
         throw t
       }
     }
@@ -269,7 +279,8 @@ class AppInspectionInspectorClient(
     try {
       startFetchingInternal()
     } catch (t: Throwable) {
-      handleError(t)
+      notifyError(t)
+      logError(t)
       throw t
     }
   }
@@ -295,7 +306,8 @@ class AppInspectionInspectorClient(
       stats.currentModeIsLive = false
       viewInspector?.stopFetching()
     } catch (t: Throwable) {
-      handleError(t)
+      notifyError(t)
+      logError(t)
       throw t
     }
   }
