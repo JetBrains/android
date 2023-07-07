@@ -38,6 +38,8 @@ import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -86,12 +88,14 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
   private static ImmutableCollection<String> findAllDependencies(@NotNull GradleBuildModel buildModel) {
     HashSet<String> existingDependencies = Sets.newHashSet();
     for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts()) {
+      ProgressManager.checkCanceled();
       existingDependencies.add(dependency.group() + ":" + dependency.name());
     }
 
     ImmutableList.Builder<String> dependenciesBuilder = ImmutableList.builder();
     RepositoryUrlManager repositoryUrlManager = RepositoryUrlManager.get();
     for (GoogleMavenArtifactId id : GoogleMavenArtifactId.values()) {
+      ProgressManager.checkCanceled();
       // Dependency for any version available
       Dependency dependency = id.getDependency("+");
 
@@ -153,7 +157,15 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
       return;
     }
 
-    ImmutableCollection<String> dependencies = findAllDependencies(buildModel);
+    ImmutableCollection<String> dependencies = ProgressManager
+      .getInstance()
+      .runProcessWithProgressSynchronously(
+        () -> findAllDependencies(buildModel),
+        "Finding Dependencies",
+        true,
+        project
+      );
+
     if (dependencies.isEmpty()) {
       return;
     }
