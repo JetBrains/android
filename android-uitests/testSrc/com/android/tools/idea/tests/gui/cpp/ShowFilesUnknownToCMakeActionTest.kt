@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 @RunWith(GuiTestRemoteRunner::class)
 class ShowFilesUnknownToCMakeActionTest {
   @get:Rule
-  val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
+  val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
 
   @get:Rule
   val restoreNpwNativeModuleFlagRule = FlagRule(StudioFlags.NPW_NEW_NATIVE_MODULE)

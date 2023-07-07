@@ -116,7 +116,7 @@ public final class WizardUtils {
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(300));
   }
 
-  public static void createCppProject(GuiTestRule guiTest, FormFactor tabName, String templateName) {
+  public static void createCppProject(GuiTestRule guiTest, FormFactor tabName, String templateName, @NotNull Language language) {
     System.out.println("\nCreating template: " + templateName + " in: " + tabName.toString());
 
     guiTest.welcomeFrame()
@@ -127,7 +127,7 @@ public final class WizardUtils {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .setSourceLanguage(Java)
+      .setSourceLanguage(language)
       .enterPackageName("com.example.myapplication")
       .wizard()
       .clickNext()

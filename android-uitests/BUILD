@@ -1454,18 +1454,13 @@ java_test(
 java_test(
     name = "CreateCppKotlinProjectTest",
     size = "large",
-    timeout = "moderate",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ] + glob([
-        "testData/CppKotlin/**",
-    ]),
-    flaky = True,
+    ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.CreateCppKotlinProjectTest"],
     tags = COMMON_TAGS + [
         "no_windows",
-        "ui_test",
-        "very_flaky",  # b/230003185
+        "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
