@@ -33,6 +33,7 @@ import com.android.SdkConstants.PreferenceClasses
 import com.android.SdkConstants.PreferenceClasses.CLASS_PREFERENCE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.Dependencies
 import com.android.tools.idea.uibuilder.property.NlPropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
@@ -113,14 +114,14 @@ class TypeResolverSdkTest {
 
   @Test
   fun testAppCompatViewAttributeTypes() {
-    Dependencies.add(projectRule.fixture, APPCOMPAT_LIB_ARTIFACT_ID)
+    val versionMap = Dependencies.add(projectRule.fixture, APPCOMPAT_LIB_ARTIFACT_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
     val psiViewClass =
       psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
     val psiViewGroupClass =
       psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(APPCOMPAT_VIEW_PACKAGE)!!
-    val report = Report(APPCOMPAT_VIEWS_HEADER)
+    val report = Report(APPCOMPAT_VIEWS_HEADER, versionMap)
     psiPackage.classes
       .filter { it.isInheritor(psiViewClass, true) }
       .forEach { checkViewAttributes(it.qualifiedName!!, report) }
@@ -133,14 +134,14 @@ class TypeResolverSdkTest {
 
   @Test
   fun testConstraintLayoutViewAttributeTypes() {
-    Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
+    val versionMap = Dependencies.add(projectRule.fixture, CONSTRAINT_LAYOUT_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
     val psiViewClass =
       psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
     val psiViewGroupClass =
       psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(CONSTRAINT_LAYOUT_PACKAGE)!!
-    val report = Report(CONSTRAINT_LAYOUT_HEADER)
+    val report = Report(CONSTRAINT_LAYOUT_HEADER, versionMap)
     psiPackage.classes
       .filter { it.isInheritor(psiViewClass, true) }
       .forEach { checkViewAttributes(it.qualifiedName!!, report) }
@@ -153,14 +154,14 @@ class TypeResolverSdkTest {
 
   @Test
   fun testDesignViewAttributeTypes() {
-    Dependencies.add(projectRule.fixture, DESIGN_ID)
+    val versionMap = Dependencies.add(projectRule.fixture, DESIGN_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
     val psiViewClass =
       psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
     val psiViewGroupClass =
       psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(MATERIAL1_PKG)!!
-    val report = Report(DESIGN_HEADER)
+    val report = Report(DESIGN_HEADER, versionMap)
     psiPackage.classes
       .filter { it.isInheritor(psiViewClass, true) }
       .forEach { checkViewAttributes(it.qualifiedName!!, report) }
@@ -173,15 +174,14 @@ class TypeResolverSdkTest {
 
   @Test
   fun testMaterialViewAttributeTypes() {
-    Dependencies.add(projectRule.fixture, "appcompat/appcompat")
-    Dependencies.add(projectRule.fixture, MATERIAL_ID)
+    val versionMap = Dependencies.add(projectRule.fixture, "appcompat/appcompat", MATERIAL_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
     val psiViewClass =
       psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
     val psiViewGroupClass =
       psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(MATERIAL2_PKG)!!
-    val report = Report(MATERIAL_HEADER)
+    val report = Report(MATERIAL_HEADER, versionMap)
     for (folder in psiPackage.subPackages) {
       folder.classes
         .filter { it.isInheritor(psiViewClass, true) }
@@ -196,14 +196,14 @@ class TypeResolverSdkTest {
 
   @Test
   fun testMaterial3ViewAttributeTypes() {
-    Dependencies.add(projectRule.fixture, "material/material")
+    val versionMap = Dependencies.add(projectRule.fixture, "material/material")
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
     val psiViewClass =
       psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
     val psiViewGroupClass =
       psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage(MATERIAL2_PKG)!!
-    val report = Report(MATERIAL_HEADER)
+    val report = Report(MATERIAL_HEADER, versionMap)
     for (folder in psiPackage.subPackages) {
       folder.classes
         .filter { it.isInheritor(psiViewClass, true) }
@@ -218,14 +218,14 @@ class TypeResolverSdkTest {
 
   @Test
   fun testRecyclerViewAttributeTypes() {
-    Dependencies.add(projectRule.fixture, RECYCLER_VIEW_V7_ID)
+    val versionMap = Dependencies.add(projectRule.fixture, RECYCLER_VIEW_V7_ID)
     val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
     val psiViewClass =
       psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
     val psiViewGroupClass =
       psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
     val psiPackage = psiFacade.findPackage("android.support.v7.widget")!!
-    val report = Report(RECYCLER_VIEW_HEADER)
+    val report = Report(RECYCLER_VIEW_HEADER, versionMap)
     psiPackage.classes
       .filter { it.isInheritor(psiViewClass, true) }
       .forEach { checkViewAttributes(it.qualifiedName!!, report) }
@@ -329,7 +329,10 @@ class TypeResolverSdkTest {
     val expected: NlPropertyType
   )
 
-  private class Report(private val name: String) {
+  private class Report(
+    private val name: String,
+    private val versionMap: Map<String, GradleVersion> = emptyMap()
+  ) {
     private val found = mutableMapOf<String, Int>()
     private val errors = mutableMapOf<String, Int>()
     private val mismatches = mutableListOf<Mismatch>()
@@ -358,6 +361,11 @@ class TypeResolverSdkTest {
       }
       System.err.println("\n==============================================================>")
       System.err.println("           $name")
+      if (versionMap.isNotEmpty()) {
+        System.err.println("\n==============================================================>")
+        versionMap.forEach { (library, version) -> System.err.println("  $library: $version") }
+        System.err.println("\n==============================================================>")
+      }
       if (mismatches.isNotEmpty()) {
         System.err.println("\nType mismatches found:")
         mismatches.forEach {

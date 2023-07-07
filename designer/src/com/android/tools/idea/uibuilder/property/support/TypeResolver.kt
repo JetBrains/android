@@ -164,7 +164,9 @@ object TypeResolver {
       SdkConstants.ATTR_SCROLLBAR_THUMB_VERTICAL,
       SdkConstants.ATTR_SCROLLBAR_TRACK_HORIZONTAL,
       SdkConstants.ATTR_SCROLLBAR_TRACK_VERTICAL,
-      SdkConstants.ATTR_STATUS_BAR_SCRIM -> NlPropertyType.DRAWABLE
+      SdkConstants.ATTR_STATUS_BAR_SCRIM,
+      "buttonCompat",
+      "trackDecoration" -> NlPropertyType.DRAWABLE
       SdkConstants.ATTR_IN_ANIMATION,
       SdkConstants.ATTR_OUT_ANIMATION,
       SdkConstants.ATTR_SHOW_MOTION_SPEC,
@@ -216,20 +218,25 @@ object TypeResolver {
       SdkConstants.ATTR_TINT,
       SdkConstants.ATTR_TRACK_TINT,
       "boxStrokeErrorColor",
+      "buttonIconTint",
       "checkedIconTint",
       "collapsedTitleTextColor",
       "dividerColor",
       "expandedTitleTextColor",
       "haloColor",
+      "liftOnScrollColor",
       "placeholderTextColor",
       "prefixTextColor",
+      "simpleItemSelectedRippleColor",
       "subheaderColor",
       "suffixTextColor",
       "thumbColor",
+      "thumbIconTint",
       "thumbStrokeColor",
       "tickColor",
       "tickColorActive",
       "tickColorInactive",
+      "trackDecorationTint",
       "dialTint",
       "hand_hourTint",
       "hand_minuteTint",
@@ -243,7 +250,8 @@ object TypeResolver {
       SdkConstants.ATTR_INTERPOLATOR,
       SdkConstants.ATTR_LAYOUT_SCROLL_INTERPOLATOR -> NlPropertyType.INTERPOLATOR
       PreferenceAttributes.ATTR_ENTRY_VALUES,
-      PreferenceAttributes.ATTR_ENTRIES -> NlPropertyType.STRING_ARRAY
+      PreferenceAttributes.ATTR_ENTRIES,
+      "simpleItems" -> NlPropertyType.STRING_ARRAY
       SdkConstants.ATTR_IGNORE_GRAVITY -> NlPropertyType.THREE_STATE_BOOLEAN
       "value",
       "valueFrom",

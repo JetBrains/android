@@ -50,18 +50,18 @@ object Dependencies {
    *
    *  The name specified must be a folder in either [ANDROIDX_FOLDER] or [LEGACY_FOLDER].
    */
-  fun add(fixture: CodeInsightTestFixture, vararg dependencyNames: String) {
+  fun add(fixture: CodeInsightTestFixture, vararg dependencyNames: String): Map<String, GradleVersion> {
     val loader = DependencyLoader(fixture)
-    loader.loadAll(*dependencyNames)
+    return loader.loadAll(*dependencyNames)
   }
 
   private class DependencyLoader(val fixture: CodeInsightTestFixture) {
 
-    fun loadAll(vararg dependencyNames: String) {
-      dependencyNames.forEach { load(it) }
+    fun loadAll(vararg dependencyNames: String): Map<String, GradleVersion> {
+      return dependencyNames.map { Pair(it, load(it)) }.toMap()
     }
 
-    private fun load(dependency: String) {
+    private fun load(dependency: String): GradleVersion {
       val root = File(PathManager.getHomePath())
       val legacyFolder = root.resolve(LEGACY_FOLDER)
       val androidFolder = root.resolve(ANDROIDX_FOLDER)
@@ -69,7 +69,7 @@ object Dependencies {
       val legacyFile = legacyFolder.resolve(dependency)
       val androidxFile = androidFolder.resolve(dependency)
       val googleFile = googleFolder.resolve(dependency)
-      when {
+      return when {
         androidxFile.exists() -> loadLatestVersion(map(androidxFile))
         legacyFile.exists() -> loadLatestVersion(map(legacyFile))
         googleFile.exists() -> loadLatestVersion(map(googleFile))
@@ -87,9 +87,9 @@ object Dependencies {
 
     // TODO(b/135483675): Read the pom file and load all transitive dependencies as well.
     // TODO: Also update the API above such that Androidx only will have to specify the artifactId. Not: "appcompat/appcompat"
-    private fun loadLatestVersion(folder: File) {
+    private fun loadLatestVersion(folder: File): GradleVersion {
       val name = folder.name
-      val version = folder.list().map { GradleVersion.parse(it) }.maxOrNull() ?: error("No versions found in folder: ${folder.path}")
+      val version = folder.list()?.maxOfOrNull { GradleVersion.parse(it) } ?: error("No versions found in folder: ${folder.path}")
       val versionFolder = File(folder, version.toString())
       val aarFile = File(versionFolder, "$name-$version.aar")
       val aarDir = FileUtil.createTempDirectory(name, "_exploded")
@@ -101,6 +101,7 @@ object Dependencies {
       val classesRoots = listOfNotNull(resDir.toVirtualFile(refresh = true), jarDir.toVirtualFile(refresh = true))
       val library = PsiTestUtil.addProjectLibrary(fixture.module, "$name.aar", classesRoots, emptyList())
       ModuleRootModificationUtil.addDependency(fixture.module, library, DependencyScope.PROVIDED, true)
+      return version
     }
   }
 }
