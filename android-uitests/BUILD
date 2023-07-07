@@ -2784,6 +2784,7 @@ java_test(
 
 java_test(
     name = "ApkViewerTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
