@@ -23,7 +23,7 @@ import com.intellij.util.ui.JBUI
 import javax.swing.JPanel
 import javax.swing.border.LineBorder
 
-private const val ERROR_LABEL_CONTENT = "<html>Render problem.</html>"
+private const val ERROR_LABEL_CONTENT = "<html>Render problem</html>"
 
 /**
  *        ______________________________

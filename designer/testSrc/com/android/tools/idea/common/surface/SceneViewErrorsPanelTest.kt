@@ -69,7 +69,7 @@ class SceneViewErrorsPanelTest {
     panelParent.add(sceneViewErrorsPanel, BorderLayout.CENTER)
     invokeAndWaitIfNeeded { fakeUi.root.validate() }
 
-    assertNotNull(fakeUi.findComponent<JBLabel> { it.text.contains("Render problem.") })
+    assertNotNull(fakeUi.findComponent<JBLabel> { it.text.contains("Render problem") })
   }
 
   @Test
