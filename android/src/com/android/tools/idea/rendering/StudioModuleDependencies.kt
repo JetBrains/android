@@ -33,20 +33,7 @@ import java.io.IOException
 
 /** Studio specific implementation of [ModuleDependencies]. */
 class StudioModuleDependencies(private val module: Module) : ModuleDependencies {
-  override val dependsOnAppCompat: Boolean
-    get() = module.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7)
-
-  override val dependsOnAndroidXAppCompat: Boolean
-    get() = module.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
-
-  override val dependsOnDesign: Boolean
-    get() = module.dependsOn(GoogleMavenArtifactId.DESIGN)
-
-  override val dependsOnAndroidXDesign: Boolean
-    get() = module.dependsOn(GoogleMavenArtifactId.ANDROIDX_DESIGN)
-
-  override val dependsOnAndroidX: Boolean
-    get() = module.dependsOnAndroidx()
+  override fun dependsOn(artifactId: GoogleMavenArtifactId): Boolean = module.dependsOn(artifactId)
 
   override val rClassesNames: List<String>
     get() =

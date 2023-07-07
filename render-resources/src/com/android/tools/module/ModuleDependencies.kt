@@ -15,19 +15,17 @@
  */
 package com.android.tools.module
 
+import com.android.SdkConstants
+import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.intellij.psi.PsiClass
 
 /** Information about module dependencies required for rendering. */
 interface ModuleDependencies {
-  val dependsOnAppCompat: Boolean
+  fun dependsOn(artifactId: GoogleMavenArtifactId): Boolean
 
-  val dependsOnAndroidXAppCompat: Boolean
-
-  val dependsOnDesign: Boolean
-
-  val dependsOnAndroidXDesign: Boolean
-
-  val dependsOnAndroidX: Boolean
+  fun dependsOnAndroidx(): Boolean = GoogleMavenArtifactId.values()
+    .filter { it.mavenGroupId.startsWith(SdkConstants.ANDROIDX_PKG) }
+    .any { dependsOn(it) }
 
   /** Returns a list R-classes fqcns from the module and all of its dependencies. */
   val rClassesNames: List<String>

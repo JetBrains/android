@@ -60,7 +60,7 @@ class MenuLayoutParserFactory {
 
   @NotNull
   public static ILayoutPullParser createInNavigationView(@NotNull RenderXmlFile file, @NotNull ModuleDependencies dependencies) {
-    String navViewTag = dependencies.getDependsOnAndroidX() ? NAVIGATION_VIEW.newName() : NAVIGATION_VIEW.oldName();
+    String navViewTag = dependencies.dependsOnAndroidx() ? NAVIGATION_VIEW.newName() : NAVIGATION_VIEW.oldName();
     @Language("XML")
     String xml = "<" + navViewTag + " xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +

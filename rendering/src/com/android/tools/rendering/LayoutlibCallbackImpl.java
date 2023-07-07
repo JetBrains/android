@@ -50,6 +50,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.Result;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceResolver;
@@ -194,8 +195,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myClassLoader = new ViewLoader(myLayoutLib, renderModule, logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
-    myHasLegacyAppCompat = renderModule.getDependencies().getDependsOnAppCompat();
-    myHasAndroidXAppCompat = renderModule.getDependencies().getDependsOnAndroidXAppCompat();
+    myHasLegacyAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7);
+    myHasAndroidXAppCompat = renderModule.getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
     myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();
     if (myNamespacing == ResourceNamespacing.DISABLED) {

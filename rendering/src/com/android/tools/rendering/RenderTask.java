@@ -35,6 +35,7 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.SessionParams.RenderingMode;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.repository.GoogleMavenArtifactId;
 import com.android.ide.common.resources.Locale;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
@@ -618,8 +619,8 @@ public class RenderTask {
 
     if (modelParser instanceof LayoutRenderPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour.
-      boolean useSrcCompat = context.getModule().getDependencies().getDependsOnAppCompat() ||
-                             context.getModule().getDependencies().getDependsOnAndroidXAppCompat();
+      boolean useSrcCompat = context.getModule().getDependencies().dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7) ||
+                             context.getModule().getDependencies().dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
       ((LayoutRenderPullParser)modelParser).setUseSrcCompat(useSrcCompat);
       myLayoutlibCallback.setAaptDeclaredResources(((LayoutRenderPullParser)modelParser).getAaptDeclaredAttrs());
     }
