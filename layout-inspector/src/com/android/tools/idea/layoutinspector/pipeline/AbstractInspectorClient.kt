@@ -135,9 +135,7 @@ abstract class AbstractInspectorClient(
       doConnect()
       state = InspectorClient.State.CONNECTED
     } catch (t: Throwable) {
-      // TODO(b/254222091) consider moving error handling in exception handler in the coroutine
-      // scope
-      launchMonitor.onFailure(t)
+      launchMonitor.stop()
       disconnect()
       Logger.getInstance(AbstractInspectorClient::class.java)
         .warn(

@@ -154,21 +154,22 @@ class AppInspectionInspectorRule(
     )
   }
 
-  /** Convenience method so users don't have to manually create an [AppInspectionClientProvider]. */
+  /** Convenience method to create an [AppInspectionClientProvider]. */
   fun createInspectorClientProvider(
     getMonitor: (AbstractInspectorClient) -> InspectorClientLaunchMonitor = { defaultMonitor(it) },
     getClientSettings: () -> InspectorClientSettings = { defaultInspectorClientSettings() },
-    getDisposable: () -> Disposable = { defaultDisposable() }
+    getDisposable: () -> Disposable = { defaultDisposable() },
+    apiServicesProvider: () -> AppInspectionApiServices = { inspectionService.apiServices }
   ): InspectorClientProvider {
     return AppInspectionClientProvider(
-      { inspectionService.apiServices },
+      apiServicesProvider,
       getMonitor,
       getClientSettings,
       getDisposable
     )
   }
 
-  private fun defaultMonitor(client: AbstractInspectorClient): InspectorClientLaunchMonitor {
+  fun defaultMonitor(client: AbstractInspectorClient): InspectorClientLaunchMonitor {
     return InspectorClientLaunchMonitor(
       projectRule.project,
       client.notificationModel,

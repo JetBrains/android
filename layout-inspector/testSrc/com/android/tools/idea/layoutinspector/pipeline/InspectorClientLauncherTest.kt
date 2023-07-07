@@ -692,17 +692,11 @@ class InspectorClientLauncherMetricsTest {
         it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
       }
 
-    assertThat(usages).hasSize(4)
+    assertThat(usages).hasSize(2)
     // ATTACH_REQUEST should be logged only once
     assertThat(usages[0].studioEvent.dynamicLayoutInspectorEvent.type)
       .isEqualTo(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_REQUEST)
-    // ATTACH_ERROR for first client
     assertThat(usages[1].studioEvent.dynamicLayoutInspectorEvent.type)
-      .isEqualTo(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR)
-    // ATTACH_ERROR for second client
-    assertThat(usages[2].studioEvent.dynamicLayoutInspectorEvent.type)
-      .isEqualTo(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.ATTACH_ERROR)
-    assertThat(usages[3].studioEvent.dynamicLayoutInspectorEvent.type)
       .isEqualTo(DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType.COMPATIBILITY_SUCCESS)
   }
 

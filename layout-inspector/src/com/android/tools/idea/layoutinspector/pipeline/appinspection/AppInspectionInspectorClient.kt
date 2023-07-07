@@ -226,8 +226,18 @@ class AppInspectionInspectorClient(
       .recover { t ->
         notifyError(t)
         logError(t)
+        handleConnectionError(t)
         throw t
       }
+  }
+
+  private fun handleConnectionError(throwable: Throwable) {
+    if (throwable is CancellationException) {
+      return
+    }
+
+    val errorCode = throwable.toAttachErrorInfo().code
+    launchMonitor.logAttachErrorToMetrics(errorCode)
   }
 
   private fun logError(throwable: Throwable) {

@@ -24,7 +24,6 @@ import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotificationAction
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
 import com.android.tools.idea.layoutinspector.pipeline.adb.findClient
-import com.android.tools.idea.layoutinspector.pipeline.appinspection.toAttachErrorInfo
 import com.android.tools.idea.layoutinspector.pipeline.debugger.isPausedInDebugger
 import com.android.tools.idea.layoutinspector.pipeline.debugger.resumeDebugger
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
@@ -40,7 +39,6 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
-import kotlinx.coroutines.CancellationException
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -107,15 +105,6 @@ class InspectorClientLaunchMonitor(
     }
     notificationModel.removeNotification(CONNECT_TIMEOUT_MESSAGE_KEY)
     notificationModel.removeNotification(DEBUGGER_CHECK_MESSAGE_KEY)
-  }
-
-  fun onFailure(t: Throwable) {
-    // CancellationExceptions will be forwarded to LayoutInspector.logError no need to handle it
-    // here.
-    if (t !is CancellationException) {
-      logAttachErrorToMetrics(t.toAttachErrorInfo().code)
-    }
-    stop()
   }
 
   private fun handleDebuggerCheck() {
@@ -209,7 +198,8 @@ class InspectorClientLaunchMonitor(
   private val adbClient: Client?
     get() = client?.process?.let { AdbUtils.getAdbFuture(project).get()?.findClient(it) }
 
-  private fun logAttachErrorToMetrics(errorCode: AttachErrorCode) {
+  /** Log an attach error from the Dynamic Layout Inspector to metrics. */
+  fun logAttachErrorToMetrics(errorCode: AttachErrorCode) {
     val stats = client?.stats ?: DisconnectedClient.stats
     LayoutInspectorSessionMetrics(null, client?.process, null)
       .logEvent(
