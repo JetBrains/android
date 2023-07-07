@@ -23,8 +23,10 @@ import com.intellij.platform.backend.documentation.DocumentationResult
 import com.intellij.platform.backend.documentation.DocumentationTarget
 import com.intellij.platform.backend.presentation.TargetPresentation
 import com.intellij.pom.Navigatable
+import icons.StudioIcons
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
+import javax.swing.Icon
 import org.jetbrains.concurrency.Promise
 
 /** DocumentationTarget for Nele properties. */
@@ -33,8 +35,13 @@ class NlPropertyDocumentationTarget(
   private val currentSelectedComponent: () -> NlComponent?
 ) : DocumentationTarget, Pointer<NlPropertyDocumentationTarget> {
 
-  override fun computePresentation(): TargetPresentation =
-    TargetPresentation.builder("").presentation()
+  override fun computePresentation(): TargetPresentation {
+    val item = currentPropertyItem().blockingGet(100, TimeUnit.MILLISECONDS)
+    val property = item?.asProperty()
+    return TargetPresentation.builder(property?.name ?: "")
+      .icon(property?.iconPresentation())
+      .presentation()
+  }
 
   override fun createPointer(): Pointer<NlPropertyDocumentationTarget> = this
 
@@ -47,11 +54,10 @@ class NlPropertyDocumentationTarget(
   override fun computeDocumentation(): DocumentationResult {
     return DocumentationResult.asyncDocumentation(
       object : Supplier<DocumentationResult.Documentation?> {
-        val item = currentPropertyItem()
         override fun get(): DocumentationResult.Documentation? {
           try {
-            val property =
-              item.blockingGet(100, TimeUnit.MILLISECONDS) as? NlPropertyItem ?: return null
+            val item = currentPropertyItem().blockingGet(100, TimeUnit.MILLISECONDS)
+            val property = item?.asProperty() ?: return null
             return DocumentationResult.documentation(
               HelpActions.createHelpText(property, allowEmptyDescription = true)
             )
@@ -62,4 +68,17 @@ class NlPropertyDocumentationTarget(
       }
     )
   }
+
+  private fun PTableItem.asProperty(): NlPropertyItem? =
+    when (this) {
+      is NlFlagPropertyItem -> this.flags
+      is NlPropertyItem -> this
+      else -> null
+    }
+
+  private fun NlPropertyItem.iconPresentation(): Icon? =
+    when (this) {
+      is NlFlagsPropertyItem -> StudioIcons.LayoutEditor.Properties.FLAG
+      else -> namespaceIcon ?: colorButton?.actionIcon
+    }
 }
