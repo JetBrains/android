@@ -164,12 +164,12 @@
     <option name="configure" path="ActionManager" hit="Configure project structure" />
     <option name="project" path="ActionManager" hit="Configure project structure" />
     <option name="structure" path="ActionManager" hit="Configure project structure" />
-    <option name="control" path="ActionManager" hit="Control folding pose of the device" />
-    <option name="device" path="ActionManager" hit="Control folding pose of the device" />
-    <option name="folding" path="ActionManager" hit="Control folding pose of the device" />
-    <option name="of" path="ActionManager" hit="Control folding pose of the device" />
-    <option name="pose" path="ActionManager" hit="Control folding pose of the device" />
-    <option name="the" path="ActionManager" hit="Control folding pose of the device" />
+    <option name="control" path="ActionManager" hit="Control folding posture of the device" />
+    <option name="device" path="ActionManager" hit="Control folding posture of the device" />
+    <option name="folding" path="ActionManager" hit="Control folding posture of the device" />
+    <option name="of" path="ActionManager" hit="Control folding posture of the device" />
+    <option name="posture" path="ActionManager" hit="Control folding posture of the device" />
+    <option name="the" path="ActionManager" hit="Control folding posture of the device" />
     <option name="convert" path="ActionManager" hit="Convert to PNG..." />
     <option name="png" path="ActionManager" hit="Convert to PNG..." />
     <option name="to" path="ActionManager" hit="Convert to PNG..." />
@@ -777,12 +777,13 @@
     <option name="emulator" path="ActionManager" hit="Show emulator extended controls" />
     <option name="extended" path="ActionManager" hit="Show emulator extended controls" />
     <option name="show" path="ActionManager" hit="Show emulator extended controls" />
-    <option name="controls" path="ActionManager" hit="Show folding controls for the device" />
-    <option name="device" path="ActionManager" hit="Show folding controls for the device" />
-    <option name="folding" path="ActionManager" hit="Show folding controls for the device" />
-    <option name="for" path="ActionManager" hit="Show folding controls for the device" />
-    <option name="show" path="ActionManager" hit="Show folding controls for the device" />
-    <option name="the" path="ActionManager" hit="Show folding controls for the device" />
+    <option name="controls" path="ActionManager" hit="Show virtual sensors controls for the device" />
+    <option name="device" path="ActionManager" hit="Show virtual sensors controls for the device" />
+    <option name="for" path="ActionManager" hit="Show virtual sensors controls for the device" />
+    <option name="sensors" path="ActionManager" hit="Show virtual sensors controls for the device" />
+    <option name="show" path="ActionManager" hit="Show virtual sensors controls for the device" />
+    <option name="the" path="ActionManager" hit="Show virtual sensors controls for the device" />
+    <option name="virtual" path="ActionManager" hit="Show virtual sensors controls for the device" />
     <option name="device" path="ActionManager" hit="Simulate the Palm gesture for the device" />
     <option name="for" path="ActionManager" hit="Simulate the Palm gesture for the device" />
     <option name="gesture" path="ActionManager" hit="Simulate the Palm gesture for the device" />
@@ -915,6 +916,8 @@
     <option name="device" path="ActionManager" hit="Virtual Device Manager" />
     <option name="manager" path="ActionManager" hit="Virtual Device Manager" />
     <option name="virtual" path="ActionManager" hit="Virtual Device Manager" />
+    <option name="sensors" path="ActionManager" hit="Virtual Sensors" />
+    <option name="virtual" path="ActionManager" hit="Virtual Sensors" />
     <option name="down" path="ActionManager" hit="Volume Down" />
     <option name="volume" path="ActionManager" hit="Volume Down" />
     <option name="up" path="ActionManager" hit="Volume Up" />

@@ -74,14 +74,10 @@
         <keyboard-shortcut first-keystroke="meta r" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta r" keymap="Mac OS X 10.5+"/>
       </action>
-      <action id="android.emulator.folding.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowFoldingControlsAction"
-              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Show folding controls for the device">
-        <keyboard-shortcut first-keystroke="control shift BACK_SLASH" keymap="$default"/>
-        <keyboard-shortcut first-keystroke="meta shift BACK_SLASH" keymap="Mac OS X"/>
-        <keyboard-shortcut first-keystroke="meta shift BACK_SLASH" keymap="Mac OS X 10.5+"/>
-      </action>
-      <group id="android.device.folding.states" class="com.android.tools.idea.streaming.device.actions.DeviceFoldingActionGroup"
-              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Control folding pose of the device" popup="true"/>
+      <group id="android.device.postures" class="com.android.tools.idea.streaming.actions.StreamingFoldingActionGroup"
+              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Control folding posture of the device" popup="true"/>
+      <action id="android.emulator.virtual.sensors" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSensorsAction"
+              text="Virtual Sensors" description="Show virtual sensors controls for the device"/>
       <action id="android.device.wear1.button" class="com.android.tools.idea.streaming.actions.StreamingWear1ButtonAction"
               icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button of the device">
         <keyboard-shortcut first-keystroke="control shift 1" keymap="$default"/>
@@ -169,7 +165,7 @@
       <reference ref="android.device.volume.down.button"/>
       <reference ref="android.device.rotate.left"/>
       <reference ref="android.device.rotate.right"/>
-      <reference ref="android.emulator.folding.controls"/>
+      <reference ref="android.device.postures"/>
       <reference ref="android.device.wear1.button"/>
       <reference ref="android.device.wear2.button"/>
       <reference ref="android.device.sleep"/>
@@ -197,7 +193,7 @@
       <reference ref="android.device.volume.down.button"/>
       <reference ref="android.device.rotate.left"/>
       <reference ref="android.device.rotate.right"/>
-      <reference ref="android.device.folding.states"/>
+      <reference ref="android.device.postures"/>
       <reference ref="android.device.wear1.button"/>
       <reference ref="android.device.wear2.button"/>
       <reference ref="android.device.sleep"/>

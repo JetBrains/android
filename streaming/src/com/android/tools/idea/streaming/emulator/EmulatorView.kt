@@ -54,6 +54,7 @@ import com.android.tools.idea.streaming.core.scaled
 import com.android.tools.idea.streaming.core.scaledDown
 import com.android.tools.idea.streaming.core.scaledUnbiased
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.DisplayMode
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.google.protobuf.TextFormat.shortDebugString
@@ -194,7 +195,7 @@ class EmulatorView(
     get() = screenshotShape.orientation
     internal set(value) {
       if (value != screenshotShape.orientation && deviceFrameVisible) {
-        requestScreenshotFeed(currentDisplaySize, value)
+        requestScreenshotFeed(deviceDisplaySize, value)
       }
     }
   override val apiLevel: Int
@@ -206,14 +207,12 @@ class EmulatorView(
     get() = lastScreenshot?.displayShape ?: DisplayShape(0, 0, initialOrientation)
   private val initialOrientation: Int
     get() = if (displayId == PRIMARY_DISPLAY_ID) emulatorConfig.initialOrientation.number else SkinRotation.PORTRAIT.number
-  private val currentDisplaySize: Dimension
-    get() = screenshotShape.activeDisplayRegion?.size ?: deviceDisplaySize
   private val deviceDisplayRegion: Rectangle
     get() = screenshotShape.activeDisplayRegion ?: Rectangle(deviceDisplaySize)
   internal val displayMode: DisplayMode?
     get() = screenshotShape.displayMode ?: emulatorConfig.displayModes.firstOrNull()
   override val deviceDisplaySize: Dimension
-    get() = displaySize ?: emulatorConfig.displaySize
+    get() = screenshotShape.activeDisplayRegion?.size ?: displaySize ?: emulatorConfig.displaySize
   override val deviceSerialNumber: String
     get() = emulator.emulatorId.serialNumber
 
@@ -234,6 +233,19 @@ class EmulatorView(
   private var mouseWheelSender: StreamObserver<WheelEvent>? = null
 
   private val displayConfigurationListeners: MutableList<DisplayConfigurationListener> = ContainerUtil.createLockFreeCopyOnWriteList()
+  private val postureListeners: MutableList<PostureListener> = ContainerUtil.createLockFreeCopyOnWriteList()
+  @Volatile
+  internal var currentPosture: PostureDescriptor? = null
+    private set(value) {
+      if (field != value) {
+        field = value
+        if (value != null) {
+          for (listener in postureListeners) {
+            listener.postureChanged(value)
+          }
+        }
+      }
+    }
 
   var deviceFrameVisible: Boolean = deviceFrameVisible
     set(value) {
@@ -369,6 +381,14 @@ class EmulatorView(
     displayConfigurationListeners.remove(listener)
   }
 
+  fun addPostureListener(listener: PostureListener) {
+    postureListeners.add(listener)
+  }
+
+  fun removePostureListener(listener: PostureListener) {
+    postureListeners.remove(listener)
+  }
+
   override fun canZoom(): Boolean = isConnected
 
   override fun computeActualSize(): Dimension =
@@ -377,10 +397,10 @@ class EmulatorView(
   private fun computeActualSize(orientationQuadrants: Int): Dimension {
     val skin = emulator.skinDefinition
     return if (skin != null && deviceFrameVisible) {
-      skin.getRotatedFrameSize(orientationQuadrants, currentDisplaySize)
+      skin.getRotatedFrameSize(orientationQuadrants, deviceDisplaySize)
     }
     else {
-      currentDisplaySize.rotatedByQuadrants(orientationQuadrants)
+      deviceDisplaySize.rotatedByQuadrants(orientationQuadrants)
     }
   }
 
@@ -513,7 +533,7 @@ class EmulatorView(
 
   private fun requestScreenshotFeed() {
     if (isConnected) {
-      requestScreenshotFeed(currentDisplaySize, displayOrientationQuadrants)
+      requestScreenshotFeed(deviceDisplaySize, displayOrientationQuadrants)
     }
   }
 
@@ -666,6 +686,8 @@ class EmulatorView(
           response.hasCameraNotification() -> virtualSceneCameraActive = response.cameraNotification.active
           response.hasDisplayConfigurationsChangedNotification() ->
               notifyDisplayConfigurationListeners(response.displayConfigurationsChangedNotification.displayConfigurations.displaysList)
+          response.hasPosture() ->
+              currentPosture = emulatorConfig.postures.find { it.posture == response.posture.value }
           else  -> {
             // Old style notifications.
             // TODO: Remove the following 'when' statement after January 1, 2024.
@@ -1075,7 +1097,7 @@ class EmulatorView(
       // a fresh feed for the accurate rotation.
       if (imageRotation != orientationQuadrants) {
         EventQueue.invokeLater { // This is safe because this code doesn't touch PSI or VFS.
-          requestScreenshotFeed(currentDisplaySize, imageRotation)
+          requestScreenshotFeed(deviceDisplaySize, imageRotation)
         }
         expectedFrameNumber++
         return

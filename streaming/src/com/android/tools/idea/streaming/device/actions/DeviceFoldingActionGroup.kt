@@ -26,12 +26,13 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopupFactory
 
 /**
- * Displays a popup menu of available folding states of a foldable device.
+ * Displays a popup menu of available postures of a foldable device.
  */
 internal class DeviceFoldingActionGroup : DefaultActionGroup(), DumbAware {
 
   init {
     templatePresentation.isPerformGroup = true
+    templatePresentation.text = "Fold/Unfold"
   }
 
   override fun actionPerformed(event: AnActionEvent) {

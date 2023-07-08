@@ -33,6 +33,7 @@ import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
 import com.android.tools.idea.streaming.core.icon
 import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.core.sizeWithoutInsets
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.android.tools.idea.streaming.emulator.actions.findManageSnapshotDialog
@@ -182,6 +183,13 @@ internal class EmulatorToolWindowPanel(
     installFileDropHandler(this, id.serialNumber, emulatorView, project)
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusOwnerListener)
     emulatorView.addDisplayConfigurationListener(displayConfigurator)
+    emulatorView.addPostureListener(object: PostureListener {
+      override fun postureChanged(posture: PostureDescriptor) {
+        EventQueue.invokeLater {
+          mainToolbar.updateActionsImmediately()
+        }
+      }
+    })
     emulator.addConnectionStateListener(this)
 
     val multiDisplayState = multiDisplayStateStorage.getMultiDisplayState(emulatorId.avdFolder)

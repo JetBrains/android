@@ -33,6 +33,9 @@ import com.android.emulator.control.MouseEvent
 import com.android.emulator.control.Notification
 import com.android.emulator.control.PaneEntry
 import com.android.emulator.control.PhysicalModelValue
+import com.android.emulator.control.PhysicalModelValue.PhysicalType
+import com.android.emulator.control.Posture
+import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.RotationRadian
@@ -75,6 +78,7 @@ import com.google.common.base.Predicates.alwaysTrue
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.text.StringUtil.parseInt
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.io.createDirectories
@@ -129,14 +133,37 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   private var startTime = 0L
 
   private val config = EmulatorConfiguration.readAvdDefinition(avdId, avdFolder)!!
+  private val foldedDisplayRegion: FoldedDisplay? = readDisplayRegion(avdFolder)
 
   @Volatile var displayRotation: SkinRotation = SkinRotation.PORTRAIT
-  private var foldedDisplay: FoldedDisplay? = null
   private var screenshotStreamRequest: ImageFormat? = null
   @Volatile private var screenshotStreamObserver: StreamObserver<Image>? = null
   @Volatile private var clipboardStreamObserver: StreamObserver<ClipData>? = null
   @Volatile private var notificationStreamObserver: StreamObserver<Notification>? = null
   private var displays = listOf(DisplayConfiguration.newBuilder().setWidth(config.displayWidth).setHeight(config.displayHeight).build())
+
+  private var posture: PostureValue? = config.postures.lastOrNull()?.posture
+    set(value) {
+      if (value != null && value != field) {
+        field = value
+        executor.execute {
+          notificationStreamObserver?.sendStreamingResponse(createPostureNotification(value))
+          foldedDisplay = if (value == PostureValue.POSTURE_CLOSED) foldedDisplayRegion else null
+        }
+      }
+    }
+
+  private var foldedDisplay: FoldedDisplay? = null
+    set(value) {
+      if (field != value) {
+        field = value
+        executor.execute {
+          val screenshotObserver = screenshotStreamObserver ?: return@execute
+          val request = screenshotStreamRequest ?: return@execute
+          sendScreenshot(request, screenshotObserver)
+        }
+      }
+    }
 
   private val clipboardInternal = AtomicReference("")
   var clipboard: String
@@ -145,7 +172,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val oldValue = clipboardInternal.getAndSet(value)
       if (value != oldValue) {
         executor.execute {
-          clipboardStreamObserver?.let { sendStreamingResponse(it, ClipData.newBuilder().setText(value).build()) }
+          clipboardStreamObserver?.sendStreamingResponse(ClipData.newBuilder().setText(value).build())
         }
       }
     }
@@ -156,9 +183,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       val oldValue = virtualSceneCameraActiveInternal.getAndSet(value)
       if (value != oldValue) {
         executor.execute {
-          notificationStreamObserver?.let {
-            sendStreamingResponse(it, createVirtualSceneCameraNotification(value))
-          }
+          notificationStreamObserver?.sendStreamingResponse(createVirtualSceneCameraNotification(value, PRIMARY_DISPLAY_ID))
         }
       }
     }
@@ -276,7 +301,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
         val displayConfigurations = DisplayConfigurations.newBuilder().addAllDisplays(displays)
         val notification = DisplayConfigurationsChangedNotification.newBuilder().setDisplayConfigurations(displayConfigurations)
         val response = Notification.newBuilder().setDisplayConfigurationsChangedNotification(notification).build()
-        sendStreamingResponse(notificationObserver, response)
+        notificationObserver.sendStreamingResponse(response)
       }
     }
   }
@@ -284,14 +309,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   /**
    * Folds/unfolds the primary display.
    */
-  fun setFoldedDisplay(foldedDisplay: FoldedDisplay?) {
+  fun setFolded(folded: Boolean) {
     executor.execute {
-      if (foldedDisplay != this.foldedDisplay) {
-        this.foldedDisplay = foldedDisplay
-        val screenshotObserver = screenshotStreamObserver ?: return@execute
-        val request = screenshotStreamRequest ?: return@execute
-        sendScreenshot(request, screenshotObserver)
-      }
+      foldedDisplay = if (folded) foldedDisplayRegion else null
     }
   }
 
@@ -413,9 +433,9 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   }
 
-  private fun <T> sendStreamingResponse(responseObserver: StreamObserver<T>, response: T) {
+  private fun <T> StreamObserver<T>.sendStreamingResponse(response: T) {
     try {
-      responseObserver.onNext(response)
+      onNext(response)
     }
     catch (e: StatusRuntimeException) {
       if (e.status.code != Status.Code.CANCELLED) {
@@ -452,7 +472,7 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       .setImage(ByteString.copyFrom(imageBytes))
       .setFormat(imageFormat)
       .setSeq(++frameNumber)
-    sendStreamingResponse(responseObserver, response.build())
+    responseObserver.sendStreamingResponse(response.build())
   }
 
   private fun getScaledAndRotatedDisplaySize(width: Int, height: Int, displayId: Int): Dimension {
@@ -480,10 +500,23 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
   }
 
-  private fun createVirtualSceneCameraNotification(cameraActive: Boolean): Notification {
-    return Notification.newBuilder()
-        .setCameraNotification(CameraNotification.newBuilder().setActive(cameraActive).setDisplay(PRIMARY_DISPLAY_ID))
-        .build()
+  private fun createVirtualSceneCameraNotification(cameraActive: Boolean, displayId: Int): Notification =
+      Notification.newBuilder().setCameraNotification(CameraNotification.newBuilder().setActive(cameraActive).setDisplay(displayId)).build()
+
+  private fun createPostureNotification(posture: PostureValue): Notification =
+      Notification.newBuilder().setPosture(Posture.newBuilder().setValue(posture)).build()
+
+  private fun readDisplayRegion(avdFolder: Path): FoldedDisplay? {
+    val configIniFile = avdFolder.resolve("config.ini")
+    val configIni = readKeyValueFile(configIniFile) ?: return null
+    val width = parseInt(configIni["hw.displayRegion.0.1.width"], 0)
+    val height = parseInt(configIni["hw.displayRegion.0.1.height"], 0)
+    if (width == 0 || height == 0) {
+      return null
+    }
+    val x = parseInt(configIni["hw.displayRegion.0.1.xOffset"], 0)
+    val y = parseInt(configIni["hw.displayRegion.0.1.yOffset"], 0)
+    return FoldedDisplay.newBuilder().setWidth(width).setHeight(height).setXOffset(x).setYOffset(y).build()
   }
 
   private inline fun <T> Semaphore.withPermit(action: () -> T): T {
@@ -501,13 +534,22 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
 
     override fun setPhysicalModel(request: PhysicalModelValue, responseObserver: StreamObserver<Empty>) {
       executor.execute {
-        if (request.target == PhysicalModelValue.PhysicalType.ROTATION) {
-          val zAngle = request.value.getData(2)
-          displayRotation = SkinRotation.forNumber(((zAngle / 90).roundToInt() + 4) % 4)
+        val target = request.target
+        when {
+          target == PhysicalType.ROTATION -> {
+            val zAngle = request.value.getData(2)
+            displayRotation = SkinRotation.forNumber(((zAngle / 90).roundToInt() + 4) % 4)
+          }
+          target == PhysicalType.HINGE_ANGLE0 && config.isFoldable || target == PhysicalType.ROLLABLE0 && config.isRollable -> {
+            findPosture(request.value.getData(0))?.let { posture = it }
+          }
         }
         sendEmptyResponse(responseObserver)
       }
     }
+
+    private fun findPosture(value: Float): PostureValue? =
+        config.postures.find { it.minValue <= value && value <= it.maxValue }?.posture
 
     override fun getStatus(request: Empty, responseObserver: StreamObserver<EmulatorStatus>) {
       executor.execute {
@@ -530,15 +572,19 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
       executor.execute {
         clipboardStreamObserver = responseObserver
         val response = ClipData.newBuilder().setText(clipboardInternal.get()).build()
-        sendStreamingResponse(responseObserver, response)
+        responseObserver.sendStreamingResponse(response)
       }
     }
 
     override fun streamNotification(request: Empty, responseObserver: StreamObserver<Notification>) {
       executor.execute {
         notificationStreamObserver = responseObserver
-        val response = createVirtualSceneCameraNotification(virtualSceneCameraActive)
-        sendStreamingResponse(responseObserver, response)
+        if (virtualSceneCameraActive) {
+          responseObserver.sendStreamingResponse(createVirtualSceneCameraNotification(true, PRIMARY_DISPLAY_ID))
+        }
+        posture?.let {
+          responseObserver.sendStreamingResponse(createPostureNotification(it))
+        }
       }
     }
 

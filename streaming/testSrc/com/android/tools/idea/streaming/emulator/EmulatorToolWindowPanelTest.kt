@@ -16,6 +16,8 @@
 package com.android.tools.idea.streaming.emulator
 
 import com.android.emulator.control.DisplayConfiguration
+import com.android.emulator.control.Posture.PostureValue
+import com.android.emulator.control.ThemingStyle
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
@@ -32,8 +34,12 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.createTestEvent
+import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
+import com.android.tools.idea.streaming.emulator.actions.EmulatorFoldingAction
+import com.android.tools.idea.streaming.emulator.actions.EmulatorShowVirtualSensorsAction
 import com.android.tools.idea.streaming.executeStreamingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.disposable
@@ -46,10 +52,15 @@ import com.intellij.configurationStore.serialize
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.ide.ui.LafManager
+import com.intellij.ide.ui.laf.darcula.DarculaLookAndFeelInfo
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
@@ -58,6 +69,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestDataProvider
+import com.intellij.testFramework.replaceService
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.LayeredIcon
 import icons.StudioIcons
@@ -209,8 +221,8 @@ class EmulatorToolWindowPanelTest {
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeDown"""")
 
-    // Check that the Fold/Unfold action is disabled because the device is not foldable.
-    assertThat(updateAndGetActionPresentation("android.emulator.folding.controls", emulatorView, project).isEnabled).isFalse()
+    // Check that the Fold/Unfold action is hidden because the device is not foldable.
+    assertThat(updateAndGetActionPresentation("android.device.postures", emulatorView, project).isVisible).isFalse()
 
     // Ensures that LiveEditAction starts off hidden since it's disconnected.
     assertThat(ui.findComponent<LiveEditNotificationGroup>()).isNull()
@@ -411,6 +423,67 @@ class EmulatorToolWindowPanelTest {
     streamScreenshotCall = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
     assertThat(shortDebugString(streamScreenshotCall.request)).isEqualTo("format: RGB888 width: 1200 height: 1171")
     assertAppearance(ui, "ChangeDisplayMode2", maxPercentDifferentMac = 0.002, maxPercentDifferentWindows = 0.05)
+  }
+
+  @Test
+  fun testFolding() {
+    val avdFolder = FakeEmulator.createFoldableAvd(emulatorRule.avdRoot)
+    val panel = createWindowPanel(avdFolder)
+    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0)
+    panel.size = Dimension(200, 400)
+    ui.updateToolbars()
+    ui.layoutAndDispatchEvents()
+    var call = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 200 height: 371")
+
+    val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
+    val event = createTestEvent(emulatorView, project, ActionPlaces.TOOLBAR)
+    waitForCondition(2, TimeUnit.SECONDS) { foldingGroup.update(event); event.presentation.isVisible}
+    assertThat(event.presentation.isEnabled).isTrue()
+    assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
+    val foldingActions = foldingGroup.getChildren(event)
+    assertThat(foldingActions).asList().containsExactly(
+        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_CLOSED, 0.0, 30.0)),
+        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, 30.0, 150.0)),
+        EmulatorFoldingAction(PostureDescriptor(PostureValue.POSTURE_OPENED, 150.0, 180.0)),
+        Separator.getInstance(),
+        ActionManager.getInstance().getAction(EmulatorShowVirtualSensorsAction.ID))
+    for (action in foldingActions) {
+      action.update(event)
+      assertThat(event.presentation.isEnabled).isTrue()
+      assertThat(event.presentation.isVisible).isTrue()
+    }
+    assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(1768, 2208))
+
+    foldingActions.first().actionPerformed(event)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setPhysicalModel")
+    assertThat(shortDebugString(call.request)).isEqualTo("target: HINGE_ANGLE0 value { data: 0.0 }")
+    waitForCondition(2, TimeUnit.SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
+    panel.waitForFrame(ui, ++frameNumber, 2, TimeUnit.SECONDS)
+    assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(884, 2208))
+
+    // Check EmulatorShowVirtualSensorsAction.
+    val mockLafManager = mock<LafManager>()
+    whenever(mockLafManager.currentLookAndFeel).thenReturn(DarculaLookAndFeelInfo())
+    ApplicationManager.getApplication().replaceService(LafManager::class.java, mockLafManager, testRootDisposable)
+
+    foldingActions.last().actionPerformed(event)
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/setUiTheme")
+    assertThat(call.request).isEqualTo(ThemingStyle.newBuilder().setStyle(ThemingStyle.Style.DARK).build())
+    call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
+    assertThat(call.methodName).isEqualTo("android.emulation.control.UiController/showExtendedControls")
+    assertThat(shortDebugString(call.request)).isEqualTo("index: VIRT_SENSORS")
   }
 
   @Test

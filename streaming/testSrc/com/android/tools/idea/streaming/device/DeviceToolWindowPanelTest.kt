@@ -260,7 +260,7 @@ class DeviceToolWindowPanelTest {
     fakeUi.updateToolbars()
     waitForFrame()
 
-    val foldingGroup = ActionManager.getInstance().getAction("android.device.folding.states") as ActionGroup
+    val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(deviceView, project, ActionPlaces.TOOLBAR)
     waitForCondition(2, TimeUnit.SECONDS) { foldingGroup.update(event); event.presentation.isVisible}
     assertThat(event.presentation.isEnabled).isTrue()

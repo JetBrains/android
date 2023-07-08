@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
-import com.android.emulator.control.FoldedDisplay
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.testutils.waitForCondition
@@ -126,8 +125,7 @@ class EmulatorScreenshotActionTest {
   fun testFoldableFoldAction() {
     emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
-    val config = emulatorView.emulator.emulatorConfig
-    emulator.setFoldedDisplay(FoldedDisplay.newBuilder().setWidth(config.displayWidth / 2).setHeight(config.displayHeight).build())
+    emulator.setFolded(true)
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
