@@ -81,13 +81,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "easymock",
-    jars = ["//prebuilts/tools/common/m2:easymock_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "libam-instrumentation-data-proto",
     jars = ["//tools/base/ddmlib:libam-instrumentation-data-proto.jar"],
     visibility = ["//visibility:public"],
