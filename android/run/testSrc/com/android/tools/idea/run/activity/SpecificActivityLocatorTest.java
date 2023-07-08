@@ -16,11 +16,12 @@
 package com.android.tools.idea.run.activity;
 
 import com.android.SdkConstants;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.android.AndroidTestCase;
 
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_ALIAS;
 import static com.android.tools.idea.testing.TestProjectPaths.RUN_CONFIG_UNDECLARED;
-import static com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate;
 
 public class SpecificActivityLocatorTest extends AndroidTestCase {
 
@@ -30,19 +31,23 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testValidLauncherActivity() throws ActivityLocator.ActivityLocatorException {
-    myFixture.copyFileToProject("projects/runConfig/activity/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject("projects/runConfig/activity/src/debug/java/com/example/unittest/Launcher.java",
+    VirtualFile manifestFile = myFixture.copyFileToProject("projects/runConfig/activity/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    PsiManager.getInstance(myFixture.getProject()).findFile(manifestFile);
+
+    VirtualFile launcherFile = myFixture.copyFileToProject("projects/runConfig/activity/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    ensureIndexesUpToDate(myFixture.getProject());
+    PsiManager.getInstance(myFixture.getProject()).findFile(launcherFile);
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher");
     locator.validate();
   }
 
   public void testActivityNotDeclared() {
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher2.java", "src/com/example/unittest/Launcher2.java");
-    ensureIndexesUpToDate(myFixture.getProject());
+    VirtualFile manifestFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    PsiManager.getInstance(myFixture.getProject()).findFile(manifestFile);
+
+    VirtualFile launcherFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher2.java", "src/com/example/unittest/Launcher2.java");
+    PsiManager.getInstance(myFixture.getProject()).findFile(launcherFile);
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher2");
     try {
@@ -55,8 +60,8 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testNonActivity() {
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    ensureIndexesUpToDate(myFixture.getProject());
+    VirtualFile manifestFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    PsiManager.getInstance(myFixture.getProject()).findFile(manifestFile);
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher");
     try {
@@ -68,19 +73,24 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testValidLauncherAlias() throws ActivityLocator.ActivityLocatorException {
-    myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
+    VirtualFile manifestFile = myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    PsiManager.getInstance(myFixture.getProject()).findFile(manifestFile);
+
+    VirtualFile launcherFile = myFixture.copyFileToProject(RUN_CONFIG_ALIAS + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
-    ensureIndexesUpToDate(myFixture.getProject());
+    PsiManager.getInstance(myFixture.getProject()).findFile(launcherFile);
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.LauncherAlias");
     locator.validate();
   }
 
   public void testAliasNotDeclared() {
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
-    ensureIndexesUpToDate(myFixture.getProject());
+    VirtualFile manifestFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    PsiManager.getInstance(myFixture.getProject()).findFile(manifestFile);
+
+    VirtualFile launcherFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
+    PsiManager.getInstance(myFixture.getProject()).findFile(launcherFile);
+
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.NotLaunchable");
     try {
@@ -92,9 +102,12 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testActivityWithoutLauncherIntent() {
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
-    ensureIndexesUpToDate(myFixture.getProject());
+    VirtualFile manifestFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    PsiManager.getInstance(myFixture.getProject()).findFile(manifestFile);
+
+    VirtualFile launcherFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
+    PsiManager.getInstance(myFixture.getProject()).findFile(launcherFile);
+
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.Launcher");
     try {
@@ -106,18 +119,22 @@ public class SpecificActivityLocatorTest extends AndroidTestCase {
   }
 
   public void testActivityWithSomeLauncherIntent() throws ActivityLocator.ActivityLocatorException {
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
-    ensureIndexesUpToDate(myFixture.getProject());
+    VirtualFile manifestFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    PsiManager.getInstance(myFixture.getProject()).findFile(manifestFile);
+
+    VirtualFile launcherFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/Launcher.java", "src/com/example/unittest/Launcher.java");
+    PsiManager.getInstance(myFixture.getProject()).findFile(launcherFile);
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.SendHandler");
     locator.validate();
   }
 
   public void testExportedActivity() throws ActivityLocator.ActivityLocatorException {
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/ExportedActivity.java", "src/com/example/unittest/ExportedActivity.java");
-    ensureIndexesUpToDate(myFixture.getProject());
+    VirtualFile manifestFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
+    PsiManager.getInstance(myFixture.getProject()).findFile(manifestFile);
+
+    VirtualFile launcherFile = myFixture.copyFileToProject(RUN_CONFIG_UNDECLARED + "/ExportedActivity.java", "src/com/example/unittest/ExportedActivity.java");
+    PsiManager.getInstance(myFixture.getProject()).findFile(launcherFile);
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myFacet, "com.example.unittest.ExportedActivity");
     locator.validate();
