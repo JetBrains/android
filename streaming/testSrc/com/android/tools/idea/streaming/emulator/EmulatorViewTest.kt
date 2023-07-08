@@ -437,28 +437,28 @@ class EmulatorViewTest {
     getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
     assertAppearance(ui, "Unfolded")
 
-    ui.mouse.press(135, 190)
+    ui.mouse.press(135, 160)
     var call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1273 y: 2100 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1493 y: 1588 buttons: 1")
     ui.mouse.release()
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 1273 y: 2100")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 1493 y: 1588")
 
     emulator.setFolded(true)
     view.waitForFrame(ui, ++frameNumber, 2, TimeUnit.SECONDS)
     assertAppearance(ui, "Folded")
 
     // Check that in a folded state mouse coordinates are interpreted differently.
-    ui.mouse.press(135, 190)
+    ui.mouse.press(135, 160)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 831 y: 2100 buttons: 1")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 909 y: 1676 buttons: 1")
     ui.mouse.release()
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendMouse")
-    assertThat(shortDebugString(call.request)).isEqualTo("x: 831 y: 2100")
+    assertThat(shortDebugString(call.request)).isEqualTo("x: 909 y: 1676")
   }
 
   /** Checks that the mouse button release event is sent when the mouse leaves the device display. */

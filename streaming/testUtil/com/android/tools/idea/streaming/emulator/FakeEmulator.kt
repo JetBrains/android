@@ -1083,20 +1083,20 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
     }
 
     /**
-     * Creates a fake "7.6 Fold-in with outer display" AVD.
+     * Creates a fake "Pixel Fold" AVD.
      */
     @JvmStatic
-    fun createFoldableAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 31): Path {
-      val avdId = "7.6_Fold-in_with_outer_display_API_$api"
+    fun createFoldableAvd(parentFolder: Path, sdkFolder: Path = getSdkFolder(parentFolder), api: Int = 33): Path {
+      val avdId = "Pixel_Fold_API_$api"
       val avdFolder = parentFolder.resolve("${avdId}.avd")
       val avdName = avdId.replace('_', ' ')
-      val systemImage = "system-images/android-$api/google_apis/x86_64/"
+      val systemImage = "system-images/android-$api/google_apis_playstore/x86_64/"
       val systemImageFolder = sdkFolder.resolve(systemImage)
 
       val configIni = """
           AvdId=${avdId}
-          PlayStore.enabled=false
-          abi.type=x86
+          PlayStore.enabled=true
+          abi.type=x86_64
           avd.ini.displayname=${avdName}
           avd.ini.encoding=UTF-8
           disk.dataPartition.size=800M
@@ -1106,12 +1106,13 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.battery=yes
           hw.camera.back=virtualscene
           hw.camera.front=emulated
-          hw.cpu.arch=x86
+          hw.cpu.arch=x86_64
           hw.cpu.ncore=4
           hw.dPad=no
-          hw.device.name = 7.6in Foldable
-          hw.displayRegion.0.1.height = 2208
-          hw.displayRegion.0.1.width = 884
+          hw.device.manufacturer=Google
+          hw.device.name=pixel_fold
+          hw.displayRegion.0.1.height = 2092
+          hw.displayRegion.0.1.width = 1080
           hw.displayRegion.0.1.xOffset = 0
           hw.displayRegion.0.1.yOffset = 0
           hw.gps=yes
@@ -1119,21 +1120,22 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.gpu.mode=auto
           hw.initialOrientation=Portrait
           hw.keyboard=yes
-          hw.lcd.density = 480
-          hw.lcd.height = 2208
-          hw.lcd.width = 1768
+          hw.keyboard.lid=yes
+          hw.lcd.density=420
+          hw.lcd.height=1840
+          hw.lcd.width=2208
           hw.mainKeys=no
           hw.ramSize=1536
           hw.sdCard=yes
-          hw.sensor.hinge = yes
-          hw.sensor.hinge.areas = 884-0-1-2208
-          hw.sensor.hinge.count = 1
-          hw.sensor.hinge.defaults = 180
-          hw.sensor.hinge.ranges = 0-180
-          hw.sensor.hinge.sub_type = 1
-          hw.sensor.hinge.type = 1
-          hw.sensor.hinge_angles_posture_definitions = 0-30, 30-150, 150-180
-          hw.sensor.posture_list = 1,2,3
+          hw.sensor.hinge=yes
+          hw.sensor.hinge.areas=1080-0-0-1840
+          hw.sensor.hinge.count=1
+          hw.sensor.hinge.defaults=180
+          hw.sensor.hinge.ranges=0-180
+          hw.sensor.hinge.sub_type=1
+          hw.sensor.hinge.type=1
+          hw.sensor.hinge_angles_posture_definitions=0-30, 30-150, 150-180
+          hw.sensor.posture_list=1, 2, 3
           hw.sensors.orientation=yes
           hw.sensors.proximity=yes
           hw.trackBall=no
@@ -1141,26 +1143,27 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           runtime.network.latency=none
           runtime.network.speed=full
           sdcard.path=${avdFolder}/sdcard.img
-          sdcard.size=512 MB
+          sdcard.size=512M
           showDeviceFrame=no
           skin.dynamic=yes
-          skin.name = 1768x2208
+          skin.name = 2208x1840
           skin.path = _no_skin
-          tag.display=Google APIs
-          tag.id=google_apis
+          tag.display=Google PLay
+          tag.id=google_apis_playstore
           """.trimIndent()
 
       val hardwareIni = """
-          hw.cpu.arch = x86
-          hw.cpu.model = qemu32
+          hw.cpu.arch = x86_64
           hw.cpu.ncore = 4
-          hw.lcd.width = 1768
-          hw.lcd.height = 2208
-          hw.lcd.density = 480
+          hw.lcd.width = 2208
+          hw.lcd.height = 1840
+          hw.lcd.depth = 16
+          hw.lcd.circular = false
+          hw.lcd.density = 420
           hw.displayRegion.0.1.xOffset = 0
           hw.displayRegion.0.1.yOffset = 0
-          hw.displayRegion.0.1.width = 884
-          hw.displayRegion.0.1.height = 2208
+          hw.displayRegion.0.1.width = 1080
+          hw.displayRegion.0.1.height = 1840
           hw.ramSize = 1536
           hw.screen = multi-touch
           hw.dPad = false
@@ -1176,8 +1179,8 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
           hw.sensor.hinge.sub_type = 1
           hw.sensor.hinge.ranges = 0-180
           hw.sensor.hinge.defaults = 180
-          hw.sensor.hinge.areas = 884-0-1-2208
-          hw.sensor.posture_list = 1,2,3
+          hw.sensor.hinge.areas = 1080-0-0-1840
+          hw.sensor.posture_list = 1, 2, 3
           hw.sensor.hinge_angles_posture_definitions = 0-30, 30-150, 150-180
           hw.sensor.hinge.fold_to_displayRegion.0.1_at_posture = 1
           hw.audioInput = true

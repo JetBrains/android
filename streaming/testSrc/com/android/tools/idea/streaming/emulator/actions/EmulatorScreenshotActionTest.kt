@@ -37,7 +37,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
@@ -69,10 +68,6 @@ class EmulatorScreenshotActionTest {
   @get:Rule
   val portableUiFontRule = PortableUiFontRule()
 
-  @Before
-  fun setUp() {
-  }
-
   @Test
   fun testAction() {
     emulatorView = emulatorViewRule.newEmulatorView()
@@ -99,7 +94,7 @@ class EmulatorScreenshotActionTest {
   }
 
   @Test
-  fun testFoldableUnfoldAction() {
+  fun testActionFoldableOpen() {
     emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
 
@@ -110,19 +105,18 @@ class EmulatorScreenshotActionTest {
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
 
-    // 7.6" Fold-in with outer display does not have a device frame, so this drop down box should
-    // not have a "Show Device Frame" option.
+    // Pixel Fold does not have a device frame, so this drop down box should not have a "Show Device Frame" option.
     val clipComboBox = ui.getComponent<JComboBox<*>>()
     assertThat(clipComboBox.optionsAsString()).doesNotContain("Show Device Frame")
 
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     val image = ui.getComponent<ImageComponent>().document.value
-    assertAppearance(image, "Unfolded_WithoutFrame")
+    assertAppearance(image, "FoldableOpen")
   }
 
   @Test
-  fun testFoldableFoldAction() {
+  fun testActionFoldableClosed() {
     emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
     emulator.setFolded(true)
@@ -134,15 +128,14 @@ class EmulatorScreenshotActionTest {
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
 
-    // 7.6" Fold-in with outer display does not have a device frame, so this drop down box should
-    // not have a "Show Device Frame" option.
+    // Pixel Fold does not have a device frame, so this drop down box should not have a "Show Device Frame" option.
     val clipComboBox = ui.getComponent<JComboBox<*>>()
     assertThat(clipComboBox.optionsAsString()).doesNotContain("Show Device Frame")
 
     EDT.dispatchAllInvocationEvents()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     val image = ui.getComponent<ImageComponent>().document.value
-    assertAppearance(image, "Folded_WithoutFrame")
+    assertAppearance(image, "FoldableClosed")
   }
 
   @Test

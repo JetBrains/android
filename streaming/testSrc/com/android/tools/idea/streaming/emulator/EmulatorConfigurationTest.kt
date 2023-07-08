@@ -120,7 +120,7 @@ class EmulatorConfigurationTest {
   @Test
   fun testFoldable() {
     // Prepare.
-    val avdFolder = FakeEmulator.createFoldableAvd(avdParentFolder, sdkFolder, api = 29)
+    val avdFolder = FakeEmulator.createFoldableAvd(avdParentFolder, sdkFolder)
 
     // Act.
     val config = EmulatorConfiguration.readAvdDefinition(avdFolder.fileName.toString().substringBeforeLast("."), avdFolder)
@@ -128,10 +128,10 @@ class EmulatorConfigurationTest {
     // Assert.
     assertThat(config).isNotNull()
     assertThat(config?.avdFolder).isEqualTo(avdFolder)
-    assertThat(config?.avdName).isEqualTo("7.6 Fold-in with outer display API 29")
-    assertThat(config?.displayWidth).isEqualTo(1768)
-    assertThat(config?.displayHeight).isEqualTo(2208)
-    assertThat(config?.density).isEqualTo(480)
+    assertThat(config?.avdName).isEqualTo("Pixel Fold API 33")
+    assertThat(config?.displayWidth).isEqualTo(2208)
+    assertThat(config?.displayHeight).isEqualTo(1840)
+    assertThat(config?.density).isEqualTo(420)
     assertThat(config?.skinFolder).isNull()
     assertThat(config?.hasAudioOutput).isTrue()
     assertThat(config?.isFoldable).isTrue()
@@ -144,7 +144,7 @@ class EmulatorConfigurationTest {
         PostureDescriptor(PostureValue.POSTURE_CLOSED, 0.0, 30.0),
         PostureDescriptor(PostureValue.POSTURE_HALF_OPENED, 30.0, 150.0),
         PostureDescriptor(PostureValue.POSTURE_OPENED, 150.0, 180.0))
-    assertThat(config?.api).isEqualTo(29)
+    assertThat(config?.api).isEqualTo(33)
   }
 
   @Test

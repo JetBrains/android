@@ -462,7 +462,7 @@ class EmulatorToolWindowPanelTest {
       assertThat(event.presentation.isEnabled).isTrue()
       assertThat(event.presentation.isVisible).isTrue()
     }
-    assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(1768, 2208))
+    assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))
 
     foldingActions.first().actionPerformed(event)
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
@@ -470,7 +470,7 @@ class EmulatorToolWindowPanelTest {
     assertThat(shortDebugString(call.request)).isEqualTo("target: HINGE_ANGLE0 value { data: 0.0 }")
     waitForCondition(2, TimeUnit.SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
     panel.waitForFrame(ui, ++frameNumber, 2, TimeUnit.SECONDS)
-    assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(884, 2208))
+    assertThat(emulatorView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
 
     // Check EmulatorShowVirtualSensorsAction.
     val mockLafManager = mock<LafManager>()
