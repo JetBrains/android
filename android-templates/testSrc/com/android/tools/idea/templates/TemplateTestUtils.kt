@@ -208,6 +208,7 @@ internal fun checkDslParser(project: Project) {
 }
 
 private const val defaultPackage = "template.test.pkg"
+internal const val defaultModuleName = "Template test module"
 
 internal fun getDefaultModuleState(
   project: Project,
@@ -233,7 +234,7 @@ internal fun getDefaultModuleState(
       viewBindingSupport = ViewBindingSupport.SUPPORTED_4_0_MORE
     )
     .apply {
-      name = "Template test module"
+      name = defaultModuleName
       packageName = defaultPackage
       val paths = createDefaultModuleTemplate(project, name!!).paths
       setModuleRoots(paths, projectTemplateDataBuilder.topOut!!.path, name!!, packageName!!)
