@@ -24,6 +24,7 @@ import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities.registerAttributeHelp
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ui.NewUI
 import com.intellij.ui.components.JBList
@@ -85,6 +86,8 @@ class WidgetConstraintSection(private val widgetModel: WidgetConstraintModel) : 
     list.border = JBUI.Borders.empty(0, 4)
     list.selectionMode = ListSelectionModel.SINGLE_SELECTION
     list.cellRenderer = ConstraintItemRenderer()
+
+    registerAttributeHelp(list) { list.selectedValue?.toConstraintAttribute() }
 
     warningPanel.border = JBUI.Borders.empty(0, 4)
 
@@ -447,6 +450,10 @@ private data class ConstraintCellData(
   val boldValue: String?,
   val fadingValue: String?
 )
+
+private fun ConstraintCellData.toConstraintAttribute(): ConstraintAttribute {
+  return ConstraintAttribute(namespace, attribute)
+}
 
 private val constraintIcon = StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT
 private val highlightConstraintIcon =

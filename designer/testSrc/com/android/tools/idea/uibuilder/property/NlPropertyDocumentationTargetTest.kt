@@ -25,6 +25,7 @@ import com.android.SdkConstants.VALUE_HORIZONTAL
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.property.testutils.InspectorTestUtil
 import com.android.tools.idea.uibuilder.property.testutils.MinApiRule
+import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.ptable.PTableItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.readAction
@@ -92,14 +93,24 @@ class NlPropertyDocumentationTargetTest {
     assertThat(data.html).isEqualTo(EXPECTED_CONTEXT_DOCUMENTATION)
   }
 
+  @Test
+  fun testFabricatedProperty() = runBlocking {
+    val (presentation, data) = checkDocumentation { FabricatedProperty(ANDROID_URI, ATTR_TEXT) }
+    assertThat(presentation.presentableText).isEqualTo(ATTR_TEXT)
+    assertThat(presentation.icon).isNull()
+    assertThat(presentation.containerText).isNull()
+    assertThat(presentation.locationText).isNull()
+    assertThat(data.html).isEqualTo(EXPECTED_TEXT_DOCUMENTATION)
+  }
+
   private suspend fun checkDocumentation(
     property: (InspectorTestUtil) -> PTableItem
   ): Pair<TargetPresentation, DocumentationData> {
     val util = InspectorTestUtil(projectRule, SdkConstants.TEXT_VIEW)
+    util.model.surface?.selectionModel?.setSelection(util.components)
     readAction { util.loadProperties() }
     val item: PTableItem? = property(util)
-    val target =
-      NlPropertyDocumentationTarget({ resolvedPromise(item) }, { util.components.firstOrNull() })
+    val target = NlPropertyDocumentationTarget(util.model) { resolvedPromise(item) }
     val navigatable = readAction { target.navigatable }
     assertThat(navigatable).isInstanceOf(XmlTag::class.java)
     assertThat((navigatable as XmlTag).name).isEqualTo("TextView")
@@ -109,5 +120,12 @@ class NlPropertyDocumentationTargetTest {
         as? AsyncDocumentation
     val data = result?.supplier?.invoke() as? DocumentationData ?: error("No Documentation found")
     return Pair(presentation, data)
+  }
+
+  private class FabricatedProperty(
+    override val namespace: String,
+    override val name: String,
+  ) : PropertyItem {
+    override var value: String? = null
   }
 }

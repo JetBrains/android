@@ -66,10 +66,7 @@ class NlPropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Dispos
   private val filterKeyListener = createFilterKeyListener()
   private val showResolvedValueAction = ToggleShowResolvedValueAction(componentModel)
   private val documentationTarget =
-    NlPropertyDocumentationTarget(
-      { properties.selectedItem },
-      { componentModel.selection.singleOrNull() }
-    )
+    NlPropertyDocumentationTarget(componentModel) { properties.selectedItem }
   private var toolWindow: ToolWindowCallback? = null
 
   init {

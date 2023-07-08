@@ -25,7 +25,11 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.TextWidgetConstants;
+import com.android.tools.property.panel.api.HelpSupport;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.ide.DataManager;
+import java.util.function.Supplier;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -240,5 +244,10 @@ public class ConstraintUtilities {
       }
     }
     return text;
+  }
+
+  static void registerAttributeHelp(@NotNull JComponent component, @NotNull Supplier<ConstraintAttribute> attributeSupplier) {
+    DataManager.registerDataProvider(component, dataId ->
+      HelpSupport.Companion.getPROPERTY_ITEM().is(dataId) ? attributeSupplier.get() : null);
   }
 }

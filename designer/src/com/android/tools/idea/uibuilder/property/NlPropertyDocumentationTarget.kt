@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property
 
-import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property.support.HelpActions
+import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.ptable.PTableItem
 import com.intellij.model.Pointer
 import com.intellij.platform.backend.documentation.DocumentationResult
@@ -31,8 +31,8 @@ import org.jetbrains.concurrency.Promise
 
 /** DocumentationTarget for Nele properties. */
 class NlPropertyDocumentationTarget(
-  private val currentPropertyItem: () -> Promise<PTableItem?>,
-  private val currentSelectedComponent: () -> NlComponent?
+  private val componentModel: NlPropertiesModel,
+  private val currentPropertyItem: () -> Promise<PTableItem?>
 ) : DocumentationTarget, Pointer<NlPropertyDocumentationTarget> {
 
   override fun computePresentation(): TargetPresentation {
@@ -49,7 +49,7 @@ class NlPropertyDocumentationTarget(
 
   /** Provide a way to "Jump to source" of the component being inspected. */
   override val navigatable: Navigatable?
-    get() = currentSelectedComponent()?.navigatable
+    get() = componentModel.selection.singleOrNull()?.navigatable
 
   override fun computeDocumentation(): DocumentationResult {
     return DocumentationResult.asyncDocumentation(
@@ -73,6 +73,7 @@ class NlPropertyDocumentationTarget(
     when (this) {
       is NlFlagPropertyItem -> this.flags
       is NlPropertyItem -> this
+      is PropertyItem -> componentModel.properties.getOrNull(namespace, name)
       else -> null
     }
 

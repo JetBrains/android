@@ -91,7 +91,7 @@ class HelpActionsTest {
         .add(CommonDataKeys.PROJECT, projectRule.project)
         .add(
           DOCUMENTATION_TARGETS,
-          listOf(NlPropertyDocumentationTarget({ resolvedPromise(property) }, { null }))
+          listOf(NlPropertyDocumentationTarget(property.model) { resolvedPromise(property) })
         )
         .build()
     val event = AnActionEvent.createFromDataContext("", null, context)
