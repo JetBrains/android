@@ -132,7 +132,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
     val newProject = request.project
     val projectInfo = GradleProjectInfo.getInstance(newProject)
     projectInfo.isNewProject = request.isNewProject
-    silenceUnlinkedGradleProjectNotificationIfNecessary(newProject)
     WriteAction.runAndWait<RuntimeException> {
       if (request.javaLanguageLevel != null) {
         val extension = LanguageLevelProjectExtension.getInstance(newProject)
@@ -182,10 +181,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   }
 
   companion object {
-    // A copy of a private constant from GradleJvmStartupActivity.
-    @NonNls
-    private val SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup"
-
     @JvmStatic
     fun getInstance(): GradleProjectImporter = ApplicationManager.getApplication().getService(GradleProjectImporter::class.java)
 
@@ -223,13 +218,6 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         }
       }
       beforeOpen(newProject)
-    }
-
-    private fun silenceUnlinkedGradleProjectNotificationIfNecessary(newProject: Project) {
-      val gradleSettings = GradleSettings.getInstance(newProject)
-      if (gradleSettings.linkedProjectsSettings.isEmpty()) {
-        PropertiesComponent.getInstance(newProject).setValue(SHOW_UNLINKED_GRADLE_POPUP, false, true)
-      }
     }
   }
 }
