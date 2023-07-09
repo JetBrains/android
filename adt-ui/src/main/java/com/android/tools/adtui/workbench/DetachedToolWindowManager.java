@@ -16,7 +16,7 @@
 package com.android.tools.adtui.workbench;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.ide.actions.ToggleDistractionFreeModeAction;
+import com.intellij.ide.actions.DistractionFreeModeController;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -156,7 +156,7 @@ public class DetachedToolWindowManager implements Disposable {
           Disposer.register(this, detachedToolWindow);
           myToolWindowMap.put(id, detachedToolWindow);
         }
-        if (!ToggleDistractionFreeModeAction.isDistractionFreeModeEnabled() && !detachedToolWindow.isMinimized()) {
+        if (!DistractionFreeModeController.isDistractionFreeModeEnabled() && !detachedToolWindow.isMinimized()) {
           //noinspection unchecked
           detachedToolWindow.show(tool);
         }
