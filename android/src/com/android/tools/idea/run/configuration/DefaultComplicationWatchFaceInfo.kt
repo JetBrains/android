@@ -20,6 +20,7 @@ import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.android.util.AndroidBundle
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -47,7 +48,7 @@ private fun getApksBaseDir(): Path? {
 object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
   override val complicationSlots = listOf(
     ComplicationSlot(
-      "Top",
+      AndroidBundle.message("wearos.complication.slot.top"),
       0,
       arrayOf(
         ComplicationType.SHORT_TEXT,
@@ -58,7 +59,7 @@ object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
       )
     ),
     ComplicationSlot(
-      "Right",
+      AndroidBundle.message("wearos.complication.slot.right"),
       1,
       arrayOf(
         ComplicationType.SHORT_TEXT,
@@ -68,7 +69,7 @@ object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
       )
     ),
     ComplicationSlot(
-      "Bottom",
+      AndroidBundle.message("wearos.complication.slot.bottom"),
       2,
       arrayOf(
         ComplicationType.SHORT_TEXT,
@@ -79,7 +80,7 @@ object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
       )
     ),
     ComplicationSlot(
-      "Left",
+      AndroidBundle.message("wearos.complication.slot.left"),
       3,
       arrayOf(
         ComplicationType.SHORT_TEXT,
@@ -89,7 +90,7 @@ object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
       )
     ),
     ComplicationSlot(
-      "Background",
+      AndroidBundle.message("wearos.complication.slot.background"),
       4,
       arrayOf(ComplicationType.LARGE_IMAGE)
     )

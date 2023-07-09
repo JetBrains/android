@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.configuration
 
 import com.android.tools.deployer.model.component.Complication
+import org.jetbrains.annotations.Nls
 
 interface ComplicationWatchFaceInfo {
   val complicationSlots: List<ComplicationSlot>
@@ -24,4 +25,4 @@ interface ComplicationWatchFaceInfo {
   val watchFaceFQName: String
 }
 
-class ComplicationSlot(val name: String, val slotId: Int, val supportedTypes: Array<Complication.ComplicationType>)
+class ComplicationSlot(@Nls val name: String, val slotId: Int, val supportedTypes: Array<Complication.ComplicationType>)

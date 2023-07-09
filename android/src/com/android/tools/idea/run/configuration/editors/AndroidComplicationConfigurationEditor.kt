@@ -19,17 +19,15 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
-import com.android.tools.idea.run.configuration.DefaultComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.getComplicationTypesFromManifest
 import com.android.tools.idea.run.configuration.parseRawComplicationTypes
-import com.android.tools.idea.welcome.wizard.invokeLater
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.panel
+import org.jetbrains.android.util.AndroidBundle
 import javax.swing.BoxLayout
 
 
@@ -37,17 +35,13 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
   AndroidWearConfigurationEditor<AndroidComplicationConfiguration>(project, configuration) {
 
   private val slotsPanel = SlotsPanel()
-  private var allAvailableSlots : List<ComplicationSlot> = emptyList()
+  private var allAvailableSlots: List<ComplicationSlot> = emptyList()
   override fun createEditor() = panel {
+    getModuleChooser()
+    getComponentComboBox()
+    getInstallFlagsTextField()
     row {
-      getModuleChooser()
-      getComponentCompoBox()
-      getInstallFlagsTextField()
-    }
-    row {
-      component(slotsPanel.apply {
-        layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      })
+      cell(slotsPanel.apply { layout = BoxLayout(this, BoxLayout.Y_AXIS) })
     }
   }
 
@@ -61,7 +55,9 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
     allAvailableSlots = runConfiguration.componentLaunchOptions.watchFaceInfo.complicationSlots
 
     // getSupportedTypes will invoke the manifest merger and needs to be called in the background thread.
-    ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Updating slots") {
+    ProgressManager.getInstance().run(object : Task.Backgroundable(
+      project, AndroidBundle.message("wearos.complication.progress.title.updating.slots")
+    ) {
       private var complicationModel: SlotsPanel.ComplicationsModel? = null
 
       override fun run(indicator: ProgressIndicator) {
@@ -92,7 +88,9 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
     }
     else {
       // getSupportedTypes will invoke the manifest merger and needs to be called in the background thread.
-      ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Updating slots") {
+      ProgressManager.getInstance().run(object : Task.Backgroundable(
+        project, AndroidBundle.message("wearos.complication.progress.title.updating.slots")
+      ) {
         private var complicationModel: SlotsPanel.ComplicationsModel? = null
 
         override fun run(indicator: ProgressIndicator) {
@@ -107,10 +105,10 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
   }
 
   @WorkerThread
-  private fun getSupportedTypes(componentName: String?) : List<Complication.ComplicationType>{
+  private fun getSupportedTypes(componentName: String?): List<Complication.ComplicationType> {
     if (componentName == null) {
       return emptyList()
     }
-    return parseRawComplicationTypes(getComplicationTypesFromManifest(moduleSelector.module!!, componentName) ?: emptyList())
+    return parseRawComplicationTypes(getComplicationTypesFromManifest(moduleSelector.module!!, componentName))
   }
 }
