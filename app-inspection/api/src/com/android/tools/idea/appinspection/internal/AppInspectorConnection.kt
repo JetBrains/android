@@ -109,9 +109,7 @@ private fun CoroutineScope.commandSender(
     commands.cancel()
     // We receive this exception when the scope in which this actor is launched is cancelled.
     pendingCommands.values.forEach {
-      it.completeExceptionally(
-        AppInspectionConnectionException(inspectorDisposedMessage(inspectorId))
-      )
+      it.completeExceptionally(CancellationException(inspectorDisposedMessage(inspectorId), e))
     }
   }
 }
@@ -317,8 +315,6 @@ internal class AppInspectorConnection(
     val response = CompletableDeferred<AppInspection.AppInspectionResponse>()
     try {
       commandChannel.send(InspectorCommand(appInspectionCommand, response))
-    } catch (e: CancellationException) {
-      throw AppInspectionConnectionException(connectionClosedMessage)
     } catch (e: AppInspectionConnectionException) {
       throw AppInspectionConnectionException(connectionClosedMessage)
     }
@@ -332,7 +328,13 @@ internal class AppInspectorConnection(
         else -> throw IllegalStateException("Unhandled response data case: ${rawResponse.dataCase}")
       }
     } catch (e: CancellationException) {
-      withContext(NonCancellable) { cancelCommand(commandId) }
+      withContext(NonCancellable) {
+        try {
+          cancelCommand(commandId)
+        } catch (_: Exception) {}
+        // The channel may be closed to sending, so we swallow the exception here
+        // in order to throw the original exception below.
+      }
       throw e
     }
   }

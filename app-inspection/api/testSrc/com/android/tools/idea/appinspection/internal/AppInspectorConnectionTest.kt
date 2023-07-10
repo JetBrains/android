@@ -41,6 +41,7 @@ import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.fail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
@@ -479,14 +480,16 @@ class AppInspectorConnectionTest {
         }
       )
 
-      launch {
+      launch(start = CoroutineStart.UNDISPATCHED) {
         try {
           // This next line should get stuck (because of the disabled handler above) until the
           // `scope.cancel` call below, which should cause the exception to get thrown.
           client.sendRawCommand(byteArrayOf(0x12, 0x15))
           fail()
-        } catch (e: AppInspectionConnectionException) {
+        } catch (e: CancellationException) {
           assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
+        } catch (e: Exception) {
+          fail()
         }
       }
 
@@ -498,6 +501,16 @@ class AppInspectorConnectionTest {
       appInspectionRule.scope.cancel()
 
       client.awaitForDisposal()
+
+      // Trying to send command when the client is disposed results in CancellationException
+      try {
+        client.sendRawCommand(byteArrayOf(0x12, 0x15))
+        fail()
+      } catch (_: CancellationException) {
+        // Results in CancellationException
+      } catch (e: Exception) {
+        fail()
+      }
     }
 
   // Test the scenario where a cancellation command is sent during teardown of
