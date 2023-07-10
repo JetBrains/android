@@ -160,7 +160,7 @@ internal fun findComposePreviewManagersForContext(
   val project = context.getData(CommonDataKeys.PROJECT) ?: return emptyList()
   val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
 
-  return FileEditorManager.getInstance(project)?.getEditors(file)?.mapNotNull {
+  return FileEditorManager.getInstance(project)?.getAllEditors(file)?.mapNotNull {
     it.getComposePreviewManager()
   }
     ?: emptyList()
