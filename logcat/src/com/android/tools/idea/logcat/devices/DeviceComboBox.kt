@@ -22,7 +22,9 @@ import com.android.tools.idea.logcat.devices.DeviceComboBox.DeviceComboItem.File
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.util.LOGGER
+import com.intellij.codeInsight.codeVision.ui.popup.layouter.top
 import com.intellij.icons.AllIcons
+import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -33,20 +35,41 @@ import com.intellij.ui.SimpleTextAttributes.ERROR_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES
 import com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES
+import com.intellij.util.IconUtil
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.accessibility.AccessibleContextUtil
+import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
 import icons.StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
+import icons.StudioIcons.Logcat.Input.FILTER_HISTORY_DELETE
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import java.awt.Component
+import java.awt.Insets
+import java.awt.Rectangle
 import java.awt.event.ActionListener
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
+import java.awt.event.MouseListener
+import java.awt.event.MouseMotionListener
 import java.nio.file.Path
+import javax.swing.JComboBox
+import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JList
 import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.pathString
+
+private val DELETE_ICON = FILTER_HISTORY_DELETE
+@Suppress("UseDPIAwareInsets")
+private val COMBO_ITEM_INSETS = Insets(2, 8, 2, 4)
+private val DELETE_KEY_CODES = arrayOf(KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE)
 
 /**
  * A [ComboBox] for selecting a device.
@@ -75,6 +98,10 @@ internal class DeviceComboBox(
       deviceComboModel.add(initialItem)
       deviceComboModel.selectedItem = initialItem
     }
+  }
+
+  override fun updateUI() {
+    setUI(DeviceComboBoxUi())
   }
 
   override fun setSelectedItem(item: Any?) {
@@ -162,7 +189,10 @@ internal class DeviceComboBox(
   }
 
   private fun deviceStateChanged(device: Device) {
-    (model as DeviceComboModel).replaceDevice(device, device.deviceId == (item as? DeviceItem)?.device?.deviceId)
+    when (deviceComboModel.containsDevice(device)) {
+      true -> deviceComboModel.replaceDevice(device, device.deviceId == (item as? DeviceItem)?.device?.deviceId)
+      false -> deviceAdded(device) // Device was removed manually so we re-add it
+    }
   }
 
   fun addOrSelectFile(path: Path) {
@@ -182,6 +212,29 @@ internal class DeviceComboBox(
   //   Physical device name is based on the manufacturer and model while emulator name is based on the AVD name.
   //   Offline emulator does not include the serial number because it is irrelevant while the device offline.
   private class DeviceComboBoxRenderer : ColoredListCellRenderer<DeviceComboItem>() {
+    private val component = BorderLayoutPanel()
+    private val deleteLabel = JLabel()
+
+    init {
+      component.addToRight(deleteLabel)
+      component.isOpaque = false
+    }
+
+    override fun getListCellRendererComponent(
+      list: JList<out DeviceComboItem>,
+      value: DeviceComboItem?,
+      index: Int,
+      selected: Boolean,
+      hasFocus: Boolean,
+    ): Component {
+      val deviceComponent = super.getListCellRendererComponent(list, value, index, selected, hasFocus)
+      component.addToLeft(deviceComponent)
+      deleteLabel.icon = if (selected && value != null && value.isDeletable()) IconUtil.colorize(DELETE_ICON, list.selectionForeground)
+      else null
+
+      return component
+    }
+
     override fun customizeCellRenderer(
       list: JList<out DeviceComboItem>,
       item: DeviceComboItem?,
@@ -253,4 +306,115 @@ internal class DeviceComboBox(
     data class DeviceItem(val device: Device) : DeviceComboItem()
     data class FileItem(val path: Path) : DeviceComboItem()
   }
+
+  /**
+   * A custom UI based on DarculaComboBoxUI that has more control over the popup, so we can intercept mouse events.
+   */
+  private class DeviceComboBoxUi : DarculaComboBoxUI() {
+    override fun installDefaults() {
+      super.installDefaults()
+      if (padding == null) {
+        // In tests, this isn't being set properly.
+        padding = JBUI.insets(1, 6)
+      }
+    }
+    
+    override fun createPopup() = DeviceComboBoxPopup(comboBox)
+
+    private class DeviceComboBoxPopup(comboBox: JComboBox<Any>) : CustomComboPopup(comboBox) {
+      override fun installListListeners() {
+        val mouseListener = createListMouseListener()
+        val mouseMotionListener = createListMouseMotionListener()
+
+        val handler = DeviceComboBoxPopupMouseListener(comboBox, list, mouseListener, mouseMotionListener)
+        comboBox.addKeyListener(handler)
+
+        listMouseListener = handler
+        list.addMouseListener(listMouseListener)
+
+        listMouseMotionListener = handler
+        list.addMouseMotionListener(listMouseMotionListener)
+
+        listSelectionListener = createListSelectionListener()
+        list.addListSelectionListener(listSelectionListener)
+      }
+
+      override fun customizeListRendererComponent(component: JComponent) {
+        // The default right border doesn't look right with the delete icon.
+        component.border = JBUI.Borders.empty(COMBO_ITEM_INSETS)
+      }
+    }
+  }
+
+  /**
+   * A mouse & keyboard listener that handles item deletion.
+   */
+  private class DeviceComboBoxPopupMouseListener(
+    private val comboBox: JComboBox<in DeviceComboItem>,
+    private val list: JList<Any>,
+    private val mouseListener: MouseListener,
+    private val mouseMotionListener: MouseMotionListener,
+  ) : KeyAdapter(), MouseListener by mouseListener, MouseMotionListener by mouseMotionListener {
+
+    override fun keyReleased(e: KeyEvent) {
+      if (e.keyCode !in DELETE_KEY_CODES) {
+        return
+      }
+      val item = list.selectedValue as DeviceComboItem? ?: return
+      if (!item.isDeletable()) {
+        return
+      }
+      deleteSelectedItem()
+    }
+
+    override fun mouseReleased(e: MouseEvent) {
+      if (e.button == MouseEvent.BUTTON1 && e.modifiersEx == 0) {
+        if (e.isOverDeleteIcon()) {
+          deleteSelectedItem()
+          return
+        }
+      }
+      mouseListener.mouseReleased(e)
+    }
+
+    override fun mouseMoved(e: MouseEvent) {
+      val hintColor = String.format("%06x", NamedColorUtil.getInactiveTextColor().rgb and 0xffffff)
+      list.toolTipText = if (e.isOverDeleteIcon()) LogcatBundle.message("logcat.device.combo.delete.tooltip", hintColor) else null
+      mouseMotionListener.mouseMoved(e)
+    }
+
+    private fun MouseEvent.isOverDeleteIcon(): Boolean {
+      val item = list.selectedValue as DeviceComboItem? ?: return false
+      if (!item.isDeletable()) {
+        return false
+      }
+      val index = list.selectedIndex
+
+      // Calculate the bounds of the delete click target:
+      //   The height of the target is the full height of the cell.
+      //   The width of the target is the width of the icon plus the cell right-padding applied to the left & right of the icon.
+      val cellBounds = list.getCellBounds(index, index)
+      val cellPadding = JBUI.scale(COMBO_ITEM_INSETS.right)
+      val x = cellBounds.width - (2 * cellPadding) - DELETE_ICON.iconWidth
+      val iconBounds = Rectangle(x, cellBounds.top, cellBounds.width - x, cellBounds.height)
+
+      return iconBounds.contains(point)
+    }
+
+    private fun deleteSelectedItem() {
+      val index = list.selectedIndex
+      if (index < 0) {
+        return
+      }
+      val deviceComboModel = comboBox.model as DeviceComboModel
+      deviceComboModel.remove(index)
+      deviceComboModel.selectedItem = when {
+        deviceComboModel.items.isEmpty() -> null
+        index == 0 -> deviceComboModel.items.first()
+        else -> deviceComboModel.items[index - 1]
+      }
+    }
+  }
 }
+
+private fun DeviceComboItem.isDeletable() = !(this is DeviceItem && device.isOnline)
