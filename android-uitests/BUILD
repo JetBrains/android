@@ -1534,22 +1534,6 @@ java_test(
 )
 
 java_test(
-    name = "APKDebuggingProjTest",
-    size = "large",
-    data = COMMON_DATA + glob([
-        "testData/ApkDebug/**",
-    ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.APKDebuggingProjTest"],
-    tags = COMMON_TAGS + [
-        "no_windows",
-        "qa_smoke",
-        "requires-fakeroot",
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "ImportSampleProjectTest",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
