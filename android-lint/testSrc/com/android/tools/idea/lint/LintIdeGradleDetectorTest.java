@@ -210,6 +210,14 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   }
 
   @Test
+  public void testSuppressWithAnnotation() throws Exception {
+    // Same as testSuppressLine2, except we suppress using an annotation in Kotlin Script.
+    if (!extension.equals(".gradle.kts")) return;
+    AndroidLintGradleDeprecatedInspection inspection = new AndroidLintGradleDeprecatedInspection();
+    doTest(inspection, null);
+  }
+
+  @Test
   public void testIgnoresGStringsInDependencies() throws Exception {
     AndroidLintGradlePluginVersionInspection inspection = new AndroidLintGradlePluginVersionInspection();
     doTest(inspection, null);
