@@ -40,8 +40,14 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.mock.MockModule
+import com.intellij.mock.MockProjectEx
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.Disposer
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
@@ -50,6 +56,18 @@ import java.io.File
 class BaselineProfilesModuleTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
+
+  private lateinit var testDisposable: Disposable
+
+  @Before
+  fun setup() {
+    testDisposable = Disposer.newDisposable()
+  }
+
+  @After
+  fun tearDown() {
+    Disposer.dispose(testDisposable)
+  }
 
   @Test
   fun createTestClasses_kotlin() = createTestClasses(Language.Kotlin)
@@ -152,6 +170,25 @@ class BaselineProfilesModuleTest {
     val appModule = project.findAppModule()
 
     assertThat(appModule.getModuleNameForGradleTask()).isEqualTo("app")
+  }
+
+
+  private class MockProjectWithName(
+    private val myName: String,
+    parentDisposable: Disposable
+  ) : MockProjectEx(
+    parentDisposable) {
+    override fun getName(): String {
+      return myName
+    }
+  }
+
+  @Test
+  fun getModuleNameForGradleTaskWithSpaces() {
+    val projectWithName = MockProjectWithName("My Application is great", testDisposable)
+    val module = MockModule(projectWithName, testDisposable)
+    module.setName("My_Application_is_great.app")
+    assertThat(module.getModuleNameForGradleTask()).isEqualTo("app")
   }
 
   @Test

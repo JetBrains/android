@@ -229,8 +229,8 @@ fun setupRunConfigurations(
 
 @VisibleForTesting
 fun Module.getModuleNameForGradleTask(): String {
-  // name of the whole project
-  val projectName = project.name
+  // name of the whole project replacing spaces, because that's not allowed for Gradle modules
+  val projectName = project.name.replace(' ', '_')
 
   // module name contains also the whole project name, so we need to remove it, so we can use it to a Gradle task
   return name.removePrefix("$projectName.")
