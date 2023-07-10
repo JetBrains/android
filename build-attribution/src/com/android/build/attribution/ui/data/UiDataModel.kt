@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.ui.data
 
-import com.android.build.attribution.WindowsDefenderCheckService
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.build.attribution.analyzers.ConfigurationCachingCompatibilityProjectResult
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.JetifierUsageAnalyzerResult

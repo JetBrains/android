@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution
+package com.android.build.diagnostic
 
-import com.android.build.diagnostic.WindowsDefenderChecker
-import com.android.build.diagnostic.WindowsDefenderCheckerWrapper
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.IdeInfo
 import com.android.tools.analytics.withProjectId

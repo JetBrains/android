@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution
 
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.build.diagnostic.WindowsDefenderCheckerWrapper
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.testing.AndroidProjectRule

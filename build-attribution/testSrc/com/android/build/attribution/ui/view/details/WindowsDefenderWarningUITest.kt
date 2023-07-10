@@ -21,13 +21,12 @@ import com.android.build.attribution.ui.model.WarningsPageId
 import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.model.WindowsDefenderWarningNodeDescriptor
 import com.android.build.attribution.ui.view.ViewActionHandlers
-import com.android.build.attribution.ui.view.WindowsDefenderPageHandler
 import com.android.testutils.MockitoKt
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.android.build.attribution.WindowsDefenderCheckService
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.build.attribution.ui.controllers.WindowsDefenderPageHandlerImpl
 import com.android.build.diagnostic.WindowsDefenderCheckerWrapper
 import com.intellij.testFramework.EdtRule

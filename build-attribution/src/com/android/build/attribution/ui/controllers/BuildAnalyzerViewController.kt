@@ -16,7 +16,7 @@
 package com.android.build.attribution.ui.controllers
 
 import com.android.build.attribution.BuildAttributionWarningsFilter
-import com.android.build.attribution.WindowsDefenderCheckService
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.build.attribution.analyzers.CHECK_JETIFIER_TASK_NAME
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
 import com.android.build.attribution.analyzers.NoIncompatiblePlugins

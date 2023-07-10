@@ -37,10 +37,10 @@
 
     <fileEditorProvider implementation="com.android.build.attribution.ui.BuildReportEditorProvider"/>
     <notificationGroup id="Build Analyzer" displayType="TOOL_WINDOW" toolWindowId="Build"/>
-    <backgroundPostStartupActivity implementation="com.android.build.attribution.StudioWindowsDefenderCheckerActivity" os="windows"/>
+    <backgroundPostStartupActivity implementation="com.android.build.diagnostic.StudioWindowsDefenderCheckerActivity" os="windows"/>
     <applicationService serviceImplementation="com.android.build.diagnostic.WindowsDefenderChecker"/>
     <applicationService serviceInterface="com.intellij.diagnostic.WindowsDefenderChecker"
-                        serviceImplementation="com.android.build.attribution.WindowsDefenderCheckerOverride" overrides="true"/>
+                        serviceImplementation="com.android.build.diagnostic.WindowsDefenderCheckerOverride" overrides="true"/>
 
   </extensions>
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">

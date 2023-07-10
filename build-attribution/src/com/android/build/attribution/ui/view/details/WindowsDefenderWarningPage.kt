@@ -20,7 +20,7 @@ import com.android.build.attribution.ui.HtmlLinksHandler
 import com.android.build.attribution.ui.htmlTextLabelWithFixedLines
 import com.android.build.attribution.ui.view.ViewActionHandlers
 import com.intellij.diagnostic.DiagnosticBundle
-import com.android.build.attribution.WindowsDefenderCheckService
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.intellij.idea.ActionsBundle
 import com.intellij.openapi.application.invokeLater
 import com.intellij.ui.AnimatedIcon

@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.ui.data.builder
 
-import com.android.build.attribution.WindowsDefenderCheckService
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.build.attribution.analyzers.BuildEventsAnalysisResult
 import com.android.build.attribution.analyzers.TaskCategoryWarningsAnalyzer
 import com.android.build.attribution.data.PluginBuildData

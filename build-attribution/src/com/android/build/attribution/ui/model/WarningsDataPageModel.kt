@@ -15,7 +15,7 @@
  */
 package com.android.build.attribution.ui.model
 
-import com.android.build.attribution.WindowsDefenderCheckService
+import com.android.build.diagnostic.WindowsDefenderCheckService
 import com.android.build.attribution.analyzers.AGPUpdateRequired
 import com.android.build.attribution.analyzers.AnalyzerNotRun
 import com.android.build.attribution.analyzers.ConfigurationCacheCompatibilityTestFlow
