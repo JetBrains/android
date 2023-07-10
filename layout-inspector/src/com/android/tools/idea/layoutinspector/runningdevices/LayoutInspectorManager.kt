@@ -126,12 +126,15 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
 
       field = value
 
+      if (value == null) {
+        return
+      }
+
       // lock device model to only allow connections to this device
-      value?.layoutInspector?.deviceModel?.forcedDeviceSerialNumber =
-        value?.tabId?.deviceSerialNumber
+      value.layoutInspector.deviceModel?.forcedDeviceSerialNumber = value.tabId.deviceSerialNumber
 
       val selectedDevice =
-        value?.layoutInspector?.deviceModel?.devices?.find {
+        value.layoutInspector.deviceModel?.devices?.find {
           it.serial == value.tabId.deviceSerialNumber
         }
       // the device might not be available yet in app inspection
@@ -145,12 +148,10 @@ private class LayoutInspectorManagerImpl(private val project: Project) :
       }
 
       // inject Layout Inspector UI
-      value?.enableLayoutInspector()
+      value.enableLayoutInspector()
 
       // TODO(b/265150325) remove before the end of canaries
-      if (value != null) {
-        showExperimentalWarning(value.layoutInspector)
-      }
+      showExperimentalWarning(value.layoutInspector)
     }
 
   private val stateListeners = mutableListOf<LayoutInspectorManager.StateListener>()
