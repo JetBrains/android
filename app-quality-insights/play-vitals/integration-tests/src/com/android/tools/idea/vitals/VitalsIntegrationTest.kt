@@ -97,9 +97,11 @@ class VitalsIntegrationTest {
         }
       )
 
-      studio.waitForComponent(MOST_AFFECTED_DEVICE.displayName)
+      studio.waitForComponentWithExactText(
+        "${TEST_ISSUE1.issueDetails.lowestAffectedApiLevel} → ${TEST_ISSUE1.issueDetails.highestAffectedApiLevel}"
+      )
 
-      studio.waitForComponent("Most affected Android version: $MOST_AFFECTED_OS")
+      studio.waitForComponentWithExactText("Most affected Android version: $MOST_AFFECTED_OS")
     }
   }
 }

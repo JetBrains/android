@@ -164,12 +164,11 @@ class VitalsIssueDetailsPanel(
   // Title
   private val header = DetailsPanelHeader(stackTraceConsole.consoleView.editor)
 
-  // Events, users, affected api levels, device
+  // TODO(b/290647605): add back device label
+  // Events, users, affected api levels
   private val eventsCountLabel = JLabel(StudioIcons.AppQualityInsights.ISSUE)
   private val usersCountLabel = JLabel(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE)
   private val affectedApiLevelsLabel = JLabel(StudioIcons.LayoutEditor.Toolbar.ANDROID_API)
-  private val deviceLabel =
-    JLabel("sample device", StudioIcons.LayoutEditor.Toolbar.DEVICE_SCREEN, SwingConstants.LEFT)
 
   // Affected app version
   private val affectedVersionsLabel = JLabel("Versions affected", SwingConstants.LEFT)
@@ -315,8 +314,6 @@ class VitalsIssueDetailsPanel(
           add(usersCountLabel)
           add(Box.createHorizontalStrut(8))
           add(affectedApiLevelsLabel)
-          add(Box.createHorizontalStrut(8))
-          add(deviceLabel)
           add(Box.createHorizontalGlue())
         }
       )
@@ -343,7 +340,6 @@ class VitalsIssueDetailsPanel(
     }
 
   private fun updateBodySection(issue: AppInsightsIssue) {
-    deviceLabel.text = issue.sampleEvent.eventData.device.let { "${it.manufacturer} ${it.model}" }
     affectedApiLevelsLabel.text =
       prettyRangeString(
         issue.issueDetails.lowestAffectedApiLevel,
