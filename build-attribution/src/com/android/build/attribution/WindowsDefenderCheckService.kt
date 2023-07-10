@@ -251,3 +251,11 @@ class StudioWindowsDefenderCheckerActivity : ProjectActivity {
     WindowsDefenderCheckService.getInstance(project).checkRealTimeProtectionStatus()
   }
 }
+
+/**
+ * Override instance of original [com.intellij.diagnostic.WindowsDefenderChecker] to make it provide our documentation link
+ * in the reset flow triggered by [com.intellij.diagnostic.ResetWindowsDefenderNotification].
+ */
+class WindowsDefenderCheckerOverride : com.intellij.diagnostic.WindowsDefenderChecker() {
+  override fun getConfigurationInstructionsUrl(): String = WindowsDefenderCheckService.manualInstructionsLink
+}
