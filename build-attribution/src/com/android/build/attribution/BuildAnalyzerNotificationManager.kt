@@ -84,6 +84,7 @@ private sealed class WarningType(val triggerNotification: Boolean){
   object NON_INCREMENTAL_ANNOTATION_PROCESSOR : WarningType(triggerNotification = true)
   object CONFIGURATION_CACHE : WarningType(triggerNotification = false)
   object JETIFIER_USAGE : WarningType(triggerNotification = true)
+  object WINDOWS_DEFENDER : WarningType(triggerNotification = true)
 
   data class TaskCategoryWarning(val taskCategoryIssue: TaskCategoryIssue) : WarningType(triggerNotification = taskCategoryIssue.severity == TaskCategoryIssue.Severity.WARNING)
 }
@@ -102,6 +103,7 @@ private fun BuildAttributionReportUiData.warningTypes(): Set<WarningType> {
   if (this.annotationProcessors.issueCount > 0) issueTypes.add(WarningType.NON_INCREMENTAL_ANNOTATION_PROCESSOR)
   if (this.confCachingData.shouldShowWarning()) issueTypes.add(WarningType.CONFIGURATION_CACHE)
   if (this.jetifierData.shouldShowWarning()) issueTypes.add(WarningType.JETIFIER_USAGE)
+  if (this.windowsDefenderWarningData.shouldShowWarning) issueTypes.add(WarningType.WINDOWS_DEFENDER)
   this.criticalPathTaskCategories?.entries?.flatMap {
     it.getTaskCategoryIssues(TaskCategoryIssue.Severity.WARNING, forWarningsPage = true)
   }?.forEach { issueTypes.add(WarningType.TaskCategoryWarning(it.issue)) }
