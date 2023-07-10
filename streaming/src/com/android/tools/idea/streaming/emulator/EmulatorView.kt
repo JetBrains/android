@@ -27,6 +27,7 @@ import com.android.emulator.control.KeyboardEvent.KeyEventType
 import com.android.emulator.control.Notification.EventType.DISPLAY_CONFIGURATIONS_CHANGED_UI
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_ACTIVE
 import com.android.emulator.control.Notification.EventType.VIRTUAL_SCENE_CAMERA_INACTIVE
+import com.android.emulator.control.Posture.PostureValue
 import com.android.emulator.control.Rotation.SkinRotation
 import com.android.emulator.control.RotationRadian
 import com.android.emulator.control.Touch
@@ -686,8 +687,7 @@ class EmulatorView(
           response.hasCameraNotification() -> virtualSceneCameraActive = response.cameraNotification.active
           response.hasDisplayConfigurationsChangedNotification() ->
               notifyDisplayConfigurationListeners(response.displayConfigurationsChangedNotification.displayConfigurations.displaysList)
-          response.hasPosture() ->
-              currentPosture = emulatorConfig.postures.find { it.posture == response.posture.value }
+          response.hasPosture() -> updateCurrentPosture(response.posture.value)
           else  -> {
             // Old style notifications.
             // TODO: Remove the following 'when' statement after January 1, 2024.
@@ -706,6 +706,10 @@ class EmulatorView(
       for (listener in displayConfigurationListeners) {
         listener.displayConfigurationChanged(displayConfigs)
       }
+    }
+
+    private fun updateCurrentPosture(posture: PostureValue) {
+      emulatorConfig.postures.find { it.posture == posture }?.let { currentPosture = it } ?: LOG.error("Unexpected posture: $posture")
     }
   }
 
