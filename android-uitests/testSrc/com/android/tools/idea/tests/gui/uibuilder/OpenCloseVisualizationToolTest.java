@@ -62,9 +62,11 @@ public class OpenCloseVisualizationToolTest {
     final String file3 = "app/src/main/java/google/simpleapplication/MyActivity.java";
 
     editor.open(file1);
+    editor.getVisualizationTool().waitForRenderToFinish();
     assertThat(editor.getVisualizationTool().getCurrentFileName()).isEqualTo("frames.xml");
 
     editor.open(file2);
+    editor.getVisualizationTool().waitForRenderToFinish();
     assertThat(editor.getVisualizationTool().getCurrentFileName()).isEqualTo("activity_my.xml");
     editor.getVisualizationTool().zoomToFit();
     assertThat(editor.getVisualizationTool().getRowNumber()).isEqualTo(3);

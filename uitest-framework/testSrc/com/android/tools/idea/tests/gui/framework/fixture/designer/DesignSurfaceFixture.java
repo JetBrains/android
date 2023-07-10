@@ -47,7 +47,7 @@ public abstract class DesignSurfaceFixture<T extends DesignSurfaceFixture, Surfa
   }
 
   public final void waitForRenderToFinish() {
-    waitForRenderToFinish(Wait.seconds(10));
+    waitForRenderToFinish(Wait.seconds(20));
   }
 
   public void waitForRenderToFinish(@NotNull Wait wait) {

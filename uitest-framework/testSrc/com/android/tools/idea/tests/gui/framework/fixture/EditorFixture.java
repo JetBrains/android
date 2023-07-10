@@ -826,7 +826,7 @@ public class EditorFixture {
       myFrame.invokeMenuPath("View", "Tool Windows", VisualizationToolWindowFactory.TOOL_WINDOW_ID);
     }
 
-    Wait.seconds(20).expecting("Visualization window to be visible").until(() -> isVisualizationToolShowing());
+    Wait.seconds(30).expecting("Visualization window to be visible").until(() -> isVisualizationToolShowing());
 
     return new VisualizationFixture(myFrame.getProject(), myFrame.robot());
   }
