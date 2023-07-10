@@ -26,6 +26,7 @@ import com.google.wireless.android.sdk.stats.WindowsDefenderStatus
 import com.intellij.diagnostic.DiagnosticBundle
 import com.intellij.ide.BrowserUtil
 import com.intellij.ide.actions.ShowLogAction
+import com.intellij.ide.impl.isTrusted
 import com.intellij.idea.ActionsBundle
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
@@ -65,7 +66,7 @@ class WindowsDefenderCheckService(
 
   val warningData: WindowsDefenderWarningData
     get() {
-      if (realTimeProtectionEnabledOnStartup == true) {
+      if (realTimeProtectionEnabledOnStartup == true && project.isTrusted()) {
         val checker = checkerProvider()
         if (!checker.isStatusCheckIgnored(project)) {
           val paths = checker.getImportantPaths(project)
@@ -178,6 +179,7 @@ class WindowsDefenderCheckService(
     Notification("WindowsDefender", DiagnosticBundle.message("notification.group.defender.config"), content, type)
 
   private fun showWarningNotification(canRunExclusionScript: Boolean, importantPaths: List<Path>) {
+    if (!project.isTrusted()) return
     val pathList = importantPaths.joinToString(separator = "<br>&nbsp;&nbsp;", prefix = "<br>&nbsp;&nbsp;") { it.toString() }
     val showManualInstructions = {
       BrowserUtil.browse(manualInstructionsLink)
