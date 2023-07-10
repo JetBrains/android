@@ -12,6 +12,7 @@ public final class TestProjectPaths {
   public static final String ANDROID_KOTLIN_MULTIPLATFORM = "projects/androidKotlinMultiplatform";
   public static final String APK_SAN_ANGELES = "projects/apk/sanAngeles";
   public static final String APP_WITH_BUILDSRC = "projects/appWithBuildSrc";
+  public static final String APP_WITH_WEAR_AND_TV_AND_AUTOMOTIVE = "projects/appWithWearAndTvAndAutomotiveModules";
   public static final String APP_WITH_LIB_WITH_SAMPLES = "projects/appWithLibWithSamples";
   public static final String APPLICATION_ID_SUFFIX = "projects/applicationIdSuffix";
   public static final String APPLICATION_ID_VARIANT_API = "projects/applicationIdViaVariantApi";

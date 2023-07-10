@@ -16,17 +16,29 @@
 package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.npw.baselineprofiles.ConfigureBaselineProfilesModuleStep
 import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
+import com.android.tools.idea.testing.findModule
+import com.android.tools.idea.testing.onEdt
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.runInEdtAndGet
+import org.junit.After
 import org.junit.Assert
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
 class AddBaselineProfilesModuleTest(
@@ -70,5 +82,62 @@ class AddBaselineProfilesModuleTest(
       buildError?.printStackTrace()
       Assert.assertTrue("Project didn't compile correctly", isBuildSuccessful)
     }
+  }
+}
+
+class ConfigureBaselineProfilesModuleStepTest {
+
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+
+  private lateinit var disposable: Disposable
+
+  @Before
+  fun setup() {
+    disposable = Disposer.newDisposable()
+  }
+
+  @After
+  fun tearDown() {
+    Disposer.dispose(disposable)
+  }
+
+  @Test
+  fun withAppProjectWithPhoneAndWearAndTvAndAutomotive() {
+
+    projectRule.loadProject(TestProjectPaths.APP_WITH_WEAR_AND_TV_AND_AUTOMOTIVE)
+    val step = runInEdtAndGet {
+      ConfigureBaselineProfilesModuleStep(
+        disposable = disposable,
+        model = NewBaselineProfilesModuleModel(
+          project = projectRule.project,
+          moduleParent = ":",
+          projectSyncInvoker = object : ProjectSyncInvoker {
+            override fun syncProject(project: Project) {}
+          }
+        )
+      )
+    }
+
+    assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
+    assertEquals(4, step.targetModuleCombo.itemCount)
+    assertTrue(step.useGmdCheck.isEnabled)
+    assertTrue(step.useGmdCheck.isSelected)
+
+    step.targetModuleCombo.selectedItem = projectRule.project.findModule("automotiveApp")
+    assertFalse(step.useGmdCheck.isEnabled)
+    assertFalse(step.useGmdCheck.isSelected)
+
+    step.targetModuleCombo.selectedItem = projectRule.project.findModule("wearApp")
+    assertFalse(step.useGmdCheck.isEnabled)
+    assertFalse(step.useGmdCheck.isSelected)
+
+    step.targetModuleCombo.selectedItem = projectRule.project.findModule("tvApp")
+    assertFalse(step.useGmdCheck.isEnabled)
+    assertFalse(step.useGmdCheck.isSelected)
+
+    step.targetModuleCombo.selectedItem = projectRule.project.findAppModule()
+    assertTrue(step.useGmdCheck.isEnabled)
+    assertTrue(step.useGmdCheck.isSelected)
   }
 }

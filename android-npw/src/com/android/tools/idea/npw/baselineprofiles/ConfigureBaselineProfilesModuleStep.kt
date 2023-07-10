@@ -22,6 +22,8 @@ import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.model.UsedFeatureRawText
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
@@ -32,13 +34,17 @@ import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.observable.ui.SelectedItemProperty
 import com.android.tools.idea.observable.ui.SelectedProperty
 import com.android.tools.idea.project.AndroidProjectInfo
+import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.gridLayout.HorizontalAlign
+import com.jetbrains.rd.util.first
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComboBox
 import javax.swing.JPanel
 
@@ -46,19 +52,30 @@ import javax.swing.JPanel
 private const val BASELINE_PROFILES_AGP_MIN_VERSION = "8.0.0"
 private const val GMD_LINK = "https://d.android.com/r/studio-ui/testing/gradle-managed-devices"
 
+private val USES_FEATURE_OTHER_FORM_FACTORS = setOf(
+  "android.hardware.type.automotive",
+  "android.hardware.type.watch",
+  "android.software.leanback"
+)
+
 class ConfigureBaselineProfilesModuleStep(
-  model: NewBaselineProfilesModuleModel
+  model: NewBaselineProfilesModuleModel,
+  disposable: Disposable? = null,
 ) : ConfigureModuleStep<NewBaselineProfilesModuleModel>(
   model = model,
   formFactor = FormFactor.MOBILE,
   minSdkLevel = SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION,
   basePackage = getSuggestedProjectPackage(),
-  title = AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.app")
+  title = AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.app"),
+  parentDisposable = disposable
 ) {
-  private val targetModuleCombo: JComboBox<Module> = ModuleComboProvider().createComponent()
 
+  @VisibleForTesting
+  val targetModuleCombo: JComboBox<Module> = ModuleComboProvider().createComponent()
+
+  @VisibleForTesting
   @Suppress("DialogTitleCapitalization")
-  private val useGmdCheck = JBCheckBox("Use Gradle Managed Device")
+  val useGmdCheck = JBCheckBox("Use Gradle Managed Device")
 
   init {
     bindTargetModule()
@@ -68,12 +85,41 @@ class ConfigureBaselineProfilesModuleStep(
   }
 
   private fun bindTargetModule() {
-    val appModules = AndroidProjectInfo.getInstance(model.project)
-      .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
 
-    appModules.forEach { targetModuleCombo.addItem(it) }
-    if (appModules.isNotEmpty()) {
-      model.targetModule.value = appModules.first()
+    // Map each module with the parsed manifests. This allows to check later
+    // what uses-feature tags are defined in the manifest and whether a module is for tv,
+    // automotive and/or wear. We only enable GMD for smartphones.
+    val appModules = AndroidProjectInfo
+      .getInstance(model.project)
+      .getAllModulesOfProjectType(AndroidProjectTypes.PROJECT_TYPE_APP)
+      .filter { it.androidFacet != null }
+      .associateWith { module ->
+        AndroidManifestIndex.getDataForMergedManifestContributors(module.androidFacet!!).toList().flatMap { it.usedFeatures }
+      }
+
+    appModules.forEach { e ->
+      targetModuleCombo.addItem(e.key)
+    }
+
+    targetModuleCombo.addItemListener { itemEvent ->
+      appModules[itemEvent.item]?.usesFeatureAutomotiveOrWearOrTv()?.let {
+        useGmdCheck.isEnabled = !it
+        useGmdCheck.isSelected = !it
+      }
+    }
+
+    // Tries to select the first non automotive, tv, wear project
+    appModules
+      .toList()
+      .firstOrNull { !it.second.usesFeatureAutomotiveOrWearOrTv() }
+      ?.first
+      ?.let { model.targetModule.value = it }
+
+    // If nothing was selected, then select the first of the list and set `use gmd` false
+    if (!model.targetModule.isPresent.get()) {
+      model.targetModule.value = appModules.first().key
+      useGmdCheck.isEnabled = false
+      useGmdCheck.isSelected = false
     }
 
     bindings.bindTwoWay(SelectedItemProperty(targetModuleCombo), model.targetModule)
@@ -160,3 +206,4 @@ class ConfigureBaselineProfilesModuleStep(
   }
 }
 
+fun List<UsedFeatureRawText>.usesFeatureAutomotiveOrWearOrTv() = any { it.name in USES_FEATURE_OTHER_FORM_FACTORS && it.required?.toBooleanStrictOrNull() ?: true }
