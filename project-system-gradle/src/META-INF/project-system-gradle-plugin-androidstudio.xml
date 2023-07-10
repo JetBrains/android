@@ -25,9 +25,6 @@
                     overrides="true"/>
     <actionConfigurationCustomizer id="Startup.GradleSpecificActionCustomizer" order="after Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.GradleSpecificActionCustomizer" />
     <applicationInitializedListener id="Startup.GradleSpecificInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
-    <directoryProjectConfigurator
-      implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectConfigurator"
-      order="after PlatformProjectConfigurator"/>
     <directoryIndexExcludePolicy implementation="com.android.tools.idea.gradle.project.importing.InitialImportExcludeDirectoryPolicy" />
     <externalProjectDataService implementation="com.android.tools.idea.gradle.project.sync.idea.data.service.ProjectJdkUpdateService" />
     <editorNotificationProvider implementation="com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider"/>
