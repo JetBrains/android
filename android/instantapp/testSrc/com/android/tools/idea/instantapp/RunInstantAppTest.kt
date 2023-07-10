@@ -167,7 +167,6 @@ class RunInstantAppTest {
     val apks = (captor.value as List<File>).map { it.name.substringAfterLast('/') }
     assertThat(apks).containsExactlyInAnyOrder(
       "instant-base-master.apk",
-      "instant-instantdynamicfeature-mdpi.apk",
       "instant-instantdynamicfeature-master.apk",
       "instant-base-mdpi.apk"
     )
