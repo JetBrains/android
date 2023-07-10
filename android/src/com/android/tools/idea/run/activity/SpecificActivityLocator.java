@@ -99,18 +99,9 @@ public class SpecificActivityLocator extends ActivityLocator {
 
     ActivitiesAndAliases activityWrappers = queryActivitiesFromManifestIndex(myFacet);
 
-    validateHelper(activityClass, specifiedActivityClass, activityWrappers::findActivityByName, activityWrappers::findAliasByName);
-
-  }
-
-  private void validateHelper(@NotNull PsiClass activityClass,
-                              @Nullable PsiClass specifiedActivityClass,
-                              Function<String, DefaultActivityLocator.ActivityWrapper> getActivity,
-                              Function<String, DefaultActivityLocator.ActivityWrapper> getAlias)
-    throws ActivityLocatorException {
     DefaultActivityLocator.ActivityWrapper specifiedActivity;
     if (specifiedActivityClass == null || !specifiedActivityClass.isInheritor(activityClass, true)) {
-      specifiedActivity = getAlias.fun(myActivityName);
+      specifiedActivity = activityWrappers.findAliasByName(myActivityName);
       if (specifiedActivity == null) {
         throw new ActivityLocatorException(AndroidBundle.message("not.activity.subclass.error", myActivityName));
       }
@@ -118,7 +109,7 @@ public class SpecificActivityLocator extends ActivityLocator {
     else {
       // check whether activity is declared in the manifest
       String qualifiedActivityName = ActivityLocatorUtils.getQualifiedActivityName(specifiedActivityClass);
-      specifiedActivity = getActivity.fun(qualifiedActivityName);
+      specifiedActivity = activityWrappers.findActivityByName(qualifiedActivityName);
       if (specifiedActivity == null) {
         throw new ActivityLocatorException(AndroidBundle.message("activity.not.declared.in.manifest", specifiedActivityClass.getName()));
       }
