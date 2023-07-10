@@ -1343,6 +1343,10 @@ public final class StudioFlags {
     "If enabled, the compiler daemon will wait for a debugger to be attached.",
     false);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_GROUP_LAYOUT = Flag.create(
+    COMPOSE, "preview.group.layout", "Enable organization of Compose Preview in groups",
+    "If enabled, multiple previews associated with composable will be grouped", false);
+
   public static final Flag<Boolean> COMPOSE_NEW_PREVIEW_LAYOUT = Flag.create(
     COMPOSE, "new.preview.layout", "Enable the new layout options of Compose Preview",
     "If enabled, the options of new layout designs of compose preview will be shown in Compose Preview",
