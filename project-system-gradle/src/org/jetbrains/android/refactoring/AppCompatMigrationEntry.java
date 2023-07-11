@@ -353,19 +353,15 @@ public class AppCompatMigrationEntry {
     public abstract Pair<String, String> compactKey();
 
     /**
-     * Returns the gradle coordinates compact notation but allows replacing the pre-defined version for this artifact with a different one.
-     * The given withVersion will only be used if it's higher than this entry base version
+     * Returns the gradle Component for this entry allowing the pre-defined version for this artifact to be replaced with a different one.
+     * The given withVersion will only be used if it's higher than this entry base version.
      */
     @NotNull
-    public String toCompactNotation(@NotNull String withVersion) {
+    public Component toComponent(@NotNull String withVersion) {
       String newVersionString = getNewBaseVersion();
       Version newVersion = Version.Companion.parse(withVersion);
       Version baseVersion = Version.Companion.parse(newVersionString);
-      Component component = new Component(getNewGroupName(), getNewArtifactName(), max(newVersion, baseVersion));
-      String compactNotation = component.toIdentifier();
-      if (compactNotation != null) return compactNotation;
-      // something has gone wrong, but we don't know what.  The non-identifier string will hopefully make it obvious.
-      return component.toString();
+      return new Component(getNewGroupName(), getNewArtifactName(), max(newVersion, baseVersion));
     }
 
     @NotNull

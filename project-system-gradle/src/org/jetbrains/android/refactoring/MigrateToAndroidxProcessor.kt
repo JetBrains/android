@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.ide.common.repository.GradleCoordinate
+import com.android.ide.common.gradle.Dependency
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
@@ -381,14 +381,15 @@ open class MigrateToAndroidxProcessor(val project: Project,
         if (dep is ArtifactDependencyModel) {
           val compactDependencyNotation = dep.compactNotation()
           val psiElement = dep.completeModel().resultModel.expressionPsiElement ?: continue
-          val gc = GradleCoordinate.parseCoordinateString(compactDependencyNotation) ?: continue
-          val key: Pair<String, String> = Pair.create(gc.groupId, gc.artifactId)
+          val dependency = Dependency.parse(compactDependencyNotation)
+          val dependencyVersion = dependency.version ?: continue
+          val key: Pair<String, String> = Pair.create(dependency.group ?: continue, dependency.name)
           val entry = gradleDependencyEntries[key] ?: continue
-          val migrationEntryCoordinates = GradleCoordinate.parseCoordinateString(entry.toCompactNotation(entry.newBaseVersion)) ?: continue
-          // Prevent showing the migration entry if there is already a newer version in the file
-          if (gc.isSameArtifact(migrationEntryCoordinates) &&
-              GradleCoordinate.COMPARE_PLUS_HIGHER.compare(migrationEntryCoordinates, gc) <= 0) {
-            continue
+          val component = entry.toComponent(entry.newBaseVersion)
+          if (key.first == component.group && key.second == dependency.name) { // should always be true
+            if (dependencyVersion.contains(component.version) || dependencyVersion.lowerBound > component.version) {
+              continue
+            }
           }
           gradleUsages.add(
             MigrateToAppCompatUsageInfo.GradleDependencyUsageInfo(psiElement, projectBuildModel, dep, entry, versionProvider)
