@@ -25,6 +25,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Dimension
@@ -179,7 +180,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
   }
 
-  internal fun showLongRunningOperationIndicator(text: String) {
+  internal fun showLongRunningOperationIndicator(@Nls text: String) {
     findLoadingPanel()?.apply {
       setLoadingText(text)
       startLoading()

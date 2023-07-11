@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator.dialogs
 
+import com.android.tools.idea.streaming.StreamingBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
@@ -22,9 +23,12 @@ import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.components.dialog
-import com.intellij.ui.layout.applyToComponent
-import com.intellij.ui.layout.panel
-import com.intellij.ui.layout.toBinding
+import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.AlignY
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.bindText
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.toMutableProperty
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Insets
@@ -47,21 +51,22 @@ class EditSnapshotDialog(snapshotName: String, snapshotDescription: String, var 
   private fun createPanel(): DialogPanel {
     return panel {
       row {
-        label("Name:")
+        label(StreamingBundle.message("edit.snapshot.label.name"))
       }
       row {
-        textField(::snapshotName)
-          .constraints(growX)
+        textField()
+          .bindText(::snapshotName)
+          .align(Align.FILL)
           .focused()
-          .withValidationOnApply { validateSnapshotName() }
+          .validationOnApply { validateSnapshotName() }
       }
       row {
-        label("Description:")
+        label(StreamingBundle.message("edit.snapshot.label.description"))
       }
       row {
-        component(JTextPane())
-          .constraints(growX, growY, pushY)
-          .withBinding(JTextPane::getText, JTextPane::setText, ::snapshotDescription.toBinding()).applyToComponent {
+        cell(JTextPane())
+          .align(Align.FILL).align(AlignY.TOP)
+          .bind(JTextPane::getText, JTextPane::setText, ::snapshotDescription.toMutableProperty()).applyToComponent {
             background = JBTextField().background
             border = TextAreaBorder()
             preferredSize = JBUI.size(400, 64)
@@ -69,7 +74,7 @@ class EditSnapshotDialog(snapshotName: String, snapshotDescription: String, var 
           }
       }
       row {
-        checkBox("Boot from this snapshot", ::useToBoot)
+        checkBox(StreamingBundle.message("edit.snapshot.checkbox.boot.from.this.snapshot")).bindSelected(::useToBoot)
       }
     }
   }
@@ -79,7 +84,7 @@ class EditSnapshotDialog(snapshotName: String, snapshotDescription: String, var 
    */
   fun createWrapper(project: Project? = null, parent: Component? = null): DialogWrapper {
     return dialog(
-      title = "Edit Snapshot",
+      title = StreamingBundle.message("edit.snapshot.dialog.title"),
       resizable = true,
       panel = createPanel(),
       project = project,
@@ -88,7 +93,7 @@ class EditSnapshotDialog(snapshotName: String, snapshotDescription: String, var 
 
   private fun validateSnapshotName(): ValidationInfo? {
     if (snapshotName.isEmpty()) {
-      return ValidationInfo("Please enter snapshot name")
+      return ValidationInfo(StreamingBundle.message("edit.snapshot.enter.name"))
     }
     return null
   }
