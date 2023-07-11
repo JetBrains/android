@@ -690,7 +690,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
     displayInternalWarningIfForcedUpgradesAreDisabled()
     project?.getService(AssistantInvoker::class.java)?.expireProjectUpgradeNotifications(project)
-    if (IdeInfo.getInstance().isAndroidStudio) {
+    if (IdeInfo.getInstance().isAndroidStudio && !ApplicationManager.getApplication().isHeadlessEnvironment) {
       // Don't execute in IDEA in order to avoid conflicting behavior with IDEA's proxy support in gradle project.
       // (https://youtrack.jetbrains.com/issue/IDEA-245273, see BaseResolverExtension#getExtraJvmArgs)
       // To be discussed with the AOSP team to find a way to unify configuration across IDEA and AndroidStudio.
