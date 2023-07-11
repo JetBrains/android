@@ -18,13 +18,13 @@ package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.getTestStartTime
+import com.intellij.concurrency.ConcurrentCollectionFactory
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
-import com.jetbrains.rd.util.concurrentMapOf
 import java.io.File
 import java.util.concurrent.ExecutorService
 
@@ -41,7 +41,7 @@ class ImportTestGroup(
     val testStartTime: Long,
   )
 
-  private val timestampMap: MutableMap<File, IntelliJStandardTestHistoryTimestamp> = concurrentMapOf()
+  private val timestampMap: MutableMap<File, IntelliJStandardTestHistoryTimestamp> = ConcurrentCollectionFactory.createConcurrentMap()
 
   // TODO(b/244935095): remove when getChildren() no longer expects/requires @UiThread
   override fun getActionUpdateThread(): ActionUpdateThread {

@@ -160,7 +160,6 @@
     <orderEntry type="library" scope="TEST" name="protobuf" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="fastutil-min" level="project" />
-    <orderEntry type="library" scope="TEST" name="rd-core" level="project" />
     <orderEntry type="library" scope="TEST" name="StreamEx" level="project" />
     <orderEntry type="library" scope="TEST" name="ktor-serialization-kotlinx-json" level="project" />
     <orderEntry type="library" scope="TEST" name="javaslang" level="project" />

@@ -153,7 +153,6 @@
     <orderEntry type="module" module-name="intellij.android.rendering" />
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="fastutil-min" level="project" />
-    <orderEntry type="library" name="rd-core" level="project" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="commons-lang" level="project" />
     <orderEntry type="library" name="NanoXML" level="project" />

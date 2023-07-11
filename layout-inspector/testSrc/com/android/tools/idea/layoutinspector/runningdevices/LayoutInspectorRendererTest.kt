@@ -29,7 +29,6 @@ import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
-import com.jetbrains.rd.swing.fillRect
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -130,7 +129,8 @@ class LayoutInspectorRendererTest {
   private fun paint(image: BufferedImage, layoutInspectorRenderer: LayoutInspectorRenderer) {
     val graphics = image.createGraphics()
     // add a gray background
-    graphics.fillRect(Rectangle(0, 0, screenDimension.width, screenDimension.height), Color(250, 250, 250))
+    graphics.color = Color(250, 250, 250)
+    graphics.fillRect(0, 0, screenDimension.width, screenDimension.height)
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
     layoutInspectorRenderer.paint(graphics, deviceFrame)

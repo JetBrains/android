@@ -22,7 +22,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
-import com.jetbrains.rd.util.AtomicReference
+import java.util.concurrent.atomic.AtomicReference
 
 val NOTIFICATION_KEY = DataKey.create<StatusNotification>(StatusNotification::class.java.name)
 

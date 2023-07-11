@@ -53,7 +53,6 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.layoutinspector.BitmapType
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
-import com.jetbrains.rd.swing.fillRect
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -64,7 +63,6 @@ import java.awt.Dimension
 import java.awt.GradientPaint
 import java.awt.Graphics2D
 import java.awt.Polygon
-import java.awt.Rectangle
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.nio.file.Path
@@ -666,7 +664,8 @@ class RenderLogicTest {
   private fun paint(image: BufferedImage, transform: AffineTransform, renderLogic: RenderLogic, renderDimension: Dimension) {
     val graphics = image.createGraphics()
     // add a gray background
-    graphics.fillRect(Rectangle(0, 0, renderDimension.width, renderDimension.height), Color(250, 250, 250))
+    graphics.color = Color(250, 250, 250)
+    graphics.fillRect(0, 0, renderDimension.width, renderDimension.height)
     graphics.font = ImageDiffTestUtil.getDefaultFont()
     // add transform to center render in buffered image
     graphics.transform = transform

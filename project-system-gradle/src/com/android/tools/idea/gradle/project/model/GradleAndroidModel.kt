@@ -45,7 +45,6 @@ import com.android.tools.lint.detector.api.Desugaring
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.jetbrains.rd.util.getOrCreate
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
 import java.io.File
@@ -275,7 +274,7 @@ class GradleAndroidModel(
     fun createFactory(project: Project, libraryResolver: IdeLibraryModelResolver): (GradleAndroidModelData) -> GradleAndroidModel {
       val models = mutableMapOf<GradleAndroidModelData, GradleAndroidModel>()
       return fun(data: GradleAndroidModelData): GradleAndroidModel {
-        return models.getOrCreate(data) { GradleAndroidModel(it, project, libraryResolver) }
+        return models.computeIfAbsent(data) { GradleAndroidModel(it, project, libraryResolver) }
       }
     }
   }

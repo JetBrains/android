@@ -30,7 +30,6 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.jetbrains.rd.util.threadLocalWithInitial
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
@@ -111,11 +110,11 @@ class InspectorClientLauncher(
 
   private val sequenceNumberLock = Any()
   private var sequenceNumber = 0
-  private val threadSequenceNumber = threadLocalWithInitial { -1 }
+  private val threadSequenceNumber = ThreadLocal.withInitial { -1 }
   private val workerExecutor = AndroidExecutors.getInstance().workerThreadExecutor
 
   init {
-    val realExecutor = executor ?: object: Executor {
+    val realExecutor = executor ?: object : Executor {
       private val singleThreadExecutor = Executors.newSingleThreadExecutor()
       override fun execute(command: Runnable) {
         // If we're already in a worker thread as part of a recursive call (e.g. when setting the selected process to
