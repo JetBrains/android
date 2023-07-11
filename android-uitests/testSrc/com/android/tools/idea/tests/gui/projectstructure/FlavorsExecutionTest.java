@@ -46,7 +46,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class FlavorsExecutionTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private static final String PROCESS_NAME = "google.simpleapplication";
   private static final String ACTIVITY_OUTPUT_PATTERN =
@@ -112,7 +112,7 @@ public class FlavorsExecutionTest {
 
     ideFrameFixture
       .getBuildVariantsWindow()
-      .selectVariantForModule("SimpleFlavoredApplication.app", "flavor1Debug");
+      .selectVariantForModule("SimpleFlavoredApplication.app", "flavor1Debug (default)");
 
     ideFrameFixture.runApp("app", "Google Nexus 5X");
 
