@@ -70,7 +70,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
   private void checkObjectsUntagged(Object[] objects) {
     for (Object object : objects) {
-      Assert.assertEquals(0, HeapSnapshotTraverse.getObjectTag(object));
+      Assert.assertEquals(0, MemoryReportJniHelper.getObjectTag(object));
     }
   }
 
@@ -442,7 +442,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
   @Test
   public void testGetStaticFieldsNoSideEffect() throws
                                                 ClassNotFoundException {
-    if (Arrays.stream(HeapSnapshotTraverse.getClasses())
+    if (Arrays.stream(MemoryReportJniHelper.getClasses())
       .anyMatch(c -> "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$H".equals(c.getName()))) {
       throw new AssumptionViolatedException("One of the tests loaded HeapAnalyzerTest$H class");
     }
@@ -458,7 +458,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(componentsSet);
     ClassNameRecordingChildProcessor processor = new ClassNameRecordingChildProcessor(statistics);
     Assert.assertEquals(StatusCode.NO_ERROR, new HeapSnapshotTraverse(processor, statistics).walkObjects(MAX_DEPTH, List.of(gClass)));
-    for (Class<?> aClass : HeapSnapshotTraverse.getClasses()) {
+    for (Class<?> aClass : MemoryReportJniHelper.getClasses()) {
       Assert.assertNotEquals("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$H", aClass.getName());
     }
 

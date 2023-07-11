@@ -47,7 +47,7 @@ public final class HeapSnapshotTraverse implements Disposable {
 
   static final Computable<WeakList<Object>> getLoadedClassesComputable = () -> {
     WeakList<Object> roots = new WeakList<>();
-    Object[] classes = getClasses();
+    Object[] classes = MemoryReportJniHelper.getClasses();
     roots.addAll(Arrays.asList(classes));
     roots.addAll(Thread.getAllStackTraces().keySet());
     // We don't process ClassLoader during the HeapTraverse, so they are added as a traverse roots after
@@ -132,7 +132,7 @@ public final class HeapSnapshotTraverse implements Disposable {
    */
   public StatusCode walkObjects(int maxDepth, @NotNull final Computable<WeakList<Object>> rootsComputable) {
     try {
-      if (!canTagObjects()) {
+      if (!MemoryReportJniHelper.canTagObjects()) {
         return StatusCode.CANT_TAG_OBJECTS;
       }
       try {
@@ -187,13 +187,13 @@ public final class HeapSnapshotTraverse implements Disposable {
             statistics.incrementGarbageCollectedObjectsCounter();
             continue;
           }
-          setObjectTag(currentObject, 0);
+          MemoryReportJniHelper.setObjectTag(currentObject, 0);
 
           // Check whether the current object is a root of one of the components
           ComponentsSet.Component currentObjectComponent =
             statistics.getConfig().getComponentsSet().getComponentOfObject(currentObject);
 
-          long currentObjectSize = getObjectSize(currentObject);
+          long currentObjectSize = MemoryReportJniHelper.getObjectSize(currentObject);
           String currentObjectClassName = currentObject.getClass().getName();
 
           boolean isPlatformObject = isPlatformObject(currentObject, currentObjectClassName);
@@ -378,7 +378,7 @@ public final class HeapSnapshotTraverse implements Disposable {
     tag |= (long)newObjectId << CURRENT_ITERATION_OBJECT_ID_OFFSET;
     tag &= ~CURRENT_ITERATION_ID_MASK;
     tag |= iterationId;
-    setObjectTag(obj, tag);
+    MemoryReportJniHelper.setObjectTag(obj, tag);
     return tag;
   }
 
@@ -387,7 +387,7 @@ public final class HeapSnapshotTraverse implements Disposable {
     tag |= CURRENT_ITERATION_VISITED_MASK;
     tag &= ~CURRENT_ITERATION_ID_MASK;
     tag |= iterationId;
-    setObjectTag(obj, tag);
+    MemoryReportJniHelper.setObjectTag(obj, tag);
     return tag;
   }
 
@@ -406,7 +406,7 @@ public final class HeapSnapshotTraverse implements Disposable {
         value instanceof ClassLoader) {
       return;
     }
-    long tag = getObjectTag(value);
+    long tag = MemoryReportJniHelper.getObjectTag(value);
     if (wasVisited(tag)) {
       return;
     }
@@ -447,7 +447,7 @@ public final class HeapSnapshotTraverse implements Disposable {
                                              int maxDepth,
                                              @NotNull final FieldCache fieldCache)
     throws HeapSnapshotTraverseException {
-    long rootTag = getObjectTag(root);
+    long rootTag = MemoryReportJniHelper.getObjectTag(root);
     if (wasVisited(rootTag)) {
       return INVALID_OBJECT_TAG;
     }
@@ -522,7 +522,7 @@ public final class HeapSnapshotTraverse implements Disposable {
           value instanceof ClassLoader) {
         return;
       }
-      long tag = getObjectTag(value);
+      long tag = MemoryReportJniHelper.getObjectTag(value);
       if (tag == 0) {
         return;
       }
@@ -650,42 +650,6 @@ public final class HeapSnapshotTraverse implements Disposable {
   private static short getNextIterationId() {
     return ++ourIterationId;
   }
-
-  /**
-   * Returns a JVM TI tag of the passed object.
-   */
-  static native long getObjectTag(@NotNull final Object obj);
-
-  /**
-   * Sets a JVM TI object tag for a passed object.
-   */
-  private static native void setObjectTag(@NotNull final Object obj, long newTag);
-
-  /**
-   * Checks that JVM TI agent has a capability to tag objects.
-   */
-  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-  private static native boolean canTagObjects();
-
-  /**
-   * @return an array of class objects initialized by the JVM.
-   */
-  public static native Class<?>[] getClasses();
-
-  /**
-   * @return an estimated size of the passed object in bytes.
-   */
-  private static native long getObjectSize(@NotNull final Object obj);
-
-  /**
-   * Checks if class was initialized by the JVM.
-   */
-  static native boolean isClassInitialized(@NotNull final Class<?> classToCheck);
-
-  /**
-   * Checks if class was initialized by the JVM.
-   */
-  static native Object[] getClassStaticFieldsValues(@NotNull final Class<?> classToCheck);
 
   static class HeapSnapshotPresentationConfig {
     final SizePresentationStyle sizePresentation;

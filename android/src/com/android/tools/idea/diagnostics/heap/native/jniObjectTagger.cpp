@@ -28,7 +28,7 @@ std::stack<StackNode*> depth_first_search_stack;
 
 std::unordered_map<int, ObjectMapNode*> object_id_to_traverse_node_map;
 
-JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getObjectTag
+JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_getObjectTag
   (JNIEnv *env, jclass klass, jobject obj) {
   jlong tag = 0;
   jvmtiError error = jvmti->GetTag(obj, &tag);
@@ -38,7 +38,7 @@ JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapsho
   return tag;
 }
 
-JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getObjectSize
+JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_getObjectSize
   (JNIEnv *env, jclass klass, jobject obj) {
   jlong object_size = 0;
   jvmtiError error = jvmti->GetObjectSize(obj, &object_size);
@@ -48,14 +48,14 @@ JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapsho
   return object_size;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_canTagObjects
+JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_canTagObjects
   (JNIEnv *env, jclass klass) {
   jvmtiCapabilities capa;
   jvmti->GetCapabilities(&capa);
   return capa.can_tag_objects == 1;
 }
 
-JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_setObjectTag
+JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_setObjectTag
   (JNIEnv *env, jclass klass, jobject obj, jlong newTag) {
   jvmtiError error = jvmti->SetTag(obj, newTag);
   if (error != JVMTI_ERROR_NONE) {
@@ -65,7 +65,7 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshot
 
 #define ACC_STATIC    0x0008
 
-JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getClasses(JNIEnv *env, jclass klass) {
+JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_getClasses(JNIEnv *env, jclass klass) {
   jint nclasses;
   jclass *classes;
   jint class_status;
@@ -91,7 +91,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_Heap
   return arr;
 }
 
-JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_isClassInitialized
+JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_isClassInitialized
   (JNIEnv *env, jclass klass, jclass class_to_check) {
   jint class_status;
   jvmti->GetClassStatus(class_to_check, &class_status);
@@ -99,7 +99,7 @@ JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnap
   return class_status & JVMTI_CLASS_STATUS_INITIALIZED;
 }
 
-JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getClassStaticFieldsValues
+JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_getClassStaticFieldsValues
   (JNIEnv *env, jclass klass, jclass class_to_check) {
   jvmtiError err;
   jint fcount;

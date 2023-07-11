@@ -1,26 +1,26 @@
-#ifndef _Included_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse
-#define _Included_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse
+#ifndef _Included_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper
+#define _Included_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper
 #include <jvmti.h>
 
 extern "C" {
-JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getObjectTag
+JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_getObjectTag
   (JNIEnv *, jclass, jobject);
 
-JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_setObjectTag
+JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_setObjectTag
   (JNIEnv *, jclass, jobject, jlong);
 
-JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_canTagObjects
+JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_canTagObjects
   (JNIEnv *, jclass);
 
-JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getClasses(JNIEnv *, jclass);
+JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_getClasses(JNIEnv *, jclass);
 
-JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getClassStaticFieldsValues
+JNIEXPORT jobjectArray JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_getClassStaticFieldsValues
 (JNIEnv *, jclass, jclass);
 
-JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_isClassInitialized
+JNIEXPORT jboolean JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_isClassInitialized
   (JNIEnv *, jclass, jclass);
 
-JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapSnapshotTraverse_getObjectSize(JNIEnv *, jclass, jobject);
+JNIEXPORT jlong JNICALL Java_com_android_tools_idea_diagnostics_heap_MemoryReportJniHelper_getObjectSize(JNIEnv *, jclass, jobject);
 
 // depthFirstSearchStack methods
 

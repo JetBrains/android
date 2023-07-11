@@ -116,6 +116,6 @@ public final class FieldCache {
   }
 
   public Object[] getStaticFields(@NotNull Class<?> aClass) {
-    return HeapSnapshotTraverse.getClassStaticFieldsValues(aClass);
+    return MemoryReportJniHelper.getClassStaticFieldsValues(aClass);
   }
 }

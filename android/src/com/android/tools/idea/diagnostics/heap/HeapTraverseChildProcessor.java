@@ -106,7 +106,7 @@ public class HeapTraverseChildProcessor {
     // 2) a static method of the class is invoked,
     // 3) a static field of the class is assigned,
     // 4) a non-constant static field is used;
-    if (obj instanceof Class && HeapSnapshotTraverse.isClassInitialized((Class<?>)obj)) {
+    if (obj instanceof Class && MemoryReportJniHelper.isClassInitialized((Class<?>)obj)) {
       for (Object fieldValue : fieldCache.getStaticFields((Class<?>)obj)) {
         if (fieldValue == null) {
           continue;
