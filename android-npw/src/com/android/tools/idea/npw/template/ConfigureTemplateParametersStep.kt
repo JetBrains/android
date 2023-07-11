@@ -77,11 +77,13 @@ import com.google.common.base.Joiner
 import com.google.common.io.Files
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogPanel
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBPanel
-import com.intellij.ui.layout.CCFlags
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import org.jetbrains.android.util.AndroidBundle.message
@@ -108,7 +110,7 @@ fun Parameter<*>.isRelated(p: Parameter<*>): Boolean =
  * Far from being generic data, the template edited by this step is very Android specific, and  needs to be aware of things like
  * the current project/module, package name, min supported API, previously configured values, etc.
  */
-class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String, private val templates: List<NamedModuleTemplate>)
+class ConfigureTemplateParametersStep(model: RenderTemplateModel, @NlsContexts.Label title: String, private val templates: List<NamedModuleTemplate>)
   : ModelWizardStep<RenderTemplateModel>(model, title) {
   private val bindings = BindingsManager()
   private val listeners = ListenerManager()
@@ -134,17 +136,13 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
   private val mainPanel = panel {
     row {
-      templateTitleLabel()
+      cell(templateTitleLabel).align(Align.FILL).resizableColumn()
     }
     row {
-      cell(isVerticalFlow = true, isFullWidth = true) {
-        templateDescriptionLabel()
-      }
+      cell(templateDescriptionLabel).align(Align.FILL).resizableColumn()
     }
     row {
-      cell(isFullWidth = true) {
-        parametersPanel(constraints = arrayOf(CCFlags.growX))
-      }
+      cell(parametersPanel).align(Align.FILL).resizableColumn()
     }
   }.apply {
     border = JBUI.Borders.emptyTop(32)
@@ -214,7 +212,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     }
 
     if (templates.size > 1) {
-      val row = RowEntry("Target Source Set", ModuleTemplateComboProvider(templates)).apply {
+      val row = RowEntry(message("android.wizard.target.source.set.header"), ModuleTemplateComboProvider(templates)).apply {
         setEnabled(true)
         addToPanel(parametersPanel)
         property!!.addListener {
@@ -353,10 +351,11 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     parametersPanel.removeAll()
     parameterRows.clear()
     userValues.clear()
-    dispose()
+    Disposer.dispose(this)
   }
 
   override fun dispose() {
+    super.dispose()
     bindings.releaseAll()
     listeners.releaseAll()
   }
@@ -411,11 +410,11 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
     private val header: JPanel?
     private val componentProvider: ComponentProvider<T>
-    private val container: JPanel = JBPanel<JBPanel<*>>().apply {
+    private val container: JPanel = DialogPanel().apply {
       layout = BoxLayout(this, BoxLayout.Y_AXIS)
     }
 
-    constructor(headerText: String, componentProvider: ComponentProvider<T>) {
+    constructor(@NlsContexts.Label headerText: String, componentProvider: ComponentProvider<T>) {
       val headerLabel = JBLabel(headerText)
       header = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
         add(headerLabel)
