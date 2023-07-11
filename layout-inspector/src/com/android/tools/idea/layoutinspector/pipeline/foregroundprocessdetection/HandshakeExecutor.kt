@@ -251,10 +251,12 @@ class HandshakeExecutor(
    * type LAYOUT_INSPECTOR_TRACKING_FOREGROUND_PROCESS_SUPPORTED.
    */
   private fun sendStartHandshakeCommand(stream: Stream) {
-    transportClient.sendCommand(
-      Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED,
-      stream.streamId
-    )
+    scope.launch {
+      transportClient.sendCommand(
+        Commands.Command.CommandType.IS_TRACKING_FOREGROUND_PROCESS_SUPPORTED,
+        stream.streamId
+      )
+    }
   }
 }
 

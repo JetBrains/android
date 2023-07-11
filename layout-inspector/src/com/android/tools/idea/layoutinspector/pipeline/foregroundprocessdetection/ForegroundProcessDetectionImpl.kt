@@ -42,6 +42,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import layout_inspector.LayoutInspector
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
@@ -114,7 +115,7 @@ class ForegroundProcessDetectionImpl(
   private val transportClient: TransportClient,
   private val layoutInspectorMetrics: LayoutInspectorMetrics,
   private val metrics: ForegroundProcessDetectionMetrics,
-  scope: CoroutineScope,
+  private val scope: CoroutineScope,
   workDispatcher: CoroutineDispatcher = AndroidDispatchers.workerThread,
   @TestOnly private val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {},
   @TestOnly private val pollingIntervalMs: Long = 2000
@@ -409,10 +410,12 @@ class ForegroundProcessDetectionImpl(
    * process.
    */
   private fun sendStartOnDevicePollingCommand(stream: Common.Stream) {
-    transportClient.sendCommand(
-      Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS,
-      stream.streamId
-    )
+    scope.launch {
+      transportClient.sendCommand(
+        Commands.Command.CommandType.START_TRACKING_FOREGROUND_PROCESS,
+        stream.streamId
+      )
+    }
   }
 
   /**
@@ -423,10 +426,12 @@ class ForegroundProcessDetectionImpl(
     deviceDescriptor: DeviceDescriptor
   ) {
     if (shouldStopPollingDevice(deviceDescriptor)) {
-      transportClient.sendCommand(
-        Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS,
-        stream.streamId
-      )
+      scope.launch {
+        transportClient.sendCommand(
+          Commands.Command.CommandType.STOP_TRACKING_FOREGROUND_PROCESS,
+          stream.streamId
+        )
+      }
     }
   }
 
@@ -457,14 +462,15 @@ class ForegroundProcessDetectionImpl(
 }
 
 /** Send a command to the transport. */
-internal fun TransportClient.sendCommand(
+internal suspend fun TransportClient.sendCommand(
   commandType: Commands.Command.CommandType,
   streamId: Long
-) {
-  val command = Commands.Command.newBuilder().setType(commandType).setStreamId(streamId).build()
-
-  transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
-}
+) =
+  withContext(AndroidDispatchers.workerThread) {
+    val command = Commands.Command.newBuilder().setType(commandType).setStreamId(streamId).build()
+    // This is a potentially long-running operation, should not be executed on the main thread.
+    transportStub.execute(Transport.ExecuteRequest.newBuilder().setCommand(command).build())
+  }
 
 private fun StreamEvent.toForegroundProcess(): ForegroundProcess? {
   return if (
