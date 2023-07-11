@@ -95,10 +95,13 @@ class TemplateDiffTest(private val testMode: TestMode) {
   @Before
   fun setUp() {
     assertFalse("Previous validation failed", validationFailed)
-    validationFailed = true
+
+    println("Current test mode: $testMode")
+    if (testMode != TestMode.DIFFING) {
+      validationFailed = true
+    }
 
     getPinnedAgpVersion().agpVersion?.let { StudioFlags.AGP_VERSION_TO_USE.override(it) }
-    println("Current test mode: $testMode")
   }
 
   @After
