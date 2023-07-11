@@ -2388,32 +2388,36 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:kmpFirstLib-androidMain
                         module                        : :-:kmpFirstLib-commonMain
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
-                        androidLibrary                : androidx.test:runner:1.3.0@aar
+                        androidLibrary                : androidx.test:runner:1.4.0-alpha06@aar
                         androidLibrary                : androidx.test.ext:junit:1.1.2@aar
-                        androidLibrary                : androidx.test:core:1.3.0@aar
+                        androidLibrary                : androidx.test:core:1.4.0-alpha06@aar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                        androidLibrary                : androidx.test:monitor:1.3.0@aar
+                        androidLibrary                : androidx.test.services:storage:1.4.0-alpha06@aar
+                        androidLibrary                : androidx.test:monitor:1.4.0-alpha06@aar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.0.0
                         javaLibrary                   : androidx.annotation:annotation:1.0.0
                         javaLibrary                   : junit:junit:4.12
                         javaLibrary                   : org.jetbrains:annotations:13.0
+                        javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3
                         module                        : :-:androidLib-MAIN
                     runtimeClasspath
                         module                        : :-:kmpFirstLib-androidMain
                         module                        : :-:kmpFirstLib-commonMain
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
-                        androidLibrary                : androidx.test:runner:1.3.0@aar
+                        androidLibrary                : androidx.test:runner:1.4.0-alpha06@aar
                         androidLibrary                : androidx.test.ext:junit:1.1.2@aar
-                        androidLibrary                : androidx.test:core:1.3.0@aar
+                        androidLibrary                : androidx.test:core:1.4.0-alpha06@aar
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                        androidLibrary                : androidx.test:monitor:1.3.0@aar
+                        androidLibrary                : androidx.test.services:storage:1.4.0-alpha06@aar
+                        androidLibrary                : androidx.test:monitor:1.4.0-alpha06@aar
                         javaLibrary                   : androidx.lifecycle:lifecycle-common:2.0.0
                         javaLibrary                   : androidx.annotation:annotation:1.0.0
                         javaLibrary                   : junit:junit:4.12
                         javaLibrary                   : org.jetbrains:annotations:13.0
+                        javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3
                         module                        : :-:androidLib-MAIN
                 ApplicationId                 : com.example.kmpfirstlib.test

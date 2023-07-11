@@ -1075,9 +1075,11 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.0.0 [=]
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.0.0 [=]
         LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.2 [=]
-        LIBRARY                       : Gradle: androidx.test:core:1.3.0 [=]
-        LIBRARY                       : Gradle: androidx.test:monitor:1.3.0 [=]
-        LIBRARY                       : Gradle: androidx.test:runner:1.3.0 [=]
+        LIBRARY                       : Gradle: androidx.test.services:storage:1.4.0-alpha06 [=]
+        LIBRARY                       : Gradle: androidx.test:core:1.4.0-alpha06 [=]
+        LIBRARY                       : Gradle: androidx.test:monitor:1.4.0-alpha06 [=]
+        LIBRARY                       : Gradle: androidx.test:runner:1.4.0-alpha06 [=]
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
@@ -2367,17 +2369,22 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.2
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.2/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.test:core:1.3.0
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.3.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.test:monitor:1.3.0
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.3.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.test:runner:1.3.0
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.3.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.3.0/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test.services:storage:1.4.0-alpha06
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0-alpha06/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0-alpha06/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:core:1.4.0-alpha06
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-alpha06/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0-alpha06/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:monitor:1.4.0-alpha06
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-alpha06/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0-alpha06/jars/classes.jar!/
+        LIBRARY                       : Gradle: androidx.test:runner:1.4.0-alpha06
+            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0-alpha06/AndroidManifest.xml
+            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0-alpha06/jars/classes.jar!/
         LIBRARY                       : Gradle: com.google.auto.value:auto-value-annotations:1.6.3
             *CLASSES                      : jar://<M2>/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar!/
+        LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1
+            *CLASSES                      : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
         LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:3.0.2
             *CLASSES                      : jar://<M2>/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar!/
         LIBRARY                       : Gradle: com.google.errorprone:error_prone_annotations:2.3.1
