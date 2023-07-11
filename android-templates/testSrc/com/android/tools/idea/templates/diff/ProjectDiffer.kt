@@ -110,7 +110,8 @@ private fun isDirectoryEffectivelyEmpty(dir: Path, printPrefix: String = ""): Bo
   val empty =
     Files.list(dir).use { pathStream ->
       pathStream
-        .filter { !it.isDirectory() || isDirectoryEffectivelyEmpty(it, "$printPrefix..") }
+        // If there is any non-directory file, or if the directory is NOT empty...
+        .filter { !it.isDirectory() || !isDirectoryEffectivelyEmpty(it, "$printPrefix..") }
         .isEmpty()
     }
   if (empty) {
