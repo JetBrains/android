@@ -197,7 +197,7 @@ class VitalsTabTest {
       }
 
       // Device, OS Version, affected versions
-      fakeUi.findComponent<JLabel> { it.text == "Versions affected: 1.2.3" }
+      fakeUi.findComponent<JLabel> { it.text == "Versions affected: 1.2.3 → 2.0.0" }
 
       // Time, link to Vitals
       assertThat(

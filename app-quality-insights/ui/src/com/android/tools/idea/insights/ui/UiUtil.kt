@@ -143,3 +143,10 @@ class JListSimpleColoredComponent<T>(icon: Icon?, list: JList<T>, hasFocus: Bool
     }
   }
 }
+
+fun prettyRangeString(lower: Any, upper: Any) =
+  if (lower == upper) {
+    lower.toString()
+  } else {
+    "$lower → $upper"
+  }

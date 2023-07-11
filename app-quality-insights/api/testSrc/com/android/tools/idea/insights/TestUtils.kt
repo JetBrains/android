@@ -81,7 +81,7 @@ val ISSUE1 =
       FailureType.FATAL,
       "Sample Event",
       "1.2.3",
-      "1.2.3",
+      "2.0.0",
       8L,
       13L,
       5L,

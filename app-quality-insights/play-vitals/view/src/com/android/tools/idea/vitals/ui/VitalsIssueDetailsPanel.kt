@@ -37,6 +37,7 @@ import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.StackTraceConsole
 import com.android.tools.idea.insights.ui.dateFormatter
 import com.android.tools.idea.insights.ui.ifZero
+import com.android.tools.idea.insights.ui.prettyRangeString
 import com.android.tools.idea.insights.ui.transparentPanel
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.openapi.Disposable
@@ -344,10 +345,10 @@ class VitalsIssueDetailsPanel(
   private fun updateBodySection(issue: AppInsightsIssue) {
     deviceLabel.text = issue.sampleEvent.eventData.device.let { "${it.manufacturer} ${it.model}" }
     affectedApiLevelsLabel.text =
-      if (issue.issueDetails.lowestAffectedApiLevel == issue.issueDetails.highestAffectedApiLevel)
-        issue.issueDetails.lowestAffectedApiLevel.toString()
-      else
-        "${issue.issueDetails.lowestAffectedApiLevel} → ${issue.issueDetails.highestAffectedApiLevel}"
+      prettyRangeString(
+        issue.issueDetails.lowestAffectedApiLevel,
+        issue.issueDetails.highestAffectedApiLevel
+      )
     timestampLabel.text = dateFormatter.format(issue.sampleEvent.eventData.eventTime)
 
     eventsCountLabel.icon = StudioIcons.AppQualityInsights.ISSUE
@@ -356,7 +357,7 @@ class VitalsIssueDetailsPanel(
     usersCountLabel.text = issue.issueDetails.impactedDevicesCount.ifZero("-")
 
     affectedVersionsLabel.text =
-      "Versions affected: ${issue.issueDetails.firstSeenVersion} - ${issue.issueDetails.lastSeenVersion}"
+      "Versions affected: ${prettyRangeString(issue.issueDetails.firstSeenVersion, issue.issueDetails.lastSeenVersion)}"
 
     insightsPanel.removeAll()
     issue.issueDetails.annotations.forEach {
