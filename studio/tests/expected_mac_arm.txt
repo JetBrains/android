@@ -692,7 +692,7 @@ Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/andro
 Android Studio Preview.app/Contents/plugins/android-compose-ide-plugin/lib/compiler-hosted-1.4.7.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/android-ndk.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.cdt.core_6.8.1.201907021957.jar
-Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190621-0852.jar
+Android Studio Preview.app/Contents/plugins/android-ndk/lib/org.eclipse.equinox.common_3.10.500.v20190815-1535.jar
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/LICENSE.TXT
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/android/arm64-v8a/lldb-server
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/android/armeabi/lldb-server
