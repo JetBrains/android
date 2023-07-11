@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle;
+import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.SizePresentationStyle;
 
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
 import java.lang.reflect.Field;

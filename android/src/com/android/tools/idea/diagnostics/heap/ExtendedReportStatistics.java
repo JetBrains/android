@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS;
+import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -154,7 +154,7 @@ public class ExtendedReportStatistics {
 
     private boolean classNameIsStudioSource(@NotNull final String className) {
       return className.startsWith("com.android.") ||
-             HeapSnapshotTraverse.isPlatformObject(className);
+             MemoryReportCollector.isPlatformObject(className);
     }
 
     public void print(Consumer<String> writer) {

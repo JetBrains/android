@@ -171,7 +171,7 @@ public final class HeapSnapshotStatistics {
 
   private static String getOptimalUnitsStatisticsPresentation(@NotNull final ObjectsStatistics statistics) {
     return HeapTraverseUtil.getObjectsStatsPresentation(statistics,
-                                                        HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS);
+                                                        MemoryReportCollector.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS);
   }
 
   @NotNull
@@ -261,7 +261,7 @@ public final class HeapSnapshotStatistics {
   }
 
   void print(@NotNull final Consumer<String> writer, @NotNull final Function<ObjectsStatistics, String> objectsStatsPresentation,
-             @NotNull final HeapSnapshotTraverse.HeapSnapshotPresentationConfig presentationConfig, long collectionTimeMs) {
+             @NotNull final MemoryReportCollector.HeapSnapshotPresentationConfig presentationConfig, long collectionTimeMs) {
     writer.accept(
       String.format(Locale.US, "Total used memory: %s",
                     objectsStatsPresentation.apply(totalStats.getObjectsStatistics())));

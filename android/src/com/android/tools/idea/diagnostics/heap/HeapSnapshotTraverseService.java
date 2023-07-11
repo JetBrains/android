@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle.BYTES;
-import static com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverse.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS;
+import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.SizePresentationStyle.BYTES;
+import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS;
 import static com.android.tools.idea.util.StudioPathManager.isRunningFromSources;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
@@ -130,8 +130,8 @@ public final class HeapSnapshotTraverseService {
     }
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(new HeapTraverseConfig(ComponentsSet.buildComponentSetForIntegrationTesting(),
       /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/true));
-    HeapSnapshotTraverse.collectAndWriteStats(LOG::info, stats,
-                                              new HeapSnapshotTraverse.HeapSnapshotPresentationConfig(
+    MemoryReportCollector.collectAndWriteStats(LOG::info, stats,
+                                               new MemoryReportCollector.HeapSnapshotPresentationConfig(
                                                 OPTIMAL_UNITS,
                                                 /*shouldLogSharedClusters=*/true,
                                                 /*shouldLogRetainedSizes=*/false));
@@ -146,7 +146,7 @@ public final class HeapSnapshotTraverseService {
     }
     HeapSnapshotStatistics stats = new HeapSnapshotStatistics(new HeapTraverseConfig(ComponentsSet.buildComponentSetForIntegrationTesting(),
                                                                                      collectHistograms, collectDisposerTreeInfo));
-    if (StatusCode.NO_ERROR != new HeapSnapshotTraverse(stats).walkObjects()) {
+    if (StatusCode.NO_ERROR != new MemoryReportCollector(stats).walkObjects()) {
       return null;
     }
     return stats;
@@ -172,7 +172,7 @@ public final class HeapSnapshotTraverseService {
                                true, /*collectDisposerTreeInfo=*/true))
                                           : new HeapSnapshotStatistics(ComponentsSet.buildComponentSetForIntegrationTesting());
 
-      HeapSnapshotTraverse.collectAndWriteStats(
+      MemoryReportCollector.collectAndWriteStats(
         (String s) -> {
           try {
             writer.append(s).append("\n");
@@ -181,7 +181,7 @@ public final class HeapSnapshotTraverseService {
             LOG.warn(String.format("%s Failed to write to the memory report file", MEMORY_USAGE_REPORT_FAILURE_MESSAGE_PREFIX), e);
           }
         }, statistics,
-        new HeapSnapshotTraverse.HeapSnapshotPresentationConfig(
+        new MemoryReportCollector.HeapSnapshotPresentationConfig(
           BYTES,
           /*shouldLogSharedClusters=*/false,
           /*shouldLogRetainedSizes=*/false));
@@ -222,7 +222,7 @@ public final class HeapSnapshotTraverseService {
       }
 
       HeapSnapshotStatistics stats = new HeapSnapshotStatistics(ComponentsSet.buildComponentSet());
-      StatusCode statusCode = HeapSnapshotTraverse.collectMemoryReport(stats, HeapSnapshotTraverse.getLoadedClassesComputable);
+      StatusCode statusCode = MemoryReportCollector.collectMemoryReport(stats, MemoryReportCollector.getLoadedClassesComputable);
       if (statusCode == StatusCode.NO_ERROR) {
         addMemoryReportCollectionRequest();
       }
