@@ -44,7 +44,6 @@ import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.rendering.ModuleRenderContext
-import com.android.tools.rendering.classloading.ModuleClassLoader
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.useWithClassLoader
 import com.android.tools.sdk.CompatibilityRenderTarget
@@ -552,7 +551,7 @@ class ParametrizedComposePreviewElementTemplate(
   }
 
   private fun loadPreviewParameterProvider(
-    classLoader: ModuleClassLoader,
+    classLoader: ClassLoader,
     previewParameter: PreviewParameter
   ): Sequence<ComposePreviewElementInstance> {
     try {
