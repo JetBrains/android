@@ -16,6 +16,7 @@
 package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
+import com.android.tools.idea.flags.StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -178,6 +179,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
         (
           !child.name.endsWith(SdkConstants.EXT_GRADLE) &&
             !child.name.endsWith(SdkConstants.EXT_GRADLE_KTS) &&
+            !child.isDeclarativeBuildFile() &&
             child.fileType !== proguardFileType
           )
       ) {
@@ -194,6 +196,9 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
     }
     return files
   }
+
+  private fun VirtualFile.isDeclarativeBuildFile() =
+    DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get() && name.endsWith(SdkConstants.EXT_GRADLE_TOML)
 
   private val proguardFileType: FileType = FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
 }
