@@ -44,10 +44,12 @@ import org.bytedeco.ffmpeg.avcodec.AVCodecContext
 import org.bytedeco.ffmpeg.avcodec.AVPacket
 import org.bytedeco.ffmpeg.avutil.AVDictionary
 import org.bytedeco.ffmpeg.avutil.AVFrame
+import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_AV1
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H264
-import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_H265
+import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_HEVC
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP9
+import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VVC
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_alloc
 import org.bytedeco.ffmpeg.global.avcodec.av_packet_free
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_alloc_context3
@@ -438,8 +440,10 @@ class FakeScreenSharingAgent(
       val codecId = when (codecName) {
         "vp8" -> AV_CODEC_ID_VP8
         "vp9" -> AV_CODEC_ID_VP9
+        "av01" -> AV_CODEC_ID_AV1
         "avc" -> AV_CODEC_ID_H264
-        "hevc" -> AV_CODEC_ID_H265
+        "hevc" -> AV_CODEC_ID_HEVC
+        "vvc" -> AV_CODEC_ID_VVC
         else -> throw RuntimeException("$codecName encoder not found")
       }
 
