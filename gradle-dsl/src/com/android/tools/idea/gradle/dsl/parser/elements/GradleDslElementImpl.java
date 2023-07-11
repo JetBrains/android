@@ -589,7 +589,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     return getExternalToModelMap(converter, ExternalToModelMap.empty, ExternalToModelMap.empty, ExternalToModelMap.empty);
   }
 
-  protected final @NotNull ExternalToModelMap getExternalToModelMap(
+  protected static @NotNull ExternalToModelMap getExternalToModelMap(
     @NotNull GradleDslNameConverter converter,
     ExternalToModelMap groovy,
     ExternalToModelMap kts
@@ -597,13 +597,28 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     return getExternalToModelMap(converter, groovy, kts, kts);
   }
 
-  protected final @NotNull ExternalToModelMap getExternalToModelMap(
+  protected static @NotNull ExternalToModelMap getExternalToModelMap(
     @NotNull GradleDslNameConverter converter,
     ExternalToModelMap groovy,
     ExternalToModelMap kts,
     ExternalToModelMap declarative
   ) {
-    switch (converter.getKind()) {
+    return getExternalProperties(converter.getKind(), groovy, kts, declarative);
+  }
+
+  protected static @NotNull ExternalToModelMap getExternalProperties(
+    @NotNull Kind kind,
+    ExternalToModelMap groovy,
+    ExternalToModelMap kts) {
+    return getExternalProperties(kind, groovy, kts, kts);
+  }
+
+  protected static @NotNull ExternalToModelMap getExternalProperties(
+    @NotNull Kind kind,
+    ExternalToModelMap groovy,
+    ExternalToModelMap kts,
+    ExternalToModelMap declarative) {
+    switch (kind) {
       case NONE -> {
         return ExternalToModelMap.empty;
       }

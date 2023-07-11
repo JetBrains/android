@@ -23,6 +23,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemantics
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
@@ -33,10 +34,12 @@ import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElem
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
@@ -189,5 +192,19 @@ public class GradleBuildFile extends GradleScriptFile {
   @NotNull
   public Collection<GradleBuildFile> getChildModuleBuildFiles() {
     return myChildModuleBuildFiles;
+  }
+
+  public static final class BuildGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return ExternalToModelMap.empty;
+    }
   }
 }

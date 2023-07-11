@@ -118,9 +118,14 @@
                            order="first"/>
     <completion.contributor language="TOML"
                             implementationClass="com.android.tools.idea.gradle.completions.TomlVersionRefCompletionContributor" />
+    <completion.contributor language="TOML"
+                            implementationClass="com.android.tools.idea.gradle.completions.DeclarativeCompletionContributor" />
     <completion.confidence language="TOML"
                            id="EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion"
                            implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInLiteralForTomlVersionRefDependencyCompletion" />
+    <completion.confidence language="TOML"
+                           id="EnableAutoPopupInDeclarativeBuildCompletion"
+                           implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInDeclarativeBuildCompletion" />
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.navigation.GradleTomlUseScopeEnlarger"/>
     <gotoDeclarationHandler implementation="com.android.tools.idea.gradle.refactoring.VersionCatalogGoToDeclarationHandler"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>

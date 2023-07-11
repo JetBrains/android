@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PropertyTransform;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelEffectDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType;
@@ -378,6 +380,20 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
 
   @NotNull
   private static final ImmutableMap<String,PropertiesElementDescription> NO_CHILD_PROPERTIES_ELEMENTS = ImmutableMap.of();
+
+  public static final class EmptyGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+      return NO_CHILD_PROPERTIES_ELEMENTS;
+    }
+
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return ExternalToModelMap.empty;
+    }
+  }
 
   /**
    * a helper for the default implementation for getChildPropertiesElementDescription: a common implementation will involve a Dsl element

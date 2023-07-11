@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
@@ -39,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement implements GradleDslNamedDomainElement {
   public static final PropertiesElementDescription<BuildTypeDslElement> BUILD_TYPE =
-    new PropertiesElementDescription<>(null, BuildTypeDslElement.class, BuildTypeDslElement::new);
+    new PropertiesElementDescription<>(null, BuildTypeDslElement.class, BuildTypeDslElement::new, BuildTypeDslElementSchema::new);
 
   private static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"isCrunchPngs", property, CRUNCH_PNGS, VAR},
@@ -119,7 +120,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     super.addParsedElement(element);
   }
 
-  private ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP = Stream.of(new Object[][]{
+  static private ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP = Stream.of(new Object[][]{
     {"firebaseCrashlytics", FIREBASE_CRASHLYTICS}
   }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
 
@@ -148,5 +149,19 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   @Override
   public String getMethodName() {
     return methodName;
+  }
+
+  public static final class BuildTypeDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+      return CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP;
+    }
+
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
   }
 }

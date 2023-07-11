@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
@@ -35,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class AndroidDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<AndroidDslElement> ANDROID =
-    new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new);
+    new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new, AndroidGradlePropertiesDslElementSchema::new);
 
   public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
     {"aaptOptions", AaptOptionsDslElement.AAPT_OPTIONS},
@@ -154,6 +155,20 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
     return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+  }
+
+  public static final class AndroidGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
+    @NotNull
+    @Override
+    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+      return CHILD_PROPERTIES_ELEMENTS_MAP;
+    }
+
+    @NotNull
+    @Override
+    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+      return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
   }
 
   public AndroidDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
