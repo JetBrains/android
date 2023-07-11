@@ -23,7 +23,6 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.gradle.Version;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
