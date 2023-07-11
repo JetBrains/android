@@ -110,6 +110,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
         executeMakeBeforeRun = false,
       ),
+      IGNORE = { if (agpVersion == AGP_74) TODO("need to downgrade compile SDK for this version b/292064883") },
       expectApks = mapOf(
         AGP_CURRENT to """
               ApkProvisionException*> Error loading build artifacts from: <ROOT>/project/app/build/intermediates/apk_ide_redirect_file/debug/redirect.txt
@@ -139,6 +140,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
       TestScenario(
         testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
       ),
+      IGNORE = { if (agpVersion == AGP_74) TODO("need to downgrade compile SDK for this version b/292064883") },
       expectApks =
       """
             ApplicationId: one.name.defaultConfig.debug
@@ -167,6 +169,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         viaBundle = true,
         testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
       ),
+      IGNORE = { if (agpVersion == AGP_74) TODO("need to downgrade compile SDK for this version b/292064883") },
       expectApks = mapOf(
         AGP_CURRENT to """
               ApplicationId: one.name.defaultConfig.debug
@@ -197,6 +200,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         testProject = AndroidCoreTestProject.APPLICATION_ID_SUFFIX,
         target = ManuallyAssembled(":app", forTests = false),
       ),
+      IGNORE = { if (agpVersion == AGP_74) TODO("need to downgrade compile SDK for this version b/292064883") },
       expectApks = mapOf(
         AGP_71 to """
             ApplicationId: one.name.defaultConfig.debug

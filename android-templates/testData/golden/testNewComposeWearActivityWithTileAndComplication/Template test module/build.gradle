@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'template.test.pkg'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "template.test.pkg"
         minSdk 26
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
         vectorDrawables {

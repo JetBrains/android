@@ -1,10 +1,11 @@
 package androidx.annotation
 
+import android.os.ext.SdkExtensions
 import android.os.Build.VERSION_CODES.R
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresExtension
 
-@RequiresExtension(extension = 1000000, version = 4)
+@RequiresExtension(extension = SdkExtensions.AD_SERVICES, version = 4)
 @RequiresExtension(extension = R, 4)
 @RequiresApi(34)
 fun test() {
@@ -12,7 +13,7 @@ fun test() {
 }
 
 @RequiresExtension(R, 4)
-@RequiresExtension(1000000, 4)
+@RequiresExtension(extension = SdkExtensions.AD_SERVICES, 4)
 fun rAndRb() {
 }
 

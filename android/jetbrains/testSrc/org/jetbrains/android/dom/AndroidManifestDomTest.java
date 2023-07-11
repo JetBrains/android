@@ -582,7 +582,8 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
     doTestCompletionVariants(getTestName(false) + ".xml",
                              "android.intent.action.CALL",
                              "android.intent.action.CALL_BUTTON",
-                             "android.intent.action.CARRIER_SETUP");
+                             "android.intent.action.CARRIER_SETUP",
+                             "android.intent.action.LAUNCH_CAPTURE_CONTENT_ACTIVITY_FOR_NOTE");
   }
 
   public void testIntentActionCompletion2() throws Throwable {
@@ -822,6 +823,6 @@ public class AndroidManifestDomTest extends AndroidDomTestCase {
   private void doTestSdkVersionAttributeValueCompletion() throws Throwable {
       doTestCompletionVariants(getTestName(true) + ".xml", "1", "2", "3", "4", "5", "6", "7",
                                "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25",
-                               "26", "27", "28", "29", "30", "31", "32", "33");
+                               "26", "27", "28", "29", "30", "31", "32", "33", "34");
   }
 }

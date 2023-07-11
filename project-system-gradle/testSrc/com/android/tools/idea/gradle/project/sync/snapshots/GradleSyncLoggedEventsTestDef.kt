@@ -82,16 +82,6 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_SETUP_STARTED
               |  USER_REQUESTED_PARALLEL""".trim()
             )
-            if (agpVersion == AGP_70) {
-              appendLine(
-                """
-              |GRADLE_SYNC_ISSUES
-              |  USER_REQUESTED_PARALLEL
-              |  STUDIO_REQUESTD_$expectedMode
-              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH
-              |    OPEN_FILE_HYPERLINK""".trim()
-              )
-            }
             appendLine(
               """
               |GRADLE_SYNC_ENDED
@@ -121,16 +111,6 @@ data class GradleSyncLoggedEventsTestDef(
               |GRADLE_SYNC_SETUP_STARTED
               |  USER_REQUESTED_SEQUENTIAL""".trim()
             )
-            if (agpVersion == AGP_70) {
-              appendLine(
-                """
-              |GRADLE_SYNC_ISSUES
-              |  USER_REQUESTED_SEQUENTIAL
-              |  STUDIO_REQUESTD_SEQUENTIAL
-              |  TYPE_COMPILE_SDK_VERSION_TOO_HIGH
-              |    OPEN_FILE_HYPERLINK""".trim()
-              )
-            }
             appendLine(
               """
               |GRADLE_SYNC_ENDED

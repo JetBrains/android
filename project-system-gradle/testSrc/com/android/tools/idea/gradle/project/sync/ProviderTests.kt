@@ -136,11 +136,6 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
     Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), Matchers.nullValue())
     outputCurrentlyRunningTest(this)
     val preparedProject = prepareTestProject(scenario.testProject, agpVersion = agpVersion)
-    val projectPath = preparedProject.root
-    val gradlePropertiesPath = projectPath.resolve("gradle.properties")
-    gradlePropertiesPath.writeText(
-      gradlePropertiesPath.readText() + "\n android.suppressUnsupportedCompileSdk=${testDefinition.agpVersion.compileSdk}"
-    )
     preparedProject.open { project ->
       try {
         val variant = scenario.variant

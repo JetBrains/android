@@ -43,10 +43,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.builder.model.SyncIssue;
+import com.android.ide.common.repository.AgpVersion;
+import com.android.sdklib.AndroidVersion;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.model.IdeSyncIssue;
+import com.android.tools.idea.gradle.plugin.AgpVersions;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
@@ -58,6 +61,8 @@ import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.util.StudioPathManager;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -88,6 +93,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -204,7 +210,12 @@ public class AndroidGradleTests {
 
         // Override settings just for tests (e.g. sdk.dir)
         updateLocalProperties(path, TestUtils.getSdk().toFile());
-        updateGradleProperties(path);
+        try {
+          updateGradleProperties(path, AgpVersion.parse(pluginVersion), new AndroidVersion(compileSdkVersion));
+        }
+        catch (AndroidVersion.AndroidVersionException e) {
+          throw new IOException(e);
+        }
         // We need the wrapper for import to succeed
         createGradleWrapper(path, gradleVersion);
       }
@@ -356,7 +367,7 @@ public class AndroidGradleTests {
     localProperties.save();
   }
 
-  public static void updateGradleProperties(@NotNull File projectRoot) throws IOException {
+  public static void updateGradleProperties(@NotNull File projectRoot, @NotNull AgpVersion agpVersion, @NotNull AndroidVersion androidVersion) throws IOException {
     GradleProperties gradleProperties = new GradleProperties(new File(projectRoot, FN_GRADLE_PROPERTIES));
     // Inspired by: https://github.com/gradle/gradle/commit/8da8e742c3562a8130d3ddb5c6391d90ec565c39
     String debugIntegrationTest = System.getenv("DEBUG_INNER_TEST");
@@ -380,6 +391,11 @@ public class AndroidGradleTests {
     gradleProperties.getProperties().setProperty("org.gradle.vfs.watch", "false");
     if (StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get()) {
       gradleProperties.getProperties().setProperty("org.gradle.parallel", "true");
+    }
+    if (agpVersion.compareTo(AgpVersions.getLatestKnown()) < 0) {
+      Set<String> current = new LinkedHashSet<>(Splitter.on(",").omitEmptyStrings().splitToList(gradleProperties.getProperties().getProperty("android.suppressUnsupportedCompileSdk", "")));
+      current.add(androidVersion.getApiStringWithoutExtension());
+      gradleProperties.getProperties().setProperty("android.suppressUnsupportedCompileSdk", Joiner.on(",").join(current));
     }
     gradleProperties.save();
   }

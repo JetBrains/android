@@ -1770,13 +1770,13 @@ MODULE                        : project.ads-sdk-implementation
         hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
-        runtimeMinSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
-        targetSdk
             ApiLevel                      : 33
+            ApiString                     : 33
+        runtimeMinSdk
+            ApiLevel                      : 33
+            ApiString                     : 33
+        targetSdk
+            ApiLevel                      : 34
             CodeName                      : TiramisuPrivacySandbox
             ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
@@ -1837,10 +1837,10 @@ MODULE                        : project.ads-sdk-implementation
             Name                          : main
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MinSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
-            TargetSdkVersion
                 ApiLevel                      : 33
+                ApiString                     : 33
+            TargetSdkVersion
+                ApiLevel                      : 34
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             VectorDrawables
@@ -1994,10 +1994,10 @@ MODULE                        : project.ads-sdk-implementation
             DisplayName                   : debug
             InstantAppCompatible          : false
             MinSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
-            TargetSdkVersion
                 ApiLevel                      : 33
+                ApiString                     : 33
+            TargetSdkVersion
+                ApiLevel                      : 34
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
@@ -2279,13 +2279,13 @@ MODULE                        : project.app
         hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
-        runtimeMinSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
-        targetSdk
             ApiLevel                      : 33
+            ApiString                     : 33
+        runtimeMinSdk
+            ApiLevel                      : 33
+            ApiString                     : 33
+        targetSdk
+            ApiLevel                      : 34
             CodeName                      : TiramisuPrivacySandbox
             ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
@@ -2354,10 +2354,10 @@ MODULE                        : project.app
             VersionName                   : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MinSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
-            TargetSdkVersion
                 ApiLevel                      : 33
+                ApiString                     : 33
+            TargetSdkVersion
+                ApiLevel                      : 34
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             VectorDrawables
@@ -2521,10 +2521,10 @@ MODULE                        : project.app
             DisplayName                   : debug
             InstantAppCompatible          : false
             MinSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
-            TargetSdkVersion
                 ApiLevel                      : 33
+                ApiString                     : 33
+            TargetSdkVersion
+                ApiLevel                      : 34
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             VersionCode                   : 1
@@ -3509,13 +3509,13 @@ MODULE                        : project.app-with-dynamic-feature
         hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
-        runtimeMinSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
-        targetSdk
             ApiLevel                      : 33
+            ApiString                     : 33
+        runtimeMinSdk
+            ApiLevel                      : 33
+            ApiString                     : 33
+        targetSdk
+            ApiLevel                      : 34
             CodeName                      : TiramisuPrivacySandbox
             ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
@@ -3585,10 +3585,10 @@ MODULE                        : project.app-with-dynamic-feature
             VersionName                   : 1.0
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MinSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
-            TargetSdkVersion
                 ApiLevel                      : 33
+                ApiString                     : 33
+            TargetSdkVersion
+                ApiLevel                      : 34
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             VectorDrawables
@@ -3752,10 +3752,10 @@ MODULE                        : project.app-with-dynamic-feature
             DisplayName                   : debug
             InstantAppCompatible          : false
             MinSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
-            TargetSdkVersion
                 ApiLevel                      : 33
+                ApiString                     : 33
+            TargetSdkVersion
+                ApiLevel                      : 34
                 CodeName                      : TiramisuPrivacySandbox
                 ApiString                     : TiramisuPrivacySandbox
             VersionCode                   : 1
@@ -4758,11 +4758,11 @@ MODULE                        : project.feature
         hasSafeArgsKotlin             : false
     CurrentVariantReportedVersions
         minSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 33
+            ApiString                     : 33
         runtimeMinSdk
-            ApiLevel                      : <SDK_VERSION>
-            ApiString                     : <SDK_VERSION>
+            ApiLevel                      : 33
+            ApiString                     : 33
         targetSdk
             ApiLevel                      : 31
             ApiString                     : 31
@@ -4825,8 +4825,8 @@ MODULE                        : project.feature
             Name                          : main
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MinSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 33
+                ApiString                     : 33
             VectorDrawables
                 UseSupportLibrary             : false
         SourceProvider
@@ -4980,8 +4980,8 @@ MODULE                        : project.feature
             DisplayName                   : debug
             InstantAppCompatible          : false
             MinSdkVersion
-                ApiLevel                      : <SDK_VERSION>
-                ApiString                     : <SDK_VERSION>
+                ApiLevel                      : 33
+                ApiString                     : 33
             TestInstrumentationRunner     : androidx.test.runner.AndroidJUnitRunner
             MainArtifact
                 Name                          : MAIN

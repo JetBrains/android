@@ -103,7 +103,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   fun createNotificationPanel_panelHasCorrectLabel() {
     val panel = invokeCreateNotificationPanel(androidSdkClassWithoutSources)
     assertThat(panel).isNotNull()
-    assertThat(panel!!.text).isEqualTo("Android SDK sources for API 33 not found.")
+    assertThat(panel!!.text).isEqualTo("Android SDK sources for API 34 not found.")
   }
 
   @Test
@@ -126,7 +126,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
     // Check that the link requested the correct paths, and that then sources became available.
     assertThat(myProvider.requestedPaths).isNotNull()
-    assertThat(myProvider.requestedPaths).containsExactly("sources;android-33")
+    assertThat(myProvider.requestedPaths).containsExactly("sources;android-34")
     assertThat(rootProvider.getFiles(OrderRootType.SOURCES).size).isGreaterThan(0)
   }
 

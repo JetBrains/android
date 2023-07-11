@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:dist="http://schemas.android.com/apk/distribution" package="uninitialized.application.id">
-  <uses-sdk android:minSdkVersion="19" android:targetSdkVersion="33"/>
+  <uses-sdk android:minSdkVersion="19" android:targetSdkVersion="34"/>
   <dist:module dist:instant="false" dist:title="@string/title_feature1">
     <dist:delivery>
       <dist:install-time/>

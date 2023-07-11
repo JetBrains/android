@@ -32,6 +32,7 @@ package com.android.tools.idea.gradle.project.upgrade.integration
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.AgpVersion
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.junit4.OldAgpSuite
 import com.android.tools.idea.gradle.dsl.utils.FN_GRADLE_PROPERTIES
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -145,16 +146,17 @@ open class ProjectsUpgradeTestBase {
         val target = projectRoot.resolve(relative)
         FileUtils.copyFile(source, target)
         // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
+        val environment = testProject.agpVersionDef().resolve()
         AndroidGradleTests.updateToolingVersionsAndPaths(
           target,
-          testProject.agpVersionDef().resolve(),
+          environment,
           testProject.ndkVersion(),
           emptyList()
         )
         when (relative.path) {
           FN_GRADLE_PROPERTIES -> {
             VfsUtil.markDirtyAndRefresh(false, true, true, projectRoot)
-            AndroidGradleTests.updateGradleProperties(projectRoot)
+            AndroidGradleTests.updateGradleProperties(projectRoot, AgpVersion.parse(environment.agpVersion), AndroidVersion(environment.compileSdk));
           }
         }
       }
@@ -223,7 +225,8 @@ open class ProjectsUpgradeTestBase {
 
         path.endsWith(SdkConstants.DOT_PROPERTIES) ->
         { relativePath: String?, actualContent: String, goldenContent: String ->
-          expect.withMessage(relativePath).that(actualContent.lines().filter { !it.startsWith("#") }.joinToString("\n"))
+          val expectedContainsSuppression = goldenContent.contains("android.suppressUnsupportedCompileSdk=")
+          expect.withMessage(relativePath).that(actualContent.lines().filter { !it.startsWith("#") && (expectedContainsSuppression || !it.startsWith("android.suppressUnsupportedCompileSdk=")) }.joinToString("\n"))
             .isEqualTo(goldenContent.lines().filter { !it.startsWith("#") }.joinToString("\n")) }
 
         else -> null
