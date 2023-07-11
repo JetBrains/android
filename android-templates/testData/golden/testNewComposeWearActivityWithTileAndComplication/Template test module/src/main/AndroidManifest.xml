@@ -56,7 +56,7 @@
             android:name=".presentation.MainActivity"
             android:exported="true"
             android:taskAffinity=""
-            android:theme="@style/MainActivityTheme.Launch">
+            android:theme="@style/MainActivityTheme.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

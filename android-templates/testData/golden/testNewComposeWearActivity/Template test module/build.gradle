@@ -59,6 +59,7 @@ dependencies {
     implementation libs.compose.foundation
     implementation libs.lifecycle.runtime.ktx
     implementation libs.activity.compose
+    implementation libs.core.splashscreen
     androidTestImplementation platform(libs.compose.bom)
     androidTestImplementation libs.ui.test.junit4
     debugImplementation libs.ui.tooling

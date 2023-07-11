@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <shape>
-            <solid android:color="?android:attr/colorBackground" />
-        </shape>
-    </item>
     <item
         android:width="48dp"
         android:height="48dp"
         android:gravity="center">
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+    <item
+        android:width="40dp"
+        android:height="40dp"
+        android:gravity="center">
         <vector
             android:width="24dp"
             android:height="24dp"
-            android:tint="#FFFFFF"
+            android:tint="#000000"
             android:viewportWidth="24"
             android:viewportHeight="24">
             <path

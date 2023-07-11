@@ -59,6 +59,7 @@ dependencies {
     implementation libs.compose.foundation
     implementation libs.lifecycle.runtime.ktx
     implementation libs.activity.compose
+    implementation libs.core.splashscreen
     implementation libs.tiles
     implementation libs.tiles.material
     implementation libs.horologist.compose.tools
