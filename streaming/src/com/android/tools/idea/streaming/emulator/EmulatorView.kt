@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.UiThread
 import com.android.emulator.ImageConverter
 import com.android.emulator.control.DisplayConfiguration
+import com.android.emulator.control.DisplayConfigurationsChangedNotification
 import com.android.emulator.control.DisplayModeValue
 import com.android.emulator.control.ImageFormat
 import com.android.emulator.control.KeyboardEvent
@@ -686,7 +687,7 @@ class EmulatorView(
         when {
           response.hasCameraNotification() -> virtualSceneCameraActive = response.cameraNotification.active
           response.hasDisplayConfigurationsChangedNotification() ->
-              notifyDisplayConfigurationListeners(response.displayConfigurationsChangedNotification.displayConfigurations.displaysList)
+              checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(response.displayConfigurationsChangedNotification)
           response.hasPosture() -> updateCurrentPosture(response.posture.value)
           else  -> {
             // Old style notifications.
@@ -699,6 +700,18 @@ class EmulatorView(
             }
           }
         }
+      }
+    }
+
+    private fun checkDisplayConfigurationsAndNotifyDisplayConfigurationListeners(notification: DisplayConfigurationsChangedNotification) {
+      val displayConfigs = notification.displayConfigurations.displaysList
+      // Check for b/290831895.
+      if (displayConfigs.find { it.width <= 0 || it.height <= 0 } != null) {
+        LOG.error("Invalid display configuration in $notification")
+        notifyDisplayConfigurationListeners(null)
+      }
+      else {
+        notifyDisplayConfigurationListeners(displayConfigs)
       }
     }
 
