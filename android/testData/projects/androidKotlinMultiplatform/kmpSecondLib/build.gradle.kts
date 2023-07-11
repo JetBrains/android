@@ -6,7 +6,7 @@ plugins {
 kotlin {
   jvm()
 
-  targets.withType(com.android.build.api.variant.impl.KotlinMultiplatformAndroidTarget::class.java) {
+  targets.withType(com.android.build.api.variant.KotlinMultiplatformAndroidTarget::class.java) {
     namespace = "com.example.kmpsecondlib"
     compileSdk = 33
     minSdk = 22
