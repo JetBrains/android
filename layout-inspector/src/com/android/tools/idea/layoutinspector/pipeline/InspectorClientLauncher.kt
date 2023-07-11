@@ -24,6 +24,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
@@ -112,9 +113,17 @@ class InspectorClientLauncher(
         )
       }
 
+      val launchers =
+        if (LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
+          // Embedded Layout Inspector is meant to be used only with an App Inspection inspector.
+          listOf(appInspectionInspectorClientFactory)
+        } else {
+          listOf(appInspectionInspectorClientFactory, legacyClientFactory)
+        }
+
       return InspectorClientLauncher(
         processes,
-        listOf(appInspectionInspectorClientFactory, legacyClientFactory),
+        launchers,
         model.project,
         notificationModel,
         coroutineScope,
