@@ -20,6 +20,8 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
+import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -61,10 +63,13 @@ val INSIDE_SIMPLE_KEY = psiElement().withParent(TomlKeySegment::class.java)
 
 private enum class ElementType(val str: String) {
   STRING("String"),
-  INTEGER("Numeric"),
+  INTEGER("Integer"),
+  BOOLEAN("Boolean"),
   BLOCK("Block element"),
   FIRST_LEVEL_BLOCK("Block element"),
-  ARRAY("Array"),
+  STRING_ARRAY("String Array"),
+  INTEGER_ARRAY("Integer Array"),
+  BOOLEAN_ARRAY("Boolean Array"),
   GENERIC_PROPERTY("Property")
 }
 
@@ -101,8 +106,10 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                  val existingKeys = getDeclaredKeys(originalFile)
                  val segment = parameters.position.parent as? TomlKeySegment ?: return
                  val path = generateExistingPath(segment)
-                 result.addAllElements(getSuggestions(path, existingKeys).map { LookupElementBuilder.create(it.name)
-                   .withTypeText(it.type.str, null, true) })
+                 result.addAllElements(getSuggestions(path, existingKeys).map {
+                   LookupElementBuilder.create(it.name)
+                     .withTypeText(it.type.str, null, true)
+                 })
                }
              }
       )
@@ -115,7 +122,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                  val originalFile = parameters.originalFile as? TomlFile ?: return
                  val existingKeys = getDeclaredKeys(originalFile)
                  result.addAllElements(getSuggestions(path, existingKeys).map {
-                  val element = LookupElementBuilder.create(it.name)
+                   val element = LookupElementBuilder.create(it.name)
                      .withTypeText(it.type.str, null, true)
                    when(it.type){
                      ElementType.GENERIC_PROPERTY -> element.withInsertHandler(insertProperty())
@@ -181,8 +188,22 @@ class DeclarativeCompletionContributor : CompletionContributor() {
     result += currentModel.blockElementDescriptions.map { Suggestion(it.key, ElementType.BLOCK)  }
     result += currentModel.getPropertiesInfo(GradleDslNameConverter.Kind.TOML).entrySet
       .filterNot{ currentNode?.children?.contains(it.surfaceSyntaxDescription.name) ?: false }
-      .map { Suggestion(it.surfaceSyntaxDescription.name, ElementType.GENERIC_PROPERTY) }
+      .map {
+        val propertyDescription = it.modelEffectDescription.property
+        Suggestion(it.surfaceSyntaxDescription.name, propertyDescription.transformToSuggestionType())
+      }
     return result
+  }
+
+  private fun ModelPropertyDescription.transformToSuggestionType(): ElementType {
+    return when (this.type) {
+      ModelPropertyType.MUTABLE_LIST, ModelPropertyType.MUTABLE_SET -> ElementType.STRING_ARRAY
+      ModelPropertyType.STRING -> ElementType.STRING
+      ModelPropertyType.BOOLEAN -> ElementType.BOOLEAN
+      ModelPropertyType.NUMERIC -> ElementType.INTEGER
+      // TODO -  need to handle map type
+      else -> ElementType.GENERIC_PROPERTY
+    }
   }
 
   private fun generateExistingPath(psiElement: TomlKeySegment): List<String> {

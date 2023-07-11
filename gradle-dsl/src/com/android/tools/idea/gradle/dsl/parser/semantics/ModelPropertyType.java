@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,12 @@
 package com.android.tools.idea.gradle.dsl.parser.semantics;
 
 public enum ModelPropertyType {
+  // all collections are string collections
   MUTABLE_LIST,
   MUTABLE_MAP,
   MUTABLE_SET,
+  STRING,
+  BOOLEAN,
+  NUMERIC,
   UNSPECIFIED_FOR_NOW
 }

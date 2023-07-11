@@ -59,7 +59,10 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
   fun testBasicCompletionSecondLevel() =
     doTest("[android.$caret]") { suggestions ->
       Truth.assertThat(suggestions.toList()).containsAllOf(
-        "aaptOptions" to "Block element", "compileSdk" to "Property", "compileSdkVersion" to "Property"
+        "aaptOptions" to "Block element",
+        "aidlPackagedList" to "String Array",
+        "compileSdk" to "Integer",
+        "compileSdkVersion" to "Integer"
       )
     }
 
@@ -70,7 +73,10 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
       $caret
       """.trimIndent()) { suggestions ->
       Truth.assertThat(suggestions.toList()).containsAllOf(
-        "aaptOptions" to "Block element", "compileSdk" to "Property", "compileSdkVersion" to "Property"
+        "aaptOptions" to "Block element",
+        "aidlPackagedList" to "String Array",
+        "compileSdk" to "Integer",
+        "compileSdkVersion" to "Integer"
       )
     }
 
@@ -78,7 +84,9 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
   fun testBasicCompletionThirdLevel() =
     doTest("[android.defaultConfig.$caret]") { suggestions ->
       Truth.assertThat(suggestions.toList()).containsAllOf(
-        "applicationId" to "Property", "buildConfigField" to "Property", "renderscriptSupportModeEnabled" to "Property"
+        "applicationId" to "Property",
+        "buildConfigField" to "Property",
+        "renderscriptSupportModeEnabled" to "Property"
       )
     }
 

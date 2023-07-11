@@ -132,7 +132,6 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"testNamespace", exactly(1), TEST_NAMESPACE, SET},
   }).collect(toModelMap());
 
-  // TODO waiting for API review
   private static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
     {"aidlPackagedList", property, AIDL_PACKAGED_LIST, VAR},
     {"assetPacks", property, ASSET_PACKS, VAR},

@@ -23,7 +23,6 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_TRAN
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_LIST;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.MUTABLE_MAP;
-import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.UNSPECIFIED_FOR_NOW;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelSemanticsDescription.CREATE_WITH_VALUE;
 
 import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel;
@@ -55,10 +54,10 @@ import org.jetbrains.annotations.Nullable;
 public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements FlavorTypeModel {
   @NonNls public static final String APPLICATION_ID_SUFFIX = "mApplicationIdSuffix";
   @NonNls public static final ModelPropertyDescription BUILD_CONFIG_FIELD =
-    new ModelPropertyDescription("mBuildConfigField", UNSPECIFIED_FOR_NOW);
+    new ModelPropertyDescription("mBuildConfigField");
   @NonNls public static final ModelPropertyDescription CONSUMER_PROGUARD_FILES =
     // see comment by specification of PROGUARD_FILES
-    new ModelPropertyDescription("mConsumerProguardFiles", UNSPECIFIED_FOR_NOW);
+    new ModelPropertyDescription("mConsumerProguardFiles");
   @NonNls public static final String INIT_WITH = "mInitWith";
   @NonNls public static final ModelPropertyDescription MANIFEST_PLACEHOLDERS =
     new ModelPropertyDescription("mManifestPlaceholders", MUTABLE_MAP);
@@ -69,8 +68,8 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
   @NonNls public static final String MULTI_DEX_KEEP_PROGUARD = "mMultiDexKeepProguard";
   @NonNls public static final ModelPropertyDescription PROGUARD_FILES =
     // UNSPECIFIED_FOR_NOW because MUTABLE_LIST actually indicates a list of Strings, whereas proguardFiles is a list of Files
-    new ModelPropertyDescription("mProguardFiles", UNSPECIFIED_FOR_NOW);
-  @NonNls public static final ModelPropertyDescription RES_VALUE = new ModelPropertyDescription("mResValue", UNSPECIFIED_FOR_NOW);
+    new ModelPropertyDescription("mProguardFiles");
+  @NonNls public static final ModelPropertyDescription RES_VALUE = new ModelPropertyDescription("mResValue");
   @NonNls public static final String SIGNING_CONFIG = "mSigningConfig";
   @NonNls public static final String USE_JACK = "mUseJack";
   @NonNls public static final String VERSION_NAME_SUFFIX = "mVersionNameSuffix";
