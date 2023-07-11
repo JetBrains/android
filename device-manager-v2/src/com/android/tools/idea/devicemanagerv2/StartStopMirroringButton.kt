@@ -21,17 +21,12 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.streaming.MirroringHandle
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-// TODO: Replace the temporary icons with permanent ones once available.
-private val START_MIRRORING_ICON = AllIcons.Actions.Show
-private val STOP_MIRRORING_ICON = StudioIcons.LayoutEditor.Toolbar.SHOW_CONSTRAINTS
 
 /** A button for starting and stopping mirroring of a device. */
 internal class StartStopMirroringButton(
@@ -65,12 +60,12 @@ internal class StartStopMirroringButton(
       mirroringHandle.mirroringState == MirroringState.INACTIVE -> {
         isVisible = true
         toolTipText = "Start Mirroring"
-        baseIcon = START_MIRRORING_ICON
+        baseIcon = StudioIcons.Avd.START_MIRROR
       }
       mirroringHandle.mirroringState == MirroringState.ACTIVE -> {
         isVisible = true
         toolTipText = "Stop Mirroring"
-        baseIcon = STOP_MIRRORING_ICON
+        baseIcon = StudioIcons.Avd.STOP_MIRROR
       }
     }
   }

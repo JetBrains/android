@@ -24,7 +24,6 @@ import com.android.tools.idea.streaming.MirroringHandle
 import com.android.tools.idea.streaming.MirroringManager
 import com.android.tools.idea.streaming.MirroringState
 import com.google.common.truth.Truth.assertThat
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
 import com.intellij.testFramework.ProjectRule
 import icons.StudioIcons
@@ -52,7 +51,7 @@ class StartStopMirroringButtonTest {
 
     val activator = FakeMirroringHandle(MirroringState.INACTIVE)
     mirroringManager.mirroringHandles.value = mapOf(deviceHandle to activator)
-    waitForCondition(1, TimeUnit.SECONDS) { button.baseIcon == AllIcons.Actions.Show }
+    waitForCondition(1, TimeUnit.SECONDS) { button.baseIcon == StudioIcons.Avd.START_MIRROR }
     assertThat(button.isVisible).isTrue()
     assertThat(button.isEnabled).isTrue()
 
@@ -62,9 +61,7 @@ class StartStopMirroringButtonTest {
 
     val deactivator = FakeMirroringHandle(MirroringState.ACTIVE)
     mirroringManager.mirroringHandles.value = mapOf(deviceHandle to deactivator)
-    waitForCondition(1, TimeUnit.SECONDS) {
-      button.baseIcon == StudioIcons.LayoutEditor.Toolbar.SHOW_CONSTRAINTS
-    }
+    waitForCondition(1, TimeUnit.SECONDS) { button.baseIcon == StudioIcons.Avd.STOP_MIRROR }
     assertThat(button.isVisible).isTrue()
     assertThat(button.isEnabled).isTrue()
 
