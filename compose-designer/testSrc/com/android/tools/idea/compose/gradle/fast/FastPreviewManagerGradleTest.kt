@@ -27,10 +27,12 @@ import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.CompilerDaemonClient
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.editors.fast.FastPreviewManager
+import com.android.tools.idea.editors.fast.isSuccess
 import com.android.tools.idea.editors.fast.toFileNameSet
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiler
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerInput
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.util.toIoFile
@@ -271,11 +273,13 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val previewCompilations = AtomicLong(0)
     val previewThread = thread {
       startCountDownLatch.await()
+      val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
       while (compile) {
-        val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiMainFile)!! }
         typeAndSaveDocument("Text(\"Hello 3\")\n")
-        runBlocking { fastPreviewManager.compileRequest(psiMainFile, module) }
-        previewCompilations.incrementAndGet()
+        runBlocking {
+          val (result, _) = fastPreviewManager.compileRequest(psiMainFile, module)
+          if (result.isSuccess) previewCompilations.incrementAndGet()
+        }
       }
     }
 
@@ -289,9 +293,14 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
       startCountDownLatch.await()
       while (compile) {
-        LiveEditCompiler(projectRule.project)
-          .compile(listOf(LiveEditCompilerInput(psiMainFile, function)))
-        deviceCompilations.incrementAndGet()
+        try {
+          LiveEditCompiler(projectRule.project)
+            .compile(listOf(LiveEditCompilerInput(psiMainFile, function)))
+          deviceCompilations.incrementAndGet()
+        } catch (e: LiveEditUpdateException) {
+          Logger.getInstance(FastPreviewManagerGradleTest::class.java)
+            .warn("Live edit compilation failed ", e)
+        }
       }
     }
 
