@@ -173,14 +173,34 @@ open class ViewNode(
    * doesn't matter)
    */
   private fun flatten(): Sequence<ViewNode> {
-    return children.asSequence().flatMap { it.flatten() }.plus(this)
+    return flattenedList().asSequence()
   }
 
-  @TestOnly fun flattenedList(): List<ViewNode> = readAccess { flatten().toList() }
+  /**
+   * Materialize a list containing all the nodes in the tree starting with the current node
+   * (Post-order, LRN).
+   */
+  fun flattenedList(): List<ViewNode> = readAccess {
+    val pending = mutableListOf(this@ViewNode)
+    val result = mutableListOf<ViewNode>()
+    while (pending.isNotEmpty()) {
+      val item = pending.removeLast()
+      pending.addAll(item.children)
+      result.add(item)
+    }
+    result.asReversed()
+  }
 
-  /** Create a sequence of the sub tree starting with the current ViewNode (Pre-order, LRN) */
+  /** Create a sequence of the sub tree starting with the current ViewNode (Pre-order, NLR) */
   private fun preOrderFlatten(): Sequence<ViewNode> {
-    return sequenceOf(this).plus(children.asSequence().flatMap { it.preOrderFlatten() })
+    val pending = mutableListOf(this@ViewNode)
+    val result = mutableListOf<ViewNode>()
+    while (pending.isNotEmpty()) {
+      val item = pending.removeLast()
+      pending.addAll(item.children.asReversed())
+      result.add(item)
+    }
+    return result.asSequence()
   }
 
   /**

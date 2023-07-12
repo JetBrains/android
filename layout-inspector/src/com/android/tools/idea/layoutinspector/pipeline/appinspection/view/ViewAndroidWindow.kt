@@ -182,13 +182,12 @@ class ViewAndroidWindow(
    */
   private fun createDrawChildren(image: BufferedImage?) {
     ViewNode.writeAccess {
-      root.flatten().forEach { it.drawChildren.clear() }
+      val views = root.flattenedList()
+      views.forEach { it.drawChildren.clear() }
       if (image != null) {
         root.drawChildren.add(DrawViewImage(image, root, deviceClip))
       }
-      root.flatten().forEach {
-        it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) }
-      }
+      views.forEach { it.children.mapTo(it.drawChildren) { child -> DrawViewChild(child) } }
     }
   }
 
