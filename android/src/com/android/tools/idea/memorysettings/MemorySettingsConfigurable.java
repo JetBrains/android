@@ -37,7 +37,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -46,9 +45,7 @@ import javax.swing.JPanel;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.plugins.gradle.internal.daemon.DaemonState;
 import org.jetbrains.plugins.gradle.internal.daemon.DaemonsUi;
-import org.jetbrains.plugins.gradle.internal.daemon.GradleDaemonServices;
 
 /**
  * A class to provide a memory settings configurable dialog.
@@ -254,8 +251,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
                 myUi = null;
               }
             };
-            List<DaemonState> daemonsStatus = GradleDaemonServices.getDaemonsStatus();
-            myUi.show(daemonsStatus);
+            myUi.show();
           }
         });
     }
