@@ -444,6 +444,8 @@ public class RenderErrorContributor {
     if (newlineBefore) {
       builder.newline();
     }
+    addRefreshAction(builder);
+
     builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
 
     String lastFailedPath = RenderSecurityManager.getLastFailedPath();
@@ -471,7 +473,6 @@ public class RenderErrorContributor {
     }
 
     reportThrowable(builder, throwable, false);
-    addRefreshAction(builder);
 
     addIssue()
       .setSeverity(HighlightSeverity.ERROR)
@@ -613,11 +614,11 @@ public class RenderErrorContributor {
   }
 
   private void addRefreshAction(@NotNull HtmlBuilder builder) {
-    builder.newlineIfNecessary()
+    builder
       .newline()
       .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: ", "Build & Refresh", " the layout.",
-               myLinkManager.createRefreshRenderUrl()).newline();
+               myLinkManager.createRefreshRenderUrl()).newlineIfNecessary().newline();
   }
 
   /**
@@ -702,6 +703,7 @@ public class RenderErrorContributor {
       String[] values = definition.getValues();
       if (values.length > 0) {
         HtmlBuilder builder = new HtmlBuilder();
+        addRefreshAction(builder);
         builder.add("Change ").add(currentValue).add(" to: ");
         boolean first = true;
         for (String value : values) {
@@ -714,7 +716,6 @@ public class RenderErrorContributor {
           builder.addLink(value, myLinkManager.createReplaceAttributeValueUrl(attributeName, currentValue, value));
         }
 
-        addRefreshAction(builder);
         addIssue()
           //TODO: Review
           .setSummary("Incorrect resource value format")
@@ -776,6 +777,7 @@ public class RenderErrorContributor {
       }
 
       HtmlBuilder builder = new HtmlBuilder();
+      addRefreshAction(builder);
 
       String html = message.getHtml();
       Throwable throwable = message.getThrowable();
@@ -810,7 +812,6 @@ public class RenderErrorContributor {
         builder.newlineIfNecessary();
       }
 
-      addRefreshAction(builder);
       addIssue()
         .setSeverity(ProblemSeverities.toHighlightSeverity(message.getSeverity()))
         .setSummary(summary)

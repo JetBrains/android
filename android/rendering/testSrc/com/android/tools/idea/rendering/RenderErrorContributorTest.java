@@ -301,6 +301,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     boolean havePlatformSources = AndroidSdks.getInstance().findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
+        "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>" +
         "java.lang.ArithmeticException: / by zero<BR/>" +
         "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
         "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
@@ -309,11 +310,11 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
-        "<A HREF=\"\">Copy stack to clipboard</A><BR/>" +
-        "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
+        "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
     }
     else {
       assertHtmlEquals(
+        "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>" +
         "java.lang.ArithmeticException: / by zero<BR/>" +
         "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
         "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
@@ -322,8 +323,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.rInflate(LayoutInflater.java:727)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
-        "<A HREF=\"\">Copy stack to clipboard</A><BR/><BR/>" +
-        "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
+        "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
     }
   }
 
@@ -404,14 +404,13 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(1, issues);
     assertHtmlEquals(
+      "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>" +
       "Resource error: Attempted to load a bitmap as a color state list.<BR/>" +
       "Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.<BR/>" +
       "<BR/>" +
       "The relevant image is " + path + "<BR/>" +
       "<BR/>" +
-      "Widgets possibly involved: Button, TextView<BR/>" +
-      "<BR/>" +
-      "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
+      "Widgets possibly involved: Button, TextView<BR/>", issues.get(0));
   }
 
   public void testSecurity() throws Exception {
@@ -488,6 +487,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     boolean havePlatformSources = AndroidSdks.getInstance().findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
+        "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>" +
         "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
         "<BR/>" +
         "Read access not allowed during rendering (/)<BR/>" +
@@ -511,12 +511,11 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-XX/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
-        "<A HREF=\"\">Copy stack to clipboard</A><BR/>" +
-        "<BR/>" +
-        "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
+        "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
     }
     else {
       assertHtmlEquals(
+        "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>" +
         "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
         "<BR/>" +
         "Read access not allowed during rendering (/)<BR/>" +
@@ -540,8 +539,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.drawChild(ViewGroup.java:3103)<BR/>" +
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
-        "<A HREF=\"\">Copy stack to clipboard</A><BR/><BR/>" +
-        "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
+        "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
     }
   }
 
@@ -561,7 +559,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     issues = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(2, issues);
     // The ERROR should go first in the list (higher priority)
-    assertHtmlEquals("An error<BR/><BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
+    assertHtmlEquals("<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>An error<BR/>", issues.get(0));
     assertHtmlEquals("The graphics preview in the layout editor may not be accurate:<BR/>" +
                      "<DL><DD>-&NBSP;Fidelity issue <A HREF=\"\">(Ignore for this session)</A>" +
                      "<BR/></DL><A HREF=\"\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(1));
