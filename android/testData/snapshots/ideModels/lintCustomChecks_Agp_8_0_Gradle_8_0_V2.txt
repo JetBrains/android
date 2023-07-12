@@ -776,7 +776,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_APP
@@ -1111,7 +1110,6 @@ MODULE                        : project.library
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :library
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -1415,7 +1413,6 @@ MODULE                        : project.library-remote
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :library-remote
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_LIBRARY

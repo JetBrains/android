@@ -2532,7 +2532,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -3781,7 +3780,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :feature-a
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4913,7 +4911,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :feature-b
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -6202,7 +6199,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :kmp-java:sample-test
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -6520,7 +6516,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY

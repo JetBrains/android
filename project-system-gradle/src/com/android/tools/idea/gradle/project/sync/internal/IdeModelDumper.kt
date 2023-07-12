@@ -244,7 +244,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     fun dump(ideAndroidModel: IdeAndroidProject) {
       prop("RootBuildId") { ideAndroidModel.projectPath.rootBuildId.path.toPrintablePath() }
       prop("BuildId") { ideAndroidModel.projectPath.buildId.path.toPrintablePath() }
-      prop("BuildName") { ideAndroidModel.projectPath.buildName }
       prop("ProjectPath") { ideAndroidModel.projectPath.projectPath }
       prop("ModelVersion") { ideAndroidModel.agpVersion.replaceKnownPatterns() }
       prop("ProjectType") { ideAndroidModel.projectType.toString() }

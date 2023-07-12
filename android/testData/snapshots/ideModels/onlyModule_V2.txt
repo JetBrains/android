@@ -928,7 +928,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -1309,7 +1308,6 @@ MODULE                        : project.benchmark
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :benchmark
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_TEST
@@ -1778,7 +1776,6 @@ MODULE                        : project.test
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :test
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_TEST
@@ -2239,7 +2236,6 @@ MODULE                        : project.test2
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :test2
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_TEST

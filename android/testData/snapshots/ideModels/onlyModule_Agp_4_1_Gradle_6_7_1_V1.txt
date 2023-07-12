@@ -953,7 +953,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -1353,7 +1352,6 @@ MODULE                        : project.test
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :test
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_TEST
@@ -1610,7 +1608,6 @@ MODULE                        : project.test2
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :test2
     ModelVersion                  : 4.1.0
     ProjectType                   : PROJECT_TYPE_TEST

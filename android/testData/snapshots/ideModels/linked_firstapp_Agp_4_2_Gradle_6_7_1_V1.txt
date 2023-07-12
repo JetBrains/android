@@ -1077,7 +1077,6 @@ MODULE                        : My_First_App.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -1887,7 +1886,6 @@ MODULE                        : My_First_App.app.mysharedlibrary
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>/firstapp
     BuildId                       : <ROOT>/firstapp
-    BuildName                     : :
     ProjectPath                   : :app:mysharedlibrary
     ModelVersion                  : 4.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY

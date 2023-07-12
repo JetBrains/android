@@ -2437,7 +2437,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -3493,7 +3492,6 @@ MODULE                        : project.dyn_feature
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :dyn_feature
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE
@@ -3816,7 +3814,6 @@ MODULE                        : project.lib
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4326,7 +4323,6 @@ MODULE                        : project.nested1
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :nested1
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4632,7 +4628,6 @@ MODULE                        : project.nested1.deep
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :nested1:deep
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4948,7 +4943,6 @@ MODULE                        : project.nested2
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :nested2
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5404,7 +5398,6 @@ MODULE                        : project.nested2.deep
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :nested2:deep
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5722,7 +5715,6 @@ MODULE                        : project.nested2.trans.deep2
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :nested2:trans:deep2
     ModelVersion                  : 7.2.0
     ProjectType                   : PROJECT_TYPE_LIBRARY

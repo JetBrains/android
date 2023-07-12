@@ -1781,7 +1781,6 @@ MODULE                        : project.ads-sdk-implementation
             ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :ads-sdk-implementation
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -2291,7 +2290,6 @@ MODULE                        : project.app
             ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -3522,7 +3520,6 @@ MODULE                        : project.app-with-dynamic-feature
             ApiString                     : TiramisuPrivacySandbox
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app-with-dynamic-feature
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -4771,7 +4768,6 @@ MODULE                        : project.feature
             ApiString                     : 31
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :feature
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_DYNAMIC_FEATURE

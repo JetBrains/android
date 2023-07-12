@@ -148,7 +148,6 @@ MODULE                        : gradle_project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>/gradle_project
     BuildId                       : <ROOT>/gradle_project
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP

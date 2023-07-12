@@ -831,7 +831,6 @@ MODULE                        : application.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>/application
     BuildId                       : <ROOT>/application
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.1.0
     ProjectType                   : PROJECT_TYPE_APP

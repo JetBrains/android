@@ -593,7 +593,6 @@ MODULE                        : project
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :
     ModelVersion                  : 7.4.1
     ProjectType                   : PROJECT_TYPE_APP

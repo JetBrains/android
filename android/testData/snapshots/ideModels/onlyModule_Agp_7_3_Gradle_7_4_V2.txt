@@ -938,7 +938,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -1337,7 +1336,6 @@ MODULE                        : project.benchmark
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :benchmark
     ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_TEST
@@ -1812,7 +1810,6 @@ MODULE                        : project.test
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :test
     ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_TEST
@@ -2279,7 +2276,6 @@ MODULE                        : project.test2
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :test2
     ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_TEST

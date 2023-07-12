@@ -2479,7 +2479,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -3711,7 +3710,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :feature-a
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -4829,7 +4827,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :feature-b
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -5989,7 +5986,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :kmp-java:sample-test
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -6293,7 +6289,6 @@ MODULE                        : NonStandardSourceSetDependencies.lib
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY

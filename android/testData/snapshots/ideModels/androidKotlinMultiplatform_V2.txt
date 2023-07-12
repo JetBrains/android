@@ -1158,7 +1158,6 @@ MODULE                        : Kotlin_Multiplatform.androidLib
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :androidLib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -1755,7 +1754,6 @@ MODULE                        : Kotlin_Multiplatform.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_APP
@@ -2252,7 +2250,6 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :kmpFirstLib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM
@@ -3024,7 +3021,6 @@ MODULE                        : Kotlin_Multiplatform.kmpSecondLib
             ApiString                     : 1
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :kmpSecondLib
     ModelVersion                  : <AGP_VERSION>
     ProjectType                   : PROJECT_TYPE_KOTLIN_MULTIPLATFORM

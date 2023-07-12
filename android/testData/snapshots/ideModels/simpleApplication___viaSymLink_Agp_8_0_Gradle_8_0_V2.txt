@@ -172,7 +172,6 @@ MODULE                        : project_sm_src.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>_sm_src
     BuildId                       : <ROOT>_sm_src
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_APP

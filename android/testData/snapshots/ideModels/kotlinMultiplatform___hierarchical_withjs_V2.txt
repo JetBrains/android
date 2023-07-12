@@ -1195,7 +1195,6 @@
                 ApiString                     : <SDK_VERSION>
         RootBuildId                   : <ROOT>
         BuildId                       : <ROOT>
-        BuildName                     : :
         ProjectPath                   : :app
         ModelVersion                  : <AGP_VERSION>
         ProjectType                   : PROJECT_TYPE_APP
@@ -2524,7 +2523,6 @@ Required by:
                 ApiString                     : <SDK_VERSION>
         RootBuildId                   : <ROOT>
         BuildId                       : <ROOT>
-        BuildName                     : :
         ProjectPath                   : :module2
         ModelVersion                  : <AGP_VERSION>
         ProjectType                   : PROJECT_TYPE_LIBRARY

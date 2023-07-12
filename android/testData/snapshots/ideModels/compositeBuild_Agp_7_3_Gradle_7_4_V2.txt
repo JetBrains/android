@@ -1102,7 +1102,6 @@ MODULE                        : TestCompositeLib1.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
-    BuildName                     : includedLib1
     ProjectPath                   : :app
     ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -2289,7 +2288,6 @@ MODULE                        : TestCompositeLib1.lib
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib1
-    BuildName                     : includedLib1
     ProjectPath                   : :lib
     ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -3874,7 +3872,6 @@ MODULE                        : TestCompositeLib3.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
-    BuildName                     : TestCompositeLib3
     ProjectPath                   : :app
     ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -5037,7 +5034,6 @@ MODULE                        : TestCompositeLib3.lib
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>/TestCompositeLib3
-    BuildName                     : TestCompositeLib3
     ProjectPath                   : :lib
     ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_LIBRARY
@@ -6908,7 +6904,6 @@ MODULE                        : project.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_APP
@@ -8101,7 +8096,6 @@ MODULE                        : project.lib
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :lib
     ModelVersion                  : 7.3.0
     ProjectType                   : PROJECT_TYPE_LIBRARY

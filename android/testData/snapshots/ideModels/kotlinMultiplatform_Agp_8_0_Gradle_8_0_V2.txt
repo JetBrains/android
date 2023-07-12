@@ -1137,7 +1137,6 @@ MODULE                        : kotlinMultiPlatform.app
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :app
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_APP
@@ -2265,7 +2264,6 @@ MODULE                        : kotlinMultiPlatform.module2
             ApiString                     : <SDK_VERSION>
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
-    BuildName                     : :
     ProjectPath                   : :module2
     ModelVersion                  : 8.0.0-beta04
     ProjectType                   : PROJECT_TYPE_LIBRARY
