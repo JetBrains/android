@@ -72,7 +72,6 @@ interface ModelCache {
     fun androidProjectFrom(
       rootBuildId: BuildId,
       buildId: BuildId,
-      buildName: String,
       projectPath: String,
       project: AndroidProject,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,

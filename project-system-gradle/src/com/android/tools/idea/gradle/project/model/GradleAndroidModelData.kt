@@ -34,7 +34,7 @@ import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import java.io.File
 
-internal const val ourAndroidSyncVersion = "2023-06-20/1"
+internal const val ourAndroidSyncVersion = "2023-07-12/1"
 
 interface GradleAndroidModelData : ModuleModel {
   val androidSyncVersion: String

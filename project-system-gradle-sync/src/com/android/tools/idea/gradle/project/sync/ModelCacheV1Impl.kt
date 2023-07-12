@@ -1278,7 +1278,6 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   fun androidProjectFrom(
     rootBuildId: BuildId,
     buildId: BuildId,
-    buildName: String,
     projectPath: String,
     project: AndroidProject,
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
@@ -1336,7 +1335,6 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         projectPath = IdeProjectPathImpl(
           rootBuildId = rootBuildId.asFile,
           buildId = buildId.asFile,
-          buildName = buildName,
           projectPath = projectPath
         ),
         defaultSourceProvider = defaultConfigSourcesCopy,
@@ -1391,7 +1389,6 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     override fun androidProjectFrom(
       rootBuildId: BuildId,
       buildId: BuildId,
-      buildName: String,
       projectPath: String,
       project: AndroidProject,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
@@ -1402,7 +1399,6 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
         androidProjectFrom(
           rootBuildId,
           buildId,
-          buildName,
           projectPath,
           project,
           legacyAndroidGradlePluginProperties,

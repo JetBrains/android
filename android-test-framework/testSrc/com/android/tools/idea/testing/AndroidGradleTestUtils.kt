@@ -1126,7 +1126,6 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): IdeAndroidProjectImpl {
     projectPath = IdeProjectPathImpl(
       rootBuildId = File("/"),
       buildId = File("/"),
-      buildName = ":",
       projectPath = gradleProjectPath
     ),
     projectType = projectType,

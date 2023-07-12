@@ -95,7 +95,6 @@ class JavaModule(
  */
 sealed class AndroidModule constructor(
   val agpVersion: AgpVersion?,
-  val buildName: String,
   val buildNameMap: Map<String, BuildId>,
   val buildIdMap: Map<BuildId, String>,
   gradleProject: BasicGradleProject,
@@ -146,7 +145,6 @@ sealed class AndroidModule constructor(
 
   class V1(
     agpVersion: AgpVersion?,
-    buildName: String,
     buildNameMap: Map<String, BuildId>,
     buildIdMap: Map<BuildId, String>,
     gradleProject: BasicGradleProject,
@@ -162,7 +160,6 @@ sealed class AndroidModule constructor(
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ) : AndroidModule(
     agpVersion = agpVersion,
-    buildName = buildName,
     buildNameMap = buildNameMap,
     buildIdMap = buildIdMap,
     gradleProject = gradleProject,
@@ -197,7 +194,6 @@ sealed class AndroidModule constructor(
 
   class V2(
     agpVersion: AgpVersion?,
-    buildName: String,
     buildNameMap: Map<String, BuildId>,
     buildIdMap: Map<BuildId, String>,
     gradleProject: BasicGradleProject,
@@ -210,7 +206,6 @@ sealed class AndroidModule constructor(
     legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
   ) : AndroidModule(
     agpVersion = agpVersion,
-    buildName = buildName,
     buildNameMap = buildNameMap,
     buildIdMap = buildIdMap,
     gradleProject = gradleProject,

@@ -22,6 +22,5 @@ import java.io.Serializable
 data class IdeProjectPathImpl(
   override val rootBuildId: File,
   override val buildId: File,
-  override val buildName: String,
   override val projectPath: String
 ): IdeProjectPath, Serializable

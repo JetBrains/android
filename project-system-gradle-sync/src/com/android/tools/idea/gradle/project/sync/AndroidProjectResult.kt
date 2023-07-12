@@ -33,7 +33,6 @@ import org.gradle.tooling.BuildController
 sealed class AndroidProjectResult {
   class V1Project(
     val modelCache: ModelCache.V1,
-    override val buildName: String,
     override val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
     override val agpVersion: String,
     override val ideAndroidProject: IdeAndroidProjectImpl,
@@ -48,7 +47,6 @@ sealed class AndroidProjectResult {
   class V2Project(
     val modelCache: ModelCache.V2,
     override val legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
-    override val buildName: String,
     override val agpVersion: String,
     override val ideAndroidProject: IdeAndroidProjectImpl,
     private val basicVariants: List<BasicVariant>,
@@ -67,7 +65,6 @@ sealed class AndroidProjectResult {
       modelCache: ModelCache.V1,
       rootBuildId: BuildId,
       buildId: BuildId,
-      buildName: String,
       projectPath: String,
       androidProject: AndroidProject,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
@@ -81,7 +78,6 @@ sealed class AndroidProjectResult {
         modelCache.androidProjectFrom(
           rootBuildId,
           buildId,
-          buildName,
           projectPath,
           androidProject,
           legacyAndroidGradlePluginProperties,
@@ -93,7 +89,6 @@ sealed class AndroidProjectResult {
         val ndkVersion: String? = safeGet(androidProject::getNdkVersion, null)
         V1Project(
           modelCache = modelCache,
-          buildName = buildName,
           legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
           agpVersion = agpVersion,
           ideAndroidProject = ideAndroidProject,
@@ -118,7 +113,6 @@ sealed class AndroidProjectResult {
       skipRuntimeClasspathForLibraries: Boolean,
       useNewDependencyGraphModel: Boolean,
     ): ModelResult<V2Project> {
-      val buildName: String = basicAndroidProject.buildName
       val agpVersion: String = modelVersions.agp
       val basicVariants: List<BasicVariant> = basicAndroidProject.variants.toList()
       val defaultVariantName: String? =
@@ -160,7 +154,6 @@ sealed class AndroidProjectResult {
         V2Project(
           modelCache = modelCache,
           legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
-          buildName = buildName,
           agpVersion = agpVersion,
           ideAndroidProject = ideAndroidProject,
           basicVariants = basicVariants,
@@ -175,7 +168,6 @@ sealed class AndroidProjectResult {
     }
   }
 
-  abstract val buildName: String
   abstract val agpVersion: String
   abstract val ideAndroidProject: IdeAndroidProjectImpl
   abstract val allVariantNames: Set<String>

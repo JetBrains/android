@@ -106,13 +106,11 @@ internal class BasicV1AndroidModuleGradleProject(
 
         val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths, modelCacheLock)
         val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
-        val buildName = buildInfo.buildIdMap[buildId] ?: error("Unknown build id: $buildId")
         val rootBuildDir = buildInfo.buildNameMap[":"] ?: error("Root build (':') not found")
         val androidProjectResult = AndroidProjectResult.V1Project(
           modelCache = modelCache,
           rootBuildId = rootBuildDir,
           buildId = buildId,
-          buildName = buildName,
           projectPath = gradleProject.path,
           androidProject = androidProject,
           legacyAndroidGradlePluginProperties = legacyAndroidGradlePluginProperties,
@@ -202,13 +200,11 @@ internal class BasicV2AndroidModuleGradleProject(
         val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion, syncActionOptions.syncTestMode,
                                           syncActionOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport)
         val rootBuildId = buildInfo.buildNameMap[":"] ?: error("Root build (':') not found")
-        val buildId = buildInfo.buildNameMap[basicAndroidProject.buildName]
-          ?: error("(Included) build named '${basicAndroidProject.buildName}' not found")
         val androidProjectResult =
           AndroidProjectResult.V2Project(
             modelCache = modelCache,
             rootBuildId = rootBuildId,
-            buildId = buildId,
+            buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir),
             basicAndroidProject = basicAndroidProject,
             androidProject = androidProject,
             modelVersions = versions,
@@ -292,7 +288,6 @@ private fun createAndroidModuleV1(
 
   val androidModule = AndroidModule.V1(
     agpVersion = agpVersion,
-    buildName = androidProjectResult.buildName,
     buildNameMap = buildNameMap,
     buildIdMap = buildIdMap,
     gradleProject = gradleProject,
@@ -332,7 +327,6 @@ private fun createAndroidModuleV2(
 
   return AndroidModule.V2(
     agpVersion = agpVersion,
-    buildName = androidProjectResult.buildName,
     buildNameMap = buildNameMap,
     buildIdMap = buildIdMap,
     gradleProject = gradleProject,

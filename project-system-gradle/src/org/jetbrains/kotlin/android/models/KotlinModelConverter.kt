@@ -391,7 +391,6 @@ class KotlinModelConverter {
       projectPath = IdeProjectPathImpl(
         rootBuildId = targetInfo.rootBuildId.convertAndDeduplicate(),
         buildId = targetInfo.buildId.convertAndDeduplicate(),
-        buildName = targetInfo.buildName.deduplicate(),
         projectPath = targetInfo.projectPath.deduplicate()
       ),
       buildFolder = File(targetInfo.buildDir.absolutePath).deduplicateFile(),

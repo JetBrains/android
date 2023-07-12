@@ -1518,7 +1518,6 @@ internal fun modelCacheV2Impl(
         projectPath = IdeProjectPathImpl(
           rootBuildId = rootBuildId.asFile,
           buildId = buildId.asFile,
-          buildName = basicProject.buildName,
           projectPath = basicProject.path,
         ),
         defaultSourceProvider = defaultConfigSourcesCopy,
