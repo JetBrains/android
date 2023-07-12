@@ -34,18 +34,25 @@ import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.openapi.wm.impl.ProjectFrameHelper;
-import kotlin.jvm.functions.Function0;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkListener;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.Window;
 import java.awt.event.ComponentEvent;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.event.HyperlinkListener;
+import kotlin.jvm.functions.Function0;
+import kotlinx.coroutines.CoroutineScope;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Slightly modified copy of {@link com.intellij.openapi.wm.impl.TestWindowManager} that
@@ -101,7 +108,7 @@ public final class FakeUiWindowManager extends WindowManagerEx {
   public void resetWindow(Window window) {}
 
   @Override
-  public ProjectFrameHelper[] getAllProjectFrames() {
+  public ProjectFrameHelper @NotNull [] getAllProjectFrames() {
     return new ProjectFrameHelper[0];
   }
 
@@ -194,7 +201,7 @@ public final class FakeUiWindowManager extends WindowManagerEx {
     }
 
     @Override
-    public @Nullable StatusBar createChild(@NotNull Disposable disposable,
+    public @Nullable StatusBar createChild(@NotNull CoroutineScope coroutineScope,
                                            @NotNull IdeFrame frame,
                                            @NotNull Function0<? extends FileEditor> editorProvider) {
       return null;
