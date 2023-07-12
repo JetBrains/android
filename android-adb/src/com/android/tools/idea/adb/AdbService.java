@@ -346,9 +346,14 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
 
     // TODO Also connect to adblib
     AndroidDebugBridge.setJdwpTracerFactory(() -> new StudioDDMLibJdwpTracer(StudioFlags.JDWP_TRACER.get()) {});
-    StudioAdbLibJdwpTracerFactory.install(AdbLibApplicationService.getInstance().getSession(), StudioFlags.JDWP_TRACER::get);
-
+    StudioAdbLibJdwpTracerFactory.install(AdbLibApplicationService.getInstance().getSession(), () -> {
+      // The tracer is enabled in the Adblib factory only if SCache is *not* enabled.
+      // If SCache is enabled, the SCache wrapper takes care of tracing, because it is the only
+      // component that has access to the "journaling" (i.e. emulated) JDWP traffic.
+      return StudioFlags.JDWP_TRACER.get() && !JDWP_SCACHE.get();
+    });
     AndroidDebugBridge.setJdwpProcessorFactory(() -> new StudioDDMLibSCache(JDWP_SCACHE.get(), new StudioSCacheLogger()));
+    StudioAdbLibSCacheJdwpSessionPipelineFactory.install(AdbLibApplicationService.getInstance().getSession(), JDWP_SCACHE::get);
 
     // Ensure ADB is terminated when there are no more open projects.
     ApplicationManager.getApplication().getMessageBus().connect().subscribe(ProjectCloseListener.TOPIC, new ProjectCloseListener() {
