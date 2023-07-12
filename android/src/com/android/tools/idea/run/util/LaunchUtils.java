@@ -30,11 +30,11 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import org.jetbrains.android.dom.manifest.UsesFeature;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -90,7 +90,9 @@ public class LaunchUtils {
 
   @Slow
   @WorkerThread
-  public static boolean isWatchFeatureRequired(@NotNull MergedManifestSnapshot info) {
+  public static boolean isWatchFeatureRequired(@Nullable MergedManifestSnapshot info) {
+    if (info == null) return false;
+
     Element usesFeatureElem = info.findUsedFeature(UsesFeature.HARDWARE_TYPE_WATCH);
     if (usesFeatureElem != null) {
       String required = usesFeatureElem.getAttributeNS(ANDROID_URI, ATTRIBUTE_REQUIRED);
