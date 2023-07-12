@@ -178,7 +178,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
             row {
                 val essentialsModeHint =
                   "Preview will preserve resources by inflating previews on demand, and disabling live updates and preview modes. " +
-                    "<a href=\"https://developer.android.com/jetpack/compose/tooling/previews\">Learn more</a>"
+                    "<a href=\"https://developer.android.com/jetpack/compose/tooling/previews#essentials\">Learn more</a>"
 
                 radioButton("Essentials").comment(essentialsModeHint).bindSelected(
                   state::isComposePreviewEssentialsModeEnabled
