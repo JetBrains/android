@@ -34,6 +34,7 @@ import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.withBackgroundProgress
 import com.intellij.openapi.project.Project
@@ -44,6 +45,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
+import java.util.concurrent.ExecutionException
 
 @Service(Service.Level.PROJECT)
 class AndroidRunConfigurations(
@@ -103,8 +105,17 @@ class AndroidRunConfigurations(
       MergedManifestManager.getMergedManifest(facet.module)
     }
 
-    if (manifestFuture == null) return false
-    val snapshot = manifestFuture.await() // do not call under read lock!
+    val snapshot = try {
+      manifestFuture?.await()  // do not call under read lock!
+    }
+    catch (ex: InterruptedException) {
+      Logger.getInstance(AndroidRunConfigurations::class.java).warn(ex)
+      null
+    }
+    catch (ex: ExecutionException) {
+      Logger.getInstance(AndroidRunConfigurations::class.java).warn(ex)
+      null
+    }
 
     return readAction {
       val isWatchFeatureRequired = LaunchUtils.isWatchFeatureRequired(snapshot)
