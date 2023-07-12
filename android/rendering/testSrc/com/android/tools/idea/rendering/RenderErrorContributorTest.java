@@ -185,7 +185,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
       "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout." +
+      "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout." +
       "<BR/>", issues.get(0));
     assertHtmlEquals(
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
@@ -207,7 +207,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
       "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout." +
+      "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout." +
       "<BR/>", issues.get(0));
     assertHtmlEquals(
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
@@ -230,7 +230,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
       "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>",
+      "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>",
       issues.get(0));
   }
 
@@ -310,7 +310,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
         "<A HREF=\"\">Copy stack to clipboard</A><BR/>" +
-        "<BR/>Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
+        "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
     }
     else {
       assertHtmlEquals(
@@ -323,7 +323,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
         "<A HREF=\"\">Copy stack to clipboard</A><BR/><BR/>" +
-        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
+        "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
     }
   }
 
@@ -411,7 +411,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "<BR/>" +
       "Widgets possibly involved: Button, TextView<BR/>" +
       "<BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
+      "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
   }
 
   public void testSecurity() throws Exception {
@@ -513,7 +513,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-XX/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
         "<A HREF=\"\">Copy stack to clipboard</A><BR/>" +
         "<BR/>" +
-        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
+        "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
     }
     else {
       assertHtmlEquals(
@@ -541,7 +541,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
         "<A HREF=\"\">Copy stack to clipboard</A><BR/><BR/>" +
-        "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
+        "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
     }
   }
 
@@ -561,7 +561,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     issues = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(2, issues);
     // The ERROR should go first in the list (higher priority)
-    assertHtmlEquals("An error<BR/><BR/>Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>", issues.get(0));
+    assertHtmlEquals("An error<BR/><BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>", issues.get(0));
     assertHtmlEquals("The graphics preview in the layout editor may not be accurate:<BR/>" +
                      "<DL><DD>-&NBSP;Fidelity issue <A HREF=\"\">(Ignore for this session)</A>" +
                      "<BR/></DL><A HREF=\"\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(1));
@@ -684,7 +684,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
       "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
       "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
-      "Tip: Try to <A HREF=\"refreshRender\">refresh</A> the layout.<BR/>",
+      "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>",
       issues.get(0));
   }
 

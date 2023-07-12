@@ -616,7 +616,7 @@ public class RenderErrorContributor {
     builder.newlineIfNecessary()
       .newline()
       .addIcon(HtmlBuilderHelper.getTipIconPath())
-      .addLink("Tip: Try to ", "refresh", " the layout.",
+      .addLink("Tip: ", "Build & Refresh", " the layout.",
                myLinkManager.createRefreshRenderUrl()).newline();
   }
 
@@ -1053,7 +1053,7 @@ public class RenderErrorContributor {
                myLinkManager.createBuildProjectUrl())
       .newline()
       .addIcon(HtmlBuilderHelper.getTipIconPath())
-      .addLink("Tip: Try to ", "refresh", " the layout.",
+      .addLink("Tip: ", "Build & Refresh", " the layout.",
                myLinkManager.createRefreshRenderUrl())
       .newline();
     if (foundCustomView) {
