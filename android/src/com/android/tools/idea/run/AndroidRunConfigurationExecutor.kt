@@ -46,7 +46,6 @@ import com.android.tools.idea.run.configuration.execution.createRunContentDescri
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.configuration.isDebug
-import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.tasks.RunInstantApp
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.util.androidFacet
@@ -60,7 +59,6 @@ import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.indicatorRunBlockingCancellable
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
 import com.intellij.xdebugger.impl.XDebugSessionImpl
@@ -68,7 +66,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -90,7 +87,7 @@ class AndroidRunConfigurationExecutor(
 
   private val LOG = Logger.getInstance(this::class.java)
 
-  override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val (packageName, devices) = getApplicationIdAndDevices(indicator)
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
@@ -189,7 +186,7 @@ class AndroidRunConfigurationExecutor(
       }
     }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val (packageName, devices) = getApplicationIdAndDevices(indicator)
 
     if (devices.size != 1) {
@@ -248,7 +245,7 @@ class AndroidRunConfigurationExecutor(
     session.runContentDescriptor
   }
 
-  private fun startDebugSession(
+  private suspend fun startDebugSession(
     device: IDevice, packageName: String, indicator: ProgressIndicator, console: ConsoleView
   ):XDebugSessionImpl  {
     val debugger = configuration.androidDebuggerContext.androidDebugger
@@ -270,7 +267,7 @@ class AndroidRunConfigurationExecutor(
     )
   }
 
-  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val (packageName, devices) = getApplicationIdAndDevices(indicator)
 
     /**

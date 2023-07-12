@@ -58,8 +58,7 @@ object DebugSessionStarter {
    * Starts a new debugging session for given [Client].
    * Use this method only if debugging is started by using 'Debug' on configuration, otherwise use [AndroidDebugger.attachToClient]
    */
-  @WorkerThread
-  fun <S : AndroidDebuggerState> attachDebuggerToStartedProcess(
+  suspend fun <S : AndroidDebuggerState> attachDebuggerToStartedProcess(
     device: IDevice,
     appId: String,
     environment: ExecutionEnvironment,
@@ -69,42 +68,38 @@ object DebugSessionStarter {
     indicator: ProgressIndicator,
     consoleView: ConsoleView? = null,
     timeout: Long = 15
+  ): XDebugSessionImpl = RunStats.from(environment).track(START_DEBUGGER_SESSION) {
+    val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
 
-  ): XDebugSessionImpl = indicatorRunBlockingCancellable(indicator) {
-    RunStats.from(environment).track(START_DEBUGGER_SESSION) {
-      val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
-
-      val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
-        environment.project, client,
-        androidDebuggerState,
-        consoleView
-      )
-      val session = withContext(uiThread) {
-        indicator.text = "Attaching debugger"
-        XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter) as XDebugSessionImpl
-      }
-
-      val debugProcessHandler = session.debugProcess.processHandler
-      debugProcessHandler.startNotify()
-      debugProcessHandler.addProcessListener(object : ProcessAdapter() {
-        override fun processTerminated(event: ProcessEvent) {
-          executeOnPooledThread { destroyRunningProcess(device) }
-          super.processTerminated(event)
-        }
-      })
-      val executor = environment.executor
-      AndroidSessionInfo.create(
-        debugProcessHandler,
-        environment.runProfile as? RunConfiguration,
-        executor.id,
-        environment.executionTarget
-      )
-      session
+    val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
+      environment.project, client,
+      androidDebuggerState,
+      consoleView
+    )
+    val session = withContext(uiThread) {
+      indicator.text = "Attaching debugger"
+      XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter) as XDebugSessionImpl
     }
+
+    val debugProcessHandler = session.debugProcess.processHandler
+    debugProcessHandler.startNotify()
+    debugProcessHandler.addProcessListener(object : ProcessAdapter() {
+      override fun processTerminated(event: ProcessEvent) {
+        executeOnPooledThread { destroyRunningProcess(device) }
+        super.processTerminated(event)
+      }
+    })
+    val executor = environment.executor
+    AndroidSessionInfo.create(
+      debugProcessHandler,
+      environment.runProfile as? RunConfiguration,
+      executor.id,
+      environment.executionTarget
+    )
+    session
   }
 
-  @WorkerThread
-  fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
+  suspend fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
     device: IDevice,
     appId: String,
     masterProcessName: String,
@@ -132,8 +127,7 @@ object DebugSessionStarter {
    * using instrumentation runners that kill the instrumentation process between each test, disconnecting
    * the debugger. We listen for the start of a new test, waiting for a debugger, and reconnect.
    */
-  @WorkerThread
-  fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
+  suspend fun <S : AndroidDebuggerState> attachReattachingDebuggerToStartedProcess(
     device: IDevice,
     appId: String,
     masterProcessHandler: ProcessHandler,
@@ -143,55 +137,53 @@ object DebugSessionStarter {
     indicator: ProgressIndicator,
     consoleView: ConsoleView? = null,
     timeout: Long = 300
-  ): XDebugSessionImpl = indicatorRunBlockingCancellable(indicator) {
-    RunStats.from(environment).track(START_REATTACHING_DEBUGGER_SESSION) {
-      val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
-      val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
-        environment.project, client,
-        androidDebuggerState,
-        consoleView
-      )
-      indicator.text = "Attaching debugger"
-      val reattachingProcessHandler = ReattachingProcessHandler(masterProcessHandler)
+  ): XDebugSessionImpl = RunStats.from(environment).track(START_REATTACHING_DEBUGGER_SESSION) {
+    val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
+    val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
+      environment.project, client,
+      androidDebuggerState,
+      consoleView
+    )
+    indicator.text = "Attaching debugger"
+    val reattachingProcessHandler = ReattachingProcessHandler(masterProcessHandler)
 
-      val reattachingListener = ReattachingDebuggerListener(
-        environment.project, masterProcessHandler, appId,
-        androidDebugger, androidDebuggerState, consoleView, environment,
-        reattachingProcessHandler
-      )
-      reattachingListener.addProcessedClientPid(client.clientData.pid)
+    val reattachingListener = ReattachingDebuggerListener(
+      environment.project, masterProcessHandler, appId,
+      androidDebugger, androidDebuggerState, consoleView, environment,
+      reattachingProcessHandler
+    )
+    reattachingListener.addProcessedClientPid(client.clientData.pid)
 
-      LOG.info("Add reattaching listener")
-      AndroidDebugBridge.addClientChangeListener(reattachingListener)
+    LOG.info("Add reattaching listener")
+    AndroidDebugBridge.addClientChangeListener(reattachingListener)
 
-      masterProcessHandler.addProcessListener(object : ProcessAdapter() {
-        override fun processTerminated(event: ProcessEvent) {
-          // Stop the reattaching debug connector task as soon as the master process is terminated.
-          LOG.info("Delete reattaching listener")
-          AndroidDebugBridge.removeClientChangeListener(reattachingListener)
-        }
-      })
-      masterProcessHandler.startNotify()
-
-      LOG.info("Start first session")
-
-      withContext(uiThread) {
-        val session = XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter)
-
-        val debugProcessHandler = session.debugProcess.processHandler
-        debugProcessHandler.startNotify()
-        reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
-        session.runContentDescriptor.processHandler = reattachingProcessHandler
-
-        val executor = environment.executor
-        AndroidSessionInfo.create(
-          masterProcessHandler,
-          environment.runProfile as? RunConfiguration,
-          executor.id,
-          environment.executionTarget
-        )
-        session as XDebugSessionImpl
+    masterProcessHandler.addProcessListener(object : ProcessAdapter() {
+      override fun processTerminated(event: ProcessEvent) {
+        // Stop the reattaching debug connector task as soon as the master process is terminated.
+        LOG.info("Delete reattaching listener")
+        AndroidDebugBridge.removeClientChangeListener(reattachingListener)
       }
+    })
+    masterProcessHandler.startNotify()
+
+    LOG.info("Start first session")
+
+    withContext(uiThread) {
+      val session = XDebuggerManager.getInstance(environment.project).startSession(environment, debugProcessStarter)
+
+      val debugProcessHandler = session.debugProcess.processHandler
+      debugProcessHandler.startNotify()
+      reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
+      session.runContentDescriptor.processHandler = reattachingProcessHandler
+
+      val executor = environment.executor
+      AndroidSessionInfo.create(
+        masterProcessHandler,
+        environment.runProfile as? RunConfiguration,
+        executor.id,
+        environment.executionTarget
+      )
+      session as XDebugSessionImpl
     }
   }
 

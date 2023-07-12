@@ -391,7 +391,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     doReturn(listOf("SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())
 
     assertFailsWith<ExecutionException>("Error while launching complication, message: $failedResponse") {
-      executor.run(EmptyProgressIndicator())
+      getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
     }
   }
 

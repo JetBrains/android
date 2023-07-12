@@ -45,6 +45,7 @@ import com.intellij.testFramework.replaceService
 import com.intellij.util.ExceptionUtil
 import com.intellij.xdebugger.XDebuggerManager
 import junit.framework.Assert.fail
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -105,7 +106,7 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testAllInformationForPositionManager() {
+  fun testAllInformationForPositionManager() = runTest {
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
       FakeAdbTestRule.CLIENT_PACKAGE_NAME,
@@ -122,7 +123,7 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testSessionCreated() {
+  fun testSessionCreated() = runTest {
     val stats = RunStatsService.get(project).create().also {
       executionEnvironment.putUserData(RunStats.KEY, it)
     }
@@ -141,7 +142,7 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testOnDebugProcessDestroyCallback() {
+  fun testOnDebugProcessDestroyCallback() = runTest {
     val countDownLatch = CountDownLatch(1)
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
@@ -183,7 +184,7 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testKillAppOnDestroy() {
+  fun testKillAppOnDestroy() = runTest {
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
       FakeAdbTestRule.CLIENT_PACKAGE_NAME,
@@ -215,7 +216,7 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testVMExitedNotifierIsInvokedOnDetach() {
+  fun testVMExitedNotifierIsInvokedOnDetach() = runTest {
     val spyClient = Mockito.spy(client)
 
     val mockDeploymentAppService = mock<DeploymentApplicationService>()

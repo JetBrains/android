@@ -23,7 +23,10 @@ import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.xdebugger.XDebuggerManager
@@ -76,7 +79,8 @@ abstract class AndroidConfigurationExecutorBaseTest {
   }
 
   protected fun getRunContentDescriptorForTests(runContentDescriptorProvider: () -> RunContentDescriptor): RunContentDescriptor {
-    val runContentDescriptor = runContentDescriptorProvider.invoke()
+    val runContentDescriptor = (ProgressManager.getInstance()
+      .runProcess(Computable { runContentDescriptorProvider.invoke() }, EmptyProgressIndicator()))
     val processHandler = runContentDescriptor.processHandler!!
     Disposer.register(project) {
       processHandler.detachProcess()

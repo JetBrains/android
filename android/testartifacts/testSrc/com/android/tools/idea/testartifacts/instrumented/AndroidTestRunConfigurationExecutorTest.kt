@@ -34,6 +34,8 @@ import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.util.Computable
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.UIUtil
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
@@ -98,7 +100,8 @@ class AndroidTestRunConfigurationExecutorTest {
       DeviceFutures.forDevices(listOf(device))
     ) { NoApksProvider() }
 
-    val runContentDescriptor = executor.run(EmptyProgressIndicator())
+    val runContentDescriptor = ProgressManager.getInstance()
+      .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
     val processHandler = runContentDescriptor.processHandler!!
     processHandler.startNotify()
 
@@ -144,7 +147,8 @@ class AndroidTestRunConfigurationExecutorTest {
       env,
       DeviceFutures.forDevices(listOf(device))) { NoApksProvider() }
 
-    val runContentDescriptor = executor.debug(EmptyProgressIndicator())
+    val runContentDescriptor = ProgressManager.getInstance()
+      .runProcess(Computable { executor.debug(EmptyProgressIndicator()) }, EmptyProgressIndicator())
 
     assertThat(runContentDescriptor.executionConsole).isInstanceOf(AndroidTestSuiteView::class.java)
     stats.success()
@@ -166,7 +170,8 @@ class AndroidTestRunConfigurationExecutorTest {
       DeviceFutures.forDevices(listOf(device))) { ApkProvider { throw ExecutionException("Can't get apks") } }
 
     try {
-      executor.run(EmptyProgressIndicator())
+      ProgressManager.getInstance()
+        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator())
       fail("Run should fail")
     }
     catch (e: ExecutionException) {
@@ -208,20 +213,23 @@ class AndroidTestRunConfigurationExecutorTest {
     projectRule.project.replaceService(TestHistoryConfiguration::class.java, testHistoryConfiguration, projectRule.testRootDisposable)
     run {
       executionOptions = TestExecutionOption.HOST
-      val runContentDescriptor = executor.run(EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
+      val runContentDescriptor = ProgressManager.getInstance()
+        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
       Truth.assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("testApplicationId")
     }
 
     run {
       executionOptions = TestExecutionOption.ANDROID_TEST_ORCHESTRATOR
-      val runContentDescriptor = executor.run(EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
+      val runContentDescriptor = ProgressManager.getInstance()
+        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
       Truth.assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
         ORCHESTRATOR_APP_ID)
     }
 
     run {
       executionOptions = TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR
-      val runContentDescriptor = executor.run(EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
+      val runContentDescriptor = ProgressManager.getInstance()
+        .runProcess(Computable { executor.run(EmptyProgressIndicator()) }, EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
       Truth.assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
         ANDROIDX_ORCHESTRATOR_APP_ID)
     }

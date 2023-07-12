@@ -42,6 +42,8 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.util.Computable
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -110,7 +112,8 @@ class RunInstantAppTest {
     `when`(runHandler.runApks(any(), any(), any(), any(), any(), any(), any())).thenReturn(StatusCode.SUCCESS)
 
     // RUN
-    getExecutor().run(EmptyProgressIndicator())
+    ProgressManager.getInstance()
+        .runProcess(Computable { getExecutor().run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
 
     val captor = ArgumentCaptor.forClass(ImmutableList::class.java) as ArgumentCaptor<ImmutableList<File>>
     val serialNumber = device.serialNumber
@@ -134,7 +137,8 @@ class RunInstantAppTest {
     `when`(runHandler.runApks(any(), any(), any(), any(), any(), any(), any())).thenReturn(StatusCode.SUCCESS)
 
     // RUN
-    getExecutor().run(EmptyProgressIndicator())
+    ProgressManager.getInstance()
+        .runProcess(Computable { getExecutor().run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
 
     val captor = ArgumentCaptor.forClass(ImmutableList::class.java) as ArgumentCaptor<ImmutableList<File>>
     val serialNumber = device.serialNumber
@@ -157,7 +161,8 @@ class RunInstantAppTest {
     `when`(runHandler.runApks(any(), any(), any(), any(), any(), any(), any())).thenReturn(StatusCode.SUCCESS)
 
     // RUN
-    getExecutor().run(EmptyProgressIndicator())
+    ProgressManager.getInstance()
+        .runProcess(Computable { getExecutor().run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
 
     val captor = ArgumentCaptor.forClass(ImmutableList::class.java) as ArgumentCaptor<ImmutableList<File>>
     val serialNumber = device.serialNumber
@@ -181,7 +186,8 @@ class RunInstantAppTest {
       .thenReturn(Deployer.Result(false, false, false, createApp(device, configuration.appId!!, emptyList(), emptyList())))
 
     // RUN
-    getExecutor().run(EmptyProgressIndicator())
+    ProgressManager.getInstance()
+        .runProcess(Computable { getExecutor().run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
 
     verify(runHandler, never()).runZip(any(), any(), any(), any(), any(), any(), any())
     verify(runHandler, never()).runApks(any(), any(), any(), any(), any(), any(), any())

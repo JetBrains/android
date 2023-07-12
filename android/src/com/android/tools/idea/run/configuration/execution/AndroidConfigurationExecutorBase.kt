@@ -39,7 +39,7 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.indicatorRunBlockingCancellable
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.util.Disposer
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 import kotlinx.coroutines.async
@@ -65,7 +65,7 @@ abstract class AndroidConfigurationExecutorBase(
   protected val isDebug = environment.executor.isDebug
 
   @WorkerThread
-  override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(environment))
     val console = createConsole()
     val processHandler = AndroidProcessHandler(appId, getStopCallback(console, false))
@@ -98,8 +98,7 @@ abstract class AndroidConfigurationExecutorBase(
   }
 
   @WorkerThread
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable<RunContentDescriptor>(
-    indicator) {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(environment))
     if (devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")
@@ -121,7 +120,7 @@ abstract class AndroidConfigurationExecutorBase(
     launch(device, deployResult.app, console, true, indicator)
 
     try {
-      return@indicatorRunBlockingCancellable runContentDescriptorDeferred.await()
+      runContentDescriptorDeferred.await()
     }
     catch (e: ExecutionException) {
       if (!device.isOffline) {
@@ -149,7 +148,7 @@ abstract class AndroidConfigurationExecutorBase(
   @Throws(ExecutionException::class)
   abstract fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator)
 
-  protected abstract fun startDebugSession(device: IDevice, console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl
+  protected abstract suspend fun startDebugSession(device: IDevice, console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl
 
   private fun terminatePreviousAppInstance(device: IDevice) {
     val terminator = ApplicationTerminator(device, appId)

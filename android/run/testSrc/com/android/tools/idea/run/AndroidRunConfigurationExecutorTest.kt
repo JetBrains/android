@@ -134,7 +134,8 @@ class AndroidRunConfigurationExecutorTest {
       applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::fullDeploy.name)
     )
 
-    val runContentDescriptor = runner.run(EmptyProgressIndicator())
+    val runContentDescriptor = ProgressManager.getInstance()
+      .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
 
     stats.success()
     assertTaskPresentedInStats(usageTrackerRule.usages, "CLEAR_APP_STORAGE_TASK")
@@ -192,7 +193,11 @@ class AndroidRunConfigurationExecutorTest {
       applicationDeployer = testApplicationDeployer(device, ApplicationDeployer::fullDeploy.name)
     )
 
-    val processHandler = (runner.debug(EmptyProgressIndicator()).processHandler as AndroidRemoteDebugProcessHandler)
+    val processHandler = (ProgressManager.getInstance()
+      .runProcess(
+        Computable { runner.debug(ProgressManager.getInstance().progressIndicator) },
+        EmptyProgressIndicator()
+      )).processHandler as AndroidRemoteDebugProcessHandler
 
     stats.success()
     assertTaskPresentedInStats(usageTrackerRule.usages, "waitForProcessTermination")
@@ -238,7 +243,8 @@ class AndroidRunConfigurationExecutorTest {
       testApplicationDeployer(device, ApplicationDeployer::applyChangesDeploy.name)
     )
 
-    val runContentDescriptor = runner.applyChanges(EmptyProgressIndicator())
+    val runContentDescriptor = ProgressManager.getInstance()
+      .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     assertThat(runContentDescriptor.isHiddenContent).isEqualTo(true)
     assertThat(liveEditServiceNotified).isEqualTo(true)
 
@@ -288,7 +294,7 @@ class AndroidRunConfigurationExecutorTest {
     )
 
     val runContentDescriptor =
-      ProgressManager.getInstance().runProcess(Computable { runner.applyCodeChanges(EmptyProgressIndicator()) }, EmptyProgressIndicator())
+      ProgressManager.getInstance().runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
 
     assertThat(runContentDescriptor.isHiddenContent).isEqualTo(true)
     assertThat(liveEditServiceNotified).isEqualTo(true)
@@ -320,7 +326,10 @@ class AndroidRunConfigurationExecutorTest {
       deviceFutures,
       apkProvider = { throw ApkProvisionException("ApkProvisionException") })
 
-    assertThatThrownBy { runner.run(EmptyProgressIndicator()) }
+    assertThatThrownBy {
+      ProgressManager.getInstance()
+        .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
+    }
       .isInstanceOf(ExecutionException::class.java)
       .withFailMessage("ApkProvisionException")
   }
@@ -368,7 +377,10 @@ class AndroidRunConfigurationExecutorTest {
       }
     )
 
-    assertThatThrownBy { runner.run(EmptyProgressIndicator()) }
+    assertThatThrownBy {
+      ProgressManager.getInstance()
+        .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
+    }
       .isInstanceOf(ExecutionException::class.java)
       .hasMessage(DeployerException.pmFlagsNotSupported().message)
   }
@@ -385,7 +397,10 @@ class AndroidRunConfigurationExecutorTest {
     runningProcessHandler.addTargetDevice(device)
     val runner = AndroidRunConfigurationExecutor(configuration.applicationIdProvider!!, env, deviceFutures, { throw ApkProvisionException("Exception") })
 
-    assertThatThrownBy { runner.applyChanges(EmptyProgressIndicator()) }
+    assertThatThrownBy {
+      ProgressManager.getInstance()
+        .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
+    }
       .isInstanceOf(ExecutionException::class.java)
 
     assertThat(runningProcessHandler.isAssociated(device)).isEqualTo(true)
@@ -427,7 +442,8 @@ class AndroidRunConfigurationExecutorTest {
       applicationDeployer = applicationDeployer
     )
 
-    val newProcessHandler = runner.applyChanges(EmptyProgressIndicator()).processHandler
+    val newProcessHandler = ProgressManager.getInstance()
+      .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator()).processHandler
 
     if (!restartHappened.await(10, TimeUnit.SECONDS)) {
       fail("Activity is not restarted")
@@ -478,7 +494,7 @@ class AndroidRunConfigurationExecutorTest {
 
     val newProcessHandler =
       ProgressManager.getInstance()
-        .runProcess(Computable { runner.applyCodeChanges(EmptyProgressIndicator()) }, EmptyProgressIndicator()).processHandler
+        .runProcess(Computable { runner.applyCodeChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator()).processHandler
 
     if (!restartHappened.await(10, TimeUnit.SECONDS)) {
       fail("Activity is not restarted")

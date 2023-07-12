@@ -49,7 +49,7 @@ abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironmen
     throw RuntimeException("Unsupported operation")
   }
 
-  override fun startDebugSession(
+  override suspend fun startDebugSession(
     device: IDevice,
     console: ConsoleView,
     indicator: ProgressIndicator

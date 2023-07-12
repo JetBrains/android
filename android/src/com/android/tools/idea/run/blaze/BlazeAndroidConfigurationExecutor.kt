@@ -30,8 +30,8 @@ import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsoleProvider
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
-import com.android.tools.idea.run.LiveEditHelper
 import com.android.tools.idea.run.LaunchOptions
+import com.android.tools.idea.run.LiveEditHelper
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
@@ -47,7 +47,7 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.indicatorRunBlockingCancellable
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.xdebugger.XDebugSession
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -77,7 +77,7 @@ class BlazeAndroidConfigurationExecutor(
   override val configuration = env.runProfile as RunConfiguration
   private val LOG = Logger.getInstance(this::class.java)
 
-  override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
     env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
@@ -154,7 +154,7 @@ class BlazeAndroidConfigurationExecutor(
     }
   }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     val applicationId = applicationIdProvider.packageName
 
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))

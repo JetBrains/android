@@ -18,7 +18,9 @@ package com.android.tools.idea.execution.common.debug
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
-import com.android.tools.idea.concurrency.executeOnPooledThread
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.execution.common.debug.utils.showError
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.process.ProcessAdapter
@@ -31,6 +33,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Process handler that is used for [DebugSessionStarter.attachDebuggerToStartedProcess]
@@ -145,7 +149,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
   override fun clientChanged(client: Client, changeMask: Int) {
     if (isClientForDebug(client, changeMask) && !masterProcessHandler.isProcessTerminating && !masterProcessHandler.isProcessTerminated) {
       addProcessedClientPid(client.clientData.pid)
-      executeOnPooledThread {
+      AndroidCoroutineScope(project).launch(workerThread) {
         LOG.info("Attaching debugger to a client, PID: ${client.clientData.pid}")
         val session = DebugSessionStarter.attachDebuggerToStartedProcess(client.device, client.clientData.clientDescription!!,
                                                                          environment,
@@ -157,7 +161,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
         processHandlerForOpenedTab.subscribeOnDebugProcess(session.debugProcess.processHandler)
 
         session.runContentDescriptor.processHandler = processHandlerForOpenedTab
-        runInEdt {
+        withContext(AndroidDispatchers.uiThread) {
           try {
             session.showSessionTab()
           }

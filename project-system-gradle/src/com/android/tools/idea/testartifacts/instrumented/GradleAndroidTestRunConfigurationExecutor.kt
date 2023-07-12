@@ -34,7 +34,7 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.indicatorRunBlockingCancellable
+import com.intellij.openapi.progress.runBlockingCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -68,7 +68,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
     )
   }
 
-  override fun run(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     LOG.info("Start run tests")
 
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
@@ -123,7 +123,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
     }
   }
 
-  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = indicatorRunBlockingCancellable(indicator) {
+  override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
     LOG.info("Start debug tests")
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 

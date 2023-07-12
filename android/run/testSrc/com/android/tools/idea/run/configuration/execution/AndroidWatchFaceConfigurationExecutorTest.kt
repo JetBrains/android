@@ -228,7 +228,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val executor = AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
 
     assertFailsWith<ExecutionException>("Error while launching watch face, message: $failedResponse") {
-      executor.debug(EmptyProgressIndicator())
+      getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
     }
   }
 
@@ -296,7 +296,13 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // We expect the debugger to fail to attach, and we catch the corresponding exception. That happens only in this test as we
     // mocked DebuggerManagerEx to fail above.
-    assertFailsWith<ExecutionException>("Exception on debug start") { executor.debug(EmptyProgressIndicator()) }
+    assertFailsWith<ExecutionException>("Exception on debug start") {
+      getRunContentDescriptorForTests {
+        executor.debug(
+          EmptyProgressIndicator()
+        )
+      }
+    }
     if (!processTerminatedLatch.await(10, TimeUnit.SECONDS)) {
       fail("process is not terminated after debugger failed to connect")
     }

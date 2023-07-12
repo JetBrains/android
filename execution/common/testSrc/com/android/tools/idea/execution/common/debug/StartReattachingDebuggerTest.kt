@@ -37,6 +37,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.xdebugger.XDebuggerManager
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.fail
 import org.junit.Before
@@ -85,7 +86,7 @@ class StartReattachingDebuggerTest {
   }
 
   @Test
-  fun testStartReattachingDebuggerForOneClient() {
+  fun testStartReattachingDebuggerForOneClient() = runTest {
     val stats = RunStatsService.get(project).create().also {
       executionEnvironment.putUserData(RunStats.KEY, it)
     }
@@ -132,7 +133,7 @@ class StartReattachingDebuggerTest {
   }
 
   @Test
-  fun testStartReattachingDebuggerForFewClients() {
+  fun testStartReattachingDebuggerForFewClients() = runTest {
 
     val ADDITIONAL_CLIENTS = 2
     // RunContentManagerImpl.showRunContent content does nothing on showRunContent in Unit tests, we want to check it was invoked.
@@ -174,7 +175,7 @@ class StartReattachingDebuggerTest {
   }
 
   @Test
-  fun testStopping() {
+  fun testStopping() = runTest {
 
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, 1111, MASTER_PROCESS_NAME, false)
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
@@ -190,7 +191,6 @@ class StartReattachingDebuggerTest {
         "force-stop $APP_ID" -> error("Should stop only master process")
       }
     }
-
 
     val sessionImpl = DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,

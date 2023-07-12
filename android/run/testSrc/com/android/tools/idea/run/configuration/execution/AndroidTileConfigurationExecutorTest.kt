@@ -178,7 +178,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
 
     assertFailsWith<ExecutionException>("Error while setting the tile, message: $failedResponse") {
-      executor.debug(EmptyProgressIndicator())
+      getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
     }
   }
 
@@ -222,7 +222,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
 
     val e = assertFailsWith<ExecutionException>("Error while setting the tile, message: $failedResponse") {
-      executor.run(EmptyProgressIndicator())
+      getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
     }
 
     assertThat(e).hasMessageThat().contains("Error while setting the tile, message: $failedResponse")
