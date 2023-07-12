@@ -144,13 +144,12 @@ iml_module(
 maven_repository(
     name = "test_deps",
     artifacts = [
-        "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
+        "@maven//:androidx.core.core-ktx_1.9.0",
         "@maven//:com.android.support.constraint.constraint-layout_2.0.4",
         "@maven//:com.android.support.design_28.0.0",
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
-        "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.android.material.material_1.8.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.jimfs.jimfs_1.1",
@@ -162,7 +161,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.4.32",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk7_1.4.32",
-        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )
