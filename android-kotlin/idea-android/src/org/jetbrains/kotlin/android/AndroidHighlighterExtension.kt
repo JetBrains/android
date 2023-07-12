@@ -19,15 +19,15 @@ package org.jetbrains.kotlin.android
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.android.synthetic.res.AndroidSyntheticProperty
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingColors
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingVisitorExtension
+import org.jetbrains.kotlin.idea.highlighter.KotlinNameHighlightInfoTypes
 
 class AndroidHighlighterExtension : KotlinHighlightingVisitorExtension() {
     override fun highlightDeclaration(
         elementToHighlight: PsiElement,
         descriptor: DeclarationDescriptor
     ) = when (descriptor) {
-        is AndroidSyntheticProperty -> KotlinHighlightingColors.ANDROID_EXTENSIONS_PROPERTY_CALL
+        is AndroidSyntheticProperty -> KotlinNameHighlightInfoTypes.ANDROID_EXTENSIONS_PROPERTY_CALL
         else -> null
     }
 }
