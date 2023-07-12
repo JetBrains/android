@@ -17,6 +17,7 @@
 package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.k1.isComposableInvocation
+import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.roots.ProjectFileIndex
@@ -42,17 +43,18 @@ class ComposableHighlighterExtension : KotlinHighlightingVisitorExtension() {
     const val COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME = "ComposableCallTextAttributes"
     val COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY: TextAttributesKey =
       TextAttributesKey.createTextAttributesKey(COMPOSABLE_CALL_TEXT_ATTRIBUTES_NAME, DefaultLanguageHighlighterColors.FUNCTION_CALL)
+    val COMPOSABLE_CALL_TEXT_TYPE: HighlightInfoType = HighlightInfoType.HighlightInfoTypeImpl(HighlightInfoType.SYMBOL_TYPE_SEVERITY, COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY, false)
   }
 
-  override fun highlightDeclaration(elementToHighlight: PsiElement, descriptor: DeclarationDescriptor): TextAttributesKey? = null
+  override fun highlightDeclaration(elementToHighlight: PsiElement, descriptor: DeclarationDescriptor): HighlightInfoType? = null
 
-  override fun highlightCall(elementToHighlight: PsiElement, resolvedCall: ResolvedCall<*>): TextAttributesKey? {
+  override fun highlightCall(elementToHighlight: PsiElement, resolvedCall: ResolvedCall<*>): HighlightInfoType? {
     if (!resolvedCall.isComposableInvocation()) return null
 
     // For composable invocations, highlight if either:
     // 1. compose is enabled for the current module, or
     // 2. the file is part of a library's source code.
-    return if (isComposeEnabled(elementToHighlight) || isInLibrarySource(elementToHighlight)) COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY else null
+    return if (isComposeEnabled(elementToHighlight) || isInLibrarySource(elementToHighlight)) COMPOSABLE_CALL_TEXT_TYPE else null
   }
 
   private fun isInLibrarySource(element: PsiElement) =

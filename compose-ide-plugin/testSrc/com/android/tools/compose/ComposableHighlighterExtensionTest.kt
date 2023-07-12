@@ -131,16 +131,16 @@ class ComposableHighlighterExtensionTest {
     moduleUsesCompose = false
     isInLibrarySource = true
     assertThat(highlighter.highlightCall(mockElement, mockResolvedCall)).isEqualTo(
-      ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY)
+      ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE)
 
     moduleUsesCompose = true
     isInLibrarySource = false
     assertThat(highlighter.highlightCall(mockElement, mockResolvedCall)).isEqualTo(
-      ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY)
+      ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE)
 
     moduleUsesCompose = true
     isInLibrarySource = true
     assertThat(highlighter.highlightCall(mockElement, mockResolvedCall)).isEqualTo(
-      ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_ATTRIBUTES_KEY)
+      ComposableHighlighterExtension.COMPOSABLE_CALL_TEXT_TYPE)
   }
 }
