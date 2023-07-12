@@ -720,9 +720,6 @@ public final class StudioFlags {
     "Enables caching of build variant data so that the IDE does not always run Gradle when switching between build variants. " +
     "While faster this mode may be incompatible with some plugins.", true);
 
-  public static final Flag<Boolean> ALLOW_DIFFERENT_JDK_VERSION = Flag.create(
-    GRADLE_IDE, "jdk.allow.different", "Allow different Gradle JDK", "Allow usage of a different JDK version when running Gradle.", true);
-
   public static final Flag<Boolean> GRADLE_SYNC_USE_V2_MODEL = Flag.create(
     GRADLE_IDE, "gradle.sync.use.v2", "Use V2 Builder models", "Enable fetching V2 builder models from AGP when syncing.", true);
 

@@ -179,12 +179,6 @@ class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
 private fun validateAndGetErrors(jdk: Sdk): String? {
   val jdkHomePath = jdk.homePath ?: return "Could not find valid Jdk home from the selected Jdk location."
   val selectedJdkMsg = "Selected Jdk location is $jdkHomePath.\n"
-  // Check if the version of selected Jdk is the same with the Jdk IDE uses.
-  val runningJdkVersion = IdeSdks.getInstance().runningVersionOrDefault
-  if (!StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() && !IdeSdks.isJdkSameVersion(Paths.get(jdkHomePath), runningJdkVersion)) {
-    return "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk " +
-           runningJdkVersion.description + " directory.\n" + selectedJdkMsg
-  }
   // Check Jdk installation is complete.
   if (!JdkUtil.checkForJdk(jdkHomePath)) {
     return "The Jdk installation is invalid.\n$selectedJdkMsg"

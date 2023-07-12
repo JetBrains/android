@@ -32,7 +32,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
@@ -774,20 +773,7 @@ public class IdeSdks {
     if (!JavaSdk.getInstance().isOfVersionOrHigher(jdk, JDK_1_8)) {
       return false;
     }
-    if (StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get()) {
-      return true;
-    }
-    JavaSdkVersion jdkVersion = JavaSdk.getInstance().getVersion(jdk);
-    if (jdkVersion == null) {
-      return false;
-    }
-
-    return isJdkVersionCompatible(preferredVersion, jdkVersion);
-  }
-
-  @VisibleForTesting
-  boolean isJdkVersionCompatible(@NotNull JavaSdkVersion preferredVersion, @NotNull JavaSdkVersion jdkVersion) {
-    return jdkVersion.compareTo(preferredVersion) >= 0 && jdkVersion.compareTo(MAX_JDK_VERSION) <= 0;
+    return true;
   }
 
   /**
@@ -894,12 +880,7 @@ public class IdeSdks {
       }
     }
     if (possiblePath != null) {
-      if (StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.get() || isJdkSameVersion(possiblePath, getRunningVersionOrDefault())) {
-        return possiblePath;
-      }
-      else {
-        LOG.warn("Trying to use JDK with different version: " + possiblePath);
-      }
+      return possiblePath;
     }
     else {
       File file = FilePaths.stringToFile(path.toString());

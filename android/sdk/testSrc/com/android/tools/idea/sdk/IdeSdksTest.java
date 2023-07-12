@@ -294,20 +294,6 @@ public class IdeSdksTest extends PlatformTestCase {
     myAndroidSdks.setSdkData(androidSdkData);
   }
 
-  public void testIsJdkVersionCompatible() {
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_7)).isFalse();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_8)).isTrue();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_1_9)).isTrue();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_11)).isTrue();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_12)).isTrue();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_14)).isTrue();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_15)).isTrue();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_16)).isTrue();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_17)).isTrue();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_18)).isFalse();
-    assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_19)).isFalse();
-  }
-
   /**
    * Verify that the field's and method's names in ProjectJDKImpl have not changed, to try to catch changes in its implementation.
    * If this test fails, we need to confirm the changes are included as needed in

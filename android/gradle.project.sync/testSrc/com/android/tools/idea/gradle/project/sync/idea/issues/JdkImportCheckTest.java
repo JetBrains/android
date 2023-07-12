@@ -49,14 +49,6 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     myMockIdeSdks = new IdeComponents(getProject()).mockApplicationService(IdeSdks.class);
     myMockJdks = new IdeComponents(getProject()).mockApplicationService(Jdks.class);
     assertSame(myMockIdeSdks, IdeSdks.getInstance());
-
-    StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.override(false);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.clearOverride();
-    super.tearDown();
   }
 
   public void testDoCheckWithJdkWithoutHomePath() {
@@ -66,22 +58,7 @@ public class JdkImportCheckTest extends AndroidGradleTestCase {
     assertThat(runCheckJdkErrorMessage(jdk)).startsWith("Could not find valid Jdk home from the selected Jdk location");
   }
 
-  public void testDoCheckWithJdkWithIncompatibleVersion() {
-    Sdk jdk = mock(Sdk.class);
-    String pathToJdk10 = "/path/to/jdk10";
-
-    when(jdk.getHomePath()).thenReturn(pathToJdk10);
-    when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
-    when(myMockJdks.findVersion(Paths.get(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
-
-    assertThat(runCheckJdkErrorMessage(jdk)).startsWith(
-      "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk 8 directory.\n" +
-      "Selected Jdk location is /path/to/jdk10."
-    );
-  }
-
   public void testDoCheckWithJdkWithIncompatibleVersionNoCheck() {
-    StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.override(true);
     Sdk jdk = mock(Sdk.class);
     String pathToJdk10 = "/path/to/jdk10";
     when(jdk.getHomePath()).thenReturn(pathToJdk10);
