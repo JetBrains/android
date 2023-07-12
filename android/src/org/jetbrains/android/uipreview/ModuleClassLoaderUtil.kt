@@ -222,9 +222,8 @@ internal class ModuleClassLoaderImpl(module: Module,
     }
   }
 
-  fun createNonProjectLoader(nonProjectTransforms: ClassTransform,
+  private fun createNonProjectLoader(nonProjectTransforms: ClassTransform,
                              binaryCache: ClassBinaryCache,
-                             externalLibraries: List<Path>,
                              onClassLoaded: (String) -> Unit,
                              onClassRewrite: (String, Long, Int) -> Unit): DelegatingClassLoader.Loader {
     // Non project classes loading pipeline
@@ -279,7 +278,6 @@ internal class ModuleClassLoaderImpl(module: Module,
   init {
     val nonProjectLoader = createNonProjectLoader(nonProjectTransforms,
                                                   binaryCache,
-                                                  externalLibraries,
                                                   { _nonProjectLoadedClassNames.add(it) },
                                                   onClassRewrite)
     // Project classes loading pipeline
