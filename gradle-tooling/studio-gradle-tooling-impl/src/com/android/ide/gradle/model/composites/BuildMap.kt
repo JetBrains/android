@@ -18,6 +18,7 @@ package com.android.ide.gradle.model.composites
 import java.io.File
 import java.io.Serializable
 
+/** Map from the Gradle identity path (composite aware, supports nested builds) to the Gradle build root directory. */
 interface BuildMap {
   val buildIdMap: Map<String, File>
 }

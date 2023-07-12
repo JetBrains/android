@@ -25,7 +25,7 @@ class BuildMapModelBuilder : ToolingModelBuilder {
       return mapOf(project.name to project.projectDir)
     }
     val projectInternal = project as? ProjectInternal ?: return emptyMap()
-    val name = projectInternal.identityPath.name ?: return emptyMap()
+    val name = projectInternal.identityPath.path ?: return emptyMap()
     return mapOf(name to project.projectDir)
   }
 }

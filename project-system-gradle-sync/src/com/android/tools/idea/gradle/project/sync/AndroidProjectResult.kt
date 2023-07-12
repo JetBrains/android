@@ -235,7 +235,7 @@ private fun v2VariantFetcher(
       variantDependencies,
       module.androidProject.bootClasspath,
       androidProjectPathResolver,
-      module.buildNameMap,
+      module.buildPathMap,
     )
   }
 }

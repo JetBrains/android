@@ -107,7 +107,7 @@ interface ModelCache {
       variantDependencies: VariantDependenciesCompat,
       bootClasspath: Collection<String>,
       androidProjectPathResolver: AndroidProjectPathResolver,
-      buildNameMap: Map<String, BuildId>
+      buildPathMap: Map<String, BuildId>
     ): ModelResult<IdeVariantWithPostProcessor>
 
     fun androidProjectFrom(

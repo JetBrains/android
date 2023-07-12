@@ -35,8 +35,10 @@ internal class BuildInfo(
   buildMap: IdeCompositeBuildMap,
   val buildFolderPaths: BuildFolderPaths,
 ) {
-  val buildNameMap = buildMap.builds.associate { it.buildName to BuildId(it.buildId) }
-  val buildIdMap = buildMap.builds.associate { BuildId(it.buildId) to it.buildName }
+  /** Mapping from Gradle identity path to [BuildId]. */
+  val buildPathMap = buildMap.builds.associate { it.buildPath to BuildId(it.buildId) }
+  /** Mapping from [BuildId] to Gradle identity path. */
+  val buildIdMap = buildMap.builds.associate { BuildId(it.buildId) to it.buildPath }
 
   val rootBuild: GradleBuild = buildModels.first()
   val projects: Sequence<BasicGradleProject> = buildModels.asSequence().flatMap { it.projects.asSequence() }
@@ -142,7 +144,7 @@ internal class AndroidExtraModelProviderWorker(
     return safeActionRunner.runActions(
       buildInfo.projects.map { gradleProject ->
         val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
-        val buildName = buildInfo.buildIdMap[buildId] ?: error("Build not found: $buildId \n" +
+        val buildPath = buildInfo.buildIdMap[buildId] ?: error("Build not found: $buildId \n" +
                                                                "available builds ${buildInfo.buildIdMap}")
         ActionToRun(
           fun(controller: BuildController): BasicIncompleteGradleModule {
@@ -152,7 +154,7 @@ internal class AndroidExtraModelProviderWorker(
               val versions = controller.findNonParameterizedV2Model(gradleProject, Versions::class.java)
               if (versions != null && canFetchV2Models(AgpVersion.tryParse(versions.agp))) {
                 // This means we can request V2.
-                return BasicV2AndroidModuleGradleProject(gradleProject, buildName, versions, syncOptions)
+                return BasicV2AndroidModuleGradleProject(gradleProject, buildPath, versions, syncOptions)
               }
             }
             // We cannot request V2 models.
@@ -162,11 +164,11 @@ internal class AndroidExtraModelProviderWorker(
             if (legacyV1AgpVersionModel != null)
               return BasicV1AndroidModuleGradleProject(
                 gradleProject,
-                buildName,
+                buildPath,
                 legacyV1AgpVersionModel
               )
 
-            return BasicNonAndroidIncompleteGradleModule(gradleProject, buildName) // Check here tha Version does not return anything.
+            return BasicNonAndroidIncompleteGradleModule(gradleProject, buildPath) // Check here tha Version does not return anything.
           },
           fetchesV2Models = true,
           fetchesV1Models = true
@@ -179,7 +181,7 @@ internal class AndroidExtraModelProviderWorker(
 private fun verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules: List<BasicIncompleteGradleModule>) {
   val agpVersionsAndGradleBuilds = modules
     .filterIsInstance<BasicIncompleteAndroidModule>()
-    .map { it.agpVersion to it.buildName }
+    .map { it.agpVersion to it.buildPath }
   // Fail Sync if we do not use the same AGP version across all the android projects.
   if (agpVersionsAndGradleBuilds.isNotEmpty() && agpVersionsAndGradleBuilds.map { it.first }.distinct().singleOrNull() == null)
     throw AgpVersionsMismatch(agpVersionsAndGradleBuilds)
