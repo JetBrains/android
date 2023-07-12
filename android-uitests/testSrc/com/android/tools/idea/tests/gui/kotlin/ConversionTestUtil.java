@@ -116,7 +116,7 @@ public class ConversionTestUtil {
     //String kotlinVersion = kotlinCompilerVersionShort();
     String newBuildGradleContents = buildGradleContents.replaceAll(
         "id\\(\"org\\.jetbrains\\.kotlin\\.android\"\\) *version *\"\\d+\\.\\d+\\.\\d+\" *apply *false",
-        "id(\"org.jetbrains.kotlin.android\") version \"1.7.21\" apply false"
+        "id(\"org.jetbrains.kotlin.android\") version \"1.8.10\" apply false"
       );
 
     OutputStream buildGradleOutput = ideFrameFixture.getEditor()

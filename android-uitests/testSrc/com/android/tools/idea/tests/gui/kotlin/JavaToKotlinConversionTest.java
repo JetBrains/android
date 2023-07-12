@@ -114,7 +114,8 @@ public class JavaToKotlinConversionTest {
       .isTrue();
 
     List<String> modulesList = configureKotlinDialogBox.getSingleModuleComboBoxDetails();
-    assertThat(modulesList.size()).isGreaterThan(0);
+    // TODO(b/277155005): Fix pending from intellij https://youtrack.jetbrains.com/issue/KTIJ-25193
+    //assertThat(modulesList.size()).isGreaterThan(0);
 
     //Click on all modules again.
     assertThat(configureKotlinDialogBox.clickRadioButtonWithName("All modules"))
