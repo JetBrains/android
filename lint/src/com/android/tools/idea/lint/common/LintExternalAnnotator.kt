@@ -35,6 +35,7 @@ import com.google.common.collect.Sets
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.codeInsight.daemon.impl.analysis.DaemonTooltipsUtil
 import com.intellij.codeInsight.intention.FileModifier.SafeFieldForPreview
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
@@ -295,10 +296,24 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       val message =
         if (rawMessage.length <= 1000) rawMessage else rawMessage.take(1000) + "... [truncated]"
 
-      // This description link is not displayed. It is parsed by IDEA to
-      // populate the "Show Inspection Description" action.
-      val descriptionLink = "<a href=\"" + LINK_PREFIX + issue.id + "\"></a>"
-      val tooltip = XmlStringUtil.wrapInHtml(descriptionLink + RAW.convertTo(message, HTML))
+      // This description link is not displayed. When rendering the expanded tooltip, IDEA finds
+      // the first link and reads the href value to figure out which TooltipLinkHandler to call to
+      // get the inspection description. Because of LINK_PREFIX, it ends up calling
+      // LintInspectionDescriptionLinkHandler.getDescription.
+      val descriptionRef = "<a href=\"${LINK_PREFIX}${issue.id}\"></a>"
+
+      // We add a "More... (Ctrl+F1)" link to the end of the error message so that users can expand
+      // the tooltip to see the issue description, which typically includes useful context and links
+      // to documentation. Any "unhandled" link click that is not just an HTTP link will toggle
+      // expansion of the inspection description. See
+      // com.intellij.codeInsight.highlighting.TooltipLinkHandler.handleLink and
+      // com.intellij.codeInsight.hint.LineTooltipRenderer.createHint. We could just use href="",
+      // but using LINK_PREFIX seems more future-proof.
+      val moreLink =
+        " <a href=\"${LINK_PREFIX}\">More...</a> ${DaemonTooltipsUtil.getShortcutText()}"
+
+      val tooltip =
+        XmlStringUtil.wrapInHtml(descriptionRef + RAW.convertTo(message, HTML) + moreLink)
       var builder =
         holder.newAnnotation(severity, message).highlightType(type).range(range).tooltip(tooltip)
       val fixes =
