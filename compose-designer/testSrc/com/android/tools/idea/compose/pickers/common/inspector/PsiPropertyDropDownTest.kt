@@ -33,8 +33,11 @@ import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
+import java.awt.event.KeyEvent.VK_UP
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.event.ListDataEvent
+import javax.swing.event.ListDataListener
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -62,6 +65,65 @@ internal class PsiPropertyDropDownTest {
     ui.keyboard.pressAndRelease(VK_ENTER)
     assertEquals("invisible", property.value)
     assertFalse(isPopupVisible(dropDown))
+  }
+
+  @Test
+  fun testSelectingCurrentValue() {
+    class SimpleEnumValue(visibility: String) : EnumValue {
+      override val value = visibility
+    }
+
+    val property = FakePsiProperty("prop", "visible")
+    val enumValues =
+      listOf(SimpleEnumValue("visible"), SimpleEnumValue("invisible"), SimpleEnumValue("gone"))
+    val enumSupport = EnumSupport.simple(enumValues)
+
+    var selectedValueSetterCount = 0
+    var selectedValueChangedNotifyCount = 0
+    val model = PsiDropDownModel(property, enumSupport) { selectedValueSetterCount++ }
+    model.addListDataListener(
+      object : ListDataListener {
+        override fun intervalAdded(e: ListDataEvent?) {
+          selectedValueChangedNotifyCount++
+        }
+
+        override fun intervalRemoved(e: ListDataEvent?) {
+          selectedValueChangedNotifyCount++
+        }
+
+        override fun contentsChanged(e: ListDataEvent?) {
+          selectedValueChangedNotifyCount++
+        }
+      }
+    )
+    val dropDown = createDropDown(model)
+    val ui = createFakeUiForComboBoxWrapper(dropDown)
+    getWrappedComboBox(dropDown).showPopup()
+
+    // selectedValue is set when creating the popup, so we expect to call the setter and the
+    // listeners to be notified.
+    assertEquals(1, selectedValueChangedNotifyCount)
+    assertEquals(1, selectedValueSetterCount)
+
+    ui.keyboard.pressAndRelease(VK_DOWN)
+    ui.keyboard.pressAndRelease(VK_UP)
+    ui.keyboard.pressAndRelease(VK_ENTER)
+
+    assertEquals("visible", property.value)
+    assertFalse(isPopupVisible(dropDown))
+    // selectedValue setter is called
+    assertEquals(2, selectedValueSetterCount)
+    // Notify is not called, as the resolved value didn't change.
+    assertEquals(1, selectedValueChangedNotifyCount)
+
+    getWrappedComboBox(dropDown).showPopup()
+    ui.keyboard.pressAndRelease(VK_DOWN)
+    ui.keyboard.pressAndRelease(VK_ENTER)
+    assertEquals("invisible", property.value)
+    // selectedValue setter is called
+    assertEquals(3, selectedValueSetterCount)
+    // Notify is also called, as the resolved value did change.
+    assertEquals(2, selectedValueChangedNotifyCount)
   }
 
   @Test
