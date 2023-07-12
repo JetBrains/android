@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project
 
-import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.android.tools.idea.gradle.project.sync.jdk.GradleJdkValidationManager
 import com.android.tools.idea.project.AndroidNotification
@@ -27,11 +26,9 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
 fun showNeededNotifications(project: Project) {
-  if (IdeInfo.getInstance().isAndroidStudio) {
     notifyOnLegacyAndroidProject(project)
     notifyOnInvalidGradleJDKEnv(project)
     notifyOnInvalidGradleJdk(project)
-  }
 }
 
 private fun notifyOnLegacyAndroidProject(project: Project) {

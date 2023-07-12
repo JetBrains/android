@@ -86,9 +86,7 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
       if (gradleProjectInfo.androidModules.isNotEmpty()) return true
 
       // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
-      if (IdeInfo.getInstance().isAndroidStudio && gradleProjectInfo.isBuildWithGradle) return true
-
-      return false
+      return IdeInfo.getInstance().isAndroidStudio && gradleProjectInfo.isBuildWithGradle
     }
 
     // Make sure we remove Gradle producers from the ignoredProducers list for old projects that used to run tests through AndroidJunit.
@@ -102,9 +100,10 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
 
     // Disable all settings sections that we don't want to be present in Android Studio.
     // See AndroidStudioPreferences for a full list.
-    AndroidStudioPreferences.cleanUpPreferences(project)
-
-    showNeededNotifications(project)
+    if (IdeInfo.getInstance().isAndroidStudio) {
+      AndroidStudioPreferences.cleanUpPreferences(project)
+      showNeededNotifications(project)
+    }
   }
 }
 
