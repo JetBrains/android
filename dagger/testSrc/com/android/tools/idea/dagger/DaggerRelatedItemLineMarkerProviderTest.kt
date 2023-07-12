@@ -1384,6 +1384,41 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
       .isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER ENTRY_POINT_METHOD")
   }
 
+  fun testNavigationGoesToTargetElement() {
+    myFixture.configureByText(
+      "Components.kt",
+      // language=kotlin
+      """
+      import dagger.Component
+
+      @Component
+      interface MyComp<caret>onent {}
+
+      @Component(dependencies = [MyComponent::class])
+      interface MyDependentComponent
+      """
+        .trimIndent()
+    )
+
+    clickOnIcon(
+      myFixture.findGuttersAtCaret().single() as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+    )
+
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      import dagger.Component
+
+      @Component
+      interface MyComponent {}
+
+      @Component(dependencies = [MyComponent::class])
+      interface <caret>MyDependentComponent
+      """
+        .trimIndent()
+    )
+  }
+
   private fun PsiElement.className(): String? =
     when (this) {
       is PsiClass -> name
