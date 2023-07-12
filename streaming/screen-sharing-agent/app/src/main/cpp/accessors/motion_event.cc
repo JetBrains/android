@@ -30,13 +30,17 @@ MotionEvent::MotionEvent(Jni jni)
 
 JObject MotionEvent::ToJava() const {
   InitializeStatics(jni_);
-  return Agent::api_level() >= 29 ?
+  auto obj = Agent::api_level() >= 29 ?
       motion_event_class_.CallStaticObjectMethod(
           jni_, obtain_method_, down_time_millis, event_time_millis, action, pointer_count, pointer_properties, pointer_coordinates,
           meta_state, button_state, x_precision, y_precision, device_id, edge_flags, source, display_id, flags) :
       motion_event_class_.CallStaticObjectMethod(
           jni_, obtain_method_, down_time_millis, event_time_millis, action, pointer_count, pointer_properties, pointer_coordinates,
           meta_state, button_state, x_precision, y_precision, device_id, edge_flags, source, flags);
+  if (action_button && set_action_button_method_) {
+    obj.CallVoidMethod(set_action_button_method_, action_button);
+  }
+  return obj;
 }
 
 void MotionEvent::InitializeStatics(Jni jni) {
@@ -47,6 +51,10 @@ void MotionEvent::InitializeStatics(Jni jni) {
         "(JJII[Landroid/view/MotionEvent$PointerProperties;[Landroid/view/MotionEvent$PointerCoords;IIFFIIIII)Landroid/view/MotionEvent;" :
         "(JJII[Landroid/view/MotionEvent$PointerProperties;[Landroid/view/MotionEvent$PointerCoords;IIFFIIII)Landroid/view/MotionEvent;";
     obtain_method_ = motion_event_class_.GetStaticMethod("obtain", signature);
+    // Since M
+    if (Agent::api_level() >= 23) {
+      set_action_button_method_ = motion_event_class_.GetMethod("setActionButton", "(I)V");
+    }
     motion_event_class_.MakeGlobal();
   }
 }
@@ -54,5 +62,6 @@ void MotionEvent::InitializeStatics(Jni jni) {
 bool MotionEvent::statics_initialized_ = false;
 JClass MotionEvent::motion_event_class_;
 jmethodID MotionEvent::obtain_method_ = nullptr;
+jmethodID MotionEvent::set_action_button_method_ = nullptr;
 
 }  // namespace screensharing

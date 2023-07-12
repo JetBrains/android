@@ -88,8 +88,10 @@ MotionEventMessage* MotionEventMessage::Deserialize(Base128InputStream& stream) 
     pointers.resize(MAX_POINTERS);
   }
   int32_t action = stream.ReadInt32();
+  int32_t button_state = stream.ReadInt32();
+  int32_t action_button = stream.ReadInt32();
   int32_t display_id = stream.ReadInt32();
-  return new MotionEventMessage(std::move(pointers), action, display_id);
+  return new MotionEventMessage(std::move(pointers), action, button_state, action_button, display_id);
 }
 
 KeyEventMessage* KeyEventMessage::Deserialize(Base128InputStream& stream) {

@@ -72,10 +72,12 @@ public:
 
   // Pointers are expected to be ordered according to their ids.
   // The action translates directly to android.view.MotionEvent.action.
-  MotionEventMessage(std::vector<Pointer>&& pointers, int32_t action, int32_t display_id)
+  MotionEventMessage(std::vector<Pointer>&& pointers, int32_t action, int32_t button_state, int32_t action_button, int32_t display_id)
       : ControlMessage(TYPE),
         pointers_(pointers),
         action_(action),
+        button_state_(button_state),
+        action_button_(action_button),
         display_id_(display_id) {
   }
   virtual ~MotionEventMessage() {};
@@ -85,6 +87,12 @@ public:
 
   // The action. See android.view.MotionEvent.action.
   int32_t action() const { return action_; }
+
+  // See android.view.MotionEvent.getButtonState().
+  int32_t button_state() const { return button_state_; }
+
+  // See android.view.MotionEvent.getActionButton().
+  int32_t action_button() const { return action_button_; }
 
   // The display device where the mouse event occurred. Zero indicates the main display.
   int32_t display_id() const { return display_id_; }
@@ -100,6 +108,8 @@ private:
 
   const std::vector<Pointer> pointers_;
   const int32_t action_;
+  const int32_t button_state_;
+  const int32_t action_button_;
   const int32_t display_id_;
 
   DISALLOW_COPY_AND_ASSIGN(MotionEventMessage);

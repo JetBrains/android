@@ -79,6 +79,8 @@ sealed class ControlMessage(val type: Int) {
 internal data class MotionEventMessage(
   val pointers: List<Pointer>,
   val action: Int,
+  val buttonState: Int,
+  val actionButton: Int,
   val displayId: Int
 ) : ControlMessage(TYPE) {
 
@@ -89,11 +91,13 @@ internal data class MotionEventMessage(
       pointer.serialize(stream)
     }
     stream.writeInt(action)
+    stream.writeInt(buttonState)
+    stream.writeInt(actionButton)
     stream.writeInt(displayId)
   }
 
   override fun toString(): String {
-    return "MotionEventMessage(pointers=$pointers, action=$action, displayId=$displayId)"
+    return "MotionEventMessage(pointers=$pointers, action=$action, buttonState=$buttonState actionButton=$actionButton displayId=$displayId)"
   }
 
   companion object : Deserializer {
@@ -115,6 +119,11 @@ internal data class MotionEventMessage(
     const val AXIS_VSCROLL = 9
     const val AXIS_HSCROLL = 10
 
+    // - Button
+    const val BUTTON_PRIMARY = 1 shl 0
+    const val BUTTON_SECONDARY = 1 shl 1
+    const val BUTTON_TERTIARY = 1 shl 2
+
     // - Other
     const val ACTION_MASK = 0xff
     const val ACTION_POINTER_INDEX_MASK = 0xff00
@@ -127,8 +136,10 @@ internal data class MotionEventMessage(
         pointers.add(deserializePointer(stream))
       }
       val action = stream.readInt()
+      val buttonState = stream.readInt()
+      val actionButton = stream.readInt()
       val displayId = stream.readInt()
-      return MotionEventMessage(pointers, action, displayId)
+      return MotionEventMessage(pointers, action, buttonState, actionButton, displayId)
     }
 
     fun deserializePointer(stream: Base128InputStream): Pointer {

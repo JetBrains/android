@@ -86,6 +86,8 @@ import java.awt.event.FocusEvent
 import java.awt.event.InputEvent
 import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.BUTTON1_DOWN_MASK
+import java.awt.event.InputEvent.BUTTON2_DOWN_MASK
+import java.awt.event.InputEvent.BUTTON3_DOWN_MASK
 import java.awt.event.InputEvent.CTRL_DOWN_MASK
 import java.awt.event.InputEvent.META_DOWN_MASK
 import java.awt.event.InputEvent.SHIFT_DOWN_MASK
@@ -109,7 +111,6 @@ import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.MouseEvent.BUTTON1
 import java.awt.event.MouseWheelEvent
 import java.awt.geom.AffineTransform
 import java.util.concurrent.CancellationException
@@ -179,7 +180,7 @@ internal class DeviceView(
         val point = lastTouchCoordinates
         if (point != null) {
           val action = if (value) MotionEventMessage.ACTION_POINTER_DOWN else MotionEventMessage.ACTION_POINTER_UP
-          sendMotionEvent(point, action)
+          sendMotionEvent(point, action, 0)
         }
       }
     }
@@ -423,33 +424,45 @@ internal class DeviceView(
     }
   }
 
-  private fun sendMotionEvent(p: Point, action: Int, axisValues: Int2FloatOpenHashMap? = null) {
+  private fun sendMotionEvent(p: Point, action: Int, modifiers: Int, button: Int=0, axisValues: Int2FloatOpenHashMap? = null) {
     val displayCoordinates = toDeviceDisplayCoordinates(p) ?: return
 
     if (displayCoordinates in deviceDisplaySize) {
       // Within the bounds of the device display.
-      sendMotionEventDisplayCoordinates(displayCoordinates, action, axisValues)
+      sendMotionEventDisplayCoordinates(displayCoordinates, action, modifiers, button, axisValues)
     }
     else if (action == MotionEventMessage.ACTION_MOVE) {
       // Crossed the device display boundary while dragging.
       lastTouchCoordinates = null
       val adjusted = displayCoordinates.constrainInside(deviceDisplaySize)
-      sendMotionEventDisplayCoordinates(adjusted, action)
-      sendMotionEventDisplayCoordinates(adjusted, MotionEventMessage.ACTION_UP)
+      sendMotionEventDisplayCoordinates(adjusted, action, modifiers, button)
+      sendMotionEventDisplayCoordinates(adjusted, MotionEventMessage.ACTION_UP, modifiers, button)
     }
   }
 
-  private fun sendMotionEventDisplayCoordinates(p: Point, action: Int, axisValues: Int2FloatOpenHashMap? = null) {
+  private fun sendMotionEventDisplayCoordinates(p: Point, action: Int, modifiers: Int, button: Int, axisValues: Int2FloatOpenHashMap? = null) {
     if (!isConnected) {
       return
     }
+    val buttonState =
+      (if (modifiers and BUTTON1_DOWN_MASK != 0) MotionEventMessage.BUTTON_PRIMARY else 0) or
+      (if (modifiers and BUTTON2_DOWN_MASK != 0) MotionEventMessage.BUTTON_TERTIARY else 0) or
+      (if (modifiers and BUTTON3_DOWN_MASK != 0) MotionEventMessage.BUTTON_SECONDARY else 0)
+    val androidActionButton = when (button) {
+      MouseEvent.BUTTON1 -> MotionEventMessage.BUTTON_PRIMARY
+      MouseEvent.BUTTON2 -> MotionEventMessage.BUTTON_TERTIARY
+      MouseEvent.BUTTON3 -> MotionEventMessage.BUTTON_SECONDARY
+      else -> 0
+    }
     val message = when {
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
-          MotionEventMessage(originalAndMirroredPointer(p),action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), displayId)
-      multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(p), action, displayId)
-      else -> MotionEventMessage(originalPointer(p, axisValues), action, displayId)
+          MotionEventMessage(originalAndMirroredPointer(p),action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), 0, 0, displayId)
+      isInputForwardingEnabled() && (action == MotionEventMessage.ACTION_DOWN || action == MotionEventMessage.ACTION_UP) ->
+          MotionEventMessage(originalPointer(p, axisValues), action, buttonState, androidActionButton, displayId)
+      isInputForwardingEnabled() -> MotionEventMessage(originalPointer(p, axisValues), action, buttonState, 0, displayId)
+      multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(p), action, 0, 0, displayId)
+      else -> MotionEventMessage(originalPointer(p, axisValues), action, 0, 0, displayId)
     }
-
     deviceController?.sendControlMessage(message)
   }
 
@@ -670,21 +683,18 @@ internal class DeviceView(
   private inner class MyMouseListener : MouseAdapter() {
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
-      if (isInsideDisplay(event) && event.button == BUTTON1) {
-        event.location.let {
-          lastTouchCoordinates = it
-          updateMultiTouchMode(event)
-          sendMotionEvent(it, MotionEventMessage.ACTION_DOWN)
-        }
-      }
+      if (!isInsideDisplay(event)) return
+      if (event.button != MouseEvent.BUTTON1 && !isInputForwardingEnabled()) return
+      lastTouchCoordinates = event.location
+      updateMultiTouchMode(event)
+      sendMotionEvent(event.location, MotionEventMessage.ACTION_DOWN, event.modifiersEx, button = event.button)
     }
 
     override fun mouseReleased(event: MouseEvent) {
-      if (event.button == BUTTON1) {
-        lastTouchCoordinates = null
-        updateMultiTouchMode(event)
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_UP)
-      }
+      if (event.button != MouseEvent.BUTTON1 && !isInputForwardingEnabled()) return
+      lastTouchCoordinates = null
+      updateMultiTouchMode(event)
+      sendMotionEvent(event.location, MotionEventMessage.ACTION_UP, event.modifiersEx, button = event.button)
     }
 
     override fun mouseEntered(event: MouseEvent) {
@@ -692,9 +702,9 @@ internal class DeviceView(
     }
 
     override fun mouseExited(event: MouseEvent) {
-      if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0 && lastTouchCoordinates != null) {
+      if ((event.modifiersEx and (BUTTON1_DOWN_MASK or BUTTON2_DOWN_MASK or BUTTON3_DOWN_MASK)) != 0 && lastTouchCoordinates != null) {
         // Moving over the edge of the display view will terminate the ongoing dragging.
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.modifiersEx)
       }
       lastTouchCoordinates = null
       updateMultiTouchMode(event)
@@ -702,15 +712,15 @@ internal class DeviceView(
 
     override fun mouseDragged(event: MouseEvent) {
       updateMultiTouchMode(event)
-      if ((event.modifiersEx and BUTTON1_DOWN_MASK) != 0 && lastTouchCoordinates != null) {
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE)
+      if ((event.modifiersEx and (BUTTON1_DOWN_MASK or BUTTON2_DOWN_MASK or BUTTON3_DOWN_MASK)) != 0 && lastTouchCoordinates != null) {
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_MOVE, event.modifiersEx)
       }
     }
 
     override fun mouseMoved(event: MouseEvent) {
       updateMultiTouchMode(event)
       if (!multiTouchMode) {
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_HOVER_MOVE, event.modifiersEx)
       }
     }
 
@@ -729,7 +739,7 @@ internal class DeviceView(
         val scrollAmount = remainingRotation.coerceAtMost(1.0f) * direction
         val axisValues = Int2FloatOpenHashMap(1)
         axisValues.put(axis, scrollAmount)
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, axisValues)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, event.modifiersEx, axisValues=axisValues)
         remainingRotation -= 1
       }
     }
