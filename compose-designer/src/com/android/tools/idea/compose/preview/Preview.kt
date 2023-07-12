@@ -583,7 +583,7 @@ class ComposePreviewRepresentation(
           .buildString()
     }
 
-  private fun startInteractivePreview(instance: ComposePreviewElementInstance) {
+  private suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
     if (mode is PreviewMode.Interactive) return
     log.debug("New single preview element focus: $instance")
     requestVisibilityAndNotificationsUpdate()
@@ -593,19 +593,18 @@ class ComposePreviewRepresentation(
     singlePreviewElementInstance = instance
     sceneComponentProvider.enabled = false
     val startUpStart = System.currentTimeMillis()
-    forceRefresh(if (quickRefresh) RefreshType.QUICK else RefreshType.NORMAL).invokeOnCompletion {
-      surface.sceneManagers.forEach { it.resetInteractiveEventsCounter() }
-      // Currently it will re-create classloader and will be slower that switch from static
-      InteractivePreviewUsageTracker.getInstance(surface)
-        .logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
-      interactiveManager.start()
-      requestVisibilityAndNotificationsUpdate()
+    forceRefresh(if (quickRefresh) RefreshType.QUICK else RefreshType.NORMAL).join()
+    surface.sceneManagers.forEach { it.resetInteractiveEventsCounter() }
+    // Currently it will re-create classloader and will be slower than switch from static
+    InteractivePreviewUsageTracker.getInstance(surface)
+      .logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
+    interactiveManager.start()
+    requestVisibilityAndNotificationsUpdate()
 
-      // While in interactive mode, display a small ripple when clicking
-      surface.enableMouseClickDisplay()
-      surface.background = INTERACTIVE_BACKGROUND_COLOR
-      ActivityTracker.getInstance().inc()
-    }
+    // While in interactive mode, display a small ripple when clicking
+    surface.enableMouseClickDisplay()
+    surface.background = INTERACTIVE_BACKGROUND_COLOR
+    ActivityTracker.getInstance().inc()
   }
 
   private suspend fun startUiCheckPreview(instance: ComposePreviewElementInstance) {
