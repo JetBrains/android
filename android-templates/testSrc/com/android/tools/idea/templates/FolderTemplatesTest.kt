@@ -37,10 +37,17 @@ import org.junit.Test
 class FolderTemplatesTest {
   @get:Rule val projectRule = AndroidProjectRule.withAndroidModels()
 
-  @Test
-  fun testGenerateResourcesFolder() {
+  private fun checkResourcesTemplate(
+    name: String,
+    remapFolder: Boolean,
+    location: String,
+    sourceSetType: SourceSetType,
+    defaultDirName: String,
+    expectedLine: String,
+    expectedFolderLocation: String = location
+  ) {
     val template =
-      TemplateResolver.getTemplateByName("Res Folder") ?: throw RuntimeException("Invalid template")
+      TemplateResolver.getTemplateByName(name) ?: throw RuntimeException("Invalid template")
 
     // The default module state and template
     val moduleStateBuilder = getDefaultModuleState(projectRule.project, template)
@@ -71,11 +78,11 @@ class FolderTemplatesTest {
 
     moduleRecipeExecutor.generateResourcesFolder(
       moduleStateBuilder.build(),
-      true,
-      "my/res/folder",
+      remapFolder,
+      location,
       { "main" },
-      SourceSetType.RESOURCES,
-      "res"
+      sourceSetType,
+      defaultDirName
     )
 
     // Applying changes is necessary to write the Gradle model to disk
@@ -83,16 +90,11 @@ class FolderTemplatesTest {
       moduleRecipeExecutor.applyChanges()
     }
 
-    val lines = Files.readAllLines(moduleRoot.resolve("build.gradle.kts"))
+    // Check the folder exists and that relevant content is in build.gradle file
+    assertTrue(moduleRoot.resolve(expectedFolderLocation).toFile().isDirectory)
 
-    assertTrue(moduleRoot.resolve("my/res/folder").toFile().isDirectory)
-    val expectedSrcDirsLine =
-      "                srcDirs(\"" +
-        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}res") +
-        "\", \"" +
-        StringEscapeUtils.escapeJava("my${File.separator}res${File.separator}folder") +
-        "\")"
-    assertContains(lines, expectedSrcDirsLine)
+    val lines = Files.readAllLines(moduleRoot.resolve("build.gradle.kts"))
+    assertContains(lines, expectedLine)
   }
 
   /**
@@ -103,5 +105,155 @@ class FolderTemplatesTest {
   private fun writeBuildGradleKtsFile(moduleRoot: Path) {
     FileUtils.mkdirs(moduleRoot.toFile())
     FileUtils.writeToFile(moduleRoot.resolve("build.gradle.kts").toFile(), "android {}")
+  }
+
+  @Test
+  fun testAIDLFolder() {
+    val expectedLine =
+      "                srcDirs(\"" +
+        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}aidl") +
+        "\", \"" +
+        StringEscapeUtils.escapeJava("my${File.separator}aidl${File.separator}folder") +
+        "\")"
+
+    checkResourcesTemplate(
+      "AIDL Folder",
+      true,
+      "my/aidl/folder",
+      SourceSetType.AIDL,
+      "aidl",
+      expectedLine
+    )
+  }
+
+  @Test
+  fun testAssetsFolder() {
+    val expectedLine =
+      "                srcDirs(\"" +
+        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}assets") +
+        "\", \"" +
+        StringEscapeUtils.escapeJava("my${File.separator}assets${File.separator}folder") +
+        "\")"
+
+    checkResourcesTemplate(
+      "Assets Folder",
+      true,
+      "my/assets/folder",
+      SourceSetType.ASSETS,
+      "assets",
+      expectedLine
+    )
+  }
+
+  @Test
+  fun testJavaFolder() {
+    val expectedLine =
+      "                srcDirs(\"" +
+        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}java") +
+        "\", \"" +
+        StringEscapeUtils.escapeJava("my${File.separator}JavaNotKotlin${File.separator}folder") +
+        "\")"
+
+    checkResourcesTemplate(
+      "Java Folder",
+      true,
+      "my/JavaNotKotlin/folder",
+      SourceSetType.JAVA,
+      "java",
+      expectedLine
+    )
+  }
+
+  @Test
+  fun testJNIFolder() {
+    val expectedLine =
+      "                srcDirs(\"" +
+        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}jni") +
+        "\", \"" +
+        StringEscapeUtils.escapeJava("my${File.separator}jni${File.separator}folder") +
+        "\")"
+
+    checkResourcesTemplate(
+      "JNI Folder",
+      true,
+      "my/jni/folder",
+      SourceSetType.RESOURCES,
+      "jni",
+      expectedLine
+    )
+  }
+
+  @Test
+  fun testResFolder() {
+    val expectedLine =
+      "                srcDirs(\"" +
+        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}res") +
+        "\", \"" +
+        StringEscapeUtils.escapeJava("my${File.separator}res${File.separator}folder") +
+        "\")"
+
+    checkResourcesTemplate(
+      "Res Folder",
+      true,
+      "my/res/folder",
+      SourceSetType.RESOURCES,
+      "res",
+      expectedLine
+    )
+  }
+
+  @Test
+  fun testDefaultResFolder() {
+    // If not using the "Change Folder Location" option, no change should be made to the source set,
+    // but the folder should still get created
+    val expectedLine = "android {}"
+
+    checkResourcesTemplate(
+      "Res Folder",
+      false,
+      "unused/parameter",
+      SourceSetType.RESOURCES,
+      "res",
+      expectedLine,
+      "src/main/res"
+    )
+  }
+
+  @Test
+  fun testJavaResourcesFolder() {
+    val expectedLine =
+      "                srcDirs(\"" +
+        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}resources") +
+        "\", \"" +
+        StringEscapeUtils.escapeJava("my${File.separator}resources${File.separator}folder") +
+        "\")"
+
+    checkResourcesTemplate(
+      "Java Resources Folder",
+      true,
+      "my/resources/folder",
+      SourceSetType.RESOURCES,
+      "resources",
+      expectedLine
+    )
+  }
+
+  @Test
+  fun testRenderScriptFolder() {
+    val expectedLine =
+      "                srcDirs(\"" +
+        StringEscapeUtils.escapeJava("src${File.separator}main${File.separator}rs") +
+        "\", \"" +
+        StringEscapeUtils.escapeJava("my${File.separator}renderscript${File.separator}folder") +
+        "\")"
+
+    checkResourcesTemplate(
+      "RenderScript Folder",
+      true,
+      "my/renderscript/folder",
+      SourceSetType.RESOURCES,
+      "rs",
+      expectedLine
+    )
   }
 }
