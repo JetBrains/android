@@ -269,6 +269,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_NAME_ON_COMPACT_NOTATION_EXPECTED);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -292,6 +293,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION_EXPECTED);
 
     dependencies = buildModel.dependencies().modules();
     assertThat(dependencies).hasSize(1);
@@ -349,6 +351,7 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION_EXPECTED);
     dependency = dependencies.get(0);
 
     dependencies = buildModel.dependencies().modules();
@@ -591,8 +594,11 @@ public class ModuleDependencyTest extends GradleFileModelTestCase {
     SET_CONFIGURATION_WHEN_SINGLE("setConfigurationWhenSingle"),
     SET_CONFIGURATION_WHEN_MULTIPLE("setConfigurationWhenMultiple"),
     SET_NAME_ON_COMPACT_NOTATION("setNameOnCompactNotation"),
+    SET_NAME_ON_COMPACT_NOTATION_EXPECTED("setNameOnCompactNotationExpected"),
     SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION("setNameOnMapNotationWithConfiguration"),
+    SET_NAME_ON_MAP_NOTATION_WITH_CONFIGURATION_EXPECTED("setNameOnMapNotationWithConfigurationExpected"),
     SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION("setNameOnMapNotationWithoutConfiguration"),
+    SET_NAME_ON_MAP_NOTATION_WITHOUT_CONFIGURATION_EXPECTED("setNameOnMapNotationWithoutConfigurationExpected"),
     SET_NAME_WITH_PATH_HAVING_SAME_SEGMENT_NAMES("setNameWithPathHavingSameSegmentNames"),
     SET_NAMES_ON_ITEMS_IN_EXPRESSION_LIST("setNamesOnItemsInExpressionList"),
     RESET("reset"),

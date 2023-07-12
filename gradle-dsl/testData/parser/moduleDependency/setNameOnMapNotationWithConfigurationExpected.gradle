@@ -1,0 +1,3 @@
+dependencies {
+  compile project(configuration: 'flavor1Release', path: ':newName')
+}
