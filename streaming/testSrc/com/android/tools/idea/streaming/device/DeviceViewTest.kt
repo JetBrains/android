@@ -109,6 +109,7 @@ import java.awt.event.KeyEvent.VK_KP_LEFT
 import java.awt.event.KeyEvent.VK_KP_RIGHT
 import java.awt.event.KeyEvent.VK_KP_UP
 import java.awt.event.KeyEvent.VK_LEFT
+import java.awt.event.KeyEvent.VK_M
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
@@ -118,11 +119,10 @@ import java.awt.event.KeyEvent.VK_UP
 import java.nio.file.Path
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JScrollPane
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests for [DeviceView] and [DeviceClient].
@@ -164,7 +164,7 @@ internal class DeviceViewTest {
     val frameListener = AbstractDisplayView.FrameListener { _, _, _, _ -> ++frameListenerCalls }
 
     view.addFrameListener(frameListener)
-    waitForCondition(2, TimeUnit.SECONDS) { fakeUi.render(); view.frameNumber == agent.frameNumber }
+    waitForCondition(2, SECONDS) { fakeUi.render(); view.frameNumber == agent.frameNumber }
 
     assertThat(frameListenerCalls).isGreaterThan(0)
     assertThat(frameListenerCalls).isEqualTo(view.frameNumber)
@@ -172,7 +172,7 @@ internal class DeviceViewTest {
     view.removeFrameListener(frameListener)
 
     runBlocking { agent.renderDisplay(1) }
-    waitForCondition(2, TimeUnit.SECONDS) { fakeUi.render(); view.frameNumber == agent.frameNumber }
+    waitForCondition(2, SECONDS) { fakeUi.render(); view.frameNumber == agent.frameNumber }
 
     // If removal didn't work, the frame number part would fail here.
     assertThat(view.frameNumber).isGreaterThan(framesBeforeRemoving)
@@ -233,8 +233,7 @@ internal class DeviceViewTest {
       }
       val verticalScrollPointer = expectedCoordinates[i * 2 + 1].copy(axisValues = verticalAxisValues)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
-        MotionEventMessage(listOf(verticalScrollPointer), MotionEventMessage.ACTION_SCROLL, 0)
-      )
+          MotionEventMessage(listOf(verticalScrollPointer), MotionEventMessage.ACTION_SCROLL, 0))
 
       // Java fakes horizontal scrolling by pretending shift was held down during the scroll.
       fakeUi.keyboard.press(VK_SHIFT)
@@ -245,8 +244,7 @@ internal class DeviceViewTest {
       }
       val horizontalScrollPointer = expectedCoordinates[i * 2 + 1].copy(axisValues = horizontalAxisValues)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
-        MotionEventMessage(listOf(horizontalScrollPointer), MotionEventMessage.ACTION_SCROLL, 0)
-      )
+          MotionEventMessage(listOf(horizontalScrollPointer), MotionEventMessage.ACTION_SCROLL, 0))
 
       executeStreamingAction("android.device.rotate.left", view, project)
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage((i + 1) % 4))
@@ -254,26 +252,26 @@ internal class DeviceViewTest {
 
     // Check dragging over the edge of the device screen.
     fakeUi.mouse.press(40, 50)
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(292, 1306, 0)), MotionEventMessage.ACTION_DOWN, 0))
     fakeUi.mouse.dragTo(90, 60)
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(1079, 1566, 0)), MotionEventMessage.ACTION_MOVE, 0))
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(1079, 1566, 0)), MotionEventMessage.ACTION_UP, 0))
     fakeUi.mouse.release()
 
     // Check mouse leaving the device view while dragging.
     fakeUi.mouse.press(50, 40)
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(553, 1046, 0)), MotionEventMessage.ACTION_DOWN, 0))
     fakeUi.mouse.dragTo(55, 10)
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(683, 266, 0)), MotionEventMessage.ACTION_MOVE, 0))
     fakeUi.mouse.dragTo(60, -10)
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(813, 0, 0)), MotionEventMessage.ACTION_MOVE, 0))
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
         MotionEventMessage(listOf(MotionEventMessage.Pointer(813, 0, 0)), MotionEventMessage.ACTION_UP, 0))
     fakeUi.mouse.release()
   }
@@ -354,7 +352,7 @@ internal class DeviceViewTest {
     fakeUi.keyboard.setFocus(view)
     for (c in ' '..'~') {
       fakeUi.keyboard.type(c.code)
-      assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(TextInputMessage(c.toString()))
+      assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(TextInputMessage(c.toString()))
     }
 
     val controlCharacterCases = mapOf(
@@ -366,8 +364,8 @@ internal class DeviceViewTest {
     )
     for ((hostKeyStroke, androidKeyCode) in controlCharacterCases) {
       fakeUi.keyboard.pressAndRelease(hostKeyStroke)
-      assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN, androidKeyCode, 0))
-      assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(KeyEventMessage(ACTION_UP, androidKeyCode, 0))
+      assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN, androidKeyCode, 0))
+      assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_UP, androidKeyCode, 0))
     }
 
     val trivialKeyStrokeCases = mapOf(
@@ -386,7 +384,7 @@ internal class DeviceViewTest {
     )
     for ((hostKeyStroke, androidKeyCode) in trivialKeyStrokeCases) {
       fakeUi.keyboard.pressAndRelease(hostKeyStroke)
-      assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, androidKeyCode, 0))
+      assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, androidKeyCode, 0))
     }
 
     val action = ACTION_CUT
@@ -420,38 +418,38 @@ internal class DeviceViewTest {
       fakeUi.keyboard.releaseForModifiers(hostKeyStroke.modifiers)
       when (androidMetaState) {
         AMETA_SHIFT_ON -> {
-          assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
               KeyEventMessage(ACTION_DOWN, AKEYCODE_SHIFT_LEFT, AMETA_SHIFT_ON))
         }
         AMETA_CTRL_ON -> {
-          assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
               KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
         }
         AMETA_CTRL_SHIFT_ON -> {
-          assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
               KeyEventMessage(ACTION_DOWN, AKEYCODE_SHIFT_LEFT, AMETA_SHIFT_ON))
-          assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
               KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_SHIFT_ON))
         }
         else -> {}
       }
 
-      assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+      assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
           KeyEventMessage(ACTION_DOWN_AND_UP, androidKeyCode, androidMetaState))
 
       when (androidMetaState) {
         AMETA_SHIFT_ON -> {
-          assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
               KeyEventMessage(ACTION_UP, AKEYCODE_SHIFT_LEFT, 0))
         }
         AMETA_CTRL_ON -> {
-          assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
               KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
         }
         AMETA_CTRL_SHIFT_ON -> {
-          assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
               KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, AMETA_SHIFT_ON))
-          assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
               KeyEventMessage(ACTION_UP, AKEYCODE_SHIFT_LEFT, 0))
         }
         else -> {}
@@ -548,14 +546,14 @@ internal class DeviceViewTest {
 
     val settings = DeviceMirroringSettings.getInstance()
     settings.synchronizeClipboard = true
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isInstanceOf(StartClipboardSyncMessage::class.java)
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isInstanceOf(StartClipboardSyncMessage::class.java)
     CopyPasteManager.getInstance().setContents(StringSelection("host clipboard"))
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
         StartClipboardSyncMessage(settings.maxSyncedClipboardLength, "host clipboard"))
     agent.clipboard = "device clipboard"
-    waitForCondition(2, TimeUnit.SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
+    waitForCondition(2, SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
     settings.synchronizeClipboard = false
-    assertThat(agent.getNextControlMessage(2, TimeUnit.SECONDS)).isEqualTo(StopClipboardSyncMessage.instance)
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(StopClipboardSyncMessage.instance)
   }
 
   @Test
@@ -575,7 +573,7 @@ internal class DeviceViewTest {
       agent.crash()
     }
     val errorMessage = fakeUi.getComponent<JLabel>()
-    waitForCondition(2, TimeUnit.SECONDS) { fakeUi.isShowing(errorMessage) }
+    waitForCondition(2, SECONDS) { fakeUi.isShowing(errorMessage) }
     assertThat(errorMessage.text).isEqualTo("Lost connection to the device. See the error log.")
     var events = usageTrackerRule.agentTerminationEventsAsStrings()
     assertThat(events.size).isEqualTo(1)
@@ -618,9 +616,9 @@ internal class DeviceViewTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Let all ongoing activity finish before attempting to reconnect.
     val loggedErrors = executeCapturingLoggedErrors {
       fakeUi.clickOn(button)
-      waitForCondition(5, TimeUnit.SECONDS) { errorMessage.text.isNotEmpty() }
+      waitForCondition(5, SECONDS) { errorMessage.text.isNotEmpty() }
       for (i in 1 until 3) {
-        ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+        ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       }
     }
@@ -650,23 +648,22 @@ internal class DeviceViewTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
-    createDeviceView(500, 1000, screenScale = 1.0)
+    createDeviceView(500, 1000)
     waitForFrame()
 
     agentRule.disconnectDevice(device)
-
-    waitForCondition(15.seconds) { !view.isConnected }
+    waitForCondition(15, SECONDS) { !view.isConnected }
   }
 
   @Test
   fun testKeysForMnemonicsShouldNotBeConsumed() {
-    createDeviceView(500, 1000, screenScale = 1.0)
+    createDeviceView(500, 1000)
 
-    val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, KeyEvent.VK_M, KeyEvent.VK_M.toChar())
+    val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
     KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMPressedEvent)
     assertThat(altMPressedEvent.isConsumed).isFalse()
 
-    val altMReleasedEvent = KeyEvent(view, KeyEvent.KEY_RELEASED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, KeyEvent.VK_M, KeyEvent.VK_M.toChar())
+    val altMReleasedEvent = KeyEvent(view, KeyEvent.KEY_RELEASED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
     KeyboardFocusManager.getCurrentKeyboardFocusManager().redispatchEvent(view, altMReleasedEvent)
     assertThat(altMReleasedEvent.isConsumed).isFalse()
   }
@@ -679,7 +676,7 @@ internal class DeviceViewTest {
     Disposer.register(testRootDisposable, disposable)
     view = DeviceView(disposable, deviceClient, UNKNOWN_ORIENTATION, agentRule.project)
     fakeUi = FakeUi(wrapInScrollPane(view, width, height), screenScale)
-    waitForCondition(15, TimeUnit.SECONDS) { agent.isRunning }
+    waitForCondition(15, SECONDS) { agent.isRunning }
   }
 
   private fun wrapInScrollPane(view: Component, width: Int, height: Int): JScrollPane {
@@ -699,14 +696,14 @@ internal class DeviceViewTest {
     TestUtils.resolveWorkspacePathUnchecked("$GOLDEN_FILE_PATH/${name}.png")
 
   private fun getNextControlMessageAndWaitForFrame(): ControlMessage {
-    val message = agent.getNextControlMessage(5, TimeUnit.SECONDS)
+    val message = agent.getNextControlMessage(5, SECONDS)
     waitForFrame()
     return message
   }
 
   /** Waits for all video frames to be received. */
   private fun waitForFrame() {
-    waitForCondition(2, TimeUnit.SECONDS) { view.isConnected && agent.frameNumber > 0 && renderAndGetFrameNumber() == agent.frameNumber }
+    waitForCondition(2, SECONDS) { view.isConnected && agent.frameNumber > 0 && renderAndGetFrameNumber() == agent.frameNumber }
   }
 
   private fun renderAndGetFrameNumber(): Int {
