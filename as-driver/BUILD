@@ -63,7 +63,7 @@ iml_module(
 iml_module(
     name = "as-driver.utils",
     data = [
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-33",
         "//tools/adt/idea/as-driver:as_driver_deploy.jar",
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/vendor/google/testing/display:ffmpeg_files",
