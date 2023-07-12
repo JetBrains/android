@@ -268,10 +268,7 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   event.display_id = message.display_id();
   event.action = action;
   event.event_time_millis = now;
-  if (action == AMOTION_EVENT_ACTION_SCROLL) {
-    event.down_time_millis = now;
-  }
-  else {
+  if (action != AMOTION_EVENT_ACTION_HOVER_MOVE && action != AMOTION_EVENT_ACTION_SCROLL) {
     if (action == AMOTION_EVENT_ACTION_DOWN) {
       motion_event_start_time_ = now;
     }
