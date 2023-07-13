@@ -1705,7 +1705,7 @@ class ComposePreviewRepresentation(
         }
         forceRefresh().join()
       }
-      is PreviewMode.Essential -> {
+      is PreviewMode.Gallery -> {
         singlePreviewElementInstance = mode.selected
       }
       is PreviewMode.Switching,
@@ -1737,7 +1737,7 @@ class ComposePreviewRepresentation(
         // Swap the components back
         updateAnimationPanelVisibility()
       }
-      is PreviewMode.Essential,
+      is PreviewMode.Gallery,
       is PreviewMode.Switching,
       is PreviewMode.Settable -> {}
     }

@@ -73,7 +73,7 @@ sealed class PreviewMode {
     val visualLintingEnabled: Boolean = StudioFlags.NELE_COMPOSE_VISUAL_LINT_RUN.get()
   ) : Focus<ComposePreviewElementInstance>(selected)
   // TODO(b/290579083): extract Essential mode outside of PreviewMode
-  class Essential(selected: ComposePreviewElementInstance) :
+  class Gallery(selected: ComposePreviewElementInstance) :
     Focus<ComposePreviewElementInstance>(selected)
   class Interactive(selected: ComposePreviewElementInstance) :
     Focus<ComposePreviewElementInstance>(selected)

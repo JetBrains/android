@@ -63,8 +63,8 @@ class ComposeGalleryModeTest {
     tabsToolbar.actionGroup.update(createTestEvent(context))
 
     assertEquals(firstElement, gallery.selectedKey!!.element)
-    assertInstanceOf<PreviewMode.Essential>(composePreviewManager.mode)
-    assertEquals(firstElement, (composePreviewManager.mode as PreviewMode.Essential).selected)
+    assertInstanceOf<PreviewMode.Gallery>(composePreviewManager.mode)
+    assertEquals(firstElement, (composePreviewManager.mode as PreviewMode.Gallery).selected)
   }
 
   private fun findTabs(parent: Component): ActionToolbarImpl =
