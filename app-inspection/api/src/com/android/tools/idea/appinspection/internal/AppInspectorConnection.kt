@@ -47,7 +47,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.cancel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -102,15 +102,11 @@ private fun CoroutineScope.commandSender(
     // We receive this exception when the channel is closed.
     pendingCommands.values.forEach { it.completeExceptionally(e) }
   } catch (e: CancellationException) {
-    // There exists a window of time between when this coroutine's scope is cancelled and when
-    // the channel is closed. Callers can be suspended indefinitely if they try to send a command
-    // in that window. That's why we call cancel here to cancel any remaining items and close
-    // the channel.
-    commands.cancel()
     // We receive this exception when the scope in which this actor is launched is cancelled.
     pendingCommands.values.forEach {
       it.completeExceptionally(CancellationException(inspectorDisposedMessage(inspectorId), e))
     }
+    throw e
   }
 }
 
@@ -143,8 +139,6 @@ internal class AppInspectorConnection(
   parentScope: CoroutineScope
 ) : AppInspectorMessenger {
   override val scope = parentScope.createChildScope(false)
-  private val connectionClosedMessage =
-    "Failed to send a command because the $inspectorId connection is already closed."
   private val disposeCalled = AtomicBoolean(false)
   private var isDisposed = AtomicBoolean(false)
   private val commandChannel = Channel<InspectorCommand>()
@@ -183,6 +177,7 @@ internal class AppInspectorConnection(
         }
       } catch (e: CancellationException) {
         withContext(NonCancellable) { doDispose() }
+        throw e
       }
     }
     collectDisposedEvent()
@@ -203,13 +198,11 @@ internal class AppInspectorConnection(
         when {
           appInspectionEvent.hasDisposedEvent() -> {
             if (appInspectionEvent.disposedEvent.errorMessage.isNullOrEmpty()) {
-              cleanup("Inspector $inspectorId has been disposed.") { message ->
-                AppInspectorForcefullyDisposedException(message)
-              }
+              cleanup(
+                AppInspectorForcefullyDisposedException(inspectorDisposedMessage(inspectorId))
+              )
             } else {
-              cleanup("Inspector $inspectorId has crashed.") { message ->
-                AppInspectionCrashException(message)
-              }
+              cleanup(AppInspectionCrashException("Inspector $inspectorId has crashed."))
             }
           }
         }
@@ -225,13 +218,17 @@ internal class AppInspectorConnection(
       )
       .onEach {
         if (it.event.isEnded) {
-          cleanup("Inspector $inspectorId was disposed, because app process terminated.")
+          cleanup(
+            AppInspectionConnectionException(
+              "Inspector $inspectorId was disposed, because app process terminated."
+            )
+          )
         }
       }
       .launchIn(scope)
   }
 
-  private suspend fun doDispose() {
+  private fun doDispose() {
     if (disposeCalled.compareAndSet(false, true)) {
       val disposeInspectorCommand = DisposeInspectorCommand.newBuilder().build()
       val commandId = AppInspectionTransport.generateNextCommandId()
@@ -242,7 +239,7 @@ internal class AppInspectorConnection(
           .setCommandId(commandId)
           .build()
       transport.executeCommand(appInspectionCommand)
-      cleanup(inspectorDisposedMessage(inspectorId))
+      cleanup(AppInspectionConnectionException(inspectorDisposedMessage(inspectorId)))
     }
   }
 
@@ -313,11 +310,7 @@ internal class AppInspectorConnection(
         .setCommandId(commandId)
         .build()
     val response = CompletableDeferred<AppInspection.AppInspectionResponse>()
-    try {
-      commandChannel.send(InspectorCommand(appInspectionCommand, response))
-    } catch (e: AppInspectionConnectionException) {
-      throw AppInspectionConnectionException(connectionClosedMessage)
-    }
+    commandChannel.send(InspectorCommand(appInspectionCommand, response))
 
     try {
       val rawResponse = response.await().rawResponse
@@ -331,9 +324,10 @@ internal class AppInspectorConnection(
       withContext(NonCancellable) {
         try {
           cancelCommand(commandId)
-        } catch (_: Exception) {}
-        // The channel may be closed to sending, so we swallow the exception here
-        // in order to throw the original exception below.
+        } catch (_: Exception) {
+          // The channel may be closed to sending, so we swallow the exception here
+          // in order to throw the original exception below.
+        }
       }
       throw e
     }
@@ -341,18 +335,13 @@ internal class AppInspectorConnection(
 
   /**
    * Cleans up inspector connection by unregistering listeners and closing the channel to
-   * [commandSender] actor. All futures are completed exceptionally with [exceptionMessage].
+   * [commandSender] actor. All futures are completed exceptionally with [cause.message].
    */
-  private fun cleanup(
-    exceptionMessage: String,
-    createException: (String) -> AppInspectionConnectionException = {
-      AppInspectionConnectionException(it)
-    }
-  ) {
+  private fun cleanup(cause: Throwable) {
     if (isDisposed.compareAndSet(false, true)) {
-      val cause = createException(exceptionMessage)
-      commandChannel.close(cause)
-      scope.cancel(exceptionMessage, cause)
+      val exception = CancellationException(cause.message, cause)
+      commandChannel.cancel(exception)
+      scope.cancel(exception)
     }
   }
 }

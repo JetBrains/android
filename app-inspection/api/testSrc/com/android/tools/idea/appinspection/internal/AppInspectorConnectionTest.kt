@@ -237,11 +237,8 @@ class AppInspectorConnectionTest {
       try {
         connection.sendRawCommand("Test".toByteArray())
         fail()
-      } catch (e: AppInspectionConnectionException) {
-        assertThat(e.message)
-          .isEqualTo(
-            "Failed to send a command because the $INSPECTOR_ID connection is already closed."
-          )
+      } catch (e: CancellationException) {
+        assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
       }
     }
 
@@ -267,9 +264,10 @@ class AppInspectorConnectionTest {
           // crash event occurs below, which should cause the exception to get thrown.
           client.sendRawCommand(ByteArray(0))
           fail()
-        } catch (e: AppInspectionConnectionException) {
-          assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID has been disposed.")
+        } catch (e: CancellationException) {
+          assertThat(e.message).isEqualTo("Inspector $INSPECTOR_ID was disposed.")
           disposedDeferred.complete(Unit)
+          throw e
         }
       }
 
@@ -333,11 +331,9 @@ class AppInspectorConnectionTest {
       try {
         client.sendRawCommand("Data".toByteArray())
         fail()
-      } catch (e: AppInspectionConnectionException) {
-        assertThat(e.message)
-          .isEqualTo(
-            "Failed to send a command because the $INSPECTOR_ID connection is already closed."
-          )
+      } catch (e: CancellationException) {
+        assertThat(e.cause!!.message)
+          .isEqualTo("Inspector $INSPECTOR_ID was disposed, because app process terminated.")
       }
     }
 
