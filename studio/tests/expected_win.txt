@@ -2122,8 +2122,6 @@ android-studio/plugins/sh/lib/sh.jar
 android-studio/plugins/smali/lib/smali.jar
 android-studio/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 android-studio/plugins/tasks/lib/tasks-core.jar
-android-studio/plugins/terminal/zsh/.zshenv
-android-studio/plugins/terminal/zsh/hooks.zsh
 android-studio/plugins/terminal/lib/terminal.jar
 android-studio/plugins/test-recorder/lib/swt.jar
 android-studio/plugins/test-recorder/lib/test-recorder.jar

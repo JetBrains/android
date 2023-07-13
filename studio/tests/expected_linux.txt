@@ -2787,7 +2787,6 @@ android-studio/plugins/sh/lib/sh.jar
 android-studio/plugins/smali/lib/smali.jar
 android-studio/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 android-studio/plugins/tasks/lib/tasks-core.jar
-android-studio/plugins/terminal/.zshenv
 android-studio/plugins/terminal/jediterm-bash.in
 android-studio/plugins/terminal/lib/terminal.jar
 android-studio/plugins/test-recorder/lib/swt.jar

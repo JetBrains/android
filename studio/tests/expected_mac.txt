@@ -2808,8 +2808,6 @@ Android Studio Preview.app/Contents/plugins/sh/lib/sh.jar
 Android Studio Preview.app/Contents/plugins/smali/lib/smali.jar
 Android Studio Preview.app/Contents/plugins/targetsdkversion-upgrade-assistant/lib/targetsdkversion-upgrade-assistant.jar
 Android Studio Preview.app/Contents/plugins/tasks/lib/tasks-core.jar
-Android Studio Preview.app/Contents/plugins/terminal/zsh/.zshenv
-Android Studio Preview.app/Contents/plugins/terminal/zsh/hooks.zsh
 Android Studio Preview.app/Contents/plugins/terminal/lib/terminal.jar
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/swt.jar
 Android Studio Preview.app/Contents/plugins/test-recorder/lib/test-recorder.jar
