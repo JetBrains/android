@@ -7,7 +7,7 @@ android {
       applicationIdSuffix = ".foo"
     }
     create("bar") {
-      initWith(getByName("foo"))
+      initWith(buildTypes.getByName("foo"))
       isDebuggable = false
       applicationIdSuffix = ".bar"
     }

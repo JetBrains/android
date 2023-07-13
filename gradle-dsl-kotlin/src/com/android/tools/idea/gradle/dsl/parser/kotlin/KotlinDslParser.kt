@@ -547,6 +547,9 @@ class KotlinDslParser(
       val argumentExpression = arguments[0].getArgumentExpression()
       if (argumentExpression is KtCallExpression) {
         val argumentsName = (arguments[0].getArgumentExpression() as KtCallExpression).name() ?: return null
+        if (isValidBlockName(argumentsName)) {
+          return GradleDslLiteral(parentElement, argumentExpression, name, argumentExpression, GradleDslLiteral.LiteralType.REFERENCE)
+        }
         if (isFirstCall) {
           val argumentsList = argumentExpression.valueArgumentList
           return if (argumentsList != null) getCallExpression(

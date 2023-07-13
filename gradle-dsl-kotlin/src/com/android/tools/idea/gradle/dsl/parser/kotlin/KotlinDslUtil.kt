@@ -612,6 +612,14 @@ internal fun findInjections(
       is KtArrayAccessExpression -> findInjections(context, contentExpression, includeResolved, injectionElement)
       else -> noInjections
     }
+    is KtCallExpression -> return when {
+      isValidBlockName(psiElement.name()) -> {
+        val name = context.dslFile.parser.convertReferencePsi(context, psiElement)
+        val element = context.resolveInternalSyntaxReference(name, true)
+        mutableListOf(GradleReferenceInjection(context, element, injectionPsiElement, name))
+      }
+      else -> noInjections
+    }
     else -> return noInjections
   }
 }
