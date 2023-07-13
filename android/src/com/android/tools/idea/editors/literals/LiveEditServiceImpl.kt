@@ -128,8 +128,9 @@ class LiveEditServiceImpl(val project: Project,
         val devices = executionTarget.runningDevices
 
         val multiDeploy = deployMonitor.notifyExecution(devices)
+        val composeEnabled = usesCompose(project) && LiveEditApplicationConfiguration.getInstance().isLiveEdit
 
-        if (devices.size > 1 && showMultiDeviceNotification) {
+        if (composeEnabled && devices.size > 1 && showMultiDeviceNotification) {
           NotificationGroupManager.getInstance().getNotificationGroup("Deploy")
             .createNotification(
               "Live Edit works with multi-device deployments but this is not officially supported.",
@@ -139,7 +140,7 @@ class LiveEditServiceImpl(val project: Project,
           showMultiDeviceNotification = false
         }
 
-        if (multiDeploy && showMultiDeployNotification) {
+        if (composeEnabled && multiDeploy && showMultiDeployNotification) {
           NotificationGroupManager.getInstance().getNotificationGroup("Deploy")
             .createNotification(
               "Live Edit does not work with previous deployments on different devices.",
