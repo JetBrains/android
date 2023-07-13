@@ -20,8 +20,10 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
+import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.createStatusIcon
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -82,7 +84,15 @@ internal class PreviewSurfaceActionManager(
             listOfNotNull(
                 EnableUiCheckAction { sceneView.scene.sceneManager.model.dataContext },
                 AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext },
-                EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
+                EnableInteractiveAction(
+                  isEssentialsModeEnabled = {
+                    ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
+                  },
+                  essentialsModeDescription =
+                    message("action.interactive.essentials.mode.description")
+                ) {
+                  sceneView.scene.sceneManager.model.dataContext
+                },
                 DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
               )
               .disabledIfRefreshingOrRenderErrors(sceneView)

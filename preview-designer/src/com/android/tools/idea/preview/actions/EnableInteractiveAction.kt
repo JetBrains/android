@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview.actions
 
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
@@ -28,10 +27,19 @@ import icons.StudioIcons.Compose.Toolbar.INTERACTIVE_PREVIEW
 /**
  * Action that controls when to enable the Interactive mode.
  *
- * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
- *   information.
+ * @param isEssentialsModeEnabled returns true if Essentials Mode is enabled. The action is disabled
+ *   when Essentials Mode is enabled.
+ * @param essentialsModeDescription the description that will be used when the action is disabled
+ *   due to Essentials Mode.
+ * @param dataContextProvider returns the [DataContext] containing the Preview Mode manager
+ *   associated information.
  */
-internal class EnableInteractiveAction(private val dataContextProvider: () -> DataContext) :
+class EnableInteractiveAction(
+  private val isEssentialsModeEnabled: () -> Boolean,
+  private val essentialsModeDescription: String =
+    message("action.interactive.essentials.mode.description.default"),
+  private val dataContextProvider: () -> DataContext,
+) :
   AnActionButton(
     message("action.interactive.title"),
     message("action.interactive.description"),
@@ -40,12 +48,11 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    val isEssentialsModeEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-    e.presentation.isVisible = true
+    val isEssentialsModeEnabled = isEssentialsModeEnabled()
     e.presentation.isEnabled = !isEssentialsModeEnabled
     e.presentation.text = if (isEssentialsModeEnabled) null else message("action.interactive.title")
     e.presentation.description =
-      if (isEssentialsModeEnabled) message("action.interactive.essentials.mode.description")
+      if (isEssentialsModeEnabled) essentialsModeDescription
       else message("action.interactive.description")
   }
 
