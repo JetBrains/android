@@ -52,6 +52,7 @@ import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -76,6 +77,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
+val PREVIEW_ELEMENT_INSTANCE = DataKey.create<PreviewElement>("PreviewElement")
 
 /** A generic [PreviewElement] [PreviewRepresentation]. */
 open class CommonPreviewRepresentation<T : PreviewElement>(
@@ -180,6 +182,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
             previewElementModelAdapterDelegate.createDataContext(previewElement)
           override fun getData(dataId: String): Any? =
             when (dataId) {
+              PREVIEW_ELEMENT_INSTANCE.name -> previewElement
               CommonDataKeys.PROJECT.name -> project
               else -> delegate.getData(dataId)
             }

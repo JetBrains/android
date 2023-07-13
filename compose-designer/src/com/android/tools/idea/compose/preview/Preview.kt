@@ -68,6 +68,7 @@ import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.modes.CommonPreviewModeManager
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.preview.representation.PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.projectsystem.BuildListener
 import com.android.tools.idea.projectsystem.needsBuild
@@ -186,7 +187,8 @@ private class PreviewElementDataContext(
     when (dataId) {
       COMPOSE_PREVIEW_MANAGER.name,
       PreviewModeManager.KEY.name -> composePreviewManager
-      COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
+      COMPOSE_PREVIEW_ELEMENT_INSTANCE.name,
+      PREVIEW_ELEMENT_INSTANCE.name -> previewElement
       CommonDataKeys.PROJECT.name -> project
       else -> null
     }
