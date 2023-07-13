@@ -18,6 +18,7 @@ package com.android.tools.idea.preview.modes
 import com.android.tools.idea.compose.preview.LayoutMode
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.PreviewElement
+import com.intellij.openapi.actionSystem.DataKey
 
 /**
  * Interface used for Preview Representations that support [PreviewMode]s. Classes implementing this
@@ -55,6 +56,10 @@ interface PreviewModeManager {
 
   /** Sets the mode to the previous mode, if any. */
   fun restorePrevious()
+
+  companion object {
+    val KEY = DataKey.create<PreviewModeManager>("PreviewModeManager")
+  }
 }
 
 /**

@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.ui.AnActionButton
@@ -51,7 +51,7 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
 
   override fun actionPerformed(e: AnActionEvent) {
     val modelDataContext = dataContextProvider()
-    val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
+    val manager = modelDataContext.getData(PreviewModeManager.KEY) ?: return
     val instanceId = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) ?: return
 
     manager.setMode(PreviewMode.Interactive(instanceId))

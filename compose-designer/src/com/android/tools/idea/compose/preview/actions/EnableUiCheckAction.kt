@@ -16,11 +16,11 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -50,7 +50,7 @@ class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
 
   override fun actionPerformed(e: AnActionEvent) {
     val modelDataContext = dataContextProvider()
-    val manager = modelDataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
+    val manager = modelDataContext.getData(PreviewModeManager.KEY) ?: return
     val instanceId = modelDataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) ?: return
     manager.setMode(PreviewMode.UiCheck(selected = instanceId))
 

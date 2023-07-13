@@ -184,7 +184,8 @@ private class PreviewElementDataContext(
 ) : DataContext {
   override fun getData(dataId: String): Any? =
     when (dataId) {
-      COMPOSE_PREVIEW_MANAGER.name -> composePreviewManager
+      COMPOSE_PREVIEW_MANAGER.name,
+      PreviewModeManager.KEY.name -> composePreviewManager
       COMPOSE_PREVIEW_ELEMENT_INSTANCE.name -> previewElement
       CommonDataKeys.PROJECT.name -> project
       else -> null
