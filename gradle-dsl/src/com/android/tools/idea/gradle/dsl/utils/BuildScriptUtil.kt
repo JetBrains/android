@@ -39,6 +39,10 @@ internal fun findGradleBuildFile(dirPath: File) : File {
 }
 
 internal fun findGradleSettingsFile(dirPath: File) : File {
+  if(StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get()) {
+    val declarativeSettingsFile = File(dirPath, FN_DECLARATIVE_SETTINGS_GRADLE)
+    if (declarativeSettingsFile.isFile) return declarativeSettingsFile
+  }
   val groovySettingsFile = File(dirPath, FN_SETTINGS_GRADLE)
   if (groovySettingsFile.isFile) return groovySettingsFile
   val kotlinSettingsFile = File(dirPath, FN_SETTINGS_GRADLE_KTS)

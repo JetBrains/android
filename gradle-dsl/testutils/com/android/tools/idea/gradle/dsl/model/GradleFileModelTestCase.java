@@ -21,6 +21,7 @@ import static com.android.SdkConstants.FN_DECLARATIVE_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE_TOML;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE;
 import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.INTEGER_TYPE;
@@ -282,7 +283,18 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   @NotNull
   private String getSettingsFileName() {
-    return (isGroovy()) ? FN_SETTINGS_GRADLE : FN_SETTINGS_GRADLE_KTS;
+    if (isGroovy()) {
+      return FN_SETTINGS_GRADLE;
+    }
+    else if (isDeclarative()) {
+      return FN_SETTINGS_GRADLE_TOML;
+    }
+    else if (isKotlinScript()) {
+      return FN_SETTINGS_GRADLE_KTS;
+    }
+    else {
+      throw new IllegalStateException("Unrecognized language name:" + myLanguageName);
+    }
   }
 
   @NotNull
