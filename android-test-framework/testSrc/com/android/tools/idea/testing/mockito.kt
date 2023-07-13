@@ -21,7 +21,9 @@ import org.mockito.MockedStatic
 import org.mockito.Mockito
 
 /**
- * Mocks a static method. The lifetime of the mock is controlled by the given disposable.
+ * Mocks static method invocations within the current thread. The lifetime of the mock is controlled by the given [disposable].
+ *
+ * See also: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#48
  */
 inline fun <reified T> mockStatic(disposable: Disposable): MockedStatic<T> {
   return Mockito.mockStatic(T::class.java).also { mock -> Disposer.register(disposable) { mock.close() } }
