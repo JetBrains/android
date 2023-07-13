@@ -20,6 +20,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
@@ -58,13 +59,16 @@ class FastPreviewCompileFlowTest {
         )
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     val results = mutableListOf<Boolean>()
+    val flowIsReady = CompletableDeferred<Unit>()
     val flow = scope.launch {
-      fastPreviewCompileFlow(project, projectRule.testRootDisposable, manager).take(8).collect {
+      // We take 9 elements. 2 per compilation + the initial false (not compiling) state that is triggered when we subscribe to the flow.
+      fastPreviewCompileFlow(project, projectRule.testRootDisposable, manager) { flowIsReady.complete(Unit) }.take(9).collect {
         results.add(it)
       }
     }
 
     runBlocking {
+      flowIsReady.await() // Wait for the flow to be listening
       repeat(4) {
         manager.invalidateRequestsCache()
         val request = scope.launch { manager.compileRequest(file, projectRule.module) }
@@ -73,7 +77,7 @@ class FastPreviewCompileFlowTest {
       }
 
       flow.join()
-      assertThat(results).containsExactly(true, false, true, false, true, false, true, false)
+      assertThat(results).containsExactly(false, true, false, true, false, true, false, true, false)
     }
   }
 }

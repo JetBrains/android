@@ -22,11 +22,17 @@ import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-/** Returns a [Flow] that will notify when a change in the compilation status happens. */
+/**
+ * Returns a [Flow] that will notify when a change in the compilation status happens.
+ *
+ * [onReady] will be called once the flow is ready to start processing values. Useful when using the flow in tests to ensure no elements
+ * are lost.
+ */
 fun fastPreviewCompileFlow(
   project: Project,
   parentDisposable: Disposable,
-  fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(project)
+  fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(project),
+  onReady: () -> Unit = {},
 ): Flow<Boolean> =
   disposableCallbackFlow<Boolean>("FastPreviewCompileFlow", parentDisposable = parentDisposable) {
       val listener =
@@ -45,5 +51,6 @@ fun fastPreviewCompileFlow(
       fastPreviewManager.addListener(disposable, listener)
 
       trySend(fastPreviewManager.isCompiling)
+      onReady()
     }
     .distinctUntilChanged()
