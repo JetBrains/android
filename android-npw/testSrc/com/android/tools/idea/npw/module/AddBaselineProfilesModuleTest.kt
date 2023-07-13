@@ -26,9 +26,12 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.runInEdtAndGet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -39,6 +42,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
@@ -103,12 +107,9 @@ class ConfigureBaselineProfilesModuleStepTest {
     Disposer.dispose(disposable)
   }
 
-  @Ignore("TODO: http://b/290956913")
-  @Test
-  fun withAppProjectWithPhoneAndWearAndTvAndAutomotive() {
-
-    projectRule.loadProject(TestProjectPaths.APP_WITH_WEAR_AND_TV_AND_AUTOMOTIVE)
-    val step = runInEdtAndGet {
+  private suspend fun buildStepWithProject(targetProjectPath: String): ConfigureBaselineProfilesModuleStep {
+    return withContext(Dispatchers.EDT) {
+      projectRule.loadProject(targetProjectPath)
       ConfigureBaselineProfilesModuleStep(
         disposable = disposable,
         model = NewBaselineProfilesModuleModel(
@@ -120,6 +121,11 @@ class ConfigureBaselineProfilesModuleStepTest {
         )
       )
     }
+  }
+
+  @Test
+  fun withAppProjectWithPhoneAndWearAndTvAndAutomotive() = runBlocking(Dispatchers.EDT) {
+    val step = buildStepWithProject(TestProjectPaths.APP_WITH_WEAR_AND_TV_AND_AUTOMOTIVE)
 
     assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
     assertEquals(4, step.targetModuleCombo.itemCount)
@@ -141,5 +147,35 @@ class ConfigureBaselineProfilesModuleStepTest {
     step.targetModuleCombo.selectedItem = projectRule.project.findAppModule()
     assertTrue(step.useGmdCheck.isEnabled)
     assertTrue(step.useGmdCheck.isSelected)
+  }
+
+  @Test
+  fun withLibProjectOnly() = runBlocking(Dispatchers.EDT) {
+    val step = buildStepWithProject(TestProjectPaths.KOTLIN_LIB)
+
+    assertNull(step.targetModuleCombo.selectedItem)
+    assertEquals(0, step.targetModuleCombo.itemCount)
+    assertFalse(step.useGmdCheck.isEnabled)
+    assertFalse(step.useGmdCheck.isSelected)
+  }
+
+  @Test
+  fun withAppWithLibProject() = runBlocking(Dispatchers.EDT) {
+    val step = buildStepWithProject(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+
+    assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
+    assertEquals(1, step.targetModuleCombo.itemCount)
+    assertTrue(step.useGmdCheck.isEnabled)
+    assertTrue(step.useGmdCheck.isSelected)
+  }
+
+  @Test
+  fun withWearAppProjectOnly() = runBlocking(Dispatchers.EDT) {
+    val step = buildStepWithProject(TestProjectPaths.WEAR_WATCHFACE)
+
+    assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
+    assertEquals(1, step.targetModuleCombo.itemCount)
+    assertFalse(step.useGmdCheck.isEnabled)
+    assertFalse(step.useGmdCheck.isSelected)
   }
 }

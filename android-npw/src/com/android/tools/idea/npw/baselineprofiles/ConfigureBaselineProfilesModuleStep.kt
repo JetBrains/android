@@ -42,7 +42,7 @@ import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.gridLayout.HorizontalAlign
-import com.jetbrains.rd.util.first
+import com.jetbrains.rd.util.firstOrNull
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComboBox
@@ -113,11 +113,15 @@ class ConfigureBaselineProfilesModuleStep(
       .toList()
       .firstOrNull { !it.second.usesFeatureAutomotiveOrWearOrTv() }
       ?.first
-      ?.let { model.targetModule.value = it }
+      ?.let {
+        model.targetModule.value = it
+        useGmdCheck.isEnabled = true
+        useGmdCheck.isSelected = true
+      }
 
     // If nothing was selected, then select the first of the list and set `use gmd` false
     if (!model.targetModule.isPresent.get()) {
-      model.targetModule.value = appModules.first().key
+      appModules.firstOrNull()?.let { model.targetModule.value = it.key }
       useGmdCheck.isEnabled = false
       useGmdCheck.isSelected = false
     }

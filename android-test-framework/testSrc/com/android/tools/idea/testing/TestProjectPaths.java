@@ -45,6 +45,7 @@ public final class TestProjectPaths {
   public static final String KOTLIN_WITH_VERSION_CATALOG = "projects/kotlinWithVersionCatalog";
   public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
   public static final String KOTLIN_KAPT = "projects/kotlinKapt";
+  public static final String KOTLIN_LIB = "projects/kotlinLib";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
   public static final String MANIFEST_CONFLICT_ATTRIBUTE = "projects/manifestConflict/attribute";
   public static final String MANIFEST_CONFLICT_BUILD_TYPE_AND_FLAVOR = "projects/manifestConflict/buildTypeAndFlavorConflict";

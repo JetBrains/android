@@ -156,6 +156,7 @@ maven_repository(
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
         "@maven//:androidx.test.ext.junit_1.1.3-alpha02",
         "@maven//:androidx.test.ext.junit_1.1.5",
+        "@maven//:androidx.wear.watchface.watchface-guava_1.1.0",
         "@maven//:com.android.support.appcompat-v7_25.4.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
         "@maven//:com.android.support.constraint.constraint-layout_2.0.4",
@@ -166,5 +167,6 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
     ],
 )
