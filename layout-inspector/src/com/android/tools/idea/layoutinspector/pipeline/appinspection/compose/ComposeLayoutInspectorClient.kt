@@ -458,7 +458,7 @@ class ComposeLayoutInspectorClient(
       }
     logDiagnostics(
       ComposeLayoutInspectorClient::class.java,
-      "Receiving: GetComposablesResult nodes: %d, system nodes: %d"
+      "Receiving: GetComposablesResult nodes: %d, system nodes: %d, max depth: %d"
     ) {
       response.getComposablesResponse.countNodes()
     }

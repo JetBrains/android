@@ -78,17 +78,18 @@ private fun convertCompositeIndexList(reference: List<Int>): IntArray {
 }
 
 fun GetComposablesResponse.countNodes(): Array<Any?> {
-  val result = Counts(0, 0)
-  rootsList.forEach { root -> root.nodesList.forEach { it.countNodes(result) } }
-  return arrayOf(result.nodes, result.systemNodes)
+  val result = Counts(0, 0, 0)
+  rootsList.forEach { root -> root.nodesList.forEach { it.countNodes(result, 0) } }
+  return arrayOf(result.nodes, result.systemNodes, result.depth)
 }
 
-private fun ComposableNode.countNodes(counts: Counts) {
+private fun ComposableNode.countNodes(counts: Counts, depth: Int) {
   counts.nodes++
+  counts.depth = maxOf(depth, counts.depth)
   if (flags.and(ComposableNode.Flags.SYSTEM_CREATED_VALUE) != 0) {
     counts.systemNodes++
   }
-  childrenList.forEach { it.countNodes(counts) }
+  childrenList.forEach { it.countNodes(counts, depth + 1) }
 }
 
-private data class Counts(var nodes: Int, var systemNodes: Int)
+private data class Counts(var nodes: Int, var systemNodes: Int, var depth: Int)
