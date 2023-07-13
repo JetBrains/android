@@ -17,6 +17,7 @@ package com.android.tools.idea.preview.representation
 
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
@@ -25,6 +26,7 @@ import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.log.LoggerWithFixedInfo
+import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
@@ -33,7 +35,12 @@ import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
+import com.android.tools.idea.preview.interactive.InteractivePreviewManager
+import com.android.tools.idea.preview.interactive.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
+import com.android.tools.idea.preview.modes.CommonPreviewModeManager
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
@@ -49,6 +56,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
@@ -98,7 +106,11 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       hasRenderErrors: () -> Boolean
     ) -> CommonPreviewViewModel,
   configureDesignSurface: NlDesignSurface.Builder.() -> Unit
-) : PreviewRepresentation, AndroidCoroutinesAware, UserDataHolderEx by UserDataHolderBase() {
+) :
+  PreviewRepresentation,
+  AndroidCoroutinesAware,
+  UserDataHolderEx by UserDataHolderBase(),
+  PreviewModeManager {
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
   private val project = psiFile.project
@@ -114,13 +126,22 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       onInitActivate = {
         initializeFlows()
         onInit()
+        if (isStartingOrInInteractiveMode) {
+          interactiveManager.resume()
+        }
       },
       onResumeActivate = {
         initializeFlows()
         surface.activate()
+        if (isStartingOrInInteractiveMode) {
+          interactiveManager.resume()
+        }
       },
       onDeactivate = {
         LOG.debug("onDeactivate")
+        if (isStartingOrInInteractiveMode) {
+          interactiveManager.pause()
+        }
         surface.deactivateIssueModel()
       },
       onDelayedDeactivate = {
@@ -128,6 +149,8 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         surface.deactivate()
       }
     )
+
+  private val delegateInteractionHandler = DelegateInteractionHandler()
 
   private val previewView = invokeAndWaitIfNeeded {
     viewConstructor(
@@ -138,11 +161,14 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
             setShrinkRendering(true)
           }
         }
-        .setInteractionHandlerProvider { NavigatingInteractionHandler(it) }
+        .setInteractionHandlerProvider {
+          delegateInteractionHandler.apply { delegate = NavigatingInteractionHandler(it) }
+        }
         .setNavigationHandler(DefaultNavigationHandler { _, _, _, _, _ -> null })
         .setDelegateDataProvider {
           when (it) {
             PREVIEW_VIEW_MODEL_STATUS.name -> previewViewModel
+            PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
             else -> null
           }
         }
@@ -184,6 +210,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
             when (dataId) {
               PREVIEW_ELEMENT_INSTANCE.name -> previewElement
               CommonDataKeys.PROJECT.name -> project
+              PreviewModeManager.KEY.name -> this@CommonPreviewRepresentation
               else -> delegate.getData(dataId)
             }
         }
@@ -348,10 +375,18 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
   private fun configureLayoutlibSceneManager(
     displaySettings: PreviewDisplaySettings,
-    layoutlibSceneManager: LayoutlibSceneManager
-  ) = layoutlibSceneManager
+    layoutlibSceneManager: LayoutlibSceneManager,
+  ) =
+    layoutlibSceneManager.apply {
+      interactive = isStartingOrInInteractiveMode
+      isUsePrivateClassLoader = isStartingOrInInteractiveMode
+    }
 
-  override fun dispose() {}
+  override fun dispose() {
+    if (mode is PreviewMode.Interactive) {
+      interactiveManager.stop()
+    }
+  }
 
   override fun onActivate() = lifecycleManager.activate()
 
@@ -384,5 +419,68 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       // might not have been built, but it's worth to try.
       else -> requestRefresh()
     }
+  }
+
+  private val previewModeManager =
+    CommonPreviewModeManager(scope = this, onEnter = ::onEnter, onExit = ::onExit)
+
+  private val interactiveManager =
+    InteractivePreviewManager(
+        surface,
+        fpsLimit = 30,
+        { surface.sceneManagers },
+        { InteractivePreviewUsageTracker.getInstance(surface) },
+        delegateInteractionHandler
+      )
+      .also { Disposer.register(this@CommonPreviewRepresentation, it) }
+
+  private val isStartingOrInInteractiveMode: Boolean
+    get() = currentOrNextMode is PreviewMode.Interactive
+
+  override val mode: PreviewMode
+    get() = previewModeManager.mode
+
+  override fun setMode(newMode: PreviewMode.Settable) = previewModeManager.setMode(newMode)
+
+  override fun restorePrevious() = previewModeManager.restorePrevious()
+
+  private suspend fun onExit(mode: PreviewMode) {
+    when (mode) {
+      is PreviewMode.Default -> {}
+      is PreviewMode.Interactive -> {
+        stopInteractivePreview()
+      }
+      else -> {}
+    }
+  }
+
+  private suspend fun onEnter(mode: PreviewMode) {
+    when (mode) {
+      is PreviewMode.Default -> {
+        surface.background = Colors.DEFAULT_BACKGROUND_COLOR
+        createRefreshJob(invalidate = true)?.join()
+        surface.repaint()
+      }
+      is PreviewMode.Interactive -> {
+        startInteractivePreview(mode.selected)
+      }
+      else -> {}
+    }
+  }
+
+  private suspend fun startInteractivePreview(element: PreviewElement) {
+    if (mode is PreviewMode.Interactive) return
+
+    LOG.debug("Starting interactive preview mode on: $element")
+    createRefreshJob(invalidate = true)?.join()
+    interactiveManager.start()
+    surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
+    ActivityTracker.getInstance().inc()
+  }
+
+  private suspend fun stopInteractivePreview() {
+    LOG.debug("Stopping interactive preview mode")
+    interactiveManager.stop()
+    createRefreshJob(invalidate = true)?.join()
   }
 }

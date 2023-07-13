@@ -19,6 +19,8 @@ import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
@@ -131,6 +133,16 @@ private class ShowUnderConditionWrapper(delegate: AnAction, private val isVisibl
 fun List<AnAction>.disabledIf(predicate: (DataContext) -> Boolean): List<AnAction> = map {
   EnableUnderConditionWrapper(it) { context -> !predicate(context) }
 }
+
+/**
+ * Returns if the preview attached to the given [DataContext] is refreshing or not. The preview
+ * needs to have set a [PreviewViewModelStatus] using the [PREVIEW_VIEW_MODEL_STATUS] key in the
+ * [DataContext].
+ *
+ * @param dataContext
+ */
+fun isPreviewRefreshing(dataContext: DataContext) =
+  dataContext.getData(PREVIEW_VIEW_MODEL_STATUS)?.isRefreshing == true
 
 /**
  * Wrapper that delegates whether the given action is enabled or not to the passed condition. If
