@@ -27,7 +27,7 @@ import com.intellij.openapi.util.Disposer
 import java.time.Duration
 
 class InteractivePreviewManager(
-  surface: DesignSurface<*>,
+  private val surface: DesignSurface<*>,
   fpsLimit: Int,
   private val interactiveScenesProvider: () -> Collection<InteractiveSceneManager>,
   private val usageTrackerProvider: () -> InteractivePreviewUsageTracker,
@@ -58,9 +58,13 @@ class InteractivePreviewManager(
       .also { Disposer.register(this, it) }
 
   fun start() {
+    interactiveScenesProvider().forEach { it.resetInteractiveEventsCounter() }
     fpsCounter.resetAndStart()
     ticker.start()
     delegateInteractionHandler.delegate = interactiveInteractionHandler
+
+    // While in interactive mode, display a small ripple when clicking
+    surface.enableMouseClickDisplay()
   }
 
   fun resume() {
@@ -75,6 +79,7 @@ class InteractivePreviewManager(
   }
 
   fun stop() {
+    surface.disableMouseClickDisplay()
     delegateInteractionHandler.delegate = originalInteractionHandler
     ticker.stop()
     logMetrics()
