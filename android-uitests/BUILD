@@ -169,6 +169,7 @@ maven_repository(
         "@maven//:androidx.core.core-ktx_1.3.2",
         "@maven//:androidx.core.core-ktx_1.6.0",
         "@maven//:androidx.core.core-ktx_1.9.0",
+        "@maven//:androidx.core.core-splashscreen_1.0.1",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.emoji2.emoji2-views-helper_1.3.0",
