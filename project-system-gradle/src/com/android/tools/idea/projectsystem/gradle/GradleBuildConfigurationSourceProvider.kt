@@ -143,6 +143,13 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
           ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
       )
 
+      if(DECLARATIVE_PLUGIN_STUDIO_SUPPORT.get()) {
+        yieldIfNotNull(
+          projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_TOML)
+            ?.describe("Declarative Project Settings", BUILD_WIDE_ORDER_BASE)
+        )
+      }
+
       yieldIfNotNull(
         projectRootFolder.findChild(SdkConstants.FN_SETTINGS_GRADLE_KTS)
           ?.describe("Project Settings", BUILD_WIDE_ORDER_BASE)
