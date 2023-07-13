@@ -53,13 +53,13 @@ private class ComposePreviewDefaultWrapper(actions: List<AnAction>) : DefaultAct
 }
 
 /**
- * Helper method that sets the [PreviewMode] of all [PreviewModeManager]s in the given
- * [AnActionEvent]'s [DataContext] to [PreviewMode.Default].
+ * Helper method that navigates back to the previous [PreviewMode] for all [PreviewModeManager]s in
+ * the given [AnActionEvent]'s [DataContext].
  *
  * @param e the [AnActionEvent] holding the context of the action
  */
-internal fun setDefaultPreviewMode(e: AnActionEvent) {
-  findComposePreviewManagersForContext(e.dataContext).forEach { it.setMode(PreviewMode.Default) }
+internal fun navigateBack(e: AnActionEvent) {
+  findComposePreviewManagersForContext(e.dataContext).forEach { it.back() }
 }
 
 /**

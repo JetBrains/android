@@ -44,7 +44,7 @@ class StopAnimationInspectorAction :
   }
 
   override fun actionPerformed(e: AnActionEvent) {
-    setDefaultPreviewMode(e)
+    navigateBack(e)
   }
 
   // BGT is needed when calling findComposePreviewManagersForContext because it accesses the

@@ -56,5 +56,7 @@ open class TestComposePreviewManager(
     mode = newMode
   }
 
+  override fun back() {}
+
   override fun dispose() {}
 }

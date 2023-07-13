@@ -91,6 +91,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -452,6 +453,7 @@ class ComposePreviewRepresentation(
               onExit(lastMode)
               onEnter(it.newMode)
               lastMode = it.newMode
+              restoreMode = it.currentMode
             }
             modeFlow.value = it.newMode
           }
@@ -476,10 +478,10 @@ class ComposePreviewRepresentation(
     if (essentialsModeIsEnabled == galleryModeIsSet) return
 
     if (galleryModeIsSet) {
-      composeWorkBench.galleryMode = null
-      setMode(PreviewMode.Default)
+      // There is no need to switch back to Default mode as toolbar is available.
+      // When exiting Essentials mode - preview will stay in Gallery mode.
     } else {
-      composeWorkBench.galleryMode = ComposeGalleryMode(composeWorkBench.mainSurface)
+      currentLayoutMode = LayoutMode.Gallery
     }
     logComposePreviewLiteModeEvent(sourceEventType)
     requestRefresh()
@@ -731,6 +733,34 @@ class ComposePreviewRepresentation(
 
   private val psiCodeFileChangeDetectorService =
     PsiCodeFileChangeDetectorService.getInstance(project)
+
+  /**
+   * Currently selected [LayoutMode]. If [LayoutMode] has changed - hierarchy of the components will
+   * be rearranged and for [LayoutMode.Gallery] tab component will be added.
+   */
+  private var currentLayoutMode: LayoutMode = LayoutMode.Default
+    set(value) {
+      // Switching layout from toolbar.
+      if (field == value) return
+      field = value
+
+      when (value) {
+        LayoutMode.Gallery -> {
+          composeWorkBench.galleryMode = ComposeGalleryMode(composeWorkBench.mainSurface)
+        }
+        LayoutMode.Default -> {
+          composeWorkBench.galleryMode = null
+        }
+      }
+    }
+
+  /**
+   * With entering one of the [PreviewMode.Focus] modes (interactive, animation, etc. ) previous
+   * mode is saved into [restoreMode]. After exiting the special mode [restoreMode] is set.
+   *
+   * TODO(b/293257529) Need to restore selected tab as well in Gallery mode.
+   */
+  private var restoreMode: PreviewMode.Settable? = null
 
   init {
     updateGalleryMode()
@@ -1143,6 +1173,13 @@ class ComposePreviewRepresentation(
     return newStatus
   }
 
+  override fun back() {
+    restoreMode?.let {
+      setMode(it)
+      restoreMode = null
+    }
+  }
+
   /**
    * Method called when the notifications of the [PreviewRepresentation] need to be updated. This is
    * called by the [ComposeNewPreviewNotificationProvider] when the editor needs to refresh the
@@ -1469,6 +1506,10 @@ class ComposePreviewRepresentation(
           (surface.sceneViewLayoutManager as LayoutManagerSwitcher).setLayoutManager(
             it.layoutManager
           )
+          // If gallery mode was selected before - need to restore this type of layout.
+          if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {
+            setMode(PreviewMode.Gallery(allPreviewElementsInFileFlow.value.first()))
+          }
         }
     }
   }
@@ -1676,6 +1717,8 @@ class ComposePreviewRepresentation(
   }
 
   private suspend fun onEnter(mode: PreviewMode) {
+    invokeLater { currentLayoutMode = mode.layoutMode }
+
     when (mode) {
       is PreviewMode.Default -> {
         sceneComponentProvider.enabled = true

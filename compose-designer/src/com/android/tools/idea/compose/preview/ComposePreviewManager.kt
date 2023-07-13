@@ -74,6 +74,9 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
 
   fun status(): Status
 
+  /** Return to previously selected [PreviewMode]. */
+  fun back()
+
   /**
    * [StateFlow] of available named groups in this preview. The editor can contain multiple groups
    * and only one will be displayed at a given time.
@@ -158,6 +161,7 @@ class NopComposePreviewManager : ComposePreviewManager {
   }
 
   override fun invalidate() {}
+  override fun back() {}
   override fun dispose() {}
 }
 

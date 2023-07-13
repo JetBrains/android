@@ -45,7 +45,8 @@ import org.assertj.core.util.VisibleForTesting
 class ComposeViewControlAction(
   private val layoutManagerSwitcher: LayoutManagerSwitcher,
   private val layoutManagers: List<SurfaceLayoutManagerOption>,
-  private val isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true }
+  private val isSurfaceLayoutActionEnabled: (AnActionEvent) -> Boolean = { true },
+  private val onSurfaceLayoutSelected: (SurfaceLayoutManagerOption, DataContext) -> Unit
 ) :
   DropDownAction(
     message("action.scene.view.control.title"),
@@ -81,6 +82,7 @@ class ComposeViewControlAction(
           isSurfaceLayoutActionEnabled
         ) { selectedOption ->
           PreviewCanvasTracker.getInstance().logSwitchLayout(selectedOption.layoutManager)
+          onSurfaceLayoutSelected(selectedOption, context)
         }
         .apply {
           isPopup = false

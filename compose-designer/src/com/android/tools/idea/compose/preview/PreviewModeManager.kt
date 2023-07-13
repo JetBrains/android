@@ -62,10 +62,14 @@ interface PreviewModeManager {
  *   [PreviewMode.Settable] to another.
  */
 sealed class PreviewMode {
+
+  /** Type if [LayoutMode] to be used with this [PreviewMode]. */
+  open val layoutMode: LayoutMode = LayoutMode.Default
   sealed class Transitive : PreviewMode()
   open class Settable : PreviewMode()
 
   object Default : Settable()
+
   sealed class Focus<T : PreviewElement>(val selected: T) : Settable()
   class UiCheck(
     selected: ComposePreviewElementInstance,
@@ -74,7 +78,10 @@ sealed class PreviewMode {
   ) : Focus<ComposePreviewElementInstance>(selected)
   // TODO(b/290579083): extract Essential mode outside of PreviewMode
   class Gallery(selected: ComposePreviewElementInstance) :
-    Focus<ComposePreviewElementInstance>(selected)
+    Focus<ComposePreviewElementInstance>(selected) {
+    override val layoutMode: LayoutMode = LayoutMode.Gallery
+  }
+
   class Interactive(selected: ComposePreviewElementInstance) :
     Focus<ComposePreviewElementInstance>(selected)
   class AnimationInspection(selected: ComposePreviewElementInstance) :

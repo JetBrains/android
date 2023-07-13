@@ -18,8 +18,6 @@ package com.android.tools.idea.compose.preview.actions
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface.SceneViewAlignment
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.icons.AllIcons
@@ -47,7 +45,7 @@ class SwitchSurfaceLayoutManagerAction(
   private val layoutManagerSwitcher: LayoutManagerSwitcher,
   layoutManagers: List<SurfaceLayoutManagerOption>,
   private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
-  private val onLayoutSelected: (SurfaceLayoutManagerOption) -> Unit
+  private val onSurfaceLayoutSelected: (SurfaceLayoutManagerOption) -> Unit
 ) : DropDownAction("Switch Layout", "Changes the layout of the preview elements.", null) {
 
   /**
@@ -67,16 +65,11 @@ class SwitchSurfaceLayoutManagerAction(
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       layoutManagerSwitcher.setLayoutManager(option.layoutManager, option.sceneViewAlignment)
       if (state) {
-        onLayoutSelected(option)
+        onSurfaceLayoutSelected(option)
       }
     }
 
     override fun isSelected(e: AnActionEvent): Boolean {
-      if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) {
-        // In Essentials Mode, the standard layout manager actions should be disabled, as Gallery
-        // will be selected by default and a special action will be created for it.
-        return false
-      }
       return layoutManagerSwitcher.isLayoutManagerSelected(option.layoutManager)
     }
 
@@ -92,24 +85,6 @@ class SwitchSurfaceLayoutManagerAction(
     // We will only add the actions and be visible if there are more than one option
     if (layoutManagers.size > 1) {
       layoutManagers.forEach { add(SetSurfaceLayoutManagerAction(it)) }
-      if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled) {
-        // When essentials mode is enabled, we add another action to the list, so users have a
-        // visual indication that they're not in neither Grid nor List view. When/if Gallery
-        // becomes a mode in the future that's independent of Essentials Mode, we need to refactor
-        // this code.
-        val galleryAction =
-          object : ToggleAction(message("gallery.mode.title")) {
-            override fun getActionUpdateThread() = ActionUpdateThread.EDT
-            override fun isSelected(e: AnActionEvent) =
-              ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-            override fun setSelected(e: AnActionEvent, state: Boolean) {}
-            override fun update(e: AnActionEvent) {
-              super.update(e)
-              e.presentation.isEnabled = false
-            }
-          }
-        add(galleryAction)
-      }
     }
   }
 

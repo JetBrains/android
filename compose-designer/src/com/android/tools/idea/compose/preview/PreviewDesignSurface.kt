@@ -76,6 +76,14 @@ private val GROUP_BY_GROUP_ID_TRANSFORM:
     if (nulls != null) listOf(nulls) + groups.values.toList() else groups.values.toList()
   }
 
+/** Toolbar option to select [LayoutMode.Gallery] layout. */
+internal val PREVIEW_LAYOUT_GALLERY_OPTION =
+  SurfaceLayoutManagerOption(
+    message("gallery.mode.title"),
+    GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
+    DesignSurface.SceneViewAlignment.LEFT,
+  )
+
 /** List of available layouts for the Compose Preview Surface. */
 internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
   if (!StudioFlags.COMPOSE_NEW_PREVIEW_LAYOUT.get()) {
@@ -100,6 +108,7 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
         ),
         DesignSurface.SceneViewAlignment.LEFT
       ),
+      PREVIEW_LAYOUT_GALLERY_OPTION
     )
   } else {
     listOf(
@@ -111,8 +120,9 @@ internal val PREVIEW_LAYOUT_MANAGER_OPTIONS =
       SurfaceLayoutManagerOption(
         message("new.grid.layout.title"),
         GroupedGridSurfaceLayoutManager(5, PREVIEW_FRAME_PADDING_PROVIDER, NO_GROUP_TRANSFORM),
-        DesignSurface.SceneViewAlignment.LEFT
+        DesignSurface.SceneViewAlignment.LEFT,
       ),
+      PREVIEW_LAYOUT_GALLERY_OPTION
     )
   }
 
