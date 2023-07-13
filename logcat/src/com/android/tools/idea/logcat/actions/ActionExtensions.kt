@@ -19,11 +19,9 @@ import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.SelectionModel
-import com.intellij.openapi.editor.ex.EditorEx
 
-internal fun AnActionEvent.getEditor() = getData(CommonDataKeys.EDITOR) as EditorEx?
+internal fun AnActionEvent.getEditor() = getData(LogcatPresenter.EDITOR)
 
 internal fun AnActionEvent.getLogcatPresenter() = getData(LogcatPresenter.LOGCAT_PRESENTER_ACTION)
 

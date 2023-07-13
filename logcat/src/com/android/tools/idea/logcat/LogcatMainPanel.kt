@@ -117,7 +117,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
@@ -751,9 +750,9 @@ internal class LogcatMainPanel @TestOnly constructor(
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> device?.let {
         ScreenRecorderAction.Parameters(it.name, it.serialNumber, it.sdk, if (it.isEmulator) it.deviceId else null, this)
       }
-
       CONNECTED_DEVICE.name -> device
-      EDITOR.name -> editor
+      // Using CommonDataKeys.EDITOR causes the IJ framework to interfere with some components in the hierarchy
+      LogcatPresenter.EDITOR.name -> editor
       else -> null
     }
   }

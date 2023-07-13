@@ -17,7 +17,8 @@ import com.android.fakeadbserver.services.Service
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
-import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.CONNECTED_DEVICE
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.EDITOR
 import com.android.tools.idea.logcat.actions.TerminateAppActions.CrashAppAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions.ForceStopAppAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions.KillAppAction
@@ -27,7 +28,6 @@ import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.MapDataContext
@@ -275,7 +275,7 @@ class TerminateAppActionsTest {
     TestActionEvent.createTestEvent(MapDataContext().apply {
       put(PROJECT, project)
       put(EDITOR, editor)
-      put(LogcatPresenter.CONNECTED_DEVICE, device)
+      put(CONNECTED_DEVICE, device)
     })
 
   /**

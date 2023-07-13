@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.actions
 
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.EDITOR
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction.Companion.findEmbeddedData
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
@@ -22,7 +23,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.json.JsonLanguage
 import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.EdtRule

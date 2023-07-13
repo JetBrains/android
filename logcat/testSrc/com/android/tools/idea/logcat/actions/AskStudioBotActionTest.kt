@@ -18,6 +18,7 @@ package com.android.tools.idea.logcat.actions
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.explainer.IssueExplainer.RequestKind.LOGCAT
+import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.testing.ApplicationServiceRule
@@ -165,7 +166,7 @@ class AskStudioBotActionTest {
   private fun testActionEvent(editor: EditorEx): AnActionEvent {
     return TestActionEvent.createTestEvent(
       MapDataContext().apply {
-        put(CommonDataKeys.EDITOR, editor)
+        put(LogcatPresenter.EDITOR, editor)
         put(CommonDataKeys.PROJECT, projectRule.project)
       }
     )

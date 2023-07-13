@@ -24,6 +24,7 @@ import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.editor.ex.EditorEx
 import java.nio.file.Path
 
 /**
@@ -105,5 +106,6 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
   companion object {
     val LOGCAT_PRESENTER_ACTION = DataKey.create<LogcatPresenter>("LogcatPresenter")
     val CONNECTED_DEVICE = DataKey.create<Device>("ConnectedDevice")
+    val EDITOR = DataKey.create<EditorEx>("LogcatEditor")
   }
 }
