@@ -111,10 +111,15 @@ class LiveEditCompiler(val project: Project) {
           val request = LiveEditDesugarRequest(outputs, apiVersions)
           desugaredOutputs = desugarer.desugar(request)
           logger.dumpDesugarOutputs(desugaredOutputs!!.classes)
-        } catch (e : LiveEditUpdateException) {
-          throw e
-        } catch (t : Throwable) {
-          throw internalError("Unexpected error during compilation command", file, t)
+        }
+        catch (e: Exception) {
+          when (e) {
+            is LiveEditUpdateException, is ProcessCanceledException -> {
+              throw e
+            } else -> {
+              throw internalError("Unexpected error during compilation command", file, e)
+            }
+          }
         }
       }
     }
