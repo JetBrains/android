@@ -542,6 +542,8 @@
     <additionalTextAttributes scheme="Default" file="colorschemes/LiveLiteralsColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorschemes/LiveLiteralsColorSchemeDarcula.xml"/>
 
+    <actionOnSaveInfoProvider id="live.edit.onSaveInfoProvider"
+                              implementation="com.android.tools.idea.editors.liveedit.ui.LiveEditOnSaveInfoProvider" />
     <applicationConfigurable provider="com.android.tools.idea.editors.liveedit.ui.LiveEditConfigurableProvider"
                              key="live.edit.configurable.display.name" id="live.edit.configurable" bundle="messages.AndroidBundle" groupId="editor"/>
     <applicationConfigurable provider="com.android.tools.idea.editors.liveedit.ui.LiveEditAdvancedSettingsConfigurableProvider"

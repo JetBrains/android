@@ -41,8 +41,12 @@ import com.intellij.ui.dsl.builder.selected
 import org.jetbrains.android.util.AndroidBundle.message
 
 class LiveEditConfigurable : BoundSearchableConfigurable(
-  message("live.edit.configurable.display.name"), "android.live.edit"
+  message("live.edit.configurable.display.name"), "Configure Android Live Edit", ID
 ), Configurable.NoScroll {
+  companion object {
+    const val ID = "live.edit.configurable"
+  }
+
   override fun createPanel(): DialogPanel {
     val config = LiveEditApplicationConfiguration.getInstance()
     val shortcut = ActionManager.getInstance().getAction(MANUAL_LIVE_EDIT_ACTION_ID)
