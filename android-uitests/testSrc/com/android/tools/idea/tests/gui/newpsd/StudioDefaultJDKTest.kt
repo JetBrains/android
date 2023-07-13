@@ -21,10 +21,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.GradleSettingsDialogFixture
 import com.android.tools.idea.tests.util.WizardUtils
 import com.google.common.truth.Truth
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.awt.event.KeyEvent
 import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
@@ -67,7 +69,14 @@ class StudioDefaultJDKTest {
     val ide: IdeFrameFixture = guiTest.ideFrame()
     ide.clearNotificationsPresentOnIdeFrame()
 
-    ide.invokeMenuPath("File", "Settings...")
+    if (SystemInfo.isMac) {
+      ide.robot().pressKey(KeyEvent.VK_META);
+      ide.robot().pressAndReleaseKey(KeyEvent.VK_COMMA)
+      ide.robot().releaseKey(KeyEvent.VK_META);
+    } else {
+      ide.invokeMenuPath("File", "Settings...")
+    }
+    ide.takeScreenshot() // Remove the line once the test is stable.
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val settings = IdeSettingsDialogFixture.find(ide.robot())
