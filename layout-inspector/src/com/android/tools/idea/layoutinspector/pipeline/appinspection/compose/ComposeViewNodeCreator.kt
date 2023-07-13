@@ -124,9 +124,20 @@ class ComposeViewNodeCreator(result: GetComposablesResult) {
       )
 
     composeFlags = composeFlags or flags
-    access.apply {
-      childrenList.mapTo(node.children) {
-        it.convert(shouldInterrupt, access).apply { parent = node }
+    if ((flags and ComposableNode.Flags.NESTED_SINGLE_CHILDREN_VALUE) == 0) {
+      access.apply {
+        childrenList.mapTo(node.children) {
+          it.convert(shouldInterrupt, access).apply { parent = node }
+        }
+      }
+    } else {
+      var nested = node
+      childrenList.forEach { child ->
+        access.apply {
+          val next = child.convert(shouldInterrupt, access).apply { parent = nested }
+          nested.children.add(next)
+          nested = next
+        }
       }
     }
     if (viewId != 0L) {

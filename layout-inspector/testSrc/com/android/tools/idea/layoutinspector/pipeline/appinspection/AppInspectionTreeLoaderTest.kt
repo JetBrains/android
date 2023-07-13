@@ -204,6 +204,8 @@ class AppInspectionTreeLoaderTest {
         }
         .build()
 
+    val nestedFlag =
+      LayoutInspectorComposeProtocol.ComposableNode.Flags.NESTED_SINGLE_CHILDREN_VALUE
     val composablesResponse =
       LayoutInspectorComposeProtocol.GetComposablesResponse.newBuilder()
         .apply {
@@ -215,6 +217,7 @@ class AppInspectionTreeLoaderTest {
           ComposableString(6, "Text")
           ComposableString(7, "BasicText")
           ComposableString(8, "BasicText.kt")
+          ComposableString(9, "Recursive")
 
           ComposableRoot {
             viewId = 5
@@ -258,9 +261,44 @@ class AppInspectionTreeLoaderTest {
               id = -6
               packageHash = 1
               filename = 3
-              name = 6
-              recomposeCount = 5
-              recomposeSkips = 5
+              name = 9
+              flags = nestedFlag
+
+              ComposableNode {
+                id = -7
+                packageHash = 1
+                filename = 3
+                name = 9
+              }
+              ComposableNode {
+                id = -8
+                packageHash = 1
+                filename = 3
+                name = 9
+              }
+              ComposableNode {
+                id = -9
+                packageHash = 1
+                filename = 3
+                name = 9
+              }
+              ComposableNode {
+                id = -10
+                packageHash = 1
+                filename = 2
+                name = 5
+                recomposeCount = 4
+                recomposeSkips = 4
+
+                ComposableNode {
+                  id = -11
+                  packageHash = 1
+                  filename = 3
+                  name = 6
+                  recomposeCount = 5
+                  recomposeSkips = 5
+                }
+              }
             }
           }
         }
@@ -425,13 +463,54 @@ class AppInspectionTreeLoaderTest {
       assertThat(cNode5.children).isEmpty()
 
       val cNode6 = node6.children[1] as ComposeViewNode
+      assertThat(cNode6.isSystemNode).isFalse()
       assertThat(cNode6.drawId).isEqualTo(-6)
-      assertThat(cNode6.qualifiedName).isEqualTo("Text")
-      assertThat(cNode6.recompositions.count)
+      assertThat(cNode6.qualifiedName).isEqualTo("Recursive")
+      assertThat(cNode6.recompositions.count).isEqualTo(0)
+      assertThat(cNode6.recompositions.skips).isEqualTo(0)
+      assertThat(cNode6.children).hasSize(1)
+
+      val cNode7 = cNode6.children[0] as ComposeViewNode
+      assertThat(cNode7.isSystemNode).isFalse()
+      assertThat(cNode7.drawId).isEqualTo(-7)
+      assertThat(cNode7.qualifiedName).isEqualTo("Recursive")
+      assertThat(cNode7.recompositions.count).isEqualTo(0)
+      assertThat(cNode7.recompositions.skips).isEqualTo(0)
+      assertThat(cNode7.children).hasSize(1)
+
+      val cNode8 = cNode7.children[0] as ComposeViewNode
+      assertThat(cNode8.isSystemNode).isFalse()
+      assertThat(cNode8.drawId).isEqualTo(-8)
+      assertThat(cNode8.qualifiedName).isEqualTo("Recursive")
+      assertThat(cNode8.recompositions.count).isEqualTo(0)
+      assertThat(cNode8.recompositions.skips).isEqualTo(0)
+      assertThat(cNode8.children).hasSize(1)
+
+      val cNode9 = cNode8.children[0] as ComposeViewNode
+      assertThat(cNode9.isSystemNode).isFalse()
+      assertThat(cNode9.drawId).isEqualTo(-9)
+      assertThat(cNode9.qualifiedName).isEqualTo("Recursive")
+      assertThat(cNode9.recompositions.count).isEqualTo(0)
+      assertThat(cNode9.recompositions.skips).isEqualTo(0)
+      assertThat(cNode9.children).hasSize(1)
+
+      val cNode10 = cNode9.children[0] as ComposeViewNode
+      assertThat(cNode10.drawId).isEqualTo(-10)
+      assertThat(cNode10.qualifiedName).isEqualTo("Button")
+      assertThat(cNode10.recompositions.count)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
+      assertThat(cNode10.recompositions.skips)
+        .isEqualTo(if (pendingRecompositionCountReset) 0 else 4)
+      assertThat(cNode10.children).hasSize(1)
+
+      val cNode11 = cNode10.children[0] as ComposeViewNode
+      assertThat(cNode11.drawId).isEqualTo(-11)
+      assertThat(cNode11.qualifiedName).isEqualTo("Text")
+      assertThat(cNode11.recompositions.count)
         .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-      assertThat(cNode6.recompositions.skips)
+      assertThat(cNode11.recompositions.skips)
         .isEqualTo(if (pendingRecompositionCountReset) 0 else 5)
-      assertThat(cNode6.children).isEmpty()
+      assertThat(cNode11.children).isEmpty()
 
       assertThat(loggedEvent).isEqualTo(DynamicLayoutInspectorEventType.INITIAL_RENDER)
 

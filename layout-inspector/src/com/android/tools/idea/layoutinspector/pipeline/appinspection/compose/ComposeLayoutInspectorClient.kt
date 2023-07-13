@@ -558,6 +558,7 @@ class ComposeLayoutInspectorClient(
             .apply {
               includeRecomposeCounts = treeSettings.showRecompositions
               delayParameterExtractions = true
+              reduceChildNesting = true
             }
             .build()
       }
