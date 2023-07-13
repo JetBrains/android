@@ -53,6 +53,7 @@ fun RecipeExecutor.generateCommonModule(
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   bytecodeLevel: BytecodeLevel = BytecodeLevel.default,
+  noKtx: Boolean = false,
   useVersionCatalog: Boolean
   ) {
   val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
@@ -95,7 +96,7 @@ fun RecipeExecutor.generateCommonModule(
     data.isDynamic -> applyPlugin("com.android.dynamic-feature", projectData.gradlePluginVersion)
     else -> applyPlugin("com.android.application", projectData.gradlePluginVersion)
   }
-  addKotlinIfNeeded(projectData, targetApi = apis.targetApi.api)
+  addKotlinIfNeeded(projectData, targetApi = apis.targetApi.api, noKtx = noKtx)
   requireJavaVersion(bytecodeLevel.versionString, data.projectTemplateData.language == Language.Kotlin)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))

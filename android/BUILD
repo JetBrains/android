@@ -444,7 +444,6 @@ maven_repository(
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.legacy.legacy-support-v4_1.0.0",
-        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.5.1",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.3.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",

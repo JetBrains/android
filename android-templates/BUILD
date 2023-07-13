@@ -114,8 +114,7 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.5.1",  # Needed for com.android.tools.idea.wizard.template.impl.activities.composeWearActivity.commonRecipe
-        "@maven//:androidx.activity.activity-compose_1.7.0",
+        "@maven//:androidx.activity.activity-compose_1.7.2",
         "@maven//:androidx.activity.activity-ktx_1.6.0",  # Still needed from navigation-fragment-ktx:2.5.3
         "@maven//:androidx.activity.activity-ktx_1.7.0",
         "@maven//:androidx.annotation.annotation-jvm_1.6.0",
@@ -125,25 +124,23 @@ maven_repository(
         "@maven//:androidx.compose.compiler.compiler_1.4.3",
         "@maven//:androidx.compose.compose-bom_2022.10.00",
         "@maven//:androidx.compose.compose-bom_2023.03.00",
-        "@maven//:androidx.compose.foundation.foundation-layout_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.foundation.foundation_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.foundation.foundation_1.4.0",
-        "@maven//:androidx.compose.material.material-ripple_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.material.material_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.material.material_1.4.0",
+        "@maven//:androidx.compose.material.material_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.material3.material3_1.0.0",
         "@maven//:androidx.compose.ui.ui-test-junit4_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-junit4_1.4.0",
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-test-manifest_1.4.0",
-        "@maven//:androidx.compose.ui.ui-tooling-preview_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
-        "@maven//:androidx.compose.ui.ui-tooling_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.compose.ui.ui-tooling_1.4.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.5.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
-        "@maven//:androidx.core.core-ktx_1.9.0",
+        "@maven//:androidx.core.core-ktx_1.11.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.core.core-splashscreen_1.0.1",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
+        "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.games.games-activity_1.2.2",
         "@maven//:androidx.leanback.leanback_1.0.0",
         "@maven//:androidx.legacy.legacy-support-v13_1.0.0",
@@ -173,9 +170,9 @@ maven_repository(
         "@maven//:androidx.slice.slice-builders_1.0.0",
         "@maven//:androidx.test.espresso.espresso-core_3.5.1",
         "@maven//:androidx.test.ext.junit_1.1.5",
-        "@maven//:androidx.wear.compose.compose-material_1.0.0",
-        "@maven//:androidx.wear.tiles.tiles-material_1.1.0",
-        "@maven//:androidx.wear.tiles.tiles_1.1.0",
+        "@maven//:androidx.wear.compose.compose-material_1.1.2",
+        "@maven//:androidx.wear.tiles.tiles-material_1.2.0-alpha05",
+        "@maven//:androidx.wear.tiles.tiles_1.2.0-alpha05",
         "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.1.1",
         "@maven//:androidx.wear.wear_1.2.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
@@ -186,8 +183,8 @@ maven_repository(
         "@maven//:com.google.android.gms.play-services-pay_16.1.0",
         "@maven//:com.google.android.gms.play-services-wallet_19.1.0",
         "@maven//:com.google.android.gms.play-services-wearable_18.0.0",
-        "@maven//:com.google.android.horologist.horologist-compose-tools_0.1.5",
-        "@maven//:com.google.android.horologist.horologist-tiles_0.1.5",
+        "@maven//:com.google.android.horologist.horologist-compose-tools_0.4.8",
+        "@maven//:com.google.android.horologist.horologist-tiles_0.4.8",
         "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.1",
         "@maven//:com.google.android.material.material_1.5.0",
         "@maven//:com.google.android.material.material_1.8.0",
@@ -223,6 +220,8 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-test_1.7.1",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
 )
