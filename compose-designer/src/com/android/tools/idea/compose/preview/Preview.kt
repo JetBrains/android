@@ -28,10 +28,10 @@ import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.pickers.preview.property.referenceDeviceIds
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
-import com.android.tools.idea.compose.preview.essentials.ComposeEssentialsMode
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.fast.requestFastPreviewRefreshAndTrack
+import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
@@ -417,7 +417,7 @@ class ComposePreviewRepresentation(
         essentialsModeMessagingService.TOPIC,
         EssentialsModeMessenger.Listener {
           updateFpsForCurrentMode()
-          updateEssentialsMode(
+          updateGalleryMode(
             ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType
               .STUDIO_ESSENTIALS_MODE_SWITCH
           )
@@ -431,7 +431,7 @@ class ComposePreviewRepresentation(
       .subscribe(
         NlOptionsConfigurable.Listener.TOPIC,
         NlOptionsConfigurable.Listener {
-          updateEssentialsMode(
+          updateGalleryMode(
             ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType.PREVIEW_LITE_MODE_SWITCH
           )
         }
@@ -454,24 +454,24 @@ class ComposePreviewRepresentation(
   }
 
   /**
-   * Updates the [composeWorkBench]'s [ComposeEssentialsMode] according to the state of Android
-   * Studio (and/or Compose Preview) Essentials Mode.
+   * Updates the [composeWorkBench]'s [ComposeGalleryMode] according to the state of Android Studio
+   * (and/or Compose Preview) Essentials Mode.
    *
    * @param sourceEventType type of the event that triggered the update
    */
-  private fun updateEssentialsMode(
+  private fun updateGalleryMode(
     sourceEventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType? = null
   ) {
     val essentialsModeIsEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
-    val composePreviewViewEssentialsModeIsSet = composeWorkBench.essentialsMode != null
-    // Only update essentials mode if needed
-    if (essentialsModeIsEnabled == composePreviewViewEssentialsModeIsSet) return
+    val galleryModeIsSet = composeWorkBench.galleryMode != null
+    // Only update gallery mode if needed
+    if (essentialsModeIsEnabled == galleryModeIsSet) return
 
-    if (composePreviewViewEssentialsModeIsSet) {
-      composeWorkBench.essentialsMode = null
+    if (galleryModeIsSet) {
+      composeWorkBench.galleryMode = null
       setMode(PreviewMode.Default)
     } else {
-      composeWorkBench.essentialsMode = ComposeEssentialsMode(composeWorkBench.mainSurface)
+      composeWorkBench.galleryMode = ComposeGalleryMode(composeWorkBench.mainSurface)
     }
     logComposePreviewLiteModeEvent(sourceEventType)
     requestRefresh()
@@ -727,7 +727,7 @@ class ComposePreviewRepresentation(
     PsiCodeFileChangeDetectorService.getInstance(project)
 
   init {
-    updateEssentialsMode()
+    updateGalleryMode()
   }
 
   override val component: JComponent

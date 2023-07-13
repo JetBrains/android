@@ -28,9 +28,9 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
-import com.android.tools.idea.compose.preview.essentials.ComposeEssentialsMode
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.essentials.EssentialsModeWrapperPanel
+import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
+import com.android.tools.idea.compose.preview.gallery.GalleryModeWrapperPanel
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -96,8 +96,11 @@ interface ComposePreviewView {
   /** If true, the contents have been at least rendered once. */
   var hasRendered: Boolean
 
-  /** If Essentials Mode is enabled, null if mode is disabled. */
-  var essentialsMode: ComposeEssentialsMode?
+  /**
+   * If Gallery Mode is enabled, null if mode is disabled. In Gallery Mode only one preview at a
+   * time is rendered. It is always on for Essentials Mode.
+   */
+  var galleryMode: ComposeGalleryMode?
 
   /** Method called to force an update on the notifications for the given [FileEditor]. */
   fun updateNotifications(parentEditor: FileEditor)
@@ -361,7 +364,7 @@ internal class ComposePreviewViewImpl(
     Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
   }
 
-  override var essentialsMode: ComposeEssentialsMode? = null
+  override var galleryMode: ComposeGalleryMode? = null
     set(value) {
       // Avoid repeated values.
       if (value == field) return
@@ -370,7 +373,7 @@ internal class ComposePreviewViewImpl(
       if (field == null) {
         content.remove(mainSurface)
       } else {
-        content.components.filterIsInstance<EssentialsModeWrapperPanel>().firstOrNull()?.let {
+        content.components.filterIsInstance<GalleryModeWrapperPanel>().firstOrNull()?.let {
           it.remove(mainSurface)
           content.remove(it)
         }
@@ -379,7 +382,7 @@ internal class ComposePreviewViewImpl(
       if (value == null) {
         content.add(mainSurface, BorderLayout.CENTER)
       } else {
-        content.add(EssentialsModeWrapperPanel(value.component, mainSurface), BorderLayout.CENTER)
+        content.add(GalleryModeWrapperPanel(value.component, mainSurface), BorderLayout.CENTER)
       }
       field = value
     }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.essentials
+package com.android.tools.idea.compose.preview.gallery
 
 import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
@@ -24,10 +24,10 @@ import javax.swing.JPanel
 import org.jetbrains.annotations.TestOnly
 
 /**
- * If essentials mode is enabled, one preview at a time is available with tabs to select between
- * them.
+ * If Gallery mode is enabled, one preview at a time is available with tabs to select between them.
+ * Gallery mode is always enabled for Essentials mode.
  */
-class ComposeEssentialsMode(rootComponent: JComponent) {
+class ComposeGalleryMode(rootComponent: JComponent) {
 
   private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
     val previewElement = tab?.element
@@ -54,7 +54,7 @@ class ComposeEssentialsMode(rootComponent: JComponent) {
     get() = tabs.selectedKey
 }
 
-class EssentialsModeWrapperPanel(northComponent: JComponent, centerComponent: JComponent) :
+class GalleryModeWrapperPanel(northComponent: JComponent, centerComponent: JComponent) :
   JPanel(BorderLayout()) {
   init {
     add(northComponent, BorderLayout.NORTH)

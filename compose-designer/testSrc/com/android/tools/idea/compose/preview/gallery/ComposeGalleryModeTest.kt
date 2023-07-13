@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.essentials
+package com.android.tools.idea.compose.preview.gallery
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
@@ -34,7 +34,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
-class ComposeEssentialsModeTest {
+class ComposeGalleryModeTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
@@ -58,7 +58,7 @@ class ComposeEssentialsModeTest {
           )
       }
     val context = MapDataContext().also { it.put(COMPOSE_PREVIEW_MANAGER, composePreviewManager) }
-    val gallery = ComposeEssentialsMode(JPanel())
+    val gallery = ComposeGalleryMode(JPanel())
     val tabsToolbar = findTabs(gallery.component)
     tabsToolbar.actionGroup.update(createTestEvent(context))
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.essentials
+package com.android.tools.idea.compose.preview.gallery
 
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi

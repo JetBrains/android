@@ -20,7 +20,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.compose.preview.essentials.ComposeEssentialsMode
+import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.awaitStatus
@@ -71,7 +71,7 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   override val isMessageBeingDisplayed: Boolean = false
   override var hasContent: Boolean = true
   override var hasRendered: Boolean = true
-  override var essentialsMode: ComposeEssentialsMode? = null
+  override var galleryMode: ComposeGalleryMode? = null
 
   override fun updateNotifications(parentEditor: FileEditor) {}
 
