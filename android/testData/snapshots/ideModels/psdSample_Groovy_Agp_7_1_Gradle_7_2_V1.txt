@@ -1498,7 +1498,6 @@ MODULE                        : project
                             - files                       : <ROOT>/jav/build/classes/java/main [-]
                             - files                       : <ROOT>/jav/build/resources/main [-]
                         - artifacts                   : <ROOT>/jav/build/libs/jav.jar [-]
-                        - artifacts                   : <ROOT>/jav/build/libs/jav.jar [-]
                         sourceCompatibility           : 1.6
                         targetCompatibility           : 1.6
                     test                          : test (DefaultExternalSourceSet)

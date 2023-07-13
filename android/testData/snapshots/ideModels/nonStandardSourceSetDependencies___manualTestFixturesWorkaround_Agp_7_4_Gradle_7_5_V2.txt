@@ -79,11 +79,10 @@ LIBRARY_TABLE
         sourceSet                     : commonMain (IdeModuleSourceSetImpl)
             canBeConsumed                 : true
         variant                       : debug
-    - library                     : <ROOT>::javaLibrary/testEnv (IdeModuleLibraryImpl)
+    - library                     : <ROOT>::javaLibrary (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :javaLibrary
-        sourceSet                     : testEnv (IdeModuleSourceSetImpl)
-            canBeConsumed                 : true
+        sourceSet                     : MAIN
     - library                     : <ROOT>/jarWrapperLib/JarWrappedLib.jar (IdeJavaLibraryImpl)
         artifact                      : <ROOT>/jarWrapperLib/JarWrappedLib.jar
         artifactAddress               : <ROOT>/jarWrapperLib/JarWrappedLib.jar
@@ -1138,7 +1137,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
                             - files                       : <ROOT>/desktop/build/resources/main [-]
                         - artifacts                   : <ROOT>/desktop/build/libs/desktop.jar [-]
-                        - artifacts                   : <ROOT>/desktop/build/libs/desktop.jar [-]
                         sourceCompatibility           : 1.7
                         targetCompatibility           : 1.7
                     test                          : test (DefaultExternalSourceSet)
@@ -1818,7 +1816,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             - files                       : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
                             - files                       : <ROOT>/javaLibrary/build/resources/main [-]
                         - artifacts                   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
-                        - artifacts                   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                         sourceCompatibility           : 1.7
                         targetCompatibility           : 1.7
                     test                          : test (DefaultExternalSourceSet)
@@ -1885,7 +1882,6 @@ MODULE                        : NonStandardSourceSetDependencies
                             - files                       : <ROOT>/javaLibrary/build/classes/java/testEnv [-]
                             - files                       : <ROOT>/javaLibrary/build/classes/kotlin/testEnv [-]
                             - files                       : <ROOT>/javaLibrary/build/resources/testEnv [-]
-                        - artifacts                   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                         sourceCompatibility           : 1.7
                         targetCompatibility           : 1.7
                 externalSystemId              : GRADLE
@@ -1998,7 +1994,6 @@ MODULE                        : NonStandardSourceSetDependencies
                                     - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                                     - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                                     - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
-                                - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -2826,7 +2821,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:javaLibrary-testEnv
+                        module                        : <ROOT>-:javaLibrary-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     runtimeClasspath
@@ -2970,7 +2965,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:javaLibrary-testEnv
+                        module                        : <ROOT>-:javaLibrary-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
@@ -3058,7 +3053,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:javaLibrary-testEnv
+                        module                        : <ROOT>-:javaLibrary-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                     runtimeClasspath
@@ -3116,7 +3111,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-                        module                        : <ROOT>-:javaLibrary-testEnv
+                        module                        : <ROOT>-:javaLibrary-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                         javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         module                        : <ROOT>-:lib-MAIN
@@ -3253,8 +3248,8 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             module                        : <ROOT>-:feature-a-MAIN
                             module                        : <ROOT>-:feature-b-MAIN
                             module                        : <ROOT>-:feature-b-commonMain
-                            module                        : <ROOT>-:javaLibrary-testEnv
-                            module                        : <ROOT>-:javaLibrary-testEnv
+                            module                        : <ROOT>-:javaLibrary-MAIN
+                            module                        : <ROOT>-:javaLibrary-MAIN
                             androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
                             javaLibrary                   : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         module                        : <ROOT>-:feature-a-MAIN
@@ -3274,7 +3269,7 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
                             module                        : <ROOT>-:common-commonMain
-                        module                        : <ROOT>-:javaLibrary-testEnv
+                        module                        : <ROOT>-:javaLibrary-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain

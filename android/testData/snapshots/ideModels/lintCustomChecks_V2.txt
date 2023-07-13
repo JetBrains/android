@@ -498,7 +498,6 @@ MODULE                        : project
                             - files                       : <ROOT>/lint/build/classes/java/main [-]
                             - files                       : <ROOT>/lint/build/resources/main [-]
                         - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
-                        - artifacts                   : <ROOT>/lint/build/libs/lint.jar [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
@@ -607,7 +606,6 @@ MODULE                        : project
                             - files                       : <ROOT>/lintpublish/build/classes/java/main [-]
                             - files                       : <ROOT>/lintpublish/build/resources/main [-]
                         - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
-                        - artifacts                   : <ROOT>/lintpublish/build/libs/lintpublish.jar [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
@@ -715,7 +713,6 @@ MODULE                        : project
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/lintpublish-remote/build/classes/java/main [-]
                             - files                       : <ROOT>/lintpublish-remote/build/resources/main [-]
-                        - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                         - artifacts                   : <ROOT>/lintpublish-remote/build/libs/lintpublish-remote.jar [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>

@@ -842,7 +842,6 @@ MODULE                        : project
                             - files                       : <ROOT>/javalib1/build/classes/java/main [-]
                             - files                       : <ROOT>/javalib1/build/resources/main [-]
                         - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
-                        - artifacts                   : <ROOT>/javalib1/build/libs/javalib1.jar [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                     test                          : test (DefaultExternalSourceSet)
@@ -933,7 +932,6 @@ MODULE                        : project
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/javalib2/build/classes/java/main [-]
                             - files                       : <ROOT>/javalib2/build/resources/main [-]
-                        - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                         - artifacts                   : <ROOT>/javalib2/build/libs/javalib2.jar [-]
                         sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                         targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>

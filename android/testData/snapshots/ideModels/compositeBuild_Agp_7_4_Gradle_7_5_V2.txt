@@ -6085,7 +6085,6 @@ MODULE                        : com.test.compositeNest3.compositeNest
                     - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/classes/java/main [-]
                     - files                       : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/resources/main [-]
                 - artifacts                   : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
-                - artifacts                   : <ROOT>/TestCompositeLib3/TestCompositeLibNested_3/build/libs/compositeNest-1.0.jar [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             test                          : test (DefaultExternalSourceSet)
@@ -6172,7 +6171,6 @@ MODULE                        : composite2
                 - dependencies                : DefaultFileCollectionDependency
                     - files                       : <ROOT>/TestCompositeLib2/build/classes/java/main [-]
                     - files                       : <ROOT>/TestCompositeLib2/build/resources/main [-]
-                - artifacts                   : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
                 - artifacts                   : <ROOT>/TestCompositeLib2/build/libs/composite2-1.0.jar [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
@@ -6261,7 +6259,6 @@ MODULE                        : composite4
                     - files                       : <ROOT>/TestCompositeLib4/build/classes/java/main [-]
                     - files                       : <ROOT>/TestCompositeLib4/build/resources/main [-]
                 - artifacts                   : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
-                - artifacts                   : <ROOT>/TestCompositeLib4/build/libs/composite4-1.0.jar [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
             test                          : test (DefaultExternalSourceSet)
@@ -6348,7 +6345,6 @@ MODULE                        : compositeNest
                 - dependencies                : DefaultFileCollectionDependency
                     - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/classes/java/main [-]
                     - files                       : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/resources/main [-]
-                - artifacts                   : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
                 - artifacts                   : <ROOT>/TestCompositeLib1/TestCompositeLibNested_1/build/libs/compositeNest-1.0.jar [-]
                 sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
                 targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
