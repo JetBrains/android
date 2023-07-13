@@ -48,7 +48,6 @@ public final class PopupActionGroupTest {
   private AnAction myAvailableDevicesHeading;
   private AnAction mySelectMultipleDevicesAction;
   private AnAction myPairDevicesUsingWiFiAction;
-  private AnAction myWearDevicePairingAction;
   private AnAction myDeviceManagerAction;
   private AnAction myOpenConnectionAssistantSidePanelAction;
 
@@ -65,7 +64,6 @@ public final class PopupActionGroupTest {
     myAvailableDevicesHeading = Mockito.mock(AnAction.class);
     mySelectMultipleDevicesAction = Mockito.mock(AnAction.class);
     myPairDevicesUsingWiFiAction = Mockito.mock(AnAction.class);
-    myWearDevicePairingAction = Mockito.mock(AnAction.class);
     myDeviceManagerAction = Mockito.mock(AnAction.class);
     myOpenConnectionAssistantSidePanelAction = Mockito.mock(AnAction.class);
 
@@ -75,7 +73,6 @@ public final class PopupActionGroupTest {
     Mockito.when(myActionManager.getAction(Heading.AVAILABLE_DEVICES_ID)).thenReturn(myAvailableDevicesHeading);
     Mockito.when(myActionManager.getAction(SelectMultipleDevicesAction.ID)).thenReturn(mySelectMultipleDevicesAction);
     Mockito.when(myActionManager.getAction(PairDevicesUsingWiFiAction.ID)).thenReturn(myPairDevicesUsingWiFiAction);
-    Mockito.when(myActionManager.getAction("Android.WearDevicePairing")).thenReturn(myWearDevicePairingAction);
     Mockito.when(myActionManager.getAction("Android.DeviceManager")).thenReturn(myDeviceManagerAction);
     Mockito.when(myActionManager.getAction("DeveloperServices.ConnectionAssistant")).thenReturn(myOpenConnectionAssistantSidePanelAction);
   }
@@ -92,7 +89,6 @@ public final class PopupActionGroupTest {
     Object[] children = {
       mySelectMultipleDevicesAction,
       myPairDevicesUsingWiFiAction,
-      myWearDevicePairingAction,
       myDeviceManagerAction,
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
@@ -123,7 +119,6 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       mySelectMultipleDevicesAction,
       myPairDevicesUsingWiFiAction,
-      myWearDevicePairingAction,
       myDeviceManagerAction,
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
@@ -164,7 +159,6 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       mySelectMultipleDevicesAction,
       myPairDevicesUsingWiFiAction,
-      myWearDevicePairingAction,
       myDeviceManagerAction,
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
@@ -195,7 +189,6 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       mySelectMultipleDevicesAction,
       myPairDevicesUsingWiFiAction,
-      myWearDevicePairingAction,
       myDeviceManagerAction,
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
@@ -225,7 +218,6 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       mySelectMultipleDevicesAction,
       myPairDevicesUsingWiFiAction,
-      myWearDevicePairingAction,
       myDeviceManagerAction,
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
@@ -256,7 +248,6 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       mySelectMultipleDevicesAction,
       myPairDevicesUsingWiFiAction,
-      myWearDevicePairingAction,
       myDeviceManagerAction,
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};
@@ -297,7 +288,6 @@ public final class PopupActionGroupTest {
       Separator.getInstance(),
       mySelectMultipleDevicesAction,
       myPairDevicesUsingWiFiAction,
-      myWearDevicePairingAction,
       myDeviceManagerAction,
       Separator.getInstance(),
       myOpenConnectionAssistantSidePanelAction};

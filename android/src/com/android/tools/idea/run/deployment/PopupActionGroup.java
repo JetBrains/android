@@ -55,7 +55,6 @@ final class PopupActionGroup extends DefaultActionGroup {
 
     add(manager.getAction(SelectMultipleDevicesAction.ID));
     add(manager.getAction(PairDevicesUsingWiFiAction.ID));
-    add(manager.getAction("Android.WearDevicePairing"));
     add(manager.getAction("Android.DeviceManager"));
 
     AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
@@ -74,7 +73,7 @@ final class PopupActionGroup extends DefaultActionGroup {
     Collection<Device> availableDevices = new ArrayList<>(size);
 
     for (Device device : myDevices) {
-      if (device.isConnected()) {
+      if (device.connected()) {
         runningDevices.add(device);
         continue;
       }
@@ -111,7 +110,7 @@ final class PopupActionGroup extends DefaultActionGroup {
   }
 
   private @NotNull AnAction newSelectDeviceActionOrSnapshotActionGroup(@NotNull Device device) {
-    if (!device.getSnapshots().isEmpty()) {
+    if (!device.snapshots().isEmpty()) {
       return new SnapshotActionGroup(device, myComboBoxAction);
     }
 
