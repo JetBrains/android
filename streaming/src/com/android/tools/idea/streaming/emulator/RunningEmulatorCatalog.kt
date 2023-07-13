@@ -57,7 +57,7 @@ class RunningEmulatorCatalog : Disposable.Parent {
   // TODO: Use WatchService instead of polling.
   @Volatile var emulators: Set<EmulatorController> = ImmutableSet.of()
 
-  private val fileNamePattern = Pattern.compile("pid_\\d+.ini")
+  private val fileNamePattern = Pattern.compile("pid_(\\d+).ini")
   private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   @Volatile private var isDisposing = false
   /** This lock is held for reading while an update is running. */
@@ -283,11 +283,25 @@ class RunningEmulatorCatalog : Disposable.Parent {
   private fun readDirectoryContents(directory: Path): List<Path> {
     return try {
       Files.list(directory).use { stream ->
-        stream.filter { fileNamePattern.matcher(it.fileName.toString()).matches() }.toList()
+        stream.filter { isValidPidIni(it) }.toList()
       }
     }
     catch (e: NoSuchFileException) {
       emptyList() // The registration directory hasn't been created yet.
+    }
+  }
+
+  private fun isValidPidIni(file: Path): Boolean {
+    val matcher = fileNamePattern.matcher(file.fileName.toString())
+    if (!matcher.matches()) {
+      return false
+    }
+    return try {
+      // It is not possible to mock ProcessHandle.of because Mockito.mockStatic doesn't work across threads.
+      ProcessHandle.of(matcher.group(1).toLong()).orElse(null)?.isAlive ?: ApplicationManager.getApplication().isUnitTestMode
+    }
+    catch (e: NumberFormatException) {
+      false
     }
   }
 
