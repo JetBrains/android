@@ -16,12 +16,14 @@
 package com.android.tools.idea.templates
 
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.wizard.template.SourceSetType
-import com.android.tools.idea.wizard.template.impl.other.folders.generateResourcesFolder
+import com.android.tools.idea.wizard.template.BooleanParameter
+import com.android.tools.idea.wizard.template.StringParameter
+import com.android.tools.idea.wizard.template.WizardParameterData
 import com.android.utils.FileUtils
 import com.intellij.openapi.command.WriteCommandAction
 import groovy.json.StringEscapeUtils
@@ -41,13 +43,17 @@ class FolderTemplatesTest {
     name: String,
     remapFolder: Boolean,
     location: String,
-    sourceSetType: SourceSetType,
-    defaultDirName: String,
     expectedLine: String,
     expectedFolderLocation: String = location
   ) {
     val template =
       TemplateResolver.getTemplateByName(name) ?: throw RuntimeException("Invalid template")
+
+    // These represent the options in the dialog
+    val remapParam = template.parameters.find { it.name == "Change Folder Location" }
+    (remapParam as BooleanParameter).value = remapFolder
+    val locationParam = template.parameters.find { it.name == "New Folder Location" }
+    (locationParam as StringParameter).value = location
 
     // The default module state and template
     val moduleStateBuilder = getDefaultModuleState(projectRule.project, template)
@@ -57,15 +63,15 @@ class FolderTemplatesTest {
         .paths
         .moduleRoot!!
         .toPath()
-
     println("Module root: $moduleRoot")
 
+    val templateData = moduleStateBuilder.build()
     val context =
       RenderingContext(
         project = projectRule.project,
         module = null,
         commandName = "Run TemplateTest",
-        templateData = moduleStateBuilder.build(),
+        templateData = templateData,
         moduleRoot = moduleRoot.toFile(),
         dryRun = false,
         showErrors = true
@@ -76,14 +82,8 @@ class FolderTemplatesTest {
     // been added
     writeBuildGradleKtsFile(moduleRoot)
 
-    moduleRecipeExecutor.generateResourcesFolder(
-      moduleStateBuilder.build(),
-      remapFolder,
-      location,
-      { "main" },
-      sourceSetType,
-      defaultDirName
-    )
+    WizardParameterData(templateData.packageName, false, "main", template.parameters)
+    template.render(context, moduleRecipeExecutor)
 
     // Applying changes is necessary to write the Gradle model to disk
     WriteCommandAction.writeCommandAction(projectRule.project).run<IOException> {
@@ -116,14 +116,7 @@ class FolderTemplatesTest {
         StringEscapeUtils.escapeJava("my${File.separator}aidl${File.separator}folder") +
         "\")"
 
-    checkResourcesTemplate(
-      "AIDL Folder",
-      true,
-      "my/aidl/folder",
-      SourceSetType.AIDL,
-      "aidl",
-      expectedLine
-    )
+    checkResourcesTemplate("AIDL Folder", true, "my/aidl/folder", expectedLine)
   }
 
   @Test
@@ -135,14 +128,7 @@ class FolderTemplatesTest {
         StringEscapeUtils.escapeJava("my${File.separator}assets${File.separator}folder") +
         "\")"
 
-    checkResourcesTemplate(
-      "Assets Folder",
-      true,
-      "my/assets/folder",
-      SourceSetType.ASSETS,
-      "assets",
-      expectedLine
-    )
+    checkResourcesTemplate("Assets Folder", true, "my/assets/folder", expectedLine)
   }
 
   @Test
@@ -154,14 +140,7 @@ class FolderTemplatesTest {
         StringEscapeUtils.escapeJava("my${File.separator}JavaNotKotlin${File.separator}folder") +
         "\")"
 
-    checkResourcesTemplate(
-      "Java Folder",
-      true,
-      "my/JavaNotKotlin/folder",
-      SourceSetType.JAVA,
-      "java",
-      expectedLine
-    )
+    checkResourcesTemplate("Java Folder", true, "my/JavaNotKotlin/folder", expectedLine)
   }
 
   @Test
@@ -173,14 +152,7 @@ class FolderTemplatesTest {
         StringEscapeUtils.escapeJava("my${File.separator}jni${File.separator}folder") +
         "\")"
 
-    checkResourcesTemplate(
-      "JNI Folder",
-      true,
-      "my/jni/folder",
-      SourceSetType.RESOURCES,
-      "jni",
-      expectedLine
-    )
+    checkResourcesTemplate("JNI Folder", true, "my/jni/folder", expectedLine)
   }
 
   @Test
@@ -192,14 +164,7 @@ class FolderTemplatesTest {
         StringEscapeUtils.escapeJava("my${File.separator}res${File.separator}folder") +
         "\")"
 
-    checkResourcesTemplate(
-      "Res Folder",
-      true,
-      "my/res/folder",
-      SourceSetType.RESOURCES,
-      "res",
-      expectedLine
-    )
+    checkResourcesTemplate("Res Folder", true, "my/res/folder", expectedLine)
   }
 
   @Test
@@ -208,15 +173,7 @@ class FolderTemplatesTest {
     // but the folder should still get created
     val expectedLine = "android {}"
 
-    checkResourcesTemplate(
-      "Res Folder",
-      false,
-      "unused/parameter",
-      SourceSetType.RESOURCES,
-      "res",
-      expectedLine,
-      "src/main/res"
-    )
+    checkResourcesTemplate("Res Folder", false, "unused/parameter", expectedLine, "src/main/res")
   }
 
   @Test
@@ -228,14 +185,7 @@ class FolderTemplatesTest {
         StringEscapeUtils.escapeJava("my${File.separator}resources${File.separator}folder") +
         "\")"
 
-    checkResourcesTemplate(
-      "Java Resources Folder",
-      true,
-      "my/resources/folder",
-      SourceSetType.RESOURCES,
-      "resources",
-      expectedLine
-    )
+    checkResourcesTemplate("Java Resources Folder", true, "my/resources/folder", expectedLine)
   }
 
   @Test
@@ -247,13 +197,6 @@ class FolderTemplatesTest {
         StringEscapeUtils.escapeJava("my${File.separator}renderscript${File.separator}folder") +
         "\")"
 
-    checkResourcesTemplate(
-      "RenderScript Folder",
-      true,
-      "my/renderscript/folder",
-      SourceSetType.RESOURCES,
-      "rs",
-      expectedLine
-    )
+    checkResourcesTemplate("RenderScript Folder", true, "my/renderscript/folder", expectedLine)
   }
 }
