@@ -32,7 +32,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
@@ -50,13 +49,11 @@ public final class SelectMultipleDevicesDialogTest {
   private SelectMultipleDevicesDialog myDialog;
 
   private void initDialog(@NotNull List<Device> devices,
-                          @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet,
                           @NotNull Function<Project, DevicesSelectedService> devicesSelectedServiceGetInstance) {
     Application application = ApplicationManager.getApplication();
 
     application.invokeAndWait(() -> myDialog = new SelectMultipleDevicesDialog(myRule.getProject(),
                                                                                devices,
-                                                                               selectDeviceSnapshotComboBoxSnapshotsEnabledGet,
                                                                                devicesSelectedServiceGetInstance));
   }
 
@@ -72,7 +69,7 @@ public final class SelectMultipleDevicesDialogTest {
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
     // Act
-    initDialog(devices, () -> true, project -> service);
+    initDialog(devices, project -> service);
 
     // Assert
     assertEquals("Select Multiple Devices", myDialog.getTitle());
@@ -89,7 +86,7 @@ public final class SelectMultipleDevicesDialogTest {
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    initDialog(Collections.singletonList(device), () -> false, project -> service);
+    initDialog(Collections.singletonList(device), project -> service);
 
     // Act
     myDialog.getTable().setSelected(true, 0);
@@ -115,7 +112,7 @@ public final class SelectMultipleDevicesDialogTest {
     DevicesSelectedService service = new DevicesSelectedService(new PersistentStateComponent(myRule.getProject()), RunManager.getInstance(myRule.getProject()), clock);
     service.setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key)));
 
-    initDialog(Collections.singletonList(device), () -> false, project -> service);
+    initDialog(Collections.singletonList(device), project -> service);
 
     // Act
     myDialog.getTable().setSelected(false, 0);
@@ -142,7 +139,7 @@ public final class SelectMultipleDevicesDialogTest {
     Mockito.when(service.getTargetsSelectedWithDialog(devices)).thenReturn(Collections.singleton(new QuickBootTarget(key)));
 
     // Act
-    initDialog(devices, () -> false, project -> service);
+    initDialog(devices, project -> service);
 
     // Assert
     assertTrue(myDialog.getOKAction().isEnabled());
@@ -159,7 +156,7 @@ public final class SelectMultipleDevicesDialogTest {
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    initDialog(Collections.singletonList(device), () -> false, project -> service);
+    initDialog(Collections.singletonList(device), project -> service);
 
     // Act
     myDialog.getTable().setSelected(true, 0);
@@ -178,11 +175,10 @@ public final class SelectMultipleDevicesDialogTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(Keys.PIXEL_4_API_30_SNAPSHOT_1))
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    initDialog(Collections.singletonList(device), () -> true, project -> service);
+    initDialog(Collections.singletonList(device), project -> service);
 
     SelectMultipleDevicesDialogTable table = myDialog.getTable();
     table.setSelected(true, 0);

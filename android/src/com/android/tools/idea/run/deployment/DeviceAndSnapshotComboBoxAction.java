@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunManager;
@@ -46,7 +45,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import javax.swing.GroupLayout;
@@ -61,8 +59,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
    * The key for the LaunchCompatibility presentation client property
    */
   static final Key<LaunchCompatibility> LAUNCH_COMPATIBILITY_KEY = new Key<>("DeviceAndSnapshotComboBoxAction.launchCompatibility");
-
-  private final @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
 
   @NotNull
   private final Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
@@ -80,8 +76,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @VisibleForTesting
   static final class Builder {
-    private @Nullable BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
-
     @Nullable
     private Function<Project, AsyncDevicesGetter> myDevicesGetterGetter;
 
@@ -97,18 +91,11 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     private Function<Project, RunManager> myGetRunManager;
 
     Builder() {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = () -> false;
       myDevicesGetterGetter = project -> null;
       myDevicesSelectedServiceGetInstance = project -> null;
       myExecutionTargetServiceGetInstance = project -> null;
       myNewSelectMultipleDevicesDialog = (project, devices) -> null;
       myGetRunManager = project -> null;
-    }
-
-    @NotNull
-    private Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = selectDeviceSnapshotComboBoxSnapshotsEnabledGet;
-      return this;
     }
 
     @NotNull
@@ -151,7 +138,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @SuppressWarnings("unused")
   private DeviceAndSnapshotComboBoxAction() {
     this(new Builder()
-           .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED::get)
            .setDevicesGetterGetter(AsyncDevicesGetter::getInstance)
            .setDevicesSelectedServiceGetInstance(DevicesSelectedService::getInstance)
            .setExecutionTargetServiceGetInstance(ExecutionTargetService::getInstance)
@@ -161,9 +147,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NonInjectable
   private DeviceAndSnapshotComboBoxAction(@NotNull Builder builder) {
-    assert builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet != null;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
-
     assert builder.myDevicesGetterGetter != null;
     myDevicesGetterGetter = builder.myDevicesGetterGetter;
 
@@ -184,10 +167,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   static DeviceAndSnapshotComboBoxAction getInstance() {
     // noinspection CastToConcreteClass
     return (DeviceAndSnapshotComboBoxAction)ActionManager.getInstance().getAction("DeviceAndSnapshotComboBox");
-  }
-
-  boolean areSnapshotsEnabled() {
-    return mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet.getAsBoolean();
   }
 
   @NotNull
@@ -385,7 +364,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .setDevicesSelectedService(myDevicesSelectedServiceGetInstance.apply(project))
       .setDevices(devices)
       .setConfigurationAndSettings(myGetRunManager.apply(project).getSelectedConfiguration())
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet)
       .build();
 
     updater.update();

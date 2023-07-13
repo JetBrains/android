@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
@@ -71,8 +70,6 @@ final class VirtualDevice implements Device {
   @NotNull
   private final AndroidDevice myAndroidDevice;
 
-  private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
-
   private VirtualDevice(@NotNull Builder builder) {
     assert builder.myKey != null;
     myKey = builder.myKey;
@@ -89,8 +86,6 @@ final class VirtualDevice implements Device {
 
     assert builder.myAndroidDevice != null;
     myAndroidDevice = builder.myAndroidDevice;
-
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
   }
 
   @NotNull
@@ -126,7 +121,6 @@ final class VirtualDevice implements Device {
   static final class Builder extends Device.Builder {
     private @Nullable VirtualDeviceName myNameKey;
     private final @NotNull Collection<Snapshot> mySnapshots = new ArrayList<>();
-    private boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled = StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get();
 
     @NotNull
     Builder setKey(@NotNull Key key) {
@@ -181,13 +175,6 @@ final class VirtualDevice implements Device {
     @NotNull
     Builder setAndroidDevice(@NotNull AndroidDevice androidDevice) {
       myAndroidDevice = androidDevice;
-      return this;
-    }
-
-    @NotNull
-    @VisibleForTesting
-    Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabled(boolean selectDeviceSnapshotComboBoxSnapshotsEnabled) {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
       return this;
     }
 
@@ -285,10 +272,6 @@ final class VirtualDevice implements Device {
   @NotNull
   @Override
   public Target defaultTarget() {
-    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
-      return new QuickBootTarget(myKey);
-    }
-
     if (connected()) {
       return new RunningDeviceTarget(myKey);
     }
@@ -299,10 +282,6 @@ final class VirtualDevice implements Device {
   @NotNull
   @Override
   public Collection<Target> targets() {
-    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
-      return List.of(new QuickBootTarget(myKey));
-    }
-
     if (connected()) {
       return List.of(new RunningDeviceTarget(myKey));
     }
@@ -332,15 +311,7 @@ final class VirtualDevice implements Device {
 
   @Override
   public int hashCode() {
-    return Objects.hash(myKey,
-                        myNameKey,
-                        myType,
-                        myLaunchCompatibility,
-                        myConnectionTime,
-                        myName,
-                        mySnapshots,
-                        myAndroidDevice,
-                        mySelectDeviceSnapshotComboBoxSnapshotsEnabled);
+    return Objects.hash(myKey, myNameKey, myType, myLaunchCompatibility, myConnectionTime, myName, mySnapshots, myAndroidDevice);
   }
 
   @Override
@@ -356,8 +327,7 @@ final class VirtualDevice implements Device {
            Objects.equals(myConnectionTime, device.myConnectionTime) &&
            myName.equals(device.myName) &&
            mySnapshots.equals(device.mySnapshots) &&
-           myAndroidDevice.equals(device.myAndroidDevice) &&
-           mySelectDeviceSnapshotComboBoxSnapshotsEnabled == device.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+           myAndroidDevice.equals(device.myAndroidDevice);
   }
 
   @NotNull

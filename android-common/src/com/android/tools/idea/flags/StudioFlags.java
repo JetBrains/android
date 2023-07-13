@@ -471,13 +471,6 @@ public final class StudioFlags {
     "Eliminate the cost of opening a connection and spawning a process when using Apply Changes.",
     true);
 
-  public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
-    RUNDEBUG,
-    "select.device.snapshot.combo.box.snapshots.enabled",
-    "Enable Select Device/Snapshot combo box snapshots",
-    "So the new Instant Run can use the combo box",
-    true);
-
   public static final Flag<Boolean> ADB_CONNECTION_STATUS_WIDGET_ENABLED = Flag.create(
     RUNDEBUG,
     "adb.connection.status.widget.enabled",

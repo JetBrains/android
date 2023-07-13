@@ -38,7 +38,7 @@ public final class SelectMultipleDevicesDialogTableModelRowTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    SelectMultipleDevicesDialogTableModelRow row = new SelectMultipleDevicesDialogTableModelRow(device, () -> true, TARGET);
+    var row = new SelectMultipleDevicesDialogTableModelRow(device, TARGET);
 
     // Act
     Object option = row.getBootOption();
@@ -56,7 +56,7 @@ public final class SelectMultipleDevicesDialogTableModelRowTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    SelectMultipleDevicesDialogTableModelRow row = new SelectMultipleDevicesDialogTableModelRow(device, () -> true, TARGET);
+    var row = new SelectMultipleDevicesDialogTableModelRow(device, TARGET);
 
     // Act
     Object option = row.getBootOption();

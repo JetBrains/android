@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -51,8 +50,6 @@ final class Updater {
   @Nullable
   private final RunnerAndConfigurationSettings myConfigurationAndSettings;
 
-  private final @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
-
   static final class Builder {
     @Nullable
     private Project myProject;
@@ -71,8 +68,6 @@ final class Updater {
 
     @Nullable
     private RunnerAndConfigurationSettings myConfigurationAndSettings;
-
-    private @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = () -> false;
 
     @NotNull
     Builder setProject(@NotNull Project project) {
@@ -110,11 +105,6 @@ final class Updater {
       return this;
     }
 
-    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
-      mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = selectDeviceSnapshotComboBoxSnapshotsEnabledGet;
-      return this;
-    }
-
     @NotNull
     Updater build() {
       return new Updater(this);
@@ -135,7 +125,6 @@ final class Updater {
 
     myDevices = builder.myDevices;
     myConfigurationAndSettings = builder.myConfigurationAndSettings;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
   }
 
   void update() {
@@ -252,7 +241,7 @@ final class Updater {
    */
   private @NotNull String getText(@NotNull Device device, @NotNull Target target) {
     Key key = Devices.containsAnotherDeviceWithSameName(myDevices, device) ? device.getKey() : null;
-    String bootOption = Devices.getBootOption(device, target, mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet).orElse(null);
+    var bootOption = Devices.getBootOption(device, target).orElse(null);
 
     return Devices.getText(device, key, bootOption);
   }

@@ -18,20 +18,15 @@ package com.android.tools.idea.run.deployment;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.SimpleTextAttributes;
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 import org.jetbrains.annotations.NotNull;
 
 final class SelectMultipleDevicesDialogTableModelRow {
   private boolean mySelected;
   private final @NotNull Device myDevice;
-  private final @NotNull BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet;
   private final @NotNull Target myTarget;
 
-  SelectMultipleDevicesDialogTableModelRow(@NotNull Device device,
-                                           @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet,
-                                           @NotNull Target target) {
+  SelectMultipleDevicesDialogTableModelRow(@NotNull Device device, @NotNull Target target) {
     myDevice = device;
-    mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = selectDeviceSnapshotComboBoxSnapshotsEnabledGet;
     myTarget = target;
   }
 
@@ -55,7 +50,7 @@ final class SelectMultipleDevicesDialogTableModelRow {
   }
 
   @NotNull String getBootOption() {
-    return Devices.getBootOption(myDevice, myTarget, mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet).orElse("");
+    return Devices.getBootOption(myDevice, myTarget).orElse("");
   }
 
   @NotNull Target getTarget() {

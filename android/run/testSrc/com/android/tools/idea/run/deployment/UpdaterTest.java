@@ -254,7 +254,6 @@ public final class UpdaterTest {
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(Keys.PIXEL_4_API_30_SNAPSHOT_1))
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();
 
     List<Device> devices = Collections.singletonList(device);
@@ -300,7 +299,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(service)
       .setDevices(Collections.singletonList(device))
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
       .build();
 
     // Act
@@ -406,7 +404,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(service)
       .setDevices(Collections.singletonList(device))
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
       .build();
 
     // Act
@@ -446,7 +443,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(service)
       .setDevices(devices)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
       .build();
 
     // Act
@@ -454,36 +450,6 @@ public final class UpdaterTest {
 
     // Assert
     assertEquals("Pixel 3 API 29 - snap_2018-08-07_16-27-58", myPresentation.getText());
-  }
-
-  @Test
-  public void getTextDeviceHasSnapshotAndSnapshotsArentEnabled() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 29")
-      .setType(Type.PHONE)
-      .setKey(Keys.PIXEL_3_API_29)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .addSnapshot(new Snapshot(Keys.PIXEL_3_API_29_SNAPSHOT_1))
-      .build();
-
-    DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-
-    Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
-      .thenReturn(Optional.of(new QuickBootTarget(Keys.PIXEL_3_API_29)));
-
-    Updater updater = new Updater.Builder()
-      .setProject(myRule.getProject())
-      .setPresentation(myPresentation)
-      .setDevicesSelectedService(service)
-      .setDevices(Collections.singletonList(device))
-      .build();
-
-    // Act
-    updater.update();
-
-    // Assert
-    assertEquals("Pixel 3 API 29", myPresentation.getText());
   }
 
   @Test
@@ -543,7 +509,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(service)
       .setDevices(devices)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
       .build();
 
     // Act
@@ -573,7 +538,6 @@ public final class UpdaterTest {
       .setPresentation(myPresentation)
       .setDevicesSelectedService(service)
       .setDevices(devices)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(() -> true)
       .build();
 
     // Act

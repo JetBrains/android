@@ -112,7 +112,6 @@ public final class PopupActionGroupTest {
       .build();
 
     Collection<Device> devices = Collections.singletonList(device);
-    Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
 
     // Act
     ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
@@ -151,7 +150,6 @@ public final class PopupActionGroupTest {
       .build();
 
     Collection<Device> devices = Arrays.asList(runningDevice, availableDevice);
-    Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
 
     // Act
     ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);
@@ -186,7 +184,6 @@ public final class PopupActionGroupTest {
       .build();
 
     Collection<Device> devices = Collections.singletonList(device);
-    Mockito.when(myComboBoxAction.areSnapshotsEnabled()).thenReturn(true);
 
     // Act
     ActionGroup group = new PopupActionGroup(devices, myComboBoxAction, myActionManager);

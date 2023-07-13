@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import javax.swing.Icon;
-import javax.swing.table.TableModel;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +51,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setType(Device.Type.PHONE)
       .build();
 
-    myTable.setModel(new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false));
+    myTable.setModel(new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)));
 
     // Act
     myTable.setSelected(true, 0);
@@ -71,7 +70,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setType(Device.Type.PHONE)
       .build();
 
-    myTable.setModel(new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false));
+    myTable.setModel(new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device)));
     Set<Target> targets = Collections.singleton(new QuickBootTarget(new VirtualDeviceName("Pixel_3_API_29")));
 
     // Act
@@ -84,7 +83,7 @@ public final class SelectMultipleDevicesDialogTableTest {
   @Test
   public void setModelDoesntThrowAssertionErrorWhenColumnCountEqualsZero() {
     // Arrange
-    TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.emptyList(), () -> false);
+    var model = new SelectMultipleDevicesDialogTableModel(Collections.emptyList());
 
     // Act
     myTable.setModel(model);
@@ -102,7 +101,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setGetLiveIndicator(icon -> runningIcon)
       .build();
 
-    TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false);
+    var model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device));
 
     // Act
     myTable.setModel(model);
@@ -128,7 +127,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setType(Device.Type.PHONE)
       .build();
 
-    TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> false);
+    var model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device));
 
     // Act
     myTable.setModel(model);
@@ -162,7 +161,7 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setGetLiveIndicator(icon -> runningIcon)
       .build();
 
-    TableModel model = new SelectMultipleDevicesDialogTableModel(Arrays.asList(device1, device2), () -> false);
+    var model = new SelectMultipleDevicesDialogTableModel(Arrays.asList(device1, device2));
 
     // Act
     myTable.setModel(model);
@@ -187,10 +186,9 @@ public final class SelectMultipleDevicesDialogTableTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(Keys.PIXEL_4_API_30_SNAPSHOT_1))
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();
 
-    TableModel model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device), () -> true);
+    var model = new SelectMultipleDevicesDialogTableModel(Collections.singletonList(device));
 
     // Act
     myTable.setModel(model);

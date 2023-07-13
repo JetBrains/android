@@ -75,7 +75,6 @@ public final class VirtualDeviceTest {
       .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(false)
       .build();
 
     // Act
@@ -83,24 +82,6 @@ public final class VirtualDeviceTest {
 
     // Assert
     assertEquals(new QuickBootTarget(Keys.PIXEL_4_API_30), target);
-  }
-
-  @Test
-  public void getTargetsSelectDeviceSnapshotComboBoxSnapshotsIsntEnabled() {
-    // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setType(Device.Type.PHONE)
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(false)
-      .build();
-
-    // Act
-    Object targets = device.getTargets();
-
-    // Assert
-    assertEquals(Collections.singletonList(new QuickBootTarget(Keys.PIXEL_4_API_30)), targets);
   }
 
   @Test
@@ -130,7 +111,6 @@ public final class VirtualDeviceTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(Keys.PIXEL_4_API_30_SNAPSHOT_2))
-      .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();
 
     // Act
