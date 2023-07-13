@@ -107,8 +107,12 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     if (element.getFullName().equals("initWith") && element instanceof GradleDslLiteral) {
       GradleReferenceInjection referenceTo = ((GradleDslLiteral)element).getReferenceInjection();
       if (referenceTo != null && referenceTo.getToBeInjected() != null) {
-        // Merge properties with the target
-        mergePropertiesFrom((GradlePropertiesDslElement)referenceTo.getToBeInjected());
+        GradleDslElement toBeInjected = referenceTo.getToBeInjected();
+
+        if (toBeInjected instanceof GradlePropertiesDslElement) {
+          // Merge properties with the target
+          mergePropertiesFrom((GradlePropertiesDslElement)referenceTo.getToBeInjected());
+        }
       }
     }
 
