@@ -16,6 +16,7 @@
 package com.android.tools.idea.project
 
 import com.android.AndroidProjectTypes
+import com.android.manifmerger.ManifestMerger2.MergeFailureException
 import com.android.tools.idea.instantapp.InstantApps
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
@@ -112,7 +113,7 @@ class AndroidRunConfigurations(
       Logger.getInstance(AndroidRunConfigurations::class.java).warn(ex)
       null
     }
-    catch (ex: ExecutionException) {
+    catch (ex: MergeFailureException) {
       Logger.getInstance(AndroidRunConfigurations::class.java).warn(ex)
       null
     }
