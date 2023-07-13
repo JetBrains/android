@@ -36,6 +36,11 @@ public class FontEditorProvider implements FileEditorProvider, DumbAware {
     return file.getFileType() == FontFileType.INSTANCE;
   }
 
+  @Override
+  public boolean acceptRequiresReadAction() {
+    return false;
+  }
+
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {

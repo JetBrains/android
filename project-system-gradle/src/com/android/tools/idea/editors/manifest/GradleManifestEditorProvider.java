@@ -43,6 +43,11 @@ public class GradleManifestEditorProvider implements FileEditorProvider {
     return false;
   }
 
+  @Override
+  public boolean acceptRequiresReadAction() {
+    return true;
+  }
+
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {

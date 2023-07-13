@@ -38,6 +38,11 @@ public class NinePatchEditorProvider implements FileEditorProvider, DumbAware {
     return SdkUtils.endsWithIgnoreCase(file.getPath(), SdkConstants.DOT_9PNG);
   }
 
+  @Override
+  public boolean acceptRequiresReadAction() {
+    return false;
+  }
+
   @NotNull
   @Override
   public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {

@@ -27,7 +27,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
-public class DexEditorProvider implements FileEditorProvider, DumbAware {
+final class DexEditorProvider implements FileEditorProvider, DumbAware {
   private static final String ID = "dex-viewer";
 
   @Override
@@ -35,21 +35,23 @@ public class DexEditorProvider implements FileEditorProvider, DumbAware {
     return "dex".equalsIgnoreCase(file.getExtension());
   }
 
-  @NotNull
   @Override
-  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+  public boolean acceptRequiresReadAction() {
+    return false;
+  }
+
+  @Override
+  public @NotNull FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     return new DexFileViewer(project, new Path[]{VfsUtilCore.virtualToIoFile(file).toPath()}, null);
   }
 
-  @NotNull
   @Override
-  public String getEditorTypeId() {
+  public @NotNull String getEditorTypeId() {
     return ID;
   }
 
-  @NotNull
   @Override
-  public FileEditorPolicy getPolicy() {
+  public @NotNull FileEditorPolicy getPolicy() {
     return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
   }
 }
