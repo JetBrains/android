@@ -165,11 +165,18 @@ class RenderErrorTest {
     }
   }
 
-  @Ignore("b/272048512")
   @Test
   fun testSceneViewWithoutRenderErrors() {
-    val sceneViewPanelWithoutErrors =
-      panels.single { it.displayName == "PreviewWithoutRenderErrors" }
+    startUiCheckForModel("PreviewWithoutRenderErrors")
+
+    lateinit var sceneViewPanelWithoutErrors: SceneViewPeerPanel
+    runBlocking {
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+        panels
+          .singleOrNull { it.displayName == "PreviewWithoutRenderErrors - _device_class_phone" }
+          ?.also { sceneViewPanelWithoutErrors = it } != null
+      }
+    }
     assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
 
     val invisibleErrorsPanel =
@@ -180,8 +187,8 @@ class RenderErrorTest {
     assertFalse(invisibleErrorsPanel.isVisible)
 
     val actions = sceneViewPanelWithoutErrors.getToolbarActions()
-    // 3 actions expected: animation, interactive and deploy to device
-    assertEquals(3, actions.size)
+    // 4 actions expected: ui check mode, animation, interactive and deploy to device
+    assertEquals(4, actions.size)
     // The visible/invisible state before the update shouldn't affect the final result
     for (visibleBefore in listOf(true, false)) {
       // The animation preview action shouldn't be visible because the preview being used doesn't
