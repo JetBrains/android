@@ -93,6 +93,8 @@ import java.nio.charset.Charset
 class KotlinModelConverter {
   companion object {
     const val kotlinMultiplatformAndroidVariantName = "androidMain"
+
+    internal fun KotlinSourceSet.getJavaSourceDirectories() = sourceDirs.map { File(it.parentFile, "java") }
   }
 
   private val interner = WeakInterner(lock = null) // No need for a lock since the resolution happens sequentially.
@@ -139,7 +141,8 @@ class KotlinModelConverter {
   }
 
   private fun SourceProvider.convert(
-    sourceSet: KotlinSourceSet
+    sourceSet: KotlinSourceSet,
+    withJava: Boolean
   ): IdeSourceProviderImpl {
     val folder = File(manifestFile.absolutePath).parentFile
     fun File.makeRelativeAndDeduplicate(): String = (if (folder != null) relativeToOrSelf(folder) else this).path.deduplicate()
@@ -151,7 +154,9 @@ class KotlinModelConverter {
       myManifestFile = manifestFile.absolutePath.makeRelativeAndDeduplicate(),
       myKotlinDirectories = sourceSet.sourceDirs.makeRelativeAndDeduplicate(),
       myResourcesDirectories = sourceSet.resourceDirs.makeRelativeAndDeduplicate(),
-      myJavaDirectories = emptyList(),
+      myJavaDirectories = if (withJava) {
+        sourceSet.getJavaSourceDirectories().makeRelativeAndDeduplicate()
+      } else emptyList(),
       myAidlDirectories = emptyList(),
       myRenderscriptDirectories = emptyList(),
       myResDirectories = emptyList(),
@@ -399,18 +404,18 @@ class KotlinModelConverter {
         sourceProvider = mainKotlinCompilation.declaredSourceSets.firstOrNull {
           it.name == mainAndroidCompilation.defaultSourceSetName
         }?.let { sourceSet ->
-          sourceSet.extras[androidSourceSetKey]?.invoke()?.sourceProvider?.convert(sourceSet)
+          sourceSet.extras[androidSourceSetKey]?.invoke()?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
         },
         extraSourceProviders = listOf(
           AndroidProject.ARTIFACT_UNIT_TEST to unitTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
             it.name == unitTestAndroidCompilation?.defaultSourceSetName
           }?.let { sourceSet ->
-            sourceSet.extras[androidSourceSetKey]?.invoke()?.sourceProvider?.convert(sourceSet)
+            sourceSet.extras[androidSourceSetKey]?.invoke()?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
           },
           AndroidProject.ARTIFACT_ANDROID_TEST to androidTestKotlinCompilation?.declaredSourceSets?.firstOrNull {
             it.name == androidTestAndroidCompilation?.defaultSourceSetName
           }?.let { sourceSet ->
-            sourceSet.extras[androidSourceSetKey]?.invoke()?.sourceProvider?.convert(sourceSet)
+            sourceSet.extras[androidSourceSetKey]?.invoke()?.sourceProvider?.convert(sourceSet, targetInfo.withJava)
           }
         ).mapNotNull { (artifactName, sourceProvider) ->
           sourceProvider?.let {

@@ -27,16 +27,17 @@ import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.gradle.project.sync.idea.data.model.KotlinMultiplatformAndroidSourceSetType
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.io.FilePaths
-import com.android.utils.appendCapitalized
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ProjectKeys
 import com.intellij.openapi.externalSystem.model.project.AbstractDependencyData
 import com.intellij.openapi.externalSystem.model.project.ContentRootData
+import com.intellij.openapi.externalSystem.model.project.ExternalSystemSourceType
 import com.intellij.openapi.externalSystem.model.project.LibraryPathType
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.gradle.tooling.model.idea.IdeaModule
 import org.jetbrains.kotlin.android.models.KotlinModelConverter
+import org.jetbrains.kotlin.android.models.KotlinModelConverter.Companion.getJavaSourceDirectories
 import org.jetbrains.kotlin.config.ExternalSystemTestRunTask
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
@@ -143,6 +144,21 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       ProjectKeys.CONTENT_ROOT,
       ContentRootData(GradleConstants.SYSTEM_ID, sourceSetInfo.sourceProvider.manifestFile.absolutePath)
     )
+
+    val androidTarget = context.mppModel.targets.mapNotNull { it.extras[androidTargetKey]?.invoke() }.singleOrNull() ?: return
+
+    if (androidTarget.withJava) {
+      sourceSet.getJavaSourceDirectories().forEach { sourceDir ->
+        val contentRootData = ContentRootData(GradleConstants.SYSTEM_ID, sourceDir.absolutePath)
+        val sourceType = if (sourceSet.isTestComponent) {
+          ExternalSystemSourceType.TEST
+        } else {
+          ExternalSystemSourceType.SOURCE
+        }
+        contentRootData.storePath(sourceType, sourceDir.absolutePath, null)
+        sourceSetDataNode.createChild(ProjectKeys.CONTENT_ROOT, contentRootData)
+      }
+    }
   }
 
   override fun afterResolveFinished(context: Context) {

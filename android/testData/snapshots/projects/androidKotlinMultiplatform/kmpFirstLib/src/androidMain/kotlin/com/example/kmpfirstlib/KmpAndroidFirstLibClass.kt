@@ -22,4 +22,8 @@ class KmpAndroidFirstLibClass {
     fun callJvmLibClass(): String {
         return KmpJvmOnlyLibClass().callCommonLibClass()
     }
+
+    fun callJavaClass(): String {
+        return KmpAndroidFirstLibJavaClass().callCommonLibClass()
+    }
 }

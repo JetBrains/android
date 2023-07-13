@@ -1066,6 +1066,7 @@ PROJECT                       : Kotlin Multiplatform
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest
             JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest/kotlin
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
@@ -1181,6 +1182,7 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidMain
+            JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidMain/java
             JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidMain/kotlin
             JavaResource                  : file://<PROJECT>/kmpFirstLib/src/androidMain/resources
         JDK                           : <NAME_CUT> Android SDK
@@ -1291,6 +1293,7 @@ PROJECT                       : Kotlin Multiplatform
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidUnitTest
             JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidUnitTest/kotlin
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmpFirstLib/src/androidUnitTest/java [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/androidUnitTest/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false

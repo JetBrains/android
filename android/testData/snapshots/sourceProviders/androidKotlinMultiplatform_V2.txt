@@ -2041,6 +2041,10 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                 file://./kmpFirstLib/src/androidMain
             ManifestDirectories:
                 file://./kmpFirstLib/src/androidMain
+            JavaDirectoryUrls:
+                file://./kmpFirstLib/src/androidMain/java
+            JavaDirectories:
+                file://./kmpFirstLib/src/androidMain/java
             KotlinDirectoryUrls:
                 file://./kmpFirstLib/src/androidMain/kotlin
             KotlinDirectories:
@@ -2053,6 +2057,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
         androidMain
             Manifest:
                 ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+            JavaDirectories:
+                ./kmpFirstLib/src/androidMain/java
             KotlinDirectories:
                 ./kmpFirstLib/src/androidMain/kotlin
             ResourcesDirectories:
@@ -2061,6 +2067,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
             androidMain
                 Manifest:
                     ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                JavaDirectories:
+                    ./kmpFirstLib/src/androidMain/java
                 KotlinDirectories:
                     ./kmpFirstLib/src/androidMain/kotlin
                 ResourcesDirectories:
@@ -2069,6 +2077,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
             androidMain
                 Manifest:
                     ./kmpFirstLib/src/androidMain/AndroidManifest.xml
+                JavaDirectories:
+                    ./kmpFirstLib/src/androidMain/java
                 KotlinDirectories:
                     ./kmpFirstLib/src/androidMain/kotlin
                 ResourcesDirectories:
@@ -2077,6 +2087,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
             androidUnitTest
                 Manifest:
                     ./kmpFirstLib/src/androidUnitTest/AndroidManifest.xml
+                JavaDirectories:
+                    ./kmpFirstLib/src/androidUnitTest/java
                 KotlinDirectories:
                     ./kmpFirstLib/src/androidUnitTest/kotlin
                 ResourcesDirectories:
@@ -2085,6 +2097,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
             androidInstrumentedTest
                 Manifest:
                     ./kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                JavaDirectories:
+                    ./kmpFirstLib/src/androidInstrumentedTest/java
                 KotlinDirectories:
                     ./kmpFirstLib/src/androidInstrumentedTest/kotlin
                 ResourcesDirectories:
@@ -2104,6 +2118,10 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidMain
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/java
+                JavaDirectories:
+                    file://./kmpFirstLib/src/androidMain/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/kotlin
                 KotlinDirectories:
@@ -2121,6 +2139,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidUnitTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidUnitTest
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
                 KotlinDirectories:
@@ -2138,6 +2158,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidInstrumentedTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
                 KotlinDirectories:
@@ -2170,6 +2192,10 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidMain
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/java
+                JavaDirectories:
+                    file://./kmpFirstLib/src/androidMain/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/kotlin
                 KotlinDirectories:
@@ -2189,6 +2215,10 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidMain
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidMain
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidMain/java
+                JavaDirectories:
+                    file://./kmpFirstLib/src/androidMain/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidMain/kotlin
                 KotlinDirectories:
@@ -2206,6 +2236,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidUnitTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidUnitTest
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidUnitTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidUnitTest/kotlin
                 KotlinDirectories:
@@ -2223,6 +2255,8 @@ MODULE: Kotlin_Multiplatform.kmpFirstLib
                     file://./kmpFirstLib/src/androidInstrumentedTest
                 ManifestDirectories:
                     file://./kmpFirstLib/src/androidInstrumentedTest
+                JavaDirectoryUrls:
+                    file://./kmpFirstLib/src/androidInstrumentedTest/java
                 KotlinDirectoryUrls:
                     file://./kmpFirstLib/src/androidInstrumentedTest/kotlin
                 KotlinDirectories:

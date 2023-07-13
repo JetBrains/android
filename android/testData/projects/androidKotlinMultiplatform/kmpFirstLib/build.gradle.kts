@@ -5,6 +5,7 @@ plugins {
 
 kotlin {
   androidLibrary {
+    withJava()
     withAndroidTestOnJvm(compilationName = "unitTest")
     withAndroidTestOnDevice(compilationName = "instrumentedTest") {
       instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

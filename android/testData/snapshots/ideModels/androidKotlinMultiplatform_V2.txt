@@ -2302,6 +2302,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
         SourceProvider
             Name                          : androidMain
             Manifest                      : <ROOT>/kmpFirstLib/src/androidMain/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/kmpFirstLib/src/androidMain/java
             KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidMain/kotlin
             ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidMain/resources
         ExtraSourceProviders
@@ -2310,6 +2311,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 SourceProvider
                     Name                          : androidUnitTest
                     Manifest                      : <ROOT>/kmpFirstLib/src/androidUnitTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/kmpFirstLib/src/androidUnitTest/java [-]
                     KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidUnitTest/kotlin
                     ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidUnitTest/resources [-]
             ExtraSourceProvider
@@ -2317,6 +2319,7 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 SourceProvider
                     Name                          : androidInstrumentedTest
                     Manifest                      : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/AndroidManifest.xml
+                    JavaDirectories               : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/java [-]
                     KotlinDirectories             : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/kotlin
                     ResourcesDirectories          : <ROOT>/kmpFirstLib/src/androidInstrumentedTest/resources [-]
     SigningConfigs
