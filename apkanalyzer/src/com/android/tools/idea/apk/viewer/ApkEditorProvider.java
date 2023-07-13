@@ -25,7 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
-public class ApkEditorProvider implements FileEditorProvider, DumbAware {
+final class ApkEditorProvider implements FileEditorProvider, DumbAware {
   private static final String ID = "apk-viewer";
 
   @Override
@@ -39,23 +39,25 @@ public class ApkEditorProvider implements FileEditorProvider, DumbAware {
            ApkFileSystem.getInstance().getRootByLocal(file) != null;
   }
 
-  @NotNull
   @Override
-  public FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
+  public boolean acceptRequiresReadAction() {
+    return true;
+  }
+
+  @Override
+  public @NotNull FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
     VirtualFile root = ApkFileSystem.getInstance().getRootByLocal(file);
     assert root != null; // see accept above
     return new ApkEditor(project, file, root);
   }
 
-  @NotNull
   @Override
-  public String getEditorTypeId() {
+  public @NotNull String getEditorTypeId() {
     return ID;
   }
 
-  @NotNull
   @Override
-  public FileEditorPolicy getPolicy() {
+  public @NotNull FileEditorPolicy getPolicy() {
     return FileEditorPolicy.PLACE_AFTER_DEFAULT_EDITOR;
   }
 }

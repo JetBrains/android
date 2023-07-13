@@ -84,8 +84,11 @@ class BuildReportEditor(private val buildReportFile: BuildReportFile) : FileEdit
   override fun getFile() = buildReportFile
 }
 
-class BuildReportEditorProvider : FileEditorProvider, DumbAware {
+internal class BuildReportEditorProvider : FileEditorProvider, DumbAware {
   override fun accept(project: Project, file: VirtualFile): Boolean = file is BuildReportFile
+
+  override fun acceptRequiresReadAction(): Boolean = false
+
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
     return BuildReportEditor(file as BuildReportFile)
   }

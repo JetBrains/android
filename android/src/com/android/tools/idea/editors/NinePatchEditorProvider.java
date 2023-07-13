@@ -24,7 +24,6 @@ import com.intellij.openapi.fileEditor.FileEditorProvider;
 import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
@@ -36,6 +35,11 @@ public class NinePatchEditorProvider implements FileEditorProvider, DumbAware {
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
     return SdkUtils.endsWithIgnoreCase(file.getPath(), SdkConstants.DOT_9PNG);
+  }
+
+  @Override
+  public boolean acceptRequiresReadAction() {
+    return false;
   }
 
   @NotNull

@@ -24,7 +24,6 @@ import com.intellij.openapi.fileEditor.FileEditorState;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +34,11 @@ public class FontEditorProvider implements FileEditorProvider, DumbAware {
   @Override
   public boolean accept(@NotNull Project project, @NotNull VirtualFile file) {
     return FileTypeRegistry.getInstance().isFileOfType(file, FontFileType.INSTANCE);
+  }
+
+  @Override
+  public boolean acceptRequiresReadAction() {
+    return false;
   }
 
   @NotNull

@@ -74,6 +74,11 @@ public abstract class DesignerEditorProvider implements FileEditorProvider, Quic
     return false;
   }
 
+  @Override
+  public boolean acceptRequiresReadAction() {
+    return false;
+  }
+
   @NotNull
   @Override
   public final FileEditor createEditor(@NotNull Project project, @NotNull VirtualFile file) {
