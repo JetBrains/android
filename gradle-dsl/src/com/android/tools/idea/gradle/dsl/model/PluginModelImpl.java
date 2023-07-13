@@ -24,8 +24,10 @@ import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.InexpressiblePropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.InfixPropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.LiteralToInfixTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.MapPropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PluginNameTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.PluginAliasTransform;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
@@ -104,6 +106,7 @@ public class PluginModelImpl implements PluginModel {
     return GradlePropertyModelBuilder.create(myCompleteElement)
       .addTransform(new PluginAliasTransform(ID, ArtifactDependencySpec::getName, ArtifactDependencySpecImpl::setName))
       .addTransform(new PluginNameTransform())
+      .addLanguageTransform(GradleDslNameConverter.Kind.TOML , new MapPropertyTransform(ID))
       .buildResolved();
   }
 
@@ -114,6 +117,7 @@ public class PluginModelImpl implements PluginModel {
       .addTransform(new PluginAliasTransform(VERSION, ArtifactDependencySpec::getVersion, ArtifactDependencySpecImpl::setVersion))
       .addTransform(new LiteralToInfixTransform(VERSION))
       .addTransform(new InfixPropertyTransform(VERSION))
+      .addLanguageTransform(GradleDslNameConverter.Kind.TOML , new MapPropertyTransform(VERSION))
       .addTransform(new InexpressiblePropertyTransform())
       .buildResolved();
   }
@@ -124,6 +128,7 @@ public class PluginModelImpl implements PluginModel {
     return GradlePropertyModelBuilder.create(myCompleteElement)
       .addTransform(new LiteralToInfixTransform(APPLY))
       .addTransform(new InfixPropertyTransform(APPLY))
+      .addLanguageTransform(GradleDslNameConverter.Kind.TOML , new MapPropertyTransform(APPLY))
       .addTransform(new InexpressiblePropertyTransform())
       .buildResolved();
   }

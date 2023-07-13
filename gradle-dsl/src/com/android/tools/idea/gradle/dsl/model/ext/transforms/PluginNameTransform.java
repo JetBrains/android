@@ -58,7 +58,8 @@ public class PluginNameTransform extends PropertyTransform {
 
   @Override
   public boolean test(@Nullable GradleDslElement e, @NotNull GradleDslElement holder) {
-    return e instanceof GradleDslSimpleExpression || e instanceof GradleDslInfixExpression || e instanceof GradleDslExpressionMap;
+    return e instanceof GradleDslSimpleExpression || e instanceof GradleDslInfixExpression
+           || (e instanceof GradleDslExpressionMap && "apply".equals(e.getName()));
   }
 
   @Override

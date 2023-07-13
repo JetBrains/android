@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
@@ -63,17 +64,22 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   override fun createDslExpressionMap(expressionMap: GradleDslExpressionMap): PsiElement? = createDslElement(expressionMap)
 
   override fun createDslElement(element: GradleDslElement): PsiElement? {
-    if(element.isAlreadyCreated()) element.psiElement?.let { return it }
+    if (element.isAlreadyCreated()) element.psiElement?.let { return it }
 
     if (element.isNewEmptyBlockElement) {
       return null // Avoid creation of an empty block statement.
     }
 
-    if(!canReuseParent(element)) element.parent?.psiElement = null
+    if (!canReuseParent(element)) element.parent?.psiElement = null
 
     val parentPsiElement = ensureParentPsi(element) ?: return null
     val project = parentPsiElement.project
     val factory = TomlPsiFactory(project)
+
+    if (element.parent is GradleDslElementList) {
+      // Inside the list we can have GradleDslLiteral, infix notation element, GradleDslMethodCall with reference
+      return createArrayTable(element, factory)
+    }
 
     if (element.parent?.isBlockElement == true && element.isBlockElement) {
       // we have special handler for block elements
@@ -95,6 +101,9 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
                   is GradleDslSimpleExpression -> factory.createLiteral("\"${element.value}\"")
                   else -> factory.createLiteral("\"placeholder\"")
                 }
+
+                is GradleDslInfixExpression ->
+                  factory.createKeyValue(name, "\"placeholder\"")
 
                 else -> when (element) {
                   is GradleDslExpressionMap -> factory.createKeyValue(name, "{ }")
@@ -153,6 +162,29 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   private fun TomlPsiFactory.createComma() = createInlineTable("a = \"b\", c = \"d\"").children[2]
   private fun TomlPsiFactory.createArrayTable(name: String) = createTableHeader("[$name]").parent as TomlArrayTable
 
+  private fun createArrayTable(element: GradleDslElement, factory: TomlPsiFactory): PsiElement? {
+    val parent = element.parent ?: return null
+    val newTable = factory.createArrayTable(parent.getSegmentedName())
+    val file = parent.psiElement?.findParentOfType<TomlFile>() ?: return null
+    val arrayTableAnchor = getAnchorPsi(file, parent.anchor)
+
+    val addedArrayTable = file.addAfter(newTable, arrayTableAnchor)
+    addedArrayTable.addAfter(factory.createNewline(), null)
+
+    if (element is GradleDslLiteral) {
+      val psi = factory.createKeyValue(element.name, "\"placeholder\"")
+      val anchor = getAnchorPsi(addedArrayTable, element.anchor)
+      val addedElement: TomlKeyValue = addedArrayTable.addAfter(psi, anchor) as TomlKeyValue
+      addedElement.addAfter(factory.createNewline(), null)
+      element.psiElement = addedElement.value
+    }
+    else {
+      element.psiElement = addedArrayTable
+    }
+
+    return element.psiElement
+  }
+
   private fun createBlockInBlock(element: GradleDslElement, factory: TomlPsiFactory): PsiElement?{
     val parent = element.parent ?: return null
     val table = ensureParentPsi(element) as? TomlTable ?: return null
@@ -194,7 +226,7 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   private fun GradleDslElement.getSegmentedName(): String {
     val result = mutableListOf<String>()
     var currentElement: GradleDslElement? = this
-    while (currentElement != null && currentElement is GradleDslBlockElement) {
+    while (currentElement != null && currentElement.isBlockElement) {
       result.add(currentElement.name)
       currentElement = currentElement.parent
     }
@@ -218,6 +250,13 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
         is TomlArray -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionList, TomlLiteral>(element, psiElement, parent)
       }
       is GradlePropertiesDslElement -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
+    }
+    deleteEmptyParent(parentPsi)
+  }
+
+  private fun deleteEmptyParent(parentPsi: PsiElement?) {
+    when (parentPsi) {
+      is TomlArrayTable -> if (parentPsi.entries.isEmpty()) parentPsi.delete()
     }
   }
 

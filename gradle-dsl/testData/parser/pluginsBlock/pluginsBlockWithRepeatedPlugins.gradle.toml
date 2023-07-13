@@ -1,0 +1,7 @@
+[[plugins]]
+id = "com.android.application"
+[[plugins]]
+id = "com.android.library"
+[[plugins]]
+id = "com.android.application"
+
