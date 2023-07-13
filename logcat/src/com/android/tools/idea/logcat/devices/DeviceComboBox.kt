@@ -344,6 +344,26 @@ internal class DeviceComboBox(
         component.border = JBUI.Borders.empty(COMBO_ITEM_INSETS)
       }
     }
+
+    override fun selectNextPossibleValue() {
+      val index = listBox.selectedIndex
+      if (index < comboBox.model.size - 1) {
+        setSelectedIndex(index + 1)
+      }
+    }
+
+    override fun selectPreviousPossibleValue() {
+      val index = listBox.selectedIndex
+      if (index > 0) {
+        setSelectedIndex(index - 1)
+      }
+    }
+
+    private fun setSelectedIndex(index: Int) {
+      listBox.selectedIndex = index
+      listBox.ensureIndexIsVisible(index)
+      comboBox.repaint()
+    }
   }
 
   /**
