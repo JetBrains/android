@@ -2335,6 +2335,9 @@ Android Studio Preview.app/Contents/plugins/android/resources/device-art-resourc
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_silver/port_back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_silver/port_fore.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_silver/port_shadow.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_tablet/back.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_tablet/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_tablet/mask.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_xl/land_back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_xl/land_fore.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_xl/land_shadow.webp

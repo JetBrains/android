@@ -2314,6 +2314,9 @@ android-studio/plugins/android/resources/device-art-resources/pixel_silver/layou
 android-studio/plugins/android/resources/device-art-resources/pixel_silver/port_back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_silver/port_fore.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_silver/port_shadow.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_tablet/back.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_tablet/layout
+android-studio/plugins/android/resources/device-art-resources/pixel_tablet/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_xl/land_back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_xl/land_fore.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_xl/land_shadow.webp
