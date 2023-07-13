@@ -119,7 +119,7 @@ public class BuildVariantUpdater {
     // 2. Build files were not changed, variant to select doesn't exist, which can only happen with single-variant sync, request Variant-only Sync.
     // 3. Build files were not changed, variant to select exists, do module setup for affected modules.
     if (GradleSyncState.getInstance(myProject).isSyncNeeded().equals(YES)) {
-      requestGradleSync(myProject, variantAndAbi);
+      requestGradleSync(myProject, variantAndAbi, false);
       return;
     }
 
@@ -133,7 +133,7 @@ public class BuildVariantUpdater {
 
     // Build file is not changed, the cached variants should be cached and reused.
     AndroidGradleProjectResolver.saveCurrentlySyncedVariantsForReuse(myProject);
-    requestGradleSync(myProject, variantAndAbi);
+    requestGradleSync(myProject, variantAndAbi, false);
   }
 
   // TODO(b/215522894): Unfortunately, some Kotlin resolvers stash non-persisted data into the user data of data notes.
@@ -173,11 +173,13 @@ public class BuildVariantUpdater {
     };
   }
 
-  private static void requestGradleSync(@NotNull Project project,
-                                        @NotNull SwitchVariantRequest requestedVariantChange) {
+  public static void requestGradleSync(
+    @NotNull Project project,
+    SwitchVariantRequest requestedVariantChange,
+    boolean importDefaultVariants
+  ) {
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(
-      TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER,
-      requestedVariantChange);
+      TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER, requestedVariantChange, importDefaultVariants);
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, getSyncListener());
   }
 

@@ -37,7 +37,7 @@ import javax.swing.table.DefaultTableModel
  */
 data class BuildVariantItem(val buildVariantName: String, val isDefault: Boolean = false) : Comparable<BuildVariantItem> {
   override fun compareTo(other: BuildVariantItem): Int = buildVariantName.compareTo(other.buildVariantName)
-  override fun toString(): String = buildVariantName
+  override fun toString(): String = if (isDefault) "$buildVariantName (default)" else buildVariantName
 }
 
 /**
@@ -61,6 +61,7 @@ data class BuildVariantTableRow(
 
   fun variantItem(): BuildVariantItem = buildVariants.find { it.buildVariantName == variant } ?: error("Variant $variant not found")
   fun abiItem(): AbiItem? = abi?.let { abis.find { it.abiName == abi } ?: error("Abi $abi not found") }
+  fun variantDisplayName(): String = variantItem().toString()
 }
 
 /**
@@ -103,8 +104,8 @@ private constructor(
   }
 }
 
-private fun BuildVariantTableRow.toArray(hasAbis: Boolean): Array<Any?> = if (hasAbis) arrayOf(module, variant, abi)
-else arrayOf(module, variant)
+private fun BuildVariantTableRow.toArray(hasAbis: Boolean): Array<Any?> = if (hasAbis) arrayOf(module, this.variantDisplayName(), abi)
+else arrayOf(module, this.variantDisplayName())
 
 private fun buildVariantTableModelRows(project: Project) =
   project
@@ -113,25 +114,11 @@ private fun buildVariantTableModelRows(project: Project) =
     .map { androidFacet ->
       val defaultVariantName = GradleAndroidModel.get(androidFacet)?.androidProject?.defaultVariantName
       val variantAndAbi = androidFacet.getVariantAndAbi()
-      val currentVariantName = if (variantAndAbi.variant != defaultVariantName) {
-        variantAndAbi.variant
-      } else {
-        variantAndAbi.variant + BuildVariantView.DEFAULT_INDICATOR
-      }
-      val buildVariantItems = getBuildVariantItems(androidFacet, defaultVariantName)
+      val buildVariantItems =
+        GradleAndroidModel.get(androidFacet)?.variantNames.orEmpty().map { BuildVariantItem(it, it == defaultVariantName) }.sorted()
       val abiItems = getAbiItems(androidFacet, variantAndAbi.variant)
-      BuildVariantTableRow(androidFacet.holderModule, currentVariantName, variantAndAbi.abi, buildVariantItems, abiItems)
+      BuildVariantTableRow(androidFacet.holderModule, variantAndAbi.variant, variantAndAbi.abi, buildVariantItems, abiItems)
     }
-
-private fun getBuildVariantItems(facet: AndroidFacet, defaultVariantName: String?): List<BuildVariantItem> {
-  val buildVariantItems = mutableListOf<BuildVariantItem>()
-  if (!defaultVariantName.isNullOrBlank()) {
-    buildVariantItems.add(BuildVariantItem(defaultVariantName + BuildVariantView.DEFAULT_INDICATOR, isDefault = true))
-  }
-  buildVariantItems.addAll(
-    GradleAndroidModel.get(facet)?.variantNames.orEmpty().filter { it != defaultVariantName }.map { BuildVariantItem(it) }.sorted())
-  return buildVariantItems
-}
 
 private fun getAbiItems(facet: AndroidFacet, foVariant: String): List<AbiItem> {
   return getAbiNames(facet, foVariant).map { AbiItem(it) }.sorted()

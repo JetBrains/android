@@ -97,8 +97,8 @@ class BuildVariantTableModelTest {
           variant = "debug",
           abi = null,
           buildVariants =listOf(
-            BuildVariantItem("release (default)", isDefault = true),
-            BuildVariantItem("debug")
+            BuildVariantItem("debug"),
+            BuildVariantItem("release", isDefault = true)
           ),
           abis = emptyList()
         )
@@ -107,10 +107,10 @@ class BuildVariantTableModelTest {
       .isEqualTo(
         BuildVariantTableRow(
           module = libModule,
-          variant = "debug (default)",
+          variant = "debug",
           abi = null,
           buildVariants = listOf(
-            BuildVariantItem("debug (default)", isDefault = true),
+            BuildVariantItem("debug", isDefault = true),
             BuildVariantItem("release")
           ),
           abis = emptyList()

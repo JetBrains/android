@@ -38,6 +38,7 @@ interface GradleSyncInvoker {
     val trigger: GradleSyncStats.Trigger,
     // Switch the current variant if not null.
     val requestedVariantChange: SwitchVariantRequest? = null,
+    val importDefaultVariants: Boolean = false,
     val dontFocusSyncFailureOutput: Boolean = false,
     val syncTestMode: SyncTestMode = SyncTestMode.PRODUCTION
   ) {

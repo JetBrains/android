@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.AndroidExtraModelProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncStudioFlags
 import com.android.tools.idea.gradle.project.sync.NativeVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector
+import com.android.tools.idea.gradle.project.sync.SelectedVariants
 import com.android.tools.idea.gradle.project.sync.SingleVariantSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.SyncTestMode
 import com.android.tools.idea.gradle.project.sync.getProjectSyncRequest
@@ -77,8 +78,13 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
 
   val syncOptions = when (projectResolutionMode) {
     SingleVariantSyncProjectMode -> {
-      val selectedVariants = SelectedVariantCollector(project).collectSelectedVariants()
       val request = project.getProjectSyncRequest(projectPath)
+      // If the variants should be set to defaults, don't select any variants and the project with re-import with the defaults.
+      val selectedVariants = if (request?.importDefaultVariants == true) {
+        SelectedVariants(emptyMap())
+      } else {
+        SelectedVariantCollector(project).collectSelectedVariants()
+      }
       SingleVariantSyncActionOptions(
         studioFlags,
         syncTestMode = request?.syncTestMode ?: SyncTestMode.PRODUCTION,
