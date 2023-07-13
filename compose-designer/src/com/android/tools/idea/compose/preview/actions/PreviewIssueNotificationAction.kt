@@ -268,7 +268,7 @@ class PreviewIssueNotificationAction(
   }
 
   override fun margins(): Insets {
-    return JBUI.insets(3)
+    return JBUI.insets(3, 7)
   }
 
   override fun update(e: AnActionEvent) {
