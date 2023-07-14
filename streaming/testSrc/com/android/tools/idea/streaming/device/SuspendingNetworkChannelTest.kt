@@ -30,7 +30,8 @@ import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.SocketChannel
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit.SECONDS
 import kotlin.text.Charsets.UTF_8
 
 /**
@@ -70,32 +71,32 @@ class SuspendingNetworkChannelTest {
           steps[3].countDown()
           socketChannel.writeFully(ByteBuffer.wrap("abcdefghijkl".toByteArray(UTF_8)))
           steps[4].countDown()
-          done.await(20, TimeUnit.SECONDS)
+          done.await(20, SECONDS)
         }
       }
     }
 
-    assertThat(steps[0].await(200, TimeUnit.MILLISECONDS)).isFalse() // serverChannel.accept() should not return yet.
+    assertThat(steps[0].await(200, MILLISECONDS)).isFalse() // serverChannel.accept() should not return yet.
     val channel = SocketChannel.open(serverChannel.localAddress)
-    assertThat(steps[0].await(200, TimeUnit.MILLISECONDS)).isTrue() // serverChannel.accept() should return.
+    assertThat(steps[0].await(200, MILLISECONDS)).isTrue() // serverChannel.accept() should return.
     val out = channel.socket().getOutputStream()
-    assertThat(steps[1].await(200, TimeUnit.MILLISECONDS)).isFalse() // socketChannel.read(buffer) should not return yet.
+    assertThat(steps[1].await(200, MILLISECONDS)).isFalse() // socketChannel.read(buffer) should not return yet.
     out.writeAndFlush("12345678".toByteArray(UTF_8))
-    assertThat(steps[1].await(200, TimeUnit.MILLISECONDS)).isTrue() // socketChannel.read(buffer) should return.
+    assertThat(steps[1].await(200, MILLISECONDS)).isTrue() // socketChannel.read(buffer) should return.
     assertThat(inputBuffer.position()).isEqualTo(8)
     out.writeAndFlush("abcdefgh".toByteArray(UTF_8))
-    assertThat(steps[2].await(200, TimeUnit.MILLISECONDS)).isFalse() // socketChannel.readFully(buffer) should not return yet.
+    assertThat(steps[2].await(200, MILLISECONDS)).isFalse() // socketChannel.readFully(buffer) should not return yet.
     out.writeAndFlush("ijkl".toByteArray(UTF_8))
-    assertThat(steps[2].await(200, TimeUnit.MILLISECONDS)).isTrue() // socketChannel.readFully(buffer) should return.
+    assertThat(steps[2].await(200, MILLISECONDS)).isTrue() // socketChannel.readFully(buffer) should return.
     assertThat(inputBuffer.hasRemaining()).isFalse()
     assertThat(inputBuffer.array().toString(UTF_8)).isEqualTo("12345678abcdefghijkl")
 
     val buf = ByteArray(20)
     channel.readFully(ByteBuffer.wrap(buf, 0, 8))
-    assertThat(steps[3].await(200, TimeUnit.MILLISECONDS)).isTrue() // socketChannel.write(outputBuffer) should return.
+    assertThat(steps[3].await(200, MILLISECONDS)).isTrue() // socketChannel.write(outputBuffer) should return.
     channel.readFully(ByteBuffer.wrap(buf, 8, 8))
     channel.readFully(ByteBuffer.wrap(buf, 16, 4))
-    assertThat(steps[4].await(200, TimeUnit.MILLISECONDS)).isTrue() // socketChannel.writeFully(outputBuffer) should return.
+    assertThat(steps[4].await(200, MILLISECONDS)).isTrue() // socketChannel.writeFully(outputBuffer) should return.
     assertThat(buf.toString(UTF_8)).isEqualTo("12345678abcdefghijkl")
     done.countDown() // Allow the socket channel to close.
   }

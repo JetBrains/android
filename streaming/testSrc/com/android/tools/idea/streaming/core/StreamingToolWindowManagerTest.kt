@@ -102,7 +102,7 @@ import java.awt.Dimension
 import java.awt.Point
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.Icon
 import javax.swing.JButton
 import javax.swing.JViewport
@@ -186,20 +186,20 @@ class StreamingToolWindowManagerTest {
     project.messageBus.syncPublisher(AvdLaunchListener.TOPIC).avdLaunched(avdInfo, commandLine, RequestType.DIRECT_DEVICE_MANAGER, project)
     dispatchAllInvocationEvents()
     // The Running Devices tool is opened and activated when an embedded emulator is launched by a direct request.
-    waitForCondition(2, TimeUnit.SECONDS) { toolWindow.isVisible }
+    waitForCondition(2, SECONDS) { toolWindow.isVisible }
     assertThat(toolWindow.isActive).isTrue()
 
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
+    waitForCondition(2, SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents).hasLength(1)
-    waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
-    emulator1.getNextGrpcCall(2, TimeUnit.SECONDS) { true } // Wait for the initial "getVmState" call.
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != null }
+    waitForCondition(2, SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
+    emulator1.getNextGrpcCall(2, SECONDS) { true } // Wait for the initial "getVmState" call.
+    waitForCondition(2, SECONDS) { contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
 
     // Start the third emulator.
     emulator3.start(standalone = false)
 
-    waitForCondition(3, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    waitForCondition(3, SECONDS) { contentManager.contents.size == 2 }
 
     // The second emulator panel is added but the first one is still selected.
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator3.avdName)
@@ -211,7 +211,7 @@ class StreamingToolWindowManagerTest {
     }
 
     // Deploying an app activates the corresponding emulator panel.
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].isSelected }
+    waitForCondition(2, SECONDS) { contentManager.contents[0].isSelected }
 
     assertThat(contentManager.contents).hasLength(2)
 
@@ -219,13 +219,13 @@ class StreamingToolWindowManagerTest {
     emulator3.stop()
 
     // The panel corresponding to the second emulator goes away.
-    waitForCondition(5, TimeUnit.SECONDS) { contentManager.contents.size == 1 }
+    waitForCondition(5, SECONDS) { contentManager.contents.size == 1 }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
     assertThat(contentManager.contents[0].isSelected).isTrue()
 
     // Close the panel corresponding to emulator1.
     contentManager.removeContent(contentManager.contents[0], true)
-    val call = emulator1.getNextGrpcCall(2, TimeUnit.SECONDS,
+    val call = emulator1.getNextGrpcCall(2, SECONDS,
                                          FakeEmulator.defaultCallFilter.or("android.emulation.control.UiController/closeExtendedControls"))
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/setVmState")
     assertThat(TextFormat.shortDebugString(call.request)).isEqualTo("state: SHUTDOWN")
@@ -248,15 +248,15 @@ class StreamingToolWindowManagerTest {
     emulator.start()
 
     val controllers = RunningEmulatorCatalog.getInstance().updateNow().get()
-    waitForCondition(3, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
+    waitForCondition(3, SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
     assertThat(controllers).isNotEmpty()
-    waitForCondition(5, TimeUnit.SECONDS) { controllers.first().connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(5, SECONDS) { controllers.first().connectionState == EmulatorController.ConnectionState.CONNECTED }
 
     // Simulate an emulator crash.
     emulator.crash()
     controllers.first().sendKey(KeyboardEvent.newBuilder().setText(" ").build())
-    waitForCondition(5, TimeUnit.SECONDS) { contentManager.contents[0].displayName == null }
+    waitForCondition(5, SECONDS) { contentManager.contents[0].displayName == null }
     assertThat(contentManager.contents[0].component).isInstanceOf(EmptyStatePanel::class.java)
   }
 
@@ -271,32 +271,32 @@ class StreamingToolWindowManagerTest {
     // Start the emulator.
     emulator.start()
 
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
+    waitForCondition(2, SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents).hasLength(1)
-    waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
+    waitForCondition(2, SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
     val emulatorController = RunningEmulatorCatalog.getInstance().emulators.first()
-    waitForCondition(4, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != null }
+    waitForCondition(4, SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(2, SECONDS) { contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
 
     assertThat(emulator.extendedControlsVisible).isFalse()
     emulatorController.showExtendedControls(PaneEntry.newBuilder().setIndex(PaneIndex.KEEP_CURRENT).build())
     // Wait for the extended controls to show.
-    waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
+    waitForCondition(2, SECONDS) { emulator.extendedControlsVisible }
 
     val panel = contentManager.contents[0].component as EmulatorToolWindowPanel
 
     toolWindow.hide()
 
     // Wait for the extended controls to close.
-    waitForCondition(4, TimeUnit.SECONDS) { !emulator.extendedControlsVisible }
+    waitForCondition(4, SECONDS) { !emulator.extendedControlsVisible }
     // Wait for the prior visibility state of the extended controls to propagate to Studio.
-    waitForCondition(2, TimeUnit.SECONDS) { panel.lastUiState?.extendedControlsShown ?: false }
+    waitForCondition(2, SECONDS) { panel.lastUiState?.extendedControlsShown ?: false }
 
     toolWindow.show()
 
     // Wait for the extended controls to show.
-    waitForCondition(2, TimeUnit.SECONDS) { emulator.extendedControlsVisible }
+    waitForCondition(2, SECONDS) { emulator.extendedControlsVisible }
   }
 
   @Test
@@ -310,19 +310,19 @@ class StreamingToolWindowManagerTest {
     // Start the emulator.
     emulator.start()
 
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.isNotEmpty() }
+    waitForCondition(2, SECONDS) { contentManager.contents.isNotEmpty() }
     assertThat(contentManager.contents).hasLength(1)
-    waitForCondition(2, TimeUnit.SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
+    waitForCondition(2, SECONDS) { RunningEmulatorCatalog.getInstance().emulators.isNotEmpty() }
     val emulatorController = RunningEmulatorCatalog.getInstance().emulators.first()
-    waitForCondition(4, TimeUnit.SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents[0].displayName != null }
+    waitForCondition(4, SECONDS) { emulatorController.connectionState == EmulatorController.ConnectionState.CONNECTED }
+    waitForCondition(2, SECONDS) { contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator.avdName)
 
     val panel = contentManager.contents[0].component as EmulatorToolWindowPanel
     panel.setSize(250, 500)
     val ui = FakeUi(panel)
     val emulatorView = ui.getComponent<EmulatorView>()
-    waitForCondition(2, TimeUnit.SECONDS) { renderAndGetFrameNumber(ui, emulatorView) > 0 }
+    waitForCondition(2, SECONDS) { renderAndGetFrameNumber(ui, emulatorView) > 0 }
 
     // Zoom in.
     emulatorView.zoom(ZoomType.IN)
@@ -357,7 +357,7 @@ class StreamingToolWindowManagerTest {
     val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     toolWindow.show()
 
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
     if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
       assertThat(contentManager.contents[0].isCloseable).isTrue()
@@ -367,8 +367,8 @@ class StreamingToolWindowManagerTest {
     }
 
     agentRule.disconnectDevice(device)
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
-    waitForCondition(2, TimeUnit.SECONDS) { !device.agent.isRunning }
+    waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(2, SECONDS) { !device.agent.isRunning }
 
     // Check that PhysicalDeviceWatcher gets disposed after disabling device mirroring.
     // DisposerExplorer is used because alternative ways of testing this are pretty slow.
@@ -401,10 +401,10 @@ class StreamingToolWindowManagerTest {
     project.replaceService(DeviceProvisionerService::class.java, provisionerService, agentRule.disposable)
 
     toolWindow.show()
-    waitForCondition(2, TimeUnit.SECONDS) { toolWindow.tabActions.isNotEmpty() }
+    waitForCondition(2, SECONDS) { toolWindow.tabActions.isNotEmpty() }
     val newTabAction = toolWindow.tabActions[0]
     newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
-    val popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
+    val popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2, SECONDS)
 
     assertThat(popup.actions.toString()).isEqualTo(
       "[Separator (Remote Devices), Pixel 9000 (null), Separator (null), " +
@@ -423,12 +423,12 @@ class StreamingToolWindowManagerTest {
     deviceMirroringSettings.activateOnConnection = true
     val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
 
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
 
     agentRule.disconnectDevice(device)
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
-    waitForCondition(2, TimeUnit.SECONDS) { !device.agent.isRunning }
+    waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(2, SECONDS) { !device.agent.isRunning }
   }
 
   @Test
@@ -447,14 +447,14 @@ class StreamingToolWindowManagerTest {
     val device2 = agentRule.connectDevice("Pixel 6", 32, Dimension(1080, 2400))
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device2.serialNumber, project)
 
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 6 API 32")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 6 API 32")
     assertThat(toolWindow.isVisible).isTrue()
     assertThat(toolWindow.isActive).isFalse()
 
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device1.serialNumber, project)
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 2 }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
@@ -464,7 +464,7 @@ class StreamingToolWindowManagerTest {
 
     agentRule.disconnectDevice(device1)
     agentRule.disconnectDevice(device2)
-    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(10, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
   }
 
   @Test
@@ -482,7 +482,7 @@ class StreamingToolWindowManagerTest {
     val device2 = agentRule.connectDevice("Pixel 6", 32, Dimension(1080, 2400))
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device2.serialNumber, project)
 
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 2 }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
     assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 6 API 32")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 6 API 32")
@@ -499,7 +499,7 @@ class StreamingToolWindowManagerTest {
 
     agentRule.disconnectDevice(device1)
     agentRule.disconnectDevice(device2)
-    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(10, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
   }
 
   @Test
@@ -515,7 +515,7 @@ class StreamingToolWindowManagerTest {
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(device1.serialNumber, project)
 
     dispatchAllEventsInIdeEventQueue()
-    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
     dispatchAllEventsInIdeEventQueue()
     assertThat(toolWindow.isVisible).isFalse()
   }
@@ -532,7 +532,7 @@ class StreamingToolWindowManagerTest {
 
     val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
 
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
 
     // Wait until the first frame is rendered before disabling mirroring.
@@ -540,19 +540,19 @@ class StreamingToolWindowManagerTest {
     panel.setSize(250, 500)
     val ui = FakeUi(panel)
     val displayView = ui.getComponent<AbstractDisplayView>()
-    waitForCondition(2, TimeUnit.SECONDS) { renderAndGetFrameNumber(ui, displayView) > 0 }
+    waitForCondition(2, SECONDS) { renderAndGetFrameNumber(ui, displayView) > 0 }
 
     deviceMirroringSettings.deviceMirroringEnabled = false
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
-    waitForCondition(2, TimeUnit.SECONDS) { !device.agent.isRunning }
+    waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(2, SECONDS) { !device.agent.isRunning }
 
     deviceMirroringSettings.deviceMirroringEnabled = true
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
 
     agentRule.disconnectDevice(device)
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
-    waitForCondition(2, TimeUnit.SECONDS) { !device.agent.isRunning }
+    waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(2, SECONDS) { !device.agent.isRunning }
   }
 
   @Test
@@ -566,12 +566,12 @@ class StreamingToolWindowManagerTest {
     assertThat(toolWindow.isVisible).isFalse()
 
     agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
     assertThat(contentManager.contents[0].isCloseable).isTrue()
 
     agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 2 }
     assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 7 API 33")
     assertThat(contentManager.contents[1].isCloseable).isTrue()
 
@@ -581,7 +581,7 @@ class StreamingToolWindowManagerTest {
     assertThat(newTabAction.templatePresentation.icon).isEqualTo(AllIcons.General.Add)
 
     newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))
-    var popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
+    var popup: FakeListPopup<Any> = popupRule.fakePopupFactory.getNextPopup(2, SECONDS)
     assertThat(popup.actions.toString()).isEqualTo(
         "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
@@ -589,7 +589,7 @@ class StreamingToolWindowManagerTest {
     contentManager.removeContent(contentManager.contents[0], true)
 
     executeStreamingAction(newTabAction, toolWindow.component, project)
-    popup = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
+    popup = popupRule.fakePopupFactory.getNextPopup(2, SECONDS)
     assertThat(popup.actions.toString()).isEqualTo(
         "[Separator (Connected Devices), Pixel 4 API 30 (null), Pixel 7 API 33 (null), " +
         "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
@@ -598,24 +598,24 @@ class StreamingToolWindowManagerTest {
 
     // Activate mirroring of Pixel 7 API 33.
     executeStreamingAction(popup.actions[2], toolWindow.component, project)
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 7 API 33")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 7 API 33")
 
     executeStreamingAction(newTabAction, toolWindow.component, project)
-    popup = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
+    popup = popupRule.fakePopupFactory.getNextPopup(2, SECONDS)
     assertThat(popup.actions.toString()).isEqualTo(
         "[Separator (Connected Devices), Pixel 4 API 30 (null), " +
                 "Separator (null), Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
 
     // Activate mirroring of Pixel 4 API 30.
     executeStreamingAction(popup.actions[1], toolWindow.component, project)
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    waitForCondition(2, SECONDS) { contentManager.contents.size == 2 }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     executeStreamingAction(newTabAction, toolWindow.component, project)
-    popup = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
+    popup = popupRule.fakePopupFactory.getNextPopup(2, SECONDS)
     assertThat(popup.actions.toString()).isEqualTo(
         "[Pair Devices Using Wi-Fi (Open the Device Pairing dialog which allows connecting devices over Wi-Fi)]")
   }
@@ -636,24 +636,24 @@ class StreamingToolWindowManagerTest {
     agentRule.connectDevice("Pixel 2", 25, Dimension(1080, 1920)) // API too low for mirroring.
     agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
-    waitForCondition(2, TimeUnit.SECONDS) { deviceProvisioner.devices.value.size == 3 }
+    waitForCondition(2, SECONDS) { deviceProvisioner.devices.value.size == 3 }
     val pixel4 = deviceProvisioner.devices.value[1]
     assertThat(pixel4.state.properties.model).isEqualTo("Pixel 4")
     val pixel7 = deviceProvisioner.devices.value[2]
     assertThat(pixel7.state.properties.model).isEqualTo("Pixel 7")
-    waitForCondition(2, TimeUnit.SECONDS) { mirroringManager.mirroringHandles.value.size == 2 }
+    waitForCondition(2, SECONDS) { mirroringManager.mirroringHandles.value.size == 2 }
     assertThat(mirroringManager.mirroringHandles.value[pixel4]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
     assertThat(mirroringManager.mirroringHandles.value[pixel7]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
 
     runBlocking { mirroringManager.mirroringHandles.value[pixel4]?.toggleMirroring() }
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).contains(pixel4.state.properties.model)
     assertThat(contentManager.selectedContent?.displayName).contains(pixel4.state.properties.model)
     assertThat(mirroringManager.mirroringHandles.value[pixel4]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
     assertThat(mirroringManager.mirroringHandles.value[pixel7]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
 
     runBlocking { mirroringManager.mirroringHandles.value[pixel4]?.toggleMirroring() }
-    waitForCondition(1, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(1, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
     assertThat(mirroringManager.mirroringHandles.value[pixel4]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
     assertThat(mirroringManager.mirroringHandles.value[pixel7]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
   }
@@ -672,18 +672,18 @@ class StreamingToolWindowManagerTest {
     assertThat(mirroringManager.mirroringHandles.value).isEmpty()
 
     agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
-    waitForCondition(2, TimeUnit.SECONDS) { deviceProvisioner.devices.value.size == 1 }
+    waitForCondition(2, SECONDS) { deviceProvisioner.devices.value.size == 1 }
     val device = deviceProvisioner.devices.value[0]
-    waitForCondition(2, TimeUnit.SECONDS) { mirroringManager.mirroringHandles.value.size == 1 }
+    waitForCondition(2, SECONDS) { mirroringManager.mirroringHandles.value.size == 1 }
     assertThat(toolWindow.icon).isNotInstanceOf(LayeredIcon::class.java) // Liveness indicator is off.
 
     runBlocking { mirroringManager.mirroringHandles.value[device]?.toggleMirroring() }
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat((toolWindow.icon as LayeredIcon).getIcon(1)).isInstanceOf(IndicatorIcon::class.java) // Liveness indicator is on.
 
     toolWindow.hide()
     runBlocking { mirroringManager.mirroringHandles.value[device]?.toggleMirroring() }
-    waitForCondition(2, TimeUnit.SECONDS) { toolWindow.icon !is LayeredIcon } // Liveness indicator is off.
+    waitForCondition(2, SECONDS) { toolWindow.icon !is LayeredIcon } // Liveness indicator is off.
     assertThat(mirroringManager.mirroringHandles.value[device]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
   }
 
@@ -704,14 +704,14 @@ class StreamingToolWindowManagerTest {
     tablet.start(standalone = true)
     RunningEmulatorCatalog.getInstance().updateNow().get()
 
-    waitForCondition(2, TimeUnit.SECONDS) { toolWindow.tabActions.isNotEmpty() }
+    waitForCondition(2, SECONDS) { toolWindow.tabActions.isNotEmpty() }
     val newTabAction = toolWindow.tabActions[0]
     val testEvent = createTestEvent(toolWindow.component, project)
     newTabAction.actionPerformed(testEvent)
     lateinit var popup: FakeListPopup<Any>
-    waitForCondition(4, TimeUnit.SECONDS) {
+    waitForCondition(4, SECONDS) {
       newTabAction.actionPerformed(testEvent)
-      popup = popupRule.fakePopupFactory.getNextPopup(2, TimeUnit.SECONDS)
+      popup = popupRule.fakePopupFactory.getNextPopup(2, SECONDS)
       popup.items.size >= 2
     }
     assertThat(popup.actions.toString()).isEqualTo(
@@ -720,7 +720,7 @@ class StreamingToolWindowManagerTest {
     assertThat(popup.actions[1].templatePresentation.icon).isEqualTo(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE)
 
     executeStreamingAction(popup.actions[1], toolWindow.component, project)
-    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(phone.avdName)
     assertThat(contentManager.selectedContent?.displayName).isEqualTo(phone.avdName)
   }
@@ -740,7 +740,7 @@ class StreamingToolWindowManagerTest {
     }
 
     agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
 
     // Calling userInvolvementRequired should trigger device selection even if it is done before the device is connected.
@@ -748,7 +748,7 @@ class StreamingToolWindowManagerTest {
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(nextSerialNumber, project)
     val device = agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
     assertThat(device.serialNumber).isEqualTo(nextSerialNumber)
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 2 }
     assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 7 API 33")
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 7 API 33")
   }
@@ -770,11 +770,11 @@ class StreamingToolWindowManagerTest {
       ui.clickOn(ui.getComponent<JButton> { it.text == "Acknowledge" })
     }
 
-    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
 
     agentRule.disconnectDevice(device)
-    waitForCondition(10, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(10, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
 
     assertThat(deviceMirroringSettings.confirmationDialogShown).isTrue()
     assertThat(deviceMirroringSettings.deviceMirroringEnabled).isTrue()
@@ -835,7 +835,7 @@ class StreamingToolWindowManagerTest {
     toolWindow.show()
 
     dispatchAllEventsInIdeEventQueue()
-    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
     dispatchAllEventsInIdeEventQueue()
     assertThat(contentManager.contents.size == 1).isTrue()
     assertThat(contentManager.contents[0].displayName).isNull()
@@ -854,7 +854,7 @@ class StreamingToolWindowManagerTest {
     toolWindow.show()
 
     dispatchAllEventsInIdeEventQueue()
-    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, TimeUnit.SECONDS)
+    awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
     dispatchAllEventsInIdeEventQueue()
     assertThat(contentManager.contents.size == 1).isTrue()
     assertThat(contentManager.contents[0].displayName).isNull()

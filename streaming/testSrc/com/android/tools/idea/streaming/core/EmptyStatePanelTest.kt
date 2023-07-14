@@ -53,7 +53,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JEditorPane
 import javax.swing.event.HyperlinkEvent
 
@@ -198,7 +198,7 @@ class EmptyStatePanelTest {
     val panel = EmptyStatePanel(projectRule.project, testRootDisposable).apply { setSize(500, 1000) }
 
     // Allow the panel to update itself.
-    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 2, TimeUnit.SECONDS)
+    ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 2, SECONDS)
     UIUtil.dispatchAllInvocationEvents()
 
     return panel

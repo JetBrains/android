@@ -41,7 +41,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JComboBox
 
 /**
@@ -75,7 +75,7 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(500, TimeUnit.SECONDS) { findScreenshotViewer() != null }
+    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
@@ -100,7 +100,7 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(500, TimeUnit.SECONDS) { findScreenshotViewer() != null }
+    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
@@ -123,7 +123,7 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(500, TimeUnit.SECONDS) { findScreenshotViewer() != null }
+    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)
@@ -146,7 +146,7 @@ class EmulatorScreenshotActionTest {
 
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
-    waitForCondition(500, TimeUnit.SECONDS) { findScreenshotViewer() != null }
+    waitForCondition(500, SECONDS) { findScreenshotViewer() != null }
     val screenshotViewer = findScreenshotViewer()!!
     val rootPane = screenshotViewer.rootPane
     val ui = FakeUi(rootPane)

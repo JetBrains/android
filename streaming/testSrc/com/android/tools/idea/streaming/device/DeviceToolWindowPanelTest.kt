@@ -65,7 +65,7 @@ import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_P
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JViewport
 
 /**
@@ -113,7 +113,7 @@ class DeviceToolWindowPanelTest {
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE)
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     fakeUi.updateToolbars()
@@ -167,7 +167,7 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
   }
 
   @Test
@@ -181,7 +181,7 @@ class DeviceToolWindowPanelTest {
     assertThat(panel.deviceView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     fakeUi.updateToolbars()
@@ -240,7 +240,7 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
   }
 
   @Test
@@ -254,7 +254,7 @@ class DeviceToolWindowPanelTest {
     val deviceView = panel.deviceView!!
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(5, SECONDS) { agent.isRunning && panel.isConnected }
 
     // Check appearance.
     fakeUi.updateToolbars()
@@ -262,7 +262,7 @@ class DeviceToolWindowPanelTest {
 
     val foldingGroup = ActionManager.getInstance().getAction("android.device.postures") as ActionGroup
     val event = createTestEvent(deviceView, project, ActionPlaces.TOOLBAR)
-    waitForCondition(2, TimeUnit.SECONDS) { foldingGroup.update(event); event.presentation.isVisible}
+    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.isVisible}
     assertThat(event.presentation.isEnabled).isTrue()
     assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
     val foldingActions = foldingGroup.getChildren(event)
@@ -284,7 +284,7 @@ class DeviceToolWindowPanelTest {
     val nextFrameNumber = panel.frameNumber + 1
     val closingAction = foldingActions[0]
     closingAction.actionPerformed(event)
-    waitForCondition(2, TimeUnit.SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
+    waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
     waitForFrame(nextFrameNumber)
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(1080, 2092))
   }
@@ -301,7 +301,7 @@ class DeviceToolWindowPanelTest {
     assertThat(panel.deviceView).isNotNull()
 
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(10, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
+    waitForCondition(10, SECONDS) { agent.isRunning && panel.isConnected }
 
     fakeUi.updateToolbars()
     fakeUi.layoutAndDispatchEvents()
@@ -322,12 +322,12 @@ class DeviceToolWindowPanelTest {
     // Recreate panel content.
     val uiState = panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
     panel.createContent(false, uiState)
     assertThat(panel.deviceView).isNotNull()
     deviceView = panel.deviceView!!
     fakeUi.layoutAndDispatchEvents()
-    waitForCondition(5, TimeUnit.SECONDS) { agent.videoStreamActive && panel.isConnected }
+    waitForCondition(5, SECONDS) { agent.videoStreamActive && panel.isConnected }
     waitForFrame()
 
     // Check that zoom level and scroll position are restored.
@@ -337,7 +337,7 @@ class DeviceToolWindowPanelTest {
 
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()
-    waitForCondition(2, TimeUnit.SECONDS) { !agent.videoStreamActive }
+    waitForCondition(2, SECONDS) { !agent.videoStreamActive }
   }
 
   private fun FakeUi.mousePressOn(component: Component) {
@@ -375,14 +375,14 @@ class DeviceToolWindowPanelTest {
   }
 
   private fun getNextControlMessageAndWaitForFrame(): ControlMessage {
-    val message = agent.getNextControlMessage(2, TimeUnit.SECONDS)
+    val message = agent.getNextControlMessage(2, SECONDS)
     waitForFrame()
     return message
   }
 
   /** Waits for all video frames to be received after the given one. */
   private fun waitForFrame(minFrameNumber: Int = 1) {
-    waitForCondition(2, TimeUnit.SECONDS) {
+    waitForCondition(2, SECONDS) {
       panel.isConnected && agent.frameNumber >= minFrameNumber && renderAndGetFrameNumber() == agent.frameNumber
     }
   }

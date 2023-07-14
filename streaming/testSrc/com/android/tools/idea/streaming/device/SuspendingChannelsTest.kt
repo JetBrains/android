@@ -33,7 +33,7 @@ import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.InterruptedByTimeoutException
 import java.nio.channels.SocketChannel
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.MILLISECONDS
 import kotlin.text.Charsets.UTF_8
 
 /**
@@ -68,7 +68,7 @@ class SuspendingChannelsTest {
           steps[2].countDown()
           try {
             exception = null
-            stream.waitForData(1, 10, TimeUnit.MILLISECONDS)
+            stream.waitForData(1, 10, MILLISECONDS)
           }
           catch (e: Throwable) {
             exception = e
@@ -82,18 +82,18 @@ class SuspendingChannelsTest {
 
     val channel = SocketChannel.open(serverChannel.localAddress)
     val out = channel.socket().getOutputStream()
-    assertThat(steps[0].await(200, TimeUnit.MILLISECONDS)).isFalse() // stream.readNBytes(buffer, 0, 4) should not return yet.
+    assertThat(steps[0].await(200, MILLISECONDS)).isFalse() // stream.readNBytes(buffer, 0, 4) should not return yet.
     out.writeAndFlush("12345678".toByteArray(UTF_8))
-    assertThat(steps[0].await(200, TimeUnit.MILLISECONDS)).isTrue() // stream.readNBytes(buffer, 0, 4) should return.
+    assertThat(steps[0].await(200, MILLISECONDS)).isTrue() // stream.readNBytes(buffer, 0, 4) should return.
     out.writeAndFlush("ab".toByteArray(UTF_8))
-    assertThat(steps[1].await(200, TimeUnit.MILLISECONDS)).isFalse() // stream.waitForData(8) should not return yet.
+    assertThat(steps[1].await(200, MILLISECONDS)).isFalse() // stream.waitForData(8) should not return yet.
     out.writeAndFlush("cdefgh".toByteArray(UTF_8))
-    assertThat(steps[1].await(200, TimeUnit.MILLISECONDS)).isTrue() // stream.waitForData(8) should return.
-    assertThat(steps[2].await(200, TimeUnit.MILLISECONDS)).isFalse() // stream.readNBytes(buffer, 4, 16) should not return yet.
+    assertThat(steps[1].await(200, MILLISECONDS)).isTrue() // stream.waitForData(8) should return.
+    assertThat(steps[2].await(200, MILLISECONDS)).isFalse() // stream.readNBytes(buffer, 4, 16) should not return yet.
     out.writeAndFlush("ijkl".toByteArray(UTF_8))
-    assertThat(steps[2].await(200, TimeUnit.MILLISECONDS)).isTrue() // stream.readNBytes(buffer, 4, 16) should return.
+    assertThat(steps[2].await(200, MILLISECONDS)).isTrue() // stream.readNBytes(buffer, 4, 16) should return.
     assertThat(buffer.toString(UTF_8)).isEqualTo("12345678abcdefghijkl")
-    assertThat(steps[3].await(500, TimeUnit.MILLISECONDS)).isTrue() // stream.waitForData(1, 10, TimeUnit.MILLISECONDS) should throw.
+    assertThat(steps[3].await(500, MILLISECONDS)).isTrue() // stream.waitForData(1, 10, MILLISECONDS) should throw.
     assertThat(exception).isInstanceOf(InterruptedByTimeoutException::class.java)
   }
 
@@ -108,12 +108,12 @@ class SuspendingChannelsTest {
           socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
           val stream = newOutputStream(socketChannel, 8)
           stream.write("1234".toByteArray(UTF_8))
-          assertThat(steps[0].await(200, TimeUnit.MILLISECONDS)).isFalse() // Nothing should be written to the channel yet.
+          assertThat(steps[0].await(200, MILLISECONDS)).isFalse() // Nothing should be written to the channel yet.
           stream.write("5678abcdef".toByteArray(UTF_8))
-          assertThat(steps[0].await(200, TimeUnit.MILLISECONDS)).isTrue() // The first 8 bytes should be written to the channel.
-          assertThat(steps[1].await(200, TimeUnit.MILLISECONDS)).isFalse() // The second buffer is not written yet.
+          assertThat(steps[0].await(200, MILLISECONDS)).isTrue() // The first 8 bytes should be written to the channel.
+          assertThat(steps[1].await(200, MILLISECONDS)).isFalse() // The second buffer is not written yet.
           stream.writeAndFlush("ghijkl".toByteArray(UTF_8))
-          assertThat(steps[1].await(200, TimeUnit.MILLISECONDS)).isTrue() // All data is written to the channel.
+          assertThat(steps[1].await(200, MILLISECONDS)).isTrue() // All data is written to the channel.
         }
       }
     }
@@ -144,9 +144,9 @@ class SuspendingChannelsTest {
     runBlocking {
       SuspendingSocketChannel.open().use { channel ->
         channel.connect(serverChannel.localAddress)
-        assertThat(connected.await(20, TimeUnit.MILLISECONDS)).isTrue()
+        assertThat(connected.await(20, MILLISECONDS)).isTrue()
 
-        assertThat(closed.await(20, TimeUnit.MILLISECONDS)).isTrue()
+        assertThat(closed.await(20, MILLISECONDS)).isTrue()
         assertThrows(IOException::class.java) {
           runBlocking {
             while (true) {
@@ -175,7 +175,7 @@ class SuspendingChannelsTest {
         channel.connect(serverChannel.localAddress)
       }
     }
-    assertThat(connected.await(200, TimeUnit.MILLISECONDS)).isTrue()
+    assertThat(connected.await(200, MILLISECONDS)).isTrue()
   }
 
   private fun OutputStream.writeAndFlush(bytes: ByteArray) {
