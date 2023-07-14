@@ -19,9 +19,9 @@ import com.android.build.attribution.ui.view.ClearBuildResultsAction
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
-import com.intellij.openapi.observable.properties.AbstractObservableClearableProperty
-import com.intellij.openapi.observable.properties.AtomicMutableProperty
+import com.intellij.openapi.observable.properties.AbstractObservableProperty
 import com.intellij.openapi.observable.properties.AtomicProperty
+import com.intellij.openapi.observable.properties.ObservableMutableProperty
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
@@ -114,7 +114,7 @@ private class BuildAnalyzerConfigurable(val project: Project) : BoundSearchableC
   }
 }
 
-class AtomicFileSize(private val reference: AtomicProperty<Long>) : AbstractObservableClearableProperty<String>(), AtomicMutableProperty<String> {
+class AtomicFileSize(private val reference: AtomicProperty<Long>) : AbstractObservableProperty<String>(), ObservableMutableProperty<String> {
   private var representation = Formats.formatFileSize(reference.get())
 
   init {
@@ -128,9 +128,5 @@ class AtomicFileSize(private val reference: AtomicProperty<Long>) : AbstractObse
   override fun set(value: String) {
     representation = value
     fireChangeEvent(value)
-  }
-
-  override fun updateAndGet(update: (String) -> String): String {
-    throw UnsupportedOperationException("AtomicFileSize is not mutable")
   }
 }
