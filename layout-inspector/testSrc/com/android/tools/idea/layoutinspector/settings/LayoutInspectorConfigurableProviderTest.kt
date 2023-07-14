@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.settings
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.testFramework.ApplicationRule
@@ -120,7 +121,7 @@ class LayoutInspectorConfigurableProviderTest {
   }
 
   @Test
-  fun testConfigurableSettingEmbeddedLayoutInspectorInteraction() {
+  fun testConfigurableSettingEmbeddedLayoutInspectorInteraction() = withEmbeddedLayoutInspector {
     val previous = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
 
@@ -131,35 +132,35 @@ class LayoutInspectorConfigurableProviderTest {
     assertThat(enableEmbeddedLiPanel.components[2]).isInstanceOf(ActionLink::class.java)
 
     // make sure to start with property set to true
-    layoutInspectorSettings.embeddedLayoutInspectorEnabled = true
+    enableEmbeddedLayoutInspector = true
 
     // load settings from configurable to swing
     configurable.reset()
-    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isTrue()
+    assertThat(enableEmbeddedLayoutInspector).isTrue()
     assertThat(enableEmbeddedLiCheckBox.isSelected).isTrue()
 
     // uncheck the checkbox
     enableEmbeddedLiCheckBox.isSelected = false
 
     assertThat(configurable.isModified).isTrue()
-    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isTrue()
+    assertThat(enableEmbeddedLayoutInspector).isTrue()
 
     // store setting from swing to configurable
     configurable.apply()
     assertThat(configurable.isModified).isFalse()
     assertThat(enableEmbeddedLiCheckBox.isSelected).isFalse()
-    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()
+    assertThat(enableEmbeddedLayoutInspector).isFalse()
 
     // load settings from configurable to swing
     configurable.reset()
-    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()
+    assertThat(enableEmbeddedLayoutInspector).isFalse()
     assertThat(enableEmbeddedLiCheckBox.isSelected).isFalse()
 
     // back to true
-    layoutInspectorSettings.embeddedLayoutInspectorEnabled = true
+    enableEmbeddedLayoutInspector = true
     // load settings from configurable to swing
     configurable.reset()
-    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isTrue()
+    assertThat(enableEmbeddedLayoutInspector).isTrue()
     assertThat(enableEmbeddedLiCheckBox.isSelected).isTrue()
 
     StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(previous)

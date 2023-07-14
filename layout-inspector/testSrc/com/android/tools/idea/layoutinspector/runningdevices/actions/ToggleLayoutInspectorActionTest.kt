@@ -22,7 +22,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.FakeToolWindowManag
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.TabId
 import com.android.tools.idea.layoutinspector.runningdevices.TabInfo
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
@@ -95,7 +95,7 @@ class ToggleLayoutInspectorActionTest {
   }
 
   @Test
-  fun testActionPerformedTogglesLayoutInspector() {
+  fun testActionPerformedTogglesLayoutInspector() = withEmbeddedLayoutInspector {
     val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
     val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent()
 
@@ -130,7 +130,7 @@ class ToggleLayoutInspectorActionTest {
 
   @Test
   fun testActionNotVisibleWhenEmbeddedLayoutInspectorIsDisabled() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       val toggleLayoutInspectorAction = ToggleLayoutInspectorAction()
       val fakeActionEvent = toggleLayoutInspectorAction.getFakeActionEvent()
 
@@ -140,7 +140,7 @@ class ToggleLayoutInspectorActionTest {
 
   @Test
   fun testLayoutInspectorManagerNotCreatedWhenEmbeddedLayoutInspectorIsDisabled() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       val mockLayoutInspectorManager = mock<LayoutInspectorManager>()
       displayViewRule.project.replaceService(
         LayoutInspectorManager::class.java,
@@ -159,13 +159,6 @@ class ToggleLayoutInspectorActionTest {
 
       verifyNoMoreInteractions(mockLayoutInspectorManager)
     }
-
-  private fun runWithEmbeddedLayoutInspector(enable: Boolean, block: () -> Unit) {
-    val previous = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = enable
-    block()
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = previous
-  }
 
   private fun AnAction.getFakeActionEvent(): AnActionEvent {
     val contentPanelContainer = JPanel()

@@ -32,7 +32,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
@@ -162,11 +162,10 @@ class ViewContextMenuFactoryTest {
   }
 
   @Test
-  fun testActionsVisibility() {
+  fun testActionsVisibility() = withEmbeddedLayoutInspector {
     val model = inspectorModel!!
 
-    val previous = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = false
+    enableEmbeddedLayoutInspector = false
 
     showViewContextMenu(listOf(model[VIEW2]!!), model, source!!, 0, 0)
     val actions = createdGroup?.getChildren(event)?.toList()
@@ -177,7 +176,7 @@ class ViewContextMenuFactoryTest {
       assertThat(event.presentation.isVisible).isTrue()
     }
 
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
+    enableEmbeddedLayoutInspector = true
 
     actions?.forEach {
       val event = createFakeEvent()
@@ -191,8 +190,6 @@ class ViewContextMenuFactoryTest {
         else -> assertThat(event.presentation.isVisible).isTrue()
       }
     }
-
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = previous
   }
 
   @Test

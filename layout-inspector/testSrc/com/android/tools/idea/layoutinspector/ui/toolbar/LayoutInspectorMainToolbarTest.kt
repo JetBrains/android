@@ -31,7 +31,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.toImageType
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
@@ -96,7 +96,7 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       val toolbar = createToolbar()
       val toggle =
         toolbar.component.components.find {
@@ -113,7 +113,7 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
       clientSettings.isCapturingModeOn = false
 
@@ -134,7 +134,7 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenConnected() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       installCommandHandlers()
       latch = CountDownLatch(1)
       connect(MODERN_PROCESS)
@@ -159,7 +159,7 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
       clientSettings.isCapturingModeOn = false
 
@@ -187,7 +187,7 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun testTurnOnSnapshotModeWhenDisconnected() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       installCommandHandlers()
 
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
@@ -221,7 +221,7 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun testTurnOnLiveModeWhenDisconnected() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       installCommandHandlers()
       val clientSettings = InspectorClientSettings(androidProjectRule.project)
       clientSettings.isCapturingModeOn = false
@@ -253,7 +253,7 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun testTurnOnSnapshotMode() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       latch = CountDownLatch(1)
       installCommandHandlers()
 
@@ -290,7 +290,7 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun testTurnOnLiveMode() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       latch = CountDownLatch(1)
       installCommandHandlers()
 
@@ -362,7 +362,7 @@ class LayoutInspectorMainToolbarTest {
 
   @Test
   fun testLiveUpdatesAndRefreshActionsAreMissingFromEmbeddedLayoutInspector() =
-    runWithEmbeddedLayoutInspector(true) {
+    withEmbeddedLayoutInspector {
       val toolbar = createToolbar()
 
       val liveUpdatesAction =
@@ -433,12 +433,5 @@ class LayoutInspectorMainToolbarTest {
       )
     action.update(event)
     return presentation
-  }
-
-  private fun runWithEmbeddedLayoutInspector(value: Boolean, block: () -> Unit) {
-    val previousValue = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = value
-    block()
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = previousValue
   }
 }

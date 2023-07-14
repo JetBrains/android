@@ -78,7 +78,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.PRO
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.compose.VERSION_MISSING_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLayoutInspectorClient
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
@@ -379,20 +379,18 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
-  fun disableBitmapCapturingTrueWhenInRunningDevices(): Unit = runBlocking {
-    val originalState = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
+  fun disableBitmapCapturingTrueWhenInRunningDevices(): Unit = withEmbeddedLayoutInspector {
+    runBlocking {
+      val disableBitmapScreenshotReceived = ReportingCountDownLatch(1)
+      inspectionRule.viewInspector.listenWhen({ it.hasDisableBitmapScreenshotCommand() }) { command
+        ->
+        assertThat(command.disableBitmapScreenshotCommand.disable).isTrue()
+        disableBitmapScreenshotReceived.countDown()
+      }
 
-    val disableBitmapScreenshotReceived = ReportingCountDownLatch(1)
-    inspectionRule.viewInspector.listenWhen({ it.hasDisableBitmapScreenshotCommand() }) { command ->
-      assertThat(command.disableBitmapScreenshotCommand.disable).isTrue()
-      disableBitmapScreenshotReceived.countDown()
+      inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+      disableBitmapScreenshotReceived.await(TIMEOUT, TIMEOUT_UNIT)
     }
-
-    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
-    disableBitmapScreenshotReceived.await(TIMEOUT, TIMEOUT_UNIT)
-
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = originalState
   }
 
   @Test

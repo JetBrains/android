@@ -23,7 +23,7 @@ import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLoadingPanel
@@ -64,9 +64,7 @@ class RootPanelTest {
     }
 
   @Test
-  fun testProcessNotDebuggablePanelIsShown() {
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
-
+  fun testProcessNotDebuggablePanelIsShown() = withEmbeddedLayoutInspector {
     val fakeTreePanel = JPanel()
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
 
@@ -89,7 +87,7 @@ class RootPanelTest {
     assertThat(rootPanel.showProcessNotDebuggableText).isFalse()
 
     // disable embedded Layout Inspector, showProcessNotDebuggableText should always be false
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = false
+    enableEmbeddedLayoutInspector = false
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
@@ -129,9 +127,7 @@ class RootPanelTest {
   }
 
   @Test
-  fun testLoadingPanelIsRemovesProcessNotDebuggable() {
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
-
+  fun testLoadingPanelIsRemovesProcessNotDebuggable() = withEmbeddedLayoutInspector {
     val fakeTreePanel = JPanel()
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
     rootPanel.layoutInspector = layoutInspectorRule.inspector

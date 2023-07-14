@@ -19,7 +19,7 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationGroup
@@ -73,23 +73,18 @@ class ShowLayoutInspectorActionTest {
   }
 
   @Test
-  fun testActivateLayoutInspectorToolWindow() {
-    val settings = LayoutInspectorSettings.getInstance()
-    settings.embeddedLayoutInspectorEnabled = false
-
-    val showLayoutInspectorAction = ShowLayoutInspectorAction()
-    assertThat(fakeToolWindowManager.layoutInspectorToolWindow.isActive).isFalse()
-    showLayoutInspectorAction.actionPerformed(
-      createFakeEvent(projectRule.project, showLayoutInspectorAction)
-    )
-    assertThat(fakeToolWindowManager.layoutInspectorToolWindow.isActive).isTrue()
-  }
+  fun testActivateLayoutInspectorToolWindow() =
+    withEmbeddedLayoutInspector(false) {
+      val showLayoutInspectorAction = ShowLayoutInspectorAction()
+      assertThat(fakeToolWindowManager.layoutInspectorToolWindow.isActive).isFalse()
+      showLayoutInspectorAction.actionPerformed(
+        createFakeEvent(projectRule.project, showLayoutInspectorAction)
+      )
+      assertThat(fakeToolWindowManager.layoutInspectorToolWindow.isActive).isTrue()
+    }
 
   @Test
-  fun testActivateRunningDevicesToolWindow() {
-    val settings = LayoutInspectorSettings.getInstance()
-    settings.embeddedLayoutInspectorEnabled = true
-
+  fun testActivateRunningDevicesToolWindow() = withEmbeddedLayoutInspector {
     val showLayoutInspectorAction = ShowLayoutInspectorAction()
     assertThat(fakeToolWindowManager.runningDevicesToolWindow.isActive).isFalse()
     showLayoutInspectorAction.actionPerformed(
@@ -99,10 +94,7 @@ class ShowLayoutInspectorActionTest {
   }
 
   @Test
-  fun testShowLayoutInspectorDiscoveryPopUp() {
-    val settings = LayoutInspectorSettings.getInstance()
-    settings.embeddedLayoutInspectorEnabled = true
-
+  fun testShowLayoutInspectorDiscoveryPopUp() = withEmbeddedLayoutInspector {
     val showLayoutInspectorAction = ShowLayoutInspectorAction()
     showLayoutInspectorAction.actionPerformed(
       createFakeEvent(projectRule.project, showLayoutInspectorAction)

@@ -135,7 +135,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testToggleLayoutInspectorOnOff() {
+  fun testToggleLayoutInspectorOnOff() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
@@ -149,7 +149,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testToggleLayoutInspectorOnMultipleTimesForSameTab() {
+  fun testToggleLayoutInspectorOnMultipleTimesForSameTab() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
@@ -164,7 +164,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testToggleLayoutInspectorOffMultipleTimesForSameTab() {
+  fun testToggleLayoutInspectorOffMultipleTimesForSameTab() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
@@ -179,7 +179,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testToggleLayoutInspectorOnMultipleTabs() {
+  fun testToggleLayoutInspectorOnMultipleTabs() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
@@ -203,7 +203,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testWorkbenchHasDataProvider() {
+  fun testWorkbenchHasDataProvider() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
@@ -216,7 +216,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testSelectedTabDoesNotChange() {
+  fun testSelectedTabDoesNotChange() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
@@ -232,7 +232,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testWorkbenchIsInjectedWhenSelectedTabChanges() {
+  fun testWorkbenchIsInjectedWhenSelectedTabChanges() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     fakeToolWindowManager.setSelectedContent(tab1)
@@ -252,7 +252,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testSelectedTabIsRemoved() {
+  fun testSelectedTabIsRemoved() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
     var stopInspectorCounts = 0
     layoutInspector.stopInspectorListeners.add { stopInspectorCounts += 1 }
@@ -286,7 +286,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testViewIsRefreshedOnSelectionChange() {
+  fun testViewIsRefreshedOnSelectionChange() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
     var refreshCount = 0
 
@@ -308,7 +308,7 @@ class LayoutInspectorManagerTest {
   @Ignore("b/287075342")
   @Test
   @RunsInEdt
-  fun testDeepInspectIsDisabledOnProcessChange() {
+  fun testDeepInspectIsDisabledOnProcessChange() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
@@ -326,7 +326,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testEnableLiveUpdatesOnProcessChange() {
+  fun testEnableLiveUpdatesOnProcessChange() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspector.inspectorClientSettings.isCapturingModeOn = false
@@ -344,7 +344,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testToggleLayoutInspectorShowsWarningFirstTime() {
+  fun testToggleLayoutInspectorShowsWarningFirstTime() = withEmbeddedLayoutInspector {
     PropertiesComponent.getInstance().unsetValue(SHOW_EXPERIMENTAL_WARNING_KEY)
 
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
@@ -388,7 +388,7 @@ class LayoutInspectorManagerTest {
 
   @Test
   @RunsInEdt
-  fun testDeepInspectEnablesClickIntercept() {
+  fun testDeepInspectEnablesClickIntercept() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)

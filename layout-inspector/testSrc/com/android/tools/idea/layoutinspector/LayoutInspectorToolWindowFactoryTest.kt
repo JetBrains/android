@@ -28,7 +28,7 @@ import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
@@ -143,17 +143,12 @@ class LayoutInspectorToolWindowFactoryTest {
   }
 
   @Test
-  fun isApplicableReturnsFalseWhenEnabledInRunningDevices() {
-    val prev = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = true
-
+  fun isApplicableReturnsFalseWhenEnabledInRunningDevices() = withEmbeddedLayoutInspector {
     assertThat(LayoutInspectorToolWindowFactory().isApplicable(projectRule.project)).isFalse()
 
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = false
+    enableEmbeddedLayoutInspector = false
 
     assertThat(LayoutInspectorToolWindowFactory().isApplicable(projectRule.project)).isTrue()
-
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = prev
   }
 
   @Test

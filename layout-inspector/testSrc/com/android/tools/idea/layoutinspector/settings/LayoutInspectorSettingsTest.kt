@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.settings
 
 import com.android.flags.Flag
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Rule
@@ -52,22 +53,21 @@ class LayoutInspectorSettingsTest {
   }
 
   @Test
-  fun testEmbeddedLayoutInspectorEnabledFlag() {
-    val layoutInspectorSettings = LayoutInspectorSettings.getInstance()
-    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isTrue()
+  fun testEmbeddedLayoutInspectorEnabledFlag() = withEmbeddedLayoutInspector {
+    assertThat(enableEmbeddedLayoutInspector).isTrue()
 
-    layoutInspectorSettings.embeddedLayoutInspectorEnabled = false
-    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()
+    enableEmbeddedLayoutInspector = false
+    assertThat(enableEmbeddedLayoutInspector).isFalse()
 
     runWithFlagState(EMBEDDED_LAYOUT_INSPECTOR_FLAG, false) {
-      assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()
-      layoutInspectorSettings.embeddedLayoutInspectorEnabled = true
-      assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()
+      assertThat(enableEmbeddedLayoutInspector).isFalse()
+      enableEmbeddedLayoutInspector = true
+      assertThat(enableEmbeddedLayoutInspector).isFalse()
     }
 
     runWithFlagState(EMBEDDED_LAYOUT_INSPECTOR_FLAG, true) {
-      layoutInspectorSettings.embeddedLayoutInspectorEnabled = true
-      assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isTrue()
+      enableEmbeddedLayoutInspector = true
+      assertThat(enableEmbeddedLayoutInspector).isTrue()
     }
   }
 

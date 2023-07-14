@@ -23,7 +23,7 @@ import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.impl.model.util.FakeAction
@@ -61,7 +61,7 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
 
   @Test
   fun testLiveControlDisabledWithProcessFromLegacyDevice() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       layoutInspectorRule.attachDevice(LEGACY_DEVICE)
       layoutInspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
       waitForCondition(5, TimeUnit.SECONDS) { layoutInspectorRule.inspectorClient.isConnected }
@@ -79,7 +79,7 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
 
   @Test
   fun testLiveControlDisabledWithProcessFromModernDevice() =
-    runWithEmbeddedLayoutInspector(false) {
+    withEmbeddedLayoutInspector(false) {
       layoutInspectorRule.launchSynchronously = false
       layoutInspectorRule.startLaunch(1)
 
@@ -115,12 +115,5 @@ class LayoutInspectorMainToolbarLegacyDeviceTest {
       )
     button.action.update(event)
     return presentation
-  }
-
-  private fun runWithEmbeddedLayoutInspector(value: Boolean, block: () -> Unit) {
-    val previousValue = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = value
-    block()
-    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled = previousValue
   }
 }

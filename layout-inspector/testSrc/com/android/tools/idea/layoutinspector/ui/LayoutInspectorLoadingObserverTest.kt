@@ -21,6 +21,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorRule
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
+import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -62,7 +63,7 @@ class LayoutInspectorLoadingObserverTest {
   }
 
   @Test
-  fun testLoadingStateUpdatesAsExpected() {
+  fun testLoadingStateUpdatesAsExpected() = withEmbeddedLayoutInspector {
     val latch = ReportingCountDownLatch(1)
     inspectorRule.launchSynchronously = false
     appInspectorRule.viewInspector.listenWhen({ true }) {
