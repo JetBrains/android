@@ -1636,16 +1636,6 @@ public final class StudioFlags {
   );
   // endregion NEW_SEND_FEEDBACK_DIALOG
 
-  // region Play Compatible Wear Screenshots
-  private static final FlagGroup
-    PLAY_COMPATIBLE_WEAR_SCREENSHOTS = new FlagGroup(FLAGS, "play.compatible.wear.screenshots", "Play Compatible Wear Screenshots");
-  public static final Flag<Boolean> PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED = Flag.create(
-    PLAY_COMPATIBLE_WEAR_SCREENSHOTS, "enable", "Enable Play Compatible Wear Screenshots",
-    "Enable a play compatible screenshot option for wear devices.",
-    true
-  );
-  // endregion
-
   // region AVD Command Line Options
   private static final FlagGroup
     AVD_COMMAND_LINE_OPTIONS = new FlagGroup(FLAGS, "avd.command.line.options", "AVD Command-Line Options");

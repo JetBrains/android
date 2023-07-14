@@ -20,7 +20,6 @@ import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind
 import static com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE;
 
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.AndroidAdbUiBundle;
 import com.android.tools.pixelprobe.color.Colors;
 import com.android.utils.HashCodes;
@@ -262,9 +261,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     boolean isOneToOneRatio = width == height;
     // DAC specifies a 384x384 minimum size requirement but that requirement is actually not enforced.
     // The image ratio is enforced, however.
-    boolean isPlayCompatibleWearScreenshot = StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get()
-                                             && screenshotImage.isWear()
-                                             && isOneToOneRatio;
+    boolean isPlayCompatibleWearScreenshot = screenshotImage.isWear() && isOneToOneRatio;
     if (isPlayCompatibleWearScreenshot) {
       decorationOptions.addElement(DecorationOption.PLAY_COMPATIBLE);
     }

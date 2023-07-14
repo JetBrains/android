@@ -18,7 +18,6 @@ package com.android.tools.idea.ui.screenshot
 import com.android.resources.ScreenOrientation
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION
 import java.awt.image.BufferedImage
 import java.util.EnumSet
@@ -69,9 +68,6 @@ class DeviceArtScreenshotOptions(
   }
 
   private fun DeviceArtDescriptor.isCompatible(screenshotImage: ScreenshotImage): Boolean {
-    if (!StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get()) {
-      return true
-    }
     if (!screenshotImage.isWear) {
       return true
     }

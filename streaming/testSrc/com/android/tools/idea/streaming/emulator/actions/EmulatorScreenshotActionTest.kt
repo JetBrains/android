@@ -25,7 +25,6 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
@@ -140,7 +139,6 @@ class EmulatorScreenshotActionTest {
 
   @Test
   fun testWearEmulatorWithoutSkinHasPlayCompatibleOption() {
-    StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.override(true)
     emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createWatchAvd(path, skinFolder = null) }
     emulator = emulatorViewRule.getFakeEmulator(emulatorView)
 
