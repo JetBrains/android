@@ -20,7 +20,6 @@ import com.android.tools.asdriver.tests.Display
 import com.android.tools.asdriver.tests.TestFileSystem
 import com.android.utils.withResources
 import com.google.common.truth.Truth.assertThat
-import org.assertj.core.util.Maps
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -36,7 +35,7 @@ internal class StartUpCustomJvmTest {
     val install = AndroidStudioInstallation.fromZip(fileSystem)
     val newJvm = install.studioDir.resolve("jbr1")
     install.studioDir.resolve("jbr").toFile().renameTo(newJvm.toFile())
-    val env = Maps.newHashMap("STUDIO_JDK", newJvm.toString())
+    val env = mapOf("STUDIO_JDK" to newJvm.toString())
 
     withResources(Display.createDefault(), { install.run(it, env) }) { _, studio ->
       assertThat(studio.getSystemProperty("java.home")).isEqualTo(newJvm.toString())
