@@ -43,6 +43,7 @@ object AndroidAttributeFact {
   fun lookup(name: String): NlPropertyType {
     when (name) {
       // Material Design additions
+      "accessibilityDataSensitive" -> return NlPropertyType.INTEGER
       "addElevationShadow" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "animateMenuItems" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "animateNavigationIcon" -> return NlPropertyType.THREE_STATE_BOOLEAN
@@ -101,6 +102,7 @@ object AndroidAttributeFact {
       "dividerInsetStart" -> return NlPropertyType.DIMENSION
       "dividerInsetEnd" -> return NlPropertyType.DIMENSION
       "drawerLayoutCornerSize" -> return NlPropertyType.DIMENSION
+      "enableTextStylingShortcuts" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "endIconCheckable" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "endIconContentDescription" -> return NlPropertyType.STRING
       "endIconDrawable" -> return NlPropertyType.DRAWABLE
@@ -132,9 +134,14 @@ object AndroidAttributeFact {
       "fabCradleRoundedCornerRadius" -> return NlPropertyType.DIMENSION
       "fabCradleVerticalOffset" -> return NlPropertyType.DIMENSION
       "forceDefaultNavigationOnClickListener" -> return NlPropertyType.THREE_STATE_BOOLEAN
+      "focusedSearchResultHighlightColor" -> return NlPropertyType.COLOR
       "forceApplySystemWindowInsetTop" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "haloColor" -> return NlPropertyType.COLOR_STATE_LIST
       "haloRadius" -> return NlPropertyType.DIMENSION
+      "handwritingBoundsOffsetBottom" -> return NlPropertyType.DIMENSION
+      "handwritingBoundsOffsetLeft" -> return NlPropertyType.DIMENSION
+      "handwritingBoundsOffsetRight" -> return NlPropertyType.DIMENSION
+      "handwritingBoundsOffsetTop" -> return NlPropertyType.DIMENSION
       "helperTextTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "hideAnimationBehavior" -> return NlPropertyType.ENUM
       "hideNavigationIcon" -> return NlPropertyType.THREE_STATE_BOOLEAN
@@ -155,6 +162,7 @@ object AndroidAttributeFact {
       "insetLeft" -> return NlPropertyType.DIMENSION
       "insetRight" -> return NlPropertyType.DIMENSION
       "insetTop" -> return NlPropertyType.DIMENSION
+      "isCredential" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "itemActiveIndicatorStyle" -> return NlPropertyType.STYLE
       "itemMaxLines" -> return NlPropertyType.INTEGER
       "itemMinHeight" -> return NlPropertyType.DIMENSION
@@ -202,6 +210,7 @@ object AndroidAttributeFact {
       "prefixTextColor" -> return NlPropertyType.COLOR_STATE_LIST
       "removeEmbeddedFabElevation" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "searchPrefixText" -> return NlPropertyType.STRING
+      "searchResultHighlightColor" -> return NlPropertyType.COLOR
       "selectionRequired" -> return NlPropertyType.THREE_STATE_BOOLEAN
       "shapeAppearance" -> return NlPropertyType.STYLE
       "shapeAppearanceOverlay" -> return NlPropertyType.STYLE
