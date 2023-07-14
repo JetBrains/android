@@ -25,6 +25,8 @@ import com.intellij.ide.KeyboardAwareFocusOwner
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.containers.ContainerUtil
@@ -297,17 +299,16 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     return normalized.scaledUnbiased(imageSize, deviceDisplaySize)
   }
 
-  protected fun isInputForwardingEnabled(): Boolean {
-    return InputForwardingStateStorage.
-        getInstance(CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this)) ?: return false).
-        isInputForwardingEnabled(deviceId)
-  }
+  protected fun getProject(): Project? =
+      CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this))
 
-  override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
-    return isInputForwardingEnabled()
-  }
+  protected fun isInputForwardingEnabled(): Boolean =
+      getProject()?.service<InputForwardingStateStorage>()?.isInputForwardingEnabled(deviceId) ?: false
 
-  internal open fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {}
+  override fun skipKeyEventDispatcher(event: KeyEvent): Boolean =
+      isInputForwardingEnabled()
+
+  internal abstract fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean)
 
  /** Attempts to restore a lost device connection. */
   protected inner class Reconnector(val reconnectLabel: String, private val progressMessage: String, val reconnect: suspend () -> Unit) {

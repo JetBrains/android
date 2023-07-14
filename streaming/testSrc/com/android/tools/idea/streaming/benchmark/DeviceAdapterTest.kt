@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.disposable
 import com.android.utils.time.TestTimeSource
 import com.android.utils.time.TimeSource.TimeMark
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
@@ -392,9 +393,11 @@ class DeviceAdapterTest {
     override val apiLevel: Int
       get() = 0
 
+    override fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {}
     override fun canZoom() = false
     override fun computeActualSize() = deviceDisplaySize
     override fun dispose() {}
+
     fun notifyFrame(frame: BufferedImage) {
       notifyFrameListeners(Rectangle(), frame)
     }

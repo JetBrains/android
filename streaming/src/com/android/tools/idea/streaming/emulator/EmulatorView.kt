@@ -61,7 +61,6 @@ import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDe
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionState
 import com.android.tools.idea.streaming.emulator.EmulatorController.ConnectionStateListener
 import com.google.protobuf.TextFormat.shortDebugString
-import com.intellij.ide.DataManager
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
@@ -69,7 +68,6 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_MOVE_CARET_DOWN
@@ -479,7 +477,7 @@ class EmulatorView(
     if (emulatorOutOfDateNotificationShown) {
       return
     }
-    val project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this)) ?: return
+    val project = getProject() ?: return
     val title = "Emulator is out of date"
     val message = XmlStringUtil.wrapInHtml("Please update the Android Emulator")
     val notification = RUNNING_DEVICES_NOTIFICATION_GROUP.createNotification(title, message, NotificationType.WARNING)
