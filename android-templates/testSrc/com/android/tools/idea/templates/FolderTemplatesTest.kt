@@ -132,6 +132,13 @@ class FolderTemplatesTest {
   }
 
   @Test
+  fun testFontFolder() {
+    val expectedLine = "android {}"
+
+    checkResourcesTemplate("Font Folder", true, "my/font/folder", expectedLine)
+  }
+
+  @Test
   fun testJavaFolder() {
     val expectedLine =
       "                srcDirs(\"" +
@@ -153,6 +160,13 @@ class FolderTemplatesTest {
         "\")"
 
     checkResourcesTemplate("JNI Folder", true, "my/jni/folder", expectedLine)
+  }
+
+  @Test
+  fun testRawResourcesFolder() {
+    val expectedLine = "android {}"
+
+    checkResourcesTemplate("Raw Resources Folder", true, "my/raw/resources/folder", expectedLine)
   }
 
   @Test
@@ -198,5 +212,12 @@ class FolderTemplatesTest {
         "\")"
 
     checkResourcesTemplate("RenderScript Folder", true, "my/renderscript/folder", expectedLine)
+  }
+
+  @Test
+  fun testXMLResourcesFolder() {
+    val expectedLine = "android {}"
+
+    checkResourcesTemplate("XML Resources Folder", true, "my/xml/folder", expectedLine)
   }
 }
