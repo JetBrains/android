@@ -8,6 +8,7 @@ iml_module(
     # keep sorted
     test_data = [
         "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:platforms/android-33",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:sources",
         "//tools/adt/idea/android:test_deps",

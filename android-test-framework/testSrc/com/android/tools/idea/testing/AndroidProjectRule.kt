@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testing
 
+import com.android.sdklib.AndroidTargetHash
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.testutils.TestUtils
 import com.android.tools.idea.flags.StudioFlags
@@ -153,12 +155,19 @@ interface AndroidProjectRule : TestRule {
 
     /**
      * Returns an [AndroidProjectRule] that uses a fixture on disk
-     * using a [JavaTestFixtureFactory] with an Android SDK.
+     * using a [JavaTestFixtureFactory] with an Android SDK, using the latest Android platform version.
      */
     @JvmStatic
-    fun withSdk(): Typed<JavaCodeInsightTestFixture, Nothing> {
+    fun withSdk(): Typed<JavaCodeInsightTestFixture, Nothing> = withSdk(Sdks.getLatestAndroidPlatform())
+
+    /**
+     * Returns an [AndroidProjectRule] that uses a fixture on disk
+     * using a [JavaTestFixtureFactory] with an Android SDK using the given Android platform version.
+     */
+    @JvmStatic
+    fun withSdk(androidPlatformVersion: AndroidVersion): Typed<JavaCodeInsightTestFixture, Nothing> {
       val testEnvironmentRule = TestEnvironmentRuleImpl(withAndroidSdk = true)
-      val fixtureRule = FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = true)
+      val fixtureRule = FixtureRuleImpl(::createJavaCodeInsightTestFixtureAndAddModules, withAndroidSdk = true, androidPlatformVersion = androidPlatformVersion)
       val projectEnvironmentRule = ProjectEnvironmentRuleImpl { fixtureRule.project }
       return chain(
         testEnvironmentRule,
@@ -417,6 +426,12 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
   private val withAndroidSdk: Boolean = false,
 
   /**
+   * Version of the android platform to use e.g. `android-33`.
+   * Only has effect when `withAndroidSdk = true`.
+   */
+  private val androidPlatformVersion: AndroidVersion = Sdks.getLatestAndroidPlatform(),
+
+  /**
    * true iff the default module should be a valid Android module
    * (if it should have an Android manifest and the Android facet attached).
    */
@@ -485,7 +500,7 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
     val facet = facetManager.createFacet<T, C>(type, facetName, null)
     runInEdtAndWait {
       if (withAndroidSdk) {
-        Sdks.addLatestAndroidSdk(fixture.testRootDisposable, module)
+        Sdks.addAndroidSdk(fixture.testRootDisposable, module, androidPlatformVersion)
       }
       val facetModel = facetManager.createModifiableModel()
       facetModel.addFacet(facet)

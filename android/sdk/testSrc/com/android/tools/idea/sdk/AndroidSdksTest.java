@@ -18,6 +18,7 @@ package com.android.tools.idea.sdk;
 import static com.android.sdklib.AndroidTargetHash.getTargetHashString;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.testing.Sdks.findAndroidTarget;
 import static com.android.tools.idea.testing.Sdks.findLatestAndroidTarget;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -49,6 +50,7 @@ import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.codegen.And;
 import org.mockito.Mock;
 
 /**
@@ -158,7 +160,8 @@ public class AndroidSdksTest extends PlatformTestCase {
   }
 
   public void testCreateSdkAddingRoots() {
-    IAndroidTarget target = findLatestAndroidTarget(mySdkPath);
+    // TODO(b/291755082): Update to 34 once 34 sources are published
+    IAndroidTarget target = findAndroidTarget(mySdkPath, new AndroidVersion(33));
     String name = "testSdk";
 
     Sdk sdk = myAndroidSdks.create(target, mySdkPath, name, true /* add roots */);

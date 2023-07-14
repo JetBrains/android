@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.editors
 
+import com.android.flags.junit.FlagRule
+import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
@@ -40,8 +42,9 @@ import org.mockito.junit.MockitoJUnit
 
 @RunWith(JUnit4::class)
 class AttachAndroidSdkSourcesNotificationProviderTest {
+  // TODO(b/291755082): Update to 34 once 34 sources are published
   @get:Rule
-  val myAndroidProjectRule = withSdk()
+  val myAndroidProjectRule = withSdk(AndroidVersion(33))
 
   @get:Rule
   val myMockitoRule = MockitoJUnit.rule()
@@ -103,7 +106,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   fun createNotificationPanel_panelHasCorrectLabel() {
     val panel = invokeCreateNotificationPanel(androidSdkClassWithoutSources)
     assertThat(panel).isNotNull()
-    assertThat(panel!!.text).isEqualTo("Android SDK sources for API 34 not found.")
+    assertThat(panel!!.text).isEqualTo("Android SDK sources for API 33 not found.")
   }
 
   @Test
@@ -126,7 +129,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
     // Check that the link requested the correct paths, and that then sources became available.
     assertThat(myProvider.requestedPaths).isNotNull()
-    assertThat(myProvider.requestedPaths).containsExactly("sources;android-34")
+    assertThat(myProvider.requestedPaths).containsExactly("sources;android-33")
     assertThat(rootProvider.getFiles(OrderRootType.SOURCES).size).isGreaterThan(0)
   }
 

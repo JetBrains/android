@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sdk
 
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
@@ -27,8 +28,10 @@ import org.junit.Test
 
 /** Test for [SdkWritingAccessProvider]. */
 class SdkWritingAccessProviderTest {
+
+  // TODO(b/291755082): Update to 34 once 34 sources are published
   @get:Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  val projectRule = AndroidProjectRule.withSdk(AndroidVersion(33))
 
   @get:Rule
   val edtRule = EdtRule()

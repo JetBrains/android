@@ -8,6 +8,7 @@ iml_module(
     # keep sorted
     test_data = [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/sdk:platforms/android-33",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:sources",
         "//tools/adt/idea/android/testData",

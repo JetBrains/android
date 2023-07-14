@@ -19,6 +19,7 @@ import static com.android.SdkConstants.FD_PKG_SOURCES;
 import static com.android.testutils.TestUtils.getSdk;
 import static com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupUtil.updateSdkIfNeeded;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Sdks.findAndroidTarget;
 import static com.android.tools.idea.testing.Sdks.findLatestAndroidTarget;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -75,9 +77,11 @@ public class SdksCleanupStepTest extends PlatformTestCase {
   }
 
   public void testUpdateSdkWithSourcesInstalled() {
-    createSdk();
+    // TODO(b/291755082): Update to 34 once 34 sources are published
+    AndroidVersion version = new AndroidVersion(33);
+    createSdk(version);
     try {
-      IAndroidTarget target = findLatestAndroidTarget(getSdk().toFile());
+      IAndroidTarget target = findAndroidTarget(getSdk().toFile(), version);
       Sdk spy = spy(mySdk);
       File mockJdkHome = new File(getProject().getBasePath(), "jdkHome");
       when(spy.getHomePath()).thenReturn(mockJdkHome.getPath());
@@ -163,7 +167,7 @@ public class SdksCleanupStepTest extends PlatformTestCase {
 
   // See https://code.google.com/p/android/issues/detail?id=233392
   public void testCleanUpProjectWithSdkWithUpdatedSources() {
-    createSdk();
+    createSdk(new AndroidVersion(33));
     try {
       Module module = getModule();
       setUpModuleAsAndroid(module, mySdk);
@@ -185,9 +189,12 @@ public class SdksCleanupStepTest extends PlatformTestCase {
   }
 
   private void createSdk() {
+    createSdk(Sdks.getLatestAndroidPlatform());
+  }
+  private void createSdk(AndroidVersion version) {
     File sdkPath = getSdk().toFile();
     Sdks.allowAccessToSdk(getTestRootDisposable());
-    IAndroidTarget target = findLatestAndroidTarget(sdkPath);
+    IAndroidTarget target = findAndroidTarget(sdkPath, version);
 
     mySdk = AndroidSdks.getInstance().create(target, sdkPath, "Test SDK", true /* add roots */);
     assertNotNull(mySdk);
