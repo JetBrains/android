@@ -42,7 +42,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class HeapSnapshotStatistics {
+public final class HeapSnapshotStatistics {
 
   @NotNull final ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking totalStats =
     new ClusterObjectsStatistics.ObjectsStatisticsWithPlatformTracking();
@@ -69,11 +69,11 @@ final class HeapSnapshotStatistics {
   @Nullable
   private final ExtendedReportStatistics extendedReportStatistics;
 
-  public HeapSnapshotStatistics(@NotNull final ComponentsSet componentsSet) {
+  HeapSnapshotStatistics(@NotNull final ComponentsSet componentsSet) {
     this(new HeapTraverseConfig(componentsSet, /*collectHistograms=*/false, /*collectDisposerTreeInfo=*/false));
   }
 
-  public HeapSnapshotStatistics(@NotNull final HeapTraverseConfig config) {
+  HeapSnapshotStatistics(@NotNull final HeapTraverseConfig config) {
     this.config = config;
     for (ComponentsSet.Component component : config.getComponentsSet().getComponents()) {
       componentStats.add(new ComponentClusterObjectsStatistics(component));
@@ -101,8 +101,8 @@ final class HeapSnapshotStatistics {
     return categoryComponentStats;
   }
 
-  public void addObjectSizeToSharedComponent(long sharedMask, long size, String objectClassName, boolean isMergePoint,
-                                             boolean isPlatformObject, boolean isRetainedByPlatform) {
+  void addObjectSizeToSharedComponent(long sharedMask, long size, String objectClassName, boolean isMergePoint,
+                                      boolean isPlatformObject, boolean isRetainedByPlatform) {
     if (!maskToSharedComponentStats.containsKey(sharedMask)) {
       maskToSharedComponentStats.put(sharedMask, new SharedClusterStatistics(sharedMask));
     }
@@ -114,8 +114,8 @@ final class HeapSnapshotStatistics {
     }
   }
 
-  public void addOwnedObjectSizeToComponent(int componentId, long size, String objectClassName, boolean isRoot, boolean isPlatformObject,
-                                            boolean isRetainedByPlatform) {
+  void addOwnedObjectSizeToComponent(int componentId, long size, String objectClassName, boolean isRoot, boolean isPlatformObject,
+                                     boolean isRetainedByPlatform) {
     ComponentClusterObjectsStatistics stats = componentStats.get(componentId);
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
     
@@ -128,17 +128,17 @@ final class HeapSnapshotStatistics {
     }
   }
 
-  public void addObjectToTotal(long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
+  void addObjectToTotal(long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
     totalStats.addObject(size, isPlatformObject, isRetainedByPlatform);
   }
 
-  public void addRetainedObjectSizeToCategoryComponent(int categoryId, long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
+  void addRetainedObjectSizeToCategoryComponent(int categoryId, long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
     categoryComponentStats.get(categoryId).addRetainedObject(size, isPlatformObject, isRetainedByPlatform);
   }
 
-  public void addOwnedObjectSizeToCategoryComponent(int categoryId, long size, String objectClassName, boolean isRoot,
-                                                    boolean isPlatformObject,
-                                                    boolean isRetainedByPlatform) {
+  void addOwnedObjectSizeToCategoryComponent(int categoryId, long size, String objectClassName, boolean isRoot,
+                                             boolean isPlatformObject,
+                                             boolean isRetainedByPlatform) {
     CategoryClusterObjectsStatistics stats = categoryComponentStats.get(categoryId);
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
     if (stats.getComponentCategory().getTrackedFQNs() != null && stats.getComponentCategory().getTrackedFQNs().contains(objectClassName)) {
@@ -149,18 +149,18 @@ final class HeapSnapshotStatistics {
     }
   }
 
-  public void addRetainedObjectSizeToComponent(int componentID, long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
+  void addRetainedObjectSizeToComponent(int componentID, long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
     componentStats.get(componentID).addRetainedObject(size, isPlatformObject, isRetainedByPlatform);
   }
 
 
-  public void addDisposedButReferencedObject(long size, String objectClassName) {
+  void addDisposedButReferencedObject(long size, String objectClassName) {
     if (config.collectDisposerTreeInfo && extendedReportStatistics != null) {
       extendedReportStatistics.addDisposedButReferencedObject(size, objectClassName);
     }
   }
 
-  public void addDisposerTreeInfo(@NotNull Object disposerTree) {
+  void addDisposerTreeInfo(@NotNull Object disposerTree) {
     if (config.collectDisposerTreeInfo && extendedReportStatistics != null) {
       Object objToNodeMap = getFieldValue(disposerTree, "myObject2ParentNode");
       if (objToNodeMap instanceof Map) {
@@ -175,7 +175,7 @@ final class HeapSnapshotStatistics {
   }
 
   @NotNull
-  public CrashReport asCrashReport(@NotNull final List<String> exceededClusters) {
+  CrashReport asCrashReport(@NotNull final List<String> exceededClusters) {
     if (extendedReportStatistics == null) {
       throw new IllegalStateException("Extended memory report required for sending a Crash report was not calculated.");
     }
@@ -343,23 +343,23 @@ final class HeapSnapshotStatistics {
       .toList().toString();
   }
 
-  public void updateMaxFieldsCacheSize(int currentFieldSize) {
+  void updateMaxFieldsCacheSize(int currentFieldSize) {
     maxFieldsCacheSize = Math.max(maxFieldsCacheSize, currentFieldSize);
   }
 
-  public void updateMaxObjectsQueueSize(int currentObjectsQueueSize) {
+  void updateMaxObjectsQueueSize(int currentObjectsQueueSize) {
     maxObjectsQueueSize = Math.max(maxObjectsQueueSize, currentObjectsQueueSize);
   }
 
-  public void incrementGarbageCollectedObjectsCounter() {
+  void incrementGarbageCollectedObjectsCounter() {
     enumeratedGarbageCollectedObjects++;
   }
 
-  public void incrementUnsuccessfulFieldAccessCounter() {
+  void incrementUnsuccessfulFieldAccessCounter() {
     unsuccessfulFieldAccessCounter++;
   }
 
-  public void setHeapObjectCount(int heapObjectCount) {
+  void setHeapObjectCount(int heapObjectCount) {
     this.heapObjectCount = heapObjectCount;
   }
 
@@ -388,10 +388,10 @@ final class HeapSnapshotStatistics {
   }
 
   @NotNull
-  public MemoryUsageReportEvent buildMemoryUsageReportEvent(StatusCode statusCode,
-                                                            long executionTimeMs,
-                                                            long executionStartMs,
-                                                            int sharedComponentsLimit) {
+  MemoryUsageReportEvent buildMemoryUsageReportEvent(StatusCode statusCode,
+                                                     long executionTimeMs,
+                                                     long executionStartMs,
+                                                     int sharedComponentsLimit) {
     MemoryUsageReportEvent.Builder builder = MemoryUsageReportEvent.newBuilder();
 
     for (ComponentClusterObjectsStatistics componentStat : componentStats) {
@@ -432,7 +432,7 @@ final class HeapSnapshotStatistics {
     return builder.build();
   }
 
-  public void setTraverseSessionId(short traverseSessionId) {
+  void setTraverseSessionId(short traverseSessionId) {
     this.traverseSessionId = traverseSessionId;
   }
 
@@ -470,7 +470,7 @@ final class HeapSnapshotStatistics {
     }
   }
 
-  static class ComponentClusterObjectsStatistics extends ClusterObjectsStatistics {
+  public static class ComponentClusterObjectsStatistics extends ClusterObjectsStatistics {
     @NotNull
     private final ComponentsSet.Component component;
 
@@ -479,12 +479,12 @@ final class HeapSnapshotStatistics {
     }
 
     @NotNull
-    ComponentsSet.Component getComponent() {
+    public ComponentsSet.Component getComponent() {
       return component;
     }
   }
 
-  static class CategoryClusterObjectsStatistics extends ClusterObjectsStatistics {
+  public static class CategoryClusterObjectsStatistics extends ClusterObjectsStatistics {
     @NotNull
     private final ComponentsSet.ComponentCategory componentCategory;
 
@@ -493,12 +493,12 @@ final class HeapSnapshotStatistics {
     }
 
     @NotNull
-    ComponentsSet.ComponentCategory getComponentCategory() {
+    public ComponentsSet.ComponentCategory getComponentCategory() {
       return componentCategory;
     }
   }
 
-  static class ClusterObjectsStatistics {
+  public static class ClusterObjectsStatistics {
     @NotNull
     private final ObjectsStatisticsWithPlatformTracking retainedClusterStat = new ObjectsStatisticsWithPlatformTracking();
     @NotNull
@@ -506,11 +506,11 @@ final class HeapSnapshotStatistics {
     @NotNull
     private final Object2IntMap<String> trackedFQNInstanceCounter = new Object2IntOpenHashMap<>();
 
-    public void addOwnedObject(long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
+    void addOwnedObject(long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
       ownedClusterStat.addObject(size, isPlatformObject, isRetainedByPlatform);
     }
 
-    public void addRetainedObject(long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
+    void addRetainedObject(long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
       retainedClusterStat.addObject(size, isPlatformObject, isRetainedByPlatform);
     }
 
@@ -529,11 +529,11 @@ final class HeapSnapshotStatistics {
       return trackedFQNInstanceCounter;
     }
 
-    public void addTrackedFQNInstance(String name) {
+    void addTrackedFQNInstance(String name) {
       trackedFQNInstanceCounter.put(name, trackedFQNInstanceCounter.getOrDefault(name, 0) + 1);
     }
 
-    static class ObjectsStatisticsWithPlatformTracking {
+    public static class ObjectsStatisticsWithPlatformTracking {
       @NotNull
       private final ObjectsStatistics objectsStat = new ObjectsStatistics();
       @NotNull
@@ -542,7 +542,7 @@ final class HeapSnapshotStatistics {
       private final ObjectsStatistics platformRetainedObjectsStats = new ObjectsStatistics();
 
 
-      public void addObject(long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
+      void addObject(long size, boolean isPlatformObject, boolean isRetainedByPlatform) {
         objectsStat.addObject(size);
 
         if (isPlatformObject) {

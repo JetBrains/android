@@ -137,6 +137,21 @@ public final class HeapSnapshotTraverseService {
                                                 /*shouldLogRetainedSizes=*/false));
   }
 
+  @Nullable
+  public HeapSnapshotStatistics collectMemoryStatistics(boolean collectHistograms,
+                                                        boolean collectDisposerTreeInfo) {
+    loadObjectTaggingAgent();
+    if (!agentSuccessfullyLoaded) {
+      return null;
+    }
+    HeapSnapshotStatistics stats = new HeapSnapshotStatistics(new HeapTraverseConfig(ComponentsSet.buildComponentSetForIntegrationTesting(),
+                                                                                     collectHistograms, collectDisposerTreeInfo));
+    if (StatusCode.NO_ERROR != new HeapSnapshotTraverse(stats).walkObjects()) {
+      return null;
+    }
+    return stats;
+  }
+
   /**
    * This method collects memory usage report and dumps it to memory_usage_report.log file. This method is used by the end2end integration
    * testing for collecting components/categories owned sizes that will be reported to perfgate afterwards.

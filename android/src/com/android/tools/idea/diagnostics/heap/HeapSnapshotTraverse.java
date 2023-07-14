@@ -112,6 +112,10 @@ public final class HeapSnapshotTraverse implements Disposable {
     return walkObjects(maxDepth, () -> classes);
   }
 
+  StatusCode walkObjects() {
+    return walkObjects(MAX_DEPTH, getLoadedClassesComputable);
+  }
+
   /**
    * The heap traversal algorithm is the following:
    * <p>
