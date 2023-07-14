@@ -23,6 +23,7 @@ import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.Device;
+import com.android.tools.idea.observable.InvalidationListener;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.GraphicsUtil;
@@ -70,6 +71,9 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
 
   private static final JBColor OUR_GRAY = new JBColor(Gray._192, Gray._96);
 
+  // Do not inline this. If you do, it'll be weakly reachable and eligible for garbage collection. I think. I am not a WeakReference expert.
+  private final InvalidationListener myRepaintListener = this::repaint;
+
   public DeviceDefinitionPreview(@NotNull AvdDeviceData deviceData) {
     myDeviceData = deviceData;
     addListeners();
@@ -106,15 +110,15 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
   }
 
   private void addListeners() {
-    myDeviceData.supportsLandscape().addWeakListener(this::repaint);
-    myDeviceData.supportsPortrait().addWeakListener(this::repaint);
-    myDeviceData.name().addWeakListener(this::repaint);
-    myDeviceData.screenResolutionWidth().addWeakListener(this::repaint);
-    myDeviceData.screenResolutionHeight().addWeakListener(this::repaint);
-    myDeviceData.deviceType().addWeakListener(this::repaint);
-    myDeviceData.diagonalScreenSize().addWeakListener(this::repaint);
-    myDeviceData.isScreenRound().addWeakListener(this::repaint);
-    myDeviceData.screenDpi().addWeakListener(this::repaint);
+    myDeviceData.supportsLandscape().addWeakListener(myRepaintListener);
+    myDeviceData.supportsPortrait().addWeakListener(myRepaintListener);
+    myDeviceData.name().addWeakListener(myRepaintListener);
+    myDeviceData.screenResolutionWidth().addWeakListener(myRepaintListener);
+    myDeviceData.screenResolutionHeight().addWeakListener(myRepaintListener);
+    myDeviceData.deviceType().addWeakListener(myRepaintListener);
+    myDeviceData.diagonalScreenSize().addWeakListener(myRepaintListener);
+    myDeviceData.isScreenRound().addWeakListener(myRepaintListener);
+    myDeviceData.screenDpi().addWeakListener(myRepaintListener);
   }
 
   @Override
