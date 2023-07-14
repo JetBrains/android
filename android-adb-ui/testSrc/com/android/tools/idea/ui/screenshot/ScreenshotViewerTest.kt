@@ -24,7 +24,6 @@ import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
 import com.android.tools.analytics.UsageTrackerRule
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT
 import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
@@ -52,7 +51,6 @@ import org.assertj.core.api.Assertions.assertThatCode
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -111,14 +109,8 @@ class ScreenshotViewerTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), disposableRule, usageTrackerRule)
 
-
   private val testFrame = object : FramingOption {
     override val displayName = "Test frame"
-  }
-
-  @Before
-  fun setup() {
-    StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.override(true)
   }
 
   @After
@@ -204,17 +196,6 @@ class ScreenshotViewerTest {
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
     assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(Color.BLACK.rgb)
-  }
-
-  @Test
-  fun testPlayCompatibleScreenshot_Disabled() {
-    StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.override(false)
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
-    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
-    val ui = FakeUi(viewer.rootPane)
-
-    val clipComboBox = ui.getComponent<JComboBox<*>>()
-    assertThat(clipComboBox.optionsAsString()).doesNotContain("Play Store Compatible")
   }
 
   @Test
