@@ -549,40 +549,27 @@ studio_plugin(
     directory = "google-cloud-tools-as",
     libs = [
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:gradle-appengine-builder-model-0.1.0",
-        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-source",
-    ],
-    licenses = [
-        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
-    ],
-    modules = {"google-cloud-tools-as.jar": ["//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as"]},
-    visibility = ["//visibility:public"],
-    deps = [
-        ":com.google.gct.core",
-        ":org.jetbrains.android",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
-        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
-    ],
-)
-
-studio_plugin(
-    name = "com.google.gct.core",
-    directory = "google-cloud-tools-core-as",
-    libs = [
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-appengine-v1-rev9-1.22.0",
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-source",
         "//tools/studio/google/cloud/tools/core-plugin/third_party/gradle-appengine-builder-model:gradle-appengine-builder-model-0.1.0",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
     ],
     licenses = [
+        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
         "//tools/studio/google/cloud/tools/core-plugin/lib:licenses",
     ],
-    modules = {"google-cloud-tools-core-as.jar": ["//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as"]},
+    modules = {
+        "google-cloud-tools-as.jar": [
+            "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as",
+            "//tools/studio/google/cloud/tools/core-plugin:google-cloud-tools-core-as",
+        ],
+    },
     visibility = ["//visibility:public"],
     deps = [
-        "org.jetbrains.android",
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle-java",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
     ],
@@ -697,7 +684,6 @@ android_studio(
         ":com.google.gct.directaccess",
         ":com.google.gct.testing",
         ":com.google.gct",
-        ":com.google.gct.core",
         ":com.android.tools.idea.smali",
         ":com.google.gct.test.recorder",
         ":com.google.urlassistant",

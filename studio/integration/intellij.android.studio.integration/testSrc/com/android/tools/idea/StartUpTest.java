@@ -82,7 +82,6 @@ public class StartUpTest {
         "Git for App Insights",
         "Git",
         "GitHub",
-        "Google Cloud Tools Core",
         "Google Cloud Tools For Android Studio",
         "Gradle",
         "Gradle-Java",
