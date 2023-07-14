@@ -245,14 +245,6 @@
       <add-to-group group-id="BuildMenu" anchor="last"/>
       <separator/>
     </group>
-    <group id="Internal.Android.Gradle" internal="true">
-      <action id="Android.FixAndroidRunConfigurations"
-              class="com.android.tools.idea.projectsystem.gradle.actions.FixAndroidRunConfigurationsAction"
-              text="Fix Android Run Configurations"
-              description="Add &quot;Gradle-aware Make&quot; launch task to Android Run Configuration(s) if it is missing">
-      </action>
-      <add-to-group group-id="Internal.Android" anchor="last"/>
-    </group>
     <action id="Android.BuildApk" class="com.android.tools.idea.gradle.actions.BuildApkAction">
       <add-to-group group-id="BuildMenu" relative-to-action="Android.GenerateSignedApk" anchor="before"/>
     </action>

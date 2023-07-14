@@ -48,7 +48,6 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getAllLinkedModules
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
-import com.android.tools.idea.run.RunConfigurationChecker
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.annotations.VisibleForTesting
@@ -222,8 +221,6 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     SupportedModuleChecker.getInstance().checkForSupportedModules(project)
 
     ProjectSetup(project).setUpProject(false /* sync successful */)
-
-    RunConfigurationChecker.getInstance(project).ensureRunConfigsInvokeBuild()
 
     ProjectStructure.getInstance(project).analyzeProjectStructure()
 

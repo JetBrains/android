@@ -657,13 +657,6 @@ public final class StudioFlags {
     "For internal use only. Enables injection of device serial from the IDE into Gradle build.",
     false
   );
-
-  public static final Flag<Boolean> FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED = Flag.create(
-    GRADLE_IDE, "gradle.run.configuration.fix.enabled",
-    "Check Android Run Configurations contains the \"Gradle-aware Make\" task and fix them",
-    "When a project is loaded, automatically add a \"Gradle-aware Make\" task to each Run Configuration if the task is missing",
-    true);
-
   public static final Flag<Boolean> USE_DEVELOPMENT_OFFLINE_REPOS = Flag.create(
     GRADLE_IDE, "development.offline.repos", "Enable development offline repositories",
     "Makes Gradle use development offline repositories such as /out/repo", StudioPathManager.isRunningFromSources());
