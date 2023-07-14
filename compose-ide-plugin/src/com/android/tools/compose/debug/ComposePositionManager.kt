@@ -31,8 +31,8 @@ import com.intellij.xdebugger.frame.XStackFrame
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.request.ClassPrepareRequest
-import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil
+import org.jetbrains.kotlin.idea.base.util.KOTLIN_FILE_TYPES
 import org.jetbrains.kotlin.idea.debugger.KotlinPositionManager
 import org.jetbrains.kotlin.load.kotlin.PackagePartClassUtils
 import org.jetbrains.kotlin.psi.KtFile
@@ -80,7 +80,7 @@ class ComposePositionManager(
 
     val vm = debugProcess.virtualMachineProxy
     val singletonClasses = vm.classesByName(computeComposableSingletonsClassName(file)).flatMap { referenceType ->
-      if (referenceType.isPrepared) vm.nestedTypes(referenceType) else listOf()
+      if (referenceType.isPrepared) allRecursivelyNestedTypesOf(referenceType) else listOf()
     }
 
     if (singletonClasses.isEmpty()) {
@@ -92,6 +92,19 @@ class ComposePositionManager(
     // in ordinary Kotlin code.
     val kotlinReferences = kotlinPositionManager.getAllClasses(classPosition)
     return kotlinReferences + singletonClasses
+  }
+
+  private fun allRecursivelyNestedTypesOf(classType: ReferenceType): List<ReferenceType> {
+    val vm = debugProcess.virtualMachineProxy
+    val result = mutableListOf<ReferenceType>()
+    val worklist = mutableListOf(classType)
+    while (worklist.isNotEmpty()) {
+      val current = worklist.removeLast()
+      val nestedTypes = vm.nestedTypes(current)
+      result.addAll(nestedTypes)
+      worklist.addAll(nestedTypes)
+    }
+    return result
   }
 
   /**
