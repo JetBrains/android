@@ -73,14 +73,24 @@ class GalleryTabs<Key : TitledKey>(
   private inner class TabLabelAction(val key: Key) :
     ToggleAction(key.title), CustomComponentAction {
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
-      ActionButtonWithText(
-          this,
-          presentation,
-          ActionPlaces.TOOLBAR,
-          ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
-        )
+      object :
+          ActionButtonWithText(
+            this,
+            presentation,
+            ActionPlaces.TOOLBAR,
+            ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE,
+          ) {
+          override fun updateUI() {
+            super.updateUI()
+            updateFont()
+          }
+
+          fun updateFont() {
+            font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+          }
+        }
         .apply {
-          font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
+          updateFont()
 
           addFocusListener(
             object : FocusListener {
