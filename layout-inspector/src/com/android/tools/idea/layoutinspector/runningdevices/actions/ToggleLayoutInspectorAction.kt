@@ -29,11 +29,19 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
+import icons.StudioIcons
 import javax.swing.JComponent
 
 /** Action used to turn Layout Inspector on and off in Running Devices tool window. */
 class ToggleLayoutInspectorAction :
-  ToggleAction(), TooltipDescriptionProvider, TooltipLinkProvider {
+  ToggleAction(
+    "Toggle Layout Inspector",
+    "Toggles Layout Inspection on and off for this device.",
+    StudioIcons.Shell.ToolWindows.CAPTURES
+  ),
+  TooltipDescriptionProvider,
+  TooltipLinkProvider {
+
   override fun isSelected(e: AnActionEvent): Boolean {
     if (!LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled) {
       return false

@@ -20,15 +20,19 @@
       <add-to-group group-id="AndroidToolsGroup" />
     </action>
 
+    <group id="ToggleLayoutInspectorActionGroup">
+      <separator/>
+      <add-to-group group-id="StreamingToolbarSecondary" anchor="first"/>
+    </group>
+
     <action
         id="com.android.tools.idea.layoutinspector.toggle.layout.inspector.action"
         class="com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleLayoutInspectorAction"
         text="Toggle Layout Inspector"
         description="Toggles Layout Inspection on and off for this device."
         icon="StudioIcons.Shell.ToolWindows.CAPTURES" >
-      <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
+      <add-to-group group-id="ToggleLayoutInspectorActionGroup" anchor="first"/>
     </action>
-
 
   </actions>
 
