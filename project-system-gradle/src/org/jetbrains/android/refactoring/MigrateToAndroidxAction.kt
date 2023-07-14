@@ -21,66 +21,50 @@ import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.support.MigrationParserVisitor
 import com.android.support.parseMigrationFile
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
-import com.android.tools.idea.gradle.util.GradleProjects
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.RefactoringActionHandler
 import com.intellij.refactoring.actions.BaseRefactoringAction
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.ClassMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.GradleDependencyMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.PackageMigrationEntry
+import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDependencyVersionMigrationEntry
+import org.jetbrains.android.util.AndroidUtils
 
 class MigrateToAndroidxAction : BaseRefactoringAction() {
 
   override fun isAvailableInEditorOnly() = false
 
-  override fun isEnabledOnDataContext(dataContext: DataContext): Boolean {
-    val module = dataContext.getData(PlatformCoreDataKeys.MODULE)
-    return module != null && isIdeaAndroidModule(module)
-  }
+  override fun isEnabledOnDataContext(dataContext: DataContext) = true
 
-  override fun isEnabledOnElements(elements: Array<out PsiElement>) =
-    elements.any { element -> ModuleUtilCore.findModuleForPsiElement(element)?.let { module -> isIdeaAndroidModule(module) } == true }
-
-  override fun isAvailableOnElementInEditorAndFile(element: PsiElement,
-                                                   editor: Editor,
-                                                   file: PsiFile,
-                                                   context: DataContext,
-                                                   place: String): Boolean {
-    val module = context.getData(PlatformCoreDataKeys.MODULE)
-    return module != null && isIdeaAndroidModule(module)
-  }
-
-  private fun isIdeaAndroidModule(module: Module): Boolean {
-    if (GradleFacet.getInstance(module) != null) return true
-
-    val androidFacet = AndroidFacet.getInstance(module)
-    return androidFacet != null && AndroidModel.isRequired(androidFacet)
-  }
+  override fun isEnabledOnElements(elements: Array<out PsiElement>) = true
 
   override fun getHandler(dataContext: DataContext): RefactoringActionHandler? = MigrateToAndroidxHandler()
 
   override fun update(anActionEvent: AnActionEvent) {
-    anActionEvent.presentation.description = "Migrates to AndroidX package names"
+    anActionEvent.presentation.isEnabledAndVisible = anActionEvent.getData(CommonDataKeys.PROJECT)?.let { hasAndroidFacets(it) } == true
   }
 
   override fun isAvailableForLanguage(language: Language) = true
+
+  private fun hasAndroidFacets(project: Project): Boolean {
+    return IdeInfo.getInstance().isAndroidStudio || AndroidUtils.hasAndroidFacets(project)
+  }
 }
 
 class MigrateToAndroidxHandler(var showWarningDialog: Boolean = true,
