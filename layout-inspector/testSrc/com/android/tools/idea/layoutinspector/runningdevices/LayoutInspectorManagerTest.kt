@@ -43,6 +43,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
@@ -414,6 +415,40 @@ class LayoutInspectorManagerTest {
     assertThat(layoutInspectorRenderer.interceptClicks).isTrue()
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testGlobalStateIsUpdated() = withEmbeddedLayoutInspector {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+
+    assertHasWorkbench(tab1)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector)
+      .containsExactly(tab1.tabId)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+
+    assertDoesNotHaveWorkbench(tab1)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).isEmpty()
+  }
+
+  @Test
+  @RunsInEdt
+  fun testGlobalStateIsUpdatedOnDispose() = withEmbeddedLayoutInspector {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+
+    assertHasWorkbench(tab1)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector)
+      .containsExactly(tab1.tabId)
+
+    Disposer.dispose(layoutInspectorManager)
+
+    assertDoesNotHaveWorkbench(tab1)
+    assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).isEmpty()
   }
 
   private fun assertHasWorkbench(tabInfo: TabInfo) {

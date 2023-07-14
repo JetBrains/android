@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.runningdevices.actions
 
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
+import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
 import com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver
 import com.android.tools.idea.layoutinspector.runningdevices.TabId
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
@@ -77,6 +78,36 @@ class ToggleLayoutInspectorAction :
     } else {
       e.presentation.isEnabled = true
       e.presentation.description = ""
+    }
+
+    if (e.presentation.isVisible && e.presentation.isEnabled) {
+      // Do this check only if the toggle button is not already disabled.
+      enforceOnlyOneLayoutInspectorPerDeviceAcrossProjects(e)
+    }
+  }
+
+  /**
+   * Checks if Layout Inspector is active for the current tab, across projects. If yes, disables the
+   * toggle action for the tab in the projects where Layout Inspector is not enabled. This is to
+   * avoid multiple projects trying to connect Layout Inspector to the same process at the same
+   * time, which is not a supported use case.
+   */
+  private fun enforceOnlyOneLayoutInspectorPerDeviceAcrossProjects(e: AnActionEvent) {
+    val project = e.project ?: return
+    val deviceSerialNumber = SERIAL_NUMBER_KEY.getData(e.dataContext) ?: return
+    val tabId = TabId(deviceSerialNumber)
+    val isLayoutInspectorEnabledForTab =
+      LayoutInspectorManager.getInstance(project).isEnabled(tabId)
+    if (
+      !isLayoutInspectorEnabledForTab &&
+        LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.contains(tabId)
+    ) {
+      // Disable the toggle button if Layout Inspector is already active for this device (across
+      // multiple projects), except for the tab in the project where Layout Inspector is already
+      // active (the user needs to have the option to toggle Layout Inspector off).
+      e.presentation.isEnabled = false
+      e.presentation.description =
+        LayoutInspectorBundle.message("layout.inspector.active.in.another.project")
     }
   }
 
