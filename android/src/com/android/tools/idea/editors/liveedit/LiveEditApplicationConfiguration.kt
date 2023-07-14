@@ -16,12 +16,16 @@
 package com.android.tools.idea.editors.liveedit
 
 import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
+
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
 import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDiagnosticsManager
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseState
@@ -68,7 +72,13 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
 
   // Live Edit Trigger Mode
   var leTriggerMode
-    get() = state.leTriggerMode
+    get() = when (state.leTriggerMode) {
+      // Patch up the legacy settings.
+      LE_TRIGGER_MANUAL -> ON_SAVE // The LE_TRIGGER_MANUAL in G will behaves like ON_SAVE
+      LE_TRIGGER_AUTOMATIC -> AUTOMATIC // LE_TRIGGER_AUTOMATIC will just be AUTOMATIC
+      else -> state.leTriggerMode
+    }
+
     set(value) {
         ProjectManager.getInstance().openProjects
           .forEach {

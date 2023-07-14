@@ -59,6 +59,11 @@ interface LiveEditService : Disposable {
       ON_SAVE,
       ON_HOTKEY,
       AUTOMATIC,
+
+      // These two enums entries are deprecated in H. We keep them around so an user who updates from a version where these values were not
+      // deprecated to a version where they were deprecated does not trigger a NullPointerException.
+      LE_TRIGGER_MANUAL,
+      LE_TRIGGER_AUTOMATIC,
     }
 
     fun isLeTriggerManual(mode: LiveEditTriggerMode): Boolean {
