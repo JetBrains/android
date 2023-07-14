@@ -1086,6 +1086,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> COMPOSE_STATE_READ_HIGHLIGHTING_ENABLED = Flag.create(
+    EDITOR, "compose.state.read.highlighting.enabled",
+    "Enable highlighting of State reads in @Composable functions",
+    "If enabled, calls out reads of variables of type State inside @Composable functions.",
+    false
+  );
+
   public static final FlagGroup ESSENTIALS_MODE = new FlagGroup(FLAGS, "essentialsmode", "Essentials Mode");
 
 
