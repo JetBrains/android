@@ -38,10 +38,6 @@ import org.jetbrains.annotations.Nullable;
 public class AnalyzeApkAction extends DumbAwareAction {
   private static final String LAST_APK_PATH = "AnalyzeApkAction.lastApkPath";
 
-  public AnalyzeApkAction() {
-    super("Analyze APK...");
-  }
-
   @Override
   public void update(@NotNull AnActionEvent e) {
     Project project = e.getProject();
@@ -73,9 +69,9 @@ public class AnalyzeApkAction extends DumbAwareAction {
   }
 
   @Nullable
-  private static VirtualFile promptUserForApk(Project project) {
+  private VirtualFile promptUserForApk(Project project) {
     FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFileDescriptor()
-      .withDescription("Select APK to analyze")
+      .withDescription(getTemplatePresentation().getDescription())
       .withFileFilter(file -> ApkFileSystem.EXTENSIONS.contains(file.getExtension()));
 
     VirtualFile apk = FileChooser.chooseFile(descriptor, project, getLastSelectedApk(project));
