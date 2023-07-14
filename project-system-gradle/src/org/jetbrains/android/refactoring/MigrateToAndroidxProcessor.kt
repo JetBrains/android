@@ -68,7 +68,7 @@ import org.jetbrains.android.refactoring.AppCompatMigrationEntry.UpdateGradleDep
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.PackageMigrationUsageInfo
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHelper
+import org.jetbrains.kotlin.idea.refactoring.helper.KotlinOptimizeImportsRefactoringHelper
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.FileSystems
 
