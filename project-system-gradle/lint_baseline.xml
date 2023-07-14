@@ -17,28 +17,4 @@
             line="65"/>
     </issue>
 
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantUpdater.java"
-            line="78"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantUpdater.java"
-            line="87"/>
-    </issue>
-
-    <issue
-        id="VisibleForTests"
-        message="This method should only be accessed from tests or within package private scope">
-        <location
-            file="src/com/android/tools/idea/gradle/variant/view/BuildVariantUpdater.java"
-            line="99"/>
-    </issue>
-
 </issues>

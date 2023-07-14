@@ -24,7 +24,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.annotations.VisibleForTesting
 
 class SelectedVariantCollector(private val project: Project) {
 
@@ -64,8 +63,12 @@ internal fun AndroidFacet.findSelectedVariant(): SelectedVariant? {
 
 
 @JvmName("getModuleIdForSyncRequest")
-@VisibleForTesting
-fun Module.getModuleIdForSyncRequest(): String {
-  val gradleProjectPath = getGradleProjectPath() ?: error("Module $name is not a Gradle module.")
-  return Modules.createUniqueModuleId(gradleProjectPath.buildRoot, gradleProjectPath.path)
+fun Module.getModuleIdForSyncRequest(): String? {
+  val gradleProjectPath = getGradleProjectPath()
+  if (gradleProjectPath != null) {
+    return Modules.createUniqueModuleId(gradleProjectPath.buildRoot, gradleProjectPath.path)
+  }
+
+  Logger.getInstance(SelectedVariantCollector::class.java).warn("Module ${name} is not a Gradle module")
+  return null
 }

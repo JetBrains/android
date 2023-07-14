@@ -75,18 +75,24 @@ public class BuildVariantUpdater {
    */
   public void updateSelectedBuildVariant(@NotNull Module moduleToUpdate,
                                          @NotNull String selectedBuildVariant) {
-    updateSelectedVariant(moduleToUpdate, new SwitchVariantRequest(getModuleIdForSyncRequest(moduleToUpdate), selectedBuildVariant, null));
+    String moduleId = getModuleIdForSyncRequest(moduleToUpdate);
+    if (moduleId != null) {
+      updateSelectedVariant(moduleToUpdate, new SwitchVariantRequest(moduleId, selectedBuildVariant, null));
+    }
   }
 
   /**
    * Updates a module's structure when the user selects an ABI from the tool window.
    */
   public void updateSelectedAbi(@NotNull Module moduleToUpdate,
-                                   @NotNull String selectedAbiName) {
-    updateSelectedVariant(moduleToUpdate,
-                          new SwitchVariantRequest(getModuleIdForSyncRequest(moduleToUpdate),
-                                                   null,
-                                                   selectedAbiName));
+                                @NotNull String selectedAbiName) {
+    String moduleId = getModuleIdForSyncRequest(moduleToUpdate);
+    if (moduleId != null) {
+      updateSelectedVariant(moduleToUpdate,
+                            new SwitchVariantRequest(moduleId,
+                                                     null,
+                                                     selectedAbiName));
+    }
   }
 
   /**
@@ -95,17 +101,21 @@ public class BuildVariantUpdater {
   public void updateSelectedVariantAndAbi(@NotNull Module module,
                                           @NotNull String selectedVariant,
                                           @NotNull String selectedAbiName) {
-    updateSelectedVariant(module,
-                          new SwitchVariantRequest(getModuleIdForSyncRequest(module),
-                                                   selectedVariant,
-                                                   selectedAbiName));
+    String moduleId = getModuleIdForSyncRequest(module);
+    if (moduleId != null) {
+      updateSelectedVariant(module,
+                            new SwitchVariantRequest(
+                              moduleId,
+                              selectedVariant,
+                              selectedAbiName));
+    }
   }
 
   /**
    * Updates a module's structure when the user selects a build variant or ABI.
    */
   private void updateSelectedVariant(@NotNull Module moduleToUpdate,
-                                        @NotNull SwitchVariantRequest variantAndAbi) {
+                                     @NotNull SwitchVariantRequest variantAndAbi) {
     @Nullable ExternalProjectInfo data =
       ProjectDataManager.getInstance().getExternalProjectData(myProject, GradleConstants.SYSTEM_ID, myProject.getBasePath());
 
