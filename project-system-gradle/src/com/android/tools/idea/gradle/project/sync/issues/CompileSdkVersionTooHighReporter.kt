@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUpgradeAssistantHyperlink
@@ -78,7 +79,8 @@ class CompileSdkVersionTooHighReporter : SimpleDeduplicatingSyncIssueReporter() 
 
   private fun upgradeAssistantQuickFix(project: Project): OpenUpgradeAssistantHyperlink? {
     val shouldRecommendPluginUpgrade = project.getService(AssistantInvoker::class.java).shouldRecommendPluginUpgradeToLatest(project)
-    return if (shouldRecommendPluginUpgrade) {
+
+    return if (shouldRecommendPluginUpgrade && StudioFlags.ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES.get()) {
       OpenUpgradeAssistantHyperlink()
     } else null
   }

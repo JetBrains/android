@@ -31,6 +31,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.MockitoAnnotations
 import com.android.testutils.MockitoKt.mock
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUpgradeAssistantHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.SuppressUnsupportedSdkVersionHyperlink
@@ -38,6 +39,7 @@ import com.android.tools.idea.project.messages.MessageType
 import com.intellij.testFramework.UsefulTestCase.assertInstanceOf
 import com.intellij.testFramework.UsefulTestCase.assertSize
 import junit.framework.Assert.assertEquals
+import org.junit.After
 
 
 @RunsInEdt
@@ -50,6 +52,11 @@ class CompileSdkVersionTooHighReporterTest {
   @Before
   fun setUp(){
     MockitoAnnotations.initMocks(this)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES.clearOverride()
   }
 
   @Test
@@ -153,6 +160,7 @@ class CompileSdkVersionTooHighReporterTest {
 
   @Test
   fun `test upgrade assistant quick-fix appears with old version of agp`() {
+    StudioFlags.ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES.override(true)
     val preparedProject = projectRule.prepareTestProject(TestProject.APP_WITH_BUILD_FEATURES_ENABLED)
     val syncMessage = "Some random text android.suppressUnsupportedCompileSdk=UpsideDownCake with some more text here"
     val syncData = "android.suppressUnsupportedCompileSdk=UpsideDownCake"
