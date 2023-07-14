@@ -118,6 +118,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   private final @NotNull ImageFileEditor myImageFileEditor;
   private final @NotNull FileEditorProvider myEditorProvider;
   private final @NotNull PersistentState myPersistentStorage;
+  private final boolean myRotateOnRefresh;
 
   private @NotNull JPanel myPanel;
   private @NotNull JButton myRefreshButton;
@@ -297,10 +298,12 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     if (screenshotViewerOptions.contains(Option.ALLOW_IMAGE_ROTATION)) {
       myRotateLeftButton.addActionListener(event -> updateImageRotation(1));
       myRotateRightButton.addActionListener(event -> updateImageRotation(3));
+      myRotateOnRefresh = true;
     }
     else {
       hideComponent(myRotateLeftButton);
       hideComponent(myRotateRightButton);
+      myRotateOnRefresh = false;
     }
 
     myCopyButton.addActionListener(event -> {
@@ -362,7 +365,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
         ScreenshotImage screenshotImage = getScreenshot();
         mySourceImageRef.set(screenshotImage);
-        processScreenshot(myRotationQuadrants);
+        processScreenshot(myRotateOnRefresh ? myRotationQuadrants : 0);
       }
     }.queue();
   }
