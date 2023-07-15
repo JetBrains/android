@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-lombok">
+  <library name="studio-plugin-cidr-clangFormat-plugin">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/lombok/lib/lombok.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/cidr-clangFormat-plugin/lib/cidr-clangFormat-plugin.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-cidr-clangFormat">
+  <library name="studio-plugin-c-clangd-plugin">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/cidr-clangFormat/lib/cidr-clangFormat.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/c-clangd-plugin/lib/c-clangd-plugin.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

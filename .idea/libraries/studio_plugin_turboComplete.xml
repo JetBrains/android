@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-c-clangd">
+  <library name="studio-plugin-turboComplete">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/c-clangd/lib/c-clangd.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/turboComplete/lib/turboComplete.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

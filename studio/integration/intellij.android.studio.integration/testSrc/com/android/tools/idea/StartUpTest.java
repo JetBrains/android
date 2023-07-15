@@ -82,6 +82,7 @@ public class StartUpTest {
         "Git for App Insights",
         "Git",
         "GitHub",
+        "GitLab",
         "Google Cloud Tools For Android Studio",
         "Gradle",
         "Gradle-Java",
@@ -101,7 +102,6 @@ public class StartUpTest {
         "JetBrains maven model api classes",
         "Jetpack Compose",
         "Kotlin",
-        "Lombok",
         "Machine Learning Code Completion",
         "Machine Learning Code Completion Models",
         "Markdown",
@@ -121,6 +121,7 @@ public class StartUpTest {
         "TestNG",
         "TextMate Bundles",
         "Toml",
+        "Turbo Complete",
         "Visual Studio Keymap",
         "WebP Support",
         "YAML"

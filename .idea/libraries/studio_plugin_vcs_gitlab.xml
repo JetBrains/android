@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-c-clangdBridge">
+  <library name="studio-plugin-vcs-gitlab">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/c-clangdBridge/lib/c-clangdBridge.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI/$SDK_PLATFORM$/plugins/vcs-gitlab/lib/vcs-gitlab.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
