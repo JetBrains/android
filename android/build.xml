@@ -40,6 +40,11 @@
             <arg value="@blaze//third_party/intellij/bazel/plugin/proto:proto_deps" />
             <arg value="${bazel_config}" unless:blank="${bazel_config}"/>
         </exec>
+        <exec executable="${bazel}" dir="${workspace}" failonerror="true">
+            <arg value="build" />
+            <arg value="@blaze//java/com/google/devtools/intellij/blaze/plugin/aswb/proto:duckie_java_proto" />
+            <arg value="${bazel_config}" unless:blank="${bazel_config}"/>
+        </exec>
     </target>
 
     <condition property="build.gradle.plugin">
