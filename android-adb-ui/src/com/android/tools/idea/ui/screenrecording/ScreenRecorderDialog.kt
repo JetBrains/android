@@ -93,6 +93,7 @@ internal class ScreenRecorderDialog(
         WindowRoundedCornersManager.setRoundedCorners(window)
       }
     }
+    pack()
   }
 
   override fun show() {
