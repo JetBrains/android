@@ -92,6 +92,8 @@ fun CodeInsightTestFixture.stubComposeRuntime() {
         operator fun component2(): (T) -> Unit
     }
 
+    inline operator fun <T> State<T>.getValue(thisObj: Any?, property: KProperty<*>): T = value
+
     inline operator fun <T> MutableState<T>.setValue(thisObj: Any?, property: KProperty<*>, value: T) {
         this.value = value
     }
@@ -114,6 +116,21 @@ fun CodeInsightTestFixture.stubComposeRuntime() {
       override operator fun component1(): T = value
       override operator fun component2(): (T) -> Unit = { value = it }
     }
+    """.trimIndent()
+  )
+  addFileToProject(
+    "src/androidx/compose/runtime/saveable/RememberSaveable.kt",
+    // language=kotlin
+    """
+    package androidx.compose.runtime.saveable
+
+    @Composable
+    fun <T : Any> rememberSaveable(
+      vararg inputs: Any?,
+      saver: Saver<T, out Any> = autoSaver(),
+      key: String? = null,
+      init: () -> T
+    ): T = init()
     """.trimIndent()
   )
 }

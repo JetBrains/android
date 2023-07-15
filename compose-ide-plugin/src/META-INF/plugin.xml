@@ -35,6 +35,7 @@
     <dependencySupport coordinate="androidx.compose.runtime:runtime" kind="java" displayName="Jetpack Compose"/>
 
     <annotator language="kotlin" implementationClass="com.android.tools.compose.ComposeColorAnnotator"/>
+    <annotator language="kotlin" implementationClass="com.android.tools.compose.code.ComposeStateReadAnnotator"/>
 
     <additionalTextAttributes scheme="Default" file="colorschemes/ComposableHighlighterExtensionColorSchemeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorschemes/ComposableHighlighterExtensionColorSchemeDarcula.xml"/>
