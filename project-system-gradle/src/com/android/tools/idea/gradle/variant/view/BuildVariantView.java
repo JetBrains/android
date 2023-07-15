@@ -83,7 +83,6 @@ public class BuildVariantView {
   private static final int MODULE_COLUMN_INDEX = 0;
   private static final int VARIANT_COLUMN_INDEX = 1;
   private static final int ABI_COLUMN_INDEX = 2;
-  protected static final String DEFAULT_INDICATOR = " (default)";
 
   private static final Color CONFLICT_CELL_BACKGROUND = MessageType.ERROR.getPopupBackground();
 
@@ -337,11 +336,7 @@ public class BuildVariantView {
       editor.addItemListener(e -> {
         if (e.getStateChange() == ItemEvent.SELECTED) {
           BuildVariantItem selectedVariant = (BuildVariantItem)e.getItem();
-          String variantName = selectedVariant.getBuildVariantName();
-          if (selectedVariant.isDefault()) {
-            variantName = variantName.substring(0, variantName.indexOf(DEFAULT_INDICATOR));
-          }
-          BuildVariantUpdater.getInstance(myProject).updateSelectedBuildVariant(tableRow.getModule(), variantName);
+          BuildVariantUpdater.getInstance(myProject).updateSelectedBuildVariant(tableRow.getModule(), selectedVariant.getBuildVariantName());
         }
       });
       DefaultCellEditor defaultCellEditor = new DefaultCellEditor(editor);
