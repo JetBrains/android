@@ -16,8 +16,8 @@
 package com.android.tools.idea.project
 
 import com.android.AndroidProjectTypes
-import com.android.manifmerger.ManifestMerger2.MergeFailureException
 import com.android.tools.idea.instantapp.InstantApps
+import com.android.tools.idea.model.MergedManifestException
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
@@ -46,7 +46,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
-import java.util.concurrent.ExecutionException
 
 @Service(Service.Level.PROJECT)
 class AndroidRunConfigurations(
@@ -113,7 +112,7 @@ class AndroidRunConfigurations(
       Logger.getInstance(AndroidRunConfigurations::class.java).warn(ex)
       null
     }
-    catch (ex: MergeFailureException) {
+    catch (ex: MergedManifestException.MergingError) {
       Logger.getInstance(AndroidRunConfigurations::class.java).warn(ex)
       null
     }
