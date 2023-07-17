@@ -937,6 +937,10 @@ public final class StudioFlags {
     "The log level used by the screen sharing agent, one of \"verbose\", \"debug\", \"info\", \"warn\" or \"error\";" +
     " the default is \"info\"",
     "");
+  public static final Flag<Integer> DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS = Flag.create(
+    DEVICE_MIRRORING, "connection.timeout", "Connection Timeout for Mirroring",
+    "Connection timeout for mirroring in milliseconds",
+    10_000);
   public static final Flag<Integer> DEVICE_MIRRORING_MAX_BIT_RATE = Flag.create(
     DEVICE_MIRRORING, "max.bit.rate", "Maximum Bit Rate for Mirroring of Physical Devices",
     "The maximum bit rate of video stream, zero means no limit",

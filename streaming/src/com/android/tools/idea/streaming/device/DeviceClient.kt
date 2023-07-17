@@ -47,10 +47,12 @@ import com.intellij.util.containers.ContainerUtil.createLockFreeCopyOnWriteList
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.Dimension
 import java.io.EOFException
@@ -64,6 +66,7 @@ import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
 import java.util.concurrent.CancellationException
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
@@ -230,11 +233,11 @@ internal class DeviceClient(
   }
 
   private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel) {
-    val channel1 = serverSocketChannel.acceptAndEnsureClosing(this)
-    val channel2 = serverSocketChannel.acceptAndEnsureClosing(this)
-    // The channels are distinguished by single-byte markers, 'V' for video and 'C' for control.
-    // Read the markers to assign the channels appropriately.
-    coroutineScope {
+    withVerboseTimeout(getConnectionTimeout(), "Device agent is not responding") {
+      val channel1 = serverSocketChannel.acceptAndEnsureClosing(this@DeviceClient)
+      val channel2 = serverSocketChannel.acceptAndEnsureClosing(this@DeviceClient)
+      // The channels are distinguished by single-byte markers, 'V' for video and 'C' for control.
+      // Read the markers to assign the channels appropriately.
       val marker1 = async { readChannelMarker(channel1) }
       val marker2 = async { readChannelMarker(channel2) }
       val m1 = marker1.await()
@@ -250,9 +253,24 @@ internal class DeviceClient(
       else {
         throw RuntimeException("Unexpected channel markers: $m1, $m2")
       }
+      channelConnectedTime = System.currentTimeMillis()
+      controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
     }
-    channelConnectedTime = System.currentTimeMillis()
-    controlChannel.setOption(StandardSocketOptions.TCP_NODELAY, true)
+  }
+
+  private fun getConnectionTimeout(): Long {
+    val timeout = StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS.get().toLong()
+    return if (timeout > 0) timeout else Long.MAX_VALUE
+  }
+
+  /** Similar to [withTimeout] but throws [TimeoutException] with the given message. */
+  private suspend fun <T> withVerboseTimeout(timeMillis: Long, timeoutMessage: String, block: suspend CoroutineScope.() -> T): T {
+    return try {
+      withTimeout(timeMillis, block)
+    }
+    catch (e: TimeoutCancellationException) {
+      throw TimeoutException(timeoutMessage)
+    }
   }
 
   private suspend fun readChannelMarker(channel: SuspendingSocketChannel): Byte {

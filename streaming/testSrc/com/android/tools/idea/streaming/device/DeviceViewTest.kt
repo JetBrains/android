@@ -655,6 +655,22 @@ internal class DeviceViewTest {
   }
 
   @Test
+  fun testConnectionTimeout() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS.override(200, testRootDisposable)
+    agent.startDelayMillis = 300
+    val loggedErrors = executeCapturingLoggedErrors {
+      createDeviceViewWithoutWaitingForAgent(500, 1000, screenScale = 1.0)
+      val errorMessage = fakeUi.getComponent<JLabel>()
+      waitForCondition(2, SECONDS) { fakeUi.isShowing(errorMessage) }
+      assertThat(errorMessage.text).isEqualTo("Device agent is not responding")
+    }
+    assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
+  }
+
+  @Test
   fun testDeviceDisconnection() {
     if (!isFFmpegAvailableToTest()) {
       return
@@ -806,6 +822,11 @@ internal class DeviceViewTest {
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
+    createDeviceViewWithoutWaitingForAgent(width, height, screenScale)
+    waitForCondition(15, SECONDS) { agent.isRunning }
+  }
+
+  private fun createDeviceViewWithoutWaitingForAgent(width: Int, height: Int, screenScale: Double) {
     val deviceClient =
         DeviceClient(testRootDisposable, device.serialNumber, device.handle, device.configuration, device.deviceState.cpuAbi, project)
     // DeviceView has to be disposed before DeviceClient.
@@ -813,7 +834,6 @@ internal class DeviceViewTest {
     Disposer.register(testRootDisposable, disposable)
     view = DeviceView(disposable, deviceClient, UNKNOWN_ORIENTATION, agentRule.project)
     fakeUi = FakeUi(wrapInScrollPane(view, width, height), screenScale)
-    waitForCondition(15, SECONDS) { agent.isRunning }
   }
 
   private fun wrapInScrollPane(view: Component, width: Int, height: Int): JScrollPane {

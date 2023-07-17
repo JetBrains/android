@@ -114,6 +114,7 @@ import java.awt.event.MouseEvent
 import java.awt.event.MouseWheelEvent
 import java.awt.geom.AffineTransform
 import java.util.concurrent.CancellationException
+import java.util.concurrent.TimeoutException
 import javax.swing.KeyStroke
 import kotlin.math.absoluteValue
 import kotlin.math.min
@@ -289,7 +290,7 @@ internal class DeviceView(
       when (connectionState) {
         ConnectionState.CONNECTING -> {
           thisLogger().error("Failed to initialize the screen sharing agent", exception)
-          message = "Failed to initialize the device agent. See the error log."
+          message = (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See the error log."
           reconnector = Reconnector("Retry", "Connecting to the device") { connectToAgentAsync(initialDisplayOrientation) }
         }
 

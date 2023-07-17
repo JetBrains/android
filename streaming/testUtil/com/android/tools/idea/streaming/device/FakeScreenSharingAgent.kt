@@ -150,6 +150,8 @@ class FakeScreenSharingAgent(
   @Volatile
   var crashOnStart = false
   @Volatile
+  var startDelayMillis: Long = 0
+  @Volatile
   var videoStreamActive = false
     private set
 
@@ -177,6 +179,9 @@ class FakeScreenSharingAgent(
       if (crashOnStart) {
         terminateAgent(139)
         return@withContext
+      }
+      if (startDelayMillis > 0) {
+        delay(startDelayMillis)
       }
       videoChannel.write(ByteBuffer.wrap("V".toByteArray()))
       controlChannel.write(ByteBuffer.wrap("C".toByteArray()))
