@@ -165,6 +165,11 @@ public class WorkBench<T> extends JBLayeredPane implements Disposable {
     myDetachedToolWindowManager.updateToolWindowsForWorkBench(this);
   }
 
+  @NotNull
+  public JComponent getComponent() {
+    return myMainPanel;
+  }
+
   @Override
   public void updateUI() {
     // The following components do not receive "updateUI" when the swing theme is changed.
