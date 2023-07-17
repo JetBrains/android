@@ -501,7 +501,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
    */
   private fun addToRoot(window: AndroidWindow): List<TreeViewNode> {
     temp.children.clear()
-    readAccess { updateHierarchy(window.root, temp, temp) }
+    readAccess { updateHierarchy(window, temp) }
     temp.children.forEach { it.parent = root }
     val windowNodes = windowRoots.getOrPut(window.id) { mutableListOf() }
     windowNodes.clear()
@@ -523,23 +523,55 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     componentTreeModel.hierarchyChanged(root)
   }
 
-  private fun ViewNode.ReadAccess.updateHierarchy(
-    node: ViewNode,
-    previous: TreeViewNode,
-    parent: TreeViewNode
-  ) {
+  /**
+   * Update the [TreeViewNode] hierarchy of the [window] and add the window to the specified [root].
+   *
+   * Walk the [ViewNode] of the [window] in pre-order (NLR).
+   * - Skip hidden nodes by:
+   *     - Not adding the skipped node to the parent [TreeViewNode]
+   *     - Set the [TreeViewNode] parent to the first non skipped parent
+   *     - Children of skipped nodes will find the first non skipped parent by using the parent
+   *       field of its parents [TreeViewNode]
+   * - Collapsing compose nodes to a callstack is handled by:
+   *     - Set the [TreeViewNode] parent to the first parent that has siblings.
+   *
+   * There is an exception to the above rules. If we are collapsing compose nodes and a node with
+   * multiple children is a child in a single call chain and is also a hidden node, we should NOT
+   * add it's children to the top node in the call tree, but rather find the first parent that is
+   * not hidden.
+   */
+  private fun ViewNode.ReadAccess.updateHierarchy(window: AndroidWindow, root: TreeViewNode) {
     val treeSettings = layoutInspector?.treeSettings ?: return
-    val current =
-      if (!node.isInComponentTree(treeSettings)) previous
-      else {
-        val treeNode = node.treeNode
-        parent.children.add(treeNode)
-        treeNode.parent = parent
-        treeNode.children.clear()
-        treeNode
+    val start = window.root
+    start.treeNode.parent = root
+    start.treeNode.children.clear()
+    if (start.isInComponentTree(treeSettings)) {
+      root.children.add(start.treeNode)
+    }
+    val pending = mutableListOf<ViewNode>().apply { addAll(start.children.asReversed()) }
+    while (pending.isNotEmpty()) {
+      val node = pending.removeLast()
+      var parent = node.parent ?: error("The node cannot be the root")
+      val skipNodeParent =
+        parent.isSingleCall(treeSettings) || !parent.isInComponentTree(treeSettings)
+      var parentTreeNode = (if (skipNodeParent) parent.treeNode.parent else parent.treeNode) ?: root
+      if (
+        parent.isSingleCall(treeSettings) &&
+          !node.isInComponentTree(treeSettings) &&
+          node.children.size > 1
+      ) {
+        while (!parent.isInComponentTree(treeSettings) && parent !== start) {
+          parent = parent.parent ?: error("The node cannot be the root")
+        }
+        parentTreeNode = parent.treeNode
       }
-    val nextParent = if (node.isSingleCall(treeSettings)) parent else current
-    node.children.forEach { updateHierarchy(it, current, nextParent) }
+      node.treeNode.parent = parentTreeNode
+      node.treeNode.children.clear()
+      if (node.isInComponentTree(treeSettings)) {
+        parentTreeNode.children.add(node.treeNode)
+      }
+      pending.addAll(node.children.asReversed())
+    }
   }
 
   @Suppress("UNUSED_PARAMETER")

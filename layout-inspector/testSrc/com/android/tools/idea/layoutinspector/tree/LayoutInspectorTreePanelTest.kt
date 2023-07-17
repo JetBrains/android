@@ -670,11 +670,19 @@ class LayoutInspectorTreePanelTest {
     val window =
       window(ROOT, ROOT) {
         compose(2, "App", composePackageHash = USER_PKG) {
-          compose(3, "Column", composePackageHash = USER_PKG) {
-            compose(4, "Layout", composePackageHash = SYSTEM_PKG) {
-              compose(5, "Text", composePackageHash = USER_PKG)
-              compose(6, "Box", composePackageHash = USER_PKG)
-              compose(7, "Button", composePackageHash = USER_PKG)
+          compose(3, "Nested", composePackageHash = USER_PKG) {
+            compose(4, "Column", composePackageHash = USER_PKG) {
+              compose(5, "Layout", composePackageHash = SYSTEM_PKG) {
+                compose(6, "Layout", composePackageHash = SYSTEM_PKG) {
+                  compose(7, "Layout", composePackageHash = SYSTEM_PKG) {
+                    compose(8, "Layout", composePackageHash = SYSTEM_PKG) {
+                      compose(9, "Text", composePackageHash = USER_PKG)
+                      compose(10, "Box", composePackageHash = USER_PKG)
+                      compose(11, "Button", composePackageHash = USER_PKG)
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -685,14 +693,74 @@ class LayoutInspectorTreePanelTest {
     val root = treePanel.tree.model?.root as TreeViewNode
     val expected =
       compose(2, "App", composePackageHash = USER_PKG) {
-          compose(3, "Column", composePackageHash = USER_PKG) {
-            compose(5, "Text", composePackageHash = USER_PKG)
-            compose(6, "Box", composePackageHash = USER_PKG)
-            compose(7, "Button", composePackageHash = USER_PKG)
+        compose(3, "Nested", composePackageHash = USER_PKG)
+        compose(4, "Column", composePackageHash = USER_PKG) {
+          compose(9, "Text", composePackageHash = USER_PKG)
+          compose(10, "Box", composePackageHash = USER_PKG)
+          compose(11, "Button", composePackageHash = USER_PKG)
+        }
+      }
+    assertTreeStructure(root.children.single(), expected.build())
+  }
+
+  @RunsInEdt
+  @Test
+  fun testSystemNodeInMiddleOfCallStack() {
+    val mockLauncher = mock<InspectorClientLauncher>()
+    whenever(mockLauncher.activeClient).thenAnswer { DisconnectedClient }
+    val model = InspectorModel(projectRule.project)
+    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val clientSettings = InspectorClientSettings(projectRule.project)
+    val inspector =
+      LayoutInspector(
+        coroutineScope,
+        mock(),
+        mock(),
+        null,
+        clientSettings,
+        mockLauncher,
+        model,
+        mock(),
+        FakeTreeSettings(),
+        MoreExecutors.directExecutor()
+      )
+    val treePanel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    inspector.treeSettings.hideSystemNodes = true
+    inspector.treeSettings.composeAsCallstack = true
+    setToolContext(treePanel, inspector)
+    val window =
+      window(ROOT, ROOT) {
+        compose(2, "App", composePackageHash = USER_PKG) {
+          compose(3, "Nested", composePackageHash = USER_PKG) {
+            compose(4, "Layout", composePackageHash = SYSTEM_PKG) {
+              compose(5, "Layout", composePackageHash = SYSTEM_PKG) {
+                compose(6, "Nested", composePackageHash = USER_PKG) {
+                  compose(7, "Column", composePackageHash = USER_PKG) {
+                    compose(8, "Text", composePackageHash = USER_PKG)
+                    compose(9, "Box", composePackageHash = USER_PKG)
+                    compose(10, "Button", composePackageHash = USER_PKG)
+                  }
+                }
+              }
+            }
           }
         }
-        .build()
-    assertTreeStructure(root.children.single(), expected)
+      }
+    model.update(window, listOf(ROOT), 1)
+
+    // Verify that "Layout" is omitted from the component tree, and that "Column" has 3 children:
+    val root = treePanel.tree.model?.root as TreeViewNode
+    val expected =
+      compose(2, "App", composePackageHash = USER_PKG) {
+        compose(3, "Nested", composePackageHash = USER_PKG)
+        compose(6, "Nested", composePackageHash = USER_PKG)
+        compose(7, "Column", composePackageHash = USER_PKG) {
+          compose(8, "Text", composePackageHash = USER_PKG)
+          compose(9, "Box", composePackageHash = USER_PKG)
+          compose(10, "Button", composePackageHash = USER_PKG)
+        }
+      }
+    assertTreeStructure(root.children.single(), expected.build())
   }
 
   @RunsInEdt

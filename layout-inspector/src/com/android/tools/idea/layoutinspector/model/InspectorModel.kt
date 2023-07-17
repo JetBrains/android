@@ -367,11 +367,10 @@ class InspectorModel(
   }
 
   /** Build draw nodes */
-  private fun ViewNode.WriteAccess.buildDrawTree(node: ViewNode) {
-    if (node.drawChildren.isEmpty()) {
-      node.children.forEach {
-        node.drawChildren.add(DrawViewChild(it))
-        buildDrawTree(it)
+  private fun ViewNode.WriteAccess.buildDrawTree(root: ViewNode) {
+    root.flattenedList().forEach { node ->
+      if (node.drawChildren.isEmpty()) {
+        node.children.forEach { node.drawChildren.add(DrawViewChild(it)) }
       }
     }
   }
