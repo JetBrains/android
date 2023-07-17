@@ -1,7 +1,6 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.adtui.workbench;
 
-import static com.intellij.openapi.actionSystem.ActionToolbar.NAVBAR_MINIMUM_BUTTON_SIZE;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
@@ -425,9 +424,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     actionToolbar.setTargetComponent(myPanel);
     actionToolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
     actionToolbar.setReservePlaceAutoPopupIcon(false);
-    Dimension buttonSize = myDefinition.getButtonSize();
-    int border = buttonSize.equals(NAVBAR_MINIMUM_BUTTON_SIZE) ? 4 : 2;
-    actionToolbar.getComponent().setBorder(JBUI.Borders.empty(border, 0));
     actionToolbar.updateActionsImmediately();
     return actionToolbar;
   }
