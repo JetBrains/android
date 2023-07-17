@@ -26,13 +26,14 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.testFramework.RunsInEdt
+import org.jsoup.Jsoup
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import javax.swing.JButton
 import javax.swing.JCheckBox
-import javax.swing.JLabel
+import javax.swing.JEditorPane
 
 /**
  * Test for [SelectedDevicesErrorDialog].
@@ -60,10 +61,9 @@ internal class SelectedDevicesErrorDialogTest {
 
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
-      val title = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "Error" }
-      assertThat(title).isNotNull()
-      val message = treeWalker.descendants().filterIsInstance<JLabel>()
-        .find { it.text == "<html><div>error message on device Pixel 3 API 29</div></html>" }
+      assertThat(dialogWrapper.title == "Error")
+      val message = treeWalker.descendants().filterIsInstance<JEditorPane>()
+        .find { Jsoup.parse(it.text).text() == "error message on device Pixel 3 API 29" }
       assertThat(message).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
       assertThat(buttons.size).isEqualTo(1)
@@ -88,10 +88,9 @@ internal class SelectedDevicesErrorDialogTest {
 
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
-      val title = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "Warning" }
-      assertThat(title).isNotNull()
-      val message = treeWalker.descendants().filterIsInstance<JLabel>()
-        .find { it.text == "<html><div>warning message on device Pixel 3 API 29</div></html>" }
+      assertThat(dialogWrapper.title == "Warning")
+      val message = treeWalker.descendants().filterIsInstance<JEditorPane>()
+        .find { Jsoup.parse(it.text).text() == "warning message on device Pixel 3 API 29" }
       assertThat(message).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
       assertThat(buttons.size).isEqualTo(2)
@@ -123,13 +122,12 @@ internal class SelectedDevicesErrorDialogTest {
 
     createModalDialogAndInteractWithIt({ dialog.show() }) { dialogWrapper ->
       val treeWalker = TreeWalker(dialogWrapper.rootPane)
-      val title = treeWalker.descendants().filterIsInstance<JLabel>().find { it.text == "Error" }
-      assertThat(title).isNotNull()
-      val warning = treeWalker.descendants().filterIsInstance<JLabel>()
-        .find { it.text == "<html><div>warning message on device Pixel 3 API 29</div></html>" }
+      assertThat(dialogWrapper.title == "Warning")
+      val warning = treeWalker.descendants().filterIsInstance<JEditorPane>()
+        .find { Jsoup.parse(it.text).text() == "warning message on device Pixel 3 API 29" }
       assertThat(warning).isNotNull()
-      val error = treeWalker.descendants().filterIsInstance<JLabel>()
-        .find { it.text == "<html><div>error message on device Pixel 3 API 30</div></html>" }
+      val error = treeWalker.descendants().filterIsInstance<JEditorPane>()
+        .find { Jsoup.parse(it.text).text() == "error message on device Pixel 3 API 30" }
       assertThat(error).isNotNull()
       val buttons = treeWalker.descendants().filterIsInstance<JButton>()
       assertThat(buttons.size).isEqualTo(1)
