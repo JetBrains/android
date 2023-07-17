@@ -193,24 +193,19 @@ internal class ManageSnapshotsDialog(
    */
   private fun createPanel(): DialogPanel {
     return panel {
-      row(message("manage.snapshots.list.title")) {}
+      row { label(message("manage.snapshots.list.title")) }
       row {
         cell(createTablePanel()).align(AlignY.FILL)
-
         panel {
           row { cell(previewPanel).align(Align.FILL) }.resizableRow()
           row { cell(snapshotInfoPanel).align(AlignX.FILL) }
-        }.align(Align.FILL).resizableColumn()
+        }.align(Align.FILL)
       }.resizableRow()
       row {
-        panel {
-          row { cell(takeSnapshotButton) }
-          row { cell(runningOperationLabel) }
-        }
+        cell(takeSnapshotButton)
+        cell(runningOperationLabel)
       }
-      row {
-        cell(coldBootCheckBox)
-      }
+      row { cell(coldBootCheckBox) }
     }.apply {
       snapshotTable.selectionModel.addListSelectionListener {
         clearError()
@@ -259,7 +254,7 @@ internal class ManageSnapshotsDialog(
       text = "<html><b>${name}</b><br>${attributeSection}${fileSection}${errorSection}${descriptionSection}</html>"
       val fontMetrics = getFontMetrics(font)
       val wrappedDescriptionLines = if (width == 0) 0 else fontMetrics.stringWidth(snapshot.description) / width
-      preferredSize = Dimension(0, fontMetrics.height * (countLineBreaks(text) + 1 + wrappedDescriptionLines))
+      preferredSize = Dimension(0, fontMetrics.height * (countLineBreaks(text) + 1 + wrappedDescriptionLines.coerceAtMost(5)))
     }
   }
 
