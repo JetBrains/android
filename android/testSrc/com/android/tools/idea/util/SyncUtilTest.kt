@@ -31,6 +31,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.util.ThrowableRunnable
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -39,6 +40,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
@@ -136,15 +138,18 @@ class SyncUtilTest {
     assertThat(callCount.get()).isEqualTo(1)
   }
 
-  @Ignore
   @Test
   fun waitForSmartAndSyncedWhenDumbAndNotSynced() {
     val callCount = AtomicInteger(0)
     val syncManager = TestSyncManager(project)
     syncManager.testIsSyncInProgress = true
     startDumbMode()
+    val semaphore = Semaphore(0)
     project.runWhenSmartAndSynced(
-      callback = Consumer { callCount.incrementAndGet() },
+      callback = {
+        callCount.incrementAndGet()
+        semaphore.release()
+      },
       syncManager = syncManager)
     assertThat(callCount.get()).isEqualTo(0)
     syncManager.testIsSyncInProgress = false
@@ -153,10 +158,12 @@ class SyncUtilTest {
     assertThat(callCount.get()).isEqualTo(0)
 
     stopDumbMode()
+    semaphore.acquire()
     assertThat(callCount.get()).isEqualTo(1)
 
     // Once the callback has been called, new syncs or dumb mode changes won't call the method
     emulateSync(SyncResult.SUCCESS)
+    assertFalse("runWhenSmartAndSynced callback was called unexpectedly", semaphore.tryAcquire(5, TimeUnit.SECONDS))
     assertThat(callCount.get()).isEqualTo(1)
   }
 
