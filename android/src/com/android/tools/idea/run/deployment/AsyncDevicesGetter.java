@@ -50,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
  * workers hold onto previous results and those are used if the background threads are busy. If a worker does not have a previous result the
  * get method returns Optional.empty.
  */
-final class AsyncDevicesGetter implements Disposable {
+public final class AsyncDevicesGetter implements Disposable {
   @NotNull
   private final Project myProject;
 
@@ -88,7 +88,7 @@ final class AsyncDevicesGetter implements Disposable {
   }
 
   @NotNull
-  static AsyncDevicesGetter getInstance(@NotNull Project project) {
+  public static AsyncDevicesGetter getInstance(@NotNull Project project) {
     return project.getService(AsyncDevicesGetter.class);
   }
 

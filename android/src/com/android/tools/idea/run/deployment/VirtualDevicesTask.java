@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice>> {
+public final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice>> {
   private final @NotNull ExecutorService myExecutorService;
   private final @NotNull Supplier<Collection<AvdInfo>> myGetAvds;
 
@@ -49,33 +49,33 @@ final class VirtualDevicesTask implements AsyncSupplier<Collection<VirtualDevice
   @Nullable
   private final LaunchCompatibilityChecker myChecker;
 
-  static final class Builder {
+  public static final class Builder {
     private @Nullable ExecutorService myExecutorService;
     private @Nullable Supplier<Collection<AvdInfo>> myGetAvds;
     private @Nullable Function<AvdInfo, AndroidDevice> myNewLaunchableAndroidDevice;
     private @Nullable LaunchCompatibilityChecker myChecker;
 
-    @NotNull Builder setExecutorService(@NotNull ExecutorService executorService) {
+    public @NotNull Builder setExecutorService(@NotNull ExecutorService executorService) {
       myExecutorService = executorService;
       return this;
     }
 
-    @NotNull Builder setGetAvds(@NotNull Supplier<Collection<AvdInfo>> getAvds) {
+    public @NotNull Builder setGetAvds(@NotNull Supplier<Collection<AvdInfo>> getAvds) {
       myGetAvds = getAvds;
       return this;
     }
 
-    @NotNull Builder setNewLaunchableAndroidDevice(@NotNull Function<AvdInfo, AndroidDevice> newLaunchableAndroidDevice) {
+    public @NotNull Builder setNewLaunchableAndroidDevice(@NotNull Function<AvdInfo, AndroidDevice> newLaunchableAndroidDevice) {
       myNewLaunchableAndroidDevice = newLaunchableAndroidDevice;
       return this;
     }
 
-    @NotNull Builder setChecker(@Nullable LaunchCompatibilityChecker checker) {
+    public @NotNull Builder setChecker(@Nullable LaunchCompatibilityChecker checker) {
       myChecker = checker;
       return this;
     }
 
-    @NotNull VirtualDevicesTask build() {
+    public @NotNull VirtualDevicesTask build() {
       return new VirtualDevicesTask(this);
     }
   }

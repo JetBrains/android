@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * A deployment target for an app. A user actually selects these (and not devices) with the drop down or Select Multiple Devices dialog. The
  * subclasses for virtual devices boot them differently.
  */
-abstract class Target {
+public abstract class Target {
   private final @NotNull Key myDeviceKey;
 
   Target(@NotNull Key deviceKey) {

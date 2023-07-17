@@ -35,12 +35,12 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PhysicalDevice extends Device {
+public final class PhysicalDevice extends Device {
   private static final Icon ourPhoneIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
   private static final Icon ourWearIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
   private static final Icon ourTvIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
 
-  static @NotNull PhysicalDevice newDevice(@NotNull Device device, @NotNull KeyToConnectionTimeMap map) {
+  public static @NotNull PhysicalDevice newDevice(@NotNull Device device, @NotNull KeyToConnectionTimeMap map) {
     Key key = device.getKey();
 
     return new Builder()
@@ -129,7 +129,7 @@ final class PhysicalDevice extends Device {
    * disconnected physical devices.
    */
   @Override
-  boolean isConnected() {
+  public boolean isConnected() {
     return true;
   }
 
@@ -141,7 +141,7 @@ final class PhysicalDevice extends Device {
 
   @NotNull
   @Override
-  Target getDefaultTarget() {
+  public Target getDefaultTarget() {
     return new RunningDeviceTarget(getKey());
   }
 

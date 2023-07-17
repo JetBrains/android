@@ -22,10 +22,10 @@ import org.jetbrains.annotations.Nullable;
  * A virtual device path returned by AvdInfo.getDataFolderPath and IDevice.getAvdPath. These are the primary virtual device identifiers and
  * should be used over virtual device names and serial numbers if possible.
  */
-final class VirtualDevicePath extends Key {
+public final class VirtualDevicePath extends Key {
   private final @NotNull String myValue;
 
-  VirtualDevicePath(@NotNull String value) {
+  public VirtualDevicePath(@NotNull String value) {
     myValue = value;
   }
 

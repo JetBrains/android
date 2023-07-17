@@ -36,14 +36,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 // TODO Add the thread annotations
-final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDevice>> {
+public final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDevice>> {
   private final @NotNull AndroidDebugBridge myAndroidDebugBridge;
   private final @Nullable LaunchCompatibilityChecker myLaunchCompatibilityChecker;
 
   @NotNull
   private final Function<IDevice, AndroidDevice> myNewConnectedAndroidDevice;
 
-  ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge, @Nullable LaunchCompatibilityChecker launchCompatibilityChecker) {
+  public ConnectedDevicesTask(@NotNull AndroidDebugBridge androidDebugBridge, @Nullable LaunchCompatibilityChecker launchCompatibilityChecker) {
     this(androidDebugBridge, launchCompatibilityChecker, ConnectedAndroidDevice::new);
   }
 

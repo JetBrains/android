@@ -38,12 +38,12 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class DdmlibAndroidDebugBridge implements AndroidDebugBridge {
+public final class DdmlibAndroidDebugBridge implements AndroidDebugBridge {
   private final @NotNull ListeningExecutorService myExecutorService;
   private final @NotNull Supplier<Path> myGetAdb;
   private final @NotNull AsyncFunction<Path, com.android.ddmlib.AndroidDebugBridge> myGetDebugBridge;
 
-  DdmlibAndroidDebugBridge(@NotNull Project project) {
+  public DdmlibAndroidDebugBridge(@NotNull Project project) {
     this(MoreExecutors.listeningDecorator(AppExecutorUtil.getAppExecutorService()),
          () -> getAdb(project),
          DdmlibAndroidDebugBridge::getDebugBridge);

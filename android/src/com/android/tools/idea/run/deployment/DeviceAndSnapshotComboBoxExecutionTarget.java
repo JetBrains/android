@@ -39,11 +39,11 @@ import org.jetbrains.annotations.NotNull;
  * The combo box generates these {@link ExecutionTarget ExecutionTargets.} ExecutionTargets determine the state of the run, debug, and stop
  * (but <em>not</em> the apply changes) toolbar buttons.
  */
-final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTarget {
+public final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTarget {
   private final @NotNull Collection<Key> myKeys;
   private final @NotNull AsyncDevicesGetter myDevicesGetter;
 
-  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<Target> targets, @NotNull AsyncDevicesGetter devicesGetter) {
+  public DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<Target> targets, @NotNull AsyncDevicesGetter devicesGetter) {
     myKeys = targets.stream()
       .map(Target::getDeviceKey)
       .collect(Collectors.toSet());

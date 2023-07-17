@@ -91,7 +91,7 @@ public abstract class Device {
   @NotNull
   abstract Icon getIcon();
 
-  abstract boolean isConnected();
+  public abstract boolean isConnected();
 
   @NotNull
   public final String getName() {
@@ -117,7 +117,7 @@ public abstract class Device {
     return myConnectionTime;
   }
 
-  abstract @NotNull Target getDefaultTarget();
+  public abstract @NotNull Target getDefaultTarget();
 
   abstract @NotNull Collection<Target> getTargets();
 

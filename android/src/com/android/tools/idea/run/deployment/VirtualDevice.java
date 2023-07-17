@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  * A virtual device. If it's in the Android Virtual Device Manager Device.myKey is a VirtualDevicePath and myNameKey is not null. If not,
  * Device.myKey may be a VirtualDevicePath, VirtualDeviceName, or SerialNumber depending on what the IDevice returns and myNameKey is null.
  */
-final class VirtualDevice extends Device {
+public final class VirtualDevice extends Device {
   private static final Icon ourPhoneIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
   private static final Icon ourWearIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR;
   private static final Icon ourTvIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV;
@@ -60,9 +60,9 @@ final class VirtualDevice extends Device {
   private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
-  static VirtualDevice newConnectedDevice(@NotNull ConnectedDevice connectedDevice,
-                                          @NotNull KeyToConnectionTimeMap map,
-                                          @Nullable VirtualDevice virtualDevice) {
+  public static VirtualDevice newConnectedDevice(@NotNull ConnectedDevice connectedDevice,
+                                                 @NotNull KeyToConnectionTimeMap map,
+                                                 @Nullable VirtualDevice virtualDevice) {
     Device device;
     VirtualDeviceName nameKey;
 
@@ -173,7 +173,7 @@ final class VirtualDevice extends Device {
   }
 
   @NotNull
-  Optional<VirtualDeviceName> getNameKey() {
+  public Optional<VirtualDeviceName> getNameKey() {
     return Optional.ofNullable(myNameKey);
   }
 
@@ -210,7 +210,7 @@ final class VirtualDevice extends Device {
   }
 
   @Override
-  boolean isConnected() {
+  public boolean isConnected() {
     return getConnectionTime() != null;
   }
 
@@ -222,7 +222,7 @@ final class VirtualDevice extends Device {
 
   @NotNull
   @Override
-  Target getDefaultTarget() {
+  public Target getDefaultTarget() {
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
       return new QuickBootTarget(getKey());
     }

@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * d87dc6db6e7f366507eed0912b96d88f0d282f5a but this class can only be deleted when enough users upgrade their emulator to (or past) Version
  * 30.0.18.
  */
-final class VirtualDeviceName extends Key {
+public final class VirtualDeviceName extends Key {
   private final @NotNull String myValue;
 
   VirtualDeviceName(@NotNull String value) {

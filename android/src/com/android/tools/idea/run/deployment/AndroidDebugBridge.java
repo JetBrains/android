@@ -20,6 +20,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
-interface AndroidDebugBridge {
+public interface AndroidDebugBridge {
   @NotNull ListenableFuture<Collection<IDevice>> getConnectedDevices();
 }

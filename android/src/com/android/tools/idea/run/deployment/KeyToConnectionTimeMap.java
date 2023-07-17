@@ -23,14 +23,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jetbrains.annotations.NotNull;
 
-final class KeyToConnectionTimeMap {
+public final class KeyToConnectionTimeMap {
   @NotNull
   private final Map<Key, Instant> myMap;
 
   @NotNull
   private final Clock myClock;
 
-  KeyToConnectionTimeMap() {
+  public KeyToConnectionTimeMap() {
     this(Clock.systemDefaultZone());
   }
 
@@ -45,7 +45,7 @@ final class KeyToConnectionTimeMap {
     return myMap.computeIfAbsent(key, k -> myClock.instant());
   }
 
-  void retainAll(@NotNull Collection<Key> keys) {
+  public void retainAll(@NotNull Collection<Key> keys) {
     myMap.keySet().retainAll(keys);
   }
 }

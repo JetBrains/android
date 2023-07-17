@@ -80,7 +80,7 @@ import org.jetbrains.annotations.Nullable;
  * newly connected device, that newly connected device is returned by the default selection logic in getTargetSelectedWithComboBox.
  * Otherwise the user's selection takes precedence.
  */
-final class DevicesSelectedService {
+public final class DevicesSelectedService {
   private final @NotNull PersistentStateComponent myPersistentStateComponent;
 
   @NotNull
@@ -99,7 +99,7 @@ final class DevicesSelectedService {
   }
 
   @NotNull
-  static DevicesSelectedService getInstance(@NotNull Project project) {
+  public static DevicesSelectedService getInstance(@NotNull Project project) {
     return project.getService(DevicesSelectedService.class);
   }
 
@@ -166,7 +166,7 @@ final class DevicesSelectedService {
     return Optional.of(target);
   }
 
-  void setTargetSelectedWithComboBox(@Nullable Target targetSelectedWithComboBox) {
+  public void setTargetSelectedWithComboBox(@Nullable Target targetSelectedWithComboBox) {
     State state = myPersistentStateComponent.getState();
     state.multipleDevicesSelectedInDropDown = false;
 

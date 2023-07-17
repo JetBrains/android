@@ -26,7 +26,7 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ConnectedDevice extends Device {
+public final class ConnectedDevice extends Device {
   static final class Builder extends Device.Builder {
     @NotNull
     Builder setName(@NotNull String name) {
@@ -70,11 +70,11 @@ final class ConnectedDevice extends Device {
     super(builder);
   }
 
-  boolean isVirtualDevice() {
+  public boolean isVirtualDevice() {
     return getAndroidDevice().isVirtual();
   }
 
-  boolean isPhysicalDevice() {
+  public boolean isPhysicalDevice() {
     return !getAndroidDevice().isVirtual();
   }
 
@@ -85,7 +85,7 @@ final class ConnectedDevice extends Device {
   }
 
   @Override
-  boolean isConnected() {
+  public boolean isConnected() {
     throw new UnsupportedOperationException();
   }
 
@@ -97,7 +97,7 @@ final class ConnectedDevice extends Device {
 
   @NotNull
   @Override
-  Target getDefaultTarget() {
+  public Target getDefaultTarget() {
     throw new UnsupportedOperationException();
   }
 
