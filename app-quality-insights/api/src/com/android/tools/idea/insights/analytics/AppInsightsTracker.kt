@@ -27,7 +27,7 @@ interface AppInsightsTracker {
   )
   fun logCrashListDetailView(event: AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails)
   fun logStacktraceClicked(
-    mode: ConnectionMode,
+    mode: ConnectionMode?,
     event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails
   )
   fun logConsoleLinkClicked(

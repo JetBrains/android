@@ -17,9 +17,14 @@ package com.android.tools.idea.insights.ui.vcs
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppVcsInfo
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.vcs.getVcsManager
 import com.android.tools.idea.insights.vcs.locateRepository
 import com.android.tools.idea.insights.vcs.toVcsFilePath
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.intellij.codeInsight.hints.presentation.BasePresentation
+import com.intellij.codeInsight.hints.presentation.InlayPresentation
+import com.intellij.codeInsight.hints.presentation.InlayTextMetrics
 import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.codeInsight.hints.presentation.PresentationRenderer
 import com.intellij.execution.filters.ExceptionInfoCache
@@ -28,13 +33,24 @@ import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.ResultItem
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.impl.InlayProvider
+import com.intellij.ide.ui.AntialiasingType
+import com.intellij.ide.ui.UISettings
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorCustomElementRenderer
+import com.intellij.openapi.editor.colors.CodeInsightColors
+import com.intellij.openapi.editor.colors.TextAttributesKey
+import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.EditorImpl
+import com.intellij.openapi.editor.impl.FontInfo
+import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
-import java.awt.Point
-import java.awt.event.MouseEvent
+import java.awt.Graphics2D
+import java.awt.RenderingHints
+import java.awt.font.FontRenderContext
+import java.awt.font.TextAttribute
+import javax.swing.JComponent
+import kotlin.math.ceil
 
 /**
  * Custom filter for attaching inlay diff links for traces if applicable.
@@ -45,7 +61,10 @@ import java.awt.event.MouseEvent
  * 2) an app VCS info is found (this piece of info is captured when an app is built and is sent
  *    along with a crash)
  */
-class InsightsAttachInlayDiffLinkFilter(private val containingConsole: ConsoleViewImpl) : Filter {
+class InsightsAttachInlayDiffLinkFilter(
+  private val containingConsole: ConsoleViewImpl,
+  private val tracker: AppInsightsTracker
+) : Filter {
   private val project = containingConsole.project
   private val cache = ExceptionInfoCache(project, GlobalSearchScope.allScope(project))
 
@@ -108,31 +127,150 @@ class InsightsAttachInlayDiffLinkFilter(private val containingConsole: ConsoleVi
     val textStartOffset = textEndOffset - line.length
     val highlightStartOffset: Int = textStartOffset + parsedLineInfo.fileLineRange.startOffset
     val highlightEndOffset: Int = textStartOffset + parsedLineInfo.fileLineRange.endOffset
+
     val diffLinkInlayResult =
-      DiffLinkInlayResult(contextDataForDiff, highlightStartOffset, highlightEndOffset)
+      DiffLinkInlayResult(contextDataForDiff, highlightStartOffset, highlightEndOffset, tracker)
 
     return Filter.Result(listOf(diffLinkInlayResult))
   }
+
+  data class DiffLinkInlayResult(
+    private val diffContextData: ContextDataForDiff,
+    private val highlightStartOffset: Int,
+    private val highlightEndOffset: Int,
+    private val tracker: AppInsightsTracker
+  ) : ResultItem(highlightStartOffset, highlightEndOffset, null), InlayProvider {
+    override fun createInlayRenderer(editor: Editor): EditorCustomElementRenderer {
+      val factory = PresentationFactory(editor as EditorImpl)
+      val inlayPresentation = factory.createInlayPresentation(editor)
+
+      return PresentationRenderer(inlayPresentation)
+    }
+
+    private fun PresentationFactory.createInlayPresentation(editor: Editor): InlayPresentation {
+      val commaInlay =
+        InsightsTextInlayPresentation(
+            text = ", ",
+            textAttributesKey = CodeInsightColors.HYPERLINK_ATTRIBUTES,
+            isUnderline = false,
+            editor
+          )
+          .withLineCentered(editor)
+
+      val showDiffInlay =
+        InsightsTextInlayPresentation(
+            text = INLAY_DIFF_LINK_DISPLAY_TEXT,
+            textAttributesKey = CodeInsightColors.HYPERLINK_ATTRIBUTES,
+            isUnderline = true,
+            editor
+          )
+          .withLineCentered(editor)
+          .withOnClick(this) { _, _ ->
+            val project = editor.project ?: return@withOnClick
+            goToDiff(diffContextData, project)
+            logActivity()
+          }
+          .withHandCursor(editor)
+
+      return seq(commaInlay, showDiffInlay)
+    }
+
+    private fun logActivity() {
+      val metricsEventBuilder =
+        AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder().apply {
+          clickLocation =
+            AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation
+              .DIFF_INLAY
+        }
+
+      tracker.logStacktraceClicked(null, metricsEventBuilder.build())
+    }
+  }
+
+  companion object {
+    internal const val INLAY_DIFF_LINK_DISPLAY_TEXT = "show diff"
+  }
 }
 
-internal const val INLAY_DIFF_LINK_DISPLAY_TEXT = "or diff with the historical source ↗"
+/**
+ * Custom inlay text presentation for insights specific.
+ *
+ * The basic idea is from [TextInlayPresentation], just we can apply our own style instead of the
+ * typical "inlay" style.
+ */
+class InsightsTextInlayPresentation(
+  val text: String,
+  private val textAttributesKey: TextAttributesKey,
+  private val isUnderline: Boolean,
+  private val editor: Editor
+) : BasePresentation() {
+  private var normalTextMetrics: InlayTextMetrics? = null
+  override val width: Int
+    get() = getOrCreateMetrics().getStringWidth(text)
+  override val height: Int
+    get() = getOrCreateMetrics().fontHeight
 
-data class DiffLinkInlayResult(
-  private val diffContextData: ContextDataForDiff,
-  private val highlightStartOffset: Int,
-  private val highlightEndOffset: Int
-) : ResultItem(highlightStartOffset, highlightEndOffset, null), InlayProvider {
-  override fun createInlayRenderer(editor: Editor): EditorCustomElementRenderer {
-    val factory = PresentationFactory(editor as EditorImpl)
-    val inlayPresentation =
-      factory.roundWithBackground(factory.smallText(INLAY_DIFF_LINK_DISPLAY_TEXT))
+  private val colorsScheme
+    get() = editor.colorsScheme
 
-    val presentation =
-      factory.referenceOnHover(inlayPresentation) { _: MouseEvent, _: Point? ->
-        val project = editor.project ?: return@referenceOnHover
-        goToDiff(diffContextData, project)
-      }
+  private val normalTextSize
+    get() = colorsScheme.editorFontSize2D
 
-    return PresentationRenderer(presentation)
+  private val familyName
+    get() = colorsScheme.editorFontName
+
+  private fun getOrCreateMetrics(): InlayTextMetrics {
+    if (normalTextMetrics == null || !normalTextMetrics!!.isActual(normalTextSize, familyName)) {
+      normalTextMetrics = createMetrics(editor, normalTextSize)
+    }
+
+    return normalTextMetrics!!
   }
+
+  private fun createMetrics(editor: Editor, size: Float): InlayTextMetrics {
+    val fontType = colorsScheme.getAttributes(textAttributesKey).fontType
+    val editorFont = EditorUtil.getEditorFont()
+    var font = editorFont.deriveFont(fontType, size)
+
+    if (isUnderline) {
+      font =
+        font.deriveFont(font.attributes + (TextAttribute.UNDERLINE to TextAttribute.UNDERLINE_ON))
+    }
+
+    val context = getCurrentContext(editor.contentComponent)
+    val metrics = FontInfo.getFontMetrics(font, context)
+    // We assume this will be a better approximation to a real line height for a given font
+    val fontHeight = ceil(font.createGlyphVector(context, "H").visualBounds.height).toInt()
+
+    return InlayTextMetrics(editor, fontHeight, fontHeight, metrics, fontType)
+  }
+
+  private fun getCurrentContext(editorComponent: JComponent): FontRenderContext {
+    val editorContext = FontInfo.getFontRenderContext(editorComponent)
+    return FontRenderContext(
+      editorContext.transform,
+      AntialiasingType.getKeyForCurrentScope(false),
+      UISettings.editorFractionalMetricsHint
+    )
+  }
+
+  override fun paint(g: Graphics2D, attributes: TextAttributes) {
+    val savedHint = g.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING)
+
+    try {
+      val metrics = getOrCreateMetrics()
+      val font = metrics.font
+      g.font = font
+      g.setRenderingHint(
+        RenderingHints.KEY_TEXT_ANTIALIASING,
+        AntialiasingType.getKeyForCurrentScope(false)
+      )
+      g.color = colorsScheme.getAttributes(textAttributesKey).foregroundColor
+      g.drawString(text, 0, metrics.fontBaseline)
+    } finally {
+      g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, savedHint)
+    }
+  }
+
+  override fun toString(): String = "InsightsTextInlayPresentation(text = $text)"
 }

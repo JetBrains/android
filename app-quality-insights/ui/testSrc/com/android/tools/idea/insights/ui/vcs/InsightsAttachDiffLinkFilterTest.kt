@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.REPO_INFO
 import com.android.tools.idea.insights.VCS_CATEGORY
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.insights.vcs.toVcsFilePath
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -39,9 +41,11 @@ class InsightsAttachDiffLinkFilterTest {
   @get:Rule val rule = RuleChain.outerRule(projectRule).around(EdtRule()).around(vcsInsightsRule)
 
   private lateinit var console: ConsoleViewImpl
+  private lateinit var tracker: AppInsightsTracker
 
   @Before
   fun setUp() {
+    tracker = mock()
     console =
       ConsoleViewImpl(projectRule.project, true).also {
         Disposer.register(projectRule.testRootDisposable, it)
@@ -50,7 +54,7 @@ class InsightsAttachDiffLinkFilterTest {
 
   @Test
   fun `no attached inlay when trace is not resolvable`() {
-    val filter = InsightsAttachInlayDiffLinkFilter(console)
+    val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
 
     // Prepare
     val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
@@ -65,7 +69,7 @@ class InsightsAttachDiffLinkFilterTest {
 
   @Test
   fun `no attached inlay when no vcs info`() {
-    val filter = InsightsAttachInlayDiffLinkFilter(console)
+    val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
 
     // Prepare
     projectRule.fixture.configureByText("MainActivity.java", SAMPLE_JAVA_SOURCE)
@@ -79,7 +83,7 @@ class InsightsAttachDiffLinkFilterTest {
 
   @Test
   fun `no attached inlay when misMatched Vcs configured`() {
-    val filter = InsightsAttachInlayDiffLinkFilter(console)
+    val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
 
     // Prepare
     val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
@@ -99,7 +103,7 @@ class InsightsAttachDiffLinkFilterTest {
 
   @Test
   fun `has attached inlay for java trace`() {
-    val filter = InsightsAttachInlayDiffLinkFilter(console)
+    val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
 
     // Prepare
     val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
@@ -116,7 +120,7 @@ class InsightsAttachDiffLinkFilterTest {
     Truth.assertThat(resultItems.size).isEqualTo(1)
     Truth.assertThat(resultItems.single())
       .isEqualTo(
-        DiffLinkInlayResult(
+        InsightsAttachInlayDiffLinkFilter.DiffLinkInlayResult(
           diffContextData =
             ContextDataForDiff(
               vcsKey = VCS_CATEGORY.TEST_VCS,
@@ -125,14 +129,15 @@ class InsightsAttachDiffLinkFilterTest {
               lineNumber = 4
             ),
           highlightStartOffset = 73,
-          highlightEndOffset = 92
+          highlightEndOffset = 92,
+          tracker
         )
       )
   }
 
   @Test
   fun `has attached inlay for kotlin trace`() {
-    val filter = InsightsAttachInlayDiffLinkFilter(console)
+    val filter = InsightsAttachInlayDiffLinkFilter(console, tracker)
 
     // Prepare
     val appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
@@ -149,7 +154,7 @@ class InsightsAttachDiffLinkFilterTest {
     Truth.assertThat(resultItems.size).isEqualTo(1)
     Truth.assertThat(resultItems.single())
       .isEqualTo(
-        DiffLinkInlayResult(
+        InsightsAttachInlayDiffLinkFilter.DiffLinkInlayResult(
           diffContextData =
             ContextDataForDiff(
               vcsKey = VCS_CATEGORY.TEST_VCS,
@@ -158,7 +163,8 @@ class InsightsAttachDiffLinkFilterTest {
               lineNumber = 4
             ),
           highlightStartOffset = 80,
-          highlightEndOffset = 97
+          highlightEndOffset = 97,
+          tracker
         )
       )
   }

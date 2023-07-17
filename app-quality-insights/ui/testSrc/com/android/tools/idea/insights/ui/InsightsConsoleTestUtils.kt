@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
 import com.intellij.execution.filters.ExceptionFilters
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -33,7 +34,7 @@ import com.intellij.psi.search.GlobalSearchScope
  *
  * An exception filter and a custom diff link inlay filter are installed.
  */
-fun initConsoleWithFilters(project: Project): ConsoleViewImpl {
+fun initConsoleWithFilters(project: Project, tracker: AppInsightsTracker): ConsoleViewImpl {
   val consoleBuilder =
     TextConsoleBuilderFactory.getInstance().createBuilder(project).apply {
       filters(ExceptionFilters.getFilters(GlobalSearchScope.allScope(project)))
@@ -41,7 +42,7 @@ fun initConsoleWithFilters(project: Project): ConsoleViewImpl {
 
   val console = (consoleBuilder.console as ConsoleViewImpl)
 
-  console.addMessageFilter(InsightsAttachInlayDiffLinkFilter(console))
+  console.addMessageFilter(InsightsAttachInlayDiffLinkFilter(console, tracker))
   console.component // call to init editor
 
   return console

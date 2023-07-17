@@ -86,7 +86,7 @@ class AppInsightsTrackerImpl(
   }
 
   override fun logStacktraceClicked(
-    mode: ConnectionMode,
+    mode: ConnectionMode?,
     event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails
   ) {
     UsageTracker.log(
@@ -96,7 +96,7 @@ class AppInsightsTrackerImpl(
             appId = anonymizeAppId(project.name)
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.STACKTRACE_CLICKED
             stacktraceDetails = event
-            isOffline = mode.isOfflineMode()
+            mode?.let { isOffline = it.isOfflineMode() }
             productType = insightsProductType.toProtoProductType()
           }
         )

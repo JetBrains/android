@@ -23,15 +23,18 @@ import com.android.tools.idea.insights.ui.vcs.VCS_INFO_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.vcs.InsightsVcsTestRule
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.intellij.diff.DiffManager
 import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.EditorMouseFixture
+import com.intellij.testFramework.replaceService
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -48,13 +51,18 @@ class InsightsTrackerTest {
 
   private lateinit var console: ConsoleViewImpl
   private lateinit var tracker: AppInsightsTracker
+  private lateinit var mockDiffManager: DiffManager
 
   private val editor
     get() = console.editor
 
   @Before
   fun setUp() {
-    tracker = Mockito.mock(AppInsightsTracker::class.java)
+    tracker = MockitoKt.mock()
+
+    mockDiffManager = MockitoKt.mock()
+    ApplicationManager.getApplication()
+      .replaceService(DiffManager::class.java, mockDiffManager, projectRule.testRootDisposable)
 
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider { dataId ->
       when {
@@ -65,7 +73,7 @@ class InsightsTrackerTest {
     }
 
     console =
-      initConsoleWithFilters(projectRule.project).apply {
+      initConsoleWithFilters(projectRule.project, tracker).apply {
         Disposer.register(projectRule.testRootDisposable, this)
       }
 
@@ -103,8 +111,14 @@ class InsightsTrackerTest {
     )
 
     // Click on the hyperlink
+    console.editor.caretModel.moveToOffset(
+      console.editor.document.textLength - "Activity.kt:4)".length
+    )
+    val position = console.editor.caretModel.logicalPosition
+    val point = console.editor.logicalPositionToXY(position)
+
     val mouse = editor.mouse()
-    mouse.clickAt(1, 47)
+    mouse.clickAtXY(point.x, point.y)
 
     // Verify logged contents
     Mockito.verify(tracker, Mockito.times(1))
@@ -125,7 +139,7 @@ class InsightsTrackerTest {
   }
 
   @Test
-  fun `log diff inlay`() {
+  fun `do not log comma inlay`() {
     // Print and apply filters
     console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, ISSUE1.sampleEvent.appVcsInfo)
     console.printAndHighlight(
@@ -136,18 +150,47 @@ class InsightsTrackerTest {
         .trimIndent()
     )
 
-    // Click on the inlay
+    // Click on the ", " inlay
+    console.editor.caretModel.moveToOffset(console.editor.document.textLength - 1)
+    val position = console.editor.caretModel.logicalPosition
+    val point = console.editor.logicalPositionToXY(position)
+
     val mouse = editor.mouse()
-    mouse.clickAt(1, 55)
+    mouse.clickAtXY(point.x, point.y)
+
+    // Verify logged contents
+    Mockito.verifyNoInteractions(tracker)
+  }
+
+  @Test
+  fun `log show diff inlay`() {
+    // Print and apply filters
+    console.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, ISSUE1.sampleEvent.appVcsInfo)
+    console.printAndHighlight(
+      """
+        java.lang.NullPointerException:
+            test.simple.MainActivity.onCreate(MainActivity.kt:4)
+      """
+        .trimIndent()
+    )
+
+    // Click on the "show diff" inlay
+    console.editor.caretModel.moveToOffset(console.editor.document.textLength - 1)
+    val position = console.editor.caretModel.logicalPosition
+    val point = console.editor.logicalPositionToXY(position)
+
+    val mouse = editor.mouse()
+    // We have a sequence of inlays (", " and "show diff") and we want to click on the second
+    // one. "16" is the width of "," inlay.
+    mouse.clickAtXY(point.x + 16, point.y)
 
     // Verify logged contents
     Mockito.verify(tracker, Mockito.times(1))
       .logStacktraceClicked(
-        MockitoKt.eq(ConnectionMode.ONLINE),
+        MockitoKt.eq(null),
         MockitoKt.eq(
           AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder()
             .apply {
-              crashType = AppQualityInsightsUsageEvent.CrashType.FATAL
               clickLocation =
                 AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation
                   .DIFF_INLAY

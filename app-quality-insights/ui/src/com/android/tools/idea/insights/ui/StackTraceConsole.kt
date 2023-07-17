@@ -25,11 +25,9 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.StackTraceConsole.Companion.CURRENT_CONNECTION_MODE
 import com.android.tools.idea.insights.ui.StackTraceConsole.Companion.CURRENT_ISSUE
-import com.android.tools.idea.insights.ui.vcs.INLAY_DIFF_LINK_DISPLAY_TEXT
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
 import com.android.tools.idea.insights.ui.vcs.VCS_INFO_OF_SELECTED_CRASH
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.intellij.codeInsight.hints.presentation.PresentationRenderer
 import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.impl.ConsoleViewImpl
@@ -147,7 +145,7 @@ class StackTraceConsole(
     builder.filters(AnalyzeStacktraceUtil.EP_NAME.getExtensions(project))
     val consoleView = builder.console as ConsoleViewImpl
     @Suppress("UNUSED_VARIABLE") val unused = consoleView.component // causes editor to be created
-    consoleView.addMessageFilter(InsightsAttachInlayDiffLinkFilter(consoleView))
+    consoleView.addMessageFilter(InsightsAttachInlayDiffLinkFilter(consoleView, tracker))
     (consoleView.editor as EditorEx).apply {
       backgroundColor = primaryContentBackground
       contentComponent.isFocusCycleRoot = false
@@ -185,26 +183,9 @@ class ListenerForTracking(
       DataManager.getInstance().getDataContext(contextComponent).getData(CURRENT_CONNECTION_MODE)
         ?: return
 
-    val inlay = event.inlay
-    val hyperlinkInfo = consoleView.hyperlinks.getHyperlinkInfoByEvent(event)
-
+    val hyperlinkInfo = consoleView.hyperlinks.getHyperlinkInfoByEvent(event) ?: return
     val metricsEventBuilder =
-      AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder()
-
-    if (inlay != null) {
-      val text = (inlay.renderer as? PresentationRenderer)?.presentation?.toString() ?: return
-      if (text.contains(INLAY_DIFF_LINK_DISPLAY_TEXT)) {
-        metricsEventBuilder.apply {
-          clickLocation =
-            AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation
-              .DIFF_INLAY
-          crashType = currentIssue.issueDetails.fatality.toCrashType()
-        }
-
-        tracker.logStacktraceClicked(currentConnectionMode, metricsEventBuilder.build())
-      }
-    } else if (hyperlinkInfo != null) {
-      metricsEventBuilder.apply {
+      AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.newBuilder().apply {
         clickLocation =
           AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails.ClickLocation
             .TARGET_FILE_HYPER_LINK
@@ -216,7 +197,6 @@ class ListenerForTracking(
             ?: false
       }
 
-      tracker.logStacktraceClicked(currentConnectionMode, metricsEventBuilder.build())
-    }
+    tracker.logStacktraceClicked(currentConnectionMode, metricsEventBuilder.build())
   }
 }

@@ -31,7 +31,7 @@ object TestAppInsightsTracker : AppInsightsTracker {
     event: AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails
   ) = Unit
   override fun logStacktraceClicked(
-    mode: ConnectionMode,
+    mode: ConnectionMode?,
     event: AppQualityInsightsUsageEvent.AppQualityInsightsStacktraceDetails
   ) = Unit
   override fun logConsoleLinkClicked(
