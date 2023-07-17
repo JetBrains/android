@@ -222,7 +222,6 @@ internal fun getSdkDevices(module: Module): List<Device> {
     StudioAndroidSdkData.getSdkData(facet)
       ?.deviceManager
       ?.getDevices(DeviceManager.ALL_DEVICES)
-      ?.filter { !it.isDeprecated }
       ?.toList()
   }
     ?: emptyList()

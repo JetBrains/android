@@ -318,6 +318,27 @@ internal class PreviewAnnotationCheckTest {
   }
 
   @Test
+  fun deprecatedDevicesShouldBeValid() {
+    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
+    runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
+
+    val result =
+      addKotlinFileAndCheckPreviewAnnotation(
+        """
+        package example
+        import androidx.compose.ui.tooling.preview.Preview
+        import $COMPOSABLE_ANNOTATION_FQ_NAME
+
+        @Preview(device = "id:Nexus 5")
+        @Composable
+        fun myFun() {}
+"""
+          .trimIndent()
+      )
+    assertFalse(result.hasIssues)
+  }
+
+  @Test
   fun testDeviceNameCheck() {
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     runWriteActionAndWait { Sdks.addLatestAndroidSdk(rule.fixture.projectDisposable, rule.module) }
