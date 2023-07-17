@@ -744,11 +744,20 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       val dialogWrapper = MirroringConfirmationDialog(title).createWrapper(project).apply { show() }
       mirroringConfirmationDialogShowing = false
       when (dialogWrapper.exitCode) {
-        MirroringConfirmationDialog.ACCEPT_EXIT_CODE -> startMirroring(serialNumber, deviceClient, activationLevel)
-        MirroringConfirmationDialog.REJECT_EXIT_CODE -> deviceMirroringSettings.deviceMirroringEnabled = false
+        MirroringConfirmationDialog.ACCEPT_EXIT_CODE -> {
+          deviceMirroringSettings.confirmationDialogShown = true
+          startMirroring(serialNumber, deviceClient, activationLevel)
+        }
+        MirroringConfirmationDialog.REJECT_EXIT_CODE -> {
+          if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
+            stopMirroring(serialNumber)
+          }
+          else {
+            deviceMirroringSettings.deviceMirroringEnabled = false
+          }
+        }
         else -> return
       }
-      deviceMirroringSettings.confirmationDialogShown = true
     }
   }
 

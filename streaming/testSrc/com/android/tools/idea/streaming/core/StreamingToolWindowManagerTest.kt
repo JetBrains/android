@@ -797,7 +797,7 @@ class StreamingToolWindowManagerTest {
       ui.clickOn(ui.getComponent<JButton> { it.text == "Cancel" })
     }
 
-    assertThat(deviceMirroringSettings.confirmationDialogShown).isTrue()
+    assertThat(deviceMirroringSettings.confirmationDialogShown).isFalse()
   }
 
   @Test
@@ -819,7 +819,7 @@ class StreamingToolWindowManagerTest {
       ui.clickOn(ui.getComponent<JButton> { it.text == "Disable Mirroring" })
     }
 
-    assertThat(deviceMirroringSettings.confirmationDialogShown).isTrue()
+    assertThat(deviceMirroringSettings.confirmationDialogShown).isFalse()
     assertThat(deviceMirroringSettings.deviceMirroringEnabled).isFalse()
   }
 
