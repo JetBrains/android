@@ -25,12 +25,14 @@ import com.google.wireless.android.sdk.stats.DebuggerEvent.FramesViewUpdated.Fil
 import com.google.wireless.android.sdk.stats.DebuggerEvent.Type.FRAMES_VIEW_UPDATED
 import com.google.wireless.android.sdk.stats.FileType
 import com.google.wireless.android.sdk.stats.FileUsage
+import com.google.wireless.android.sdk.stats.IntelliJNewUISwitch
 import com.google.wireless.android.sdk.stats.KotlinGradlePerformance
 import com.google.wireless.android.sdk.stats.KotlinGradlePerformance.FirUsage
 import com.google.wireless.android.sdk.stats.KotlinProjectConfiguration
 import com.google.wireless.android.sdk.stats.RunFinishData
 import com.google.wireless.android.sdk.stats.RunStartData
 import com.google.wireless.android.sdk.stats.VfsRefresh
+import com.intellij.ide.ui.experimental.ExperimentalUiCollector
 import com.intellij.internal.statistic.eventLog.EmptyEventLogFilesProvider
 import com.intellij.internal.statistic.eventLog.EventLogConfiguration
 import com.intellij.internal.statistic.eventLog.EventLogGroup
@@ -51,13 +53,14 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   override fun getLogFilesProvider() = EmptyEventLogFilesProvider
   override fun logAsync(group: EventLogGroup, eventId: String, data: Map<String, Any>, isState: Boolean): CompletableFuture<Void> {
     when (group.id) {
+      "debugger.breakpoints.usage" -> logDebuggerBreakpointsUsage(eventId, data)
+      "experimental.ui.interactions" -> logNewUIStateChange(eventId, data)
       "file.types" -> logFileType(eventId, data)
       "file.types.usage" -> logFileTypeUsage(eventId, data)
       "kotlin.gradle.performance" -> logKotlinGradlePerformance(eventId, data)
       "kotlin.project.configuration" -> logKotlinProjectConfiguration(eventId, data)
       "run.configuration.exec" -> logRunConfigurationExec(eventId, data)
       "vfs" -> logVfsEvent(eventId, data)
-      "debugger.breakpoints.usage" -> logDebuggerBreakpointsUsage(eventId, data)
       "xdebugger.actions" -> logDebuggerEvent(eventId, data)
     }
     return CompletableFuture.completedFuture(null)
@@ -75,6 +78,38 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
   }
 
   override fun rollOver() {}
+
+  private fun logNewUIStateChange(eventId: String, data: Map<String, Any>) {
+    if (eventId != "switch.ui") {
+      return
+    }
+
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.INTELLIJ_NEW_UI_SWITCH
+      intellijNewUiSwitch = IntelliJNewUISwitch.newBuilder().apply {
+        switchSource = getSwitchSource(data)
+        (data["exp_ui"] as? Boolean)?.let { newUi = it }
+      }.build()
+    })
+  }
+
+  private fun getSwitchSource(data: Map<String, Any>): IntelliJNewUISwitch.SwitchSource {
+    val s = data["switch_source"] as? String ?: return IntelliJNewUISwitch.SwitchSource.SOURCE_UNKNOWN
+    val source = try {
+      ExperimentalUiCollector.SwitchSource.valueOf(s)
+    }
+    catch (_: IllegalArgumentException) {
+      return IntelliJNewUISwitch.SwitchSource.SOURCE_UNKNOWN
+    }
+
+    return when (source) {
+      ExperimentalUiCollector.SwitchSource.ENABLE_NEW_UI_ACTION -> IntelliJNewUISwitch.SwitchSource.ENABLE_NEW_UI_ACTION
+      ExperimentalUiCollector.SwitchSource.DISABLE_NEW_UI_ACTION -> IntelliJNewUISwitch.SwitchSource.DISABLE_NEW_UI_ACTION
+      ExperimentalUiCollector.SwitchSource.WELCOME_PROMO -> IntelliJNewUISwitch.SwitchSource.WELCOME_PROMO
+      ExperimentalUiCollector.SwitchSource.WHATS_NEW_PAGE -> IntelliJNewUISwitch.SwitchSource.WHATS_NEW_PAGE
+      else -> IntelliJNewUISwitch.SwitchSource.SOURCE_UNKNOWN
+    }
+  }
 
   private fun logFileType(eventId: String, data: Map<String, Any>) {
     // filter out events that Jetbrains does not require
