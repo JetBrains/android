@@ -191,7 +191,8 @@ class EmptyStatePanelTest {
     assertThat(htmlComponent.normalizedText).contains(
         "To launch a virtual device, click <font color=\"6c707e\" size=\"+1\"><b>&#65291;</b></font> and select a virtual device," +
         " or select the <i>Launch in the Running Devices tool window</i> option in the" +
-        " <font color=\"589df6\"><a href=\"EmulatorSettings\">Emulator settings</a></font>.")
+        " <font color=\"589df6\"><a href=\"EmulatorSettings\">Emulator settings</a></font>" +
+        " and use the <font color=\"589df6\"><a href=\"DeviceManager\">Device Manager</a></font>.")
   }
 
   private fun createEmptyStatePanel(): EmptyStatePanel {

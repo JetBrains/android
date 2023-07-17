@@ -178,7 +178,8 @@ internal class EmptyStatePanel(project: Project, disposableParent: Disposable): 
         else ->
           "To launch a&nbsp;virtual device, click $plusSign and select a virtual device, or select " +
           "the&nbsp;<i>Launch in the&nbsp;Running&nbsp;Devices tool window</i> option in&nbsp;the&nbsp;" +
-          "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>."
+          "<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font> " +
+          "and use the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>."
       }
       physicalFragment = when {
         activateOnConnection ->
