@@ -108,7 +108,7 @@ private val LOG = Logger.getInstance(AndroidManifestIndex::class.java)
 class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawText>() {
   companion object {
     @JvmField
-    val NAME: ID<String, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
+    val NAME: ID<String, AndroidManifestRawText> = ID.create("com.android.tools.idea.model.AndroidManifestIndex")
 
     /**
      * Returns corresponding [AndroidFacet]s by given key(package name)
