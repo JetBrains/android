@@ -63,6 +63,8 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     myBuildVariantsList.setModel(myBuildVariantsListModel);
     myBuildVariantsList.setEmptyText(AndroidBundle.message("android.apk.sign.gradle.no.variants"));
     new ListSpeedSearch<>(myBuildVariantsList);
+    FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+    myApkPathField.addBrowseFolderListener("Select APK Destination Folder", null, myWizard.getProject(), descriptor);
   }
 
   @Override
@@ -96,8 +98,6 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
     String moduleName = myAndroidModel.getModuleName();
     String targetType = myWizard.getTargetType();
     myApkPathField.setText(FileUtil.toSystemDependentName(getInitialPath(properties, moduleName, targetType)));
-    FileChooserDescriptor descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
-    myApkPathField.addBrowseFolderListener("Select APK Destination Folder", null, myWizard.getProject(), descriptor);
   }
 
   @Override
