@@ -16,9 +16,8 @@
 
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <library.toolWindow
+    <toolWindow
         id="Logcat"
-        librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
         anchor="bottom"
         icon="StudioIcons.Shell.ToolWindows.LOGCAT"
         canCloseContents="true"
