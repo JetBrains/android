@@ -18,9 +18,13 @@ package com.android.tools.idea.layoutinspector.settings
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.intellij.ide.BrowserUtil
+import com.intellij.ide.IdeBundle
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.openapi.ui.Messages
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBCheckBox
 import java.awt.Component
@@ -35,7 +39,9 @@ const val STUDIO_RELEASE_NOTES_EMBEDDED_LI_URL =
   "https://developer.android.com/studio/preview/features?utm_source=android-studio#embedded-layout-inspector"
 
 /** Class used to provide a [Configurable] to show in Android Studio settings panel. */
-class LayoutInspectorConfigurableProvider : ConfigurableProvider() {
+class LayoutInspectorConfigurableProvider(
+  private val showRestartAndroidStudioDialog: () -> Boolean = { showRestartStudioDialog() }
+) : ConfigurableProvider() {
 
   override fun canCreateConfigurable(): Boolean {
     // only show the setting if the auto connect flat is enabled.
@@ -43,13 +49,15 @@ class LayoutInspectorConfigurableProvider : ConfigurableProvider() {
   }
 
   override fun createConfigurable(): Configurable {
-    return LayoutInspectorConfigurable()
+    return LayoutInspectorConfigurable(showRestartAndroidStudioDialog)
   }
 }
 
-class LayoutInspectorConfigurable : SearchableConfigurable {
+class LayoutInspectorConfigurable(private val showRestartAndroidStudioDialog: () -> Boolean) :
+  SearchableConfigurable {
   private val component: JPanel = JPanel()
-  private val enableAutoConnect = JBCheckBox(LayoutInspectorBundle.message("enable.auto.connect"))
+  private val enableAutoConnectCheckBox =
+    JBCheckBox(LayoutInspectorBundle.message("enable.auto.connect"))
   private val embeddedLayoutInspectorSettingPanel = JPanel()
   private val enableEmbeddedLayoutInspectorCheckBox =
     JBCheckBox(LayoutInspectorBundle.message("enable.embedded.layout.inspector"))
@@ -57,7 +65,7 @@ class LayoutInspectorConfigurable : SearchableConfigurable {
   private val settings = LayoutInspectorSettings.getInstance()
   private val autoConnectSettingControl =
     ToggleSettingController(
-      enableAutoConnect,
+      enableAutoConnectCheckBox,
       Setting(
         getValue = { settings.autoConnectEnabled },
         setValue = { settings.autoConnectEnabled = it }
@@ -74,8 +82,8 @@ class LayoutInspectorConfigurable : SearchableConfigurable {
 
   init {
     component.layout = BoxLayout(component, BoxLayout.PAGE_AXIS)
-    component.add(enableAutoConnect)
-    enableAutoConnect.alignmentX = Component.LEFT_ALIGNMENT
+    component.add(enableAutoConnectCheckBox)
+    enableAutoConnectCheckBox.alignmentX = Component.LEFT_ALIGNMENT
 
     embeddedLayoutInspectorSettingPanel.layout =
       BoxLayout(embeddedLayoutInspectorSettingPanel, BoxLayout.LINE_AXIS)
@@ -99,8 +107,26 @@ class LayoutInspectorConfigurable : SearchableConfigurable {
     autoConnectSettingControl.isModified || embeddedLayoutInspectorSettingControl.isModified
 
   override fun apply() {
-    autoConnectSettingControl.apply()
-    embeddedLayoutInspectorSettingControl.apply()
+    val autoConnectHasChanged = autoConnectSettingControl.apply()
+    val embeddedLayoutInspectorHasChanged = embeddedLayoutInspectorSettingControl.apply()
+
+    if (autoConnectHasChanged || embeddedLayoutInspectorHasChanged) {
+      val restarted = showRestartAndroidStudioDialog()
+      if (!restarted) {
+        // if Studio wasn't restarted, we are going to restore the settings to their previous state.
+        // This prevents entering an inconsistent state where the user has changed the settings but
+        // not restarted Studio.
+        if (autoConnectHasChanged) {
+          enableAutoConnectCheckBox.isSelected = !enableAutoConnectCheckBox.isSelected
+          autoConnectSettingControl.apply()
+        }
+        if (embeddedLayoutInspectorHasChanged) {
+          enableEmbeddedLayoutInspectorCheckBox.isSelected =
+            !enableEmbeddedLayoutInspectorCheckBox.isSelected
+          embeddedLayoutInspectorSettingControl.apply()
+        }
+      }
+    }
   }
 
   override fun reset() {
@@ -121,11 +147,43 @@ private class ToggleSettingController(val checkBox: JCheckBox, val setting: Sett
   val isModified: Boolean
     get() = checkBox.isSelected != setting.getValue()
 
-  fun apply() {
-    setting.setValue(checkBox.isSelected)
+  /**
+   * Update [setting] with the current value of [check].
+   *
+   * @return true if the value in [setting] has changed. False otherwise.
+   */
+  fun apply(): Boolean {
+    val previousValue = setting.getValue()
+    val newValue = checkBox.isSelected
+    setting.setValue(newValue)
+    return previousValue != newValue
   }
 
   fun reset() {
     checkBox.isSelected = setting.getValue()
+  }
+}
+
+private fun showRestartStudioDialog(): Boolean {
+  val action =
+    if (ApplicationManager.getApplication().isRestartCapable) {
+      IdeBundle.message("ide.restart.action")
+    } else {
+      IdeBundle.message("ide.shutdown.action")
+    }
+  val result =
+    Messages.showYesNoDialog(
+      LayoutInspectorBundle.message("dialog.message.must.be.restarted.for.changes.to.take.effect"),
+      IdeBundle.message("dialog.title.restart.required"),
+      action,
+      IdeBundle.message("ide.notnow.action"),
+      Messages.getQuestionIcon()
+    )
+
+  return if (result == Messages.YES) {
+    ApplicationManagerEx.getApplicationEx().restart(true)
+    true
+  } else {
+    false
   }
 }
