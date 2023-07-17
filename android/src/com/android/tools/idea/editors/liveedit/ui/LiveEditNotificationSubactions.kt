@@ -76,7 +76,7 @@ internal class RedeployAction :
     val status = getStatusInfo(project, e.dataContext)
     when (status.redeployMode) {
       LiveEditStatus.Companion.RedeployMode.REFRESH -> {
-        invokeActionNow(e, ManualLiveEditAction())
+        invokeActionNow(e, ActionManager.getInstance().getAction("Compose.Live.Edit.Refresh"))
       }
       LiveEditStatus.Companion.RedeployMode.RERUN -> ActionUtil.getAction("Run")?.let {
         ActionUtil.invokeAction(it, e.dataContext, e.place, e.inputEvent, null)
