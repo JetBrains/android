@@ -83,6 +83,7 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Before
   @Throws(Exception::class)
   open fun setUp() {
+    //TODO use CleanVFSExtension for that:
     FSRecords.invalidateCaches("Cleanup before performance test")
     myScheduler = VirtualTimeScheduler()
     myUsageTracker = TestUsageTracker(myScheduler!!)
