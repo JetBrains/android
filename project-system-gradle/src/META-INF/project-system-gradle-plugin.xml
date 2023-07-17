@@ -126,6 +126,7 @@
     <completion.confidence language="TOML"
                            id="EnableAutoPopupInDeclarativeBuildCompletion"
                            implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInDeclarativeBuildCompletion" />
+    <indexedRootsProvider implementation="com.android.tools.idea.gradle.index.VersionCatalogFileIndexContributor"/>
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.navigation.GradleTomlUseScopeEnlarger"/>
     <gotoDeclarationHandler implementation="com.android.tools.idea.gradle.refactoring.VersionCatalogGoToDeclarationHandler"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
