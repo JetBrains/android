@@ -54,6 +54,9 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.registry.RegistryManager
+import com.intellij.openapi.util.registry.RegistryValue
+import com.intellij.openapi.util.registry.RegistryValueListener
 import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
@@ -183,6 +186,9 @@ object AndroidStudioUsageTracker {
         runShutdownReports()
       }
     })
+    RegistryManager.getInstance()["ide.highlighting.mode.essential"].addListener(object : RegistryValueListener {
+      override fun beforeValueChanged(value: RegistryValue) = TypingLatencyTracker.reportTypingLatency()
+    }, AndroidPluginDisposable.getApplicationInstance())
   }
 
   private fun runStartupReports() {
