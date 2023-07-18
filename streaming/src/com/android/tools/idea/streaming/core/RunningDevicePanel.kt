@@ -66,6 +66,7 @@ internal abstract class RunningDevicePanel(
 
     mainToolbar = createToolbar(mainToolbarId, IS_TOOLBAR_HORIZONTAL)
     secondaryToolbar = createToolbar(secondaryToolbarId, IS_TOOLBAR_HORIZONTAL)
+    secondaryToolbar.setReservePlaceAutoPopupIcon(false)
 
     addToCenter(centerPanel)
 
