@@ -168,11 +168,11 @@ class AndroidRunConfigurationExecutor(
 
   private fun notifyLiveEditService(device: IDevice, packageName: String) {
     try {
-      AndroidLiveLiteralDeployMonitor.getCallback(project, packageName, device)?.call()
+      AndroidLiveLiteralDeployMonitor.startMonitor(project, packageName, device)
       LiveEditHelper().invokeLiveEdit(liveEditService, env, applicationIdProvider, apkProvider, device)
     } catch (e: Exception) {
 
-      // Monitoring should always start successfully start.
+      // Monitoring should always start successfully.
       RunConfigurationNotifier.notifyWarning(project, configuration.name, "Error starting live edit.\n$e")
     }
   }
