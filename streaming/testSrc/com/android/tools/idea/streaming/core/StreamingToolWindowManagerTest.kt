@@ -634,28 +634,34 @@ class StreamingToolWindowManagerTest {
     assertThat(mirroringManager.mirroringHandles.value).isEmpty()
 
     agentRule.connectDevice("Pixel 2", 25, Dimension(1080, 1920)) // API too low for mirroring.
-    agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
-    agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
+    val pixel4 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
+    val pixel7 = agentRule.connectDevice("Pixel 7", 33, Dimension(1080, 2400))
+    dispatchAllEventsInIdeEventQueue()
     waitForCondition(2, SECONDS) { deviceProvisioner.devices.value.size == 3 }
-    val pixel4 = deviceProvisioner.devices.value[1]
-    assertThat(pixel4.state.properties.model).isEqualTo("Pixel 4")
-    val pixel7 = deviceProvisioner.devices.value[2]
-    assertThat(pixel7.state.properties.model).isEqualTo("Pixel 7")
+    val pixel4Handle = deviceProvisioner.devices.value[1]
+    assertThat(pixel4Handle.state.properties.model).isEqualTo("Pixel 4")
+    val pixel7Handle = deviceProvisioner.devices.value[2]
+    assertThat(pixel7Handle.state.properties.model).isEqualTo("Pixel 7")
     waitForCondition(2, SECONDS) { mirroringManager.mirroringHandles.value.size == 2 }
-    assertThat(mirroringManager.mirroringHandles.value[pixel4]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
-    assertThat(mirroringManager.mirroringHandles.value[pixel7]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
+    assertThat(mirroringManager.mirroringHandles.value[pixel4Handle]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
+    assertThat(mirroringManager.mirroringHandles.value[pixel7Handle]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
 
-    runBlocking { mirroringManager.mirroringHandles.value[pixel4]?.toggleMirroring() }
+    runBlocking { mirroringManager.mirroringHandles.value[pixel4Handle]?.toggleMirroring() }
     waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
-    assertThat(contentManager.contents[0].displayName).contains(pixel4.state.properties.model)
-    assertThat(contentManager.selectedContent?.displayName).contains(pixel4.state.properties.model)
-    assertThat(mirroringManager.mirroringHandles.value[pixel4]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
-    assertThat(mirroringManager.mirroringHandles.value[pixel7]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
+    assertThat(contentManager.contents[0].displayName).contains(pixel4Handle.state.properties.model)
+    assertThat(contentManager.selectedContent?.displayName).contains(pixel4Handle.state.properties.model)
+    assertThat(mirroringManager.mirroringHandles.value[pixel4Handle]?.mirroringState).isEqualTo(MirroringState.ACTIVE)
+    assertThat(mirroringManager.mirroringHandles.value[pixel7Handle]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
 
-    runBlocking { mirroringManager.mirroringHandles.value[pixel4]?.toggleMirroring() }
+    runBlocking { mirroringManager.mirroringHandles.value[pixel4Handle]?.toggleMirroring() }
     waitForCondition(1, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
-    assertThat(mirroringManager.mirroringHandles.value[pixel4]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
-    assertThat(mirroringManager.mirroringHandles.value[pixel7]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
+    assertThat(mirroringManager.mirroringHandles.value[pixel4Handle]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
+    assertThat(mirroringManager.mirroringHandles.value[pixel7Handle]?.mirroringState).isEqualTo(MirroringState.INACTIVE)
+
+    agentRule.disconnectDevice(pixel7)
+    waitForCondition(1, SECONDS) { mirroringManager.mirroringHandles.value[pixel7Handle] == null }
+    agentRule.disconnectDevice(pixel4)
+    waitForCondition(1, SECONDS) { mirroringManager.mirroringHandles.value[pixel4Handle] == null }
   }
 
   @Test

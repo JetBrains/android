@@ -703,7 +703,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private fun activateMirroring(deviceDescription: DeviceDescription) {
     val serialNumber = deviceDescription.serialNumber
     val deviceClient = getOrCreateDeviceClient(serialNumber, deviceDescription.handle, deviceDescription.config) ?: return
-    if (!mirroredDevices.contains(serialNumber)) {
+    if (serialNumber !in mirroredDevices) {
       startMirroringIfConfirmed(serialNumber, deviceClient, ActivationLevel.ACTIVATE_TAB)
     }
   }
@@ -820,7 +820,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun deviceConnected(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration) {
-    if (serialNumber in onlineDevices) {
+    if (serialNumber in onlineDevices && serialNumber !in mirroredDevices) {
       val startMirroring = deviceMirroringSettings.activateOnConnection || recentAttentionRequests.getIfPresent(serialNumber) != null
       if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get() || startMirroring) {
         val activationLevel = when {
@@ -988,13 +988,16 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     private fun onlineDevicesChanged() {
-      devicesExcludedFromMirroring.keys.retainAll(onlineDevices.keys)
+      val removedExcluded = devicesExcludedFromMirroring.keys.retainAll(onlineDevices.keys)
+      if (removedExcluded) {
+        updateMirroringHandlesFlow()
+      }
       val removed = deviceClients.keys.minus(onlineDevices.keys)
       for (device in removed) {
         removePhysicalDevicePanel(device)
       }
       for ((serialNumber, device) in onlineDevices) {
-        if (!mirroredDevices.contains(serialNumber)) {
+        if (serialNumber !in mirroredDevices && serialNumber !in devicesExcludedFromMirroring) {
           coroutineScope.launch {
             deviceConnected(serialNumber, device)
           }
