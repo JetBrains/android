@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture
 import com.android.tools.idea.tests.gui.framework.getList
 import com.android.tools.idea.tests.gui.framework.waitForIdle
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import org.fest.swing.core.Robot
@@ -96,7 +97,15 @@ class VariablesPerspectiveConfigurableFixture(
       }
 
   fun enterText(text: String) {
-    robot().pressAndReleaseKey(KeyEvent.VK_A, KeyEvent.CTRL_MASK)
+    if(SystemInfo.isMac) {
+      robot().pressKey(KeyEvent.VK_META)
+      robot().pressAndReleaseKey(KeyEvent.VK_A)
+      robot().releaseKey(KeyEvent.VK_META)
+    } else {
+      robot().pressKey(KeyEvent.VK_CONTROL)
+      robot().pressAndReleaseKey(KeyEvent.VK_A)
+      robot().releaseKey(KeyEvent.VK_CONTROL)
+    }
     robot().typeText(text)
   }
 
