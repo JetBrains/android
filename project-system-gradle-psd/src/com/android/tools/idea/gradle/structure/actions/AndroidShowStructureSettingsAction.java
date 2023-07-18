@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.ShowStructureSettingsAction;
+import com.intellij.ide.impl.TrustedProjects;
 import com.intellij.idea.ActionsBundle;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -42,7 +43,14 @@ public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAct
    @Override
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
-    presentation.setEnabledAndVisible(e.getProject() != null);
+
+    Project project = e.getProject();
+     presentation.setEnabledAndVisible(e.getProject() != null);
+     //noinspection UnstableApiUsage
+     if (project == null || !TrustedProjects.isTrusted(project)) {
+       presentation.setEnabled(false);
+    }
+
     super.update(e);
   }
 

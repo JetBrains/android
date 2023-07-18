@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.actions;
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.intellij.ide.impl.TrustedProjects;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -43,11 +44,15 @@ public abstract class AndroidStudioGradleAction extends AnAction {
       return;
     }
 
+    Project project = e.getProject();
+    //noinspection UnstableApiUsage
+    if (project == null || !TrustedProjects.isTrusted(project)) {
+      e.getPresentation().setEnabled(false);
+      return;
+    }
+
     // Make it visible and enabled for Gradle projects, and let subclasses decide whether the action should be enabled or not.
     e.getPresentation().setEnabledAndVisible(true);
-
-    Project project = e.getProject();
-    assert project != null;
     doUpdate(e, project);
   }
 
