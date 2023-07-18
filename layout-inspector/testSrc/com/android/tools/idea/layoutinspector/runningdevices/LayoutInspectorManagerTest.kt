@@ -455,7 +455,7 @@ class LayoutInspectorManagerTest {
 
   private fun assertHasWorkbench(tabInfo: TabInfo) {
     assertThat(tabInfo.content.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
-    assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>())
+    assertThat(tabInfo.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>())
       .hasSize(1)
 
     val toolbars =

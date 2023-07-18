@@ -47,11 +47,10 @@ import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel.Status
-import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
-import com.intellij.ui.SideBorder
 import com.intellij.ui.content.Content
 import com.intellij.util.concurrency.EdtExecutorService
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.Container
@@ -344,8 +343,8 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     fun enableLayoutInspector() {
       ApplicationManager.getApplication().assertIsDispatchThread()
       wrapLogic.wrapComponent { centerPanel ->
+        val inspectorPanel = BorderLayoutPanel()
         val mainPanel = BorderLayoutPanel()
-        val subPanel = BorderLayoutPanel()
 
         val toggleDeepInspectAction =
           ToggleDeepInspectAction(
@@ -367,15 +366,15 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
             listOf(toggleDeepInspectAction)
           )
         mainPanel.add(toolbar.component, BorderLayout.NORTH)
-        mainPanel.add(subPanel, BorderLayout.CENTER)
-
-        subPanel.add(InspectorBanner(layoutInspector.notificationModel), BorderLayout.NORTH)
-        subPanel.add(centerPanel, BorderLayout.CENTER)
+        mainPanel.add(centerPanel, BorderLayout.CENTER)
 
         val workBench =
           createLayoutInspectorWorkbench(project, disposable, layoutInspector, mainPanel)
-        workBench.component.border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.TOP)
-        workBench
+
+        inspectorPanel.add(InspectorBanner(layoutInspector.notificationModel), BorderLayout.NORTH)
+        inspectorPanel.add(workBench, BorderLayout.CENTER)
+        inspectorPanel.border = JBUI.Borders.customLineTop(JBColor.border())
+        inspectorPanel
       }
       tabComponents.displayView.add(layoutInspectorRenderer)
 
