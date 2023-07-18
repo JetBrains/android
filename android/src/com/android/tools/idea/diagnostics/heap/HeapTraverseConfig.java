@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 public class HeapTraverseConfig {
@@ -23,13 +25,23 @@ public class HeapTraverseConfig {
   private final ComponentsSet componentsSet;
   final boolean collectHistograms;
   final boolean collectDisposerTreeInfo;
+  @NotNull
+  final List<ComponentsSet.Component> exceededComponents;
 
   public HeapTraverseConfig(@NotNull final ComponentsSet componentsSet,
                             boolean collectHistograms,
                             boolean collectDisposerTreeInfo) {
+    this(componentsSet, collectHistograms, collectDisposerTreeInfo, Collections.emptyList());
+  }
+
+  public HeapTraverseConfig(@NotNull final ComponentsSet componentsSet,
+                            boolean collectHistograms,
+                            boolean collectDisposerTreeInfo,
+                            @NotNull final List<ComponentsSet.Component> exceededComponents) {
     this.componentsSet = componentsSet;
     this.collectHistograms = collectHistograms;
     this.collectDisposerTreeInfo = collectDisposerTreeInfo;
+    this.exceededComponents = exceededComponents;
   }
 
   @NotNull

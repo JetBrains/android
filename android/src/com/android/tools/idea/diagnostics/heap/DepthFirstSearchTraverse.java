@@ -24,7 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 abstract class DepthFirstSearchTraverse {
-  private final int maxDepth;
+
+  // Should not be increased above 2^17-1. 17 bits is reserved for the object depth in the 64-bit JVM TI object tag.
+  private static final int MAX_DEPTH = 100_000;
   @NotNull
   private final FieldCache fieldCache;
   @NotNull
@@ -33,10 +35,8 @@ abstract class DepthFirstSearchTraverse {
   protected final MemoryReportCollector collector;
   protected final short iterationId;
 
-  public DepthFirstSearchTraverse(int maxDepth,
-                                  @NotNull final FieldCache fieldCache,
+  public DepthFirstSearchTraverse(@NotNull final FieldCache fieldCache,
                                   @NotNull final MemoryReportCollector collector) {
-    this.maxDepth = maxDepth;
     this.fieldCache = fieldCache;
     this.heapTraverseChildProcessor = collector.heapTraverseChildProcessor;
     this.collector = collector;
@@ -44,79 +44,88 @@ abstract class DepthFirstSearchTraverse {
   }
 
   /**
-   *
+   * Performs a depth first traverse starting from the passed root objects.
    */
   public void start(@NotNull final WeakList<Object> roots)
     throws HeapSnapshotTraverseException {
-    for (Object root : roots) {
-      if (root == null) continue;
-      depthFirstTraverseHeapObjects(root, maxDepth, fieldCache);
+    try {
+      for (Object root : roots) {
+        if (root == null) continue;
+        depthFirstTraverseHeapObjects(root);
+      }
     }
+    finally {
+      cleanup();
+    }
+  }
+
+  protected void cleanup() {
+    StackNode.clearDepthFirstSearchStack();
   }
 
   /**
    * Traverses a subtree of the given root node and enumerates objects in the postorder.
    */
-  private void depthFirstTraverseHeapObjects(@NotNull final Object root,
-                                             int maxDepth,
-                                             @NotNull final FieldCache fieldCache)
+  private void depthFirstTraverseHeapObjects(@NotNull final Object root)
     throws HeapSnapshotTraverseException {
     long rootTag = getObjectTag(root);
     if (ObjectTagUtil.wasVisited(rootTag, iterationId)) {
       return;
     }
     rootTag = ObjectTagUtil.markVisited(root, rootTag, iterationId);
-    StackNode.pushElementToDepthFirstSearchStack(root, 0, rootTag);
+    pushElementToDepthFirstSearchStack(root, 0, rootTag, "(root)");
 
     // DFS starting from the given root object.
     while (true) {
+      collector.abortTraversalIfRequested();
       int stackSize = StackNode.getDepthFirstSearchStackSize();
       if (stackSize == 0) {
         break;
       }
       if (stackSize > MAX_ALLOWED_OBJECT_MAP_SIZE) {
-        StackNode.clearDepthFirstSearchStack();
         throw new HeapSnapshotTraverseException(MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode.OBJECTS_MAP_IS_TOO_BIG);
       }
       StackNode stackNode = StackNode.peekAndMarkProcessedDepthFirstSearchStack(StackNode.class);
+      if (stackNode == null) {
+        continue;
+      }
 
-      if (stackNode == null || stackNode.obj == null) {
+      // tag objects with their postorder number when ascending from the recursive subtree.
+      if (stackNode.referencesProcessed) {
+        handleProcessedNode(stackNode, root);
         StackNode.popElementFromDepthFirstSearchStack();
         continue;
       }
 
-      if (processNode(stackNode, root)) {
-        addStronglyReferencedChildrenToStack(stackNode, maxDepth, fieldCache);
-      }
-      collector.abortTraversalIfRequested();
+      handleNode(stackNode, root);
+      addStronglyReferencedChildrenToStack(stackNode, fieldCache);
     }
   }
 
-  /**
-   * @return if the objects referred from the passed {@code stackNode.obj} should be added to the stack
-   */
-  protected abstract boolean processNode(@NotNull final StackNode stackNode, @NotNull final Object root);
+  protected abstract void handleProcessedNode(@NotNull final StackNode stackNode, @NotNull final Object root);
 
   private void addStronglyReferencedChildrenToStack(@NotNull final StackNode stackNode,
-                                                    int maxDepth,
                                                     @NotNull final FieldCache fieldCache)
     throws HeapSnapshotTraverseException {
-    if (stackNode.depth >= maxDepth) {
+    if (stackNode.getObject() == null) {
+      return;
+    }
+    if (stackNode.depth >= MAX_DEPTH) {
       return;
     }
     heapTraverseChildProcessor.processChildObjects(stackNode.getObject(),
-                                                   (Object value, HeapTraverseNode.RefWeight weight) -> addToStack(
-                                                     stackNode, maxDepth, value), fieldCache);
+                                                   (Object value, HeapTraverseNode.RefWeight weight, String label) -> addToStack(
+                                                     stackNode, value, label), fieldCache);
   }
 
 
   private void addToStack(@NotNull final StackNode parentStackNode,
-                          int maxDepth,
-                          @Nullable final Object value) {
+                          @Nullable final Object value,
+                          @NotNull final String label) {
     if (value == null) {
       return;
     }
-    if (parentStackNode.depth + 1 > maxDepth) {
+    if (parentStackNode.depth + 1 > MAX_DEPTH) {
       return;
     }
     if (HeapTraverseUtil.isPrimitive(value.getClass()) ||
@@ -134,49 +143,84 @@ abstract class DepthFirstSearchTraverse {
       return;
     }
 
-    StackNode.pushElementToDepthFirstSearchStack(value, parentStackNode.depth + 1, ObjectTagUtil.markVisited(value, tag, iterationId));
+    pushElementToDepthFirstSearchStack(value, parentStackNode.depth + 1, ObjectTagUtil.markVisited(value, tag, iterationId), label);
   }
+
+  protected void pushElementToDepthFirstSearchStack(@NotNull final Object obj, int depth, long tag, @NotNull final String label) {
+    StackNode.pushElementToDepthFirstSearchStack(obj, depth, tag);
+  }
+
+  protected void handleNode(@NotNull final StackNode stackNode, @NotNull final Object rootObject) { }
 
   /**
    * @return if the object with a specified {@code childTag} should be added to the DFS stack. It was already checked that the `visited` bit
    * is not set and the referenced object is not of a root type(Class/ClassLoader/Thread).
    */
-  protected abstract boolean shouldAddObjectToStack(@NotNull final StackNode stackNode, long childTag);
+  protected boolean shouldAddObjectToStack(@NotNull final StackNode stackNode, long childTag) {
+    return true;
+  }
 
   static class ObjectsEnumerationTraverse extends DepthFirstSearchTraverse {
 
     private int lastObjectId = 0;
 
-    ObjectsEnumerationTraverse(int maxDepth, @NotNull FieldCache fieldCache, @NotNull MemoryReportCollector collector) {
-      super(maxDepth, fieldCache, collector);
+    ObjectsEnumerationTraverse(@NotNull FieldCache fieldCache, @NotNull MemoryReportCollector collector) {
+      super(fieldCache, collector);
     }
 
     @Override
-    protected boolean processNode(@NotNull final StackNode stackNode, @NotNull final Object root) {
-      long tag = stackNode.tag;
-      // add to the postorder when ascending from the recursive subtree.
-      if (stackNode.referencesProcessed) {
-        assert stackNode.obj != null;
-        ObjectTagUtil.setObjectId(stackNode.obj, tag, ++lastObjectId, iterationId);
-        StackNode.popElementFromDepthFirstSearchStack();
-        if (stackNode.obj == root) {
-          collector.putOrUpdateObjectIdToTraverseNodeMap(lastObjectId, root,
-                                                         HeapTraverseNode.RefWeight.DEFAULT.getValue(), 0L, 0L,
-                                                         0,
-                                                         false, false);
-        }
-        return false;
+    protected void handleProcessedNode(@NotNull final StackNode stackNode, @NotNull final Object root) {
+      if (stackNode.getObject() == null) {
+        return;
       }
-      return true;
-    }
-
-    @Override
-    protected boolean shouldAddObjectToStack(@NotNull final StackNode stackNode, long childTag) {
-      return true;
+      long tag = stackNode.tag;
+      ObjectTagUtil.setObjectId(stackNode.getObject(), tag, ++lastObjectId, iterationId);
+      if (stackNode.getObject() == root) {
+        collector.putOrUpdateObjectIdToTraverseNodeMap(lastObjectId, root, collector.createRootNode(root));
+      }
     }
 
     public int getLastObjectId() {
       return lastObjectId;
+    }
+  }
+
+  static class ExtendedReportCollectionTraverse extends DepthFirstSearchTraverse {
+
+    public ExtendedReportCollectionTraverse(@NotNull final FieldCache fieldCache,
+                                            @NotNull final MemoryReportCollector collector) {
+      super(fieldCache, collector);
+    }
+
+    @Override
+    protected void handleProcessedNode(@NotNull StackNode stackNode, @NotNull Object root) {
+      if (stackNode.getObject() != null) {
+        MemoryReportJniHelper.setObjectTag(stackNode.getObject(), 0);
+      }
+    }
+
+    @Override
+    protected void pushElementToDepthFirstSearchStack(@NotNull Object obj, int depth, long tag, @NotNull String label) {
+      super.pushElementToDepthFirstSearchStack(obj, depth, tag, label);
+    }
+
+    @Override
+    protected void handleNode(@NotNull final StackNode stackNode, @NotNull final Object rootObject) {
+      super.handleNode(stackNode, rootObject);
+    }
+
+    @Override
+    protected boolean shouldAddObjectToStack(@NotNull StackNode stackNode, long childTag) {
+      int childObjectDepth = ObjectTagUtil.getDepth(childTag, iterationId);
+      if (childObjectDepth == ObjectTagUtil.INVALID_OBJECT_DEPTH)
+        return false;
+
+      return stackNode.depth + 1 == childObjectDepth;
+    }
+
+    @Override
+    protected void cleanup() {
+      super.cleanup();
     }
   }
 }

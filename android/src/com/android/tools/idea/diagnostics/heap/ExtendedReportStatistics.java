@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
+import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.getFieldValue;
 import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.util.containers.WeakList;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.Comparator;
@@ -30,11 +37,17 @@ import org.jetbrains.annotations.NotNull;
 
 public class ExtendedReportStatistics {
 
+  private static final int CLUSTER_NOMINATED_CLASSES_NUMBER = 5;
+  private static final String CLASS_FQN = "java.lang.Class";
+
   @NotNull final List<ClusterHistogram> componentHistograms;
 
   @NotNull final List<CategoryHistogram> categoryHistograms;
 
   @NotNull final Long2ObjectMap<ClusterHistogram> sharedClustersHistograms;
+  @NotNull final Int2IntMap objectIdToMinDepth = new Int2IntOpenHashMap();
+  @NotNull final Map<ComponentsSet.Component, ExceededClusterStatistics> exceededClustersStatistics = Maps.newHashMap();
+  @NotNull final Int2ObjectMap<ExceededClusterStatistics> exceededClustersEnumeration = new Int2ObjectOpenHashMap<>();
 
   private int totalNumberOfDisposedButReferencedObjects = 0;
   private int totalDisposerTreeSize = 0;
@@ -58,6 +71,13 @@ public class ExtendedReportStatistics {
       categoryHistograms.add(new CategoryHistogram());
       assert componentCategory.getId() == componentCategoryIndex;
       componentCategoryIndex++;
+    }
+
+    byte exceededComponentIndex = 0;
+    for (ComponentsSet.Component component : config.exceededComponents) {
+      ExceededClusterStatistics exceededClusterStatistics = new ExceededClusterStatistics(exceededComponentIndex++);
+      exceededClustersEnumeration.put(exceededClusterStatistics.exceededClusterIndex, exceededClusterStatistics);
+      exceededClustersStatistics.put(component, exceededClusterStatistics);
     }
   }
 
@@ -114,6 +134,34 @@ public class ExtendedReportStatistics {
       writer.accept(
         HeapTraverseUtil.getObjectsStatsPresentation(disposedButReferencedObjectsClasses.get(className), OPTIMAL_UNITS) + " " + className);
     }
+  }
+
+  public void calculateExtendedReportData(@NotNull final HeapTraverseConfig config,
+                                          @NotNull final FieldCache fieldCache,
+                                          @NotNull final MemoryReportCollector collector,
+                                          @NotNull final WeakList<Object> startRoots) throws HeapSnapshotTraverseException {
+    if (config.collectDisposerTreeInfo) {
+      //noinspection UnstableApiUsage
+      Object objToNodeMap = getFieldValue(Disposer.getTree(), "myObject2ParentNode");
+      if (objToNodeMap instanceof Map) {
+        setDisposerTreeSize(((Map<?, ?>)objToNodeMap).size());
+      }
+    }
+
+    for (ComponentsSet.Component component : config.exceededComponents) {
+      ClusterHistogram histogram = componentHistograms.get(component.getId());
+      ExceededClusterStatistics exceededClusterStatistics = exceededClustersStatistics.get(component);
+
+      for (Map<String, ObjectsStatistics> map : List.of(histogram.rootHistogram, histogram.histogram)) {
+        map.entrySet().stream().filter(e -> !CLASS_FQN.equals(e.getKey())).sorted(
+            Comparator.comparingInt((Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount()).reversed())
+          .limit(CLUSTER_NOMINATED_CLASSES_NUMBER).forEach(e -> exceededClusterStatistics.addNominatedClass(e.getKey(), e.getValue()));
+      }
+    }
+
+    DepthFirstSearchTraverse.ExtendedReportCollectionTraverse traverse =
+      new DepthFirstSearchTraverse.ExtendedReportCollectionTraverse(fieldCache, collector);
+    traverse.start(startRoots);
   }
 
   static class CategoryHistogram extends ClusterHistogram {

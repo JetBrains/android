@@ -53,14 +53,24 @@ public class HeapTraverseUtil {
     if (style == SizePresentationStyle.BYTES) {
       return String.format(Locale.US, "%d bytes", bytes);
     }
-    return HeapReportUtils.INSTANCE.toShortStringAsCount(bytes);
+    return HeapReportUtils.INSTANCE.toShortStringAsSize(bytes);
+  }
+
+  @NotNull
+  public static String getObjectsCountPresentation(int count,
+                                                   SizePresentationStyle style) {
+    if (style == SizePresentationStyle.OPTIMAL_UNITS) {
+      return HeapReportUtils.INSTANCE.toShortStringAsCount(count);
+    }
+    return Integer.toString(count);
   }
 
   @NotNull
   public static String getObjectsStatsPresentation(ObjectsStatistics statistics,
                                                    SizePresentationStyle style) {
-    return String.format(Locale.US, "%s/%d objects",
-                         getObjectsSizePresentation(statistics.getTotalSizeInBytes(), style), statistics.getObjectsCount());
+    return String.format(Locale.US, "%s/%s objects",
+                         getObjectsSizePresentation(statistics.getTotalSizeInBytes(), style),
+                         getObjectsCountPresentation(statistics.getObjectsCount(), style));
   }
 
   @Nullable

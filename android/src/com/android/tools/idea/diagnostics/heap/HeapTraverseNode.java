@@ -32,6 +32,9 @@ class HeapTraverseNode {
   public boolean isMergePoint;
   public boolean isRetainedByPlatform;
 
+  @Nullable
+  public Integer minDepth = null;
+
   HeapTraverseNode(@Nullable final Object obj,
                    @NotNull RefWeight ownershipWeight,
                    long ownedByComponentMask,

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.diagnostics.heap;
 
-import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.getFieldValue;
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.processMask;
 import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.MemoryUsageCollectionMetadata.StatusCode;
 
@@ -26,6 +25,7 @@ import com.android.tools.idea.diagnostics.report.DiagnosticCrashReport;
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties;
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.ide.PowerSaveMode;
+import com.intellij.util.containers.WeakList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -35,9 +35,9 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -160,13 +160,13 @@ public final class HeapSnapshotStatistics {
     }
   }
 
-  void addDisposerTreeInfo(@NotNull Object disposerTree) {
-    if (config.collectDisposerTreeInfo && extendedReportStatistics != null) {
-      Object objToNodeMap = getFieldValue(disposerTree, "myObject2ParentNode");
-      if (objToNodeMap instanceof Map) {
-        extendedReportStatistics.setDisposerTreeSize(((Map<?, ?>)objToNodeMap).size());
-      }
+  public void calculateExtendedReportDataIfNeeded(@NotNull final FieldCache fieldCache,
+                                                  @NotNull final MemoryReportCollector collector,
+                                                  @NotNull final WeakList<Object> startRoots) throws HeapSnapshotTraverseException {
+    if (extendedReportStatistics == null) {
+      return;
     }
+    extendedReportStatistics.calculateExtendedReportData(config, fieldCache, collector, startRoots);
   }
 
   private static String getOptimalUnitsStatisticsPresentation(@NotNull final ObjectsStatistics statistics) {
@@ -175,7 +175,7 @@ public final class HeapSnapshotStatistics {
   }
 
   @NotNull
-  CrashReport asCrashReport(@NotNull final List<String> exceededClusters) {
+  CrashReport asCrashReport(@NotNull final List<ComponentsSet.Component> exceededComponents) {
     if (extendedReportStatistics == null) {
       throw new IllegalStateException("Extended memory report required for sending a Crash report was not calculated.");
     }
@@ -183,6 +183,8 @@ public final class HeapSnapshotStatistics {
       @Override
       public void serialize(@NonNull final MultipartEntityBuilder builder) {
         super.serialize(builder);
+        String exceededComponentsPresentation = exceededComponents.stream().map(
+          ComponentsSet.Component::getComponentLabel).collect(Collectors.joining(","));
         GoogleCrashReporter.addBodyToBuilder(builder, "Total used memory",
                                              getOptimalUnitsStatisticsPresentation(totalStats.getObjectsStatistics()));
         String totalPlatformObjectsPresentation =
@@ -191,10 +193,9 @@ public final class HeapSnapshotStatistics {
                           totalStats.platformRetainedObjectsStats));
         GoogleCrashReporter.addBodyToBuilder(builder, "Total platform objects memory", totalPlatformObjectsPresentation);
         GoogleCrashReporter.addBodyToBuilder(builder, "signature",
-                                             "Clusters that exceeded the memory usage threshold:" + String.join(",",
-                                                                                                                exceededClusters));
+                                             "Clusters that exceeded the memory usage threshold:" + exceededComponentsPresentation);
         GoogleCrashReporter.addBodyToBuilder(builder, "Clusters that exceeded the memory usage threshold",
-                                             String.join(",", exceededClusters));
+                                             exceededComponentsPresentation);
         for (CategoryClusterObjectsStatistics stat : categoryComponentStats) {
           StringBuilder categoryReportBuilder = new StringBuilder();
           categoryReportBuilder.append(
