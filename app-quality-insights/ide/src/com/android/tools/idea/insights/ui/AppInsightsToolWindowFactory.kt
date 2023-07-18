@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
+import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.service
@@ -77,7 +77,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   }
 
   override fun isApplicable(project: Project) =
-    IdeInfo.getInstance().isAndroidStudio && !AndroidProjectInfo.getInstance(project).isApkProject
+    isAndroidEnvironment(project) && !AndroidProjectInfo.getInstance(project).isApkProject
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     createTabs(project, toolWindow)

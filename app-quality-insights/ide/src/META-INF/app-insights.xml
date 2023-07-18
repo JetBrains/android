@@ -16,8 +16,7 @@
 <idea-plugin>
   <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
-    <library.toolWindow id="App Quality Insights"
-                librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
+    <toolWindow id="App Quality Insights"
                 anchor="bottom"
                 icon="StudioIcons.Shell.ToolWindows.APP_QUALITY_INSIGHTS"
                 factoryClass="com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory"
