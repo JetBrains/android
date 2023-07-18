@@ -31,7 +31,9 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.model.ActivitiesAndAliases;
 import com.android.tools.idea.model.MergedManifestModificationListener;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiManager;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -133,8 +135,10 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     MergedManifestModificationListener.ensureSubscribed(getProject());
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
-                                "src/com/example/unittest/Launcher.java");
+    VirtualFile launcher = myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
+                                                           "src/com/example/unittest/Launcher.java");
+
+   assertNotNull(PsiManager.getInstance(myFixture.getProject()).findFile(launcher));
 
     assertEquals("com.example.unittest.Launcher", computeInBackgroundThread(() -> computeDefaultActivity(myFacet, null)));
     renameClass("com.example.unittest.Launcher", "NewLauncher");
@@ -146,8 +150,9 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     ApplicationManager.getApplication().assertIsDispatchThread();
 
     myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/AndroidManifest.xml", SdkConstants.FN_ANDROID_MANIFEST_XML);
-    myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
+    VirtualFile launcher = myFixture.copyFileToProject(RUN_CONFIG_ACTIVITY + "/src/debug/java/com/example/unittest/Launcher.java",
                                 "src/com/example/unittest/Launcher.java");
+    assertNotNull(PsiManager.getInstance(myFixture.getProject()).findFile(launcher));
 
     assertEquals("com.example.unittest.Launcher", computeDefaultActivity(myFacet, null));
     renameClass("com.example.unittest.Launcher", "NewLauncher");
