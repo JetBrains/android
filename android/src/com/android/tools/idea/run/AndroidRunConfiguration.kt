@@ -144,11 +144,6 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     return activityLaunchOptionState.checkConfiguration(facet)
   }
 
-  fun getLaunchOptions(): LaunchOptions {
-    return LaunchOptions.builder().setDeploy(DEPLOY).setOpenLogcatAutomatically(SHOW_LOGCAT_AUTOMATICALLY)
-      .setClearAppStorage(CLEAR_APP_STORAGE).build()
-  }
-
   var disabledDynamicFeatures: List<String>
     get() = if (StringUtil.isEmpty(DYNAMIC_FEATURES_DISABLED_LIST)) {
       ImmutableList.of()
