@@ -51,7 +51,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintDisableBaselineAlignme
 import com.android.tools.idea.lint.inspections.AndroidLintDuplicateIdsInspection
 import com.android.tools.idea.lint.inspections.AndroidLintEnforceUTF8Inspection
 import com.android.tools.idea.lint.inspections.AndroidLintExifInterfaceInspection
-import com.android.tools.idea.lint.inspections.AndroidLintExpiredTargetSdkVersionManifestInspection
+import com.android.tools.idea.lint.inspections.AndroidLintExpiredTargetSdkVersionInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedContentProviderInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedReceiverInspection
 import com.android.tools.idea.lint.inspections.AndroidLintExportedServiceInspection
@@ -1237,11 +1237,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
   fun testOldTargetApi() {
     deleteManifest()
-    doTestHighlighting(
-      AndroidLintExpiredTargetSdkVersionManifestInspection(),
-      "AndroidManifest.xml",
-      "xml"
-    )
+    doTestHighlighting(AndroidLintExpiredTargetSdkVersionInspection(), "AndroidManifest.xml", "xml")
   }
 
   fun testReferenceTypes() {

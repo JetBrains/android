@@ -43,6 +43,7 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.ViewBindingSupport
+import com.android.tools.lint.checks.GradleDetector
 import com.android.tools.lint.checks.ManifestDetector
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Scope
@@ -183,7 +184,7 @@ internal fun verifyLanguageFiles(projectDir: Path, language: Language) {
 internal fun lintIfNeeded(project: Project) {
   if (CHECK_LINT) {
     val lintMessage =
-      getLintIssueMessage(project, Severity.INFORMATIONAL, setOf(ManifestDetector.TARGET_NEWER))
+      getLintIssueMessage(project, Severity.INFORMATIONAL, setOf(GradleDetector.TARGET_NEWER))
     if (lintMessage != null) {
       TestCase.fail(lintMessage)
     }
