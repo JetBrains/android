@@ -161,7 +161,7 @@ internal class DeviceViewTest {
   @Before
   fun setUp() {
     device = agentRule.connectDevice("Pixel 5", 30, Dimension(1080, 2340))
-    StudioFlags.STREAMING_INPUT_FORWARDING_BUTTON.override(true, testRootDisposable)
+    StudioFlags.STREAMING_HARDWARE_INPUT_BUTTON.override(true, testRootDisposable)
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
   }
@@ -697,21 +697,21 @@ internal class DeviceViewTest {
   }
 
   @Test
-  fun testKeyPreprocessingSkippedWhenInputForwardingEnabled() {
+  fun testKeyPreprocessingSkippedWhenHardwareInputEnabled() {
     createDeviceView(250, 500)
 
-    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
     assertThat(view.skipKeyEventDispatcher(
       KeyEvent(view, KEY_PRESSED, System.nanoTime(), 0, KeyEvent.VK_M, KeyEvent.VK_M.toChar()))).isTrue()
   }
 
   @Test
-  fun testKeyPreprocessingNotSkippedForActionTogglingInputForwarding() {
+  fun testKeyPreprocessingNotSkippedForActionTogglingHardwareInput() {
     createDeviceView(250, 500)
-    executeStreamingAction("android.streaming.input.forwarding", view, project)
+    executeStreamingAction("android.streaming.hardware.input", view, project)
     val keymapManager = KeymapManager.getInstance()
-    keymapManager.activeKeymap.addShortcut("android.streaming.input.forwarding", KeyboardShortcut.fromString("control shift J"))
+    keymapManager.activeKeymap.addShortcut("android.streaming.hardware.input", KeyboardShortcut.fromString("control shift J"))
 
     assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KeyEvent.KEY_PRESSED, System.nanoTime(),
                                                     KeyEvent.SHIFT_DOWN_MASK or KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_J,
@@ -719,10 +719,10 @@ internal class DeviceViewTest {
   }
 
   @Test
-  fun testCtrlAndAlphabeticalKeysSentWhenInputForwardingEnabled() {
+  fun testCtrlAndAlphabeticalKeysSentWhenHardwareInputEnabled() {
     createDeviceView(250, 500)
 
-    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
     fakeUi.keyboard.setFocus(view)
 
     fakeUi.keyboard.press(VK_CONTROL)
@@ -743,11 +743,11 @@ internal class DeviceViewTest {
   }
 
   @Test
-  fun testButtonsDuringInputForwarding() {
+  fun testButtonsDuringHardwareInput() {
     createDeviceView(250, 500)
     waitForFrame()
 
-    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
     val mousePosition = Point(97, 141)
     fakeUi.mouse.press(mousePosition)
@@ -790,7 +790,7 @@ internal class DeviceViewTest {
   }
 
   @Test
-  fun testDisableMultiTouchDuringInputForwarding() {
+  fun testDisableMultiTouchDuringHardwareInput() {
     if (!isFFmpegAvailableToTest()) {
       return
     }
@@ -814,8 +814,8 @@ internal class DeviceViewTest {
     fakeUi.layoutAndDispatchEvents()
     assertAppearance("MultiTouch1")
 
-    // Enable input forwarding
-    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+    // Enable hardware input
+    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
     // Check if multitouch indicator is hidden
     fakeUi.layoutAndDispatchEvents()
@@ -826,8 +826,8 @@ internal class DeviceViewTest {
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
       MotionEventMessage(listOf(MotionEventMessage.Pointer(663, 707, 0)), MotionEventMessage.ACTION_DOWN, 1, 1, 0))
 
-    // Disable input forwarding
-    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project, modifiers = InputEvent.CTRL_DOWN_MASK)
+    // Disable hardware input
+    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project, modifiers = InputEvent.CTRL_DOWN_MASK)
 
     // Check if multitouch indicator is shown again
     fakeUi.layoutAndDispatchEvents()
@@ -835,11 +835,11 @@ internal class DeviceViewTest {
   }
 
   @Test
-  fun testMetaKeysReleasedWhenInputForwardingDisabled() {
+  fun testMetaKeysReleasedWhenHardwareInputDisabled() {
     createDeviceView(50, 100)
 
-    // Enable Input forwarding
-    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+    // Enable hardware input
+    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
     // Press Ctrl
     focusManager.focusOwner = view
@@ -848,19 +848,19 @@ internal class DeviceViewTest {
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
       KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
 
-    // Disable Input forwarding
-    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+    // Disable hardware input
+    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
       KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
   }
 
   @Test
-  fun testMetaKeysReleasedWhenLostFocusDuringInputForwarding() {
+  fun testMetaKeysReleasedWhenLostFocusDuringHardwareInput() {
     createDeviceView(50, 100)
 
-    // Enable Input forwarding
-    executeStreamingAction("android.streaming.input.forwarding", view, agentRule.project)
+    // Enable hardware input
+    executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
     // Press Ctrl
     focusManager.focusOwner = view

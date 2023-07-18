@@ -280,6 +280,23 @@
     <option name="instant" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="module" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="support" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
+    <option name="a" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="and" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="as" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="connected" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="device" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="devices" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="enables" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="forwarding" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="hardware" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="input" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="keyboard" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="mouse" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="of" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="such" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="the" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="to" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
+    <option name="transparent" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
     <option name="and" path="ActionManager" hit="End reservation and return device" />
     <option name="device" path="ActionManager" hit="End reservation and return device" />
     <option name="end" path="ActionManager" hit="End reservation and return device" />
@@ -331,19 +348,12 @@
     <option name="unfold" path="ActionManager" hit="Fold/Unfold" />
     <option name="check-in" path="ActionManager" hit="Force Check-in" />
     <option name="force" path="ActionManager" hit="Force Check-in" />
-    <option name="and" path="ActionManager" hit="Forward unaltered mouse and keyboard events to the device" />
-    <option name="device" path="ActionManager" hit="Forward unaltered mouse and keyboard events to the device" />
-    <option name="events" path="ActionManager" hit="Forward unaltered mouse and keyboard events to the device" />
-    <option name="forward" path="ActionManager" hit="Forward unaltered mouse and keyboard events to the device" />
-    <option name="keyboard" path="ActionManager" hit="Forward unaltered mouse and keyboard events to the device" />
-    <option name="mouse" path="ActionManager" hit="Forward unaltered mouse and keyboard events to the device" />
-    <option name="the" path="ActionManager" hit="Forward unaltered mouse and keyboard events to the device" />
-    <option name="to" path="ActionManager" hit="Forward unaltered mouse and keyboard events to the device" />
-    <option name="unaltered" path="ActionManager" hit="Forward unaltered mouse and keyboard events to the device" />
     <option name="apk" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="bundle" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="generate" path="ActionManager" hit="Generate Signed Bundle / APK…" />
     <option name="signed" path="ActionManager" hit="Generate Signed Bundle / APK…" />
+    <option name="hardware" path="ActionManager" hit="Hardware Input" />
+    <option name="input" path="ActionManager" hit="Hardware Input" />
     <option name="help" path="ActionManager" hit="Help" />
     <option name="connection" path="ActionManager" hit="Help debug device connection" />
     <option name="debug" path="ActionManager" hit="Help debug device connection" />
@@ -389,8 +399,6 @@
     <option name="included" path="ActionManager" hit="Inlines included Android layout" />
     <option name="inlines" path="ActionManager" hit="Inlines included Android layout" />
     <option name="layout" path="ActionManager" hit="Inlines included Android layout" />
-    <option name="forwarding" path="ActionManager" hit="Input Forwarding" />
-    <option name="input" path="ActionManager" hit="Input Forwarding" />
     <option name="for" path="ActionManager" hit="Inspect Layout for the selected window" />
     <option name="inspect" path="ActionManager" hit="Inspect Layout for the selected window" />
     <option name="layout" path="ActionManager" hit="Inspect Layout for the selected window" />

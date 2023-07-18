@@ -401,8 +401,8 @@ internal class DeviceView(
     }
   }
 
-  override fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {
-    super.inputForwardingStateChanged(event, enabled)
+  override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {
+    super.hardwareInputStateChanged(event, enabled)
     updateMultiTouchMode(event.inputEvent)
   }
 
@@ -459,9 +459,9 @@ internal class DeviceView(
     val message = when {
       action == MotionEventMessage.ACTION_POINTER_DOWN || action == MotionEventMessage.ACTION_POINTER_UP ->
           MotionEventMessage(originalAndMirroredPointer(p),action or (1 shl MotionEventMessage.ACTION_POINTER_INDEX_SHIFT), 0, 0, displayId)
-      isInputForwardingEnabled() && (action == MotionEventMessage.ACTION_DOWN || action == MotionEventMessage.ACTION_UP) ->
+      isHardwareInputEnabled() && (action == MotionEventMessage.ACTION_DOWN || action == MotionEventMessage.ACTION_UP) ->
           MotionEventMessage(originalPointer(p, axisValues), action, buttonState, androidActionButton, displayId)
-      isInputForwardingEnabled() -> MotionEventMessage(originalPointer(p, axisValues), action, buttonState, 0, displayId)
+      isHardwareInputEnabled() -> MotionEventMessage(originalPointer(p, axisValues), action, buttonState, 0, displayId)
       multiTouchMode -> MotionEventMessage(originalAndMirroredPointer(p), action, 0, 0, displayId)
       else -> MotionEventMessage(originalPointer(p, axisValues), action, 0, 0, displayId)
     }
@@ -520,7 +520,7 @@ internal class DeviceView(
     }
   }
 
-  override val inputForwarding = object : InputForwarding() {
+  override val hardwareInput = object : HardwareInput() {
     override fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {
       if (!isConnected) return
       val action = when (id) {
@@ -559,7 +559,7 @@ internal class DeviceView(
       if (!isConnected) {
         return
       }
-      if (isInputForwardingEnabled()) {
+      if (isHardwareInputEnabled()) {
         return
       }
       if (event.isAltDown || event.isControlDown || event.isMetaDown) {
@@ -589,8 +589,8 @@ internal class DeviceView(
         return
       }
 
-      if (isInputForwardingEnabled()) {
-        inputForwarding.forwardEvent(event)
+      if (isHardwareInputEnabled()) {
+        hardwareInput.forwardEvent(event)
         return
       }
 
@@ -682,14 +682,14 @@ internal class DeviceView(
     override fun mousePressed(event: MouseEvent) {
       requestFocusInWindow()
       if (!isInsideDisplay(event)) return
-      if (event.button != MouseEvent.BUTTON1 && !isInputForwardingEnabled()) return
+      if (event.button != MouseEvent.BUTTON1 && !isHardwareInputEnabled()) return
       lastTouchCoordinates = event.location
       updateMultiTouchMode(event)
       sendMotionEvent(event.location, MotionEventMessage.ACTION_DOWN, event.modifiersEx, button = event.button)
     }
 
     override fun mouseReleased(event: MouseEvent) {
-      if (event.button != MouseEvent.BUTTON1 && !isInputForwardingEnabled()) return
+      if (event.button != MouseEvent.BUTTON1 && !isHardwareInputEnabled()) return
       lastTouchCoordinates = null
       updateMultiTouchMode(event)
       sendMotionEvent(event.location, MotionEventMessage.ACTION_UP, event.modifiersEx, button = event.button)
@@ -753,7 +753,7 @@ internal class DeviceView(
     if (event is MouseEvent) {
       wasInsideDisplay = isInsideDisplay(event)
     }
-    multiTouchMode = wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !isInputForwardingEnabled()
+    multiTouchMode = wasInsideDisplay && (event.modifiersEx and CTRL_DOWN_MASK) != 0 && !isHardwareInputEnabled()
     if (multiTouchMode && oldMultiTouchMode) {
       repaint() // If multi-touch mode changed above, the repaint method was already called.
     }

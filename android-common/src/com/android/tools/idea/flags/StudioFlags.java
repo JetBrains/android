@@ -875,9 +875,9 @@ public final class StudioFlags {
 
   //region Streaming
   private static final FlagGroup STREAMING = new FlagGroup(FLAGS, "streaming", "Streaming");
-  public static final Flag<Boolean> STREAMING_INPUT_FORWARDING_BUTTON = Flag.create(
-    STREAMING, "input.forwarding.button", "Show Input Forwarding Button",
-    "Shows the input forwarding button on the running device toolbar", false);
+  public static final Flag<Boolean> STREAMING_HARDWARE_INPUT_BUTTON = Flag.create(
+    STREAMING, "hardware.input.button", "Show Hardware Input Button",
+    "Shows the hardware input button on the running device toolbar", false);
 
   //endregion
 

@@ -20,38 +20,50 @@ import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
+import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 
 /**
- * ToggleAction for input forwarding.
+ * ToggleAction for hardware input.
  *
- * When input forwarding is enabled, Android Studio forwards unaltered mouse and keyboard events to
+ * When hardware input is enabled, Android Studio forwards unaltered mouse and keyboard events to
  * the device.
  */
-internal class StreamingInputForwardingAction : ToggleAction("Input Forwarding"), DumbAware {
+internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun isSelected(event: AnActionEvent): Boolean {
     val deviceId = getDeviceId(event) ?: return false
-    return event.project?.getService(InputForwardingStateStorage::class.java)?.isInputForwardingEnabled(deviceId) ?: false
+    return event.project?.getService(HardwareInputStateStorage::class.java)?.isHardwareInputEnabled(deviceId) ?: false
   }
 
   override fun setSelected(event: AnActionEvent, selected: Boolean) {
     val deviceId = getDeviceId(event) ?: return
-    event.project?.getService(InputForwardingStateStorage::class.java)?.setInputForwardingEnabled(deviceId, selected)
-    getDisplayView(event)?.inputForwardingStateChanged(event, selected)
+    event.project?.getService(HardwareInputStateStorage::class.java)?.setHardwareInputEnabled(deviceId, selected)
+    getDisplayView(event)?.hardwareInputStateChanged(event, selected)
   }
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
-    val enabled = StudioFlags.STREAMING_INPUT_FORWARDING_BUTTON.get()
+    val enabled = StudioFlags.STREAMING_HARDWARE_INPUT_BUTTON.get()
     presentation.isEnabledAndVisible = enabled
-    if (enabled) {
-      super.update(event)
+    if (!enabled) {
+      return
     }
+    super.update(event)
+    presentation.putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, HelpTooltip().apply {
+      setTitle(presentation.text)
+      setDescription(presentation.description)
+      val shortcut = KeymapUtil.getFirstKeyboardShortcutText(ACTION_ID)
+      if (shortcut.isNotEmpty()) {
+        setShortcut(shortcut)
+      }
+    })
   }
 
   private fun getDisplayView(event: AnActionEvent): AbstractDisplayView? {
@@ -63,19 +75,19 @@ internal class StreamingInputForwardingAction : ToggleAction("Input Forwarding")
   }
 
   companion object {
-    const val ACTION_ID = "android.streaming.input.forwarding"
+    const val ACTION_ID = "android.streaming.hardware.input"
   }
 }
 
 @Service(Service.Level.PROJECT)
-internal class InputForwardingStateStorage {
+internal class HardwareInputStateStorage {
   private val enabledDevices = mutableSetOf<String>()
 
-  fun isInputForwardingEnabled(deviceId: DeviceId): Boolean {
+  fun isHardwareInputEnabled(deviceId: DeviceId): Boolean {
     return enabledDevices.contains(deviceId.storageKey)
   }
 
-  fun setInputForwardingEnabled(deviceId: DeviceId, enabled: Boolean) {
+  fun setHardwareInputEnabled(deviceId: DeviceId, enabled: Boolean) {
     if (enabled) {
       enabledDevices.add(deviceId.storageKey)
     } else {
@@ -91,7 +103,7 @@ internal class InputForwardingStateStorage {
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): InputForwardingStateStorage =
-        project.getService(InputForwardingStateStorage::class.java)
+    fun getInstance(project: Project): HardwareInputStateStorage =
+        project.getService(HardwareInputStateStorage::class.java)
   }
 }

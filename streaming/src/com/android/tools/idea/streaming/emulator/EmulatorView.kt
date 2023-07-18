@@ -314,7 +314,7 @@ class EmulatorView(
   private fun updateCameraPromptAndMultiTouchFeedback(modifiers: Int = lastModifiers) {
     lastModifiers = modifiers
 
-    val cameraReadyToOperate = virtualSceneCameraActive && isFocusOwner && !isInputForwardingEnabled()
+    val cameraReadyToOperate = virtualSceneCameraActive && isFocusOwner && !isHardwareInputEnabled()
     virtualSceneCameraOperating = cameraReadyToOperate && modifiers and SHIFT_DOWN_MASK != 0
     virtualSceneCameraPrompt = when {
       virtualSceneCameraOperating -> {
@@ -325,7 +325,7 @@ class EmulatorView(
       else -> null
     }
 
-    multiTouchMode = mouseIsInside && !virtualSceneCameraActive && modifiers and CTRL_DOWN_MASK != 0 && !isInputForwardingEnabled()
+    multiTouchMode = mouseIsInside && !virtualSceneCameraActive && modifiers and CTRL_DOWN_MASK != 0 && !isHardwareInputEnabled()
   }
 
   private var virtualSceneCameraActive = false
@@ -700,8 +700,8 @@ class EmulatorView(
     requestScreenshotFeed(displayMode.displaySize, displayOrientationQuadrants)
   }
 
-  override fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {
-    super.inputForwardingStateChanged(event, enabled)
+  override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {
+    super.hardwareInputStateChanged(event, enabled)
     updateCameraPromptAndMultiTouchFeedback(event.inputEvent)
   }
 
@@ -759,7 +759,7 @@ class EmulatorView(
     }
   }
 
-  override val inputForwarding: InputForwarding = object : InputForwarding() {
+  override val hardwareInput: HardwareInput = object : HardwareInput() {
     override fun sendToDevice(id: Int, keyCode: Int, modifierEx: Int) {
       if (!isConnected) {
         return
@@ -800,7 +800,7 @@ class EmulatorView(
     }
 
     override fun keyTyped(event: KeyEvent) {
-      if (isInputForwardingEnabled()) {
+      if (isHardwareInputEnabled()) {
         return
       }
 
@@ -824,8 +824,8 @@ class EmulatorView(
 
     override fun keyPressed(event: KeyEvent) {
       updateCameraPromptAndMultiTouchFeedback(event)
-      if (isInputForwardingEnabled()) {
-        inputForwarding.forwardEvent(event)
+      if (isHardwareInputEnabled()) {
+        hardwareInput.forwardEvent(event)
         return
       }
 
@@ -850,8 +850,8 @@ class EmulatorView(
     override fun keyReleased(event: KeyEvent) {
       updateCameraPromptAndMultiTouchFeedback(event)
 
-      if (isInputForwardingEnabled()) {
-        inputForwarding.forwardEvent(event)
+      if (isHardwareInputEnabled()) {
+        hardwareInput.forwardEvent(event)
         return
       }
 

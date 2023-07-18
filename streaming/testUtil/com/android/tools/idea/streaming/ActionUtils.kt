@@ -66,15 +66,15 @@ fun updateAndGetActionPresentation(actionId: String, source: Component, project:
 
 fun updateAndGetActionPresentation(action: AnAction, source: Component, project: Project,
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
-  val event = createTestEvent(source, project, place)
+  val event = createTestEvent(source, project, place, presentation = action.templatePresentation.clone())
   action.update(event)
   return event.presentation
 }
 
 fun createTestEvent(source: Component, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT,
-                    modifiers: Int = CTRL_DOWN_MASK): AnActionEvent {
+                    modifiers: Int = CTRL_DOWN_MASK, presentation: Presentation = Presentation()): AnActionEvent {
   val inputEvent = KeyEvent(source, KEY_RELEASED, System.currentTimeMillis(), modifiers, VK_E, CHAR_UNDEFINED)
-  return AnActionEvent(inputEvent, TestDataContext(source, project), place, Presentation(), ActionManager.getInstance(), 0)
+  return AnActionEvent(inputEvent, TestDataContext(source, project), place, presentation, ActionManager.getInstance(), 0)
 }
 
 private class TestDataContext(private val component: Component, private val project: Project) : DataContext {

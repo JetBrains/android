@@ -393,7 +393,7 @@ class DeviceAdapterTest {
     override val apiLevel: Int
       get() = 0
 
-    override fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {}
+    override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {}
     override fun canZoom() = false
     override fun computeActualSize() = deviceDisplaySize
     override fun dispose() {}

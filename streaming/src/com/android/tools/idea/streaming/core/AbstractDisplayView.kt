@@ -19,8 +19,8 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.streaming.actions.InputForwardingStateStorage
-import com.android.tools.idea.streaming.actions.StreamingInputForwardingAction
+import com.android.tools.idea.streaming.actions.HardwareInputStateStorage
+import com.android.tools.idea.streaming.actions.StreamingHardwareInputAction
 import com.intellij.ide.DataManager
 import com.intellij.ide.KeyboardAwareFocusOwner
 import com.intellij.openapi.Disposable
@@ -107,7 +107,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
 
   private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
 
-  protected open val inputForwarding: InputForwarding = InputForwarding()
+  protected open val hardwareInput: HardwareInput = HardwareInput()
 
   init {
     background = primaryPanelBackground
@@ -119,7 +119,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
                           setOf(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK)))
     addFocusListener(object : FocusAdapter() {
       override fun focusLost(event: FocusEvent) {
-        inputForwarding.resetMetaKeys()
+        hardwareInput.resetMetaKeys()
       }
     })
   }
@@ -313,24 +313,24 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   protected fun getProject(): Project? =
       CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this))
 
-  protected fun isInputForwardingEnabled(): Boolean =
-      getProject()?.service<InputForwardingStateStorage>()?.isInputForwardingEnabled(deviceId) ?: false
+  protected fun isHardwareInputEnabled(): Boolean =
+    getProject()?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(deviceId) ?: false
 
   final override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
-    if (!isInputForwardingEnabled()) return false
+    if (!isHardwareInputEnabled()) return false
     val stroke = KeyStroke.getKeyStrokeForEvent(event)
     for (keyStroke in KeymapUtil.getKeyStrokes(
-        KeymapUtil.getActiveKeymapShortcuts(StreamingInputForwardingAction.ACTION_ID))) {
+        KeymapUtil.getActiveKeymapShortcuts(StreamingHardwareInputAction.ACTION_ID))) {
       if (stroke == keyStroke) return false
     }
     return true
   }
 
-  internal open fun inputForwardingStateChanged(event: AnActionEvent, enabled: Boolean) {
-    if (!enabled) inputForwarding.resetMetaKeys()
+  internal open fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {
+    if (!enabled) hardwareInput.resetMetaKeys()
   }
 
-  protected open class InputForwarding {
+  protected open class HardwareInput {
     private var pressedModifierKeys = 0
     companion object {
       private val vkToMask = mapOf(

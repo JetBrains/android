@@ -155,9 +155,9 @@
             description="Benchmark embedded emulator or mirroring of physical device" internal="true">
       <add-to-group group-id="Internal.Android"/>
     </action>
-    <action id="android.streaming.input.forwarding" class="com.android.tools.idea.streaming.actions.StreamingInputForwardingAction"
-            text="Input Forwarding"
-            description="Forward unaltered mouse and keyboard events to the device" />
+    <action id="android.streaming.hardware.input" class="com.android.tools.idea.streaming.actions.StreamingHardwareInputAction"
+            text="Hardware Input"
+            description="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device"/>
 
     <group id="StreamingToolbarVirtualDevice">
       <reference ref="android.device.power.button"/>
@@ -183,7 +183,7 @@
         <separator/>
       </group>
       <reference ref="android.emulator.snapshots"/>
-      <reference ref="android.streaming.input.forwarding"/>
+      <reference ref="android.streaming.hardware.input"/>
       <reference ref="android.emulator.extended.controls"/>
     </group>
 
@@ -202,7 +202,7 @@
       <reference ref="android.device.overview.button"/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
-      <reference ref="android.streaming.input.forwarding"/>
+      <reference ref="android.streaming.hardware.input"/>
       <reference ref="android.device.reservation.extend"/>
     </group>
 
