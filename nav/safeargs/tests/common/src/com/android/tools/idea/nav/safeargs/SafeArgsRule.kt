@@ -38,7 +38,12 @@ import org.junit.runners.model.Statement
  * test class or individual test method to enable it.
  */
 class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResource() {
-  private val projectRule = AndroidProjectRule.onDisk()
+  private val projectRule =
+    AndroidProjectRule.onDisk().apply {
+      if (mode == SafeArgsMode.KOTLIN) {
+        withKotlin()
+      }
+    }
 
   val fixture: JavaCodeInsightTestFixture
     get() = projectRule.fixture as JavaCodeInsightTestFixture

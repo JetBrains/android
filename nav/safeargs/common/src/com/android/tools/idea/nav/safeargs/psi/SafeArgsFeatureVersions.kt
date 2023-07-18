@@ -20,9 +20,8 @@ import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.tools.idea.projectsystem.getModuleSystem
 import org.jetbrains.android.facet.AndroidFacet
 
-internal val GRADLE_VERSION_ZERO = Version.prefixInfimum("0")
-
 object SafeArgsFeatureVersions {
+  val MINIMUM_VERSION = Version.prefixInfimum("0")
   val FROM_SAVED_STATE_HANDLE = Version.parse("2.4.0-alpha01")
   val TO_SAVED_STATE_HANDLE = Version.parse("2.4.0-alpha07")
   val ADJUST_PARAMS_WITH_DEFAULTS = Version.parse("2.4.0-alpha08")
@@ -35,9 +34,8 @@ object SafeArgsFeatureVersions {
  * If for any reason the version can't be found, a zero version will be returned, which can be used
  * to indicate that only base features should be supported.
  */
-internal fun AndroidFacet.findNavigationVersion(): Version {
-  return module
+internal fun AndroidFacet.findNavigationVersion(): Version =
+  module
     .getModuleSystem()
     .getResolvedDependency(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_COMMON.getCoordinate("+"))
-    ?.lowerBoundVersion ?: GRADLE_VERSION_ZERO
-}
+    ?.lowerBoundVersion ?: SafeArgsFeatureVersions.MINIMUM_VERSION

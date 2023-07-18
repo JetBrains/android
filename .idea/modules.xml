@@ -299,8 +299,10 @@
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/common/intellij.android.nav.safeargs.common.iml" filepath="$PROJECT_DIR$/nav/safeargs/common/intellij.android.nav.safeargs.common.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/common/gradle/intellij.android.nav.safeargs.common.gradle.iml" filepath="$PROJECT_DIR$/nav/safeargs/common/gradle/intellij.android.nav.safeargs.common.gradle.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/k1/intellij.android.nav.safeargs.k1.iml" filepath="$PROJECT_DIR$/nav/safeargs/k1/intellij.android.nav.safeargs.k1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nav/safeargs/k2/intellij.android.nav.safeargs.k2.iml" filepath="$PROJECT_DIR$/nav/safeargs/k2/intellij.android.nav.safeargs.k2.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/tests/common/intellij.android.nav.safeargs.tests.common.iml" filepath="$PROJECT_DIR$/nav/safeargs/tests/common/intellij.android.nav.safeargs.tests.common.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/tests/k1/intellij.android.nav.safeargs.tests.k1.iml" filepath="$PROJECT_DIR$/nav/safeargs/tests/k1/intellij.android.nav.safeargs.tests.k1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/nav/safeargs/tests/k2/intellij.android.nav.safeargs.tests.k2.iml" filepath="$PROJECT_DIR$/nav/safeargs/tests/k2/intellij.android.nav.safeargs.tests.k2.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-navigator/intellij.android.navigator.iml" filepath="$PROJECT_DIR$/android-navigator/intellij.android.navigator.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-navigator/intellij.android.navigator.testutils.iml" filepath="$PROJECT_DIR$/android-navigator/intellij.android.navigator.testutils.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-npw/intellij.android.newProjectWizard.iml" filepath="$PROJECT_DIR$/android-npw/intellij.android.newProjectWizard.iml" />

@@ -153,15 +153,14 @@ class NavInfoFetcher(
   }
 
   private val androidFacetIfEnabled: AndroidFacet?
-    get() =
-      AndroidFacet.getInstance(module)?.takeIf { it.isSafeArgsEnabled() && it.safeArgsMode == mode }
+    get() = getAndroidFacetIfSafeArgsEnabled(module, mode)
 
   /**
    * Whether the project is currently enabled (SafeArgs enabled for project, and [SafeArgsMode]
    * matches filter).
    */
   override val isEnabled: Boolean
-    get() = androidFacetIfEnabled != null
+    get() = isSafeArgsModule(module, mode)
 
   /**
    * The current modification count of the navigation resources.
@@ -212,6 +211,16 @@ class NavInfoFetcher(
       }
 
     return NavInfo(facet, modulePackage, entries, navVersion, modificationCount)
+  }
+
+  companion object {
+    private fun getAndroidFacetIfSafeArgsEnabled(module: Module, requiredMode: SafeArgsMode) =
+      AndroidFacet.getInstance(module)?.takeIf {
+        it.isSafeArgsEnabled() && it.safeArgsMode == requiredMode
+      }
+
+    fun isSafeArgsModule(module: Module, requiredMode: SafeArgsMode) =
+      getAndroidFacetIfSafeArgsEnabled(module, requiredMode) != null
   }
 }
 

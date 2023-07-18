@@ -11,5 +11,6 @@ iml_module(
     deps = [
         "//tools/adt/idea/nav/safeargs/common:intellij.android.nav.safeargs.common[module]",
         "//tools/adt/idea/nav/safeargs/k1:intellij.android.nav.safeargs.k1[module]",
+        "//tools/adt/idea/nav/safeargs/k2:intellij.android.nav.safeargs.k2[module]",
     ],
 )

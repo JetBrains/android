@@ -29,6 +29,7 @@ test_suite(
     tests = [
         "//tools/adt/idea/nav/safeargs/tests/common:intellij.android.nav.safeargs.tests.common_tests",
         "//tools/adt/idea/nav/safeargs/tests/k1:intellij.android.nav.safeargs.tests.k1_tests",
+        "//tools/adt/idea/nav/safeargs/tests/k2:intellij.android.nav.safeargs.tests.k2_tests",
     ],
     visibility = ["//visibility:public"],
 )
