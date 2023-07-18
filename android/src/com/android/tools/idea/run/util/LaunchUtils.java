@@ -30,6 +30,7 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -63,7 +64,10 @@ public class LaunchUtils {
   @Slow
   @WorkerThread
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
-    ApplicationManager.getApplication().assertIsNonDispatchThread();
+    if (!ExternalSystemUtil.isNoBackgroundMode()) {
+      // Assert only when not in the headless mode (fails in headless).
+      ApplicationManager.getApplication().assertIsNonDispatchThread();
+    }
 
     if (AndroidFacet.getInstance(facet.getModule()) == null) {
       Logger.getInstance(LaunchUtils.class).warn("calling isWatchFeatureRequired when facet is not ready yet");
