@@ -21,6 +21,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
+import com.intellij.util.ui.UIUtil
 import kotlin.test.assertNotNull
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertFalse
@@ -150,6 +151,8 @@ class VisualizationToolWindowFactoryTest {
         ToolWindowManager.getInstance(projectRule.project)
       )
 
+    // The bus might add events to the UI queue so ensure we process them.
+    UIUtil.invokeAndWaitIfNeeded(Runnable { UIUtil.dispatchAllInvocationEvents() })
     assertTrue(toolWindow.isAvailable)
   }
 }

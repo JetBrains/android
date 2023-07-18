@@ -34,6 +34,7 @@ import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 
@@ -113,8 +114,9 @@ class VisualizationToolWindowFactory : ToolWindowFactory {
           toolWindowManager: ToolWindowManager
         ) {
           if (ids.contains(TOOL_WINDOW_ID)) {
-            toolWindow.isAvailable = hasSelectedLayoutFile(project)
             connect.disconnect()
+            val hasSelectedLayoutFile = hasSelectedLayoutFile(project)
+            UIUtil.invokeLaterIfNeeded { toolWindow.isAvailable = hasSelectedLayoutFile }
           }
         }
       }
