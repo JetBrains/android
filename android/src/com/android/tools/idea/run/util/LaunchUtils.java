@@ -64,7 +64,10 @@ public class LaunchUtils {
   @Slow
   @WorkerThread
   public static boolean isWatchFeatureRequired(@NotNull AndroidFacet facet) {
-    ApplicationManager.getApplication().assertIsNonDispatchThread();
+    if (!ExternalSystemUtil.isNoBackgroundMode()) {
+      // Assert only when not in the headless mode (fails in headless).
+      ApplicationManager.getApplication().assertIsNonDispatchThread();
+    }
 
     if (AndroidFacet.getInstance(facet.getModule()) == null) {
       Logger.getInstance(LaunchUtils.class).warn("calling isWatchFeatureRequired when facet is not ready yet");
