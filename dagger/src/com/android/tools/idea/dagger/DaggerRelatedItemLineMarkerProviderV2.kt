@@ -125,17 +125,26 @@ class DaggerRelatedItemLineMarkerProviderV2 :
     /**
      * Returns [GotoRelatedItem]s representing related [DaggerElement]s for a given source element.
      */
-    private fun DaggerElement.getGotoItems(): List<GotoItemWithAnalytics> =
-      getRelatedDaggerElements().map {
-        (relatedItem, relationName, relationDescriptionKey, customDisplayName) ->
-        GotoItemWithAnalytics(
-          this,
-          relatedItem,
-          relationName,
-          relationDescriptionKey,
-          customDisplayName
+    @VisibleForTesting
+    internal fun DaggerElement.getGotoItems(): List<GotoItemWithAnalytics> =
+      getRelatedDaggerElements()
+        .map { (relatedItem, relationName, relationDescriptionKey, customDisplayName) ->
+          GotoItemWithAnalytics(
+            this,
+            relatedItem,
+            relationName,
+            relationDescriptionKey,
+            customDisplayName
+          )
+        }
+        .sortedWith(
+          // Goto items in the dropdown should be displayed in a predictable manner. Sort by groups
+          // first, then within the groups sort by the displayed text.
+          compareBy(
+            GotoItemWithAnalytics::getGroup,
+            { it.customName ?: it.element?.let(SymbolPresentationUtil::getSymbolPresentableText) }
+          )
         )
-      }
 
     /**
      * Returns true if element is Java/Kotlin identifier or kotlin "constructor" keyword.
