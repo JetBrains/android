@@ -24,6 +24,7 @@ import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -224,13 +225,31 @@ class AppInspectionInspectorClient(
         model.modificationListeners.remove(updateListener)
       }
       .recover { t ->
-        notifyError(t)
-        val expectedError = handleConnectionError(t)
+        val error = getOriginalError(t)
+        notifyError(error)
+        val expectedError = handleConnectionError(error)
         if (!expectedError) {
-          logError(t)
+          logError(error)
         }
         throw t
       }
+  }
+
+  /**
+   * [CancellationException] can hide other errors from App Inspection. Which can be stored one or
+   * more level deep, for example `t.cause.cause`. This function finds that error or returns the
+   * original one if it can't be found.
+   */
+  private fun getOriginalError(t: Throwable): Throwable {
+    return if (t is CancellationException) {
+      var originalCause = t.cause
+      while (originalCause != null && originalCause is CancellationException) {
+        originalCause = originalCause.cause
+      }
+      originalCause ?: t
+    } else {
+      t
+    }
   }
 
   /**
@@ -268,6 +287,7 @@ class AppInspectionInspectorClient(
       when (throwable) {
         is CancellationException -> null
         is ConnectionFailedException -> throwable.message
+        is AppInspectionCrashException -> "Layout Inspector crashed on the device."
         else -> "An unknown error happened."
       }
 
@@ -289,8 +309,9 @@ class AppInspectionInspectorClient(
         skiaParser.shutdown()
         logEvent(DynamicLayoutInspectorEventType.SESSION_DATA)
       } catch (t: Throwable) {
-        notifyError(t)
-        logError(t)
+        val error = getOriginalError(t)
+        notifyError(error)
+        logError(error)
         throw t
       }
     }
@@ -299,8 +320,9 @@ class AppInspectionInspectorClient(
     try {
       startFetchingInternal()
     } catch (t: Throwable) {
-      notifyError(t)
-      logError(t)
+      val error = getOriginalError(t)
+      notifyError(error)
+      logError(error)
       throw t
     }
   }
@@ -326,8 +348,9 @@ class AppInspectionInspectorClient(
       stats.currentModeIsLive = false
       viewInspector?.stopFetching()
     } catch (t: Throwable) {
-      notifyError(t)
-      logError(t)
+      val error = getOriginalError(t)
+      notifyError(error)
+      logError(error)
       throw t
     }
   }

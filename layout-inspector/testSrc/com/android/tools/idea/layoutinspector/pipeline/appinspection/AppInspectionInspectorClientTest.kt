@@ -46,6 +46,7 @@ import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionAppProguardedException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionCannotFindAdbDeviceException
+import com.android.tools.idea.appinspection.inspector.api.AppInspectionCrashException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMissingException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
@@ -110,6 +111,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.TimeUnit
 import javax.swing.JTable
 import kotlin.collections.set
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol
@@ -208,6 +210,28 @@ class AppInspectionInspectorClientTest {
       .isEqualTo(DynamicLayoutInspectorEventType.ATTACH_ERROR)
     assertThat(usages[2].studioEvent.dynamicLayoutInspectorEvent.type)
       .isEqualTo(DynamicLayoutInspectorEventType.SESSION_DATA)
+  }
+
+  @Test
+  fun crashedInspectorShowsNotification() {
+    shouldFailDuringAttach = true
+    failingApiServices.exception =
+      CancellationException(
+        "",
+        cause = CancellationException("", cause = AppInspectionCrashException(""))
+      )
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+
+    assertThat(inspectorRule.inspectorClient.isConnected).isFalse()
+
+    val usages =
+      usageRule.testTracker.usages.filter {
+        it.studioEvent.kind == AndroidStudioEvent.EventKind.DYNAMIC_LAYOUT_INSPECTOR_EVENT
+      }
+
+    val notification1 = inspectorRule.notificationModel.notifications.single()
+    assertThat(notification1.message).isEqualTo("Layout Inspector crashed on the device.")
   }
 
   @Test
@@ -1666,11 +1690,13 @@ private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit) {
 
 private val failingApiServices =
   object : AppInspectionApiServices {
+    var exception: Throwable = RuntimeException()
+
     override val processDiscovery
       get() = throw RuntimeException()
     override suspend fun disposeClients(project: String) = throw RuntimeException()
     override suspend fun attachToProcess(process: ProcessDescriptor, projectName: String) =
-      throw RuntimeException()
+      throw exception
     override suspend fun launchInspector(params: LaunchParameters) = throw RuntimeException()
     override suspend fun stopInspectors(process: ProcessDescriptor) = throw RuntimeException()
   }
