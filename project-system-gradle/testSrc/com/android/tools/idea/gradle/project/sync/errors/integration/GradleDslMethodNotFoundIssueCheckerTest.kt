@@ -42,24 +42,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-class GradleDslMethodNotFoundIssueCheckerTest {
-
-  @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
-
-
-  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
-
-  @Before
-  fun setUp() {
-    UsageTracker.setWriterForTest(usageTracker)
-  }
-
-  @After
-  fun cleanUp() {
-    usageTracker.close()
-    UsageTracker.cleanAfterTesting()
-  }
+class GradleDslMethodNotFoundIssueCheckerTest : AbstractIssueCheckerIntegrationTest() {
 
   @Test
   fun testCheckIssueWithMethodNotFoundInSettingsFile() {
@@ -105,39 +88,5 @@ class GradleDslMethodNotFoundIssueCheckerTest {
       },
       AndroidStudioEvent.GradleSyncFailure.DSL_METHOD_NOT_FOUND
     )
-  }
-
-  fun runSyncAndCheckFailure(
-    preparedProject: PreparedTestProject,
-    verifyBuildIssue: (BuildIssue) -> Unit,
-    expectedFailureReported: AndroidStudioEvent.GradleSyncFailure
-    ) {
-    var capturedException: Exception? = null
-    val buildEvents = mutableListOf<BuildEvent>()
-    preparedProject.open(
-      updateOptions = {
-        it.copy(
-          verifyOpened = { project ->
-            assertThat(project.getProjectSystem().getSyncManager().getLastSyncResult())
-              .isEqualTo(ProjectSystemSyncManager.SyncResult.FAILURE)
-          },
-          syncExceptionHandler = { e: Exception ->
-            capturedException = e
-          },
-          syncViewEventHandler = { buildEvent -> buildEvents.add(buildEvent) }
-        )
-      }
-    ) {  }
-
-    val buildIssue = (capturedException as BuildIssueException).buildIssue
-    verifyBuildIssue(buildIssue)
-
-    // Make sure no additional error build events are generated
-    assertThat(buildEvents.filterIsInstance<MessageEvent>()).isEmpty()
-
-    val event = usageTracker.usages
-      .single { it.studioEvent.kind == AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS }
-
-    assertThat(event.studioEvent.gradleSyncFailure).isEqualTo(expectedFailureReported)
   }
 }

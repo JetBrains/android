@@ -49,15 +49,15 @@ import java.util.function.Consumer
 
 class ClassLoadingIssueChecker: GradleIssueChecker {
   private val CLASS_NOT_FOUND_PATTERN = Pattern.compile("(.+) not found.")
-  private val NO_SUCH_METHOD_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.NoSuchMethodError(.*)")
-  private val CLASS_NOT_FOUND_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.ClassNotFoundException(.*)")
+  private val NO_SUCH_METHOD_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.NoSuchMethodError:(.*)")
+  private val CLASS_NOT_FOUND_TRACE_PATTERN = Pattern.compile("Caused by: java.lang.ClassNotFoundException:(.*)")
   private val CANNOT_BE_CAST_TO_EXCEPTION = "cannot be cast to"
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: ""
 
-    var buildIssueComposer = BuildIssueComposer(getExceptionMessage(rootCause, message, issueData.projectPath) ?: return null)
+    val buildIssueComposer = BuildIssueComposer(getExceptionMessage(rootCause, message, issueData.projectPath) ?: return null)
 
     val syncProjectQuickFix = SyncProjectRefreshingDependenciesQuickFix()
     val stopGradleDaemonQuickFix = StopGradleDaemonQuickFix()
@@ -107,8 +107,7 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
                                                 parentEventId: Any,
                                                 messageConsumer: Consumer<in BuildEvent>): Boolean {
     if (stacktrace != null && NO_SUCH_METHOD_TRACE_PATTERN.matcher(stacktrace).find()) return true
-    if (stacktrace != null &&
-        CLASS_NOT_FOUND_TRACE_PATTERN.matcher(stacktrace).find() && CLASS_NOT_FOUND_PATTERN.matcher(failureCause).matches()) return true
+    if (stacktrace != null && CLASS_NOT_FOUND_TRACE_PATTERN.matcher(stacktrace).find()) return true
     if (failureCause.contains(CANNOT_BE_CAST_TO_EXCEPTION)) return true
     return false
   }
@@ -120,10 +119,10 @@ class ClassLoadingIssueChecker: GradleIssueChecker {
         val matcher = CLASS_NOT_FOUND_PATTERN.matcher(className)
         if (matcher.matches()) {
           className = matcher.group(1)
-          // Log metrics.
-          SyncFailureUsageReporter.getInstance().collectFailure(projectPath, CLASS_NOT_FOUND)
-          return "Unable to load class '${className}'"
         }
+        // Log metrics.
+        SyncFailureUsageReporter.getInstance().collectFailure(projectPath, CLASS_NOT_FOUND)
+        return "Unable to load class '${className}'"
       }
       is NoSuchMethodError -> {
         // Log metrics.
