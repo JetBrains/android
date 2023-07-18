@@ -24,6 +24,9 @@ import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
+import com.android.tools.idea.gradle.repositories.search.SearchRequest
+import com.android.tools.idea.gradle.repositories.search.SearchResult
+import com.android.tools.idea.gradle.repositories.search.SingleModuleSearchQuery
 import com.android.tools.idea.gradle.structure.model.PsChildModel
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsProject
@@ -38,9 +41,6 @@ import com.android.tools.idea.gradle.structure.model.meta.ValueDescriptor
 import com.android.tools.idea.gradle.structure.model.meta.getText
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.gradle.structure.model.meta.withFileSelectionRoot
-import com.android.tools.idea.gradle.repositories.search.SearchRequest
-import com.android.tools.idea.gradle.repositories.search.SearchResult
-import com.android.tools.idea.gradle.repositories.search.SingleModuleSearchQuery
 import com.android.tools.idea.gradle.util.GradleVersionsRepository
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.Futures
@@ -71,12 +71,22 @@ fun ndkVersionValues(model: PsAndroidModule?): ListenableFuture<List<ValueDescri
 fun installedCompiledApis(model: Any?): ListenableFuture<List<ValueDescriptor<String>>> =
   immediateFuture(installedEnvironments().compiledApis)
 
-fun languageLevels(model: Any?): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> = immediateFuture(listOf(
-  ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "Java 6"),
-  ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "Java 7"),
-  ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8"),
-  ValueDescriptor(value = LanguageLevel.JDK_11, description = "Java 11"),
-))
+fun languageLevels(model: PsAndroidModule): ListenableFuture<List<ValueDescriptor<LanguageLevel>>> {
+  val languageLevels = mutableListOf(
+    ValueDescriptor(value = LanguageLevel.JDK_1_6, description = "Java 6"),
+    ValueDescriptor(value = LanguageLevel.JDK_1_7, description = "Java 7"),
+    ValueDescriptor(value = LanguageLevel.JDK_1_8, description = "Java 8"),
+    ValueDescriptor(value = LanguageLevel.JDK_11, description = "Java 11")
+  )
+  model.compileSdkVersion.maybeValue?.toIntOrNull()?.let { compileSdkVersion ->
+    // API 34 supports Java 17 https://developer.android.com/build/jdks
+    // TODO Update with proper AndroidVersion b/291757992
+    if(compileSdkVersion >= 34) {
+      languageLevels.add(ValueDescriptor(value = LanguageLevel.JDK_17, description = "Java 17"))
+    }
+  }
+  return immediateFuture(languageLevels)
+}
 
 fun signingConfigs(module: PsAndroidModule): ListenableFuture<List<ValueDescriptor<Unit>>> = immediateFuture(module.signingConfigs.map {
   ValueDescriptor(ParsedValue.Set.Parsed(null, DslText.Reference("signingConfigs.${it.name}")))
