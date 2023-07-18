@@ -24,6 +24,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
+import com.intellij.pom.Navigatable
 import java.awt.event.ComponentEvent
 import java.awt.event.ComponentListener
 import kotlinx.coroutines.launch
@@ -151,6 +152,19 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
     if (isActive) return
     isActive = true
     preview.onActivate()
+  }
+
+  override fun navigateTo(navigatable: Navigatable) {
+    // Check if the text editor is not visible.
+    // When not visible, if the user is trying to navigate to the source code, we
+    // show the split mode so the user can see where the cursor moved.
+    // This is helpful in situations like hitting a debugger breakpoint or clicking a
+    // component in the Layout Inspector.
+    if (isDesignMode()) {
+      selectSplitMode(false)
+    }
+
+    super.navigateTo(navigatable)
   }
 
   private fun deactivate() {

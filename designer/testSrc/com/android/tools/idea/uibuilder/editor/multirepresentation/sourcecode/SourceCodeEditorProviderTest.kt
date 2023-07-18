@@ -219,4 +219,19 @@ class SourceCodeEditorProviderTest {
     type = PlainTextFileType.INSTANCE
     assertFalse(sourceCodeProvider.accept(project = projectRule.project, file))
   }
+
+  // Test navigation state change
+  @Test
+  fun testNavigationMovesToSplitMode() {
+    var type: FileType = KotlinFileType.INSTANCE
+    val file =
+      object : MockVirtualFile("Preview.kt") {
+        override fun getFileType(): FileType = type
+      }
+    val representation = TestPreviewRepresentationProvider("Representation1", false)
+    val sourceCodeProvider = SourceCodeEditorProvider.forTesting(listOf(representation))
+    assertTrue(sourceCodeProvider.accept(project = projectRule.project, file))
+    type = PlainTextFileType.INSTANCE
+    assertFalse(sourceCodeProvider.accept(project = projectRule.project, file))
+  }
 }
