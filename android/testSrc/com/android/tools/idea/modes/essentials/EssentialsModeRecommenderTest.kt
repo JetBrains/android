@@ -5,6 +5,7 @@ import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -92,7 +93,7 @@ class EssentialsModeRecommenderTest : LightPlatformTestCase() {
   }
 
   private fun assertNotificationIsNotTracked() {
-    Truth.assertThat(usageTracker.usages.size).isEqualTo(0)
+    usageTracker.usages.forEach { Truth.assertThat(it.studioEvent.kind == AndroidStudioEvent.EventKind.EDITOR_NOTIFICATION).isFalse() }
   }
 
   private fun assertNotificationIsTracked() {

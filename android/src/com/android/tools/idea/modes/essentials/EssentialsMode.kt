@@ -16,19 +16,27 @@
 package com.android.tools.idea.modes.essentials
 
 import com.android.flags.Flag
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
+import com.google.protobuf.TextFormat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.EssentialsModeEvent
 import com.intellij.ide.EssentialHighlightingMode
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.RegistryManager
+import com.jetbrains.rd.util.string.print
+import com.jetbrains.rd.util.string.printToString
+import com.jetbrains.rd.util.string.println
 
 @Service
 class EssentialsMode {
   init {
     essentialsModeLogger.info("Essentials mode isEnabled on start-up: ${isEnabled()}")
   }
+
   companion object {
     private const val REGISTRY_KEY = "ide.essentials.mode"
     private val messenger = service<EssentialsModeMessenger>()
@@ -37,6 +45,7 @@ class EssentialsMode {
     // keeping Essential Highlighting separable from Essentials Mode if it's determined at a future
     // date that most users would prefer this feature not bundled with Essentials Mode
     private val essentialHighlightingEnabled: Flag<Boolean> = StudioFlags.ESSENTIALS_HIGHLIGHTING_MODE
+
     @JvmStatic
     fun isEnabled(): Boolean {
       return RegistryManager.getInstance().`is`(REGISTRY_KEY);
@@ -52,7 +61,13 @@ class EssentialsMode {
         messenger.sendMessage()
         essentialsModeLogger.info("Essentials mode isEnabled set to $value")
         project?.service<EssentialsModeNotifier>()?.notifyProject()
+        trackEvent(value)
       }
+    }
+
+    fun trackEvent(value: Boolean) {
+      UsageTracker.log(AndroidStudioEvent.newBuilder().setEssentialsModeEvent(
+        EssentialsModeEvent.newBuilder().setEnabled(value)))
     }
   }
 }

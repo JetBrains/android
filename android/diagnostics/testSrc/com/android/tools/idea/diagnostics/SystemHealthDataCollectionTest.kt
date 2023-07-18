@@ -246,6 +246,7 @@ class SystemHealthDataCollectionTest {
   @Test
   fun testEssentialsModeGetsSet() {
     EssentialsMode.setEnabled(true, null)
+    testUsageTracker.usages.clear()
 
     systemHealthDataCollection.triggers.gcThresholdMet()
     val event = expectSingleEventAndClear().systemHealthEvent
