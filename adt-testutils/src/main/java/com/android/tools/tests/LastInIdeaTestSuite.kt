@@ -27,6 +27,21 @@ class LastInIdeaTestSuite {
   @Test
   fun checkForLeaks() {
     Assume.assumeTrue(System.getProperty("idea.leak.check.enabled", "true").toBoolean())
-    LeakCheckerRule.checkForLeaks()
+    try {
+      LeakCheckerRule.checkForLeaks()
+    }
+    catch (e: AssertionError) {
+      val header = """
+        The IntelliJ test framework appears to have detected a memory leak
+        in this test target (see below). Read the error message carefully to discern
+        what caused the leak. If an IDE project instance leaked, then the project name will
+        generally indicate which specific test was involved. If available, the leak trace
+        (path from GC roots) will help you find the root cause of the leak. Note, this leak
+        check is added to all IDE test target automatically. If you need to temporarily
+        disable leak checks in a specific test target, set the system property
+        idea.leak.check.enabled to false.
+      """.trimIndent()
+      throw RuntimeException(header, e)
+    }
   }
 }
