@@ -1,6 +1,10 @@
 *.iml
+.externalNativeBuild
+.cxx
+.DS_Store
 .gradle
 /local.properties
+/.idea/appInsightsSettings.xml
 /.idea/assetWizardSettings.xml
 /.idea/caches
 /.idea/deploymentTargetDropDown.xml
@@ -8,9 +12,6 @@
 /.idea/modules.xml
 /.idea/navEditor.xml
 /.idea/workspace.xml
-.DS_Store
 /build
 /captures
-.externalNativeBuild
-.cxx
 local.properties
