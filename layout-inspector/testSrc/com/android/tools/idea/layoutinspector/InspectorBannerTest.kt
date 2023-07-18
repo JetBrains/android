@@ -17,11 +17,13 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.util.ui.UIUtil
+import javax.swing.JLabel
 import org.junit.Rule
 import org.junit.Test
 
@@ -42,12 +44,14 @@ class InspectorBannerTest {
     val banner = InspectorBanner(notificationModel)
     notificationModel.addNotification(
       "key1",
-      "There is an error somewhere",
+      "There is an error somewhere <a>",
       Status.Error,
       emptyList()
     )
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.isVisible).isTrue()
+    val label = banner.flatten().filterIsInstance<JLabel>().first()
+    assertThat(label.text).isEqualTo("<html>There is an error somewhere &lt;a&gt;</html>")
   }
 
   @Test

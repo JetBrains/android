@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotification
+import com.google.common.html.HtmlEscapers
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ui.UIUtil
@@ -43,7 +44,7 @@ class InspectorBanner(private val notificationModel: NotificationModel) : JPanel
       isVisible = notifications.isNotEmpty()
       notifications.forEach { notification ->
         val panel = EditorNotificationPanel(notification.status)
-        panel.text = notification.message
+        panel.text = "<html>${HtmlEscapers.htmlEscaper().escape(notification.message)}</html>"
         notification.actions.forEach { action ->
           panel.createActionLabel(action.name) { action.invoke(notification) }
         }
