@@ -553,7 +553,7 @@ public final class AndroidStudioSystemHealthMonitor {
     String essentialAction = metricsNameForClass(EssentialsModeToggleAction.class);
     UIActionStats.Builder essentialMode = getInitialUIStateAction();
     essentialMode.setActionClassName(essentialAction);
-    essentialMode.setTogglingOn(EssentialHighlightingMode.Companion.isEnabled());
+    essentialMode.setTogglingOn(EssentialHighlightingMode.INSTANCE.isEnabled());
     AndroidStudioEvent.Builder essentialModeBuilder = buildStudioUiEvent(essentialMode);
 
     // Power save mode
