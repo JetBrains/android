@@ -91,7 +91,7 @@ class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
           fromElement = targetElement.metricsElementType,
           toElement = usageElement.metricsElementType
         )
-      super.navigate(focus)
+      super<UsageInfo2UsageAdapter>.navigate(focus)
     }
 
     companion object {
