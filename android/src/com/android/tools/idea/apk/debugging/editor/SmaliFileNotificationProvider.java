@@ -43,28 +43,15 @@ public class SmaliFileNotificationProvider implements EditorNotificationProvider
   @Override
   @Nullable
   public Function<FileEditor, EditorNotificationPanel> collectNotificationData(@NotNull Project project, @NotNull VirtualFile file) {
-    final DexSourceFiles myDexSourceFiles = DexSourceFiles.getInstance(project);
+    DexSourceFiles myDexSourceFiles = DexSourceFiles.getInstance(project);
     Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
     if (module == null || ApkFacet.getInstance(module) == null || !myDexSourceFiles.isSmaliFile(file)) return null;
     File outputFolderPath = myDexSourceFiles.getDefaultSmaliOutputFolderPath();
     File filePath = virtualToIoFile(file);
     if (!isAncestor(outputFolderPath, filePath, false)) return null;
     PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-    final String classFqn;
-    final PsiClass javaPsiClass;
-    if (psiFile instanceof SmaliFile) {
-      classFqn = myDexSourceFiles.findJavaClassName((SmaliFile)psiFile);
-      if (isNotEmpty(classFqn)) {
-        javaPsiClass = myDexSourceFiles.findJavaPsiClass(classFqn);
-      }
-      else {
-        javaPsiClass = null;
-      }
-    }
-    else {
-      classFqn = null;
-      javaPsiClass = null;
-    }
+    String classFqn = (psiFile instanceof SmaliFile) ? myDexSourceFiles.findJavaClassName((SmaliFile)psiFile) : null;
+    PsiClass javaPsiClass = (isNotEmpty(classFqn)) ? myDexSourceFiles.findJavaPsiClass(classFqn) : null;
     // The smali file is inside the folder where baksmali generated the smali files by disassembling classes.dex.
     return (fileEditor) -> {
       EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
@@ -72,8 +59,8 @@ public class SmaliFileNotificationProvider implements EditorNotificationProvider
       if (javaPsiClass != null) {
         panel.createActionLabel("Open Kotlin/Java file", () -> openFileWithPsiElement(javaPsiClass, true, true));
       }
-      else if (classFqn != null) {
-        panel.createActionLabel("Attach Kotlin/Java sources...",
+      else if (isNotEmpty(classFqn)) {
+        panel.createActionLabel("Attach Kotlin/Java Sources...",
                                 new ChooseAndAttachJavaSourcesTask(classFqn, module, myDexSourceFiles));
       }
       return panel;
