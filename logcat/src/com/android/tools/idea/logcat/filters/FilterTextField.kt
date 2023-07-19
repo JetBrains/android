@@ -26,6 +26,7 @@ import com.android.tools.idea.logcat.PROCESS_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Item
 import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Separator
+import com.android.tools.idea.logcat.filters.FilterTextField.FilterStatusChanged
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
@@ -60,6 +61,7 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
+import com.intellij.util.messages.Topic
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
@@ -241,6 +243,13 @@ internal class FilterTextField(
           }
         })
     }
+
+    ApplicationManager.getApplication().messageBus.connect(logcatPresenter)
+      .subscribe(FilterStatusChanged.TOPIC, FilterStatusChanged { filter, isFavorite ->
+        if (text == filter) {
+          this.isFavorite = isFavorite
+        }
+      })
   }
 
   @UiThread
@@ -456,8 +465,7 @@ internal class FilterTextField(
         item.isFavorite = false
         filterHistory.favorites.remove(item.filter)
         filterHistory.nonFavorites.add(item.filter)
-      }
-      else {
+      } else {
         item.isFavorite = true
         filterHistory.favorites.add(item.filter)
         filterHistory.nonFavorites.remove(item.filter)
@@ -465,6 +473,8 @@ internal class FilterTextField(
       if (item.filter == text) {
         isFavorite = item.isFavorite
       }
+      ApplicationManager.getApplication().messageBus.syncPublisher(FilterStatusChanged.TOPIC)
+        .onFilterStatusChanged(item.filter, item.isFavorite)
       paintImmediately(bounds)
     }
 
@@ -755,6 +765,8 @@ internal class FilterTextField(
         isFavorite -> LogcatBundle.message("logcat.filter.untag.favorite.tooltip")
         else -> LogcatBundle.message("logcat.filter.tag.favorite.tooltip")
       }
+      ApplicationManager.getApplication().messageBus.syncPublisher(FilterStatusChanged.TOPIC)
+        .onFilterStatusChanged(textField.text, isFavorite)
       addToHistory()
     }
   }
@@ -771,6 +783,14 @@ internal class FilterTextField(
 
   interface FilterChangedListener {
     fun onFilterChanged(filter: String, matchCase: Boolean)
+  }
+
+  private fun interface FilterStatusChanged {
+    fun onFilterStatusChanged(filter: String, isFavorite: Boolean)
+
+    companion object {
+      val TOPIC = Topic(FilterStatusChanged::class.java)
+    }
   }
 }
 
