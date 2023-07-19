@@ -357,7 +357,9 @@ class LayoutInspectorManagerTest {
     assertThat(notifications1).hasSize(1)
     val firstNotification = notifications1.single()
     assertThat(firstNotification.message)
-      .isEqualTo("(Experimental) Layout Inspector is now embedded within Running Devices window")
+      .isEqualTo(
+        "(Experimental) Layout Inspector is now embedded within the Running Devices window"
+      )
     assertThat(firstNotification.actions[0].name).isEqualTo("Don't Show Again")
     assertThat(firstNotification.actions[1].name).isEqualTo("Opt-out")
 
