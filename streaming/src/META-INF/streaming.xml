@@ -156,7 +156,7 @@
       <add-to-group group-id="Internal.Android"/>
     </action>
     <action id="android.streaming.hardware.input" class="com.android.tools.idea.streaming.actions.StreamingHardwareInputAction"
-            text="Hardware Input"
+            icon="StudioIcons.Compose.Toolbar.INSPECT_PREVIEW" text="Hardware Input"
             description="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device"/>
 
     <group id="StreamingToolbarVirtualDevice">
