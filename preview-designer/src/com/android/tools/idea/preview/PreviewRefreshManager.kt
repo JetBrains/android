@@ -24,6 +24,7 @@ import java.util.concurrent.CancellationException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -132,7 +133,8 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
   init {
     scope.launch(AndroidDispatchers.workerThread) {
       requestsFlow.collect {
-        val currentJob: Job
+        val lazyWrapperJob: Job
+        var currentRefreshJob: Job? = null
         val currentRequest: PreviewRefreshRequest
         requestsLock.withLock {
           if (allPendingRequests.isEmpty()) {
@@ -141,14 +143,23 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
           }
           currentRequest = allPendingRequests.remove()
           pendingRequestsPerClient.remove(currentRequest.clientId)
-          currentJob = currentRequest.doRefresh()
+          // Don't start the refresh inside the requestsLock to avoid
+          // a potential deadlock with the UI thread.
+          lazyWrapperJob =
+            launch(start = CoroutineStart.LAZY) {
+              currentRefreshJob = currentRequest.doRefresh()
+              currentRefreshJob!!.join()
+            }
           runningRequest = currentRequest
-          runningJob = currentJob
+          runningJob = lazyWrapperJob
         }
 
         try {
           _isRefreshingFlow.value = true
-          currentJob.invokeOnCompletion {
+          lazyWrapperJob.invokeOnCompletion {
+            if (it != null) {
+              currentRefreshJob?.cancel(if (it is CancellationException) it else null)
+            }
             val result =
               when (it) {
                 null -> RefreshResult.SUCCESS
@@ -161,7 +172,8 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
               log.warn("Failed refresh request ($currentRequest)", it)
             }
           }
-          currentJob.join()
+          lazyWrapperJob.join()
+          currentRefreshJob?.join()
         } finally {
           requestsLock.withLock {
             runningRequest = null
