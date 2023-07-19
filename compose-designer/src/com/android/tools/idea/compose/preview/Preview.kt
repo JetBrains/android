@@ -320,7 +320,9 @@ class ComposePreviewRepresentation(
         surface.deactivateIssueModel()
       },
       onDelayedDeactivate = {
-        setMode(PreviewMode.Default)
+        // If currently selected mode is not Gallery, switch for Default mode.
+        // Both Gallery and Default modes are Normal modes.
+        if (mode !is PreviewMode.Gallery) setMode(PreviewMode.Default)
         log.debug("Delayed surface deactivation")
         surface.deactivate()
       }
