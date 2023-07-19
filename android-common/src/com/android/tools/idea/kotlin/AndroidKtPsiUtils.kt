@@ -123,7 +123,7 @@ fun KtAnnotationEntry.getQualifiedName(analysisSession: KtAnalysisSession? = nul
  * name first and thus has better performance.
  */
 fun KtAnalysisSession.getQualifiedName(ktAnnotationEntry: KtAnnotationEntry): String? =
-  (ktAnnotationEntry.resolveCall().singleFunctionCallOrNull() as? KtAnnotationCall)?.symbol?.containingClassIdIfNonLocal?.asFqNameString()
+  (ktAnnotationEntry.resolveCall()?.singleFunctionCallOrNull() as? KtAnnotationCall)?.symbol?.containingClassIdIfNonLocal?.asFqNameString()
 
 /**
  * Determines whether this [KtAnnotationEntry] has the specified qualified name.

@@ -148,7 +148,7 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
           super.visitCallExpression(expression)
           if (isK2Plugin()) {
             analyze(expression) {
-              val resolvedCall = expression.resolveCall().successfulFunctionCallOrNull() ?: return
+              val resolvedCall = expression.resolveCall()?.successfulFunctionCallOrNull() ?: return
               val callableSymbol = resolvedCall.partiallyAppliedSymbol.symbol
 
               // For compatibility between versions and with existence of different methods
@@ -278,7 +278,7 @@ abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
           super.visitCallExpression(expression)
           if (isK2Plugin()) {
             analyze(expression) {
-              val resolvedCall = expression.resolveCall().successfulFunctionCallOrNull() ?: return
+              val resolvedCall = expression.resolveCall()?.successfulFunctionCallOrNull() ?: return
               val callableSymbol = resolvedCall.partiallyAppliedSymbol.symbol
 
               // For compatibility between versions and with existence of different methods

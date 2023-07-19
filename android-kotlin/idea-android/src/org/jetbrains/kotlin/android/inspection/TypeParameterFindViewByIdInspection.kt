@@ -54,7 +54,7 @@ class TypeParameterFindViewByIdInspection : AbstractKotlinInspection(), CleanupL
                 val typeText = parentCast.right?.getTypeTextWithoutQuestionMark() ?: return
                 if (isK2Plugin()) {
                     analyze(expression) {
-                        val calleeSymbol = expression.resolveCall().singleFunctionCallOrNull()?.symbol as? KtFunctionSymbol ?: return
+                        val calleeSymbol = expression.resolveCall()?.singleFunctionCallOrNull()?.symbol as? KtFunctionSymbol ?: return
                         if (calleeSymbol.name.asString() != "findViewById" || calleeSymbol.typeParameters.size != 1) {
                             return
                         }
