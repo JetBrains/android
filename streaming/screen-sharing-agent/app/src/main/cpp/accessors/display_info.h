@@ -27,11 +27,16 @@ namespace screensharing {
 struct DisplayInfo {
   DisplayInfo();
   DisplayInfo(
-      int32_t logical_width, int32_t logical_height, int32_t logical_density_dpi, int32_t rotation, int32_t layer_stack, int32_t flags);
+      int32_t logical_width, int32_t logical_height, int32_t logical_density_dpi, int32_t rotation, int32_t layer_stack, int32_t flags,
+      int32_t state);
 
   // Returns the display dimensions in the canonical orientation.
   Size NaturalSize() const {
     return logical_size.Rotated(-rotation);
+  }
+
+  bool IsOn() const {
+    return state == STATE_ON || state == STATE_VR;
   }
 
   std::string ToDebugString() const;
@@ -41,8 +46,11 @@ struct DisplayInfo {
   int32_t rotation;
   int32_t layer_stack;
   int32_t flags;
+  int32_t state;
 
-  static constexpr int32_t FLAG_ROUND = 1 << 4; // From frameworks/base/core/java/android/view/Display.java
+  // From frameworks/base/core/java/android/view/Display.java
+  static constexpr int32_t FLAG_ROUND = 1 << 4;
+  enum State { STATE_UNKNOWN = 0, STATE_OFF = 1, STATE_ON = 2, STATE_DOZE = 3, STATE_DOZE_SUSPEND = 4, STATE_VR = 5, STATE_ON_SUSPEND = 6 };
 };
 
 }  // namespace screensharing

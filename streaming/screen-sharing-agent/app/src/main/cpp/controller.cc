@@ -16,6 +16,7 @@
 
 #include "controller.h"
 
+#include <android/keycodes.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -342,6 +343,10 @@ void Controller::ProcessMotionEvent(const MotionEventMessage& message) {
   if (event.action == AMOTION_EVENT_ACTION_UP) {
     // This event may have started an app. Update the app-level display orientation.
     Agent::SetVideoOrientation(DisplayStreamer::CURRENT_VIDEO_ORIENTATION);
+
+    if (!display_info.IsOn()) {
+      ProcessKeyboardEvent(KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));  // Wakeup the display.
+    }
   }
 }
 

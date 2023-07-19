@@ -73,6 +73,7 @@ private:
   static jfieldID rotation_field_;
   static jfieldID layer_stack_field_;
   static jfieldID flags_field_;
+  static jfieldID state_field_;
   // DisplayManager class.
   static JClass display_manager_class_;
   static jmethodID create_virtual_display_method_;
