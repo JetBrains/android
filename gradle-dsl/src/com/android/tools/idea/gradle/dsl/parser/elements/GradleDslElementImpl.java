@@ -872,11 +872,11 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
       Pattern pattern;
       GradleDslElement table;
       if ("plugins".equals(tableName) || "bundles".equals(tableName) || "versions".equals(tableName)) {
-        pattern = Pattern.compile(String.join("[-_.]", referenceParts.subList(2, referenceParts.size())));
+        pattern = Pattern.compile(String.join("[-_.]", referenceParts.stream().skip(2).map(Pattern::quote).toList()));
         table = versionCatalogFile.getElement(tableName);
       }
       else {
-        pattern = Pattern.compile(String.join("[-_.]", referenceParts.subList(1, referenceParts.size())));
+        pattern = Pattern.compile(String.join("[-_.]", referenceParts.stream().skip(1).map(Pattern::quote).toList()));
         table = versionCatalogFile.getElement("libraries");
       }
       if (table == null) return null;
