@@ -244,8 +244,13 @@ class TreeTableImpl(
   }
 
   override fun updateUI() {
-    super.updateUI()
-    if (initialized) {
+    if (!initialized) {
+      super.updateUI()
+    } else {
+      // BasicTreeUI will reset the selection model during updateUI. Do not fire a selection
+      // update to the client since is not the users intent to reset the selection.
+      treeTableSelectionModel.update { super.updateUI() }
+
       // The tree row height is not updated correctly after a UI update. See b/275514572
       tree.rowHeight = getRowHeight()
 

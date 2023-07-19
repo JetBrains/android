@@ -28,6 +28,7 @@ import com.android.tools.componenttree.util.fragments
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.UIUtil
@@ -75,7 +76,7 @@ class ViewTreeCellRendererTest {
 
   @Before
   fun setUp() {
-    table =
+    table = runInEdtAndGet {
       TreeTableImpl(
         model,
         contextPopup = { _, _, _, _ -> },
@@ -88,6 +89,7 @@ class ViewTreeCellRendererTest {
         expandAllOnRootChange = false,
         treeHeaderRenderer = null
       )
+    }
     tree = table!!.tree
   }
 

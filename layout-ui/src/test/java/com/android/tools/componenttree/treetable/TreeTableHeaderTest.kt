@@ -32,6 +32,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
 import java.awt.AWTEvent
@@ -182,7 +183,7 @@ class TreeTableHeaderTest {
     }
 
   private fun createTreeTable(): JScrollPane {
-    val result =
+    val result = runInEdtAndGet {
       ComponentTreeBuilder()
         .withNodeType(ItemNodeType())
         .withNodeType(StyleNodeType())
@@ -191,6 +192,7 @@ class TreeTableHeaderTest {
         .withInvokeLaterOption { it.run() }
         .withHeaderRenderer(column1.renderer)
         .build()
+    }
     val table = result.focusComponent as TreeTableImpl
     table.setUI(HeadlessTableUI())
     table.tree.setUI(HeadlessTreeUI())

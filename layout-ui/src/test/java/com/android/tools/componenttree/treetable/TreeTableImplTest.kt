@@ -347,6 +347,21 @@ class TreeTableImplTest {
   }
 
   @Test
+  fun testPreserveSelectionOnUpdateUI() {
+    val result = createTree()
+    result.tree.expandRow(0)
+    result.tree.expandRow(1)
+    UIUtil.dispatchAllInvocationEvents()
+    result.selectionModel.currentSelection = listOf(item3)
+    var selectionChanged = false
+    result.selectionModel.addSelectionListener { selection ->
+      selectionChanged = selectionChanged || selection != listOf(item3)
+    }
+    result.focusComponent.updateUI()
+    assertThat(selectionChanged).isFalse()
+  }
+
+  @Test
   fun testIntColumnWidthIncreasedAfterColumnDataChanged() {
     val table = createTreeTable()
     table.tree.expandRow(0)

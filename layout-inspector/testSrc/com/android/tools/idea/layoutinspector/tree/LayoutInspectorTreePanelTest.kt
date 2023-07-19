@@ -83,6 +83,7 @@ import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
@@ -878,7 +879,7 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testNonStructuralModelChanges() {
-    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val tree = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
     val inspector = inspectorRule.inspector
     tree.setToolContext(inspector)
     runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
@@ -938,7 +939,7 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testResetRecompositionCounts() {
-    val tree = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val tree = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
     val inspector = inspectorRule.inspector
     val model = inspector.inspectorModel
     val compose1 = model[COMPOSE1] as ComposeViewNode
@@ -980,7 +981,7 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testRecompositionCountsAreLogged() {
-    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val panel = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
     val inspector = inspectorRule.inspector
     setToolContext(panel, inspector)
 
@@ -992,7 +993,7 @@ class LayoutInspectorTreePanelTest {
 
   @Test
   fun testTextValueOfNodeType() {
-    val panel = LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable)
+    val panel = runInEdtAndGet { LayoutInspectorTreePanel(projectRule.fixture.testRootDisposable) }
     val inspector = inspectorRule.inspector
     val model = inspectorRule.inspectorModel
     setToolContext(panel, inspector)

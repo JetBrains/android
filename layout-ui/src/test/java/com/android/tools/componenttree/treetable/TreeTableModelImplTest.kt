@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.UIUtil
 import javax.swing.SwingUtilities
 import javax.swing.event.TreeModelEvent
@@ -58,7 +59,7 @@ class TreeTableModelImplTest {
       mapOf(Pair(Item::class.java, ItemNodeType()), Pair(Style::class.java, StyleNodeType())),
       SwingUtilities::invokeLater
     )
-  private val table =
+  private val table = runInEdtAndGet {
     TreeTableImpl(
       model,
       contextPopup = { _, _, _, _ -> },
@@ -71,6 +72,7 @@ class TreeTableModelImplTest {
       expandAllOnRootChange = false,
       treeHeaderRenderer = null
     )
+  }
   private val selectionModel = table.treeTableSelectionModel
 
   @Before
