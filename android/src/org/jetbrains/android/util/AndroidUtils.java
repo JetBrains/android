@@ -81,7 +81,6 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
-import com.intellij.util.concurrency.annotations.RequiresBackgroundThread;
 import com.intellij.util.graph.Graph;
 import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.xml.DomElement;
@@ -168,16 +167,16 @@ public class AndroidUtils extends CommonAndroidUtil {
     return hasAndroidFacets(project);
   }
 
+  // TODO(b/291955340): Should have @RequiresBackgroundThread
   @Nullable
-  @RequiresBackgroundThread
   public static <T extends DomElement> T loadDomElement(@NotNull Module module,
                                                         @NotNull VirtualFile file,
                                                         @NotNull Class<T> aClass) {
     return loadDomElement(module.getProject(), file, aClass);
   }
 
+  // TODO(b/291955340): Should have @RequiresBackgroundThread
   @Nullable
-  @RequiresBackgroundThread
   public static <T extends DomElement> T loadDomElement(@NotNull Project project,
                                                         @NotNull VirtualFile file,
                                                         @NotNull Class<T> aClass) {
@@ -193,9 +192,9 @@ public class AndroidUtils extends CommonAndroidUtil {
     });
   }
 
+  // TODO(b/291955340): Should have @RequiresBackgroundThread
   /** This method should be called under a read action. */
   @Nullable
-  @RequiresBackgroundThread
   public static <T extends DomElement> T loadDomElementWithReadPermission(@NotNull Project project,
                                                                           @NotNull XmlFile xmlFile,
                                                                           @NotNull Class<T> aClass) {
