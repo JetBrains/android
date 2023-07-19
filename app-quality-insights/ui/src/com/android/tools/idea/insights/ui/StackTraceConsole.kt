@@ -36,10 +36,7 @@ import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.editor.event.CaretEvent
-import com.intellij.openapi.editor.event.CaretListener
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.event.EditorMouseListener
 import com.intellij.openapi.editor.ex.EditorEx
@@ -47,8 +44,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.unscramble.AnalyzeStacktraceUtil
-import java.awt.Dimension
-import java.awt.Rectangle
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -158,25 +153,7 @@ class StackTraceConsole(
       contentComponent.isFocusCycleRoot = false
       contentComponent.isFocusable = true
       setVerticalScrollbarVisible(false)
-
-      caretModel.addCaretListener(
-        object : CaretListener {
-          override fun caretPositionChanged(event: CaretEvent) = scrollToCaret(event)
-          override fun caretAdded(event: CaretEvent) = scrollToCaret(event)
-          override fun caretRemoved(event: CaretEvent) = scrollToCaret(event)
-
-          fun scrollToCaret(event: CaretEvent) {
-            val caret =
-              event.caret
-                ?: DataManager.getInstance()
-                  .getDataContext(contentComponent)
-                  .getData(CommonDataKeys.CARET)
-                  ?: return
-            val point = consoleView.editor.logicalPositionToXY(caret.logicalPosition)
-            scrollPane.scrollRectToVisible(Rectangle(point, Dimension(20, 20)))
-          }
-        }
-      )
+      setCaretEnabled(false)
     }
 
     val listener = ListenerForTracking(consoleView, tracker, project)
