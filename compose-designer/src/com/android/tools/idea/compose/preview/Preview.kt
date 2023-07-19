@@ -1706,6 +1706,7 @@ class ComposePreviewRepresentation(
         forceRefresh().join()
       }
       is PreviewMode.Gallery -> {
+        surface.background = Colors.DEFAULT_BACKGROUND_COLOR
         singlePreviewElementInstance = mode.selected
       }
       is PreviewMode.Switching,
