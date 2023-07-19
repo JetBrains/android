@@ -67,7 +67,7 @@ import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.NonOpaquePanel;
-import com.intellij.util.ui.AsyncProcessIcon;
+import com.intellij.util.ui.AnimatedIcon;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.FlowLayout;
@@ -161,7 +161,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     FileDocumentManager.getInstance().saveAllDocuments();
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), panel -> new LoadingDecorator(panel, this, -1) {
       @Override
-      protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, AsyncProcessIcon icon) {
+      protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, AnimatedIcon icon) {
         final NonOpaquePanel panel = super.customizeLoadingLayer(parent, text, icon);
         panel.setOpaque(true);
         return panel;
