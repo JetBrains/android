@@ -24,6 +24,7 @@ import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.android.canAddParcelable
 import org.jetbrains.kotlin.android.implementParcelable
 import org.jetbrains.kotlin.android.isParcelize
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.psi.KtClass
 
 
@@ -33,6 +34,8 @@ class ParcelableQuickFix : DefaultLintQuickFix(AndroidBundle.message("implement.
     }
 
     override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean {
+        if (suppressAndroidPlugin()) return false
+
         val targetClass = startElement.getTargetClass() ?: return false
         return targetClass.canAddParcelable() && !targetClass.isParcelize()
     }

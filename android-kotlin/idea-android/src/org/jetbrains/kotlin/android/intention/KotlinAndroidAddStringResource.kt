@@ -49,6 +49,7 @@ import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.plugin.suppressAndroidPlugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
@@ -91,6 +92,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
     }
 
     override fun isApplicableTo(element: KtStringTemplateExpression, caretOffset: Int) =
+        !suppressAndroidPlugin() &&
         AndroidFacet.getInstance(element.containingFile) != null
 
     override fun applyTo(element: KtStringTemplateExpression, editor: Editor?) {
