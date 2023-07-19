@@ -186,9 +186,6 @@ object AndroidStudioUsageTracker {
         runShutdownReports()
       }
     })
-    RegistryManager.getInstance()["ide.highlighting.mode.essential"].addListener(object : RegistryValueListener {
-      override fun beforeValueChanged(value: RegistryValue) = TypingLatencyTracker.reportTypingLatency()
-    }, AndroidPluginDisposable.getApplicationInstance())
   }
 
   private fun runStartupReports() {
