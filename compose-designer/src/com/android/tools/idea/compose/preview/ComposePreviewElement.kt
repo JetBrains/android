@@ -57,8 +57,6 @@ import java.awt.Dimension
 import java.util.Objects
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.reflect.full.functions
-import kotlin.reflect.jvm.isAccessible
 import org.jetbrains.android.uipreview.forFile
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.psi.KtClass
@@ -555,17 +553,17 @@ class ParametrizedComposePreviewElementTemplate(
     previewParameter: PreviewParameter
   ): Sequence<ComposePreviewElementInstance> {
     try {
-      val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn).kotlin
+      val parameterProviderClass = classLoader.loadClass(previewParameter.providerClassFqn)
       val parameterProviderSizeMethod =
-        parameterProviderClass.functions
+        parameterProviderClass.methods
           .single { "getCount" == it.name }
           .also { it.isAccessible = true }
       val parameterProvider =
         parameterProviderClass.constructors
           .single { it.parameters.isEmpty() } // Find the default constructor
           .also { it.isAccessible = true }
-          .call()
-      val parameterProviderSize = parameterProviderSizeMethod.call(parameterProvider) as? Int ?: 0
+          .newInstance()
+      val parameterProviderSize = parameterProviderSizeMethod.invoke(parameterProvider) as? Int ?: 0
       val providerCount = min(parameterProviderSize, previewParameter.limit)
 
       if (providerCount == 0) {
