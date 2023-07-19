@@ -39,7 +39,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
-import java.awt.Component
 import java.awt.Font
 import java.io.File
 import javax.swing.BoxLayout
@@ -167,51 +166,58 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     descriptionEditorPane.readHTML(description)
 
     if (issue is VisualLintRenderIssue) {
-      val affectedFilePanel = JPanel().apply { border = JBUI.Borders.empty(4, 0) }
-      affectedFilePanel.layout = BoxLayout(affectedFilePanel, BoxLayout.Y_AXIS)
+      contentPanel.addVisualRenderIssue(issue, project)
+    }
+  }
 
-      val projectBasePath = project.basePath
-      if (projectBasePath != null) {
-        val relatedFiles =
-          issue.models
-            .filter { model -> issue.shouldHighlight(model) }
-            .map {
-              @Suppress("UnstableApiUsage") BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
-            }
-            .distinct()
-        if (relatedFiles.isNotEmpty()) {
-          affectedFilePanel.add(
-            JBLabel("Affected Files:").apply {
-              font = font.deriveFont(Font.BOLD)
-              alignmentX = Component.LEFT_ALIGNMENT
-              border = JBUI.Borders.empty(4, 0)
-            }
-          )
-        }
-        for (file in relatedFiles) {
-          val pathToDisplay =
-            FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true)
-              ?: continue
-          val link =
-            object :
-              ActionLink(
-                pathToDisplay,
-                { OpenFileDescriptor(project, file).navigateInEditor(project, true) }
-              ) {
-              override fun getToolTipText(): String? {
-                return if (size.width < minimumSize.width) {
-                  pathToDisplay
-                } else {
-                  null
-                }
+  private fun JPanel.addVisualRenderIssue(
+    issue: VisualLintRenderIssue,
+    project: Project,
+  ) {
+    val affectedFilePanel = JPanel().apply { border = JBUI.Borders.empty(4, 0) }
+    affectedFilePanel.layout = BoxLayout(affectedFilePanel, BoxLayout.Y_AXIS)
+
+    val projectBasePath = project.basePath
+    if (projectBasePath != null) {
+      val relatedFiles =
+        issue.models
+          .filter { model -> issue.shouldHighlight(model) }
+          .map {
+            @Suppress("UnstableApiUsage") BackedVirtualFile.getOriginFileIfBacked(it.virtualFile)
+          }
+          .distinct()
+      if (relatedFiles.isNotEmpty()) {
+        affectedFilePanel.add(
+          JBLabel("Affected Files:").apply {
+            font = font.deriveFont(Font.BOLD)
+            alignmentX = LEFT_ALIGNMENT
+            border = JBUI.Borders.empty(4, 0)
+          },
+        )
+      }
+      for (file in relatedFiles) {
+        val pathToDisplay =
+          FileUtilRt.getRelativePath(projectBasePath, file.path, File.separatorChar, true)
+            ?: continue
+        val link =
+          object :
+            ActionLink(
+              pathToDisplay,
+              { OpenFileDescriptor(project, file).navigateInEditor(project, true) },
+            ) {
+            override fun getToolTipText(): String? {
+              return if (size.width < minimumSize.width) {
+                pathToDisplay
+              } else {
+                null
               }
             }
-          ToolTipManager.sharedInstance().registerComponent(link)
-          affectedFilePanel.add(link)
-        }
+          }
+        ToolTipManager.sharedInstance().registerComponent(link)
+        affectedFilePanel.add(link)
       }
-      contentPanel.add(affectedFilePanel, BorderLayout.CENTER)
     }
+    add(affectedFilePanel, BorderLayout.CENTER)
   }
 }
 
