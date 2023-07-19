@@ -102,9 +102,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testAppearanceAndToolbarActions() {
-    if (!isFFmpegAvailableToTest()) {
-      return
-    }
+    assumeFFmpegAvailable()
     device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     assertThat(panel.deviceView).isNull()
 
@@ -172,9 +170,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testWearToolbarActions() {
-    if (!isFFmpegAvailableToTest()) {
-      return
-    }
+    assumeFFmpegAvailable()
     device = agentRule.connectDevice("Pixel Watch", 30, Dimension(454, 454),
                                      additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
     panel.createContent(false)
@@ -245,9 +241,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testFolding() {
-    if (!isFFmpegAvailableToTest()) {
-      return
-    }
+    assumeFFmpegAvailable()
     device = agentRule.connectDevice("Pixel Fold", 33, Dimension(2208, 1840), foldedSize = Dimension(1080, 2092))
 
     panel.createContent(false)
@@ -291,9 +285,7 @@ class DeviceToolWindowPanelTest {
 
   @Test
   fun testZoom() {
-    if (!isFFmpegAvailableToTest()) {
-      return
-    }
+    assumeFFmpegAvailable()
     device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     assertThat(panel.deviceView).isNull()
 
