@@ -67,6 +67,31 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
     }
 
   @Test
+  fun testCompletionStringProperty() = doCompletionTest("""
+      [android]
+      targetProj$caret
+      """.trimIndent(), """
+      [android]
+      targetProjectPath = $caret
+      """.trimIndent())
+
+  @Test
+  fun testCompletionNonStringProperty() = doCompletionTest("""
+      [android]
+      generatePureSpl$caret
+      """.trimIndent(), """
+      [android]
+      generatePureSplits = $caret
+      """.trimIndent())
+
+  @Test
+  fun testCompletionHeaderProperty() = doCompletionTest("""
+      [android.targetProj$caret]
+      """.trimIndent(), """
+      [android.targetProjectPath$caret]
+      """.trimIndent())
+
+  @Test
   fun testBasicCompletionSecondLevelInTable() =
     doTest("""
       [android]
@@ -119,6 +144,19 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
     }
 
     check.invoke(map)
+  }
+
+  private fun doCompletionTest(declarativeFile: String, fileAfter: String) {
+    val buildFile = myFixture.addFileToProject(
+      "build.gradle.toml", declarativeFile)
+    myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    myFixture.completeBasic()
+
+    val caretOffset = fileAfter.indexOf(caret)
+    val cleanFileAfter = fileAfter.replace(caret, "")
+
+    Truth.assertThat(buildFile.text).isEqualTo(cleanFileAfter)
+    Truth.assertThat(myFixture.editor.caretModel.offset).isEqualTo(caretOffset)
   }
 
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.completions
 
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.completions.ElementType.*
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
@@ -52,11 +53,11 @@ import org.toml.lang.psi.TomlTableHeader
 val DECLARATIVE_BUILD_FILE = psiFile().withName(StandardPatterns.string().equalTo(SdkConstants.FN_DECLARATIVE_BUILD_GRADLE))
 
 val INSIDE_TABLE_HEADER =
-  psiElement(TomlTableHeader::class.java)
+  psiElement().withSuperParent(3, TomlTableHeader::class.java)
     .withLanguage(TomlLanguage)
     .inFile(DECLARATIVE_BUILD_FILE)
 
-val INSIDE_SIMPLE_KEY = psiElement().withParent(TomlKeySegment::class.java)
+val INSIDE_SIMPLE_KEY = psiElement().withSuperParent(3, TomlKeyValue::class.java)
   .withLanguage(TomlLanguage)
   .inFile(DECLARATIVE_BUILD_FILE)
 
@@ -83,9 +84,9 @@ class NamedNode(val name: String) {
     childrenMap[key.name] = key
   }
 
-  fun getOrPut(name:String, newKey:NamedNode):NamedNode{
+  fun getOrPut(name: String, newKey: NamedNode): NamedNode {
     val key = childrenMap[name]
-    if(key == null){
+    if (key == null) {
       childrenMap[name] = newKey
       return newKey
     }
@@ -124,8 +125,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                  result.addAllElements(getSuggestions(path, existingKeys).map {
                    val element = LookupElementBuilder.create(it.name)
                      .withTypeText(it.type.str, null, true)
-                   when(it.type){
-                     ElementType.GENERIC_PROPERTY -> element.withInsertHandler(insertProperty())
+                   when (it.type) {
+                     GENERIC_PROPERTY, STRING, BOOLEAN, INTEGER -> element.withInsertHandler(insertProperty())
                      else -> element
                    }
                  })
@@ -185,7 +186,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       currentModel = blockElement.schemaConstructor.construct()
     }
     val result = mutableListOf<Suggestion>()
-    result += currentModel.blockElementDescriptions.map { Suggestion(it.key, ElementType.BLOCK)  }
+    result += currentModel.blockElementDescriptions.map { Suggestion(it.key, BLOCK) }
     result += currentModel.getPropertiesInfo(GradleDslNameConverter.Kind.TOML).entrySet
       .filterNot{ currentNode?.children?.contains(it.surfaceSyntaxDescription.name) ?: false }
       .map {
@@ -197,12 +198,12 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 
   private fun ModelPropertyDescription.transformToSuggestionType(): ElementType {
     return when (this.type) {
-      ModelPropertyType.MUTABLE_LIST, ModelPropertyType.MUTABLE_SET -> ElementType.STRING_ARRAY
-      ModelPropertyType.STRING -> ElementType.STRING
-      ModelPropertyType.BOOLEAN -> ElementType.BOOLEAN
-      ModelPropertyType.NUMERIC -> ElementType.INTEGER
+      ModelPropertyType.MUTABLE_LIST, ModelPropertyType.MUTABLE_SET -> STRING_ARRAY
+      ModelPropertyType.STRING -> STRING
+      ModelPropertyType.BOOLEAN -> BOOLEAN
+      ModelPropertyType.NUMERIC -> INTEGER
       // TODO -  need to handle map type
-      else -> ElementType.GENERIC_PROPERTY
+      else -> GENERIC_PROPERTY
     }
   }
 
@@ -233,7 +234,8 @@ class DeclarativeCompletionContributor : CompletionContributor() {
 }
 
 class EnableAutoPopupInDeclarativeBuildCompletion : CompletionConfidence() {
-  override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState =
-    if (INSIDE_SIMPLE_KEY.accepts(contextElement) ||
-        INSIDE_TABLE_HEADER.accepts(contextElement)) ThreeState.NO else ThreeState.UNSURE
+  override fun shouldSkipAutopopup(contextElement: PsiElement, psiFile: PsiFile, offset: Int): ThreeState = when {
+    INSIDE_SIMPLE_KEY.accepts(contextElement) || INSIDE_TABLE_HEADER.accepts(contextElement) -> ThreeState.NO
+    else -> ThreeState.UNSURE
+  }
 }
