@@ -450,11 +450,11 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         }
         when (event.keyCode) {
           KeyEvent.VK_DOWN -> {
-            nextMatch(ActionEvent(event.source, 0, ""))
+            nextMatch(ActionEvent(focusComponent, 0, ""))
             event.consume()
           }
           KeyEvent.VK_UP -> {
-            previousMatch(ActionEvent(event.source, 0, ""))
+            previousMatch(ActionEvent(focusComponent, 0, ""))
             event.consume()
           }
           KeyEvent.VK_ENTER -> {

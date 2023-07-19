@@ -575,6 +575,12 @@ class LayoutInspectorTreePanelTest {
     ui.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
     UIUtil.dispatchAllInvocationEvents()
     verify(callbacks).stopFiltering()
+
+    // Reset the filter and press up. This key should be forwarded to the table.
+    // Make sure the source is specified as the table or the BasicTableUI will cause a class cast
+    // exception: b/291976682.
+    tree.setFilter("")
+    ui.keyboard.pressAndRelease(KeyEvent.VK_UP)
   }
 
   @RunsInEdt
