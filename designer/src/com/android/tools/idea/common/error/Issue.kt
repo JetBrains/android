@@ -19,6 +19,7 @@ import com.android.tools.idea.common.command.NlWriteCommandActionUtil
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.HighlightSeverity
@@ -123,6 +124,9 @@ abstract class Issue {
 
   /** The priority between 1 and 10. */
   abstract val category: String
+
+  /** A short message and an action showing some tips on how to solve the issue */
+  open val messageTips: List<MessageTip> = emptyList()
 
   /** Allows the [Issue] to return an HyperlinkListener to handle embedded links */
   open val hyperlinkListener: HyperlinkListener? = createDefaultHyperLinkListener()

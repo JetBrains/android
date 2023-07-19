@@ -184,7 +184,7 @@ public class CommonUsageTrackerImpl implements CommonUsageTracker {
         .flatMap(s -> Stream.concat(s.getChildren().stream(), Stream.of(s)))
         .count());
 
-      RenderErrorModel errorModel = RenderErrorModelFactory.createErrorModel(myDesignSurfaceRef.get(), result, null);
+      RenderErrorModel errorModel = RenderErrorModelFactory.createErrorModel(myDesignSurfaceRef.get(), result);
       builder.setTotalIssueCount(errorModel.getIssues().size());
       if (!errorModel.getIssues().isEmpty()) {
         int errorCount = 0;

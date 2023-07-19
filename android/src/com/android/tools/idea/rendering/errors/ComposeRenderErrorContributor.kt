@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.rendering.errors
 
-import com.android.tools.rendering.RenderLogger
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.rendering.HtmlLinkManager
+import com.android.tools.rendering.RenderLogger
 import com.android.utils.HtmlBuilder
+import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.Project
 import java.util.concurrent.TimeoutException
@@ -56,7 +57,7 @@ object ComposeRenderErrorContributor {
     return throwable is IllegalArgumentException &&
            throwable.message == "argument type mismatch" &&
            (throwable.stackTrace.drop(5)
-             .firstOrNull()?.methodName?.startsWith("invokeComposable") ?: false)
+              .firstOrNull()?.methodName?.startsWith("invokeComposable") ?: false)
   }
 
   /**
@@ -103,9 +104,10 @@ object ComposeRenderErrorContributor {
                                 .add("ViewModels often trigger operations not supported by Compose Preview, " +
                                      "such as database access, I/O operations, or network requests. ")
                                 .addLink("You can ", "read more", " about preview limitations in our external documentation.",
-                                          // TODO(b/199834697): add correct header once the ViewModel documentation is published on DAC
+                                  // TODO(b/199834697): add correct header once the ViewModel documentation is published on DAC
                                          "https://developer.android.com/jetpack/compose/tooling")
-                                .addShowException(linkManager, project, it.throwable)
+                                .newlineIfNecessary()
+                                .addExceptionMessage(linkManager, project, it.throwable)
               )
           }
           isCompositionLocalStackTrace(it.throwable) -> {
@@ -116,7 +118,8 @@ object ComposeRenderErrorContributor {
                                 .addLink("This preview was unable to find a ", "CompositionLocal", ". ",
                                          "https://developer.android.com/jetpack/compose/compositionlocal")
                                 .add("You might need to define it so it can render correctly.")
-                                .addShowException(linkManager, project, it.throwable)
+                                .newlineIfNecessary()
+                                .addExceptionMessage(linkManager, project, it.throwable)
               )
           }
           isComposeNotFoundThrowable(it.throwable) -> {
@@ -124,27 +127,23 @@ object ComposeRenderErrorContributor {
             RenderErrorModel.Issue.builder()
               .setSeverity(HighlightSeverity.WARNING)
               .setSummary("Unable to find @Preview '" + it.throwable!!.message + "'")
-              .setHtmlContent(
-                HtmlBuilder()
-                  .add("The preview will display after rebuilding the project.")
-                  .addBuildAction(linkManager)
-              )
+              .addMessageTip(createBuildTheProjectMessage(linkManager, "The preview will display after rebuilding the project."))
           }
           isPreviewParameterMismatchThrowable(it.throwable) -> {
             RenderErrorModel.Issue.builder()
               .setSeverity(HighlightSeverity.ERROR)
               .setSummary("PreviewParameterProvider/@Preview type mismatch.")
-              .setHtmlContent(
-                HtmlBuilder()
-                  .add("The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it.")
-                  .addBuildAction(linkManager)
-              )
+              .addMessageTip(createBuildTheProjectMessage(
+                linkManager,
+                "The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it."
+              ))
           }
           isFailToLoadPreviewParameterProvider(it.throwable) -> {
             RenderErrorModel.Issue.builder()
               .setSeverity(HighlightSeverity.ERROR)
               .setSummary("Fail to load PreviewParameterProvider")
-              .setHtmlContent(
+              .addMessageTip(
+                AllIcons.General.Error,
                 HtmlBuilder()
                   .add("There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the " +
                        "values property implementation. The IDE logs should contain the full exception stack trace.")
@@ -156,11 +155,15 @@ object ComposeRenderErrorContributor {
               .setSummary("Timeout error")
               .setHtmlContent(
                 HtmlBuilder()
-                  .add("The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code.")
+                  .add(
+                    "The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code.")
                   .newline()
                   .add("If you think this issue is not caused by your code, you can report a bug in our issue tracker.")
-                  .addReportBug(linkManager, project)
               )
+              .addMessageTip(createAddReportBugMessage(
+                project,
+                linkManager, null
+              ))
           }
           else -> null
         }

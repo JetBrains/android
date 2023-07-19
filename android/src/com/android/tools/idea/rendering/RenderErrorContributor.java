@@ -33,6 +33,9 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.ide.common.rendering.api.ILayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.ILayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
+import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildAndRefreshLayoutMessage;
+import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildTheModuleMessage;
+import static com.android.tools.idea.rendering.errors.RenderErrorContributorUtilKt.createBuildTheProjectMessage;
 import static com.android.tools.rendering.RenderLogger.TAG_STILL_BUILDING;
 import static com.android.tools.idea.res.IdeResourcesUtil.isViewPackageNeeded;
 import static com.android.tools.lint.detector.api.Lint.editDistance;
@@ -62,6 +65,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -244,12 +248,10 @@ public class RenderErrorContributor {
     else if (logger.seenTagPrefix(TAG_RESOURCES_RESOLVE_THEME_ATTR)) {
       addIssue()
         .setSummary("Missing styles")
-        .setHtmlContent(new HtmlBuilder()
-                          .addBold("Missing styles. Is the correct theme chosen for this layout?")
-                          .newline()
-                          .addIcon(HtmlBuilderHelper.getTipIconPath())
-                          .add(
-                            "Use the Theme combo box above the layout to choose a different layout, or fix the theme style references.")
+        .addMessageTip(AllIcons.General.Information, new HtmlBuilder()
+          .addBold("Missing styles. Is the correct theme chosen for this layout?")
+          .newline()
+          .add("Use the Theme combo box above the layout to choose a different layout, or fix the theme style references.")
         )
         .build();
     }
@@ -444,7 +446,6 @@ public class RenderErrorContributor {
     if (newlineBefore) {
       builder.newline();
     }
-    addRefreshAction(builder);
 
     builder.addLink("Turn off custom view rendering sandbox", myLinkManager.createDisableSandboxUrl());
 
@@ -478,6 +479,7 @@ public class RenderErrorContributor {
       .setSeverity(HighlightSeverity.ERROR)
       .setSummary("Rendering sandbox error")
       .setHtmlContent(builder)
+      .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
       .build();
     return true;
   }
@@ -613,14 +615,6 @@ public class RenderErrorContributor {
     return false;
   }
 
-  private void addRefreshAction(@NotNull HtmlBuilder builder) {
-    builder
-      .newline()
-      .addIcon(HtmlBuilderHelper.getTipIconPath())
-      .addLink("Tip: ", "Build & Refresh", " the layout.",
-               myLinkManager.createRefreshRenderUrl()).newlineIfNecessary().newline();
-  }
-
   /**
    * Tries to report an "RTL not enabled" error and returns whether this was successful.
    */
@@ -703,7 +697,6 @@ public class RenderErrorContributor {
       String[] values = definition.getValues();
       if (values.length > 0) {
         HtmlBuilder builder = new HtmlBuilder();
-        addRefreshAction(builder);
         builder.add("Change ").add(currentValue).add(" to: ");
         boolean first = true;
         for (String value : values) {
@@ -717,9 +710,9 @@ public class RenderErrorContributor {
         }
 
         addIssue()
-          //TODO: Review
           .setSummary("Incorrect resource value format")
           .setHtmlContent(builder)
+          .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
           .build();
         return true;
       }
@@ -777,7 +770,6 @@ public class RenderErrorContributor {
       }
 
       HtmlBuilder builder = new HtmlBuilder();
-      addRefreshAction(builder);
 
       String html = message.getHtml();
       Throwable throwable = message.getThrowable();
@@ -815,6 +807,7 @@ public class RenderErrorContributor {
       addIssue()
         .setSeverity(ProblemSeverities.toHighlightSeverity(message.getSeverity()))
         .setSummary(summary)
+        .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
         .setHtmlContent(builder)
         .build();
     }
@@ -1047,18 +1040,6 @@ public class RenderErrorContributor {
     }
     builder.endList();
 
-    builder
-      .addIcon(HtmlBuilderHelper.getTipIconPath())
-      .addLink("Tip: Try to ", "build", " the module.",
-               myLinkManager.createBuildModuleUrl())
-      .newline()
-      .addLink("Tip: Try to ", "build", " the project.",
-               myLinkManager.createBuildProjectUrl())
-      .newline()
-      .addIcon(HtmlBuilderHelper.getTipIconPath())
-      .addLink("Tip: ", "Build & Refresh", " the layout.",
-               myLinkManager.createRefreshRenderUrl())
-      .newline();
     if (foundCustomView) {
       builder.newline()
         .add("One or more missing custom views were found in the project, but does not appear to have been compiled yet.");
@@ -1068,6 +1049,9 @@ public class RenderErrorContributor {
       .setSeverity(HighlightSeverity.ERROR)
       .setSummary("Missing classes")
       .setHtmlContent(builder)
+      .addMessageTip(createBuildTheModuleMessage(myLinkManager))
+      .addMessageTip(createBuildTheProjectMessage(myLinkManager, null))
+      .addMessageTip(createBuildAndRefreshLayoutMessage(myLinkManager))
       .build();
   }
 
@@ -1124,15 +1108,6 @@ public class RenderErrorContributor {
       return;
     }
 
-    builder.endList()
-      .addIcon(HtmlBuilderHelper.getTipIconPath())
-      .addLink("Tip: Use ", "View.isInEditMode()", " in your custom views to skip code or show sample data when shown in the IDE.",
-               "http://developer.android.com/reference/android/view/View.html#isInEditMode()")
-      .newline().newline()
-      .add("If this is an unexpected error you can also try to ")
-      .addLink("", "build the project", ", then ", myLinkManager.createBuildProjectUrl())
-      .addLink("manually ", "refresh the layout", ".", myLinkManager.createRefreshRenderUrl());
-
     if (firstThrowable != null) {
       builder.newline().newline()
         .addHeading("Exception Details", HtmlBuilderHelper.getHeaderFontColor()).newline();
@@ -1145,6 +1120,18 @@ public class RenderErrorContributor {
       .setSeverity(HighlightSeverity.ERROR, HIGH_PRIORITY)
       .setSummary("Failed to instantiate one or more classes")
       .setHtmlContent(builder)
+      .addMessageTip(
+        AllIcons.General.Information,
+        new HtmlBuilder()
+          .addLink("Tip: Use ",
+                   "View.isInEditMode()",
+                   " in your custom views to skip code or show sample data when shown in the IDE.",
+                   "http://developer.android.com/reference/android/view/View.html#isInEditMode()")
+          .newline()
+          .add("If this is an unexpected error you can also try to ")
+          .addLink("", "build the project", ", then ", myLinkManager.createBuildProjectUrl())
+          .addLink("manually ", "refresh the layout", ".", myLinkManager.createRefreshRenderUrl())
+      )
       .build();
   }
 
@@ -1165,8 +1152,7 @@ public class RenderErrorContributor {
 
     HtmlBuilder builder = new HtmlBuilder();
     builder.add("A ").addHtml("<code>").add(fragmentTagDisplayName).addHtml("</code>")
-      .add(" tag allows a layout file to dynamically include " +
-           "different layouts at runtime. ")
+      .add(" tag allows a layout file to dynamically include different layouts at runtime. ")
       .add("At layout editing time the specific layout to be used is not known. You can choose which layout you would " +
            "like previewed while editing the layout.");
     builder.beginList();
@@ -1239,7 +1225,6 @@ public class RenderErrorContributor {
     }
     builder.endList()
       .newline()
-      // TODO: URLs
       .addLink("Do not warn about " + fragmentTagDisplayName + " tags in this session", myLinkManager.createIgnoreFragmentsUrl())
       .newline();
 

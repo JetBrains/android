@@ -23,6 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.errors.ui.MessageTip;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.layoutlib.AndroidTargets;
@@ -30,7 +31,9 @@ import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.RenderResult;
 import com.android.tools.rendering.security.RenderSecurityException;
+import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.icons.AllIcons;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbServiceImpl;
@@ -43,7 +46,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,25 +64,9 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   protected void tearDown() throws Exception {
     try {
       RenderTestUtil.afterRenderTestCase();
-    } finally {
-      super.tearDown();
     }
-  }
-
-  // Image paths will include full resource urls which depends on the test environment
-  public static String stripImages(@NotNull String html) {
-    while (true) {
-      int index = html.indexOf("<img");
-      if (index == -1) {
-        return html;
-      }
-      int end = html.indexOf('>', index);
-      if (end == -1) {
-        return html;
-      }
-      else {
-        html = html.substring(0, index) + html.substring(end + 1);
-      }
+    finally {
+      super.tearDown();
     }
   }
 
@@ -115,7 +101,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
   /**
    * Obtains the render issues for the given layout
-   * @param file the layout file
+   *
+   * @param file         the layout file
    * @param logOperation optional {@link LogOperation} to intercept rendering errors
    */
   @NotNull
@@ -125,9 +112,10 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
   /**
    * Obtains the render issues for the given layout
-   * @param file the layout file
+   *
+   * @param file         the layout file
    * @param logOperation optional {@link LogOperation} to intercept rendering errors
-   * @param useDumbMode when true, the render error model will be generated in dumb mode
+   * @param useDumbMode  when true, the render error model will be generated using the IntelliJ [DumbService]
    */
   @NotNull
   private List<RenderErrorModel.Issue> getRenderOutput(
@@ -161,7 +149,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       try {
         // The error model must be created on a background thread.
         Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
-          () -> RenderErrorModelFactory.createErrorModel(null, render, null));
+          () -> RenderErrorModelFactory.createErrorModel(null, render));
 
         Futures.getUnchecked(errorModel).getIssues().stream().sorted().forEachOrdered(issues::add);
       }
@@ -182,11 +170,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "The following classes could not be found:<DL>" +
       "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
-      ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
-      "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
-      "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout." +
-      "<BR/>", issues.get(0));
+      ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)</DL>", issues.get(0));
     assertHtmlEquals(
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
       "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>" +
@@ -195,6 +179,14 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"\">Set to wrap_content</A>, <A HREF=\"\">Set to match_parent</A><BR/>" +
       "<BR/>" +
       "Or: <A HREF=\"\">Automatically add all missing attributes</A><BR/><BR/><BR/>", issues.get(1));
+    assertBottomPanelEquals(
+      List.of(
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+      ),
+      issues.get(0)
+    );
   }
 
   public void testDataBindingAttributes() {
@@ -204,11 +196,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "The following classes could not be found:<DL>" +
       "<DD>-&NBSP;LinerLayout (<A HREF=\"replaceTags:LinerLayout/LinearLayout\">Change to LinearLayout</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
-      ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
-      "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
-      "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout." +
-      "<BR/>", issues.get(0));
+      ", <A HREF=\"showTag:LinerLayout\">Edit XML</A>)</DL>", issues.get(0));
     assertHtmlEquals(
       "<B>NOTE: One or more layouts are missing the layout_width or layout_height attributes. These are required in most layouts.</B><BR/>" +
       "&lt;LinearLayout> does not set the required layout_width attribute: <BR/>" +
@@ -217,6 +205,14 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "&nbsp;&nbsp;&nbsp;&nbsp;<A HREF=\"\">Set to wrap_content</A>, <A HREF=\"\">Set to match_parent</A><BR/>" +
       "<BR/>" +
       "Or: <A HREF=\"\">Automatically add all missing attributes</A><BR/><BR/><BR/>", issues.get(1));
+    assertBottomPanelEquals(
+      List.of(
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+      ),
+      issues.get(0)
+    );
   }
 
   public void testTypo() {
@@ -227,11 +223,16 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       "The following classes could not be found:<DL>" +
       "<DD>-&NBSP;Bitton (<A HREF=\"replaceTags:Bitton/Button\">Change to Button</A>" +
       ", <A HREF=\"action:classpath\">Fix Build Path</A>" +
-      ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
-      "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
-      "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>",
-      issues.get(0));
+      ", <A HREF=\"showTag:Bitton\">Edit XML</A>)</DL>", issues.get(0));
+
+    assertBottomPanelEquals(
+      List.of(
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+      ),
+      issues.get(0)
+    );
   }
 
   public void testBrokenCustomView() {
@@ -301,7 +302,6 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     boolean havePlatformSources = AndroidSdks.getInstance().findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
-        "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>" +
         "java.lang.ArithmeticException: / by zero<BR/>" +
         "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
         "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
@@ -311,10 +311,15 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
         "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
+      assertBottomPanelEquals(
+        List.of(
+          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+        ),
+        issues.get(0)
+      );
     }
     else {
       assertHtmlEquals(
-        "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>" +
         "java.lang.ArithmeticException: / by zero<BR/>" +
         "&nbsp;&nbsp;at com.example.myapplication574.MyCustomView.&lt;init>(<A HREF=\"open:com.example.myapplication574.MyCustomView#<init>;MyCustomView.java:13\">MyCustomView.java:13</A>)<BR/>" +
         "&nbsp;&nbsp;at java.lang.reflect.Constructor.newInstance(Constructor.java:513)<BR/>" +
@@ -324,6 +329,12 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:492)<BR/>" +
         "&nbsp;&nbsp;at android.view.LayoutInflater.inflate(LayoutInflater.java:373)<BR/>" +
         "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
+      assertBottomPanelEquals(
+        List.of(
+          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+        ),
+        issues.get(0)
+      );
     }
   }
 
@@ -404,13 +415,19 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(1, issues);
     assertHtmlEquals(
-      "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>" +
       "Resource error: Attempted to load a bitmap as a color state list.<BR/>" +
       "Verify that your style/theme attributes are correct, and make sure layouts are using the right attributes.<BR/>" +
       "<BR/>" +
       "The relevant image is " + path + "<BR/>" +
       "<BR/>" +
       "Widgets possibly involved: Button, TextView<BR/>", issues.get(0));
+
+    assertBottomPanelEquals(
+      List.of(
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+      ),
+      issues.get(0)
+    );
   }
 
   public void testSecurity() throws Exception {
@@ -487,7 +504,6 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     boolean havePlatformSources = AndroidSdks.getInstance().findPlatformSources(target.get()) != null;
     if (havePlatformSources) {
       assertHtmlEquals(
-        "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>" +
         "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
         "<BR/>" +
         "Read access not allowed during rendering (/)<BR/>" +
@@ -512,10 +528,15 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(<A HREF=\"file://$SDK_HOME/sources/android-XX/android/view/View.java:14436\">View.java:14436</A>)<BR/>" +
         "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
+      assertBottomPanelEquals(
+        List.of(
+          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+        ),
+        issues.get(0)
+      );
     }
     else {
       assertHtmlEquals(
-        "<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>" +
         "<A HREF=\"disableSandbox:\">Turn off custom view rendering sandbox</A><BR/>" +
         "<BR/>" +
         "Read access not allowed during rendering (/)<BR/>" +
@@ -540,6 +561,12 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         "&nbsp;&nbsp;at android.view.ViewGroup.dispatchDraw(ViewGroup.java:2940)<BR/>" +
         "&nbsp;&nbsp;at android.view.View.draw(View.java:14436)<BR/>" +
         "<A HREF=\"\">Copy stack to clipboard</A>", issues.get(0));
+      assertBottomPanelEquals(
+        List.of(
+          new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+        ),
+        issues.get(0)
+      );
     }
   }
 
@@ -559,10 +586,15 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     issues = getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
     assertSize(2, issues);
     // The ERROR should go first in the list (higher priority)
-    assertHtmlEquals("<BR/>Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/><BR/>An error<BR/>", issues.get(0));
     assertHtmlEquals("The graphics preview in the layout editor may not be accurate:<BR/>" +
                      "<DL><DD>-&NBSP;Fidelity issue <A HREF=\"\">(Ignore for this session)</A>" +
                      "<BR/></DL><A HREF=\"\">Ignore all fidelity warnings for this session</A><BR/>", issues.get(1));
+    assertBottomPanelEquals(
+      List.of(
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+      ),
+      issues.get(0)
+    );
   }
 
   //
@@ -610,18 +642,22 @@ public class RenderErrorContributorTest extends AndroidTestCase {
                      "P;com.example.myapplication.MyButton (<A HREF=\"openClass:com." +
                      "example.myapplication.MyButton\">Open Class</A>, <A HREF=\"" +
                      "\">Show Exception</A>, <A HREF=\"clearCacheAndNotify\">Clear Cac" +
-                     "he</A>)</DL>Tip: Use <A HREF=\"http://developer.android.com/re" +
-                     "ference/android/view/View.html#isInEditMode()\">View.isInEditM" +
-                     "ode()</A> in your custom views to skip code or show sample da" +
-                     "ta when shown in the IDE.<BR/><BR/>If this is an unexpected e" +
-                     "rror you can also try to <A HREF=\"action:build\">build the pro" +
-                     "ject</A>, then manually <A HREF=\"refreshRender\">refresh the l" +
-                     "ayout</A>.<BR/><BR/><font style=\"font-weight:bold; color:#005" +
+                     "he</A>)<BR/><BR/><font style=\"font-weight:bold; color:#005" +
                      "555;\">Exception Details</font><BR/>java.lang.ArithmeticExcept" +
                      "ion: / by zero<BR/>&nbsp;&nbsp;at com.example.myapplication.M" +
                      "yButton.&lt;init>(<A HREF=\"open:com.example.myapplication.MyB" +
                      "utton#<init>;MyButton.java:14\">MyButton.java:14</A>)<BR/><A H" +
-                     "REF=\"\">Copy stack to clipboard</A><BR/><BR/>", issues.get(0));
+                     "REF=\"\">Copy stack to clipboard</A><BR/><BR/>",
+                     issues.get(0)
+    );
+    assertBottomPanelEquals(
+      List.of(
+        new MessageTip(
+          AllIcons.General.Information,
+          "Tip: Use <A HREF=\"http://developer.android.com/reference/android/view/View.html#isInEditMode()\">View.isInEditMode()</A> in your custom views to skip code or show sample data when shown in the IDE.<BR/>If this is an unexpected error you can also try to <A HREF=\"action:build\">build the project</A>, then manually <A HREF=\"refreshRender\">refresh the layout</A>.")
+      ),
+      issues.get(0)
+    );
   }
 
   public void testAppCompatException() {
@@ -669,7 +705,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
 
   /**
    * Regression test for b/149357583
-   *
+   * <p>
    * The {@link RenderErrorContributor} should not throw an {@link com.intellij.openapi.project.IndexNotReadyException} when executed in dumb mode.
    */
   public void testDumbModeRenderErrorContributor() {
@@ -679,28 +715,33 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     assertHtmlEquals(
       "The following classes could not be found:<DL>" +
       "<DD>-&NBSP;Bitton (<A HREF=\"action:classpath\">Fix Build Path</A>" +
-      ", <A HREF=\"showTag:Bitton\">Edit XML</A>)" +
-      "</DL>Tip: Try to <A HREF=\"action:buildModule\">build</A> the module.<BR/>" +
-      "Tip: Try to <A HREF=\"action:build\">build</A> the project.<BR/>" +
-      "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.<BR/>",
+      ", <A HREF=\"showTag:Bitton\">Edit XML</A>)</DL>",
       issues.get(0));
+    assertBottomPanelEquals(
+      List.of(
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:buildModule\">Build</A> the module."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"action:build\">Build</A> the project."),
+        new MessageTip(AllIcons.General.Information, "Tip: <A HREF=\"refreshRender\">Build &amp; Refresh</A> the layout.")
+      ),
+      issues.get(0)
+    );
   }
 
   /**
    * Duplicate errors are ignored.
    */
   public void testNoDuplicateIssues() {
-      LogOperation operation = (logger, render) -> {
-        // MANUALLY register errors
-        logger.addMessage(RenderProblem.createPlain(ERROR, "Error 1"));
-        logger.addMessage(RenderProblem.createPlain(WARNING, "Warning 1"));
-        logger.addMessage(RenderProblem.createPlain(WARNING, "Warning 1"));
-        logger.addMessage(RenderProblem.createPlain(ERROR, "Error 1"));
-      };
+    LogOperation operation = (logger, render) -> {
+      // MANUALLY register errors
+      logger.addMessage(RenderProblem.createPlain(ERROR, "Error 1"));
+      logger.addMessage(RenderProblem.createPlain(WARNING, "Warning 1"));
+      logger.addMessage(RenderProblem.createPlain(WARNING, "Warning 1"));
+      logger.addMessage(RenderProblem.createPlain(ERROR, "Error 1"));
+    };
 
-      List<RenderErrorModel.Issue> issues =
-        getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
-      assertSize(2, issues);
+    List<RenderErrorModel.Issue> issues =
+      getRenderOutput(myFixture.copyFileToProject(BASE_PATH + "layout2.xml", "res/layout/layout.xml"), operation);
+    assertSize(2, issues);
   }
 
   /**
@@ -741,7 +782,6 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   private void assertHtmlEquals(String expected, RenderErrorModel.Issue issue) {
     String actual = issue.getHtmlContent();
     actual = stripSdkHome(actual);
-    actual = stripImages(actual);
     actual = stripSdkVersion(actual);
 
     if (!expected.equals(actual)) {
@@ -756,6 +796,18 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     actual = injectNewlines(actual, newlineModulo);
 
     assertEquals(expected, actual);
+  }
+
+  private void assertBottomPanelEquals(List<MessageTip> expectedMessageTips, RenderErrorModel.Issue issue) {
+    List<MessageTip> actualMessageTips = issue.getMessageTip();
+
+    assertEquals(expectedMessageTips.size(), actualMessageTips.size());
+    for (int i = 0; i < actualMessageTips.size(); i++) {
+      MessageTip actual = actualMessageTips.get(i);
+      MessageTip expected = expectedMessageTips.get(i);
+      assertEquals(expected.getIcon(), actual.getIcon());
+      assertEquals(expected.getHtmlText(), actual.getHtmlText());
+    }
   }
 
   private interface LogOperation {

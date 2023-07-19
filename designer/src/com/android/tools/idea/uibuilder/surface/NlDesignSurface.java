@@ -752,7 +752,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
             renderIssueProviders = results.entrySet().stream()
               .map(entry -> {
                 RenderErrorModel errorModel = RenderErrorModelFactory
-                  .createErrorModel(NlDesignSurface.this, entry.getValue(), null);
+                  .createErrorModel(NlDesignSurface.this, entry.getValue());
                 return new RenderIssueProvider(entry.getKey().getModel(), errorModel);
               })
               .collect(toImmutableList());

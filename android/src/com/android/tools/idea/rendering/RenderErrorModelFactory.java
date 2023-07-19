@@ -36,7 +36,7 @@ public class RenderErrorModelFactory {
    * Returns a new {@RenderErrorModel} with the {@link RenderErrorModel.Issue}s found in the passed {@link RenderResult}.
    */
   @NotNull
-  public static RenderErrorModel createErrorModel(@Nullable EditorDesignSurface surface, @NotNull RenderResult result, @Nullable DataContext dataContext) {
+  public static RenderErrorModel createErrorModel(@Nullable EditorDesignSurface surface, @NotNull RenderResult result) {
     List<RenderErrorModel.Issue> issues = new ArrayList<>();
     for (RenderErrorContributor.Provider provider : RenderErrorContributor.Provider.EP_NAME.getExtensions()) {
       if (provider.isApplicable(result.getProject())) {

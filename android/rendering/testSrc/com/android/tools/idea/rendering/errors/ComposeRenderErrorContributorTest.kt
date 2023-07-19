@@ -18,17 +18,20 @@ package com.android.tools.idea.rendering.errors
 import com.android.ide.common.rendering.api.ILayoutLog
 import com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc
 import com.android.tools.idea.rendering.StudioHtmlLinkManager
-import com.android.tools.idea.rendering.RenderErrorContributorTest.stripImages
-import com.android.tools.rendering.RenderLogger
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor.isHandledByComposeContributor
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor.reportComposeErrors
+import com.android.tools.idea.rendering.errors.ui.MessageTip
+import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.rendering.RenderLogger
+import com.intellij.icons.AllIcons
 import com.intellij.lang.annotation.HighlightSeverity
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.event.HyperlinkListener
+import kotlin.test.assertNotNull
 
 class ComposeRenderErrorContributorTest {
   @get:Rule
@@ -118,8 +121,12 @@ class ComposeRenderErrorContributorTest {
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.WARNING, issues[0].severity)
     assertEquals("Unable to find @Preview 'Not provided'", issues[0].summary)
-    assertEquals("The preview will display after rebuilding the project.<BR/><BR/>" +
-                 "<A HREF=\"action:build\">Build</A> the project.<BR/>", stripImages(issues[0].htmlContent))
+
+    assertBottomPanelEquals(
+      issues[0],
+      MessageTip(AllIcons.General.Information, "The preview will display after rebuilding the project.<BR/>" +
+                                               "Tip: <A HREF=\"action:build\">Build</A> the project.")
+    )
   }
 
   @Test
@@ -172,7 +179,7 @@ class ComposeRenderErrorContributorTest {
                  "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
                  "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling\">read more</A> about preview" +
                  " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
-                 stripImages(issues[0].htmlContent))
+                 issues[0].htmlContent)
   }
 
   @Test
@@ -225,7 +232,7 @@ class ComposeRenderErrorContributorTest {
                  "ViewModels often trigger operations not supported by Compose Preview, such as database access, I/O operations, or " +
                  "network requests. You can <A HREF=\"https://developer.android.com/jetpack/compose/tooling\">read more</A> about preview" +
                  " limitations in our external documentation.<BR/><A HREF=\"runnable:0\">Show Exception</A>",
-                 stripImages(issues[0].htmlContent))
+                 issues[0].htmlContent)
   }
 
   @Test
@@ -283,9 +290,11 @@ class ComposeRenderErrorContributorTest {
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.ERROR, issues[0].severity)
     assertEquals("PreviewParameterProvider/@Preview type mismatch.", issues[0].summary)
-    assertEquals("The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it." +
-                 "<BR/><BR/><A HREF=\"action:build\">Build</A> the project.<BR/>",
-                 stripImages(issues[0].htmlContent))
+
+    assertBottomPanelEquals(
+      issues[0],
+      MessageTip(AllIcons.General.Information, "The type of the PreviewParameterProvider must match the @Preview input parameter type annotated with it.<BR/>Tip: <A HREF=\"action:build\">Build</A> the project."),
+    )
   }
 
   @Test
@@ -325,10 +334,11 @@ class ComposeRenderErrorContributorTest {
     assertEquals(1, issues.size)
     assertEquals(HighlightSeverity.ERROR, issues[0].severity)
     assertEquals("Fail to load PreviewParameterProvider", issues[0].summary)
-    assertEquals(
-      "There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the values property " +
-      "implementation. The IDE logs should contain the full exception stack trace.",
-      stripImages(issues[0].htmlContent)
+
+    assertBottomPanelEquals(
+      issues[0],
+      MessageTip(AllIcons.General.Error, "There was problem to load the PreviewParameterProvider defined. Please double-check its constructor and the values property " +
+                                               "implementation. The IDE logs should contain the full exception stack trace."),
     )
   }
 
@@ -349,9 +359,26 @@ class ComposeRenderErrorContributorTest {
     assertEquals("Timeout error", issues[0].summary)
     assertEquals(
       "The preview took too long to load. The issue can be caused by long operations or infinite loops on the Preview code." +
-      "<BR/>If you think this issue is not caused by your code, you can report a bug in our issue tracker." +
-      "<BR/><BR/><A HREF=\"runnable:0\">Report Bug</A>",
-      stripImages(issues[0].htmlContent)
+      "<BR/>If you think this issue is not caused by your code, you can report a bug in our issue tracker.",
+      issues[0].htmlContent
     )
+
+    assertBottomPanelEquals(
+      issues[0],
+      MessageTip(AllIcons.General.Information, "<A HREF=\"runnable:0\">Report Bug</A>.")
+    )
+  }
+
+  private fun assertBottomPanelEquals(issue: RenderErrorModel.Issue, vararg expectedMessageTips: MessageTip) {
+    val actualMessageTips = issue.messageTip
+    assertNotNull(actualMessageTips)
+    assert(actualMessageTips.isNotEmpty())
+    assertEquals(expectedMessageTips.size, actualMessageTips.size)
+    for (i in actualMessageTips.indices) {
+      val (actualIcon, actualHtmlText) = actualMessageTips[i]
+      val (expectedIcon, expectedHtmlText) = expectedMessageTips[i]
+      assertEquals(expectedIcon, actualIcon)
+      assertEquals(expectedHtmlText, actualHtmlText)
+    }
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.tools.idea.rendering.errors.ui.MessageTip
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.utils.HtmlBuilder
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
@@ -35,16 +36,20 @@ import com.intellij.profile.codeInspection.ui.readHTML
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.components.panels.HorizontalLayout
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Font
 import java.io.File
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
+import javax.swing.SwingConstants
 import javax.swing.ToolTipManager
+import javax.swing.event.HyperlinkListener
 import org.jetbrains.annotations.TestOnly
 
 /** The side panel to show the detail of issue and its source code if available */
@@ -142,6 +147,10 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
       }
     add(title, BorderLayout.NORTH)
 
+    issue.messageTips
+      .takeIf { it.isNotEmpty() }
+      ?.let { add(createBottomPanel(it, issue.hyperlinkListener), BorderLayout.SOUTH) }
+
     val contentPanel = JPanel()
     contentPanel.layout = BorderLayout()
     val scrollPane =
@@ -158,17 +167,42 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     descriptionEditorPane.alignmentX = LEFT_ALIGNMENT
     contentPanel.add(descriptionEditorPane, BorderLayout.NORTH)
 
-    val description =
-      updateImageSize(
-        HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html,
-        UIUtil.getFontSize(UIUtil.FontSize.NORMAL).toInt()
-      )
+    val description = HtmlBuilder().openHtmlBody().addHtml(issue.description).closeHtmlBody().html
     descriptionEditorPane.readHTML(description)
 
     if (issue is VisualLintRenderIssue) {
       contentPanel.addVisualRenderIssue(issue, project)
     }
   }
+
+  private fun createBottomPanel(issues: List<MessageTip>?, hyperlinkListener: HyperlinkListener?) =
+    JBPanel<JBPanel<*>>(VerticalLayout(1)).apply {
+      border = JBUI.Borders.empty(3, 2)
+      issues?.forEach { messageType -> add(createMessageTip(messageType, hyperlinkListener)) }
+    }
+
+  private fun createMessageTip(messageType: MessageTip, hyperlinkListener: HyperlinkListener?) =
+    JBPanel<JBPanel<*>>(HorizontalLayout(1)).apply {
+      add(
+        JBLabel(messageType.icon).apply {
+          verticalAlignment = SwingConstants.TOP
+          border = JBUI.Borders.empty(3)
+        }
+      )
+
+      add(
+        object : JBLabel(messageType.htmlText) {
+          init {
+            isAllowAutoWrapping = true
+            setCopyable(true)
+          }
+
+          override fun createHyperlinkListener(): HyperlinkListener {
+            return hyperlinkListener.takeIf { it != null } ?: super.createHyperlinkListener()
+          }
+        },
+      )
+    }
 
   private fun JPanel.addVisualRenderIssue(
     issue: VisualLintRenderIssue,
@@ -219,8 +253,4 @@ private class DesignerCommonIssueDetailPanel(project: Project, issue: Issue) : J
     }
     add(affectedFilePanel, BorderLayout.CENTER)
   }
-}
-
-private fun updateImageSize(html: String, size: Int): String {
-  return html.replace("(<img .+ width=)[0-9]+( height=)[0-9]+".toRegex(), "$1$size$2$size")
 }
