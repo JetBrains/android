@@ -97,7 +97,7 @@ class TreeTableImplTest {
   private val style2 = Style("style2")
   private val item1 = Item(SdkConstants.FQCN_LINEAR_LAYOUT)
   private val item2 = Item(SdkConstants.FQCN_TEXT_VIEW)
-  private val item3 = Item(SdkConstants.FQCN_BUTTON)
+  private val item3 = Item(SdkConstants.FQCN_BUTTON, "buttonId")
   private val item4 = Item(SdkConstants.FQCN_CHECK_BOX)
   private val contextPopup =
     object : ContextPopupHandler {
@@ -542,6 +542,24 @@ class TreeTableImplTest {
     assertThat(tooltipTextAt(table, 1, 1)).isNull()
     assertThat(tooltipTextAt(table, 1, 2)).isEqualTo("Column2 tooltip: TextView")
     assertThat(tooltipTextAt(table, 1, 3)).isEqualTo("Badge tooltip: android.widget.TextView")
+  }
+
+  @Test
+  fun testTableTooltip() {
+    val table = createTreeTable()
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    // Simulate paint where all cell renders are computed.
+    // This will cause TreeTableCellRenderer to set the tooltip on the table for the last item
+    // painted.
+    for (i in 0 until table.rowCount) {
+      table
+        .getCellRenderer(i, 0)
+        .getTableCellRendererComponent(table, table.getValueAt(i, 0), false, false, i, 0)
+    }
+    // There should be no tooltip on the table itself after a paint.
+    /// That would cause weird tooltip popups: b/287929757
+    assertThat(table.toolTipText).isNull()
   }
 
   private fun tooltipTextAt(table: TreeTableImpl, row: Int, column: Int): String? {
