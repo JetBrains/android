@@ -22,7 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
-import com.intellij.codeInsight.navigation.NavigationUtil
+import com.intellij.codeInsight.navigation.getRelatedItemsPopup
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
@@ -129,7 +129,7 @@ class DaggerRelatedItemLineMarkerProviderV1 :
           if (gotoTargets.size == 1) {
             gotoTargets.first().navigate()
           } else {
-            NavigationUtil.getRelatedItemsPopup(gotoTargets, "Go to Related Files")
+            getRelatedItemsPopup(gotoTargets, "Go to Related Files")
               .show(RelativePoint(mouseEvent))
           }
         },

@@ -26,7 +26,7 @@ import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
-import com.intellij.codeInsight.navigation.NavigationUtil
+import com.intellij.codeInsight.navigation.getRelatedItemsPopup
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
@@ -187,7 +187,7 @@ class DaggerRelatedItemLineMarkerProviderV2 :
       if (gotoItems.size == 1) {
         gotoItems.first().navigate()
       } else {
-        NavigationUtil.getRelatedItemsPopup(
+        getRelatedItemsPopup(
             gotoItems,
             DaggerBundle.message("dagger.related.items.popup.title")
           )

@@ -43,7 +43,8 @@ import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableConfigurations
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
 import com.android.utils.usLocaleCapitalize
-import com.intellij.codeInsight.navigation.NavigationUtil
+import com.intellij.codeInsight.navigation.getRelatedItemsPopup
+import com.intellij.codeInsight.navigation.openFileWithPsiElement
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.runReadAction
@@ -275,7 +276,7 @@ class ResourceExplorerListViewModelImpl(
 
   override val doSelectAssetAction: (asset: Asset) -> Unit = selectAssetAction ?: { asset ->
     val psiElement = dataManager.findPsiElement(asset.resourceItem)
-    psiElement?.let { NavigationUtil.openFileWithPsiElement(it, true, true) }
+    psiElement?.let { openFileWithPsiElement(it, true, true) }
   }
 
   override val updateSelectedAssetSet: (assetSet: ResourceAssetSet) -> Unit = {

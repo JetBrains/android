@@ -26,7 +26,7 @@ import com.android.tools.idea.util.androidFacet
 import com.android.utils.SdkUtils
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
-import com.intellij.codeInsight.navigation.NavigationUtil
+import com.intellij.codeInsight.navigation.getRelatedItemsPopup
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.java.JavaLanguage
@@ -117,7 +117,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
           gotoList.first().navigate()
         }
         else {
-          NavigationUtil.getRelatedItemsPopup(gotoList, "Go to Related Files").show(RelativePoint(mouseEvent))
+          getRelatedItemsPopup(gotoList, "Go to Related Files").show(RelativePoint(mouseEvent))
         }
       },
       GutterIconRenderer.Alignment.RIGHT,
