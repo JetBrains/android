@@ -517,7 +517,7 @@ public final class AndroidStudioSystemHealthMonitor {
 
     application.getMessageBus().connect(application).subscribe(IdePerformanceListener.TOPIC, new IdePerformanceListener() {
       @Override
-      public void uiFreezeFinished(long durationMs, @Nullable File reportDir) {
+      public void uiFreezeFinished(long durationMs, @Nullable Path reportDir) {
         // track how long the IDE was frozen
         UsageTracker.log(AndroidStudioEvent.newBuilder()
             .setKind(EventKind.STUDIO_PERFORMANCE_STATS)
@@ -526,11 +526,11 @@ public final class AndroidStudioSystemHealthMonitor {
       }
 
       @Override
-      public void dumpedThreads(@NotNull File toFile, @NotNull ThreadDump dump) {
+      public void dumpedThreads(@NotNull Path toFile, @NotNull ThreadDump dump) {
         // We don't want to add additional overhead when the IDE is already slow, so we just note down the file to which the threads
         // were dumped.
         try {
-          myReportsDatabase.appendReport(new PerformanceThreadDumpReport(toFile.toPath(), "UIFreeze"));
+          myReportsDatabase.appendReport(new PerformanceThreadDumpReport(toFile, "UIFreeze"));
         }
         catch (IOException ignored) { // don't worry about errors during analytics events
         }

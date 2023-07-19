@@ -27,7 +27,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.registry.Registry
 import jdk.jfr.consumer.RecordedEvent
-import java.io.File
+import java.nio.file.Path
 
 object JfrFreezeReports {
   private const val CALL_TREES_FIELD = "callTrees"
@@ -39,13 +39,13 @@ object JfrFreezeReports {
   fun createFreezeReportManager(parentDisposable: Disposable) =
     JfrReportManager.create(::JfrFreezeReportGenerator, null) {
       val listener = object : IdePerformanceListener {
-        override fun uiFreezeStarted(reportDir: File) {
+        override fun uiFreezeStarted(reportDir: Path) {
           startCapture()
           currentReportGenerator!!.edtStackForCrash =
             ThreadDumper.getEdtStackForCrash(ThreadDumper.dumpThreadsToString(), EXCEPTION_TYPE) ?: EMPTY_ANR_STACKTRACE
         }
 
-        override fun uiFreezeFinished(durationMs: Long, reportDir: File?) {
+        override fun uiFreezeFinished(durationMs: Long, reportDir: Path?) {
           stopCapture()
         }
       }

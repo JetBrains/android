@@ -60,15 +60,15 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   }
 
   @Override
-  public void dumpedThreads(@NotNull File toFile, @NotNull ThreadDump dump) {
+  public void dumpedThreads(@NotNull Path toFile, @NotNull ThreadDump dump) {
     ReportContext currentContext = myContext;
     if (currentContext != null && currentContext.myThreadDumpPath == null) {
-      currentContext.myThreadDumpPath = toFile.toPath().getParent();
+      currentContext.myThreadDumpPath = toFile.getParent();
     }
   }
 
   @Override
-  public void uiFreezeStarted(@NotNull File reportDir) {
+  public void uiFreezeStarted(@NotNull Path reportDir) {
     LOG.info("uiFreezeStarted");
     if (myBuilder != null) {
       return;
@@ -94,7 +94,7 @@ class DiagnosticReportIdePerformanceListener implements IdePerformanceListener {
   }
 
   @Override
-  public void uiFreezeFinished(long durationMs, @Nullable File reportDir) {
+  public void uiFreezeFinished(long durationMs, @Nullable Path reportDir) {
     int lengthInSeconds = (int)(durationMs / 1000);
     LOG.info(String.format(Locale.US, "uiFreezeFinished: duration = %d seconds", lengthInSeconds));
     DiagnosticReportBuilder localBuilder = myBuilder;

@@ -31,8 +31,8 @@ import com.intellij.openapi.util.LowMemoryWatcher
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.EDT
 import org.jetbrains.annotations.VisibleForTesting
-import java.io.File
 import java.lang.management.ManagementFactory
+import java.nio.file.Path
 import java.time.Duration
 import java.util.Arrays
 import java.util.concurrent.ScheduledFuture
@@ -193,11 +193,11 @@ class SystemHealthDataCollection: Disposable {
   private fun setUpFreezeTelemetry() {
     val application = ApplicationManager.getApplication()
     application.messageBus.connect(this).subscribe(IdePerformanceListener.TOPIC, object : IdePerformanceListener {
-      override fun uiFreezeStarted(reportDir: File) {
+      override fun uiFreezeStarted(reportDir: Path) {
         triggers.uiFreezeStarted()
       }
 
-      override fun uiFreezeFinished(durationMs: Long, reportDir: File?) {
+      override fun uiFreezeFinished(durationMs: Long, reportDir: Path?) {
         triggers.uiFreezeFinished(durationMs)
       }
     })
