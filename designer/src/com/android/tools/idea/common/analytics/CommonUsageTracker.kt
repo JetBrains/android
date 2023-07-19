@@ -17,8 +17,8 @@ package com.android.tools.idea.common.analytics
 
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.rendering.RenderResult
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -54,7 +54,7 @@ interface CommonUsageTracker {
    * through the [logRenderResult] method so it contains additional information about the render
    * result.
    */
-  fun logAction(eventType: LayoutEditorEvent.LayoutEditorEventType)
+  fun logAction(eventType: LayoutEditorEventType)
 
   /**
    * Logs a render action.
@@ -75,7 +75,7 @@ interface CommonUsageTracker {
    *   [LayoutEditorEvent.Builder] about the given event
    */
   fun logStudioEvent(
-    eventType: LayoutEditorEvent.LayoutEditorEventType,
+    eventType: LayoutEditorEventType,
     consumer: Consumer<LayoutEditorEvent.Builder>?
   )
 
@@ -116,13 +116,13 @@ fun AndroidStudioEvent.Builder.setApplicationId(
 
 internal fun getApplicationId(facet: AndroidFacet): String? {
   return try {
-    facet.getModuleSystem().getApplicationIdProvider().packageName
+    val moduleSystem = facet.getModuleSystem()
+    if (moduleSystem.type == AndroidModuleSystem.Type.TYPE_APP)
+      moduleSystem.getApplicationIdProvider().packageName
+    else null
   } catch (e: IllegalStateException) {
     // If the project has not synced yet, there will not be app id available
     Logger.getInstance(CommonUsageTracker::class.java).debug(e)
-    AndroidModel.get(facet)?.applicationId
-  } catch (e: ApkProvisionException) {
-    Logger.getInstance(CommonUsageTracker::class.java).warn(e)
     AndroidModel.get(facet)?.applicationId
   }
 }
