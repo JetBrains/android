@@ -449,6 +449,8 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   }
 
   private fun addDynamicDependency(destination: Destination) {
+    (destination as? Destination.RegularDestination)?.dynamicModuleName ?: return
+
     val project = surface.model?.module?.project ?: return
     val projectSystem = project.getProjectSystem()
     val token = AddDestinationMenuToken.EP_NAME.getExtensions(project).firstOrNull { it.isApplicable(projectSystem) } ?: return
