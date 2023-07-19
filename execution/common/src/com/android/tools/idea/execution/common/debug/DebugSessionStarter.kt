@@ -30,7 +30,6 @@ import com.android.tools.idea.execution.common.stats.track
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
@@ -93,7 +92,6 @@ object DebugSessionStarter {
     AndroidSessionInfo.create(
       debugProcessHandler,
       environment.runProfile as? RunConfiguration,
-      executor.id,
       environment.executionTarget
     )
     session
@@ -180,7 +178,6 @@ object DebugSessionStarter {
       AndroidSessionInfo.create(
         masterProcessHandler,
         environment.runProfile as? RunConfiguration,
-        executor.id,
         environment.executionTarget
       )
       session as XDebugSessionImpl
@@ -211,7 +208,6 @@ object DebugSessionStarter {
       AndroidSessionInfo.create(
         debugProcessHandler,
         null,
-        DefaultDebugExecutor.getDebugExecutorInstance().id,
         ExecutionTargetManager.getActiveTarget(project)
       )
       session

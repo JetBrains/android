@@ -128,7 +128,7 @@ abstract class AndroidConfigurationProgramRunner(
             ?: throw RuntimeException(
               "AndroidConfigurationExecutor returned RunContentDescriptor without process handler"
             )
-          AndroidSessionInfo.create(processHandler, runProfile as RunConfiguration, environment.executor.id,
+          AndroidSessionInfo.create(processHandler, runProfile as RunConfiguration,
                                     environment.executionTarget)
           promise.setResult(runContentDescriptor)
         }
