@@ -72,7 +72,7 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
       targetProj$caret
       """.trimIndent(), """
       [android]
-      targetProjectPath = $caret
+      targetProjectPath = "$caret"
       """.trimIndent())
 
   @Test
@@ -85,10 +85,43 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
       """.trimIndent())
 
   @Test
-  fun testCompletionHeaderProperty() = doCompletionTest("""
+  fun testCompletionStringPropertyInHeader() = doCompletionTest(
+    "[android.targetProj$caret]",
+    """
+      [android]
+      targetProjectPath = "$caret"
+      """.trimIndent())
+
+  @Test
+  fun testCompletionStringPropertyInHeader2() = doCompletionTest(
+    """
       [android.targetProj$caret]
-      """.trimIndent(), """
-      [android.targetProjectPath$caret]
+      compileSdk = 1
+    """.trimIndent(),
+    """
+      [android]
+      targetProjectPath = "$caret"
+      compileSdk = 1
+      """.trimIndent())
+
+  @Test
+  fun testCompletionNonStringPropertyInHeader() = doCompletionTest(
+    "[android.generatePureSpl$caret]".trimIndent(),
+    """
+      [android]
+      generatePureSplits = $caret
+      """.trimIndent())
+
+  @Test
+  fun testCompletionNonStringPropertyInHeader2() = doCompletionTest(
+    """
+      [android.generatePureSpl$caret]
+      compileSdk = 1
+    """.trimIndent(),
+    """
+      [android]
+      generatePureSplits = $caret
+      compileSdk = 1
       """.trimIndent())
 
   @Test
