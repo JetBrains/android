@@ -21,7 +21,6 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.buildAgpProjectFlagsStub
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.util.io.FileUtilRt.loadFile
@@ -34,6 +33,7 @@ import org.jetbrains.kotlin.android.InTextDirectivesUtils.findStringWithPrefixes
 import org.jetbrains.kotlin.android.KotlinTestUtils.assertEqualsToFile
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
+import org.jetbrains.kotlin.idea.configuration.ChangedConfiguratorFiles
 import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.junit.Assert
@@ -88,10 +88,11 @@ abstract class ConfigureProjectTest(useAndroidX: Boolean) {
 
     val configurator = KotlinAndroidGradleModuleConfigurator()
     val jvmTarget = JvmTarget.JVM_1_8.description
+    val changedFiles = ChangedConfiguratorFiles()
     configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = true, version, jvmTarget,
-                                 collector, mutableListOf())
+                                 collector, changedFiles)
     configurator.configureModule(projectRule.module, buildFile.toPsiFile(project)!!, isTopLevelProjectFile = false, version, jvmTarget,
-                                 collector, mutableListOf())
+                                 collector, changedFiles)
 
     collector.showNotification()
 
