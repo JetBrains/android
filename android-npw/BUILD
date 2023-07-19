@@ -71,7 +71,10 @@ iml_module(
             # b/192269906 flaky on windows, taking longer than 15 minutes
             "tags": ["no_windows"],
         },
-        "other": {},
+        "other": {
+            # b/291605661 flaky on Windows, taking longer than 30 minutes
+            "tags": ["no_windows"],
+        },
     },
     test_class = "com.android.tools.idea.npw.NewProjectWizardTestSuite",
     # keep sorted
