@@ -686,6 +686,7 @@ internal class DeviceViewTest {
   @Test
   fun testKeysForMnemonicsShouldNotBeConsumed() {
     createDeviceView(500, 1000)
+    waitForFrame()
 
     val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
     focusManager.redispatchEvent(view, altMPressedEvent)
@@ -699,6 +700,7 @@ internal class DeviceViewTest {
   @Test
   fun testKeyPreprocessingSkippedWhenHardwareInputEnabled() {
     createDeviceView(250, 500)
+    waitForFrame()
 
     executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
@@ -709,6 +711,8 @@ internal class DeviceViewTest {
   @Test
   fun testKeyPreprocessingNotSkippedForActionTogglingHardwareInput() {
     createDeviceView(250, 500)
+    waitForFrame()
+
     executeStreamingAction("android.streaming.hardware.input", view, project)
     val keymapManager = KeymapManager.getInstance()
     keymapManager.activeKeymap.addShortcut("android.streaming.hardware.input", KeyboardShortcut.fromString("control shift J"))
@@ -721,6 +725,7 @@ internal class DeviceViewTest {
   @Test
   fun testCtrlAndAlphabeticalKeysSentWhenHardwareInputEnabled() {
     createDeviceView(250, 500)
+    waitForFrame()
 
     executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
     fakeUi.keyboard.setFocus(view)
@@ -837,6 +842,7 @@ internal class DeviceViewTest {
   @Test
   fun testMetaKeysReleasedWhenHardwareInputDisabled() {
     createDeviceView(50, 100)
+    waitForFrame()
 
     // Enable hardware input
     executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
@@ -858,6 +864,7 @@ internal class DeviceViewTest {
   @Test
   fun testMetaKeysReleasedWhenLostFocusDuringHardwareInput() {
     createDeviceView(50, 100)
+    waitForFrame()
 
     // Enable hardware input
     executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
