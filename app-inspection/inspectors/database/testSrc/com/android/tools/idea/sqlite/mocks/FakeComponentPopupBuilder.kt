@@ -107,6 +107,10 @@ open class FakeComponentPopupBuilder : ComponentPopupBuilder {
 
   override fun setMinSize(minSize: Dimension?) = this
 
+  override fun setStretchToOwnerWidth(stretchToOwnerWidth: Boolean) = this
+
+  override fun setStretchToOwnerHeight(stretchToOwnerHeight: Boolean) = this
+
   override fun setFocusOwners(focusOwners: Array<out Component>) = this
 
   override fun setCommandButton(commandButton: ActiveComponent) = this
