@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.assistant.OpenAssistSidePanelAction
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
@@ -32,7 +33,7 @@ class LaunchTargetSdkVersionAssistantFix :
     startElement: PsiElement,
     endElement: PsiElement,
     contextType: AndroidQuickfixContexts.ContextType
-  ): Boolean = true
+  ): Boolean = IdeInfo.getInstance().isAndroidStudio
 
   override fun apply(
     startElement: PsiElement,
