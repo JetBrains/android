@@ -39,6 +39,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.playback.commands.ActionCommand
 import com.intellij.openapi.vfs.LocalFileSystem
+import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.codeInsight.actions.AddGradleDslPluginAction
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
@@ -52,10 +53,17 @@ import java.util.regex.Pattern
 class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
   private val GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX = "Gradle DSL method not found"
   private val MISSING_METHOD_PATTERN = Pattern.compile("Could not find method (.*?) .*")
+  private val expectedErrorTypes = listOf(
+    "org.gradle.api.internal.MissingMethodException",
+    "org.gradle.internal.metaobject.AbstractDynamicObject\$CustomMessageMissingMethodException",
+  )
 
   override fun check(issueData: GradleIssueData): BuildIssue? {
-    val message = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first.message ?: return null
-    if (!message.startsWith(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)) return null
+    val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
+    // It returns PlaceholderException with the data instead of original one, check type using toString.
+    val rootCauseString = rootCause.toString()
+    if (expectedErrorTypes.none { rootCauseString.startsWith(it) }) return null
+    val message = rootCause.message ?: return null
 
     // Log metrics.
     SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, GradleSyncFailure.DSL_METHOD_NOT_FOUND)
@@ -93,7 +101,9 @@ class GradleDslMethodNotFoundIssueChecker : GradleIssueChecker {
                                                 location: FilePosition?,
                                                 parentEventId: Any,
                                                 messageConsumer: Consumer<in BuildEvent>): Boolean {
-    return failureCause.startsWith(GRADLE_DSL_METHOD_NOT_FOUND_ERROR_PREFIX)
+    return failureCause.startsWith("Could not find method ")
+           && stacktrace != null
+           && expectedErrorTypes.any { stacktrace.contains("Caused by: $it") }
   }
 }
 
