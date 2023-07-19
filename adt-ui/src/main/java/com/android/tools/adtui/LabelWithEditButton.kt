@@ -44,7 +44,7 @@ class LabelWithEditButton(defaultValue: String = "") : JPanel(), DocumentAccesso
   }
   val textField: JTextField = SometimesEditableTextField(defaultValue).apply {
     isEnabled = false
-    font = StartupUiUtil.getLabelFont()
+    font = StartupUiUtil.labelFont
   }
 
   val panel = panel {

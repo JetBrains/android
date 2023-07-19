@@ -74,7 +74,7 @@ class NoFacetView(val project: Project)
         it.styleSheet.addRule(" a { color: #$linkColor; } p { line-height: $EMPTY_TEXT_LINE_HEIGHT; }")
       }
       border = JBUI.Borders.empty(32)
-      font = StartupUiUtil.getLabelFont()
+      font = StartupUiUtil.labelFont
       cursor = Cursor.getDefaultCursor()
       text = "<html><center>$NO_FACET_TEXT<center></html>"
       isEditable = false

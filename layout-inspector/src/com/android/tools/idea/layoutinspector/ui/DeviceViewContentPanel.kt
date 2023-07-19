@@ -400,7 +400,7 @@ class DeviceViewContentPanel(
       }
       if (!bounds.isEmpty) {
         val font =
-          StartupUiUtil.getLabelFont().deriveFont(getLabelFontSize(renderSettings.scaleFraction))
+          StartupUiUtil.labelFont.deriveFont(getLabelFontSize(renderSettings.scaleFraction))
         val fontMetrics = getFontMetrics(font)
         val textWidth = fontMetrics.stringWidth(selection.unqualifiedName)
         val labelHeight = getDrawNodeLabelHeight(renderSettings.scaleFraction).toInt()

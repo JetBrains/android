@@ -74,7 +74,7 @@ class EmptyTablePanel(private val addAction: AnAction, model: TableLineModel) :
 
   private fun createText(): String {
     val actionText = addAction.templatePresentation.description.lowercase(Locale.getDefault())
-    val font = StartupUiUtil.getLabelFont()
+    val font = StartupUiUtil.labelFont
     val color = UIUtil.getLabelForeground()
     val disabled = JBUI.CurrentTheme.Label.disabledForeground()
     val style =

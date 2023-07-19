@@ -366,7 +366,7 @@ class VitalsIssueDetailsPanel(
 
   override fun updateUI() {
     super.updateUI()
-    emptyText?.setFont(StartupUiUtil.getLabelFont())
+    emptyText?.setFont(StartupUiUtil.labelFont)
   }
 }
 

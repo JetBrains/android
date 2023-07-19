@@ -61,7 +61,7 @@ object AppInsightsIssuesTableCellRenderer : AppInsightsTableCellRenderer {
     }
 
   override fun updateRenderer() {
-    renderer.font = StartupUiUtil.getLabelFont()
+    renderer.font = StartupUiUtil.labelFont
   }
 
   override fun getTableCellRendererComponent(

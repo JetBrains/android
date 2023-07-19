@@ -224,7 +224,7 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) :
     val label = JBLabel("M")
     label.font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     val height = label.preferredSize.height
-    label.font = StartupUiUtil.getLabelFont()
+    label.font = StartupUiUtil.labelFont
     label.border = DarculaTextBorder()
     return (label.preferredSize.height - height) / 2
   }

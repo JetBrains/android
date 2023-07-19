@@ -153,7 +153,7 @@ class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<App
 
   override fun updateUI() {
     super.updateUI()
-    emptyText?.setFont(StartupUiUtil.getLabelFont())
+    emptyText?.setFont(StartupUiUtil.labelFont)
   }
 
   override fun paint(g: Graphics?) {

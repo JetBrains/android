@@ -157,7 +157,7 @@ private fun createRecommendedSizeLabel(memorySize: Int, displayUnit: Storage.Uni
   val labelText = "<html><center>$label<br>(Recommended)<center></html>"
   // This is the only way as JSlider resets label font.
   return JBLabel(labelText).apply {
-    font = StartupUiUtil.getLabelFont().deriveFont(Font.BOLD)
+    font = StartupUiUtil.labelFont.deriveFont(Font.BOLD)
   }
 }
 

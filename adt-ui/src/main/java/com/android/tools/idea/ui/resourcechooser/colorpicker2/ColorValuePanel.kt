@@ -495,7 +495,7 @@ class ColorValueField(private val hex: Boolean = false): JTextField(if (hex) 8 e
     isEnabled = true
     isEditable = true
 
-    val labelFont = StartupUiUtil.getLabelFont()
+    val labelFont = StartupUiUtil.labelFont
     font = labelFont.deriveFont(labelFont.size * 0.9f)
 
     addFocusListener(object : FocusAdapter() {
