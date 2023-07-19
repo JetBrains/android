@@ -38,11 +38,11 @@ import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.idea.compiler.configuration.IdeKotlinVersion
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
+import org.jetbrains.kotlin.idea.configuration.ChangedConfiguratorFiles
 import org.jetbrains.kotlin.idea.configuration.NotificationMessageCollector
 import org.jetbrains.kotlin.idea.configuration.buildSystemType
 import org.jetbrains.kotlin.idea.framework.ui.ConfigureDialogWithModulesAndVersion
 import org.jetbrains.kotlin.idea.gradle.KotlinIdeaGradleBundle
-import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.ChangedFiles
 import org.jetbrains.kotlin.idea.gradleCodeInsightCommon.KotlinWithGradleConfigurator
 import org.jetbrains.kotlin.idea.projectConfiguration.hasJreSpecificRuntime
 import org.jetbrains.kotlin.idea.util.application.executeCommand
@@ -147,9 +147,8 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
     }
 
     override fun addElementsToFiles(file: PsiFile, isTopLevelProjectFile: Boolean, originalVersion: IdeKotlinVersion,
-                                    jvmTarget: String?, addVersion: Boolean): ChangedFiles {
-        val changedFiles = HashSet<PsiFile>()
-        val module = ModuleUtil.findModuleForPsiElement(file) ?: return changedFiles
+                                    jvmTarget: String?, addVersion: Boolean, changedFiles: ChangedConfiguratorFiles) {
+        val module = ModuleUtil.findModuleForPsiElement(file) ?: return
         val project = module.project
         val projectBuildModel = ProjectBuildModel.get(project)
         val moduleBuildModel = projectBuildModel.getModuleBuildModel(module) ?: error("Build model for module $module not found")
@@ -176,6 +175,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             //                kotlin("android") version "1.4.31"
             //            }
             //        }
+            changedFiles.storeOriginalFileContent(file)
             val kotlinPluginAdded = addToBuildscriptDependencies(moduleBuildModel, version) ||
                                     addToPluginsBlock(projectBuildModel, moduleBuildModel, version) ||
                                     addToPluginsManagementBlock(projectBuildModel, moduleBuildModel, version)
@@ -184,10 +184,10 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             if (kotlinPluginAdded) {
                 moduleBuildModel.repositories().takeIf { it.psiElement != null }?.addRepositoryFor(version)
                 projectBuildModel.applyChanges()
-                changedFiles.add(file)
             }
         }
         else {
+            changedFiles.storeOriginalFileContent(file)
             if (file.project.isAndroidx()) {
                 addDependency(moduleBuildModel, ANDROIDX_CORE_GROUP, CORE_KTX, "+")
                 addKtxDependenciesFromMap(module, moduleBuildModel, androidxKtxLibraryMap)
@@ -221,9 +221,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
               ?.takeIf { it.psiElement != null }?.addRepositoryFor(version)
 
             projectBuildModel.applyChanges()
-            changedFiles.add(file)
         }
-        return changedFiles
     }
 
     override fun getStdlibArtifactName(sdk: Sdk?, version: IdeKotlinVersion): String {
@@ -256,7 +254,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             val collector = NotificationMessageCollector.create(project)
             val changedFiles = configureWithVersion(project, modules, version, collector, kotlinVersionsAndModules = emptyMap())
 
-            for (file in changedFiles) {
+            for (file in changedFiles.getChangedFiles()) {
                 OpenFileAction.openFile(file.virtualFile, project)
             }
             // Sync after changing build scripts
@@ -340,7 +338,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         }
     }
 
-    override fun configureSettingsFile(file: PsiFile, version: IdeKotlinVersion, filesToOpen: MutableCollection<PsiFile>): Boolean {
+    override fun configureSettingsFile(file: PsiFile, version: IdeKotlinVersion, changedFiles: ChangedConfiguratorFiles): Boolean {
         // This is just a stub, for Android its own implementation is done in the fun addToPluginsManagementBlock
         return false
     }
