@@ -459,7 +459,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
           }
           KeyEvent.VK_ENTER -> {
             focusComponent.requestFocusInWindow()
-            toolWindowCallback?.stopFiltering()
+            invokeLater { toolWindowCallback?.stopFiltering() }
             event.consume()
           }
         }

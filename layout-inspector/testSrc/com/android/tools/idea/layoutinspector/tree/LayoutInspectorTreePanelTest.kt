@@ -573,6 +573,7 @@ class LayoutInspectorTreePanelTest {
     val callbacks: ToolWindowCallback = mock()
     tree.registerCallbacks(callbacks)
     ui.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
+    UIUtil.dispatchAllInvocationEvents()
     verify(callbacks).stopFiltering()
   }
 
