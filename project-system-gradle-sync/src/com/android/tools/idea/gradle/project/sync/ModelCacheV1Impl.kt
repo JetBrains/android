@@ -320,7 +320,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       lintJar = copyNewProperty(library::getLintJar)?.path?.let(::File),
       sourceSet = IdeModuleWellKnownSourceSet.MAIN
     )
-    return internedModels.getOrCreate(moduleLibrary)
+    return internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(moduleLibrary)) { moduleLibrary }
   }
 
   fun createIdeModuleLibrary(library: JavaLibrary, projectPath: String): LibraryReference {
@@ -333,7 +333,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       lintJar = null,
       sourceSet = IdeModuleWellKnownSourceSet.MAIN
     )
-    return internedModels.getOrCreate(moduleLibrary)
+    return internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(moduleLibrary)) { moduleLibrary }
   }
 
   fun mavenCoordinatesFrom(coordinates: MavenCoordinates): IdeMavenCoordinatesImpl {
@@ -482,7 +482,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       )
       val isProvided = copyNewProperty(androidLibrary::isProvided, false)
 
-      makeDependency(internedModels.getOrCreate(unnamedLibrary), isProvided)
+      makeDependency(internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamedLibrary)) { unnamedLibrary }, isProvided)
     }
   }
 
@@ -505,14 +505,14 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       )
       val isProvided = copyNewProperty(javaLibrary::isProvided, false)
 
-      makeDependency(internedModels.getOrCreate(unnamedLibrary), isProvided)
+      makeDependency(internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(unnamedLibrary)) { unnamedLibrary }, isProvided)
     }
   }
 
   fun libraryFrom(jarFile: File): IdeDependencyCoreAndIsProvided {
     val artifactAddress = "${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified"
     val unnamedLibrary = IdeJavaLibraryImpl(artifactAddress, null, "", jarFile, null, null, null)
-    return makeDependency(internedModels.getOrCreate(unnamedLibrary), false)
+    return makeDependency(internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(unnamedLibrary)) { unnamedLibrary }, false)
   }
 
   fun libraryFrom(projectPath: String, buildId: String, variantName: String?): IdeDependencyCoreAndIsProvided {
@@ -524,7 +524,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       lintJar = null,
       sourceSet = IdeModuleWellKnownSourceSet.MAIN
     )
-    return makeDependency(internedModels.getOrCreate(core), isProvided = false)
+    return makeDependency(internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(core)) {core}, isProvided = false)
   }
 
   fun createFromDependencies(
@@ -635,37 +635,42 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           } else {
             listOf(jarFile.absolutePath)
           }
-        internedModels.getOrCreate(
-          IdeAndroidLibraryImpl.create(
-            // NOTE: [artifactAddress] needs to be in this form to meet LintModelFactory expectations.
-            artifactAddress = "$LOCAL_AARS:" + jarFile.path + ":unspecified",
-            component = null,
-            name = "",
-            folder = aarLibraryDir,
-            manifest = manifestFile.absolutePath,
-            compileJarFiles = apiJarFile?.let { listOf(it.absolutePath) } ?: runtimeJarFiles,
-            runtimeJarFiles = runtimeJarFiles,
-            resFolder = aarLibraryDir.resolve("res").absolutePath,
-            resStaticLibrary = aarLibraryDir.resolve("res.apk").takeIf { it.exists() },
-            assetsFolder = aarLibraryDir.resolve("assets").absolutePath,
-            jniFolder = aarLibraryDir.resolve("jni").absolutePath,
-            aidlFolder = aarLibraryDir.resolve("aidl").absolutePath,
-            renderscriptFolder = aarLibraryDir.resolve("rs").absolutePath,
-            proguardRules = aarLibraryDir.resolve("proguard.txt").absolutePath,
-            lintJar = null,
-            srcJar = null,
-            docJar = null,
-            samplesJar = null,
-            externalAnnotations = aarLibraryDir.resolve("annotations.zip").absolutePath,
-            publicResources = aarLibraryDir.resolve("public.txt").absolutePath,
-            artifact = null,
-            symbolFile = aarLibraryDir.resolve("R.txt").absolutePath,
-            deduplicate = internedModels::intern
-          )
+        val library = IdeAndroidLibraryImpl.create(
+          // NOTE: [artifactAddress] needs to be in this form to meet LintModelFactory expectations.
+          artifactAddress = "$LOCAL_AARS:" + jarFile.path + ":unspecified",
+          component = null,
+          name = "",
+          folder = aarLibraryDir,
+          manifest = manifestFile.absolutePath,
+          compileJarFiles = apiJarFile?.let { listOf(it.absolutePath) } ?: runtimeJarFiles,
+          runtimeJarFiles = runtimeJarFiles,
+          resFolder = aarLibraryDir.resolve("res").absolutePath,
+          resStaticLibrary = aarLibraryDir.resolve("res.apk").takeIf { it.exists() },
+          assetsFolder = aarLibraryDir.resolve("assets").absolutePath,
+          jniFolder = aarLibraryDir.resolve("jni").absolutePath,
+          aidlFolder = aarLibraryDir.resolve("aidl").absolutePath,
+          renderscriptFolder = aarLibraryDir.resolve("rs").absolutePath,
+          proguardRules = aarLibraryDir.resolve("proguard.txt").absolutePath,
+          lintJar = null,
+          srcJar = null,
+          docJar = null,
+          samplesJar = null,
+          externalAnnotations = aarLibraryDir.resolve("annotations.zip").absolutePath,
+          publicResources = aarLibraryDir.resolve("public.txt").absolutePath,
+          artifact = null,
+          symbolFile = aarLibraryDir.resolve("R.txt").absolutePath,
+          deduplicate = internedModels::intern
         )
+        internedModels.internAndroidLibrary(
+          LibraryIdentity.IdeLibraryModel(library)
+        ) { library }
       } else {
+
         // NOTE: [artifactAddress] needs to be in this form to meet LintModelFactory expectations.
-        internedModels.getOrCreate(IdeJavaLibraryImpl("$LOCAL_JARS:" + jarFile.path + ":unspecified", null, "", jarFile, null, null, null))
+        val library = IdeJavaLibraryImpl("$LOCAL_JARS:" + jarFile.path + ":unspecified", null, "", jarFile, null, null, null)
+        internedModels.internJavaLibrary(
+          LibraryIdentity.IdeLibraryModel(library)
+        ) { library }
       }
     }
 
@@ -1373,7 +1378,6 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   }
 
   return object : ModelCache.V1 {
-    override val libraryLookup: (LibraryReference) -> IdeUnresolvedLibrary = internedModels::lookup
     override fun createLibraryTable(): IdeUnresolvedLibraryTableImpl = internedModels.createLibraryTable()
 
     override fun variantFrom(

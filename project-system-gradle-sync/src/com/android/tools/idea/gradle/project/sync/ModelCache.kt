@@ -57,7 +57,6 @@ import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 
 interface ModelCache {
-  val libraryLookup: (LibraryReference) -> IdeUnresolvedLibrary
   fun createLibraryTable(): IdeUnresolvedLibraryTableImpl
 
   interface V1 : ModelCache {

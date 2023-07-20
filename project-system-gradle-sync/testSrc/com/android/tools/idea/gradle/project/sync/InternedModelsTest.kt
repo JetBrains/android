@@ -52,7 +52,7 @@ class InternedModelsTest {
     val artifact = "$libRoot/artifactFile"
     val unnamed = ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact)
 
-    val named = internedModels.getOrCreate(unnamed).lookup()
+    val named = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamed)) { unnamed }.lookup()
 
     assertTrue(named == unnamed.copy(name = "com.example:lib:1.0"))
   }
@@ -64,8 +64,8 @@ class InternedModelsTest {
     val unnamed = ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact)
 
     val unnamedCopy = unnamed.copy()
-    val namedRef = internedModels.getOrCreate(unnamed)
-    val namedCopyRef = internedModels.getOrCreate(unnamedCopy)
+    val namedRef = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamed)) { unnamed }
+    val namedCopyRef = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamedCopy)) { unnamedCopy }
 
     assertTrue(unnamed !== unnamedCopy)
     assertTrue(unnamed == unnamedCopy)
@@ -86,7 +86,7 @@ class InternedModelsTest {
       samplesJar = null
     )
 
-    val named = internedModels.getOrCreate(unnamed).lookup()
+    val named = internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(unnamed)) { unnamed }.lookup()
 
     assertTrue(named == unnamed.copy(name = "com.example:lib:1.0"))
   }
@@ -105,8 +105,8 @@ class InternedModelsTest {
     )
 
     val unnamedCopy = unnamed.copy()
-    val namedRef = internedModels.getOrCreate(unnamed)
-    val namedCopyRef = internedModels.getOrCreate(unnamedCopy)
+    val namedRef = internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(unnamed))  { unnamed }
+    val namedCopyRef = internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(unnamedCopy))  { unnamedCopy }
 
     assertTrue(unnamed !== unnamedCopy)
     assertTrue(unnamed == unnamedCopy)
@@ -125,8 +125,8 @@ class InternedModelsTest {
     )
 
     val copy = module.copy()
-    val module1 = internedModels.getOrCreate(module)
-    val module2 = internedModels.getOrCreate(copy)
+    val module1 = internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(module)) { module }
+    val module2 = internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(copy)) { copy }
 
     assertTrue(module !== copy)
     assertTrue(module == copy)
@@ -144,8 +144,8 @@ class InternedModelsTest {
     )
 
     val copy = module.copy()
-    val module1 = internedModels.getOrCreate(module)
-    val module2 = internedModels.getOrCreate(copy)
+    val module1 = internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(module)) { module }
+    val module2 = internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(copy)) { copy }
 
     assertTrue(module !== copy)
     assertTrue(module == copy)
@@ -166,8 +166,8 @@ class InternedModelsTest {
       ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact)
     }
 
-    val named1 = internedModels.getOrCreate(unnamed1).lookup()
-    val named2 = internedModels.getOrCreate(unnamed2).lookup()
+    val named1 = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamed1)) { unnamed1 }.lookup()
+    val named2 = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamed2)) { unnamed2 }.lookup()
 
     assertTrue(unnamed1.artifactAddress == unnamed2.artifactAddress)
     assertTrue(named1.artifactAddress == named2.artifactAddress)
@@ -184,7 +184,7 @@ class InternedModelsTest {
       ideAndroidLibrary(libRoot, "${ModelCache.LOCAL_AARS}:$artifact", artifact, component = null)
     }
 
-    val named = internedModels.getOrCreate(unnamed).lookup()
+    val named = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamed)) { unnamed }.lookup()
 
     assertTrue(named.artifactAddress == unnamed.artifactAddress)
     assertEquals("./app/libs/artifactFile", named.name)

@@ -20,18 +20,17 @@ import com.android.tools.idea.gradle.model.ClasspathType
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeModuleSourceSet
-import com.android.tools.idea.gradle.model.IdeUnresolvedKmpAndroidModuleLibrary
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
+import com.android.tools.idea.gradle.model.IdeUnresolvedUnknownLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnknownLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
 import java.io.File
+import java.util.Objects
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -44,6 +43,19 @@ internal data class ClasspathIdentifier(
   val artifact: IdeModuleSourceSet,
   val classpathType: ClasspathType,
 )
+sealed class LibraryIdentity private constructor(val identity: Any) {
+  class IdeLibraryModel(library: IdeLibrary) : LibraryIdentity(library)
+
+  class IdeModuleModel(library: IdeUnresolvedLibrary) : LibraryIdentity(library)
+
+  override fun equals(other: Any?): Boolean {
+    return Objects.equals(identity, (other as? LibraryIdentity)?.identity)
+  }
+
+  override fun hashCode(): Int {
+    return Objects.hashCode(identity)
+  }
+}
 
 class InternedModels(private val buildRootDirectory: File?) {
   private val lock = ReentrantLock()
@@ -63,14 +75,13 @@ class InternedModels(private val buildRootDirectory: File?) {
   // when we add support for dependency graphs and different entities are used to represent libraries and dependencies.
   // We use mutable [Instances] objects to keep record of already instantiated and named library objects for each of the cases.
   @GuardedBy("lock")
-  private val androidLibraries: MutableMap<IdeAndroidLibraryImpl, Pair<LibraryReference, IdeAndroidLibraryImpl>> = HashMap()
+  private val androidLibraries: MutableMap<LibraryIdentity, Pair<LibraryReference, IdeAndroidLibraryImpl>> = HashMap()
   @GuardedBy("lock")
-  private val javaLibraries: MutableMap<IdeJavaLibraryImpl, Pair<LibraryReference, IdeJavaLibraryImpl>> = HashMap()
+  private val javaLibraries: MutableMap<LibraryIdentity, Pair<LibraryReference, IdeJavaLibraryImpl>> = HashMap()
   @GuardedBy("lock")
-  private val moduleLibraries: MutableMap<IdeUnresolvedLibrary, Pair<LibraryReference, IdeUnresolvedLibrary>> = HashMap()
+  private val moduleLibraries: MutableMap<LibraryIdentity, Pair<LibraryReference, IdeUnresolvedLibrary>> = HashMap()
   @GuardedBy("lock")
-  private val unknownLibraries: MutableMap<IdeUnresolvedLibrary, Pair<LibraryReference, IdeUnresolvedLibrary>> = HashMap()
-
+  private val unknownLibraries: MutableMap<LibraryIdentity, Pair<LibraryReference, IdeUnresolvedUnknownLibrary>> = HashMap()
   var artifactToLibraryReferenceMap: Map<File, LibraryReference>? = null ; private set
 
   @GuardedBy("lock")
@@ -89,9 +100,11 @@ class InternedModels(private val buildRootDirectory: File?) {
    * Note: Naming mechanism is going to change in the future when dependencies and libraries are separated. We will try to assign more
    * meaningful names to libraries representing different artifact variants under the same Gradle coordinates.
    */
-  fun getOrCreate(unnamedAndroidLibrary: IdeAndroidLibraryImpl): LibraryReference {
-    if (unnamedAndroidLibrary.name.isNotEmpty()) error("Unnamed library expected: $unnamedAndroidLibrary")
-    return androidLibraries.createOrGetLibrary(unnamedAndroidLibrary) { unnamed ->
+
+  fun internAndroidLibrary(key: LibraryIdentity, factory: () -> IdeAndroidLibraryImpl): LibraryReference {
+    //if (unnamedAndroidLibrary.name.isNotEmpty()) error("Unnamed library expected: $unnamedAndroidLibrary")
+    return androidLibraries.createOrGetLibrary(key) {
+      val unnamed = factory()
       unnamed.copy(name = nameLibrary(unnamed))
     }
   }
@@ -103,52 +116,36 @@ class InternedModels(private val buildRootDirectory: File?) {
    * Note: Naming mechanism is going to change in the future when dependencies and libraries are separated. We will try to assign more
    * meaningful names to libraries representing different artifact variants under the same Gradle coordinates.
    */
-  fun getOrCreate(unnamedJavaLibrary: IdeJavaLibraryImpl): LibraryReference {
-    if (unnamedJavaLibrary.name.isNotEmpty()) error("Unnamed library expected: $unnamedJavaLibrary")
-    return javaLibraries.createOrGetLibrary(unnamedJavaLibrary) { unnamed ->
+  fun internJavaLibrary(key: LibraryIdentity, factory: () -> IdeJavaLibraryImpl): LibraryReference {
+    //if (unnamedJavaLibrary.name.isNotEmpty()) error("Unnamed library expected: $unnamedJavaLibrary")
+    return javaLibraries.createOrGetLibrary(key) {
+      val unnamed = factory()
       unnamed.copy(name = nameLibrary(unnamed))
     }
   }
 
-  /**
-   * Interns [moduleLibrary].
-   */
-  fun getOrCreate(moduleLibrary: IdePreResolvedModuleLibraryImpl): LibraryReference {
-    return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
+  fun internModuleLibrary(key: LibraryIdentity, factory: () -> IdeUnresolvedLibrary): LibraryReference {
+    return moduleLibraries.createOrGetLibrary(key, factory)
+  }
+
+  fun internUnknownLibrary(key: LibraryIdentity, factory: () -> IdeUnresolvedUnknownLibrary): LibraryReference {
+    return unknownLibraries.createOrGetLibrary(key, factory)
   }
 
   /**
-   * Interns [moduleLibrary].
-   */
-  fun getOrCreate(moduleLibrary: IdeUnresolvedModuleLibraryImpl): LibraryReference {
-    return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
-  }
-
-  fun getOrCreate(moduleLibrary: IdeUnresolvedKmpAndroidModuleLibrary): LibraryReference {
-    return moduleLibraries.createOrGetLibrary(moduleLibrary) { it }
-  }
-
-  /**
-   * Interns [unknownLibrary].
-   */
-  fun getOrCreate(unknownLibrary: IdeUnknownLibraryImpl): LibraryReference {
-    return unknownLibraries.createOrGetLibrary(unknownLibrary) { it }
-  }
-
-  /**
-   * Finds an existing or creates a new library instance that match [unnamed]. When creating a new library generates a unique library name
+   * Finds an existing or creates a new library instance that match [key]. When creating a new library generates a unique library name
    * based on its artifact address.
    *
    * Note: Naming mechanism is going to change in the future when dependencies and libraries are separated. We will try to assign more
    * meaningful names to libraries representing different artifact variants under the same Gradle coordinates.
    */
-  private fun <T : IdeUnresolvedLibrary> MutableMap<T, Pair<LibraryReference, T>>.createOrGetLibrary(
-    unnamed: T,
-    factory: (unnamed: T) -> T
+  private fun <T : IdeUnresolvedLibrary> MutableMap<LibraryIdentity, Pair<LibraryReference, T>>.createOrGetLibrary(
+    key: LibraryIdentity,
+    factory: () -> T
   ): LibraryReference {
     return lock.withLock {
-      computeIfAbsent(unnamed) {
-        val library = factory(unnamed)
+      computeIfAbsent(key) {
+        val library = factory()
         val index = libraries.size
         libraries.add(library)
         LibraryReference(index) to library

@@ -90,6 +90,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.GradleSyncStateHolder
 import com.android.tools.idea.gradle.project.sync.InternedModels
+import com.android.tools.idea.gradle.project.sync.LibraryIdentity
 import com.android.tools.idea.gradle.project.sync.idea.AdditionalArtifactsPaths
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC
@@ -806,7 +807,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
   val dependenciesStub = buildDependenciesStub(
     dependencies = androidLibraryDependencies.map {
       IdeDependencyCoreImpl(
-        internedModels.getOrCreate(it.library),
+        internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(it.library)) { it.library },
         dependencies = listOf()
       )
     } + toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty())
@@ -865,15 +866,13 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     dependencies = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
                    listOf(
                      IdeDependencyCoreImpl(
-                       internedModels.getOrCreate(
-                         IdePreResolvedModuleLibraryImpl(
-                           buildId = buildId,
-                           projectPath = gradleProjectPath,
-                           variant = variant,
-                           lintJar = null,
-                           sourceSet = IdeModuleWellKnownSourceSet.MAIN
-                         )
-                       ),
+                       IdePreResolvedModuleLibraryImpl(
+                         buildId = buildId,
+                         projectPath = gradleProjectPath,
+                         variant = variant,
+                         lintJar = null,
+                         sourceSet = IdeModuleWellKnownSourceSet.MAIN
+                       ).let {internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(it)) {it} },
                        dependencies = listOf()
                      )
                    )
@@ -929,15 +928,13 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
     dependencies = toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty()) +
                    listOf(
                      IdeDependencyCoreImpl(
-                       internedModels.getOrCreate(
                          IdePreResolvedModuleLibraryImpl(
                            buildId = buildId,
                            projectPath = gradleProjectPath,
                            variant = variant,
                            lintJar = null,
                            sourceSet = IdeModuleWellKnownSourceSet.MAIN
-                         )
-                       ),
+                         ).let {internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(it)) {it} },
                        dependencies = listOf()
                      )
                    )
@@ -967,15 +964,15 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
 private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDependencies: List<AndroidModuleDependency>) =
   androidModuleDependencies.map {
     IdeDependencyCoreImpl(
-      internedModels.getOrCreate(
+
         IdePreResolvedModuleLibraryImpl(
           projectPath = it.moduleGradlePath,
           buildId = this.buildId,
           variant = it.variant,
           lintJar = null,
           sourceSet = IdeModuleWellKnownSourceSet.MAIN
-        )
-      ),
+        ).let {internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(it)) {it} }
+      ,
       dependencies = listOf()
     )
   }
@@ -986,15 +983,14 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
   val dependenciesStub = buildDependenciesStub(
     dependencies = listOf(
       IdeDependencyCoreImpl(
-        internedModels.getOrCreate(
           IdePreResolvedModuleLibraryImpl(
             buildId = buildId,
             projectPath = gradleProjectPath,
             variant = variant,
             lintJar = null,
             sourceSet = IdeModuleWellKnownSourceSet.MAIN
-          )
-        ),
+          ).let{internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(it)) {it} }
+        ,
         dependencies = listOf()
       )
     )

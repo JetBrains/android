@@ -53,8 +53,6 @@ import com.android.builder.model.v2.models.ndk.NativeAbi
 import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
-import com.android.ide.common.gradle.Component
-import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyAndroidGradlePluginProperties
@@ -79,12 +77,10 @@ import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.TEST_FIXT
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet.UNIT_TEST
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
-import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
-import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeApiVersionImpl
 import com.android.tools.idea.gradle.model.impl.IdeBasicVariantImpl
@@ -100,7 +96,6 @@ import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
-import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
 import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
@@ -111,6 +106,7 @@ import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
 import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
+import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
@@ -118,9 +114,7 @@ import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnknownLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedDependencyImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedKmpAndroidModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
@@ -133,7 +127,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Lists
-import org.gradle.api.attributes.java.TargetJvmEnvironment
 import java.io.File
 
 // NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
@@ -145,6 +138,7 @@ internal fun modelCacheV2Impl(
   syncTestMode: SyncTestMode,
   multiVariantAdditionalArtifactSupport: Boolean,
 ): ModelCache.V2 {
+  val modelFactory = IdeModelFactoryV2(agpVersion, multiVariantAdditionalArtifactSupport)
   fun String.deduplicate() = internedModels.intern(this)
   fun List<String>.deduplicateStrings(): List<String> = this.map { it.deduplicate() }
   fun Map<String, String>.deduplicateStrings(): Map<String, String> = map { (k, v) -> k.deduplicate() to v.deduplicate() }.toMap()
@@ -155,14 +149,7 @@ internal fun modelCacheV2Impl(
   fun List<File>.deduplicateFiles() = map { it.deduplicateFile() }
   fun Collection<File>.deduplicateFiles() = map { it.deduplicateFile() }
 
-  /**
-   * Sources, JavaDocs and Samples are only provided in libraries after AGP version 8.1.0-alpha8.
-   * Any attempt to read these values from a version prior to this will result in an exception.
-   */
-  val isAGPVersion8dot1dot0alpha8orLater = agpVersion.isAtLeast(8, 1, 0, "alpha", 8, false)
-  val useAdditionalArtifactsFromLibraries = isAGPVersion8dot1dot0alpha8orLater && multiVariantAdditionalArtifactSupport
   /** If AGP has absolute Gradle build path used in [ProjectInfo.buildId], or it uses the Gradle build name that we need to patch. */
-  val supportsAbsoluteGradleBuildPaths = agpVersion.isAtLeast(8, 2, 0, "alpha", 13, false)
 
   fun sourceProviderFrom(provider: SourceProvider): IdeSourceProviderImpl {
     val folder: File? = provider.manifestFile.parentFile?.deduplicateFile()
@@ -328,7 +315,8 @@ internal fun modelCacheV2Impl(
       applicationId =
       if (projectType == IdeAndroidProjectType.PROJECT_TYPE_TEST) {
         testApplicationId
-      } else {
+      }
+      else {
         applicationId?.plus(if (applicationIdSuffix != null) ".${applicationIdSuffix}" else "")
       },
       versionCode = versionCode,
@@ -349,9 +337,11 @@ internal fun modelCacheV2Impl(
 
       artifactName = if (container.name.startsWith("androidTest")) {
         "_android_test_"
-      } else if (container.name.startsWith("testFixtures")) {
+      }
+      else if (container.name.startsWith("testFixtures")) {
         "_test_fixtures_"
-      } else "_unit_test_",
+      }
+      else "_unit_test_",
       sourceProvider = sourceProviderFrom(container)
     )
   }
@@ -423,50 +413,16 @@ internal fun modelCacheV2Impl(
     )
   }
 
-  fun Library.getComponent() = libraryInfo?.let {
-    when (it.group) {
-      "__local_aars__", "__wrapped_aars__", "__local_asars__", "artifacts" -> null
-      else -> Component(it.group, it.name, Version.parse(it.version))
-    }
-  }
-
   /**
    * @param androidLibrary Instance returned by android plugin.
    * path to build directory for all modules.
    * @return Instance of [IdeLibrary] based on dependency type.
    */
   fun androidLibraryFrom(androidLibrary: Library): LibraryReference {
-    val libraryInfo = androidLibrary.libraryInfo ?: error("libraryInfo missing for ${androidLibrary.key}")
-
-    val androidLibraryData = androidLibrary.androidLibraryData ?: error("androidLibraryData missing for ${androidLibrary.key}")
-
-    val artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@aar"
-    val core = IdeAndroidLibraryImpl.create(
-      artifactAddress = artifactAddress,
-      component = androidLibrary.getComponent(),
-      name = "",
-      folder = androidLibraryData.resFolder.parentFile.deduplicateFile(),
-      artifact = androidLibrary.artifact ?: File(""),
-      lintJar = androidLibrary.lintJar?.path,
-      srcJar = if (useAdditionalArtifactsFromLibraries) androidLibrary.srcJar?.path else null,
-      docJar = if (useAdditionalArtifactsFromLibraries) androidLibrary.docJar?.path else null,
-      samplesJar = if (useAdditionalArtifactsFromLibraries) androidLibrary.samplesJar?.path else null,
-      manifest = androidLibraryData.manifest.path ?: "",
-      compileJarFiles = androidLibraryData.compileJarFiles.map { it.path },
-      runtimeJarFiles = androidLibraryData.runtimeJarFiles.map { it.path },
-      resFolder = androidLibraryData.resFolder.path ?: "",
-      resStaticLibrary = androidLibraryData.resStaticLibrary,
-      assetsFolder = androidLibraryData.assetsFolder.path ?: "",
-      jniFolder = androidLibraryData.jniFolder.path ?: "",
-      aidlFolder = androidLibraryData.aidlFolder.path ?: "",
-      renderscriptFolder = androidLibraryData.renderscriptFolder.path ?: "",
-      proguardRules = androidLibraryData.proguardRules.path ?: "",
-      externalAnnotations = androidLibraryData.externalAnnotations.path ?: "",
-      publicResources = androidLibraryData.publicResources.path ?: "",
-      symbolFile = androidLibraryData.symbolFile.path,
-      deduplicate = { internedModels.intern(this) }
-    )
-    return internedModels.getOrCreate(core)
+    val ideLibrary = modelFactory.androidLibraryFrom(androidLibrary) { internedModels.intern(this) }
+    return internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(ideLibrary)) {
+      ideLibrary
+    }
   }
 
   /**
@@ -474,69 +430,27 @@ internal fun modelCacheV2Impl(
    * @return Instance of [Library] based on dependency type.
    */
   fun javaLibraryFrom(javaLibrary: Library): LibraryReference {
-    val libraryInfo = javaLibrary.libraryInfo ?: error("libraryInfo missing for ${javaLibrary.key}")
-    val artifactAddress = "${libraryInfo.group}:${libraryInfo.name}:${libraryInfo.version}@jar"
-    val unnamed = IdeJavaLibraryImpl(
-      artifactAddress = artifactAddress,
-      component = javaLibrary.getComponent(),
-      name = "",
-      artifact = javaLibrary.artifact!!,
-      srcJar = if (useAdditionalArtifactsFromLibraries) javaLibrary.srcJar else null,
-      docJar = if (useAdditionalArtifactsFromLibraries) javaLibrary.docJar else null,
-      samplesJar = if (useAdditionalArtifactsFromLibraries) javaLibrary.samplesJar else null,
-    )
-    return internedModels.getOrCreate(unnamed)
+    val ideLibrary = modelFactory.javaLibraryFrom(javaLibrary)
+    return internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(ideLibrary)) {
+      ideLibrary
+    }
   }
 
   fun javaLibraryFromJarFile(jarFile: File): LibraryReference {
-    return internedModels.getOrCreate(IdeJavaLibraryImpl("${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified", null, "", jarFile, null, null, null))
+    val ideLibrary = IdeJavaLibraryImpl("${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified", null, "", jarFile, null, null, null)
+    return internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(ideLibrary)) {
+      ideLibrary
+    }
   }
 
   fun moduleLibraryFrom(
-    projectPath: String,
-    buildId: BuildId,
-    lintJar: File?,
-    artifact: ArtifactRef
-  ): LibraryReference {
-
-    fun kmpAndroidUnresolved(): LibraryReference {
-      return internedModels.getOrCreate(
-        IdeUnresolvedKmpAndroidModuleLibraryImpl(
-          buildId = buildId.asString,
-          projectPath = projectPath,
-          lintJar = lintJar?.path?.let(::File),
-        )
-      )
-    }
-
-    fun resolved(artifact: AndroidArtifactRef): LibraryReference {
-      return internedModels.getOrCreate(
-        IdePreResolvedModuleLibraryImpl(
-          buildId = buildId.asString,
-          projectPath = projectPath,
-          variant = artifact.variantName,
-          lintJar = lintJar?.path?.let(::File),
-          sourceSet = if (artifact.isTestFixture) TEST_FIXTURES else MAIN
-        )
-      )
-    }
-
-    fun unresolved(artifact: File): LibraryReference {
-      return internedModels.getOrCreate(
-        IdeUnresolvedModuleLibraryImpl(
-          buildId = buildId.asString,
-          projectPath = projectPath,
-          variant = null,
-          lintJar = lintJar?.path?.let(::File),
-          artifact = artifact
-        )
-      )
-    }
-
-    return when (artifact) {
-      is AndroidArtifactRef -> resolved(artifact)
-      is KmpAndroidArtifactRef -> kmpAndroidUnresolved()
-      is NonAndroidAndroidArtifactRef -> unresolved(artifact.artifactFile)
+    library: Library,
+    androidProjectPathResolver: AndroidProjectPathResolver,
+    buildPathMap: Map<String, BuildId>
+  ) : LibraryReference  {
+    val ideLibrary = modelFactory.moduleLibraryFrom(library, androidProjectPathResolver, buildPathMap)
+    return internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(ideLibrary)) {
+      ideLibrary
     }
   }
 
@@ -553,125 +467,19 @@ internal fun modelCacheV2Impl(
     // if it's available, don't create new one, simple add reference to it. If it's not available, create new instance and save
     // to this map, so it can be reused the next time when the same library is added.
     val librariesById = mutableMapOf<String, LibraryReference>()
-    fun buildPathToBuildId(projectInfo: ProjectInfo): BuildId {
-      val buildTreePath = projectInfo.buildTreePath
-      val buildId = if (supportsAbsoluteGradleBuildPaths) {
-        buildPathMap[projectInfo.buildTreePath]
-      } else {
-        // If there is no full support for Gradle build paths, we are looking only to match the last segment.
-        // E.g. ":nested" matches ":includedBuild:nested".
-        buildPathMap.entries.firstOrNull { it.key.endsWith(buildTreePath) }?.value
-      }
-      return buildId ?: error("Unknown build name: '${projectInfo.displayName}'. Known names ${buildPathMap}")
-    }
 
     data class LibraryWithDependencies(val library: Library, val dependencies: List<String>)
 
-    fun createModuleDependency(
-      seenDependencies: MutableMap<String, List<String>>,
-      projectInfo: ProjectInfo,
-      artifactAddress: String,
-      lintJar: File?,
-      artifact: ArtifactRef,
-      dependencies: List<String>
-    ) {
-      if (!seenDependencies.contains(artifactAddress)) {
-        seenDependencies[artifactAddress] = dependencies
-        librariesById.computeIfAbsent(artifactAddress) {
-          val buildId = buildPathToBuildId(projectInfo)
-          moduleLibraryFrom(
-            projectPath = projectInfo.projectPath,
-            buildId = buildId,
-            lintJar = lintJar,
-            artifact = artifact
-          )
-        }
-      }
-    }
-
-    fun AndroidModule.resolveVariantName(
-      projectInfo: ProjectInfo
-    ): String {
-      return this.androidVariantResolver.resolveVariant(
-        buildType = projectInfo.buildType,
-        productFlavors = { dimension ->
-          projectInfo.productFlavors[dimension]
-            ?: run {
-              // See: b/242856048 and b/242289523: Flavors in `FAKE_DIMENSION` are not reported here.
-              if (dimension == FAKE_DIMENSION) {
-                val suffix = projectInfo.buildType.orEmpty()
-                projectInfo
-                  .attributes["com.android.build.gradle.internal.attributes.VariantAttr"]
-                  ?.takeIf { it.endsWith(suffix, ignoreCase = true) }
-                  ?.let { it.substring(0, it.length - suffix.length) }
-              } else null
-            }
-            ?: error(
-              "$dimension attribute not found in a dependency model " +
-                "of ${classpathId.projectPath} (${classpathId.buildId}) " +
-                "on  ${projectInfo.displayName}"
-            )
-        }
-      )
-        ?: error(
-          "Cannot find a variant matching build type '${projectInfo.buildType}' " +
-            "and product flavors '${projectInfo.productFlavors}' " +
-            "in ${projectInfo.displayName} " +
-            "referred from ${classpathId.projectPath} (${classpathId.buildId})"
-        )
-    }
 
     fun populateProjectDependencies(libraries: List<LibraryWithDependencies>, seenDependencies: MutableMap<String, List<String>>) {
-      /**
-       * Determines whether a dependency target is an Android component.
-       *
-       * It was initially assumed that the Android Gradle plugin should only populate `identifier.artifact` property
-       * for non-Android components. However, it happened that it is also not null in the case of dependencies of
-       * `androidTest` (or similarly of `TEST_ONLY` projects) artifact on `main` artifacts.
-       *
-       * Also, unfortunately, the artifact file returned in this case is not known to the IDE.
-       *
-       * Temporarily, detect Android components by presence of a build type or a product flavor.
-       */
-      fun ProjectInfo.isAndroidComponent(): Boolean = buildType != null || productFlavors.isNotEmpty()
-
-      fun ProjectInfo.isKmpAndroidComponent(): Boolean =
-        attributes["org.jetbrains.kotlin.platform.type"] == "jvm" &&
-        attributes[TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE.name] == TargetJvmEnvironment.ANDROID
-
-      for (identifier in libraries) {
-        val projectInfo = identifier.library.projectInfo!!
-        // TODO(b/203750717): Model this explicitly in the tooling model.
-        val artifact =
-          if (projectInfo.isKmpAndroidComponent()) {
-            KmpAndroidArtifactRef
-          } else if (projectInfo.isAndroidComponent()) {
-            val androidModule: AndroidModule =
-              androidProjectPathResolver.resolve(buildPathToBuildId(projectInfo), projectInfo.projectPath)
-                ?: error("Cannot find an Android module: ${projectInfo.displayName}")
-            val variantName = androidModule.resolveVariantName(projectInfo)
-            AndroidArtifactRef(variantName, projectInfo.isTestFixtures)
-          } else {
-            val artifact = identifier.library.artifact ?: let {
-              recordException {
-                error(
-                  "Unresolved module dependency ${projectInfo.displayName} in " +
-                  "${classpathId.projectPath} (${classpathId.buildId}). Neither the source set nor the artifact property was populated" +
-                  " by the Android Gradle plugin."
-                )
-              }
-              null
-            } ?: continue
-            NonAndroidAndroidArtifactRef(artifact)
+      for ((library, libraryDependencies) in libraries) {
+        val artifactAddress = library.key
+        if (!seenDependencies.contains(artifactAddress)) {
+          seenDependencies[artifactAddress] = libraryDependencies
+          librariesById.computeIfAbsent(artifactAddress) {
+            moduleLibraryFrom(library, androidProjectPathResolver, buildPathMap)
           }
-        createModuleDependency(
-          seenDependencies = seenDependencies,
-          projectInfo = projectInfo,
-          artifactAddress = identifier.library.key,
-          lintJar = identifier.library.lintJar,
-          artifact = artifact,
-          dependencies = identifier.dependencies
-        )
+        }
       }
     }
 
@@ -802,7 +610,10 @@ internal fun modelCacheV2Impl(
         if (!seenDependencies.contains(address)) {
           seenDependencies[address] = unknownLibrary.dependencies
           librariesById.computeIfAbsent(address) {
-            internedModels.getOrCreate(IdeUnknownLibraryImpl(unknownLibrary.library.key))
+            val ideLibrary = IdeUnknownLibraryImpl(unknownLibrary.library.key)
+            internedModels.internUnknownLibrary(LibraryIdentity.IdeLibraryModel(ideLibrary)) {
+              ideLibrary
+            }
           }
         }
       }
@@ -1565,7 +1376,6 @@ internal fun modelCacheV2Impl(
   }
 
   return object : ModelCache.V2 {
-    override val libraryLookup: (LibraryReference) -> IdeUnresolvedLibrary = internedModels::lookup
     override fun createLibraryTable(): IdeUnresolvedLibraryTableImpl = internedModels.createLibraryTable()
 
     override fun variantFrom(
@@ -1662,10 +1472,6 @@ internal fun Collection<com.android.builder.model.v2.ide.SyncIssue>.toV2SyncIssu
   }
 }
 
-private sealed class ArtifactRef
-private object KmpAndroidArtifactRef : ArtifactRef()
-private data class AndroidArtifactRef(val variantName: String, val isTestFixture: Boolean) : ArtifactRef()
-private data class NonAndroidAndroidArtifactRef(val artifactFile: File) : ArtifactRef()
 
 /**
  * AGP 8.2+ will return the absolute Gradle build path (which supports nested composite builds).
