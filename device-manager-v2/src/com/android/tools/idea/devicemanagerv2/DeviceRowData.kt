@@ -49,6 +49,9 @@ internal data class DeviceRowData(
 ) {
   init {
     checkNotNull(handle ?: template) { "Either template or handle must be set" }
+    // Reference these DataKeys so they get registered before we create any DeviceRowDatas
+    DEVICE_ROW_DATA_KEY
+    DEVICE_HANDLE_KEY
   }
 
   fun key() = handle ?: template!!

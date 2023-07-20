@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.deviceprovisioner
 
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceIcons
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.PhysicalDeviceProvisionerPlugin
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
@@ -69,3 +71,5 @@ class PhysicalDeviceProvisionerFactory : DeviceProvisionerFactory {
       deviceIcons = StudioDefaultDeviceIcons
     )
 }
+
+@JvmField val DEVICE_HANDLE_KEY = DataKey.create<DeviceHandle>("DeviceHandle")

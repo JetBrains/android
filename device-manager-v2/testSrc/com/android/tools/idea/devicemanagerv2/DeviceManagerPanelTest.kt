@@ -25,6 +25,7 @@ import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
 import icons.StudioIcons
@@ -198,5 +199,13 @@ class DeviceManagerPanelTest {
         }
       )
     fun createTemplate(name: String) = FakeDeviceTemplate(name)
+  }
+
+  @Test
+  fun dataKeysPresent() = runTestWithFixture {
+    val handle = createHandle("device")
+    deviceTable.addOrUpdateRow(DeviceRowData.create(handle, emptyList()))
+
+    assertThat(DataKey.allKeys().map { it.name }).containsAllOf("DeviceHandle", "DeviceRowData")
   }
 }
