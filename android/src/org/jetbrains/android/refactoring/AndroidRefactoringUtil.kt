@@ -26,6 +26,7 @@ import com.intellij.refactoring.migration.MigrationUtil
 import org.jetbrains.android.dom.resources.Style
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.android.refactoring.errorreporter.ErrorReporter
+import java.util.function.BiFunction
 import javax.swing.JCheckBox
 
 val DataContext.project: Project? get() = LangDataKeys.PROJECT.getData(this)
@@ -127,14 +128,14 @@ fun offerToCreateBackupAndRun(project: Project, title: String, runRefactoring: (
     "Backup project as Zip file",
     true,
     0, 0,
-    Messages.getWarningIcon()
-  ) { index: Int, checkbox: JCheckBox ->
-    when {
-      index != 0 -> RESULT_CANCEL
-      checkbox.isSelected -> RESULT_MIGRATE_WITH_BACKUP
-      else -> RESULT_MIGRATE
-    }
-  }
+    Messages.getWarningIcon(),
+    BiFunction { index: Int, checkbox: JCheckBox ->
+      when {
+        index != 0 -> RESULT_CANCEL
+        checkbox.isSelected -> RESULT_MIGRATE_WITH_BACKUP
+        else -> RESULT_MIGRATE
+      }
+    })
 
   when (okCancelResult) {
     RESULT_CANCEL -> return
