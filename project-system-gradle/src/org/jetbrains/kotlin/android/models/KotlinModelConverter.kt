@@ -71,6 +71,7 @@ import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependencyCoordinates
@@ -78,9 +79,6 @@ import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinResolvedBinaryDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinSourceDependency
 import org.jetbrains.kotlin.gradle.idea.tcs.extras.documentationClasspath
 import org.jetbrains.kotlin.gradle.idea.tcs.extras.sourcesClasspath
-import org.jetbrains.kotlin.idea.gradle.configuration.CachedArgumentsRestoring
-import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
-import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
 import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
 import org.jetbrains.kotlin.tooling.core.WeakInterner
@@ -376,11 +374,8 @@ class KotlinModelConverter {
       )
     }
 
-    // TODO(b/288062009): Use the new compiler arguments infra when we migrate to 1.9.0
-    val mainKotlinCompilerOptions = CachedArgumentsRestoring.restoreExtractedArgs(
-      mainKotlinCompilation.cachedArgsInfo as CachedExtractedArgsInfo,
-      CompilerArgumentsCacheMergeManager.compilerArgumentsCacheHolder
-    ).currentCompilerArguments as K2JVMCompilerArguments
+    val mainKotlinCompilerOptions =
+      parseCommandLineArguments<K2JVMCompilerArguments>(mainKotlinCompilation.compilerArguments ?: emptyList())
 
     val mainBuildInformation = IdeBuildTasksAndOutputInformationImpl(
       assembleTaskName = mainAndroidCompilation.assembleTaskName,
