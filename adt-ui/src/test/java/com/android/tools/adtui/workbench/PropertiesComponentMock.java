@@ -130,4 +130,10 @@ public class PropertiesComponentMock extends PropertiesComponent {
   public void setList(@NotNull String name, @Nullable Collection<String> values) {
     setValues(name, values != null ? values.toArray(ArrayUtilRt.EMPTY_STRING_ARRAY) : null);
   }
+
+  @Override
+  public boolean updateValue(@NotNull @NonNls String name, boolean newValue) {
+    var val = String.valueOf(newValue);
+    return !val.equals(myProperties.setProperty(name, val));
+  }
 }
