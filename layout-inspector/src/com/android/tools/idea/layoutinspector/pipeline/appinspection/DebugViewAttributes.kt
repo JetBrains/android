@@ -153,6 +153,8 @@ constructor(val usePerDeviceSettings: () -> Boolean = { shouldUsePerDeviceSettin
           "<br/>" +
           encoder.escape("to: \"${putCommand.value}\"") +
           "<br/><br/>" +
+          "Go to Developer Options on your device and enable \"View Attribute Inspection\"" +
+          "<br/><br/>" +
           encoder.escape("Error: $errorMessage")
       AndroidNotification.getInstance(project)
         .showBalloon("Could not enable resolution traces", text, NotificationType.WARNING)
