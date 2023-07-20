@@ -56,7 +56,6 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
@@ -202,12 +201,15 @@ object AndroidStudioUsageTracker {
   }
 
   private fun reportEnabledPlugins() {
-    val plugins = PluginManagerCore.getLoadedPlugins()
+    val plugins = PluginManagerCore.loadedPlugins
     val pluginInfoProto = IdePluginInfo.newBuilder()
 
     for (plugin in plugins) {
-      if (!plugin.isEnabled) continue
-      val id = plugin.pluginId?.idString ?: continue
+      if (!plugin.isEnabled) {
+        continue
+      }
+
+      val id = plugin.pluginId.idString
 
       val pluginProto = IdePlugin.newBuilder()
       pluginProto.id = id.take(256)
