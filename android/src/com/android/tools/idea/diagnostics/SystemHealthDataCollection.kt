@@ -22,7 +22,7 @@ import com.google.wireless.android.sdk.stats.SystemHealthEvent
 import com.google.wireless.android.sdk.stats.SystemHealthEvent.DeadlockStatus
 import com.google.wireless.android.sdk.stats.SystemHealthEvent.LowMemoryWarningType
 import com.intellij.diagnostic.IdePerformanceListener
-import com.intellij.diagnostic.PerformanceWatcherImpl
+import com.intellij.diagnostic.PerformanceWatcher
 import com.intellij.ide.AppLifecycleListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -119,7 +119,7 @@ class SystemHealthDataCollection: Disposable {
     }
 
     fun uiFreezeStarted() {
-      val unresponsiveInterval = PerformanceWatcherImpl.getInstance().unresponsiveInterval
+      val unresponsiveInterval = PerformanceWatcher.getInstance().unresponsiveInterval
       val freezeStartTime = clock.milliTime() - unresponsiveInterval
       dedicatedThreadExecutor.submit { freezeStarted(unresponsiveInterval.toLong(), freezeStartTime) }
     }
