@@ -39,7 +39,7 @@ public class ComponentStack {
   }
 
   public <T> void registerServiceInstance(@NotNull Class<T> key, @NotNull T instance) {
-    T oldInstance = myComponentManager.getService(key, false);
+    T oldInstance = myComponentManager.getServiceIfCreated(key);
     if (oldInstance == null) {
       ServiceContainerUtil.registerServiceInstance(myComponentManager, key, instance);
       myServices.push(new ComponentItem(key, oldInstance));
@@ -52,14 +52,14 @@ public class ComponentStack {
   public <T> void registerComponentInstance(@NotNull Class<T> key, @NotNull T instance) {
     Object old = myComponentManager.getComponent(key);
     myComponents.push(new ComponentItem(key, old));
-    ServiceContainerUtil.registerComponentInstance(myComponentManager, key, instance);
+    ServiceContainerUtil.registerComponentInstance(myComponentManager, key, instance, myDisposable);
   }
 
   public void restore() {
     Disposer.dispose(myDisposable);
     while (!myComponents.isEmpty()) {
       ComponentItem component = myComponents.pop();
-      ServiceContainerUtil.registerComponentInstance(myComponentManager, component.key, component.instance);
+      ServiceContainerUtil.registerComponentInstance(myComponentManager, component.key, component.instance, null);
     }
     while (!myServices.isEmpty()) {
       myComponentManager.unregisterComponent(myServices.pop().key);
