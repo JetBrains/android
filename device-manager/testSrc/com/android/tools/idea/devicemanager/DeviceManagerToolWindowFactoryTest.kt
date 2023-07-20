@@ -18,14 +18,17 @@ package com.android.tools.idea.devicemanager
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDevicePanel
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDevicePanel
 import com.android.tools.idea.devicemanager.virtualtab.VirtualDeviceWatcher
+import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.table.JBTable
+import com.jetbrains.rd.generator.nova.fail
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -150,5 +153,13 @@ class DeviceManagerToolWindowFactoryTest {
     factory.createToolWindowContent(project, toolWindow2)
     val tabs2 = toolWindow2.contentManager.contents[0].component as JBTabbedPane
     assertEquals("Physical", tabs2.getTitleAt(tabs2.selectedIndex))
+  }
+
+  @Test
+  fun isLibraryToolWindow() {
+    val toolWindow = LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "Device Manager" }
+                     ?: fail("Tool window not found")
+
+    assertEquals(toolWindow.librarySearchClass, AndroidEnvironmentChecker::class.qualifiedName)
   }
 }

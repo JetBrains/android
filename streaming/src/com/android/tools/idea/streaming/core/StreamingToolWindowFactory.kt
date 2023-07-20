@@ -17,7 +17,6 @@ package com.android.tools.idea.streaming.core
 
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToolWindowWindowAction
@@ -48,8 +47,7 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   }
 
   override fun isApplicable(project: Project): Boolean {
-    return isAndroidEnvironment(project) &&
-           (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get())
+    return (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get())
   }
 
   private fun canLaunchEmulator(): Boolean =

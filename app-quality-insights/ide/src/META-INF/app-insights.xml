@@ -16,9 +16,11 @@
 <idea-plugin>
   <depends>org.intellij.intelliLang</depends>
   <extensions defaultExtensionNs="com.intellij">
-    <toolWindow id="App Quality Insights"
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <library.toolWindow id="App Quality Insights"
                 anchor="bottom"
                 icon="StudioIcons.Shell.ToolWindows.APP_QUALITY_INSIGHTS"
+                librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                 factoryClass="com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory"
                 doNotActivateOnStart="false"/>
     <externalAnnotator language="JAVA" implementationClass="com.android.tools.idea.insights.inspection.AppInsightsExternalAnnotator"/>

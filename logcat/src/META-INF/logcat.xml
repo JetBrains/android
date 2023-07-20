@@ -16,11 +16,13 @@
 
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <toolWindow
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <library.toolWindow
         id="Logcat"
         anchor="bottom"
         icon="StudioIcons.Shell.ToolWindows.LOGCAT"
         canCloseContents="true"
+        librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
         factoryClass="com.android.tools.idea.logcat.LogcatToolWindowFactory"
     />
     <fileType

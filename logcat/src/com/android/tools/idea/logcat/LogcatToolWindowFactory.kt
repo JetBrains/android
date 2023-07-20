@@ -19,7 +19,6 @@ import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.isAndroidEnvironment
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
 import com.android.tools.idea.logcat.devices.Device
@@ -139,8 +138,6 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   }
 
   override fun shouldCreateNewTabWhenEmpty() = !insideShowLogcatListener
-
-  override fun isApplicable(project: Project) = isAndroidEnvironment(project)
 
   override fun generateTabName(tabNames: Set<String>) =
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }

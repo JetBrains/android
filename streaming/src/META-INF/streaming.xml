@@ -22,11 +22,13 @@
 
     <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 
-    <toolWindow id="Running Devices"
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <library.toolWindow id="Running Devices"
                 anchor="right"
                 secondary="true"
                 canCloseContents="true"
                 icon="StudioIcons.Shell.ToolWindows.EMULATOR"
+                librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                 factoryClass="com.android.tools.idea.streaming.core.StreamingToolWindowFactory"/>
     <notificationGroup id="Running Devices Messages"
                        displayType="BALLOON"

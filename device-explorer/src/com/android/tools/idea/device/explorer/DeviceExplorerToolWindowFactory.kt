@@ -27,7 +27,6 @@ import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessSer
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewImpl
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.isAndroidEnvironment
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
@@ -38,7 +37,7 @@ import java.nio.file.Path
 class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
 
   override fun isApplicable(project: Project) =
-    StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()  && isAndroidEnvironment(project)
+    StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER)

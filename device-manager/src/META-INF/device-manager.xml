@@ -16,9 +16,11 @@
 <idea-plugin>
   <depends optional="true" config-file="device-manager-androidstudio.xml">com.intellij.modules.androidstudio</depends>
   <extensions defaultExtensionNs="com.intellij">
-    <toolWindow id="Device Manager"
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <library.toolWindow id="Device Manager"
                 anchor="right"
                 icon="StudioIcons.Shell.ToolWindows.DEVICE_MANAGER"
+                librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                 factoryClass="com.android.tools.idea.devicemanager.DeviceManagerToolWindowFactory"/>
 
     <applicationService serviceImplementation="com.android.tools.idea.devicemanager.virtualtab.VirtualTabPersistentStateComponent" />
