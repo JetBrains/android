@@ -42,7 +42,6 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.fir.utils.addImportToFile
 import org.jetbrains.kotlin.analysis.api.symbols.KtCallableSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassOrObjectSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KtNamedSymbol
@@ -52,6 +51,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.idea.base.fir.codeInsight.HLIndexHelper
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.base.psi.imports.addImport
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
@@ -429,7 +429,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       }
       val ktFile = context.file as KtFile
       if (isK2Plugin()) {
-        addImportToFile(context.project, ktFile, FqName(COMPOSE_MODIFIER_FQN))
+        ktFile.addImport(FqName(COMPOSE_MODIFIER_FQN))
       } else {
         val modifierDescriptor = ktFile.resolveImportReference(FqName(COMPOSE_MODIFIER_FQN)).singleOrNull()
         modifierDescriptor?.let { ImportInsertHelper.getInstance(context.project).importDescriptor(ktFile, it) }
