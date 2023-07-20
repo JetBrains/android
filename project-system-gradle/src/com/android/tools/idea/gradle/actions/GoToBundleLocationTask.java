@@ -290,7 +290,7 @@ public class GoToBundleLocationTask {
 
     @Override
     protected void execute(@NotNull Project project) {
-      ToolWindow tw = ActionCenter.getToolwindow(project);
+      ToolWindow tw = ActionCenter.getToolWindow(project);
       if (tw != null) {
         tw.activate(null, false);
       }
