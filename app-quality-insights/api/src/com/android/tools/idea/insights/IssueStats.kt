@@ -32,7 +32,9 @@ const val MINIMUM_PERCENTAGE_TO_SHOW = 10.0
 private const val OTHER_GROUP = "Other"
 
 /** Stats of an [Issue]. */
-data class IssueStats<T : Number>(val topValue: String?, val groups: List<StatsGroup<T>>)
+data class IssueStats<T : Number>(val topValue: String?, val groups: List<StatsGroup<T>>) {
+  fun isEmpty() = topValue == null && groups.isEmpty()
+}
 
 /** A named group of [DataPoint]s. */
 data class StatsGroup<T : Number>(
@@ -64,8 +66,8 @@ fun List<Double>.resolveElementCountBy(minElementCount: Int, threshold: Double):
 fun List<WithCount<OperatingSystemInfo>>.summarizeOsesFromRawDataPoints(
   minGroupSize: Int,
   minPercentage: Double
-): IssueStats<Double>? {
-  if (isEmpty()) return null
+): IssueStats<Double> {
+  if (isEmpty()) return IssueStats(null, emptyList())
 
   val totalEvents = sumOf { it.count }
   val topOs = first().value.displayName
@@ -111,8 +113,8 @@ fun List<WithCount<OperatingSystemInfo>>.summarizeOsesFromRawDataPoints(
 fun List<WithCount<Device>>.summarizeDevicesFromRawDataPoints(
   minGroupSize: Int,
   minPercentage: Double
-): IssueStats<Double>? {
-  if (isEmpty()) return null
+): IssueStats<Double> {
+  if (isEmpty()) return IssueStats(null, emptyList())
 
   val topDevice = first().value
   val totalEvents = sumOf { it.count }

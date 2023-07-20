@@ -37,10 +37,14 @@ import javax.swing.JPanel
 import javax.swing.SwingUtilities
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.VisibleForTesting
 
 private const val NOTHING_SELECTED_LABEL = "Select an issue."
+private const val NOTHING_SELECTED_SECONDARY_LABEL = "Select an issue to view the details."
+private const val EMPTY_DETAILS_LABEL = "Detailed stats unavailable."
 private const val MAIN_CARD = "main"
 private const val EMPTY_CARD = "empty"
 
@@ -83,31 +87,36 @@ class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<App
         add(Box.createGlue())
         components.forEach { (it as JComponent).alignmentX = Component.LEFT_ALIGNMENT }
         scope.launch {
-          var currentStats: DetailedIssueStats? = null
-          insightsState.collect { state ->
-            when (val stats = state.currentIssueDetails) {
-              is LoadingState.Loading -> {
-                isDataAvailable = false
-                emptyText.text = "Loading..."
-              }
-              is LoadingState.Ready -> {
-                if (stats.value == null) {
+          insightsState
+            .map { it.currentIssueDetails }
+            .distinctUntilChanged()
+            .collect { statsState ->
+              when (statsState) {
+                is LoadingState.Loading -> {
                   isDataAvailable = false
-                  setEmptyText()
-                } else {
-                  isDataAvailable = true
-                  if (currentStats != stats.value) {
-                    currentStats = stats.value
-                    updateDistributions(stats.value)
+                  emptyText.text = "Loading..."
+                }
+                is LoadingState.Ready -> {
+                  val stats = statsState.value
+                  if (stats == null) {
+                    isDataAvailable = false
+                    setSelectAnIssueText()
+                  } else {
+                    if (stats.osStats.isEmpty() && stats.deviceStats.isEmpty()) {
+                      isDataAvailable = false
+                      setBlankDistributionText()
+                    } else {
+                      isDataAvailable = true
+                      updateDistributions(stats)
+                    }
                   }
                 }
-              }
-              is LoadingState.Failure -> {
-                isDataAvailable = false
-                emptyText.text = stats.message ?: "Unknown failure"
+                is LoadingState.Failure -> {
+                  isDataAvailable = false
+                  emptyText.text = statsState.message ?: "Unknown failure"
+                }
               }
             }
-          }
         }
       }
     val mainPanel = JPanel(BorderLayout())
@@ -120,24 +129,22 @@ class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<App
     (layout as CardLayout).show(this, EMPTY_CARD)
   }
 
-  private fun updateDistributions(stats: DetailedIssueStats?) {
+  private fun updateDistributions(stats: DetailedIssueStats) {
     deviceDistributionPanel.removeAll()
     osDistributionPanel.removeAll()
-    if (stats == null) {
-      return
-    }
     deviceDistributionPanel.updateDistribution(stats.deviceStats, "device")
     osDistributionPanel.updateDistribution(stats.osStats, "Android version")
   }
 
-  private fun setEmptyText() {
+  private fun setSelectAnIssueText() {
     emptyText.clear()
     emptyText.appendText(NOTHING_SELECTED_LABEL, EMPTY_STATE_TITLE_FORMAT)
-    emptyText.appendSecondaryText(
-      "Select an issue to view the details.",
-      EMPTY_STATE_TEXT_FORMAT,
-      null
-    )
+    emptyText.appendSecondaryText(NOTHING_SELECTED_SECONDARY_LABEL, EMPTY_STATE_TEXT_FORMAT, null)
+  }
+
+  private fun setBlankDistributionText() {
+    emptyText.clear()
+    emptyText.appendText(EMPTY_DETAILS_LABEL, EMPTY_STATE_TITLE_FORMAT)
   }
 
   override fun updateUI() {

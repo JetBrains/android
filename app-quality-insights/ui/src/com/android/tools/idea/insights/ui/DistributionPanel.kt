@@ -37,36 +37,37 @@ class DistributionPanel : JPanel(TabularLayout("Fit,Fit,*,Fit")) {
         JLabel("No data available").apply { border = emptyBorder },
         TabularLayout.Constraint(stats.groups.size, 0, 4)
       )
-    }
-    stats.groups.forEachIndexed { index, group ->
-      val nameLabel = JLabel(group.groupName).apply { border = emptyBorder }
-      add(nameLabel, TabularLayout.Constraint(index, 0))
-      val percent = group.percentage.roundToInt()
-      val percentLabel = JLabel("$percent%").apply { border = emptyBorder }
-      add(percentLabel, TabularLayout.Constraint(index, 1))
+    } else {
+      stats.groups.forEachIndexed { index, group ->
+        val nameLabel = JLabel(group.groupName).apply { border = emptyBorder }
+        add(nameLabel, TabularLayout.Constraint(index, 0))
+        val percent = group.percentage.roundToInt()
+        val percentLabel = JLabel("$percent%").apply { border = emptyBorder }
+        add(percentLabel, TabularLayout.Constraint(index, 1))
+        add(
+          JProgressBar(0, 100).apply {
+            value = percent
+            isOpaque = false
+            border = emptyBorder
+          },
+          TabularLayout.Constraint(index, 2)
+        )
+        val infoLabel = JLabel(StudioIcons.Common.INFO)
+        add(infoLabel, TabularLayout.Constraint(index, 3))
+        val tooltip = HelpTooltip()
+        tooltip.setTitle("${group.groupName} (${group.percentage.roundToInt()})")
+        tooltip.setDescription(
+          group.breakdown.joinToString("<br>", "<html>", "</html>") { (name, value) ->
+            "${value.roundToInt()}% ($name)"
+          }
+        )
+        tooltip.installOn(infoLabel)
+      }
       add(
-        JProgressBar(0, 100).apply {
-          value = percent
-          isOpaque = false
-          border = emptyBorder
-        },
-        TabularLayout.Constraint(index, 2)
+        JLabel("Most affected $category: ${stats.topValue}").apply { border = emptyBorder },
+        TabularLayout.Constraint(stats.groups.size, 0, 4)
       )
-      val infoLabel = JLabel(StudioIcons.Common.INFO)
-      add(infoLabel, TabularLayout.Constraint(index, 3))
-      val tooltip = HelpTooltip()
-      tooltip.setTitle("${group.groupName} (${group.percentage.roundToInt()})")
-      tooltip.setDescription(
-        group.breakdown.joinToString("<br>", "<html>", "</html>") { (name, value) ->
-          "${value.roundToInt()}% ($name)"
-        }
-      )
-      tooltip.installOn(infoLabel)
     }
-    add(
-      JLabel("Most affected $category: ${stats.topValue}").apply { border = emptyBorder },
-      TabularLayout.Constraint(stats.groups.size, 0, 4)
-    )
     revalidate()
   }
 }

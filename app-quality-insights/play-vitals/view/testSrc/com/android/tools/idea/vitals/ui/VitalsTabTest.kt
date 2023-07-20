@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.DEFAULT_FETCHED_DEVICES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_OSES
 import com.android.tools.idea.insights.DEFAULT_FETCHED_PERMISSIONS
 import com.android.tools.idea.insights.DEFAULT_FETCHED_VERSIONS
+import com.android.tools.idea.insights.DetailedIssueStats
 import com.android.tools.idea.insights.FAKE_6_DAYS_AGO
 import com.android.tools.idea.insights.ISSUE1
 import com.android.tools.idea.insights.ISSUE1_DETAILS
@@ -34,6 +35,7 @@ import com.android.tools.idea.insights.analytics.TestAppInsightsTracker
 import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableView
 import com.android.tools.idea.insights.ui.DistributionPanel
+import com.android.tools.idea.insights.ui.DistributionsContainerPanel
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
 import com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction
 import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
@@ -55,6 +57,7 @@ import javax.swing.Box
 import javax.swing.JLabel
 import javax.swing.JProgressBar
 import kotlin.math.roundToInt
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -92,12 +95,15 @@ class VitalsTabTest {
     assertThat(index).isEqualTo(componentCount)
   }
 
+  private fun createTab() =
+    VitalsTab(controllerRule.controller, projectRule.project, clock, TestAppInsightsTracker).also {
+      Disposer.register(controllerRule.disposable, it)
+    }
+
   @Test
   fun `tab shows correct information on startup`() =
     runBlocking(AndroidDispatchers.uiThread) {
-      val tab =
-        VitalsTab(controllerRule.controller, projectRule.project, clock, TestAppInsightsTracker)
-      Disposer.register(controllerRule.disposable, tab)
+      val tab = createTab()
 
       controllerRule.consumeInitialState(
         LoadingState.Ready(
@@ -226,5 +232,86 @@ class VitalsTabTest {
 
       deviceDistribution.assertContent(ISSUE1_DETAILS.deviceStats, "device")
       osDistribution.assertContent(ISSUE1_DETAILS.osStats, "Android version")
+    }
+
+  @Test
+  fun `empty stats should show empty text in place of distribution panel`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val tab = createTab()
+      val fakeUi = FakeUi(tab)
+      controllerRule.consumeInitialState(
+        LoadingState.Ready(
+          IssueResponse(
+            listOf(ISSUE1),
+            listOf(DEFAULT_FETCHED_VERSIONS),
+            listOf(DEFAULT_FETCHED_DEVICES),
+            listOf(DEFAULT_FETCHED_OSES),
+            DEFAULT_FETCHED_PERMISSIONS
+          )
+        ),
+        detailsState =
+          LoadingState.Ready(
+            DetailedIssueStats(IssueStats(null, emptyList()), IssueStats(null, emptyList()))
+          )
+      )
+
+      with(fakeUi.findComponent<DistributionsContainerPanel>()!!.emptyText) {
+        waitForCondition { text == "Detailed stats unavailable." }
+        assertThat(isStatusVisible).isTrue()
+      }
+    }
+
+  @Test
+  fun `empty device stats but non-empty os stats result in empty device section`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val tab = createTab()
+      val fakeUi = FakeUi(tab)
+      controllerRule.consumeInitialState(
+        LoadingState.Ready(
+          IssueResponse(
+            listOf(ISSUE1),
+            listOf(DEFAULT_FETCHED_VERSIONS),
+            listOf(DEFAULT_FETCHED_DEVICES),
+            listOf(DEFAULT_FETCHED_OSES),
+            DEFAULT_FETCHED_PERMISSIONS
+          )
+        ),
+        detailsState =
+          LoadingState.Ready(
+            DetailedIssueStats(IssueStats(null, emptyList()), ISSUE1_DETAILS.osStats)
+          )
+      )
+
+      waitForCondition { fakeUi.findComponent<JLabel> { it.text == "No data available" } != null }
+      fakeUi
+        .findAllComponents<DistributionPanel>()[1]
+        .assertContent(ISSUE1_DETAILS.osStats, "Android version")
+    }
+
+  @Test
+  fun `empty os stats but non-empty device stats result in empty os section`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val tab = createTab()
+      val fakeUi = FakeUi(tab)
+      controllerRule.consumeInitialState(
+        LoadingState.Ready(
+          IssueResponse(
+            listOf(ISSUE1),
+            listOf(DEFAULT_FETCHED_VERSIONS),
+            listOf(DEFAULT_FETCHED_DEVICES),
+            listOf(DEFAULT_FETCHED_OSES),
+            DEFAULT_FETCHED_PERMISSIONS
+          )
+        ),
+        detailsState =
+          LoadingState.Ready(
+            DetailedIssueStats(ISSUE1_DETAILS.deviceStats, IssueStats(null, emptyList()))
+          )
+      )
+
+      waitForCondition { fakeUi.findComponent<JLabel> { it.text == "No data available" } != null }
+      fakeUi
+        .findAllComponents<DistributionPanel>()[0]
+        .assertContent(ISSUE1_DETAILS.deviceStats, "device")
     }
 }

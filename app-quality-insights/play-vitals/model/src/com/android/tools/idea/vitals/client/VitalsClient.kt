@@ -168,11 +168,7 @@ class VitalsClient(
             MINIMUM_PERCENTAGE_TO_SHOW
           )
       }
-
-      val (devicesResult, osesResult) = devices.await() to oses.await()
-      if (devicesResult == null || osesResult == null) {
-        failure
-      } else LoadingState.Ready(DetailedIssueStats(devicesResult, osesResult))
+      LoadingState.Ready(DetailedIssueStats(devices.await(), oses.await()))
     }
   }
 
