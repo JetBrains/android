@@ -24,7 +24,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.DumbService.DUMB_MODE
+import com.intellij.openapi.project.DumbService.Companion.DUMB_MODE
 import com.intellij.psi.PsiFile
 import java.util.concurrent.atomic.AtomicBoolean
 

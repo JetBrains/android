@@ -374,7 +374,7 @@ internal class ComposePreviewViewImpl(
       ProjectStatus.Building -> workbench.showLoading(message("panel.building"))
       ProjectStatus.NotReady -> workbench.showLoading(message("panel.initializing"))
       else -> {
-        if (DumbService.getInstance(project).isDumb())
+        if (DumbService.getInstance(project).isDumb)
           workbench.showLoading(message("panel.indexing"))
       }
     }
