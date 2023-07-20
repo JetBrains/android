@@ -188,33 +188,41 @@ class PreviewRefreshManager(private val scope: CoroutineScope) {
   }
 
   fun requestRefresh(request: PreviewRefreshRequest) {
-    requestsLock.withLock {
-      // If the running request is of the same client and has lower than
-      // or equal priority to the new one, then it should be cancelled.
-      runningRequest?.let {
-        if (it.clientId == request.clientId && it <= request) {
-          runningJob!!.cancel(
-            CancellationException(
-              "Outdated, a refresh was replaced by a newer one (${request.clientId})"
-            )
-          )
-        }
-      }
+    scope
+      .launch(AndroidDispatchers.workerThread) {
+        requestsLock.withLock {
+          // If the running request is of the same client and has lower than
+          // or equal priority to the new one, then it should be cancelled.
+          runningRequest?.let {
+            if (it.clientId == request.clientId && it <= request) {
+              runningJob!!.cancel(
+                CancellationException(
+                  "Outdated, a refresh was replaced by a newer one (${request.clientId})"
+                )
+              )
+            }
+          }
 
-      val currentPendingRequestOfClient = pendingRequestsPerClient[request.clientId]
-      // If the pending request of the request's client has higher priority,
-      // then skip the new one, otherwise skip the old one.
-      if (currentPendingRequestOfClient != null && currentPendingRequestOfClient > request) {
-        request.onSkip(currentPendingRequestOfClient)
-      } else {
-        currentPendingRequestOfClient?.let {
-          it.onSkip(request)
-          allPendingRequests.remove(it)
+          val currentPendingRequestOfClient = pendingRequestsPerClient[request.clientId]
+          // If the pending request of the request's client has higher priority,
+          // then skip the new one, otherwise skip the old one.
+          if (currentPendingRequestOfClient != null && currentPendingRequestOfClient > request) {
+            request.onSkip(currentPendingRequestOfClient)
+          } else {
+            currentPendingRequestOfClient?.let {
+              it.onSkip(request)
+              allPendingRequests.remove(it)
+            }
+            pendingRequestsPerClient[request.clientId] = request
+            allPendingRequests.add(request)
+          }
+          requestsFlow.tryEmit(Unit)
         }
-        pendingRequestsPerClient[request.clientId] = request
-        allPendingRequests.add(request)
       }
-      requestsFlow.tryEmit(Unit)
-    }
+      .invokeOnCompletion {
+        if (it != null) {
+          log.warn("Failure while trying to enqueue a new refresh request ($request)", it)
+        }
+      }
   }
 }
