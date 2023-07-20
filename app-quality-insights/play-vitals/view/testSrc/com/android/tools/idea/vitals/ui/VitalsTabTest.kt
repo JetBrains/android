@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.vitals.ui
 
-import ai.grazie.utils.mpp.runBlocking
 import com.android.testutils.time.FakeClock
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.findDescendant
@@ -53,6 +52,7 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
+import kotlinx.coroutines.runBlocking
 import javax.swing.Box
 import javax.swing.JLabel
 import javax.swing.JProgressBar
