@@ -93,7 +93,8 @@
           "interactive-preview.svg": "studio/icons/compose/toolbar/interactive-preview.svg",
           "run-configuration.svg": "studio/icons/compose/toolbar/run-configuration.svg",
           "run-on-device.svg": "studio/icons/compose/toolbar/run-on-device.svg",
-          "stop-interactive-mode.svg": "studio/icons/compose/toolbar/stop-interactive-mode.svg"
+          "stop-interactive-mode.svg": "studio/icons/compose/toolbar/stop-interactive-mode.svg",
+          "ui-check.svg": "studio/icons/compose/toolbar/ui-check.svg"
         }
       },
       "database-inspector": {
@@ -663,7 +664,8 @@
         },
         "status-bar": {
           "adb-managed.svg": "studio/icons/shell/status-bar/adb-managed.svg",
-          "adb-unmanaged.svg": "studio/icons/shell/status-bar/adb-unmanaged.svg"
+          "adb-unmanaged.svg": "studio/icons/shell/status-bar/adb-unmanaged.svg",
+          "essentials-mode.svg": "studio/icons/shell/status-bar/essentials-mode.svg"
         },
         "telemetry": {
           "send-feedback.svg": "studio/icons/shell/telemetry/send-feedback.svg"
