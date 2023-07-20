@@ -116,10 +116,11 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
 
   /**
    * Indicates whether the preview is in its default mode by opposition to one of the special modes
-   * (interactive, animation, UI check, essential).
+   * (interactive, animation, UI check). Both [PreviewMode.Default] and [PreviewMode.Gallery] are
+   * normal modes.
    */
   val isInNormalMode: Boolean
-    get() = mode is PreviewMode.Default
+    get() = mode is PreviewMode.Default || mode is PreviewMode.Gallery
 
   val isUiCheckPreview: Boolean
     get() = mode is PreviewMode.UiCheck
