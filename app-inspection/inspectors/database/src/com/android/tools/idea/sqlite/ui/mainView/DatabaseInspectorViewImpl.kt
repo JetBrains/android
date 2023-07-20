@@ -65,7 +65,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
   private val viewContext = SqliteViewContext(leftPanelView.component)
   private val workBench: WorkBench<SqliteViewContext> =
     WorkBench(project, "Database Inspector", null, parentDisposable)
-  private val tabs = BorderedTabs(project, IdeFocusManager.getInstance(project), project)
+  private val tabs = BorderedTabs(project, project)
 
   override val component: JComponent = workBench
 
@@ -84,8 +84,10 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
-      isTabDraggingEnabled = true
-      setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(5, 10, 5, 10)) }
+      setTabDraggingEnabled(true)
+      setUiDecorator(object : UiDecorator {
+        override fun getDecoration() = UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 10))
+      })
       addTabMouseListener(
         object : MouseAdapter() {
           override fun mousePressed(e: MouseEvent) {
@@ -290,8 +292,8 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
    * The [JBTabsBorder] used by [JBTabsImpl] does not add a border to the first tab, if there is
    * only one tab.
    */
-  private class BorderedTabs(project: Project, focusManager: IdeFocusManager, parent: Disposable) :
-    JBTabsImpl(project, focusManager, parent) {
+  private class BorderedTabs(project: Project, parent: Disposable) :
+    JBTabsImpl(project, parent) {
     override fun createTabBorder() = JBEditorTabsBorder(this)
   }
 }
