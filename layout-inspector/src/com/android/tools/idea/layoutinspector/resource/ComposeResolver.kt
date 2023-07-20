@@ -46,9 +46,6 @@ open class ComposeResolver(val project: Project) {
   @Slow
   protected fun findKotlinFile(fileName: String, packageNameMatcher: (String) -> Boolean): KtFile? {
     val files = FilenameIndex.getFilesByName(project, fileName, GlobalSearchScope.allScope(project))
-    if (files.size == 1) {
-      return files[0] as? KtFile
-    }
     return files.asSequence().filterIsInstance<PsiClassOwner>().find {
       packageNameMatcher(it.packageName)
     } as? KtFile
