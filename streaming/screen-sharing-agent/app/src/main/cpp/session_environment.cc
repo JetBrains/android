@@ -57,8 +57,11 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
     Jni jni = Jvm::GetJni();
     JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
     if (!display_token.IsNull()) {
+      Log::D("Turning off display");
       SurfaceControl::SetDisplayPowerMode(jni, display_token, DisplayPowerMode::POWER_MODE_OFF);
       restore_normal_display_power_mode_ = true;
+    } else {
+      Log::W("Unable to get display token to turn off display");
     }
   }
 

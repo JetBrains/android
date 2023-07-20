@@ -62,9 +62,12 @@ JObject SurfaceControl::GetInternalDisplayToken(Jni jni) {
           Agent::api_level() >= 33 ?
               surface_control_class_.FindStaticMethod(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
           Agent::api_level() >= 29 ?
-          surface_control_class_.GetStaticMethod(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
-          surface_control_class_.GetStaticMethod(jni, "getBuiltInDisplay", "(I)Landroid/os/IBinder;");
+              surface_control_class_.GetStaticMethod(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
+              surface_control_class_.GetStaticMethod(jni, "getBuiltInDisplay", "(I)Landroid/os/IBinder;");
       if (get_internal_display_token_method_ == nullptr) {
+        if (Agent::api_level() <= 33) {
+          Log::W("Unable to get display token");
+        }
         get_internal_display_token_method_not_available_ = true;
         return JObject();
       }
@@ -141,6 +144,7 @@ void SurfaceControl::SetDisplayPowerMode(Jni jni, jobject display_token, Display
       set_display_power_mode_method_ = surface_control_class_.GetStaticMethod(jni, "setDisplayPowerMode", "(Landroid/os/IBinder;I)V");
     }
   }
+  Log::D("Calling setDisplayPowerMode(..., %d)", mode);
   surface_control_class_.CallStaticVoidMethod(jni, set_display_power_mode_method_, display_token, mode);
 }
 
