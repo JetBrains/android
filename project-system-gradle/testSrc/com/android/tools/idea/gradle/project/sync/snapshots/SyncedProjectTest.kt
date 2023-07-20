@@ -31,8 +31,8 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.CoreIconManager
 import com.intellij.ui.IconManager
+import com.intellij.ui.icons.CoreIconManager
 import org.junit.Ignore
 import org.junit.Test
 import java.io.File

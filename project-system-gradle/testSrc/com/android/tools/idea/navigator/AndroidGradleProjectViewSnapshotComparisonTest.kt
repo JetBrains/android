@@ -39,8 +39,8 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.CoreIconManager
 import com.intellij.ui.IconManager
+import com.intellij.ui.icons.CoreIconManager
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestName
