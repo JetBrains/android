@@ -61,6 +61,7 @@ import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBList
+import com.intellij.util.Consumer
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
@@ -270,12 +271,12 @@ internal class FilterTextField(
     val popup = PopupChooserBuilder(list)
       .setMovable(false)
       .setRequestFocus(true)
-      .setItemChosenCallback {
+      .setItemChosenCallback(Consumer {
         (it as? Item)?.let { item ->
           text = item.filter
           isFavorite = item.isFavorite
         }
-      }
+      })
       .setSelectedValue(Item(text, isFavorite, count = null, filterParser), true)
       .createPopup()
     Disposer.register(popup, popupDisposable)
