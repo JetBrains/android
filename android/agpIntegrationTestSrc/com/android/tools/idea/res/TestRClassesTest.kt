@@ -477,19 +477,16 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
 
-    // TODO(b/265199079): This should not actually throw, and instead should execute the goto action.
-    assertThrows(NullPointerException::class.java) {
-      CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
-    }
+    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
 
-    //// Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
-    //assertThat(fileEditorManager.openFiles).hasLength(2)
-    //assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/androidTest/res/values/strings.xml")
-    //
-    //val selectedEditor = fileEditorManager.selectedTextEditor!!
-    //val textAfterCaret =
-    //  selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
-    //assertThat(textAfterCaret).startsWith("appTestResource'>app test resource</string>")
+    // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
+    assertThat(fileEditorManager.openFiles).hasLength(2)
+    assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/androidTest/res/values/strings.xml")
+
+    val selectedEditor = fileEditorManager.selectedTextEditor!!
+    val textAfterCaret =
+      selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
+    assertThat(textAfterCaret).startsWith("appTestResource'>app test resource</string>")
   }
 
   fun testNavigateToDefinitionKotlinToAppTestResource() {
@@ -514,19 +511,16 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
     assertThat(fileEditorManager.openFiles).hasLength(1)
     assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
 
-    // TODO(b/265199079): This should not actually throw, and instead should execute the goto action.
-    assertThrows(NullPointerException::class.java) {
-      CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
-    }
+    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
 
-    //// Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
-    //assertThat(fileEditorManager.openFiles).hasLength(2)
-    //assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/androidTest/res/values/strings.xml")
-    //
-    //val selectedEditor = fileEditorManager.selectedTextEditor!!
-    //val textAfterCaret =
-    //  selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
-    //assertThat(textAfterCaret).startsWith("appTestResource'>app test resource</string>")
+    // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
+    assertThat(fileEditorManager.openFiles).hasLength(2)
+    assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/androidTest/res/values/strings.xml")
+
+    val selectedEditor = fileEditorManager.selectedTextEditor!!
+    val textAfterCaret =
+      selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
+    assertThat(textAfterCaret).startsWith("appTestResource'>app test resource</string>")
   }
 }
 

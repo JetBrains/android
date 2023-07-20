@@ -20,6 +20,8 @@ import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.FD_SOURCES
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.SourceProviderManager
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.android.tools.idea.res.AndroidProjectRootListener
 import com.android.tools.idea.util.androidFacet
 import com.google.common.base.Splitter
@@ -39,9 +41,9 @@ import com.intellij.util.messages.Topic
 class ResourceFolderManager(val module: Module) : ModificationTracker {
 
   companion object {
-    private val FOLDERS_KEY = Key.create<Folders>(ResourceFolderManager::class.qualifiedName!!)
+    private val FOLDERS_KEY = Key.create<List<VirtualFile>>(requireNotNull(ResourceFolderManager::class.qualifiedName))
 
-    private val emptyFolders = Folders(emptyList(), emptyList())
+    private val emptyFolders: List<VirtualFile> = emptyList()
 
     @JvmStatic
     fun getInstance(facet: AndroidFacet): ResourceFolderManager {
@@ -56,19 +58,11 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
   /** Listeners for resource folder changes  */
   interface ResourceFolderListener {
     /** The resource folders in this project has changed  */
-    fun mainResourceFoldersChanged(
-      facet: AndroidFacet,
-      folders: List<VirtualFile>
-    )
-
-    /** The resource folders in this project has changed  */
-    fun testResourceFoldersChanged(
+    fun foldersChanged(
       facet: AndroidFacet,
       folders: List<VirtualFile>
     )
   }
-
-  private data class Folders(val main: List<VirtualFile>, val test: List<VirtualFile>)
 
   @Volatile private var generation: Long = 0
 
@@ -83,16 +77,7 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
    *
    * @see com.android.tools.idea.projectsystem.SourceProviders.currentSourceProviders
    */
-  val folders get() = mainAndTestFolders.main
-
-  /**
-   * Returns test resource directories, in the overlay order.
-   *
-   * @see com.android.tools.idea.projectsystem.SourceProviders.currentAndroidTestSourceProviders
-   */
-  val testFolders get() = mainAndTestFolders.test
-
-  private val mainAndTestFolders: Folders
+  val folders: List<VirtualFile>
     get() {
       val facet = module.androidFacet ?: return emptyFolders
       return facet.getUserData(FOLDERS_KEY) ?: facet.putUserDataIfAbsent(FOLDERS_KEY, computeFolders(facet))
@@ -116,29 +101,17 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
     val facet = module.androidFacet ?: return
     val before = facet.getUserData(FOLDERS_KEY) ?: return
     facet.putUserData(FOLDERS_KEY, null)
-    val after = mainAndTestFolders
-    notifyIfChanged(before, after, Folders::main, ResourceFolderListener::mainResourceFoldersChanged)
-    notifyIfChanged(before, after, Folders::test, ResourceFolderListener::testResourceFoldersChanged)
-  }
+    val after = folders
 
-  private inline fun notifyIfChanged(
-    before: Folders,
-    after: Folders,
-    filesToCheck: Folders.() -> List<VirtualFile>,
-    callback: ResourceFolderListener.(AndroidFacet, List<VirtualFile>) -> Unit
-  ) {
-    val filesBefore = before.filesToCheck()
-    val filesAfter = after.filesToCheck()
-    if (filesBefore != filesAfter) {
+    if (before != after) {
       generation++
-      val facet = module.androidFacet ?: return
-      module.project.messageBus.syncPublisher(TOPIC).callback(facet, after.filesToCheck())
+      module.project.messageBus.syncPublisher(TOPIC).foldersChanged(facet, after)
     }
   }
 
-  private fun computeFolders(facet: AndroidFacet): Folders {
+  private fun computeFolders(facet: AndroidFacet): List<VirtualFile> {
     return if (!AndroidModel.isRequired(facet)) {
-      Folders(main = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.toList(), test = emptyList())
+      SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories.toList()
     }
     else {
       // Listen to root change events. Be notified when project is initialized, so we can update
@@ -147,30 +120,28 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
     }
   }
 
-  private fun readFromFacetState(facet: AndroidFacet): Folders {
+  private fun readFromFacetState(facet: AndroidFacet): List<VirtualFile> {
+    val module = facet.module
+
     // TODO(b/246530964): can we use SourceProviders to get this information?
-    val mainFolders = facet.mainModule.androidFacet?.configuration?.state?.RES_FOLDERS_RELATIVE_PATH
-    return if (mainFolders != null) {
+    val folders = when {
+      module.isLinkedAndroidModule() && module.isAndroidTestModule() ->
+        listOf(facet.configuration.state.TEST_RES_FOLDERS_RELATIVE_PATH)
+      else ->
+        listOf(facet.mainModule.androidFacet?.configuration?.state?.RES_FOLDERS_RELATIVE_PATH)
+    }.filterNotNull()
+
+    return if (folders.isNotEmpty()) {
       // We have state saved in the facet.
-      val manager = VirtualFileManager.getInstance()
-      Folders(
-        main = mainFolders.toVirtualFiles(manager),
-        test = facet
-          .androidTestModule?.androidFacet?.configuration?.state?.TEST_RES_FOLDERS_RELATIVE_PATH?.toVirtualFiles(manager)
-          .orEmpty()
-      )
+      val virtualFileManager = VirtualFileManager.getInstance()
+      folders.flatMap { it.toVirtualFiles(virtualFileManager) }
     }
     else {
       // First time; have not yet computed the res folders, just try the default: src/main/res/ from Gradle templates, res/ from exported
       // Eclipse projects.
-      Folders(
-        main = listOf(
+      listOfNotNull(
           AndroidRootUtil.getFileByRelativeModulePath(facet.module, "/$FD_SOURCES/$FD_MAIN/$FD_RES", true)
-          ?: AndroidRootUtil.getFileByRelativeModulePath(facet.module, "/$FD_RES", true)
-          ?: return emptyFolders
-        ),
-        test = emptyList()
-      )
+          ?: AndroidRootUtil.getFileByRelativeModulePath(facet.module, "/$FD_RES", true))
     }
   }
 

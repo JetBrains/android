@@ -27,10 +27,12 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.res.LocalResourceRepository;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.PsiDocumentManager;
 import java.util.List;
+import org.jetbrains.android.facet.AndroidFacet;
 
 /** Tests for {@link ModuleResourceRepository} based on {@link AndroidGradleTestCase}. */
 public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
@@ -66,7 +68,13 @@ public class ModuleResourceRepositoryGradleTest extends AndroidGradleTestCase {
    */
   public void testTestFolders() throws Exception {
     loadSimpleApplication();
-    LocalResourceRepository repository = ModuleResourceRepository.forTestResources(myAndroidFacet, RES_AUTO);
+
+    Module androidTestModule = myAndroidFacet.getAndroidTestModule();
+    assertThat(androidTestModule).isNotNull();
+    AndroidFacet androidTestFacet = AndroidFacet.getInstance(androidTestModule);
+    assertThat(androidTestFacet).isNotNull();
+
+    LocalResourceRepository repository = ModuleResourceRepository.forTestResources(androidTestFacet, RES_AUTO);
     if (repository instanceof Disposable) {
       Disposer.register(myAndroidFacet, (Disposable)repository);
     }

@@ -473,15 +473,7 @@ public class ResourceNotificationManager {
     // ---- Implements ResourceFolderManager.ResourceFolderListener ----
 
     @Override
-    public void mainResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-      if (facet.getModule() == myFacet.getModule()) {
-        myModificationCount++;
-        notice(Reason.GRADLE_SYNC, null);
-      }
-    }
-
-    @Override
-    public void testResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
+    public void foldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
       if (facet.getModule() == myFacet.getModule()) {
         myModificationCount++;
         notice(Reason.GRADLE_SYNC, null);

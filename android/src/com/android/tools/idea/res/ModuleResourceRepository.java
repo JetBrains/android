@@ -114,7 +114,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   static LocalResourceRepository forTestResources(@NotNull AndroidFacet facet, @NotNull ResourceNamespace namespace) {
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     ResourceFolderManager folderManager = ResourceFolderManager.getInstance(facet);
-    List<VirtualFile> resourceDirectories = folderManager.getTestFolders();
+    List<VirtualFile> resourceDirectories = folderManager.getFolders();
 
     if (!AndroidModel.isRequired(facet) && resourceDirectories.isEmpty()) {
       return new EmptyRepository(namespace);
@@ -164,15 +164,8 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
 
     ResourceFolderListener resourceFolderListener = new ResourceFolderListener() {
       @Override
-      public void mainResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-        if (mySourceSet == SourceSet.MAIN && facet.getModule() == myFacet.getModule()) {
-          updateRoots(folders);
-        }
-      }
-
-      @Override
-      public void testResourceFoldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
-        if (mySourceSet == SourceSet.TEST && facet.getModule() == myFacet.getModule()) {
+      public void foldersChanged(@NotNull AndroidFacet facet, @NotNull List<? extends VirtualFile> folders) {
+        if (facet.getModule() == myFacet.getModule()) {
           updateRoots(folders);
         }
       }

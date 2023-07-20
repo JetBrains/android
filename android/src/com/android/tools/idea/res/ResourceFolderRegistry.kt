@@ -120,7 +120,6 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
       if (!facet.isDisposed && facets.add(facet)) {
         val folderManager = getInstance(facet)
         newResourceFolders.addAll(folderManager.folders)
-        newResourceFolders.addAll(folderManager.testFolders)
       }
     }
     ResourceUpdateTracer.logDirect {

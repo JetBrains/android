@@ -62,7 +62,7 @@ class TestAppResourceRepository private constructor(
 
       if (facet.configuration.isLibraryProject) {
         // In library projects, there's only one APK when testing and the test R class contains all resources.
-        localRepositories += StudioResourceRepositoryManager.getAppResources(facet)
+        facet.mainModule.androidFacet?.let { localRepositories += StudioResourceRepositoryManager.getAppResources(it) }
       }
 
       return TestAppResourceRepository(facet, localRepositories, libraryRepositories)
