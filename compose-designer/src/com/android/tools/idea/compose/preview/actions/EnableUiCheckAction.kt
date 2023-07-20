@@ -33,7 +33,7 @@ class EnableUiCheckAction(private val dataContextProvider: () -> DataContext) :
   AnActionButton(
     message("action.uicheck.title"),
     message("action.uicheck.description"),
-    StudioIcons.Compose.Toolbar.INSPECT_PREVIEW
+    StudioIcons.Compose.Toolbar.UI_CHECK
   ) {
 
   override fun updateButton(e: AnActionEvent) {
