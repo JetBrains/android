@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.collect.Range
@@ -521,5 +522,23 @@ class CategoryTableTest {
     assertThat(scrollPane.verticalScrollBar.isVisible).isTrue()
     assertThat(scrollPane.verticalScrollBar.width).isGreaterThan(0)
     assertThat(table.width).isEqualTo(widthWithoutScrollbar - scrollPane.verticalScrollBar.width)
+  }
+
+  @Test
+  fun emptyStatePanel() {
+    val emptyStatePanel = EmptyStatePanel("No devices")
+    val table = CategoryTable(CategoryTableDemo.columns, { it.name }, emptyStatePanel = emptyStatePanel)
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane)
+
+    assertThat(emptyStatePanel.isVisible).isTrue()
+
+    table.addOrUpdateRow(CategoryTableDemo.devices[0])
+
+    assertThat(emptyStatePanel.isVisible).isFalse()
+
+    table.removeRow(CategoryTableDemo.devices[0])
+
+    assertThat(emptyStatePanel.isVisible).isTrue()
   }
 }

@@ -29,6 +29,7 @@ import java.util.concurrent.Executor
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.InputMap
+import javax.swing.JComponent
 import javax.swing.JScrollPane
 import javax.swing.KeyStroke
 import javax.swing.Scrollable
@@ -69,6 +70,7 @@ class CategoryTable<T : Any>(
   private val coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher,
   colors: Colors = defaultColors,
   private val rowDataProvider: ValueRowDataProvider<T> = NullValueRowDataProvider,
+  val emptyStatePanel: JComponent? = null,
 ) : JBPanel<CategoryTable<T>>(), Scrollable {
 
   /** The listener called when a category row is clicked. */
@@ -143,6 +145,8 @@ class CategoryTable<T : Any>(
     TablePresentation(colors.unselectedForeground, colors.unselectedBackground, false)
 
   init {
+    emptyStatePanel?.let { add(it) }
+
     unselectedPresentation.applyColors(this)
 
     header.columnModel.addColumnModelListener(
@@ -422,6 +426,8 @@ class CategoryTable<T : Any>(
     categoryRows = newCategoryRows
     rowComponents = newRowComponents
 
+    emptyStatePanel?.isVisible = rowComponents.isEmpty()
+
     revalidate()
     repaint()
   }
@@ -492,6 +498,7 @@ class CategoryTable<T : Any>(
    * JTable.
    */
   override fun doLayout() {
+    emptyStatePanel?.bounds = bounds
     updateHeaderColumnWidths()
     doTableLayout()
   }
@@ -560,7 +567,8 @@ class CategoryTable<T : Any>(
 
   override fun getScrollableTracksViewportWidth() = true
 
-  override fun getScrollableTracksViewportHeight() = false
+  // If we're showing the emptyStatePanel, make it fill the viewport.
+  override fun getScrollableTracksViewportHeight() = rowComponents.isEmpty()
 
   companion object {
     private val defaultCoroutineDispatcher =
