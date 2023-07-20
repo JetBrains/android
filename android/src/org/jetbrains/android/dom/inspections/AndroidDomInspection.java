@@ -19,7 +19,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.Consumer;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
@@ -89,7 +88,7 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
   }
 
   @Override
-  protected void checkChildren(final DomElement element, Consumer<? super DomElement> visitor) {
+  protected void checkChildren(@NotNull DomElement element, @NotNull java.util.function.Consumer<? super DomElement> visitor) {
     // The following code is similar to contents of the overridden method,
     // but adds support for "aapt:attr" attributes.
     final XmlElement xmlElement = element.getXmlElement();
@@ -101,7 +100,7 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
                     "; parent=" + element);
         }
         else if (element1.isPhysical()) {
-          visitor.consume(child);
+          visitor.accept(child);
         }
       }
 
@@ -115,7 +114,7 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
                 name = namespaceKey + ':' + name;
               }
               if (!AndroidXmlExtension.isAaptAttributeDefined((XmlTag)xmlElement, name)) {
-                visitor.consume(child);
+                visitor.accept(child);
               }
             }
           }
