@@ -31,13 +31,14 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.ToolWindows
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.impl.OpenProjectTask
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectTypeService
 import com.intellij.openapi.project.ex.ProjectManagerEx
@@ -53,7 +54,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.ExceptionUtil
-import org.jetbrains.annotations.NonNls
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.plugins.gradle.service.project.open.setupGradleSettings
 import org.jetbrains.plugins.gradle.settings.GradleDefaultProjectSettings
@@ -84,20 +86,24 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   ): Project? {
     val projectFolderPath = VfsUtilCore.virtualToIoFile(projectFolder)
     try {
-      setUpLocalProperties(projectFolderPath)
-      val projectName = projectFolder.name
-      val newProject = createProject(projectName, projectFolderPath)
-      importProjectNoSync(Request(newProject))
-      return ProjectManagerEx.getInstanceEx().openProject(
-        projectFolderPath.toPath(),
-        OpenProjectTask {
-          this.forceOpenInNewFrame = forceOpenInNewFrame
-          this.projectToClose = projectToClose
-          isNewProject = false
-          useDefaultProjectAsTemplate = false
-          project = newProject
+      return ProjectManagerEx.getInstanceEx().openProject(projectFolderPath.toPath(), OpenProjectTask {
+        this.forceOpenInNewFrame = forceOpenInNewFrame
+        this.projectToClose = projectToClose
+        isNewProject = false
+        useDefaultProjectAsTemplate = false
+        beforeOpen = {
+          // The scope of this is rather large to mimic old behaviour, it could likely be improved
+          withContext(Dispatchers.EDT) {
+            setUpLocalProperties(projectFolderPath)
+            configureNewProject(it)
+            importProjectNoSync(Request(it))
+          }
+          true
         }
-      )
+      })
+    }
+    catch (e: ProcessCanceledException) {
+      throw e
     }
     catch (e: Throwable) {
       if (ApplicationManager.getApplication().isUnitTestMode) {
