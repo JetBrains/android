@@ -460,12 +460,17 @@ public class LiveEditProjectMonitor implements Disposable {
         for (EditEvent change : changes) {
           filesWithCompilationErrors.add(change.getFile().getName());
         }
-      } else {
-        // We only log unrecoverable events, ignoring easily recoverable syntax / type errors that happens way too common during editting.
-        event.setStatus(e.getError().getMetric());
       }
 
-      logLiveEditEvent(event);
+      // We log all unrecoverable events, ignoring easily recoverable syntax / type errors that happens way too common during editing.
+      // Both inlining restriction should are also logged despite being recoverable as well.
+      if (e.getError() == LiveEditUpdateException.Error.UNABLE_TO_INLINE ||
+          e.getError() == LiveEditUpdateException.Error.NON_PRIVATE_INLINE_FUNCTION ||
+          !recoverable) {
+        event.setStatus(e.getError().getMetric());
+        logLiveEditEvent(event);
+      }
+
       return true;
     }
 
@@ -473,7 +478,6 @@ public class LiveEditProjectMonitor implements Disposable {
       Optional<String> errorFilename = filesWithCompilationErrors.stream().findFirst();
       String errorMsg = ErrorReporterKt.leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, errorFilename.get());
       updateEditStatus(LiveEditStatus.createPausedStatus(errorMsg));
-      logLiveEditEvent(event);
       return true;
     }
 

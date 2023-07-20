@@ -18,11 +18,15 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt
+import com.android.testutils.VirtualTimeScheduler
+import com.android.tools.analytics.TestUsageTracker
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
 import com.intellij.openapi.project.Project
 import junit.framework.Assert
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -34,14 +38,26 @@ import kotlin.test.assertFalse
 @RunWith(JUnit4::class)
 class LiveEditProjectMonitorTest {
   private lateinit var myProject: Project
+  private val usageTracker = TestUsageTracker(VirtualTimeScheduler())
+
+  private fun hasMetricStatus(status : LiveEditEvent.Status) = usageTracker.usages.any() {
+    it.studioEvent.liveEditEvent.status == status
+  }
 
   @get:Rule
   var projectRule = AndroidProjectRule.inMemory()
 
   @Before
   fun setUp() {
+    UsageTracker.setWriterForTest(usageTracker)
     myProject = projectRule.project
     setUpComposeInProjectFixture(projectRule)
+  }
+
+  @After
+  fun tearDown() {
+    Assert.assertFalse(hasMetricStatus(LiveEditEvent.Status.UNKNOWN))
+    UsageTracker.cleanAfterTesting()
   }
 
   @Test
@@ -107,6 +123,7 @@ class LiveEditProjectMonitorTest {
     monitor.processChanges(myProject, listOf(EditEvent(file2, foo2)), LiveEditEvent.Mode.AUTO)
     monitor.onPsiChanged(EditEvent(file2, foo2))
     Assert.assertEquals(1, monitor.numFilesWithCompilationErrors())
+    Assert.assertTrue(hasMetricStatus(LiveEditEvent.Status.NON_PRIVATE_INLINE_FUNCTION))
   }
 
   /**
@@ -146,5 +163,16 @@ class LiveEditProjectMonitorTest {
     monitor.notifyExecution(listOf(device1, device2))
     assertEquals(manager.getInfo(device1)!!.status, LiveEditStatus.UpToDate)
     assertEquals(manager.getInfo(device2)!!.status, LiveEditStatus.UpToDate)
+  }
+
+  @Test
+  fun nonKotlin() {
+    var monitor = LiveEditProjectMonitor(
+      LiveEditService.getInstance(myProject), myProject);
+    var file = projectRule.fixture.configureByText("A.java", "class A() { }")
+    var event = EditEvent(file)
+    event.unsupportedPsiEvents.add(UnsupportedPsiEvent.NON_KOTLIN)
+    monitor.processChanges(myProject, listOf(event), LiveEditEvent.Mode.AUTO)
+    Assert.assertTrue(hasMetricStatus(LiveEditEvent.Status.NON_KOTLIN))
   }
 }
