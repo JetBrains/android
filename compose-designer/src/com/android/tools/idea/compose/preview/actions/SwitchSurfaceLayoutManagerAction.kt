@@ -26,6 +26,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.icons.copyIcon
 import com.intellij.util.ui.JBUI
 
 /**
@@ -55,7 +56,7 @@ class SwitchSurfaceLayoutManagerAction(
    *
    * @see com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup
    */
-  private val enabledIcon = IconLoader.copy(AllIcons.Debugger.RestoreLayout, null, true)
+  private val enabledIcon = copyIcon(AllIcons.Debugger.RestoreLayout, null, true)
   private val disabledIcon = IconLoader.getDisabledIcon(AllIcons.Debugger.RestoreLayout)
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) :
