@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.DeploymentApplicationService;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.execution.ExecutionTarget;
@@ -26,6 +27,8 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import icons.StudioIcons;
 import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
@@ -40,12 +43,23 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   private final @NotNull Collection<Key> myKeys;
   private final @NotNull AsyncDevicesGetter myDevicesGetter;
 
+  @NotNull
+  private final Supplier<DeploymentApplicationService> myDeploymentApplicationServiceGetInstance;
+
   DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<Target> targets, @NotNull AsyncDevicesGetter devicesGetter) {
+    this(targets, devicesGetter, DeploymentApplicationService::getInstance);
+  }
+
+  @VisibleForTesting
+  DeviceAndSnapshotComboBoxExecutionTarget(@NotNull Collection<Target> targets,
+                                           @NotNull AsyncDevicesGetter devicesGetter,
+                                           @NotNull Supplier<DeploymentApplicationService> deploymentApplicationServiceGetInstance) {
     myKeys = targets.stream()
       .map(Target::getDeviceKey)
       .collect(Collectors.toSet());
 
     myDevicesGetter = devicesGetter;
+    myDeploymentApplicationServiceGetInstance = deploymentApplicationServiceGetInstance;
   }
 
   @Override
@@ -54,7 +68,7 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
   }
 
   private boolean isApplicationRunning(@NotNull String appPackage) {
-    var service = DeploymentApplicationService.getInstance();
+    var service = myDeploymentApplicationServiceGetInstance.get();
 
     return getRunningDevices().stream()
       .map(device -> service.findClient(device, appPackage))
@@ -128,11 +142,13 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
       return false;
     }
 
-    return myKeys.equals(target.myKeys) && myDevicesGetter.equals(target.myDevicesGetter);
+    return myKeys.equals(target.myKeys) &&
+           myDevicesGetter.equals(target.myDevicesGetter) &&
+           myDeploymentApplicationServiceGetInstance.equals(target.myDeploymentApplicationServiceGetInstance);
   }
 
   @Override
   public int hashCode() {
-    return 31 * myKeys.hashCode() + myDevicesGetter.hashCode();
+    return Objects.hash(myKeys, myDevicesGetter, myDeploymentApplicationServiceGetInstance);
   }
 }

@@ -19,17 +19,25 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.android.ddmlib.Client;
+import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.execution.common.DeployableToDevice;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.DeploymentApplicationService;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.application.ApplicationConfiguration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -38,6 +46,37 @@ import org.mockito.Mockito;
 @RunWith(JUnit4.class)
 public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
   private final AsyncDevicesGetter myGetter = Mockito.mock(AsyncDevicesGetter.class);
+
+  @Test
+  public void isApplicationRunningAsync() throws Exception {
+    // Arrange
+    var ddmlibDevice = Mockito.mock(IDevice.class);
+
+    var androidDevice = Mockito.mock(AndroidDevice.class);
+    Mockito.when(androidDevice.isRunning()).thenReturn(true);
+    Mockito.when(androidDevice.getLaunchedDevice()).thenReturn(Futures.immediateFuture(ddmlibDevice));
+
+    var device = new VirtualDevice.Builder()
+      .setKey(Keys.PIXEL_4_API_30)
+      .setConnectionTime(Instant.parse("2023-07-19T22:34:37.356453499Z"))
+      .setName("Pixel 4 API 30")
+      .setAndroidDevice(androidDevice)
+      .build();
+
+    Mockito.when(myGetter.get()).thenReturn(Optional.of(List.of(device)));
+
+    var service = Mockito.mock(DeploymentApplicationService.class);
+    Mockito.when(service.findClient(ddmlibDevice, "com.google.myapplication")).thenReturn(List.of(Mockito.mock(Client.class)));
+
+    var target = new DeviceAndSnapshotComboBoxExecutionTarget(Set.of(new QuickBootTarget(Keys.PIXEL_4_API_30)), myGetter, () -> service);
+
+    // Act
+    var future = target.isApplicationRunningAsync("com.google.myapplication");
+
+    // Assert
+    // noinspection BlockingMethodInNonBlockingContext
+    assertTrue(future.get(60, TimeUnit.SECONDS));
+  }
 
   @Test
   public void getDevices() {
