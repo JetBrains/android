@@ -147,6 +147,9 @@
       </action>
       <action id="android.emulator.snapshots" class="com.android.tools.idea.streaming.emulator.actions.EmulatorManageSnapshotsAction"
               icon="StudioIcons.Emulator.Toolbar.SNAPSHOTS" text="Snapshots" description="Create, load, rename or delete emulator snapshots"/>
+      <action id="android.streaming.hardware.input" class="com.android.tools.idea.streaming.actions.StreamingHardwareInputAction"
+              icon="StudioIcons.Compose.Toolbar.INSPECT_PREVIEW" text="Hardware Input"
+              description="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device"/>
       <action id="android.emulator.extended.controls" class="com.android.tools.idea.streaming.emulator.actions.EmulatorShowExtendedControlsAction"
               icon="AllIcons.Actions.More" text="Extended Controls" description="Show emulator extended controls"/>
     </group>
@@ -155,9 +158,6 @@
             description="Benchmark embedded emulator or mirroring of physical device" internal="true">
       <add-to-group group-id="Internal.Android"/>
     </action>
-    <action id="android.streaming.hardware.input" class="com.android.tools.idea.streaming.actions.StreamingHardwareInputAction"
-            icon="StudioIcons.Compose.Toolbar.INSPECT_PREVIEW" text="Hardware Input"
-            description="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device"/>
 
     <group id="StreamingToolbarVirtualDevice">
       <reference ref="android.device.power.button"/>
