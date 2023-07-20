@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.config.ApiVersion
 
 fun RecipeExecutor.addKotlinDependencies(androidX: Boolean, targetApi: Int) {
   if (androidX) {
-    val dependency = if (targetApi < 31) "androidx.core:core-ktx:1.6.+" else "androidx.core:core-ktx:1.9.+"
+    val dependency = if (targetApi < 31) "androidx.core:core-ktx:1.6.+" else "androidx.core:core-ktx:+"
     val minRev = if (targetApi < 31) "1.6.0" else "1.9.0"
     addDependency(dependency, minRev = minRev)
   }

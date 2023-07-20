@@ -1,16 +1,16 @@
 [versions]
-core-ktx = "1.9.0"
+core-ktx = "1.10.1"
 junit = "4.13.2"
 androidx-test-ext-junit = "1.1.5"
 espresso-core = "3.5.1"
 appcompat = "1.6.1"
-material = "1.8.0"
+material = "1.9.0"
 recyclerview = "1.3.0"
 constraintlayout = "2.1.4"
 lifecycle-livedata-ktx = "2.6.1"
 lifecycle-viewmodel-ktx = "2.6.1"
-navigation-fragment-ktx = "2.5.3"
-navigation-ui-ktx = "2.5.3"
+navigation-fragment-ktx = "2.6.0"
+navigation-ui-ktx = "2.6.0"
 
 [libraries]
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }

@@ -279,6 +279,8 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:androidx.activity.activity-compose_1.7.0",
+        "@maven//:androidx.annotation.annotation-jvm_1.6.0",
+        "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.6.1",
         "@maven//:androidx.compose.compiler.compiler_1.4.3",
         "@maven//:androidx.compose.compose-bom_2023.03.00",
@@ -294,7 +296,7 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-tooling_1.4.0",
         "@maven//:androidx.compose.ui.ui_1.4.0",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
-        "@maven//:androidx.core.core-ktx_1.9.0",
+        "@maven//:androidx.core.core-ktx_1.10.1",
         "@maven//:androidx.databinding.viewbinding_7.4.1",
         "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.4.1",

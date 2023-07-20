@@ -154,6 +154,7 @@ maven_repository(
         "@maven//:androidx.compose.ui.ui-unit-android_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.compose.ui.ui_1.5.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
+        "@maven//:androidx.core.core-ktx_1.10.1",
         "@maven//:androidx.core.core-ktx_1.11.0-alpha04",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
         "@maven//:androidx.core.core-ktx_1.11.0-beta01",  # Necessary for Compose for TV.
         "@maven//:androidx.core.core-splashscreen_1.0.1",
@@ -179,9 +180,9 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.3.0-rc01",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.6.1",
         "@maven//:androidx.media.media_1.6.0",
-        "@maven//:androidx.navigation.navigation-fragment-ktx_2.5.3",
-        "@maven//:androidx.navigation.navigation-fragment_2.5.3",
-        "@maven//:androidx.navigation.navigation-ui-ktx_2.5.3",
+        "@maven//:androidx.navigation.navigation-fragment-ktx_2.6.0",
+        "@maven//:androidx.navigation.navigation-fragment_2.6.0",
+        "@maven//:androidx.navigation.navigation-ui-ktx_2.6.0",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
         "@maven//:androidx.preference.preference_1.2.0",
         "@maven//:androidx.recyclerview.recyclerview_1.3.0",
@@ -208,7 +209,7 @@ maven_repository(
         "@maven//:com.google.android.horologist.horologist-tiles_0.4.8",
         "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.1",
         "@maven//:com.google.android.material.material_1.5.0",
-        "@maven//:com.google.android.material.material_1.8.0",
+        "@maven//:com.google.android.material.material_1.9.0",
         "@maven//:com.google.android.support.wearable_2.9.0",
         "@maven//:com.google.android.wearable.wearable_2.9.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
