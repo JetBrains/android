@@ -89,7 +89,9 @@ class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), D
 class VisualLintRenderIssue private constructor(private val builder: Builder) :
   Issue(), VisualLintHighlightingIssue {
   val models = builder.model?.let { mutableSetOf(it) } ?: mutableSetOf()
-  val components = builder.components!!
+  private val _components = builder.components!!
+  val components
+    get() = _components.toList()
   val type: VisualLintErrorType = builder.type!!
   override val source = VisualLintIssueProvider.VisualLintIssueSource(models, components)
   override val summary = builder.summary!!
@@ -112,7 +114,7 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
 
   override val suppresses: Stream<Suppress>
     get() {
-      if (type == VisualLintErrorType.ATF || components.isEmpty()) {
+      if (type == VisualLintErrorType.ATF || _components.isEmpty()) {
         // We haven't defined the suppression for ATF yet.
         return Stream.empty()
       }
@@ -130,10 +132,12 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
   }
 
   private fun updateRange() {
-    source.components.forEach { component ->
-      component.let {
-        range = it.getTextRange()
-        return@forEach
+    synchronized(_components) {
+      source.components.forEach { component ->
+        component.let {
+          range = it.getTextRange()
+          return@forEach
+        }
       }
     }
   }
@@ -156,6 +160,13 @@ class VisualLintRenderIssue private constructor(private val builder: Builder) :
 
   fun isSuppressed(): Boolean {
     return components.all { component -> component.isVisualLintErrorSuppressed(type) }
+  }
+
+  fun combineWithIssue(issue: VisualLintRenderIssue) {
+    synchronized(_components) { _components.addAll(issue.components) }
+    models.addAll(issue.models)
+    issue.components.forEach { source.addComponent(it) }
+    issue.models.forEach { source.addModel(it) }
   }
 
   /** Builder for [VisualLintRenderIssue] */
