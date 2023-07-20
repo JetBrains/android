@@ -10,15 +10,10 @@
 	<!ENTITY ns_custom "http://ns.adobe.com/GenericCustomNamespace/1.0/">
 	<!ENTITY ns_adobe_xpath "http://ns.adobe.com/XPath/1.0/">
 ]>
-<svg version="1.1" id="Layer_1" xmlns:x="&ns_extend;" xmlns:i="&ns_ai;" xmlns:graph="&ns_graphs;"
-	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 420 420"
-	 enable-background="new 0 0 420 420" xml:space="preserve">
-<metadata>
-	<sfw  xmlns="&ns_sfw;">
-		<slices></slices>
-		<sliceSourceBounds  height="400" width="400" y="-410" x="10.4" bottomLeftOrigin="true"></sliceSourceBounds>
-	</sfw>
-</metadata>
+<svg version="1.1" id="Layer_1"
+     xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" viewBox="0 0 420 420"
+     enable-background="new 0 0 420 420" xml:space="preserve">
+
 <g>
 	<circle fill="#F0546A" cx="210.4" cy="210" r="200"/>
 	
