@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.internal
 
-import com.android.kotlin.multiplatform.ide.models.serialization.androidCompilationKey
-import com.android.kotlin.multiplatform.ide.models.serialization.androidSourceSetKey
-import com.android.kotlin.multiplatform.ide.models.serialization.androidTargetKey
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.model.IdeAaptOptions
 import com.android.tools.idea.gradle.model.IdeAndroidArtifact
@@ -208,33 +205,6 @@ private val jbModelDumpers = listOf(
   SpecializedDumper(property = KotlinTaskProperties::pluginVersion) {
     // We do not have access to `TestUtils.KOTLIN_VERSION_FOR_TESTS` here. Remove the property.
     prop(propertyName, "<CUT>")
-  },
-  SpecializedDumper(property = KotlinTarget::extras) { extras ->
-    prop(propertyName, extras.entries.associate {
-      if (it.key == androidTargetKey) {
-        it.key.name to "<OMITTED>"
-      } else {
-        it.key to it.value
-      }
-    })
-  },
-  SpecializedDumper(property = KotlinCompilation::extras) { extras ->
-    prop(propertyName, extras.entries.associate {
-      if (it.key == androidCompilationKey) {
-        it.key.name to "<OMITTED>"
-      } else {
-        it.key to it.value
-      }
-    })
-  },
-  SpecializedDumper(property = KotlinSourceSet::extras) { extras ->
-    prop(propertyName, extras.entries.associate {
-      if (it.key == androidSourceSetKey) {
-        it.key.name to "<OMITTED>"
-      } else {
-        it.key to it.value
-      }
-    })
   }
 )
 

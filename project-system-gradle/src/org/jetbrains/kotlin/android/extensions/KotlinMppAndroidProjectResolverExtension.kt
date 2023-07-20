@@ -72,10 +72,10 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
                                                       component: KotlinComponent,
                                                       sourceSetDataNode: DataNode<GradleSourceSetData>) {
     val kotlinCompilation = (component as? KotlinCompilation) ?: return
-    val androidCompilation = kotlinCompilation.extras[androidCompilationKey]?.invoke() ?: return
+    val androidCompilation = kotlinCompilation.extras[androidCompilationKey] ?: return
 
     sourceSetResolver.recordSourceSetForModule(
-      gradleProjectPath = context.mppModel.targets.firstNotNullOf { it.extras[androidTargetKey] }.invoke()!!.projectPath,
+      gradleProjectPath = context.mppModel.targets.firstNotNullOf { it.extras[androidTargetKey] }.projectPath,
       sourceSetName = androidCompilation.defaultSourceSetName,
       sourceSetType = when(androidCompilation.type) {
         CompilationType.MAIN -> KotlinMultiplatformAndroidSourceSetType.MAIN
@@ -139,13 +139,13 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
       context.projectDataNode
     )
 
-    val sourceSetInfo = sourceSet.extras[androidSourceSetKey]?.invoke() ?: return
+    val sourceSetInfo = sourceSet.extras[androidSourceSetKey] ?: return
     sourceSetDataNode.createChild(
       ProjectKeys.CONTENT_ROOT,
       ContentRootData(GradleConstants.SYSTEM_ID, sourceSetInfo.sourceProvider.manifestFile.absolutePath)
     )
 
-    val androidTarget = context.mppModel.targets.mapNotNull { it.extras[androidTargetKey]?.invoke() }.singleOrNull() ?: return
+    val androidTarget = context.mppModel.targets.mapNotNull { it.extras[androidTargetKey] }.singleOrNull() ?: return
 
     if (androidTarget.withJava) {
       sourceSet.getJavaSourceDirectories().forEach { sourceDir ->
@@ -164,7 +164,7 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
   override fun afterResolveFinished(context: Context) {
     try {
       val androidTarget = context.mppModel.targets.find { it.extras[androidTargetKey] != null } ?: return
-      val targetInfo = androidTarget.extras[androidTargetKey]?.invoke() ?: return
+      val targetInfo = androidTarget.extras[androidTargetKey] ?: return
       val compilationInfo = compilationModelMap[context.moduleDataNode.data.id] ?: return
       val sourceSetDependencies = sourceSetDependenciesMap[context.moduleDataNode.data.id] ?: return
 
@@ -188,8 +188,20 @@ class KotlinMppAndroidProjectResolverExtension: KotlinMppGradleProjectResolverEx
         compilationInfoMap = compilationInfo,
         sourceSetDependenciesMap = sourceSetDependencies
       )
-    } finally {
-      // cleanup
+    } finally { // cleanup
+
+      // remove the extras to avoid having them stored in data nodes. Workaround for https://youtrack.jetbrains.com/issue/KTIJ-26387
+      context.mppModel.targets.forEach { kotlinTarget ->
+        kotlinTarget.extras.remove(androidTargetKey)
+
+        kotlinTarget.compilations.forEach { kotlinCompilation ->
+          kotlinCompilation.extras.remove(androidCompilationKey)
+
+          kotlinCompilation.declaredSourceSets.forEach { kotlinSourceSet ->
+            kotlinSourceSet.extras.remove(androidSourceSetKey)
+          }
+        }
+      }
       compilationModelMap.remove(context.moduleDataNode.data.id)
       sourceSetDependenciesMap.remove(context.moduleDataNode.data.id)
     }
