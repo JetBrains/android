@@ -105,6 +105,7 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
       row {
         turnOffDisplayWhileMirroringCheckBox =
           checkBox("Turn off device display while mirroring")
+            .comment("(not supported on Android 14)")
             .bindSelected(state::turnOffDisplayWhileMirroring)
             .component
       }.topGap(TopGap.SMALL)
@@ -159,6 +160,7 @@ class DeviceMirroringSettingsPage : SearchableConfigurable, Configurable.NoScrol
       row {
         turnOffDisplayWhileMirroringCheckBox =
           checkBox("Turn off device display while mirroring")
+            .comment("(not supported on Android 14)")
             .bindSelected(state::turnOffDisplayWhileMirroring)
             .component
       }.topGap(TopGap.SMALL).enabledIf(deviceMirroringEnabledCheckBox.selected)
