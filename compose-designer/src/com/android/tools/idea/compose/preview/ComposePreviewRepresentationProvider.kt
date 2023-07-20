@@ -29,6 +29,7 @@ import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
+import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeDefaultPreview
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
@@ -69,7 +70,8 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled {
           ComposeFilterTextAction(ComposeViewSingleWordFilter(surface))
         },
-        GroupSwitchAction().visibleOnlyInComposeStaticPreview(),
+        // TODO(b/292057010) Enable group filtering for Gallery mode.
+        GroupSwitchAction().visibleOnlyInComposeDefaultPreview(),
         ComposeViewControlAction(
             layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
             layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
