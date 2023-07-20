@@ -155,6 +155,7 @@ message EditFileResponse {
 
 message WaitForComponentRequest {
   repeated ComponentMatcher matchers = 1;
+  bool wait_for_enabled = 2;
 }
 
 message WaitForComponentResponse {

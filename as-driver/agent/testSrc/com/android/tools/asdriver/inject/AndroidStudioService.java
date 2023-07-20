@@ -544,7 +544,7 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
     ASDriver.WaitForComponentResponse.Builder builder = ASDriver.WaitForComponentResponse.newBuilder();
     try {
       StudioInteractionService studioInteractionService = new StudioInteractionService();
-      studioInteractionService.waitForComponent(request.getMatchersList());
+      studioInteractionService.waitForComponent(request.getMatchersList(), request.getWaitForEnabled());
       builder.setResult(ASDriver.WaitForComponentResponse.Result.OK);
     }
     catch (Exception e) {

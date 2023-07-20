@@ -363,7 +363,11 @@ public class AndroidStudio implements AutoCloseable {
     waitForComponent(builder);
   }
 
-  public void waitForComponentByClass(String... classNames) {
+  public void waitForComponentByClass(String... classNames){
+    waitForComponentByClass(false, classNames);
+  }
+
+  public void waitForComponentByClass(boolean waitForEnabled, String... classNames) {
     ComponentMatchersBuilder builder = new ComponentMatchersBuilder();
     for (String className : classNames) {
       builder.addSwingClassRegexMatch(String.format(".*%s.*", className));
@@ -371,8 +375,12 @@ public class AndroidStudio implements AutoCloseable {
     waitForComponent(builder);
   }
 
-  public void waitForComponent(ComponentMatchersBuilder requestBuilder) {
-    ASDriver.WaitForComponentRequest request = ASDriver.WaitForComponentRequest.newBuilder().addAllMatchers(requestBuilder.build()).build();
+  public void waitForComponent(ComponentMatchersBuilder requestBuilder){
+    waitForComponent(requestBuilder, false);
+  }
+
+  public void waitForComponent(ComponentMatchersBuilder requestBuilder, boolean waitForEnabled) {
+    ASDriver.WaitForComponentRequest request = ASDriver.WaitForComponentRequest.newBuilder().addAllMatchers(requestBuilder.build()).setWaitForEnabled(waitForEnabled).build();
     ASDriver.WaitForComponentResponse response = androidStudio.waitForComponent(request);
     switch (response.getResult()) {
       case OK -> {}
