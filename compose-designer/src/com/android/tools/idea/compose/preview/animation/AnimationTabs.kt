@@ -43,13 +43,14 @@ import javax.swing.border.MatteBorder
 
 /** Tabs panel with enabled navigation. */
 class AnimationTabs(project: Project, disposable: Disposable) :
-  JBTabsImpl(project, IdeFocusManager.getInstance(project), disposable) {
-  private val decoration = UiDecorator.UiDecoration(null, Insets(5, 10, 5, 2))
+  JBTabsImpl(project, disposable) {
 
   init {
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
-    ActionToolbarUtil.makeToolbarNavigable(myMoreToolbar)
-    setUiDecorator { decoration }
+    ActionToolbarUtil.makeToolbarNavigable(moreToolbar!!)
+    setUiDecorator(object : UiDecorator {
+      override fun getDecoration() = UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 10, 5, 2))
+    })
   }
 
   fun addTabWithCloseButton(info: TabInfo, closeAction: (tabInfo: TabInfo) -> Unit): TabInfo {
@@ -59,7 +60,7 @@ class AnimationTabs(project: Project, disposable: Disposable) :
     }
   }
 
-  override fun addTab(info: TabInfo?): TabInfo {
+  override fun addTab(info: TabInfo): TabInfo {
     return super.addTab(info).also { tabInfo ->
       getTabLabel(tabInfo).add(JPanel(), BorderLayout.EAST)
     }
