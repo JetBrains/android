@@ -24,6 +24,7 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.SideBorder
 import com.intellij.ui.components.JBLayeredPane
 import com.intellij.util.ui.Animator
+import com.intellij.util.ui.ImageUtil
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
@@ -79,14 +80,15 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
   }
 
   override fun paintChildren(g: Graphics) {
-    if (fadeOutNotificationVisible) {
+    if (componentCount > 1) {
       // Paint off-screen first to prevent flicker.
-      val image = UIUtil.createImage(this, width, height, BufferedImage.TYPE_INT_ARGB)
+      val image = ImageUtil.createImage(g, width, height, BufferedImage.TYPE_INT_ARGB)
       val g2d: Graphics2D = image.createGraphics()
-      super.paintChildren(g)
+      super.paintChildren(g2d)
       g2d.dispose()
       // Render the off-screen image.
-      UIUtil.drawImage(g, image, Rectangle(width, height), Rectangle(image.getWidth(null), image.getHeight(null)), null)
+      val rect = Rectangle(image.getWidth(null), image.getHeight(null))
+      UIUtil.drawImage(g, image, rect, rect, null)
     }
     else {
       super.paintChildren(g)
@@ -95,13 +97,17 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
 
   /** Adds a notification panel that is removed when its close icon is clicked. */
   fun showNotification(notificationPanel: EditorNotificationPanel) {
+    setLayer(notificationPanel, POPUP_LAYER)
     add(notificationPanel)
-    notificationPanel.setCloseAction { remove(notificationPanel) }
+    revalidate()
+    notificationPanel.setCloseAction { hideNotification(notificationPanel) }
   }
 
   /** Removes the given notification panel. */
   fun hideNotification(notificationPanel: EditorNotificationPanel) {
     remove(notificationPanel)
+    revalidate()
+    repaint()
   }
 
   /** Shows a fade-out notification with the given text. */
