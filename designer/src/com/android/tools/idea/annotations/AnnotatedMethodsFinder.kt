@@ -175,9 +175,8 @@ fun findAnnotations(
   ) {
     val kotlinAnnotations: Sequence<PsiElement> =
       ReadAction.compute<Sequence<PsiElement>, Throwable> {
-        KotlinAnnotationsIndex.getInstance()
-          .get(shortAnnotationName, project, GlobalSearchScope.fileScope(project, vFile))
-          .asSequence()
+        val scope = GlobalSearchScope.fileScope(project, vFile)
+        KotlinAnnotationsIndex[shortAnnotationName, project, scope].asSequence()
       }
 
     val annotations = kotlinAnnotations.filterIsInstance<KtAnnotationEntry>().toList()
