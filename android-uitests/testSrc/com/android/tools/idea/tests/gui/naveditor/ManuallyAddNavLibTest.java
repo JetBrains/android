@@ -75,7 +75,7 @@ public class ManuallyAddNavLibTest {
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
       .openFromContextualMenu(CreateResourceFileDialogFixture::find, "New", "Android Resource File")
       .setFilename("nav_g")
-      .setType("navigation")
+      .setType("Navigation")
       .clickOkAndWaitForDependencyDialog()
       .clickCancel();
 

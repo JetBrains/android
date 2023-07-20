@@ -71,7 +71,7 @@ public class CreateNavGraphTest {
 
     CreateResourceFileDialogFixture.find(ideFrame)
       .setFilename("nav_g")
-      .setType("navigation")
+      .setType("Navigation")
       .clickOkAndWaitForDependencyDialog()
       .clickOk();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
