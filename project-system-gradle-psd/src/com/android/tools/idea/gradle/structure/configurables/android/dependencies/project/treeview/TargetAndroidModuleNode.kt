@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.structure.configurables.ui.treeview.Abstrac
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.intellij.openapi.roots.ui.CellAppearanceEx
 import com.intellij.openapi.util.text.StringUtil.isEmpty
-import com.intellij.ui.HtmlListCellRenderer
 import com.intellij.ui.SimpleColoredComponent
 import com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES
 import com.intellij.ui.treeStructure.SimpleNode
