@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import org.jetbrains.android.dom.inspections.AndroidDomInspection
 
@@ -28,10 +29,14 @@ class TestResourcesTest : AndroidGradleTestCase() {
     myFixture.enableInspections(AndroidDomInspection())
 
     myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/AndroidManifest.xml")!!)
-    myFixture.checkHighlighting()
+    val manifestHighlightErrors = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    assertThat(manifestHighlightErrors).hasSize(1)
+    assertThat(manifestHighlightErrors.single().description).isEqualTo("Cannot resolve symbol '@string/made_up'")
 
     myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
-    myFixture.checkHighlighting()
+    val stringsXmlHighlightErrors = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    assertThat(stringsXmlHighlightErrors).hasSize(1)
+    assertThat(stringsXmlHighlightErrors.single().description).isEqualTo("Cannot resolve symbol '@string/made_up'")
   }
 
   fun testGoToDefinition_referenceInsideSameFile() {
