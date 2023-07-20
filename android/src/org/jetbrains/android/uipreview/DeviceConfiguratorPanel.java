@@ -135,6 +135,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
       }
       else if (qualifier instanceof LayoutDirectionQualifier) {
         myEditors.put(name, new MyLayoutDirectionEditor());
+      }
+      else if (qualifier instanceof ScreenRoundQualifier) {
+        myEditors.put(name, new MyScreenRoundEditor());
       } else {
         LOG.info("Missing editor for qualifier " + qualifier);
       }
@@ -237,6 +240,7 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     ourIcons.put(TextInputMethodQualifier.NAME, StudioIcons.DeviceConfiguration.TEXT_INPUT);
     ourIcons.put(TouchScreenQualifier.NAME, StudioIcons.DeviceConfiguration.TOUCH_SCREEN);
     ourIcons.put(LayoutDirectionQualifier.NAME, StudioIcons.DeviceConfiguration.LAYOUT_DIRECTION);
+    ourIcons.put(ScreenRoundQualifier.NAME, StudioIcons.DeviceConfiguration.SCREEN_ROUNDNESS);
 
     // TODO: Get dedicated icon for the API version
     ourIcons.put(VersionQualifier.NAME, StudioIcons.DeviceConfiguration.VERSION);
@@ -1367,6 +1371,35 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     @Override
     protected String getErrorMessage() {
       return "Incorrect screen height";
+    }
+  }
+
+  private class MyScreenRoundEditor extends MyEnumBasedEditor<ScreenRoundQualifier, ScreenRound> {
+    private MyScreenRoundEditor() {
+      super(ScreenRound.class);
+    }
+
+    @NotNull
+    @Override
+    protected String getCaption() {
+      return "Screen roundness:";
+    }
+
+    @Override
+    protected ScreenRound getValue(@NotNull ScreenRoundQualifier qualifier) {
+      return qualifier.getValue();
+    }
+
+    @NotNull
+    @Override
+    protected ScreenRoundQualifier getQualifier(@NotNull ScreenRound value) {
+      return new ScreenRoundQualifier(value);
+    }
+
+    @NotNull
+    @Override
+    protected String getErrorMessage() {
+      return "Specify the screen shape";
     }
   }
 }
