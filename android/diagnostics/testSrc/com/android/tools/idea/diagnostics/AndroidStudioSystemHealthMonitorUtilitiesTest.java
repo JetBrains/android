@@ -44,7 +44,7 @@ public class AndroidStudioSystemHealthMonitorUtilitiesTest extends PlatformTestC
     // Regression test for b/130834409.
     assertTrue(
       "Unexpected type returned from IdeErrorsDialog.getAndroidErrorReporter()",
-      IdeErrorsDialog.getAndroidErrorReporter() instanceof ErrorReporter);
+      IdeErrorsDialog.Companion.getAndroidErrorReporter() instanceof ErrorReporter);
   }
 }
 
