@@ -200,8 +200,11 @@ public final class FakeUiWindowManager extends WindowManagerEx {
       return new Dimension(0, 0);
     }
 
+    @Nullable
     @Override
-    public @Nullable StatusBar createChild(@NotNull IdeFrame frame, @NotNull Function0<? extends FileEditor> editorProvider) {
+    public StatusBar createChild(@NotNull Disposable disposable,
+                                 @NotNull IdeFrame frame,
+                                 @NotNull Function0<? extends FileEditor> function0) {
       return null;
     }
 
