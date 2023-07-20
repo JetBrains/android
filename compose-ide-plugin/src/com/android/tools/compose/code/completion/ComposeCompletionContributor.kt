@@ -15,14 +15,22 @@
  */
 package com.android.tools.compose.code.completion
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.vectordrawable.VdPreview
+import com.android.resources.ResourceType
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
 import com.android.tools.compose.aa.code.isComposableFunctionParameter
 import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.android.tools.compose.code.isComposableFunctionParameter
 import com.android.tools.compose.isComposableFunction
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.rendering.GutterIconCache
+import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.idea.res.getSourceAsVirtualFile
+import com.android.tools.idea.util.androidFacet
+import com.google.common.base.CaseFormat
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResult
@@ -41,9 +49,12 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.asSafely
 import icons.StudioIcons
+import org.jetbrains.android.AndroidAnnotatorUtil
+import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
@@ -57,6 +68,7 @@ import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DescriptorBasedDeclarationLookupObject
@@ -138,31 +150,29 @@ class ComposeCompletionContributor : CompletionContributor() {
     }
 
     resultSet.runRemainingContributors(parameters) { completionResult ->
-      transformCompletionResult(completionResult)?.let(resultSet::passResult)
+      transformCompletionResult(parameters.position.containingFile, completionResult)?.let(resultSet::passResult)
     }
   }
 
-  private fun transformCompletionResult(completionResult: CompletionResult): CompletionResult? {
+  private fun transformCompletionResult(psiFile: PsiFile, completionResult: CompletionResult): CompletionResult? {
     val lookupElement = completionResult.lookupElement
 
     // If there's no PsiElement, just leave the result alone.
     val psi = lookupElement.psiElement ?: return completionResult
 
-    // For @Composable functions: remove the "special" lookup element (docs below), but otherwise apply @Composable function decoration.
-    if (psi.isComposableFunction()) {
-      return if (lookupElement.isForSpecialLambdaLookupElement()) null
-      else completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
-    }
+    return when {
+      psi.isComposableFunction() ->
+        if (lookupElement.isForSpecialLambdaLookupElement()) null
+        else completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
 
-    // Decorate Compose material icons with the actual icons.
-    if (ComposeMaterialIconLookupElement.appliesTo(lookupElement)) {
-      // We know we'll want material icons, so start warming up the cache.
-      ComposeMaterialIconService.getInstance(ApplicationManager.getApplication()).ensureIconsLoaded()
-      return completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
-    }
+      ComposeMaterialIconLookupElement.appliesTo(psi) -> completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
 
-    // No transformation needed.
-    return completionResult
+      ComposeDrawableLookupElement.appliesTo(psi) && StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED.get() ->
+        completionResult.withLookupElement(ComposeDrawableLookupElement(psiFile, lookupElement))
+
+      // No transformation needed.
+      else -> completionResult
+    }
   }
 
   /**
@@ -242,10 +252,41 @@ private class ComposableFunctionLookupElement(original: LookupElement) : LookupE
   }
 }
 
+/** Lookup element that decorates a Drawable property with the actual Drawable it represents. */
+@VisibleForTesting
+internal class ComposeDrawableLookupElement(private val psiFile: PsiFile, private val original: LookupElement)
+  : LookupElementDecorator<LookupElement>(original) {
+  override fun renderElement(presentation: LookupElementPresentation) {
+    super.renderElement(presentation)
+
+    val resourceLightField = original.psiElement as? ResourceLightField ?: return
+    val module = resourceLightField.module ?: return
+    val facet = module.androidFacet ?: return
+    val file = StudioResourceRepositoryManager.getInstance(module)
+                 ?.appResources
+                 ?.getResources(ResourceNamespace.RES_AUTO, resourceLightField.resourceType,
+                                resourceLightField.resourceName)
+                 ?.firstNotNullOfOrNull { it.getSourceAsVirtualFile() }
+               ?: return
+    val resolver = AndroidAnnotatorUtil.pickConfiguration(psiFile.originalFile, facet)?.resourceResolver ?: return
+    presentation.icon = GutterIconCache.getInstance().getIcon(file, resolver, facet)
+  }
+
+  companion object {
+    fun appliesTo(psiElement: PsiElement) = psiElement is ResourceLightField && psiElement.resourceType == ResourceType.DRAWABLE
+  }
+}
+
 /** Lookup element that decorates a Compose material icon property with the actual icon it represents. */
 @VisibleForTesting
 internal class ComposeMaterialIconLookupElement(private val original: LookupElement)
   : LookupElementDecorator<LookupElement>(original) {
+
+  init {
+    // We know we'll want material icons, so start warming up the cache.
+    ComposeMaterialIconService.getInstance(ApplicationManager.getApplication()).ensureIconsLoaded()
+  }
+
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
 
@@ -271,8 +312,7 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
     )
 
     /** Whether ComposeMaterialIconLookupElement can apply to the given [LookupElement]. */
-    fun appliesTo(lookupElement: LookupElement): Boolean {
-      val psiElement = lookupElement.psiElement ?: return false
+    fun appliesTo(psiElement: PsiElement): Boolean {
       if (psiElement !is KtProperty) return false
       val fqName = psiElement.kotlinFqName?.asString() ?: return false
 
@@ -283,25 +323,19 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
     }
 
     /**
-     * Converts the property name of a Compose material icon to the snake-case equivalent used in file names.
+     * Converts the property name of a Compose material icon to the snake-case equivalent used in file names, with additional underscores
+     * separating digits from non-digit characters.
      *
-     * eg: "AccountBox" -> "account_box"
+     * eg: "AccountBox3" -> "account_box_3"
      *
      * If a material icon's name starts with a number, the property name has an underscore prepended to make it a valid identifier, even
      * though the underscore doesn't appear in the file path and name.
      *
-     * eg: "_1kPlus" -> "1k_plus"
+     * eg: "_1kPlus42" -> "1k_plus_42"
      */
     private fun String.camelCaseToSnakeCase(): String {
-      val camelName = trimStart('_')
-      return camelName.withIndex().joinToString("") { (i, ch) ->
-        when {
-          i == 0 -> ch.lowercaseChar().toString()
-          ch.isUpperCase() -> "_${ch.lowercaseChar()}"
-          ch.isDigit() && !camelName[i - 1].isDigit() -> "_$ch"
-          else -> ch.toString()
-        }
-      }
+      val str = trimStart('_').replace(Regex("(\\D)(\\d)"), "$1_$2")
+      return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, str)
     }
 
     @VisibleForTesting
@@ -434,7 +468,6 @@ private class ComposeInsertHandlerForK1(val functionDescriptor: FunctionDescript
                               context.isNextElementOpenCurlyBrace())
   }
 }
-
 
 private class ComposeInsertHandlerForK2(val functionElement: KtNamedFunction, callType: CallType<*>) : ComposeInsertHandler(
   callType) {

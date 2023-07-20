@@ -15,25 +15,31 @@
  */
 package com.android.tools.compose.code.completion
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.code.completion.ComposeMaterialIconLookupElement.Companion.resourcePathFromFqName
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.application.runReadAction
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.ui.JBColor
+import com.intellij.util.ui.ImageUtil
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.image.BufferedImage
+import javax.swing.Icon
 
 /**
  * Tests for [ComposeCompletionContributor].
@@ -41,7 +47,7 @@ import org.junit.Test
 class ComposeCompletionContributorTest {
 
   @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  val projectRule = AndroidProjectRule.withSdk().onEdt()
 
   private val myFixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
@@ -1216,10 +1222,7 @@ class ComposeCompletionContributorTest {
     val accountBox = runReadAction { myFixture.elementAtCaret }
     assertThat(accountBox).isInstanceOf(KtProperty::class.java)
 
-    val mockLookupElement: LookupElement = mock()
-    whenever(mockLookupElement.psiElement).thenReturn(accountBox)
-
-    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(mockLookupElement) }).isTrue()
+    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(accountBox) }).isTrue()
   }
 
   @Test
@@ -1263,10 +1266,7 @@ class ComposeCompletionContributorTest {
     val accountBox = runReadAction { myFixture.elementAtCaret }
     assertThat(accountBox).isInstanceOf(KtProperty::class.java)
 
-    val mockLookupElement: LookupElement = mock()
-    whenever(mockLookupElement.psiElement).thenReturn(accountBox)
-
-    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(mockLookupElement) }).isFalse()
+    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(accountBox) }).isFalse()
   }
 
   @Test
@@ -1277,6 +1277,47 @@ class ComposeCompletionContributorTest {
     assertThat(
       ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.Unknown"))
       .isNull()
+  }
+
+  @Test
+  @RunsInEdt
+  fun composeDrawableLookupElement_completion() {
+    StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED.override(true)
+    addManifest(myFixture)
+    val fileName = "res/drawable/my_great_%s_icon.xml"
+    // language=XML
+    val circle = """
+      <vector android:height="24dp" android:width="24dp" android:viewportHeight="24" android:viewportWidth="24" android:tint="#%X"
+          xmlns:android="http://schemas.android.com/apk/res/android">
+        <path android:fillColor="@android:color/white" android:pathData="M12,2C6.47,2 2,6.47 2,12s4.47,10 10,10 10,-4.47 10,-10S17.53,2 12,2z"/>
+      </vector>
+    """.trimIndent()
+    val colors = mapOf("red" to JBColor.RED, "green" to JBColor.GREEN, "blue" to JBColor.BLUE)
+    colors.forEach { myFixture.addFileToProject(fileName.format(it.key), circle.format(it.value.rgb)) }
+    projectRule.projectRule.waitForResourceRepositoryUpdates()
+
+    val file = myFixture.addFileToProject(
+      "/src/com/example/Foo.kt",
+      // language=kotlin
+      """
+       package com.example
+       class Foo {
+         fun example() {
+           val foo = R.drawable.my_gre${caret}
+         }
+       }
+       """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val results = myFixture.completeBasic()
+    assertThat(results).hasLength(colors.size)
+    assertThat(results.all { it is ComposeDrawableLookupElement }).isTrue()
+    val icons = results.mapNotNull { it.renderedIcon() }.distinct()
+    assertThat(icons).hasSize(colors.size)
+    val expectedColors = results.map { lookupElement ->
+      colors.entries.first { lookupElement.lookupString.contains(it.key) }.value.rgb
+    }
+    assertThat(icons.map { it.sampleMiddlePoint() }).containsExactlyElementsIn(expectedColors).inOrder()
   }
 
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>
@@ -1296,4 +1337,18 @@ class ComposeCompletionContributorTest {
         }
       }
     }
+
+  private fun LookupElement.renderedIcon() : Icon? {
+    val pres = LookupElementPresentation()
+    renderElement(pres)
+    return pres.icon
+  }
+
+  private fun Icon.sampleMiddlePoint(): Int {
+    val bufferedImage = ImageUtil.createImage(iconWidth, iconHeight, BufferedImage.TYPE_INT_ARGB)
+    val graphics = bufferedImage.createGraphics()
+    paintIcon(null, graphics, 0, 0)
+    graphics.dispose()
+    return bufferedImage.getRGB(iconWidth / 2, iconHeight / 2)
+  }
 }
