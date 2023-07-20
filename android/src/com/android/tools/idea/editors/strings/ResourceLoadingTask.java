@@ -26,6 +26,7 @@ import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class ResourceLoadingTask extends Task.Backgroundable {
   @NotNull
@@ -33,6 +34,9 @@ final class ResourceLoadingTask extends Task.Backgroundable {
 
   @NotNull
   private final Supplier<? extends LocalResourceRepository> myGetModuleResources;
+
+  @Nullable
+  private StringResourceTableModel myStringResourceTableModel;
 
   ResourceLoadingTask(@NotNull StringResourceViewPanel panel) {
     this(panel, () -> StudioResourceRepositoryManager.getModuleResources(panel.getFacet()));
@@ -62,13 +66,14 @@ final class ResourceLoadingTask extends Task.Backgroundable {
       onThrowable(e);
     }
 
-    StringResourceTableModel stringResourceTableModel =
-      new StringResourceTableModel(repository, myPanel.getFacet().getModule().getProject());
-    myPanel.getTable().setModel(stringResourceTableModel);
+    myStringResourceTableModel = new StringResourceTableModel(repository, myPanel.getFacet().getModule().getProject());
   }
 
   @Override
   public void onSuccess() {
+    assert myStringResourceTableModel != null;
+    myPanel.getTable().setModel(myStringResourceTableModel);
+
     myPanel.getLoadingPanel().stopLoading();
   }
 

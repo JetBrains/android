@@ -41,7 +41,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBLoadingPanel;
-import com.intellij.ui.components.JBLoadingPanelListener;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTextField;
 import java.awt.BorderLayout;
@@ -109,17 +108,6 @@ public class StringResourceViewPanel implements Disposable {
     myLoadingPanel.setLoadingText("Loading string resource data");
     myLoadingPanel.setName("translationsEditor");
     myLoadingPanel.add(myPanel);
-    myLoadingPanel.addListener(new JBLoadingPanelListener() {
-      @Override
-      public void onLoadingStart() {
-        myLoadingPanel.getContentPanel().setVisible(false);
-      }
-
-      @Override
-      public void onLoadingFinish() {
-        myLoadingPanel.getContentPanel().setVisible(true);
-      }
-    });
     myLoadingPanel.startLoading();
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
