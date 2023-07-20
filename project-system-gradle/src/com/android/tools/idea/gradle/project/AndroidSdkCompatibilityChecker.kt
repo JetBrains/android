@@ -21,7 +21,10 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
+import com.android.tools.idea.serverflags.protos.RecommendedVersions
+import com.android.tools.idea.serverflags.protos.StudioVersionRecommendation
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.UpgradeAndroidStudioDialogStats
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationInfo
@@ -29,10 +32,11 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DoNotAskOption
-import com.intellij.openapi.ui.MessageDialogBuilder
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateChecker
-import com.intellij.util.ui.UIUtil
+import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import org.jetbrains.android.util.AndroidBundle
 
 
@@ -47,7 +51,8 @@ import org.jetbrains.android.util.AndroidBundle
 class AndroidSdkCompatibilityChecker {
 
   fun checkAndroidSdkVersion(importedModules: Collection<DataNode<GradleAndroidModelData>>,
-                             project: Project) {
+                             project: Project,
+                             serverFlag: MutableMap<Int, RecommendedVersions>?) {
     if (StudioUpgradeReminder(project).shouldAsk().not()) return
 
     val modulesViolatingSupportRules = importedModules.mapNotNull {
@@ -67,13 +72,50 @@ class AndroidSdkCompatibilityChecker {
 
     if (modulesViolatingSupportRules.isEmpty()) return
 
-    val content = AndroidBundle.message(
-      "project.upgrade.studio.notification.body.without.recommendation",
-      ApplicationInfo.getInstance().fullVersion
-    ) + getAffectedModules(modulesViolatingSupportRules)
+    // If multiple modules violate the rules, recommending upgrading to the highest one
+    val highestViolatingSdkVersion: AndroidVersion = modulesViolatingSupportRules.map { it.second }
+                                                       .maxWithOrNull(compareBy({ it.apiLevel }, { it.codename })) ?: return
+
+    val recommendation = serverFlag?.get(highestViolatingSdkVersion.apiLevel) ?: return
+
+    val (recommendedVersion, potentialFallbackVersion) = when (getChannelFromUpdateSettings()) {
+      ProductDetails.SoftwareLifeCycleChannel.CANARY -> Pair(recommendation.canaryChannel, null)
+      ProductDetails.SoftwareLifeCycleChannel.BETA -> Pair(
+        recommendation.betaRcChannel,
+        recommendation.canaryChannel.takeIf { it.versionReleased }
+      )
+      ProductDetails.SoftwareLifeCycleChannel.STABLE -> Pair(
+        recommendation.stableChannel,
+        recommendation.betaRcChannel.takeIf { it.versionReleased } ?: recommendation.canaryChannel.takeIf { it.versionReleased }
+      )
+      else -> return
+    }
+
+    // We can't recommend upgrading to the latest version of AS (from the same channel) that will support
+    // the required API level
+    val content = if (!recommendedVersion.versionReleased) {
+      if (potentialFallbackVersion != null) {
+        AndroidBundle.message(
+          "project.upgrade.studio.notification.body.different.channel.recommendation",
+          ApplicationInfo.getInstance().fullVersion,
+          potentialFallbackVersion.buildDisplayName
+        ) + getAffectedModules(modulesViolatingSupportRules)
+      } else {
+        AndroidBundle.message(
+          "project.upgrade.studio.notification.body.no.recommendation",
+          ApplicationInfo.getInstance().fullVersion,
+        ) + getAffectedModules(modulesViolatingSupportRules)
+      }
+    } else {
+      AndroidBundle.message(
+        "project.upgrade.studio.notification.body.same.channel.recommendation",
+        ApplicationInfo.getInstance().fullVersion,
+        recommendedVersion.buildDisplayName
+      ) + getAffectedModules(modulesViolatingSupportRules)
+    }
 
     ApplicationManager.getApplication().invokeAndWait({
-      val dontAskAgain: DoNotAskOption = object : DoNotAskOption.Adapter() {
+      val dontAskAgain: DialogWrapper.DoNotAskOption = object : DialogWrapper.DoNotAskOption.Adapter() {
         override fun rememberChoice(isSelected: Boolean, exitCode: Int) {
           if (isSelected) {
             logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.DO_NOT_ASK_AGAIN)
@@ -86,25 +128,39 @@ class AndroidSdkCompatibilityChecker {
           return DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT
         }
       }
+      val (options, defaultOption) = if(recommendedVersion.versionReleased) {
+        Pair(arrayOf(Messages.getCancelButton(), UPDATE_STUDIO_BUTTON_TEXT), 1)
+      } else {
+        Pair(arrayOf(Messages.getCancelButton()), 0)
+      }
 
-      val selection = MessageDialogBuilder.yesNo(
-        AndroidBundle.message("project.upgrade.studio.notification.title"),
+      val selection = Messages.showIdeaMessageDialog(
+        project,
         content,
+        AndroidBundle.message("project.upgrade.studio.notification.title"),
+        options,
+        defaultOption,
+        Messages.getInformationIcon(), dontAskAgain
       )
-        .yesText(UPDATE_STUDIO_BUTTON_TEXT)
-        .noText(CANCEL_BUTTON_TEXT)
-        .asWarning()
-        .doNotAsk(dontAskAgain)
-        .ask(project)
 
       when (selection) {
-        true -> {
+        0 -> logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.CANCEL)
+        1 -> {
           logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.UPGRADE_STUDIO)
           UpdateChecker.updateAndShowResult(project)
         }
-        false -> logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.CANCEL)
       }
     }, ModalityState.NON_MODAL)
+  }
+
+  private fun getChannelFromUpdateSettings(): ProductDetails.SoftwareLifeCycleChannel {
+    return when (UpdateSettings.getInstance().selectedChannelStatus) {
+      ChannelStatus.EAP -> ProductDetails.SoftwareLifeCycleChannel.CANARY
+      ChannelStatus.MILESTONE -> ProductDetails.SoftwareLifeCycleChannel.DEV
+      ChannelStatus.BETA -> ProductDetails.SoftwareLifeCycleChannel.BETA
+      ChannelStatus.RELEASE -> ProductDetails.SoftwareLifeCycleChannel.STABLE
+      else -> ProductDetails.SoftwareLifeCycleChannel.UNKNOWN_LIFE_CYCLE_CHANNEL
+    }
   }
 
   private fun logEvent(project: Project, action: UpgradeAndroidStudioDialogStats.UserAction) {

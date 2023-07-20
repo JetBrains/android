@@ -88,6 +88,7 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:utp-core-proto-jarjar",
         "//tools/adt/idea/.idea/libraries:zxing-core",
         "//tools/adt/idea/android:libandroid-core-proto",
+        "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
         "//tools/adt/idea/android:libstudio.android-test-plugin-host-retention-proto",
         "//tools/adt/idea/android/lib:android-sdk-tools-jps",
         "//tools/adt/idea/android/lib:instantapps-api",

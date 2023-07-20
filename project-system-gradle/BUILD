@@ -56,6 +56,8 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/explainer:intellij.android.explainer[module]",
         "//tools/adt/idea/analytics[module]",
+        "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
+        "//tools/adt/idea/project-system-gradle:libandroid-core-proto",
     ],
 )
 
@@ -273,4 +275,13 @@ maven_repository(
         "@maven//:org.mockito.mockito-core_4.8.0",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
     ],
+)
+
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "libandroid-core-proto",
+    jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
+    visibility = ["//visibility:public"],
 )

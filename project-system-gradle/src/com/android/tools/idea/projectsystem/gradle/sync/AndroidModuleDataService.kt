@@ -50,6 +50,8 @@ import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.serverflags.ServerFlagService
+import com.android.tools.idea.serverflags.protos.AndroidSdkSupportConfiguration
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER
@@ -225,9 +227,14 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     ProjectStructure.getInstance(project).analyzeProjectStructure()
 
     if (ANDROID_SDK_AND_IDE_COMPATIBILITY_RULES.get()) {
+      val serverFlag = ServerFlagService.instance.getProtoOrNull(
+        "feature/studio_api_level_support", AndroidSdkSupportConfiguration.getDefaultInstance()
+      )?.androidApiStudioVersionMappingMap
+
       AndroidSdkCompatibilityChecker.getInstance().checkAndroidSdkVersion(
         imported,
-        project
+        project,
+        serverFlag
       )
     }
   }

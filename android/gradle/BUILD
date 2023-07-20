@@ -56,5 +56,16 @@ iml_module(
         "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/explainer:intellij.android.explainer[module, test]",
+        "//tools/adt/idea/server-flags:intellij.android.server-flags[module, test]",
+        "//tools/adt/idea/android/gradle:libandroid-core-proto[test]",
     ],
+)
+
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "libandroid-core-proto",
+    jars = ["//tools/adt/idea/android:libandroid-core-proto.jar"],
+    visibility = ["//visibility:public"],
 )
