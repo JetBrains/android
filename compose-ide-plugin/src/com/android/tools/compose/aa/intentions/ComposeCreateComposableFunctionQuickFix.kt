@@ -90,7 +90,8 @@ class ComposeCreateComposableFunctionQuickFix(
         listOfNotNull(createComposableFunctionQuickFixIfApplicable(diagnostic))
       }
 
-    private fun KtAnalysisSession.createComposableFunctionQuickFixIfApplicable(
+    context(KtAnalysisSession)
+    private fun createComposableFunctionQuickFixIfApplicable(
       diagnostic: KtFirDiagnostic.UnresolvedReference
     ): ComposeCreateComposableFunctionQuickFix? {
       val unresolvedCall = diagnostic.psi.parent as? KtCallExpression ?: return null
