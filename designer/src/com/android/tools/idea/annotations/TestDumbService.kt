@@ -22,6 +22,7 @@ import com.intellij.openapi.project.DumbModeTask
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.NlsContexts
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -31,11 +32,11 @@ import javax.swing.JPanel
  * TODO(b/228294269): Move this to the dedicated testutil module.
  */
 class TestDumbService(
-  private val project: Project,
+  override val project: Project,
 ) : DumbService() {
   private val smartRunnables = mutableListOf<Runnable>()
   private var modifications = 0L
-  private val modificationTracker = ModificationTracker { modifications }
+  override val modificationTracker = ModificationTracker { modifications }
 
   var dumbMode = true
     set(value) {
@@ -46,9 +47,9 @@ class TestDumbService(
         smartRunnables.clear()
       }
     }
-  override fun getModificationTracker(): ModificationTracker = modificationTracker
 
-  override fun isDumb(): Boolean = dumbMode
+  override val isDumb: Boolean
+    get() = dumbMode
 
   override fun runWhenSmart(runnable: Runnable) {
     if (isDumb) {
@@ -90,13 +91,11 @@ class TestDumbService(
     runWhenSmartAndBalloonStillShowing: Runnable
   ) {}
 
-  override fun getProject(): Project = project
-
-  override fun setAlternativeResolveEnabled(enabled: Boolean) {}
-
-  override fun isAlternativeResolveEnabled(): Boolean = false
+  override var isAlternativeResolveEnabled: Boolean = false
 
   override fun suspendIndexingAndRun(activityName: String, activity: Runnable) {}
+
+  override suspend fun suspendIndexingAndRun(activityName: @NlsContexts.ProgressText String, activity: suspend () -> Unit) {}
 
   override fun runWithWaitForSmartModeDisabled(): AccessToken = error("Not implemented")
 
