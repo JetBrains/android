@@ -37,6 +37,7 @@ iml_module(
             "tags": [
                 "cpu:3",
                 "no_test_mac",
+                "no_test_windows",  # b/199156040, timeouts seen
             ],
             "shard_count": 11,
             "data": [
