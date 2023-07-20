@@ -75,6 +75,7 @@ import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScope
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.module.ModuleDependencies
 import com.google.wireless.android.sdk.stats.TestLibraries
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VfsUtil
@@ -84,7 +85,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.idea.versions.LOG
 import java.io.File
 import java.nio.file.Path
 import java.util.Collections
@@ -284,7 +284,7 @@ class GradleModuleSystem(
             if (baseFeature != null) {
               impl(baseFeature, DependencyScopeType.MAIN)
             } else {
-              LOG.error("Cannot find base feature module for: $module")
+              thisLogger().error("Cannot find base feature module for: $module")
               emptySequence()
             }
           }
