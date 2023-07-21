@@ -236,6 +236,7 @@ class GalleryTabs<Key : TitledKey>(
 
     // Only update toolbar if there are any changes.
     if (needsUpdate) {
+      val currentKeys = labelActions.keys.toSet()
       labelActions.clear()
       keys.forEach { labelActions[it] = TabLabelAction(it) }
       // Remove previous toolbar if exists.
@@ -249,8 +250,25 @@ class GalleryTabs<Key : TitledKey>(
       updateToolbarExecutor.execute {
         centerPanel.add(toolbar, BorderLayout.CENTER)
         previousToolbar = toolbar
-        // If selectedKey was removed, select first key.
-        updateSelectedKey(e, if (keys.contains(selectedKey)) selectedKey else keys.firstOrNull())
+        // If selectedKey was removed select first key. If it was only updated (i.e. if a
+        // parameter value has changed), we select the new key corresponding to it.
+        val newSelectedKey =
+          // TODO(b/292482974): Find the correct key when there are Multipreview changes
+          when {
+            keys.contains(selectedKey) -> {
+              // Trivial case. When the selected key is present, keep the selection
+              selectedKey
+            }
+            keys.size == currentKeys.size -> {
+              // The selectedKey was updated so we need to find the new corresponding key
+              (keys subtract currentKeys).singleOrNull() ?: keys.firstOrNull()
+            }
+            else -> {
+              // Default to the first key if we can't match it to an existing key
+              keys.firstOrNull()
+            }
+          }
+        updateSelectedKey(e, newSelectedKey)
       }
     }
   }

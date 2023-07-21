@@ -163,6 +163,31 @@ class GalleryTabsTest {
     }
   }
 
+  @Test
+  fun `toolbar keeps selection if key is only updated`() {
+    invokeAndWaitIfNeeded {
+      val keyToUpdate = TestKey("Key to update")
+      var providedKeys =
+        mutableSetOf(TestKey("First"), TestKey("Second"), keyToUpdate, TestKey("Fourth"))
+      val tabs = GalleryTabs(rootComponent, { providedKeys }) { _, _ -> }
+      // Use a direct executor instead of the default (invokeLater) for replacing the toolbar,
+      // so the ActionButtonWithText can be found when using TreeWalker.
+      tabs.setUpdateToolbarExecutorForTests(MoreExecutors.directExecutor())
+      val root = JPanel(BorderLayout()).apply { size = Dimension(400, 400) }
+      root.add(tabs, BorderLayout.NORTH)
+      val ui = FakeUi(root).apply { updateNestedActions() }
+
+      val buttons = findAllActionButtons(root)
+      ui.clickOn(buttons[2])
+      assertEquals("Key to update", tabs.selectedKey?.title)
+
+      providedKeys =
+        mutableSetOf(TestKey("First"), TestKey("Second"), TestKey("updated"), TestKey("Fourth"))
+      ui.updateNestedActions()
+      assertEquals("updated", tabs.selectedKey?.title)
+    }
+  }
+
   @Ignore
   @Test
   /**
