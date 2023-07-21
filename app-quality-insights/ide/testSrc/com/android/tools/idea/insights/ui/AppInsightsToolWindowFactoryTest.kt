@@ -23,7 +23,6 @@ import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
-import com.jetbrains.rd.generator.nova.fail
 import org.junit.Rule
 import org.junit.Test
 
@@ -62,7 +61,7 @@ class AppInsightsToolWindowFactoryTest {
       LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {
         it.id == "App Quality Insights"
       }
-        ?: fail("Tool window not found")
+        ?: throw AssertionError("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass)
       .isEqualTo(AndroidEnvironmentChecker::class.qualifiedName)

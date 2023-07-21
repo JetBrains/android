@@ -33,7 +33,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
-import com.jetbrains.rd.generator.nova.fail
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
@@ -191,7 +190,7 @@ class SaveLogcatActionTest {
     waitForCondition { notificationRule.notifications.isNotEmpty() }
     assertThat(notificationRule.notifications).hasSize(1)
     val openInEditorAction = notificationRule.notifications.first().actions.find { it.templateText == "Open in Editor" }
-                             ?: fail("Expected action not found")
+                             ?: throw AssertionError("Expected action not found")
 
     runInEdtAndWait {
       openInEditorAction.actionPerformed(event)
@@ -212,7 +211,7 @@ class SaveLogcatActionTest {
     waitForCondition { notificationRule.notifications.isNotEmpty() }
     assertThat(notificationRule.notifications).hasSize(1)
     val openInLogcatAction = notificationRule.notifications.first().actions.find { it.templateText == "Open in Logcat" }
-                             ?: fail("Expected action not found")
+                             ?: throw AssertionError("Expected action not found")
     val mockShowLogcatListener = mock<ShowLogcatListener>()
     project.messageBus.connect().subscribe(ShowLogcatListener.TOPIC, mockShowLogcatListener)
 
@@ -241,10 +240,10 @@ class SaveLogcatActionTest {
 
         override fun save(baseDir: VirtualFile?, filename: String?): VirtualFileWrapper {
           if (baseDir == null) {
-            fail("baseDir cannot be null")
+            throw AssertionError("baseDir cannot be null")
           }
           if (filename == null) {
-            fail("filename cannot be null")
+            throw AssertionError("filename cannot be null")
           }
           val file = temporaryDirectoryRule.newPath(filename).toFile()
           val virtualFileWrapper = VirtualFileWrapper(file)

@@ -3,7 +3,6 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.ProjectRule
-import com.jetbrains.rd.generator.nova.fail
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -18,7 +17,7 @@ class DeviceManager2ToolWindowFactoryTest {
       LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {
         it.id == "Device Manager 2"
       }
-        ?: fail("Tool window not found")
+        ?: throw AssertionError("Tool window not found")
 
     Assert.assertEquals(
       toolWindow.librarySearchClass,

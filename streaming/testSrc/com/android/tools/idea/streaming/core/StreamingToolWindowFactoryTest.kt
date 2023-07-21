@@ -3,10 +3,10 @@ package com.android.tools.idea.streaming.core
 import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.ProjectRule
-import com.jetbrains.rd.generator.nova.fail
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.fail
 
 /**
  * Tests for [StreamingToolWindowFactory]

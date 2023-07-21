@@ -4,7 +4,7 @@ import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.ProjectRule
-import com.jetbrains.rd.generator.nova.fail
+import kotlin.test.fail
 import org.junit.Rule
 import org.junit.Test
 

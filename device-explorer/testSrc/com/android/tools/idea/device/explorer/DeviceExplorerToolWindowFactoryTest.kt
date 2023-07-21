@@ -4,7 +4,6 @@ import com.android.tools.idea.sdk.AndroidEnvironmentChecker
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.ProjectRule
-import com.jetbrains.rd.generator.nova.fail
 import org.junit.Rule
 import org.junit.Test
 
@@ -18,7 +17,7 @@ class DeviceExplorerToolWindowFactoryTest {
   @Test
   fun isLibraryToolWindow() {
     val toolWindow = LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "Device Explorer" }
-                     ?: fail("Tool window not found")
+                     ?: throw AssertionError("Tool window not found")
 
     assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidEnvironmentChecker::class.qualifiedName)
   }

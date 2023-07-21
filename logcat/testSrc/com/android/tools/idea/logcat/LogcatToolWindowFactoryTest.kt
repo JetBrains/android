@@ -46,12 +46,12 @@ import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl.MockToolWindow
 import com.intellij.util.io.delete
-import com.jetbrains.rd.generator.nova.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.verify
 import java.nio.file.Files
+import kotlin.test.fail
 
 
 @RunsInEdt

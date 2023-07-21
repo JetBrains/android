@@ -28,7 +28,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.table.JBTable
-import com.jetbrains.rd.generator.nova.fail
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -158,7 +157,7 @@ class DeviceManagerToolWindowFactoryTest {
   @Test
   fun isLibraryToolWindow() {
     val toolWindow = LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find { it.id == "Device Manager" }
-                     ?: fail("Tool window not found")
+                     ?: throw AssertionError("Tool window not found")
 
     assertEquals(toolWindow.librarySearchClass, AndroidEnvironmentChecker::class.qualifiedName)
   }
