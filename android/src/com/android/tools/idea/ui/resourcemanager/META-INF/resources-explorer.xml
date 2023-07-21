@@ -42,10 +42,11 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.ui.resourcemanager.importer.ImportConfigurationManager"/>
-    <facet.toolWindow id="Resources Explorer"
-                      facetIdList="android"
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <library.toolWindow id="Resources Explorer"
                       anchor="left" icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS" doNotActivateOnStart="true"
-                factoryClass="com.android.tools.idea.ui.resourcemanager.ResourceExplorerToolFactory"/>
+                      librarySearchClass="com.android.tools.idea.sdk.AndroidFacetChecker"
+                      factoryClass="com.android.tools.idea.ui.resourcemanager.ResourceExplorerToolFactory"/>
   </extensions>
 
   <actions>

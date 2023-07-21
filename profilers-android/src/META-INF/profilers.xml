@@ -15,10 +15,11 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <facet.toolWindow id="Android Profiler"
-                      facetIdList="android,apk"
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <library.toolWindow id="Android Profiler"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.ANDROID_PROFILER"
+                      librarySearchClass="com.android.tools.idea.sdk.AndroidOrApkFacetChecker"
                       factoryClass="com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory"
                       doNotActivateOnStart="true"/>
     <applicationService serviceImplementation="com.android.tools.idea.profilers.AndroidProfilerService"/>

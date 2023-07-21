@@ -30,5 +30,11 @@ fun isAndroidEnvironment(project: Project): Boolean =
  * Checks if the project contains a module with an Android or an Apk facet.
  */
 fun Project.hasAndroidOrApkFacet(): Boolean =
-  ProjectFacetManager.getInstance(this).hasFacets(AndroidFacet.ID) || ApkFacetChecker.getInstance(this).hasApkFacet()
+  hasAndroidFacet() || ApkFacetChecker.getInstance(this).hasApkFacet()
+
+/**
+ * Checks if the project contains a module with an Android facet.
+ */
+fun Project.hasAndroidFacet(): Boolean =
+  ProjectFacetManager.getInstance(this).hasFacets(AndroidFacet.ID)
 

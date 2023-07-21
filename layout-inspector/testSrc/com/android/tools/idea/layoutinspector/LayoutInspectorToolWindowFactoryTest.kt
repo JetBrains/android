@@ -34,6 +34,7 @@ import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
+import com.android.tools.idea.sdk.AndroidFacetChecker
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.transport.TransportService
@@ -48,6 +49,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowBalloonShowOptions
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.project.TestProjectManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -60,6 +62,7 @@ import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import java.util.concurrent.TimeUnit
+import kotlin.test.fail
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Ignore
@@ -235,6 +238,17 @@ class LayoutInspectorToolWindowFactoryTest {
       component.flatten(false).first { it is DeviceViewContentPanel } as DeviceViewContentPanel
     assertThat(inspector.renderLogic.renderSettings)
       .isInstanceOf(InspectorRenderSettings::class.java)
+  }
+
+  @Test
+  fun isLibraryToolWindow() {
+    val toolWindow =
+      LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions.find {
+        it.id == "Layout Inspector"
+      }
+        ?: fail("Tool window not found")
+
+    assertThat(toolWindow.librarySearchClass).isEqualTo(AndroidFacetChecker::class.qualifiedName)
   }
 }
 
