@@ -522,6 +522,74 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
       selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
     assertThat(textAfterCaret).startsWith("appTestResource'>app test resource</string>")
   }
+
+  fun testNavigateToDefinitionJavaToAppResource() {
+    val androidTest = createFile(
+      projectRootDirectory,
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int id = com.example.projectwithappandlib.app.R.string.${caret}app_name;
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+
+    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    assertThat(fileEditorManager.openFiles).hasLength(1)
+    assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
+
+    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+
+    // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
+    assertThat(fileEditorManager.openFiles).hasLength(2)
+    assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/main/res/values/strings.xml")
+
+    val selectedEditor = fileEditorManager.selectedTextEditor!!
+    val textAfterCaret =
+      selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
+    assertThat(textAfterCaret).startsWith("app_name\">projectWithAppandLib</string>")
+  }
+
+  fun testNavigateToDefinitionKotlinToAppResource() {
+    val androidTest = createFile(
+      projectRootDirectory,
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.kt",
+      // language=kotlin
+      """
+      package com.example.projectwithappandlib.app
+
+      class RClassAndroidTest {
+          fun useResources() {
+             val id = com.example.projectwithappandlib.app.R.string.${caret}app_name
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+
+    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    assertThat(fileEditorManager.openFiles).hasLength(1)
+    assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
+
+    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+
+    // Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
+    assertThat(fileEditorManager.openFiles).hasLength(2)
+    assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/main/res/values/strings.xml")
+
+    val selectedEditor = fileEditorManager.selectedTextEditor!!
+    val textAfterCaret =
+      selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
+    assertThat(textAfterCaret).startsWith("app_name\">projectWithAppandLib</string>")
+  }
 }
 
 /**
