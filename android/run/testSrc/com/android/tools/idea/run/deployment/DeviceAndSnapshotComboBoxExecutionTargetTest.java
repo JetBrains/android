@@ -30,6 +30,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.application.ApplicationConfiguration;
+import icons.StudioIcons;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
@@ -189,6 +190,34 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
 
     // Assert
     assertEquals("Multiple Devices", actualDisplayName);
+  }
+
+  @Test
+  public void getIconDevicesSizeEquals1() {
+    // Arrange
+    Mockito.when(myGetter.get()).thenReturn(Optional.of(List.of(TestDevices.buildPixel4Api30())));
+    var executionTarget = new DeviceAndSnapshotComboBoxExecutionTarget(Set.of(new QuickBootTarget(Keys.PIXEL_4_API_30)), myGetter);
+
+    // Act
+    var icon = executionTarget.getIcon();
+
+    // Assert
+    assertEquals(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, icon);
+  }
+
+  @Test
+  public void getIcon() {
+    // Arrange
+    Mockito.when(myGetter.get()).thenReturn(Optional.of(List.of(TestDevices.buildPixel4Api30(), TestDevices.buildPixel3Api30())));
+
+    var targets = Set.<Target>of(new QuickBootTarget(Keys.PIXEL_4_API_30), new QuickBootTarget(Keys.PIXEL_3_API_30));
+    var executionTarget = new DeviceAndSnapshotComboBoxExecutionTarget(targets, myGetter);
+
+    // Act
+    var icon = executionTarget.getIcon();
+
+    // Assert
+    assertEquals(StudioIcons.DeviceExplorer.MULTIPLE_DEVICES, icon);
   }
 
   @Test
