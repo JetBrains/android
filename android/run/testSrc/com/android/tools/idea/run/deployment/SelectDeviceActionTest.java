@@ -136,14 +136,7 @@ public final class SelectDeviceActionTest {
   @Test
   public void actionPerformed() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setType(Device.Type.PHONE)
-      .build();
-
-    AnAction action = new SelectDeviceAction(device, myComboBoxAction);
+    AnAction action = new SelectDeviceAction(TestDevices.buildPixel4Api30(), myComboBoxAction);
 
     // Act
     action.actionPerformed(myEvent);

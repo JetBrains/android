@@ -51,13 +51,7 @@ public final class TargetsForReadingSupplierTest {
   @Test
   public void targetsForReadingSupplier() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Collection<Device> devices = Collections.singletonList(device);
+    Collection<Device> devices = Collections.singletonList(TestDevices.buildPixel4Api30());
 
     // Act
     Object optionalTarget = new TargetsForReadingSupplier(devices, null, myTarget).getDropDownTarget();

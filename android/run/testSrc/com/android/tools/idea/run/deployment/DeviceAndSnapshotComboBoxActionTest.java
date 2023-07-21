@@ -131,13 +131,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void setTargetSelectedWithComboBox() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
+    Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(Collections.singletonList(TestDevices.buildPixel4Api30())));
 
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .setDevicesGetterGetter(project -> myDevicesGetter)

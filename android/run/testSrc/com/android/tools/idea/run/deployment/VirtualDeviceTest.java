@@ -70,12 +70,7 @@ public final class VirtualDeviceTest {
   @Test
   public void getDefaultTarget() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setType(Device.Type.PHONE)
-      .build();
+    Device device = TestDevices.buildPixel4Api30();
 
     // Act
     Object target = device.getDefaultTarget();

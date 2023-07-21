@@ -76,13 +76,7 @@ public final class SelectMultipleDevicesActionTest {
   @Test
   public void update() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    Mockito.when(myGetter.get()).thenReturn(Optional.of(Collections.singletonList(device)));
+    Mockito.when(myGetter.get()).thenReturn(Optional.of(Collections.singletonList(TestDevices.buildPixel4Api30())));
 
     Mockito.when(myEvent.getProject()).thenReturn(Mockito.mock(Project.class));
 

@@ -43,13 +43,6 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
   @Test
   public void showErrorMessage() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setType(Type.PHONE)
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
     Device deviceWithError = new VirtualDevice.Builder()
       .setName("Pixel 4 API 29")
       .setType(Type.PHONE)
@@ -58,7 +51,7 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    List<Device> devices = Arrays.asList(deviceWithError, device);
+    List<Device> devices = Arrays.asList(deviceWithError, TestDevices.buildPixel4Api30());
     DialogWrapper errorDialog = Mockito.mock(DialogWrapper.class);
     Project project = Mockito.mock(Project.class);
 

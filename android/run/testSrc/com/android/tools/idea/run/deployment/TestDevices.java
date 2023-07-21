@@ -15,10 +15,20 @@
  */
 package com.android.tools.idea.run.deployment;
 
-final class TestDevices {
-  static final String PIXEL_2_XL_API_28 = "Pixel 2 XL API 28";
-  static final String LGE_NEXUS_5X = "LGE Nexus 5X";
+import com.android.tools.idea.run.AndroidDevice;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
+final class TestDevices {
   private TestDevices() {
+  }
+
+  @NotNull
+  static VirtualDevice buildPixel4Api30() {
+    return new VirtualDevice.Builder()
+      .setKey(Keys.PIXEL_4_API_30)
+      .setName("Pixel 4 API 30")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
   }
 }

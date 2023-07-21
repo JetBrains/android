@@ -83,14 +83,7 @@ public final class DevicesSelectedServiceTest {
   public void getTargetSelectedWithComboBoxTargetSelectedWithDropDownIsNull() {
     // Arrange
     Mockito.when(myRunManager.getSelectedConfiguration()).thenReturn(myDefaultRunnerAndConfigurationSettings);
-
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    List<Device> devices = Collections.singletonList(device);
+    List<Device> devices = Collections.singletonList(TestDevices.buildPixel4Api30());
 
     // Act
     Object target = myService.getTargetSelectedWithComboBox(devices);
@@ -106,13 +99,7 @@ public final class DevicesSelectedServiceTest {
 
     myService.setTargetSelectedWithComboBox(new QuickBootTarget(Keys.PIXEL_3_API_30));
 
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    List<Device> devices = Collections.singletonList(device);
+    List<Device> devices = Collections.singletonList(TestDevices.buildPixel4Api30());
 
     // Act
     Object target = myService.getTargetSelectedWithComboBox(devices);
@@ -130,13 +117,7 @@ public final class DevicesSelectedServiceTest {
 
     myService.setTargetSelectedWithComboBox(target);
 
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    List<Device> devices = Collections.singletonList(device);
+    List<Device> devices = Collections.singletonList(TestDevices.buildPixel4Api30());
 
     // Act
     Object optionalTarget = myService.getTargetSelectedWithComboBox(devices);
@@ -152,12 +133,6 @@ public final class DevicesSelectedServiceTest {
 
     myService.setTargetSelectedWithComboBox(new QuickBootTarget(Keys.PIXEL_4_API_30));
 
-    Device disconnectedDevice = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
     Device connectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API 30")
       .setKey(Keys.PIXEL_3_API_30)
@@ -165,7 +140,7 @@ public final class DevicesSelectedServiceTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    var devices = List.of(disconnectedDevice, connectedDevice);
+    var devices = List.of(TestDevices.buildPixel4Api30(), connectedDevice);
 
     // Act
     Object target = myService.getTargetSelectedWithComboBox(devices);
@@ -182,12 +157,6 @@ public final class DevicesSelectedServiceTest {
     Target target = new ColdBootTarget(Keys.PIXEL_4_API_30);
     myService.setTargetSelectedWithComboBox(target);
 
-    Device disconnectedDevice = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
     Device connectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API 30")
       .setKey(Keys.PIXEL_3_API_30)
@@ -195,7 +164,7 @@ public final class DevicesSelectedServiceTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    var devices = List.of(disconnectedDevice, connectedDevice);
+    var devices = List.of(TestDevices.buildPixel4Api30(), connectedDevice);
 
     // Act
     Object optionalTarget = myService.getTargetSelectedWithComboBox(devices);
@@ -241,19 +210,13 @@ public final class DevicesSelectedServiceTest {
 
     Target target2 = new QuickBootTarget(Keys.PIXEL_3_API_30);
 
-    Device device1 = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 30")
       .setKey(Keys.PIXEL_3_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    var devices = List.of(device1, device2);
+    var devices = List.of(TestDevices.buildPixel4Api30(), device2);
 
     // Act
     myService.setTargetSelectedWithComboBox(target2);

@@ -521,14 +521,7 @@ public final class UpdaterTest {
   @Test
   public void getTextSnapshotsIsEmpty() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setType(Type.PHONE)
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    List<Device> devices = Collections.singletonList(device);
+    List<Device> devices = Collections.singletonList(TestDevices.buildPixel4Api30());
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
     Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(new QuickBootTarget(Keys.PIXEL_4_API_30)));

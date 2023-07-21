@@ -50,13 +50,7 @@ public final class SelectMultipleDevicesDialogTableModelRowTest {
   @Test
   public void getBootOptionSnapshotsIsEmpty() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    var row = new SelectMultipleDevicesDialogTableModelRow(device, TARGET);
+    var row = new SelectMultipleDevicesDialogTableModelRow(TestDevices.buildPixel4Api30(), TARGET);
 
     // Act
     Object option = row.getBootOption();

@@ -156,12 +156,7 @@ public final class AsyncDevicesGetterTest {
   @Test
   public void getImplConnectedDeviceHasPathKey() {
     // Arrange
-    VirtualDevice virtualDevice = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setType(Type.PHONE)
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
+    var virtualDevice = TestDevices.buildPixel4Api30();
 
     AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
     Mockito.when(androidDevice.isVirtual()).thenReturn(true);

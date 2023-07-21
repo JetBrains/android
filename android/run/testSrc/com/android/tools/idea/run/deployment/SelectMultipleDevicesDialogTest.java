@@ -148,15 +148,8 @@ public final class SelectMultipleDevicesDialogTest {
   @Test
   public void doOkAction() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 4 API 30")
-      .setKey(Keys.PIXEL_4_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .setType(Device.Type.PHONE)
-      .build();
-
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    initDialog(Collections.singletonList(device), project -> service);
+    initDialog(Collections.singletonList(TestDevices.buildPixel4Api30()), project -> service);
 
     // Act
     myDialog.getTable().setSelected(true, 0);
