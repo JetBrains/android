@@ -210,13 +210,7 @@ public final class DevicesSelectedServiceTest {
 
     Target target2 = new QuickBootTarget(Keys.PIXEL_3_API_30);
 
-    Device device2 = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 30")
-      .setKey(Keys.PIXEL_3_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
-
-    var devices = List.of(TestDevices.buildPixel4Api30(), device2);
+    var devices = List.<Device>of(TestDevices.buildPixel4Api30(), TestDevices.buildPixel3Api30());
 
     // Act
     myService.setTargetSelectedWithComboBox(target2);

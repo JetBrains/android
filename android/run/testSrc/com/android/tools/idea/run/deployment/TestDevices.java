@@ -24,6 +24,15 @@ final class TestDevices {
   }
 
   @NotNull
+  static VirtualDevice buildPixel3Api30() {
+    return new VirtualDevice.Builder()
+      .setKey(Keys.PIXEL_3_API_30)
+      .setName("Pixel 3 API 30")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+  }
+
+  @NotNull
   static VirtualDevice buildPixel4Api30() {
     return new VirtualDevice.Builder()
       .setKey(Keys.PIXEL_4_API_30)

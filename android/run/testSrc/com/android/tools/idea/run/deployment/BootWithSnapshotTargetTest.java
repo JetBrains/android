@@ -36,11 +36,7 @@ public final class BootWithSnapshotTargetTest {
   @Test
   public void matchesDeviceDoesntMatchDeviceKey() {
     // Arrange
-    Device device = new VirtualDevice.Builder()
-      .setName("Pixel 3 API 30")
-      .setKey(Keys.PIXEL_3_API_30)
-      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .build();
+    Device device = TestDevices.buildPixel3Api30();
 
     // Act
     boolean matches = myTarget.matches(device);
