@@ -308,10 +308,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
   override fun setToolContext(toolContext: LayoutInspector?) {
-    // clean up
-    inspectorModel?.modificationListeners?.remove(modelModifiedListener)
-    inspectorModel?.selectionListeners?.remove(selectionChangedListener)
-    inspectorModel?.connectionListeners?.remove(connectionListener)
+    cleanUp()
 
     layoutInspector = toolContext
 
@@ -325,6 +322,12 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     rootPanel.layoutInspector = toolContext
 
     updateRecompositionColumnVisibility()
+  }
+
+  private fun cleanUp() {
+    inspectorModel?.modificationListeners?.remove(modelModifiedListener)
+    inspectorModel?.selectionListeners?.remove(selectionChangedListener)
+    inspectorModel?.connectionListeners?.remove(connectionListener)
   }
 
   override fun getAdditionalActions() = additionalActions
@@ -466,7 +469,9 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
       }
     }
 
-  override fun dispose() {}
+  override fun dispose() {
+    cleanUp()
+  }
 
   private fun modelModified(old: AndroidWindow?, new: AndroidWindow?, structuralChange: Boolean) {
     if (structuralChange) {

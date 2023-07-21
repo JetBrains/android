@@ -40,7 +40,9 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
 
   override fun getComponent() = properties.component
 
-  override fun dispose() {}
+  override fun dispose() {
+    componentModel.layoutInspector = null
+  }
 
   override fun getGearActions() = listOf(DimensionUnitAction)
 

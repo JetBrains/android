@@ -80,6 +80,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -1009,6 +1010,22 @@ class LayoutInspectorTreePanelTest {
     assertThat(nodeType.textValueOf(model[VIEW4]!!.treeNode)).isEqualTo("\"Hello World!\"")
     assertThat(nodeType.textValueOf(model[COMPOSE1]!!.treeNode)).isNull()
     assertThat(nodeType.textValueOf(model[COMPOSE3]!!.treeNode)).isEqualTo("(inline)")
+  }
+
+  @Test
+  fun testListenersAreClearedOnDispose() {
+    val disposable = Disposer.newDisposable(projectRule.fixture.testRootDisposable)
+    val panel = runInEdtAndGet { LayoutInspectorTreePanel(disposable) }
+
+    setToolContext(panel, inspectorRule.inspector)
+
+    assertThat(inspectorRule.inspector.inspectorModel.selectionListeners).hasSize(1)
+    assertThat(inspectorRule.inspector.inspectorModel.connectionListeners).hasSize(1)
+
+    Disposer.dispose(disposable)
+
+    assertThat(inspectorRule.inspector.inspectorModel.selectionListeners).hasSize(0)
+    assertThat(inspectorRule.inspector.inspectorModel.connectionListeners).hasSize(0)
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {

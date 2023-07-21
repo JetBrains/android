@@ -232,7 +232,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         displayView = displayView
       )
 
-    return SelectedTabState(project, this, tabId, tabComponents, project.getLayoutInspector())
+    return SelectedTabState(project, tabId, tabComponents, project.getLayoutInspector())
   }
 
   override fun addStateListener(listener: LayoutInspectorManager.StateListener) {
@@ -314,7 +314,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
   @UiThread
   private data class SelectedTabState(
     val project: Project,
-    val disposable: Disposable,
     val tabId: TabId,
     val tabComponents: TabComponents,
     val layoutInspector: LayoutInspector,
@@ -340,8 +339,15 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         { layoutInspector.currentClient.stats },
       )
   ) {
+
+    private var layoutInspectorDisposable: Disposable? = null
+
     fun enableLayoutInspector() {
       ApplicationManager.getApplication().assertIsDispatchThread()
+
+      val disposable = Disposer.newDisposable(tabComponents.disposable)
+      layoutInspectorDisposable = disposable
+
       wrapLogic.wrapComponent { centerPanel ->
         val inspectorPanel = BorderLayoutPanel()
         val mainPanel = BorderLayoutPanel()
@@ -387,6 +393,10 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
     fun disableLayoutInspector() {
       ApplicationManager.getApplication().assertIsDispatchThread()
+
+      layoutInspectorDisposable?.let { Disposer.dispose(it) }
+      layoutInspectorDisposable = null
+
       wrapLogic.unwrapComponent()
       tabComponents.displayView.remove(layoutInspectorRenderer)
       layoutInspector.inspectorModel.selectionListeners.remove(selectionChangedListener)

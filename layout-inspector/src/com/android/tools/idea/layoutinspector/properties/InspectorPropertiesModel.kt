@@ -59,11 +59,9 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
     oldInspector: LayoutInspector?,
     newInspector: LayoutInspector?
   ) {
-    oldInspector?.inspectorModel?.selectionListeners?.remove(selectionListener)
+    cleanUp(oldInspector)
     newInspector?.inspectorModel?.selectionListeners?.add(selectionListener)
-    oldInspector?.inspectorModel?.modificationListeners?.remove(modificationListener)
     newInspector?.inspectorModel?.modificationListeners?.add(modificationListener)
-    oldInspector?.inspectorModel?.connectionListeners?.remove(connectionListener)
     newInspector?.inspectorModel?.connectionListeners?.add(connectionListener)
   }
 
@@ -77,6 +75,12 @@ class InspectorPropertiesModel : PropertiesModel<InspectorPropertyItem> {
 
   override fun removeListener(listener: PropertiesModelListener<InspectorPropertyItem>) {
     modelListeners.remove(listener)
+  }
+
+  private fun cleanUp(layoutInspector: LayoutInspector?) {
+    layoutInspector?.inspectorModel?.selectionListeners?.remove(selectionListener)
+    layoutInspector?.inspectorModel?.modificationListeners?.remove(modificationListener)
+    layoutInspector?.inspectorModel?.connectionListeners?.remove(connectionListener)
   }
 
   @Suppress("UNUSED_PARAMETER")

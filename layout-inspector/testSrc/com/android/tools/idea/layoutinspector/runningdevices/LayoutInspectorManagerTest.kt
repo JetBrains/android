@@ -209,7 +209,7 @@ class LayoutInspectorManagerTest {
 
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
 
-    val workbench = tab1.content.parents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+    val workbench = tab1.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
     val dataContext = DataManager.getInstance().getDataContext(workbench)
     val layoutInspector = dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)
     assertThat(layoutInspector).isEqualTo(layoutInspector)
@@ -274,12 +274,14 @@ class LayoutInspectorManagerTest {
 
     fakeToolWindowManager.removeContent(tab1)
 
-    // assert that the workbench was not removed from tab1.
-    // it should not be removed because in the real world tab1 doesn't exist anymore after being
-    // removed
-    // so trying to remove the workbench would cause problems.
-    assertHasWorkbench(tab1)
-    // the same for stopping the inspector, it should not be called because the device is not
+    // Assert that the workbench was not removed from tab1. It should not be removed because in the
+    // real world tab1 doesn't exist anymore after being removed, so trying to remove the workbench
+    // from it would cause problems.
+    // The workbench is disposed, so it's empty. Just check that it's still in the view hierarchy
+    assertThat(tab1.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>())
+      .hasSize(1)
+
+    // The same for stopping the inspector, it should not be called because the device is not
     // connected anymore.
     assertThat(stopInspectorCounts).isEqualTo(2)
     assertHasWorkbench(tab2)
@@ -453,8 +455,25 @@ class LayoutInspectorManagerTest {
     assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).isEmpty()
   }
 
+  @Test
+  @RunsInEdt
+  fun testWorkbenchIsDisposedWhenLIIsDisabled() = withEmbeddedLayoutInspector {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+
+    var isWorkbenchDisposed = false
+    val workBench = tab1.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+    Disposer.register(workBench) { isWorkbenchDisposed = true }
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+
+    assertThat(isWorkbenchDisposed).isTrue()
+  }
+
   private fun assertHasWorkbench(tabInfo: TabInfo) {
-    assertThat(tabInfo.content.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
+    assertThat(tabInfo.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>())
+      .hasSize(1)
     assertThat(tabInfo.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>())
       .hasSize(1)
 
@@ -478,8 +497,9 @@ class LayoutInspectorManagerTest {
   }
 
   private fun assertDoesNotHaveWorkbench(tabInfo: TabInfo) {
-    assertThat(tabInfo.content.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
-    assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>())
+    assertThat(tabInfo.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>())
+      .hasSize(0)
+    assertThat(tabInfo.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>())
       .hasSize(0)
     assertThat(tabInfo.content.parent).isEqualTo(tabInfo.container)
 
@@ -498,7 +518,7 @@ class LayoutInspectorManagerTest {
       .hasSize(0)
   }
 
-  private fun Component.parents(): List<Container> {
+  private fun Component.allParents(): List<Container> {
     val parents = mutableListOf<Container>()
     var component = this
     while (component.parent != null) {
