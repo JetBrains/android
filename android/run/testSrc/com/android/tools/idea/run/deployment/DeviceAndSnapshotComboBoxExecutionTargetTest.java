@@ -79,6 +79,25 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
   }
 
   @Test
+  public void getAvailableDeviceCount() {
+    // Arrange
+    var device = new VirtualDevice.Builder()
+      .setKey(Keys.PIXEL_4_API_30)
+      .setName("Pixel 4 API 30")
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    Mockito.when(myGetter.get()).thenReturn(Optional.of(List.of(device)));
+    var target = new DeviceAndSnapshotComboBoxExecutionTarget(Set.of(new QuickBootTarget(Keys.PIXEL_4_API_30)), myGetter);
+
+    // Act
+    var count = target.getAvailableDeviceCount();
+
+    // Assert
+    assertEquals(1, count);
+  }
+
+  @Test
   public void getDevices() {
     // Arrange
     Key key = new VirtualDeviceName("Pixel_3_API_29");
