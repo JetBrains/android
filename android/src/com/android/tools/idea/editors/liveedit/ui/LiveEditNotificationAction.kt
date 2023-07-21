@@ -204,12 +204,20 @@ private fun shouldHideImpl(status: ComposeStatus, dataContext: DataContext): Boo
   if (toolWindowId == null || toolWindowId.id != RUNNING_DEVICES_TOOL_WINDOW_ID) {
     return true
   }
-  // Only show for running deviecs tool window.
+  // Only show for running devices tool window.
   val project = dataContext.getData(CommonDataKeys.PROJECT) ?: return true
   val serial = dataContext.getData(SERIAL_NUMBER_KEY) ?: return true
   val device = AndroidDebugBridge.getBridge()?.devices?.find { it.serialNumber == serial } ?: return true
-  // Only show when the device supports Live Edit and the project is Compose.
-  return !LiveEditProjectMonitor.supportLiveEdits(device) || !LiveEditService.usesCompose(project)
+  // Hide status when the device doesn't support Live Edit.
+  if (!LiveEditProjectMonitor.supportLiveEdits(device)) {
+    return true
+  }
+  // Hide status when the project isn't Compose.
+  if (!LiveEditService.usesCompose(project)) {
+    return true
+  }
+  // Hide status when Live Edit is already enabled (note: status is Disabled if we get to this part of the code).
+  return LiveEditApplicationConfiguration.getInstance().isLiveEdit
 }
 
 /**
