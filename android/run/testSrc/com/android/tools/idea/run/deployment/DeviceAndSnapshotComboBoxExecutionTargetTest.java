@@ -120,6 +120,19 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
   }
 
   @Test
+  public void getId() {
+    // Arrange
+    var targets = Set.<Target>of(new QuickBootTarget(Keys.PIXEL_4_API_30), new QuickBootTarget(Keys.PIXEL_3_API_30));
+    var executionTarget = new DeviceAndSnapshotComboBoxExecutionTarget(targets, myGetter);
+
+    // Act
+    var id = executionTarget.getId();
+
+    // Assert
+    assertEquals("device_and_snapshot_combo_box_target[" + Keys.PIXEL_3_API_30 + ", " + Keys.PIXEL_4_API_30 + ']', id);
+  }
+
+  @Test
   public void getDisplayNameCase1() {
     // Arrange
     Key key = new VirtualDeviceName("Pixel_3_API_29");
