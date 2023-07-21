@@ -22,8 +22,13 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.android.tools.rendering.RenderService
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import java.awt.event.KeyEvent.VK_SHIFT
@@ -36,6 +41,15 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+
+/**
+ * Find the [PsiFile] corresponding to a file that is part of the given [project], whose location is
+ * defined by the given [relativePath] from the [project]'s root directory.
+ */
+internal fun getPsiFile(project: Project, relativePath: String): PsiFile {
+  val vFile = project.guessProjectDir()!!.findFileByRelativePath(relativePath)!!
+  return runReadAction { PsiManager.getInstance(project).findFile(vFile)!! }
+}
 
 /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
 suspend fun ComposePreviewRepresentation.activateAndWaitForRender(fakeUi: FakeUi) =

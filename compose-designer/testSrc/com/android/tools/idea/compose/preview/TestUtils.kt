@@ -102,7 +102,7 @@ internal fun getRepresentationForFile(
 }
 
 /** Suspendable version of [DumbService.waitForSmartMode]. */
-internal suspend fun waitForSmartMode(project: Project, logger: Logger? = null) {
+suspend fun waitForSmartMode(project: Project, logger: Logger? = null) {
   val dumbService = DumbService.getInstance(project)
   logger?.let { if (dumbService.isDumb) it.info("waitForSmartMode: Waiting") }
   delayUntilCondition(500) { !dumbService.isDumb }
