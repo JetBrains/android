@@ -41,6 +41,7 @@ import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.InspectionProfile
 import com.intellij.codeInspection.LocalQuickFix
@@ -326,7 +327,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
             fix.range
               ?: SmartPointerManager.getInstance(project)
                 .createSmartPsiFileRangePointer(file, range)
-          builder = builder.withFix(MyFixingIntention(fix, smartRange))
+          builder = builder.withFix(MyFixingIntention(fix, smartRange, issue))
         }
       }
       for (intention in inspection.getIntentions(startElement, endElement)) {
@@ -336,7 +337,7 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         builder = builder.withFix(ideSupport.requestFeedbackIntentionAction(issue))
       }
       val id = key.id
-      builder = builder.withFix(SuppressLintIntentionAction(id, startElement))
+      builder = builder.withFix(SuppressLintIntentionAction(id, startElement, issue))
       if (INCLUDE_IDEA_SUPPRESS_ACTIONS) {
         builder = builder.withFix(MyDisableInspectionFix(key))
         builder = builder.withFix(MyEditInspectionToolsSettingsAction(key, inspection))
@@ -399,7 +400,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
   class MyFixingIntention(
     @SafeFieldForPreview private val myQuickFix: LintIdeQuickFix,
     /** If non-null, the fix is targeted for a different file than the current one in the editor. */
-    @SafeFieldForPreview private val myRange: SmartPsiFileRange
+    @SafeFieldForPreview private val myRange: SmartPsiFileRange,
+    @SafeFieldForPreview private val issue: Issue? = null
   ) : IntentionAction, HighPriorityAction {
     constructor(
       quickFix: LintIdeQuickFix,
@@ -445,6 +447,10 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       val textRange = myRange.range ?: return
       val start = targetFile.findElementAt(textRange.startOffset) ?: return
       val end = targetFile.findElementAt(textRange.endOffset - 1) ?: return
+
+      if (issue != null && !IntentionPreviewUtils.isPreviewElement(file)) {
+        LintIdeSupport.get().logQuickFixInvocation(project, issue, text)
+      }
       myQuickFix.apply(start, end, context)
     }
 

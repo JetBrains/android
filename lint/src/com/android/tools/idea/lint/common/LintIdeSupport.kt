@@ -171,6 +171,8 @@ abstract class LintIdeSupport {
 
   open fun logSession(lint: LintDriver, module: Module?, lintResult: LintBatchResult) {}
 
+  open fun logQuickFixInvocation(project: Project, issue: Issue, fixDescription: String) {}
+
   // XML processing
   open fun ensureNamespaceImported(
     file: XmlFile,

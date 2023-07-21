@@ -16,7 +16,9 @@
 package com.android.tools.idea.lint.common
 
 import com.android.tools.lint.detector.api.Issue
+import com.intellij.codeInsight.intention.FileModifier.SafeFieldForPreview
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.highlighter.XmlFileType
@@ -34,8 +36,11 @@ import org.jetbrains.plugins.groovy.GroovyFileType
 import org.toml.lang.psi.TomlFileType
 
 /** Intention for adding a `@SuppressLint` annotation on the given element for the given id */
-class SuppressLintIntentionAction(private val id: String, element: PsiElement) :
-  IntentionAction, Iconable {
+class SuppressLintIntentionAction(
+  private val id: String,
+  element: PsiElement,
+  @SafeFieldForPreview private val issue: Issue? = null
+) : IntentionAction, Iconable {
   private val label = SuppressLintQuickFix.displayName(element, id)
 
   constructor(issue: Issue, element: PsiElement) : this(issue.id, element)
@@ -76,6 +81,10 @@ class SuppressLintIntentionAction(private val id: String, element: PsiElement) :
     } else {
       // For example, an icon file
       SuppressLintQuickFix(id, file).applyFix(file)
+    }
+
+    if (issue != null && !IntentionPreviewUtils.isPreviewElement(file)) {
+      LintIdeSupport.get().logQuickFixInvocation(project, issue, text)
     }
   }
 

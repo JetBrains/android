@@ -24,6 +24,7 @@ import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.lint.common.LintProblemData
+import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintDriver
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.Severity
@@ -104,6 +105,36 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
           lintSession = session
           javaProcessStats = CommonMetricsData.javaProcessStats
           jvmDetails = CommonMetricsData.jvmDetails
+        }
+        .withProjectId(project)
+
+    UsageTracker.log(event)
+  }
+
+  /**
+   * Logs when a QuickFix was invoked by the user on an individual issue.
+   *
+   * This is only done when the user has opted into analytics and the issue's vendor is AOSP or
+   * Google.
+   */
+  fun logQuickFixInvocation(issue: Issue, fixDescription: String) {
+    if (project.isDisposed) return
+    if (!AnalyticsSettings.optedIn) return
+    if (!isAospOrGoogleLintIssue(issue)) return
+
+    val action =
+      LintAction.newBuilder()
+        .apply {
+          issueId = issue.id
+          fixId = fixDescription
+        }
+        .build()
+
+    val event =
+      AndroidStudioEvent.newBuilder()
+        .apply {
+          kind = AndroidStudioEvent.EventKind.LINT_ACTION
+          lintAction = action
         }
         .withProjectId(project)
 
@@ -261,5 +292,16 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     } catch (e: IOException) {
       "*ANONYMIZATION_ERROR*"
     }
+  }
+
+  /**
+   * Returns true if the issue appears to be from AOSP or Google, based on the vendor name. For
+   * certain analytics, we only target AOSP/Google issues.
+   */
+  private fun isAospOrGoogleLintIssue(issue: Issue): Boolean {
+    val vendorName = issue.vendor?.vendorName ?: issue.registry?.vendor?.vendorName ?: return false
+
+    return vendorName.startsWith(IssueRegistry.AOSP_VENDOR.vendorName!!) ||
+      vendorName.startsWith("Google")
   }
 }
