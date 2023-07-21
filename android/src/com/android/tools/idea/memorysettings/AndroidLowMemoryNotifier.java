@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-@Service
 public final class AndroidLowMemoryNotifier implements Disposable {
   private LowMemoryWatcher myWatcher;
   private final AtomicBoolean myNotificationShown = new AtomicBoolean();
@@ -64,13 +63,5 @@ public final class AndroidLowMemoryNotifier implements Disposable {
   public void dispose() {
     myWatcher.stop();
     myWatcher = null;
-  }
-
-  private static class Initializer implements StartupActivity.Background {
-    @Override
-    public void runActivity(@NotNull Project project) {
-      // Access the service to initialize it
-      AndroidLowMemoryNotifier.getInstance();
-    }
   }
 }
