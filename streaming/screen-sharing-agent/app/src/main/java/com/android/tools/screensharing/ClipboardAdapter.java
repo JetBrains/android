@@ -53,10 +53,10 @@ public class ClipboardAdapter {
         setPrimaryClipMethod = findMethodAndMakeAccessible(methods, "setPrimaryClip");
         addPrimaryClipChangedListenerMethod = findMethodAndMakeAccessible(methods, "addPrimaryClipChangedListener");
         removePrimaryClipChangedListenerMethod = findMethodAndMakeAccessible(methods, "removePrimaryClipChangedListener");
-        if (checkNumberOfParameters(getPrimaryClipMethod, 1, 4) &&
-            checkNumberOfParameters(setPrimaryClipMethod, 2, 5) &&
-            checkNumberOfParameters(addPrimaryClipChangedListenerMethod, 2, 5) &&
-            checkNumberOfParameters(removePrimaryClipChangedListenerMethod, 2, 5)) {
+        if (checkNumberOfParameters(getPrimaryClipMethod, 0, 4) &&
+            checkNumberOfParameters(setPrimaryClipMethod, 1, 5) &&
+            checkNumberOfParameters(addPrimaryClipChangedListenerMethod, 1, 5) &&
+            checkNumberOfParameters(removePrimaryClipChangedListenerMethod, 1, 5)) {
           clipboardListener = new ClipboardListener();
           if (SDK_INT >= 33) {
             overlaySuppressor = new PersistableBundle(1);
@@ -80,7 +80,9 @@ public class ClipboardAdapter {
     }
 
     int numberOfParameters = getPrimaryClipMethod.getParameterCount();
-    ClipData clipData = numberOfParameters == 1 ?
+    ClipData clipData = numberOfParameters == 0 ?
+                        (ClipData)getPrimaryClipMethod.invoke(clipboard) :
+                        numberOfParameters == 1 ?
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME) :
                         numberOfParameters == 2 ?
                         (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, USER_ID) :
@@ -107,7 +109,10 @@ public class ClipboardAdapter {
     }
 
     int numberOfParameters = setPrimaryClipMethod.getParameterCount();
-    if (numberOfParameters == 2) {
+    if (numberOfParameters == 1) {
+      setPrimaryClipMethod.invoke(clipboard, clipData);
+    }
+    else if (numberOfParameters == 2) {
       setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME);
     }
     else if (numberOfParameters == 3) {
@@ -127,7 +132,10 @@ public class ClipboardAdapter {
     }
 
     int numberOfParameters = addPrimaryClipChangedListenerMethod.getParameterCount();
-    if (numberOfParameters == 2) {
+    if (numberOfParameters == 1) {
+      addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
+    }
+    else if (numberOfParameters == 2) {
       addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
     }
     else if (numberOfParameters == 3) {
@@ -147,7 +155,10 @@ public class ClipboardAdapter {
     }
 
     int numberOfParameters = removePrimaryClipChangedListenerMethod.getParameterCount();
-    if (numberOfParameters == 2) {
+    if (numberOfParameters == 1) {
+      removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener);
+    }
+    else if (numberOfParameters == 2) {
       removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
     }
     else if (numberOfParameters == 3) {
