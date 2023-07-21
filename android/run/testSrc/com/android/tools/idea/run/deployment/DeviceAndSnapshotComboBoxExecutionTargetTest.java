@@ -133,6 +133,18 @@ public final class DeviceAndSnapshotComboBoxExecutionTargetTest {
   }
 
   @Test
+  public void getDisplayNameCase0() {
+    // Arrange
+    var executionTarget = new DeviceAndSnapshotComboBoxExecutionTarget(Set.of(), myGetter);
+
+    // Act
+    var name = executionTarget.getDisplayName();
+
+    // Assert
+    assertEquals("No Devices", name);
+  }
+
+  @Test
   public void getDisplayNameCase1() {
     // Arrange
     Key key = new VirtualDeviceName("Pixel_3_API_29");
