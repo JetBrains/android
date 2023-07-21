@@ -140,9 +140,8 @@ import java.io.FileFilter
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
-internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: BuildFolderPaths, lock: ReentrantLock): ModelCache.V1 {
+internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: BuildFolderPaths): ModelCache.V1 {
 
   fun deduplicateString(s: String): String = internedModels.intern(s)
   fun String.deduplicate() = internedModels.intern(this)
@@ -1384,7 +1383,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       modelVersion: AgpVersion?,
       androidModuleId: ModuleId
     ): ModelResult<IdeVariantWithPostProcessor> =
-      lock.withLock { variantFrom(androidProject, variant, legacyAndroidGradlePluginProperties, modelVersion, androidModuleId) }
+      variantFrom(androidProject, variant, legacyAndroidGradlePluginProperties, modelVersion, androidModuleId)
 
     override fun androidProjectFrom(
       rootBuildId: BuildId,
@@ -1394,9 +1393,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
       defaultVariantName: String?
-    ): ModelResult<IdeAndroidProjectImpl> {
-      return lock.withLock {
-        androidProjectFrom(
+    ): ModelResult<IdeAndroidProjectImpl>  = androidProjectFrom(
           rootBuildId,
           buildId,
           projectPath,
@@ -1405,20 +1402,18 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           gradlePropertiesModel,
           defaultVariantName
         )
-      }
-    }
 
     override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl =
-      lock.withLock { androidArtifactOutputFrom(output) }
+      androidArtifactOutputFrom(output)
 
-    override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = lock.withLock { nativeModuleFrom(nativeModule) }
+    override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
     override fun nativeVariantAbiFrom(variantAbi: NativeVariantAbi): IdeNativeVariantAbiImpl =
-      lock.withLock { nativeVariantAbiFrom(variantAbi) }
+      nativeVariantAbiFrom(variantAbi)
 
     override fun nativeAndroidProjectFrom(
       project: NativeAndroidProject,
       ndkVersion: String?
-    ): IdeNativeAndroidProjectImpl = lock.withLock { nativeAndroidProjectFrom(project, ndkVersion) }
+    ): IdeNativeAndroidProjectImpl = nativeAndroidProjectFrom(project, ndkVersion)
   }
 }
 

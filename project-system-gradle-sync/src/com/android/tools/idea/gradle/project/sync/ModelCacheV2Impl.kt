@@ -135,15 +135,12 @@ import com.google.common.collect.ImmutableSet
 import com.google.common.collect.Lists
 import org.gradle.api.attributes.java.TargetJvmEnvironment
 import java.io.File
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 // NOTE: The implementation is structured as a collection of nested functions to ensure no recursive dependencies are possible between
 //       models unless explicitly handled by nesting. The same structure expressed as classes allows recursive data structures and thus we
 //       cannot validate the structure at compile time.
 internal fun modelCacheV2Impl(
   internedModels: InternedModels,
-  lock: ReentrantLock,
   agpVersion: AgpVersion,
   syncTestMode: SyncTestMode,
   multiVariantAdditionalArtifactSupport: Boolean,
@@ -841,7 +838,7 @@ internal fun modelCacheV2Impl(
       if (classpathId.classpathType == ClasspathType.RUNTIME) {
         projectIdToIndex.forEach { (id, index) ->
           // Don't override stored classpath references, preferring the first classpath that we come across instead of the last.
-          internedModels.projectReferenceToArtifactClasspathMap.putIfAbsent(
+          internedModels.addProjectReferenceToArtifactClasspath(
             id,
             ideDependenciesCore to index)
         }
@@ -868,7 +865,7 @@ internal fun modelCacheV2Impl(
     }
 
     fun createDependencyRef(): IdeDependenciesCoreRef? {
-      val classpathToIndex = internedModels.projectReferenceToArtifactClasspathMap[classpathId] ?: return null
+      val classpathToIndex = internedModels.getProjectReferenceToArtifactClasspath(classpathId) ?: return null
       return IdeDependenciesCoreRef(classpathToIndex.first, classpathToIndex.second)
     }
 
@@ -1575,7 +1572,7 @@ internal fun modelCacheV2Impl(
       variant: Variant,
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?
     ): ModelResult<IdeVariantCoreImpl> =
-      lock.withLock { variantFrom(androidProject, basicVariant, variant, legacyAndroidGradlePluginProperties) }
+      variantFrom(androidProject, basicVariant, variant, legacyAndroidGradlePluginProperties)
 
     override fun variantFrom(
       ownerBuildId: BuildId,
@@ -1586,7 +1583,6 @@ internal fun modelCacheV2Impl(
       androidProjectPathResolver: AndroidProjectPathResolver,
       buildPathMap: Map<String, BuildId>
     ): ModelResult<IdeVariantWithPostProcessor> =
-      lock.withLock {
         variantFrom(
           ownerBuildId,
           ownerProjectPath,
@@ -1596,7 +1592,7 @@ internal fun modelCacheV2Impl(
           androidProjectPathResolver,
           buildPathMap
         )
-      }
+
 
     override fun androidProjectFrom(
       rootBuildId: BuildId,
@@ -1608,7 +1604,7 @@ internal fun modelCacheV2Impl(
       legacyAndroidGradlePluginProperties: LegacyAndroidGradlePluginProperties?,
       gradlePropertiesModel: GradlePropertiesModel,
       defaultVariantName: String?
-    ): ModelResult<IdeAndroidProjectImpl> = lock.withLock {
+    ): ModelResult<IdeAndroidProjectImpl> =
       androidProjectFrom(
         rootBuildId,
         buildId,
@@ -1620,9 +1616,8 @@ internal fun modelCacheV2Impl(
         gradlePropertiesModel,
         defaultVariantName
       )
-    }
 
-    override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = lock.withLock { nativeModuleFrom(nativeModule) }
+    override fun nativeModuleFrom(nativeModule: NativeModule): IdeNativeModuleImpl = nativeModuleFrom(nativeModule)
   }
 }
 

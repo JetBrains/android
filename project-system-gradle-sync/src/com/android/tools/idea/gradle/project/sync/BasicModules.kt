@@ -32,7 +32,6 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
-import java.util.concurrent.locks.ReentrantLock
 
 /**
  * The container class of modules we couldn't fetch using parallel Gradle TAPI API.
@@ -49,7 +48,6 @@ internal sealed class BasicIncompleteGradleModule(
 
   abstract fun getGradleModuleAction(
     internedModels: InternedModels,
-    modelCacheLock: ReentrantLock,
     buildInfo: BuildInfo
   ): ActionToRun<GradleModule>
 }
@@ -86,7 +84,6 @@ internal class BasicV1AndroidModuleGradleProject(
 
   override fun getGradleModuleAction(
     internedModels: InternedModels,
-    modelCacheLock: ReentrantLock,
     buildInfo: BuildInfo
   ): ActionToRun<GradleModule> {
     return ActionToRun(
@@ -104,7 +101,7 @@ internal class BasicV1AndroidModuleGradleProject(
         val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
           ?: error("Cannot get GradlePropertiesModel (V1) for project '$gradleProject'")
 
-        val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths, modelCacheLock)
+        val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths)
         val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
         val rootBuildId = buildInfo.buildPathMap[":"] ?: error("Root build (':') not found")
         val androidProjectResult = AndroidProjectResult.V1Project(
@@ -172,7 +169,6 @@ internal class BasicV2AndroidModuleGradleProject(
 
   override fun getGradleModuleAction(
     internedModels: InternedModels,
-    modelCacheLock: ReentrantLock,
     buildInfo: BuildInfo,
   ): ActionToRun<GradleModule> {
     return ActionToRun(
@@ -196,7 +192,7 @@ internal class BasicV2AndroidModuleGradleProject(
         val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
           ?: error("Cannot get GradlePropertiesModel (V2) for project '$gradleProject'")
 
-        val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion, syncActionOptions.syncTestMode,
+        val modelCache = modelCacheV2Impl(internedModels, agpVersion, syncActionOptions.syncTestMode,
                                           syncActionOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport)
         val rootBuildId = buildInfo.buildPathMap[":"] ?: error("Root build (':') not found")
         val androidProjectResult =
@@ -249,7 +245,6 @@ internal class BasicNonAndroidIncompleteGradleModule(gradleProject: BasicGradleP
   BasicIncompleteGradleModule(gradleProject, buildPath) {
   override fun getGradleModuleAction(
     internedModels: InternedModels,
-    modelCacheLock: ReentrantLock,
     buildInfo: BuildInfo
   ): ActionToRun<GradleModule> {
     return ActionToRun(

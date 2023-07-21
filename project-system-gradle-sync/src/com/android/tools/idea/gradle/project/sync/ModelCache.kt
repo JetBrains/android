@@ -132,24 +132,22 @@ interface ModelCache {
     @JvmStatic
     fun createForTests(useV2BuilderModels: Boolean): ModelCache {
       val internedModels = InternedModels(null)
-      val modelCacheLock = ReentrantLock()
       return if (useV2BuilderModels) {
         modelCacheV2Impl(
           internedModels,
-          modelCacheLock,
           AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION),
           syncTestMode = SyncTestMode.PRODUCTION,
           false,
         )
       } else {
-        modelCacheV1Impl(internedModels, BuildFolderPaths(), modelCacheLock)
+        modelCacheV1Impl(internedModels, BuildFolderPaths())
       }
     }
 
     @JvmStatic
     fun createForPostBuildModels(): V1 {
       val internedModels = InternedModels(null)
-      return modelCacheV1Impl(internedModels, BuildFolderPaths(), ReentrantLock())
+      return modelCacheV1Impl(internedModels, BuildFolderPaths())
     }
   }
 }

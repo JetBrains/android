@@ -28,12 +28,11 @@ internal class NativeVariantsSyncActionWorker(
   private val syncOptions: NativeVariantsSyncActionOptions,
   private val actionRunner: SyncActionRunner
 ) {
-  private val modelCacheLock = ReentrantLock()
   private val internedModels = InternedModels(buildInfo.buildRootDirectory)
   // NativeVariantsSyncAction is only used with AGPs not supporting v2 models and thus not supporting parallel sync.
 
   fun fetchNativeVariantsAndroidModels(): List<GradleModelCollection> {
-    val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths, modelCacheLock)
+    val modelCache = modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths)
     val nativeModules = actionRunner.runActions(
       buildInfo.projects.map { gradleProject ->
         ActionToRun(fun(controller: BuildController): GradleModule? {
