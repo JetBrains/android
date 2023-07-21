@@ -17,9 +17,8 @@
 package com.android.tools.compose
 
 import androidx.compose.compiler.plugins.kotlin.ComposeClassIds
-import androidx.compose.compiler.plugins.kotlin.ComposeFqNames
 import androidx.compose.compiler.plugins.kotlin.k1.hasComposableAnnotation
-import com.android.tools.idea.kotlin.findAnnotation
+import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
@@ -111,7 +110,7 @@ else {
 internal fun KtAnalysisSession.asFqName(type: KtType) = type.expandedClassSymbol?.classIdIfNonLocal?.asSingleFqName()
 
 internal fun KtFunction.hasComposableAnnotation() = if (isK2Plugin()) {
-  findAnnotation(ComposeFqNames.Composable) != null
+  hasAnnotation(ComposeClassIds.Composable)
 } else {
   descriptor?.hasComposableAnnotation() == true
 }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.compose
 
-import com.android.tools.idea.kotlin.findAnnotation
+import com.android.tools.idea.kotlin.hasAnnotation
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -31,13 +31,12 @@ import com.intellij.usages.rules.PsiElementUsage
 import com.intellij.usages.rules.UsageGroupingRule
 import com.intellij.usages.rules.UsageGroupingRuleEx
 import com.intellij.usages.rules.UsageGroupingRuleProviderEx
-import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFunction
 import javax.swing.Icon
 
-private val PREVIEW_FQ_NAME = FqName("androidx.compose.ui.tooling.preview.Preview")
+private val PREVIEW_CLASS_ID = ClassId.fromString("androidx/compose/ui/tooling/preview/Preview")
 
 /** Returns whether a [PsiElement] is used within a Kotlin function annotated with @Preview. */
 private tailrec fun PsiElement.isInPreviewFunction(): Boolean {
@@ -49,11 +48,7 @@ private tailrec fun PsiElement.isInPreviewFunction(): Boolean {
 }
 
 /** Returns whether a [KtFunction] is annotated with @Preview. */
-private fun KtFunction.hasPreviewAnnotation() = if (isK2Plugin()) {
-  findAnnotation(PREVIEW_FQ_NAME) != null
-} else {
-  descriptor?.annotations?.hasAnnotation(PREVIEW_FQ_NAME) == true
-}
+private fun KtFunction.hasPreviewAnnotation() = hasAnnotation(PREVIEW_CLASS_ID)
 
 /** Returns whether any of the [UsageTarget]s represent @Composable functions. */
 private fun Array<out UsageTarget>.containsComposable(): Boolean = asSequence()

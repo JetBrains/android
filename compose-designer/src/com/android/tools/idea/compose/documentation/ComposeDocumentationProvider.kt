@@ -23,8 +23,8 @@ import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.kotlin.getQualifiedName
+import com.android.tools.idea.kotlin.hasAnnotation
 import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.SingleComposePreviewElementInstance
@@ -61,6 +61,7 @@ import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
@@ -244,7 +245,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   private fun PsiElement.isPreview() =
     this is KtNamedFunction &&
       annotationEntries.any { it.shortName?.asString() == COMPOSE_PREVIEW_ANNOTATION_NAME } &&
-      this.findAnnotation(FqName(COMPOSE_PREVIEW_ANNOTATION_FQN)) != null
+      this.hasAnnotation(ClassId.topLevel(FqName(COMPOSE_PREVIEW_ANNOTATION_FQN)))
 
   private fun getOriginalDoc(element: PsiElement?, originalElement: PsiElement?): String? =
     ReadAction.compute<String?, Throwable> {
