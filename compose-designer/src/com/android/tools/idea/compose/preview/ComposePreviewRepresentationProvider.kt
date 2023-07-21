@@ -55,6 +55,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.annotations.TestOnly
 
 /** [ToolbarActionGroups] that includes the actions that can be applied to Compose Previews. */
 private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
@@ -141,6 +142,8 @@ private const val PREFIX = "ComposePreview"
 internal val COMPOSE_PREVIEW_MANAGER = DataKey.create<ComposePreviewManager>("$PREFIX.Manager")
 internal val COMPOSE_PREVIEW_ELEMENT_INSTANCE =
   DataKey.create<ComposePreviewElementInstance>("$PREFIX.PreviewElement")
+
+@TestOnly fun getComposePreviewManagerKeyForTests() = COMPOSE_PREVIEW_MANAGER
 
 /**
  * Returns a list of all [ComposePreviewManager]s related to the current context (which is implied

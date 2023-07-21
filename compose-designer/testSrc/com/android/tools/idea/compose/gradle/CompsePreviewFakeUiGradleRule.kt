@@ -123,7 +123,7 @@ class ComposePreviewFakeUiGradleRule(
     composePreviewRepresentation.activateAndWaitForRender(fakeUi)
     composePreviewRepresentation.waitForAnyPreviewToBeAvailable()
 
-    runAndWaitForRefresh { composePreviewRepresentation.requestRefresh() }
+    runAndWaitForRefresh { composePreviewRepresentation.requestRefreshForTest() }
     logger.debug("requestRefresh completed")
 
     withContext(AndroidDispatchers.uiThread) {

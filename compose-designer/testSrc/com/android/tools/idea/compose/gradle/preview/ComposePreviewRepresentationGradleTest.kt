@@ -423,7 +423,7 @@ class ComposePreviewRepresentationGradleTest {
   fun `refresh returns completed exceptionally if ComposePreviewRepresentation is disposed`() {
     var refreshDeferred = runBlocking {
       val completableDeferred = CompletableDeferred<Unit>()
-      composePreviewRepresentation.requestRefresh(
+      composePreviewRepresentation.requestRefreshForTest(
         RefreshType.QUICK,
         completableDeferred = completableDeferred
       )
@@ -434,7 +434,7 @@ class ComposePreviewRepresentationGradleTest {
     runInEdtAndWait { Disposer.dispose(composePreviewRepresentation) }
     refreshDeferred = runBlocking {
       val completableDeferred = CompletableDeferred<Unit>()
-      composePreviewRepresentation.requestRefresh(
+      composePreviewRepresentation.requestRefreshForTest(
         RefreshType.QUICK,
         completableDeferred = completableDeferred
       )

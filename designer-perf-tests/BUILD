@@ -25,6 +25,11 @@ iml_module(
             "tags": ["perfgate"],
             "test_filter": "com.android.tools.idea.rendering.PerfgateJarManagerTest",
         },
+        "perfgateComposeGradle": {
+            "tags": ["perfgate"],
+            "shard_count": 2,
+            "test_filter": "com.android.tools.idea.rendering.PerfgateComposeGradleTest",
+        },
         "non-perfgate": {
         },
     },
@@ -51,6 +56,9 @@ iml_module(
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
+    ],
+    test_jvm_flags = [
+        "-Djdk.attach.allowAttachSelf=true",
     ],
     test_resources = ["testData"],
     test_srcs = ["testSrc"],
@@ -81,6 +89,7 @@ iml_module(
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
+        "//tools/adt/idea/compose-designer:intellij.android.compose-designer.tests[module, test]",
     ],
 )
 

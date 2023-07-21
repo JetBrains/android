@@ -485,6 +485,8 @@ class ComposePreviewRepresentation(
     requestRefresh()
   }
 
+  @TestOnly fun updateGalleryModeForTest() = updateGalleryMode()
+
   private fun updateFpsForCurrentMode() {
     interactiveManager.fpsLimit =
       if (EssentialsMode.isEnabled()) {
@@ -1257,7 +1259,7 @@ class ComposePreviewRepresentation(
     }
   }
 
-  internal fun requestRefresh(
+  private fun requestRefresh(
     type: RefreshType = RefreshType.NORMAL,
     completableDeferred: CompletableDeferred<Unit>? = null
   ) {
@@ -1270,6 +1272,12 @@ class ComposePreviewRepresentation(
       ComposePreviewRefreshRequest(this.hashCode().toString(), ::refresh, completableDeferred, type)
     )
   }
+
+  @TestOnly
+  fun requestRefreshForTest(
+    type: RefreshType = RefreshType.NORMAL,
+    completableDeferred: CompletableDeferred<Unit>? = null
+  ) = requestRefresh(type, completableDeferred)
 
   private fun requestVisibilityAndNotificationsUpdate() {
     launch(workerThread) { refreshNotificationsAndVisibilityFlow.emit(Unit) }

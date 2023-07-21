@@ -26,6 +26,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 
+internal const val DEFAULT_KOTLIN_VERSION = "1.8.10"
 
 open class ComposeRenderTestBase {
   @get:Rule
@@ -37,7 +38,7 @@ open class ComposeRenderTestBase {
     StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     val baseTestPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     projectRule.fixture.testDataPath = baseTestPath
-    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin("1.8.10"))
+    projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
 
     projectRule.invokeTasks("compileDebugSources").apply {
       buildError?.printStackTrace()
