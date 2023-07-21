@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.ListPopup
 import com.intellij.ui.AnActionButton
@@ -44,10 +45,12 @@ import java.awt.BorderLayout
 import java.awt.Point
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
+import java.util.concurrent.Executor
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
+import org.jetbrains.annotations.TestOnly
 
 /** A key for each tab in [GalleryTabs]. */
 interface TitledKey {
@@ -196,6 +199,10 @@ class GalleryTabs<Key : TitledKey>(
     }
   private var previousToolbar: JComponent? = null
 
+  private var updateToolbarExecutor: Executor = Executor { command ->
+    invokeLater { command.run() }
+  }
+
   init {
     add(
       JBScrollPane(centerPanel, VERTICAL_SCROLLBAR_NEVER, HORIZONTAL_SCROLLBAR_AS_NEEDED).apply {
@@ -238,11 +245,19 @@ class GalleryTabs<Key : TitledKey>(
         createToolbar("Gallery Tabs", GalleryActionGroup(labelActions.values.toList())).apply {
           background = Colors.DEFAULT_BACKGROUND_COLOR
         }
-      centerPanel.add(toolbar, BorderLayout.CENTER)
-      previousToolbar = toolbar
-      // If selectedKey was removed, select first key.
-      updateSelectedKey(e, if (keys.contains(selectedKey)) selectedKey else keys.firstOrNull())
+
+      updateToolbarExecutor.execute {
+        centerPanel.add(toolbar, BorderLayout.CENTER)
+        previousToolbar = toolbar
+        // If selectedKey was removed, select first key.
+        updateSelectedKey(e, if (keys.contains(selectedKey)) selectedKey else keys.firstOrNull())
+      }
     }
+  }
+
+  @TestOnly
+  fun setUpdateToolbarExecutorForTests(executor: Executor) {
+    updateToolbarExecutor = executor
   }
 
   /** Creates [ActionToolbarImpl] with [actions]. */

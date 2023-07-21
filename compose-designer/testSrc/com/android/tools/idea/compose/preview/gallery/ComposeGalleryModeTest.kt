@@ -26,6 +26,8 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent.createTestEvent
 import com.intellij.testFramework.assertInstanceOf
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ui.UIUtil
 import java.awt.Component
 import java.util.stream.Collectors
 import javax.swing.JPanel
@@ -61,6 +63,7 @@ class ComposeGalleryModeTest {
     val gallery = ComposeGalleryMode(JPanel())
     val tabsToolbar = findTabs(gallery.component)
     tabsToolbar.actionGroup.update(createTestEvent(context))
+    runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
 
     assertEquals(firstElement, gallery.selectedKey!!.element)
     assertInstanceOf<PreviewMode.Gallery>(composePreviewManager.mode)
