@@ -1,0 +1,28 @@
+syntax = "proto2";
+
+option java_package = "com.android.tools.idea.serverflags.protos";
+option java_multiple_files = true;
+
+// Configuration to store mapping of support levels between Android API and
+// Android Studio
+message AndroidSdkSupportConfiguration {
+  map<int32, RecommendedVersions> android_api_studio_version_mapping = 1;
+}
+
+// Versions of Studio that will be recommended to developers based on the
+// Android API level they target
+message RecommendedVersions {
+  optional StudioVersionRecommendation canary_channel = 1;
+  optional StudioVersionRecommendation beta_rc_channel = 2;
+  optional StudioVersionRecommendation stable_channel = 3;
+}
+
+// Single recommended version channel
+message StudioVersionRecommendation {
+  // Whether this channel has a released version and can be recommended
+  optional bool version_released = 1;
+  // The build string of the version
+  optional string build_number = 2;
+  // The human readable string of the version
+  optional string build_display_name = 3;
+}
