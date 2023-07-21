@@ -123,6 +123,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -440,12 +441,18 @@ class ComposePreviewRepresentation(
 
     // Launch handling of Preview modes
     launch {
-      modeFlow.collect {
+      // Keep track of the last mode that was set to ensure it is correctly disposed
+      var lastMode = modeFlow.value
+      modeFlow.collectLatest {
         when (it) {
           // TODO(b/290173523): this should be handled in a separate class
           is PreviewMode.Switching -> {
-            onExit(it.currentMode)
-            onEnter(it.newMode)
+            // We can not interrupt the state change to ensure the change is done correctly
+            withContext(NonCancellable) {
+              onExit(lastMode)
+              onEnter(it.newMode)
+              lastMode = it.newMode
+            }
             modeFlow.value = it.newMode
           }
           else -> Unit
@@ -1655,12 +1662,7 @@ class ComposePreviewRepresentation(
   }
 
   override fun setMode(newMode: PreviewMode.Settable) {
-    val currentMode = modeFlow.value as? PreviewMode.Settable
-    if (currentMode == null) {
-      log.debug("Mode is already switching")
-      return
-    }
-
+    val currentMode = currentOrNextMode
     if (currentMode == newMode) {
       log.debug("Mode was already $newMode")
       return
