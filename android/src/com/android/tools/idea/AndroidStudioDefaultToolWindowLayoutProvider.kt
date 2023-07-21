@@ -32,6 +32,7 @@ class AndroidStudioDefaultToolWindowLayoutProvider : IntellijPlatformDefaultTool
   override fun configureRightVisibleOnLargeStripe(builder: DefaultToolWindowLayoutBuilder) {
     builder.add("Gradle", weight = 0.25f)
     builder.add("Device Manager", weight = 0.25f)
+    builder.add("Device Manager 2", weight = 0.25f)
     builder.add("Running Devices", weight = 0.25f)
   }
 
