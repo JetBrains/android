@@ -284,7 +284,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   public void testCreateAndroidAndroidTestKotlinMultiplatformFromSubDirectory() throws Exception {
     loadProject(TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM);
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(
-      getProject(), "module2/src/androidAndroidTest/kotlin");
+      getProject(), "module2/src/androidInstrumentedTest/kotlin");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
     assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);
@@ -297,7 +297,7 @@ public class AndroidTestConfigurationProducerTest extends AndroidGradleTestCase 
   public void testCreateAndroidAndroidTestKotlinMultiplatformFromDirectory() throws Exception {
     loadProject(TEST_ARTIFACTS_KOTLIN_MULTIPLATFORM);
     AndroidTestRunConfiguration runConfig = createAndroidTestConfigurationFromDirectory(
-      getProject(), "module2/src/androidAndroidTest");
+      getProject(), "module2/src/androidInstrumentedTest");
     assertNotNull(runConfig);
     assertEmpty(runConfig.checkConfiguration(myAndroidFacet));
     assertThat(runConfig.TESTING_TYPE).isEqualTo(AndroidTestRunConfiguration.TEST_ALL_IN_MODULE);

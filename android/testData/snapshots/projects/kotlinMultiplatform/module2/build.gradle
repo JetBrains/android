@@ -22,13 +22,13 @@ kotlin {
   android()
 
   sourceSets {
-    named("androidTest") {
+    named("androidUnitTest") {
       dependencies {
         implementation 'junit:junit:4.12'
       }
     }
 
-    named("androidAndroidTest") {
+    named("androidInstrumentedTest") {
       dependencies {
         implementation "com.android.support.test:runner:1.0.2"
       }
