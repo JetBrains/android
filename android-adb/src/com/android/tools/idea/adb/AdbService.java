@@ -55,6 +55,7 @@ import com.intellij.util.concurrency.SequentialTaskExecutor;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -471,6 +472,17 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
     @WorkerThread
     private @NotNull AndroidDebugBridge createBridge(@NotNull File adb) throws Exception {
       terminate();
+      if (ApplicationManager.getApplication().isUnitTestMode()) {
+        // AndroidDebugBridge creates MonitorThreads which will be leaked in unit tests
+        // TODO (b/292518457): remove when MonitorThread is no longer created.
+        try {
+          Class<?> c = Class.forName("com.intellij.testFramework.common.ThreadLeakTracker");
+          Method method = c.getDeclaredMethod("longRunningThreadCreated", Disposable.class, String[].class);
+          method.invoke(null, ApplicationManager.getApplication(), new String[] { "Monitor" });
+        } catch (Exception exception) {
+          LOG.warn("Failed to register Monitor thread as long-running, leaks may be coming.", exception);
+        }
+      }
 
       TimeoutRemainder rem = new TimeoutRemainder(DEFAULT_START_ADB_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
       LOG.info("Initializing adb using: " + adb.getAbsolutePath());

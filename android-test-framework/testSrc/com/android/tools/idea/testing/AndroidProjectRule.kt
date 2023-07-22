@@ -526,7 +526,12 @@ class ProjectEnvironmentRuleImpl(
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib")
     // ddmlib might sometimes leak the DCM thread. adblib will address this when fully replaces ddmlib
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device Client Monitor")
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Device List Monitor")
     ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "fake-adb-server-connection-pool")
+    // AdbService is application-level and so executor threads are reported as leaked
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "AdbService Executor")
+    // MonitorThread from ddmlib is often created during unrelated tests
+    ThreadLeakTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Monitor")
   }
 
   override fun after(description: Description) {
