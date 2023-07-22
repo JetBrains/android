@@ -54,7 +54,6 @@ import java.awt.image.BufferedImage
 import javax.swing.AbstractAction
 import javax.swing.Box
 import javax.swing.JButton
-import javax.swing.JComponent
 import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
@@ -233,17 +232,6 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   private fun findLoadingPanel(): StreamingLoadingPanel? = findContainingComponent()
 
   protected fun findNotificationHolderPanel(): NotificationHolderPanel? = findContainingComponent()
-
-  private inline fun <reified T : JComponent> findContainingComponent(): T? {
-    var component = parent
-    while (component != null) {
-      if (component is T) {
-        return component
-      }
-      component = component.parent
-    }
-    return null
-  }
 
   /**
    * Rounds the given value down to an integer if it is above 1, or to the nearest multiple of

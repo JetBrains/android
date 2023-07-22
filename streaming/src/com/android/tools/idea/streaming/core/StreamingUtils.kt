@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.internal.avd.AvdInfo
 import com.android.sdklib.repository.targets.SystemImage
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
@@ -117,6 +116,17 @@ private fun Component.findComponentForAction(action: AnAction): Component? {
 
 private fun Component.isComponentForAction(action: AnAction): Boolean =
     this is AnActionHolder && this.action === action
+
+internal inline fun <reified T : Component> Component.findContainingComponent(): T? {
+  var component = parent
+  while (component != null) {
+    if (component is T) {
+      return component
+    }
+    component = component.parent
+  }
+  return null
+}
 
 // TODO(b/289230363): use DeviceHandle.state.properties.icon, since it is the source of truth for device icons.
 internal val AvdInfo.icon: Icon

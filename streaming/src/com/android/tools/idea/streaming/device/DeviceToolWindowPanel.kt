@@ -16,11 +16,9 @@
 package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
-import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
-import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.RunningDevicePanel
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
@@ -63,7 +61,7 @@ internal class DeviceToolWindowPanel(
     get() = this
 
   override val preferredFocusableComponent: JComponent
-    get() = primaryDeviceView ?: this
+    get() = primaryDisplayView ?: this
 
   override var zoomToolbarVisible = false
     set(value) {
@@ -73,7 +71,8 @@ internal class DeviceToolWindowPanel(
 
   private var displayPanel: DeviceDisplayPanel? = null
   private var contentDisposable: Disposable? = null
-  private var primaryDeviceView: DeviceView? = null
+  override var primaryDisplayView: DeviceView? = null
+    private set
   private val deviceConfig
     get() = deviceClient.deviceConfig
   private val deviceStateListener = object : DeviceController.DeviceStateListener {
@@ -119,7 +118,7 @@ internal class DeviceToolWindowPanel(
 
     displayPanel = primaryDisplayPanel
     val deviceView = primaryDisplayPanel.displayView
-    primaryDeviceView = deviceView
+    primaryDisplayView = deviceView
     mainToolbar.targetComponent = deviceView
     secondaryToolbar.targetComponent = deviceView
     centerPanel.addToCenter(primaryDisplayPanel)
@@ -139,6 +138,8 @@ internal class DeviceToolWindowPanel(
     })
 
     installFileDropHandler(this, id.serialNumber, deviceView, project)
+
+    savedUiState?.let { restoreActiveNotifications(it) }
   }
 
   /**
@@ -148,7 +149,8 @@ internal class DeviceToolWindowPanel(
     mirroringEnded(DeviceMirroringSession.DeviceKind.PHYSICAL)
 
     val uiState = DeviceUiState()
-    uiState.orientation = primaryDeviceView?.displayOrientationQuadrants ?: 0
+    saveActiveNotifications(uiState)
+    uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
     uiState.zoomScrollState = displayPanel?.zoomScrollState
 
     contentDisposable?.let { Disposer.dispose(it) }
@@ -156,7 +158,7 @@ internal class DeviceToolWindowPanel(
 
     centerPanel.removeAll()
     displayPanel = null
-    primaryDeviceView = null
+    primaryDisplayView = null
     mainToolbar.targetComponent = this
     secondaryToolbar.targetComponent = this
     return uiState
@@ -164,12 +166,12 @@ internal class DeviceToolWindowPanel(
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
-      DEVICE_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
+      DEVICE_VIEW_KEY.name -> primaryDisplayView
       DEVICE_CLIENT_KEY.name -> deviceClient
       DEVICE_CONTROLLER_KEY.name -> deviceClient.deviceController
       DEVICE_HANDLE_KEY.name -> deviceClient.deviceHandle
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
-          primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null }
+          primaryDisplayView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->
           deviceClient.deviceController?.let {
             ScreenRecorderAction.Parameters(deviceClient.deviceName, deviceSerialNumber, deviceConfig.featureLevel, null, it)
@@ -178,7 +180,7 @@ internal class DeviceToolWindowPanel(
     }
   }
 
-  class DeviceUiState : UiState {
+  class DeviceUiState : UiState() {
     var orientation = 0
     var zoomScrollState: AbstractDisplayPanel.ZoomScrollState? = null
   }
