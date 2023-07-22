@@ -516,6 +516,14 @@ public final class StudioFlags {
     "Note: Changing the value of this flag requires restarting Android Studio.",
     true);
 
+  public static final Flag<Boolean> ADBLIB_ONE_SESSION_PER_PROJECT = Flag.create(
+    RUNDEBUG,
+    "adblib.one.session.per.project",
+    "Creates one AdbSession per project",
+    "Creates one AdbSession per project, as opposed to one shared Application level instance. " +
+    "Note: Changing the value of this flag requires restarting Android Studio.",
+    false);
+
   public static final Flag<Boolean> JDWP_TRACER = Flag.create(
     RUNDEBUG,
     "adb.jdwp.tracer.enabled",
