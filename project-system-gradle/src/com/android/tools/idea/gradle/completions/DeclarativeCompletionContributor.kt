@@ -108,7 +108,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                    val element = LookupElementBuilder.create(it.name)
                      .withTypeText(it.type.str, null, true)
                    when (it.type) {
-                     GENERIC_PROPERTY, STRING, INTEGER, BOOLEAN -> element.withInsertHandler(extractFromTable(it.type))
+                     GENERIC_PROPERTY, STRING, INTEGER, BOOLEAN, STRING_ARRAY -> element.withInsertHandler(extractFromTable(it.type))
                      else -> element
                    }
                  })
@@ -127,7 +127,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                    val element = LookupElementBuilder.create(it.name)
                      .withTypeText(it.type.str, null, true)
                    when (it.type) {
-                     GENERIC_PROPERTY, STRING, BOOLEAN, INTEGER -> element.withInsertHandler(insertProperty(it.type))
+                     GENERIC_PROPERTY, STRING, BOOLEAN, INTEGER, STRING_ARRAY -> element.withInsertHandler(insertProperty(it.type))
                      else -> element
                    }
                  })
@@ -167,13 +167,19 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       val editor = context.editor
       val document = editor.document
       context.commitDocument()
-      if (type == STRING) {
-        document.insertString(context.tailOffset, " = \"\"")
-        editor.caretModel.moveToOffset(context.tailOffset - 1)
-      }
-      else {
-        document.insertString(context.tailOffset, " = ")
-        editor.caretModel.moveToOffset(context.tailOffset)
+      when(type){
+        STRING -> {
+          document.insertString(context.tailOffset, " = \"\"")
+          editor.caretModel.moveToOffset(context.tailOffset - 1)
+        }
+        STRING_ARRAY -> {
+          document.insertString(context.tailOffset, " = [\"\"]")
+          editor.caretModel.moveToOffset(context.tailOffset - 2)
+        }
+        else -> {
+          document.insertString(context.tailOffset, " = ")
+          editor.caretModel.moveToOffset(context.tailOffset)
+        }
       }
     }
 

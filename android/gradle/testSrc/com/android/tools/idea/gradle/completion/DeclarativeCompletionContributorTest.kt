@@ -165,6 +165,29 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
       )
     }
 
+  @Test
+  fun testCompletionArrayPropertyInHeader() =
+    doCompletionTest(
+      "[android.aidlPackagedLi$caret]",
+      """
+      [android]
+      aidlPackagedList = ["$caret"]
+      """.trimIndent())
+
+
+  @Test
+  fun testCompletionArrayPropertyInHeader2() =
+    doCompletionTest(
+      """
+      [android.aidlPackagedLi$caret]
+      targetSdk = 1
+    """.trimIndent(),
+      """
+      [android]
+      aidlPackagedList = ["$caret"]
+      targetSdk = 1
+      """.trimIndent())
+
   private fun doTest(declarativeFile: String, check: (Map<String, String>) -> Unit) {
     val buildFile = myFixture.addFileToProject(
       "build.gradle.toml", declarativeFile)
