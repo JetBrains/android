@@ -195,6 +195,79 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
       targetSdk = 1
       """.trimIndent())
 
+  @Test
+  fun testSuggestionsForTableArray() =
+    doTest("p$caret") { suggestions ->
+      Truth.assertThat(suggestions.toList()).contains(
+        "plugins" to "Array Table",
+      )
+    }
+
+  @Test
+  fun testCompletionTableArray() =
+    doCompletionTest(
+      "plugi$caret",
+      """
+      [[plugins]]
+      $caret
+      """.trimIndent())
+
+  @Test
+  fun testCompletionTableArray2() =
+    doCompletionTest(
+      """
+      [plugi$caret]
+    """.trimIndent(),
+      """
+      [[plugins]]
+      $caret
+      """.trimIndent())
+
+  @Test
+  fun testCompletionTableArray3() =
+    doCompletionTest(
+      """
+      [[plugi$caret]]
+    """.trimIndent(),
+      """
+      [[plugins]]
+      $caret
+      """.trimIndent())
+
+  @Test
+  fun testCompletionTableArray4() =
+    doCompletionTest(
+      """
+      [plugin$caret]
+      [[plugins]]
+    """.trimIndent(),
+      """
+        [[plugins]]
+        $caret
+        [[plugins]]
+      """.trimIndent())
+
+  @Test
+  fun testCompletionTableArray5() =
+    doCompletionTest(
+      " [   plugin$caret]   ",
+      " [[   plugins]]   \n$caret")
+
+  fun testCompletionTableArray6() =
+    doCompletionTest(
+      """[[plu$caret # This is a [[comment]]""",
+      "[[plugins]] # This is a [[comment]]\n" +
+      "$caret"
+    )
+
+  @Test
+  fun testCompletionTableArrayNegative() =
+    doCompletionTest(
+      "   plugi$caret   ",
+      "   [[plugins]]   \n" +
+      "$caret"
+     )
+
   private fun doTest(declarativeFile: String, check: (Map<String, String>) -> Unit) {
     val buildFile = myFixture.addFileToProject(
       "build.gradle.toml", declarativeFile)

@@ -19,10 +19,12 @@ import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.completions.ElementType.*
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -64,6 +66,7 @@ private enum class ElementType(val str: String) {
   INTEGER("Integer"),
   BOOLEAN("Boolean"),
   BLOCK("Block element"),
+  ARRAY_TABLE("Array Table"),
   FIRST_LEVEL_BLOCK("Block element"),
   STRING_ARRAY("String Array"),
   INTEGER_ARRAY("Integer Array"),
@@ -109,6 +112,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                      .withTypeText(it.type.str, null, true)
                    when (it.type) {
                      GENERIC_PROPERTY, STRING, INTEGER, BOOLEAN, STRING_ARRAY -> element.withInsertHandler(extractFromTable(it.type))
+                     ARRAY_TABLE -> element.withInsertHandler(insertArrayTable())
                      else -> element
                    }
                  })
@@ -128,6 +132,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
                      .withTypeText(it.type.str, null, true)
                    when (it.type) {
                      GENERIC_PROPERTY, STRING, BOOLEAN, INTEGER, STRING_ARRAY -> element.withInsertHandler(insertProperty(it.type))
+                     ARRAY_TABLE -> element.withInsertHandler(insertArrayTable())
                      else -> element
                    }
                  })
@@ -160,6 +165,54 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       context.tailOffset = offsetAfterInsertion
 
       insertProperty(type).handleInsert(context, item)
+    }
+
+  /**
+   * Insert handler adds double square brackets if needed.
+   * Handler detects single brackets and append second to the existing ones.
+   * Analysis happens withing single line of where editing is done.
+   */
+  private fun insertArrayTable(): InsertHandler<LookupElement?> =
+    InsertHandler { context: InsertionContext, _: LookupElement ->
+      val editor = context.editor
+      val document = editor.document
+      context.commitDocument()
+
+      val text = document.text
+      // Here we extract line of where suggestion happened.
+      // Boundaries are \n symbol or start/end of the file
+      val lineStart = text.substring(0, context.tailOffset).indexOf("\n") + 1
+      // Line end is \n symbol or comment symbol
+      val lineEnd = "[\\n#]".toRegex().find(text)?.range?.start ?: text.length
+      val currLine = text.substring(lineStart, lineEnd)
+
+      val lineStartNoWhitespaces = currLine.indexOfFirst { !it.isWhitespace() }
+
+      if (!currLine.startsWith("[[", lineStartNoWhitespaces)) {
+        if (currLine.startsWith("[", lineStartNoWhitespaces)) {
+          document.insertString(lineStart + lineStartNoWhitespaces, "[")
+        }
+        else {
+          document.insertString(lineStart + lineStartNoWhitespaces, "[[")
+        }
+      }
+
+      if (!currLine.contains("]]")) {
+        // if inserted string is at the very end of the file - in this case tailOffset is bigger than doc size
+        if (context.tailOffset < document.text.length &&
+            document.text[context.tailOffset] == ']') {
+          document.insertString(context.tailOffset, "]")
+        }
+        else {
+          // or adding ]] at the end of inserted string (tailOffset updates itself after we, maybe, inserted [[)
+          document.insertString(context.tailOffset, "]]")
+        }
+      }
+
+      val newOffset = document.text.indexOf("\n", context.tailOffset).takeIf { it > -1 } ?: document.text.length
+      //inserting new line symbol with caret right before the end of current line
+      document.insertString(newOffset, "\n")
+      editor.caretModel.moveToOffset(newOffset + 1)
     }
 
   private fun insertProperty(type: ElementType): InsertHandler<LookupElement?> =
@@ -224,7 +277,11 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       currentModel = blockElement.schemaConstructor.construct()
     }
     val result = mutableListOf<Suggestion>()
-    result += currentModel.blockElementDescriptions.map { Suggestion(it.key, BLOCK) }
+    result += currentModel.blockElementDescriptions.map {
+      Suggestion(it.key,
+                 if(isArrayBlock(it.value)) ARRAY_TABLE else BLOCK
+      )
+    }
     result += currentModel.getPropertiesInfo(GradleDslNameConverter.Kind.TOML).entrySet
       .filterNot { currentNode?.children?.contains(it.surfaceSyntaxDescription.name) ?: false }
       .map {
@@ -233,6 +290,9 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       }
     return result
   }
+
+  private fun isArrayBlock(description: PropertiesElementDescription<*>):Boolean =
+    GradleDslElementList::class.java.isAssignableFrom(description.clazz)
 
   private fun ModelPropertyDescription.transformToSuggestionType(): ElementType {
     return when (this.type) {
