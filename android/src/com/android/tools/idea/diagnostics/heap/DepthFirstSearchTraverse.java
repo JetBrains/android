@@ -20,6 +20,7 @@ import static com.android.tools.idea.diagnostics.heap.MemoryReportJniHelper.getO
 
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.util.containers.WeakList;
+import java.util.Stack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -187,13 +188,23 @@ abstract class DepthFirstSearchTraverse {
 
   static class ExtendedReportCollectionTraverse extends DepthFirstSearchTraverse {
 
+    @NotNull
+    private final ExtendedReportStatistics extendedReportStatistics;
+    @NotNull
+    private final Stack<ExtendedStackNode> extendedNodesStack = new Stack<>();
+    @NotNull
+    private final Stack<RootPathTree.RootPathElement> pathToRoot = new Stack<>();
+
     public ExtendedReportCollectionTraverse(@NotNull final FieldCache fieldCache,
-                                            @NotNull final MemoryReportCollector collector) {
+                                            @NotNull final MemoryReportCollector collector,
+                                            @NotNull final ExtendedReportStatistics extendedReportStatistics) {
       super(fieldCache, collector);
+      this.extendedReportStatistics = extendedReportStatistics;
     }
 
     @Override
     protected void handleProcessedNode(@NotNull StackNode stackNode, @NotNull Object root) {
+      pathToRoot.pop();
       if (stackNode.getObject() != null) {
         MemoryReportJniHelper.setObjectTag(stackNode.getObject(), 0);
       }
@@ -202,11 +213,32 @@ abstract class DepthFirstSearchTraverse {
     @Override
     protected void pushElementToDepthFirstSearchStack(@NotNull Object obj, int depth, long tag, @NotNull String label) {
       super.pushElementToDepthFirstSearchStack(obj, depth, tag, label);
+      extendedNodesStack.push(new ExtendedStackNode(obj.getClass().getName(), label));
     }
 
     @Override
     protected void handleNode(@NotNull final StackNode stackNode, @NotNull final Object rootObject) {
       super.handleNode(stackNode, rootObject);
+
+      ExtendedStackNode extendedStackNode = extendedNodesStack.pop();
+      pathToRoot.add(new RootPathTree.RootPathElement(extendedStackNode, stackNode.getObject() == null
+                                                                         ? 0
+                                                                         : MemoryReportJniHelper.getObjectSize(stackNode.getObject()),
+                                                      extendedReportStatistics));
+      if (stackNode.getObject() == null) {
+        return;
+      }
+
+      if (ObjectTagUtil.isOwnedByExceededComponent(stackNode.tag)) {
+        ExceededClusterStatistics exceededClusterStatistics =
+          extendedReportStatistics.exceededClustersEnumeration.get(ObjectTagUtil.getOwningExceededClusterIndex(stackNode.tag));
+        String currentObjectClassName = stackNode.getObject().getClass().getName();
+        if (exceededClusterStatistics.isClassNominated(currentObjectClassName)) {
+          extendedReportStatistics.rootPathTree.addObjectWithPathToRoot(pathToRoot, rootObject, exceededClusterStatistics,
+                                                                        exceededClusterStatistics.nominatedClassesEnumeration.getInt(
+                                                                          currentObjectClassName));
+        }
+      }
     }
 
     @Override
@@ -221,6 +253,8 @@ abstract class DepthFirstSearchTraverse {
     @Override
     protected void cleanup() {
       super.cleanup();
+      extendedNodesStack.clear();
+      pathToRoot.clear();
     }
   }
 }

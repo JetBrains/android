@@ -297,13 +297,13 @@ public final class MemoryReportCollector implements Disposable {
     }
 
     boolean isOwnedByExceededComponent = false;
-    byte owningExceededClusterIndex = 0;
+    int owningExceededClusterIndex = 0;
 
     if (currentObjectComponent != null &&
-        statistics.getExtendedReportStatistics().exceededClustersStatistics.containsKey(currentObjectComponent)) {
+        statistics.getExtendedReportStatistics().componentToExceededClustersStatistics.containsKey(currentObjectComponent)) {
       isOwnedByExceededComponent = true;
       owningExceededClusterIndex =
-        statistics.getExtendedReportStatistics().exceededClustersStatistics.get(currentObjectComponent).exceededClusterIndex;
+        statistics.getExtendedReportStatistics().componentToExceededClustersStatistics.get(currentObjectComponent).exceededClusterIndex;
     }
     MemoryReportJniHelper.setObjectTag(obj,
                                        ObjectTagUtil.constructTag(currentObjectId, node.minDepth, iterationId,
@@ -545,7 +545,7 @@ public final class MemoryReportCollector implements Disposable {
                                                         @NotNull final List<ComponentsSet.Component> exceededClusters,
                                                         @NotNull final Computable<WeakList<Object>> rootsComputable) {
     HeapSnapshotStatistics extendedReportStats =
-      new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet, true, /*collectDisposerTreeInfo=*/true));
+      new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet, true, /*collectDisposerTreeInfo=*/true, exceededClusters));
     new MemoryReportCollector(extendedReportStats).walkObjects(rootsComputable);
 
     StudioCrashReporter.getInstance().submit(extendedReportStats.asCrashReport(exceededClusters), true);

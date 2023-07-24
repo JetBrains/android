@@ -230,11 +230,15 @@ public final class HeapSnapshotStatistics {
               componentReportBuilder.append(String.format(Locale.US, "      %s:%d\n", s, stat.getTrackedFQNInstanceCounter().getInt(s)));
             }
           }
-          componentReportBuilder.append(String.format(Locale.US, "Platform object: %s[%s]",
+          componentReportBuilder.append(String.format(Locale.US, "Platform object: %s[%s]\n",
                                                       getOptimalUnitsStatisticsPresentation(
                                                         stat.getOwnedClusterStat().platformObjectsSelfStats),
                                                       getOptimalUnitsStatisticsPresentation(
                                                         stat.getOwnedClusterStat().platformRetainedObjectsStats)));
+          if (extendedReportStatistics.componentToExceededClustersStatistics.containsKey(stat.getComponent())) {
+            extendedReportStatistics.printExceededClusterStatisticsIfNeeded((String s) -> componentReportBuilder.append(s).append("\n"),
+                                                                            stat.getComponent());
+          }
 
           GoogleCrashReporter.addBodyToBuilder(builder, "Component " + stat.getComponent().getComponentLabel(),
                                                componentReportBuilder.toString());

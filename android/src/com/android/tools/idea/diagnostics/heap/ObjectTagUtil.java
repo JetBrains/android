@@ -80,7 +80,7 @@ public class ObjectTagUtil {
   // method unsets the visited bit, sets up passed object id and depth
   static long constructTag(int objectId, int depth, short currentIterationId,
                            boolean isOwnedByExceededComponent,
-                           byte currentExceededClusterIndex) {
+                           int currentExceededClusterIndex) {
     assert 0 <= currentExceededClusterIndex;
     assert currentExceededClusterIndex < 32;
 

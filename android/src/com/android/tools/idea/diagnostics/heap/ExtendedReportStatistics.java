@@ -21,6 +21,7 @@ import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.Heap
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Pair;
 import com.intellij.util.containers.WeakList;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
@@ -33,11 +34,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.ToLongFunction;
 import org.jetbrains.annotations.NotNull;
 
 public class ExtendedReportStatistics {
 
-  private static final int CLUSTER_NOMINATED_CLASSES_NUMBER = 5;
+  static final int NOMINATED_CLASSES_NUMBER_IN_SECTION = 3;
   private static final String CLASS_FQN = "java.lang.Class";
 
   @NotNull final List<ClusterHistogram> componentHistograms;
@@ -46,7 +48,7 @@ public class ExtendedReportStatistics {
 
   @NotNull final Long2ObjectMap<ClusterHistogram> sharedClustersHistograms;
   @NotNull final Int2IntMap objectIdToMinDepth = new Int2IntOpenHashMap();
-  @NotNull final Map<ComponentsSet.Component, ExceededClusterStatistics> exceededClustersStatistics = Maps.newHashMap();
+  @NotNull final Map<ComponentsSet.Component, ExceededClusterStatistics> componentToExceededClustersStatistics = Maps.newHashMap();
   @NotNull final Int2ObjectMap<ExceededClusterStatistics> exceededClustersEnumeration = new Int2ObjectOpenHashMap<>();
 
   private int totalNumberOfDisposedButReferencedObjects = 0;
@@ -54,6 +56,8 @@ public class ExtendedReportStatistics {
 
   @NotNull
   private final Map<String, ObjectsStatistics> disposedButReferencedObjectsClasses = Maps.newHashMap();
+  @NotNull
+  final RootPathTree rootPathTree = new RootPathTree(this);
 
   public ExtendedReportStatistics(@NotNull final HeapTraverseConfig config) {
     this.componentHistograms = Lists.newArrayList();
@@ -73,11 +77,11 @@ public class ExtendedReportStatistics {
       componentCategoryIndex++;
     }
 
-    byte exceededComponentIndex = 0;
+    int exceededComponentIndex = 0;
     for (ComponentsSet.Component component : config.exceededComponents) {
       ExceededClusterStatistics exceededClusterStatistics = new ExceededClusterStatistics(exceededComponentIndex++);
       exceededClustersEnumeration.put(exceededClusterStatistics.exceededClusterIndex, exceededClusterStatistics);
-      exceededClustersStatistics.put(component, exceededClusterStatistics);
+      componentToExceededClustersStatistics.put(component, exceededClusterStatistics);
     }
   }
 
@@ -150,18 +154,60 @@ public class ExtendedReportStatistics {
 
     for (ComponentsSet.Component component : config.exceededComponents) {
       ClusterHistogram histogram = componentHistograms.get(component.getId());
-      ExceededClusterStatistics exceededClusterStatistics = exceededClustersStatistics.get(component);
+      ExceededClusterStatistics exceededClusterStatistics = componentToExceededClustersStatistics.get(component);
 
-      for (Map<String, ObjectsStatistics> map : List.of(histogram.rootHistogram, histogram.histogram)) {
-        map.entrySet().stream().filter(e -> !CLASS_FQN.equals(e.getKey())).sorted(
-            Comparator.comparingInt((Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount()).reversed())
-          .limit(CLUSTER_NOMINATED_CLASSES_NUMBER).forEach(e -> exceededClusterStatistics.addNominatedClass(e.getKey(), e.getValue()));
-      }
+      // Classes with the highest objects count owned by the exceeded component
+      addNominatedClassesFromHistogram(exceededClusterStatistics, histogram.histogram,
+                                       (Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount());
+      // Classes with the highest total size owned by the exceeded component
+      addNominatedClassesFromHistogram(exceededClusterStatistics, histogram.histogram,
+                                       (Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getTotalSizeInBytes());
+
+      // Exceeded component root classes with the highest number of instances
+      addNominatedClassesFromHistogram(exceededClusterStatistics, histogram.rootHistogram,
+                                       (Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount());
     }
 
     DepthFirstSearchTraverse.ExtendedReportCollectionTraverse traverse =
-      new DepthFirstSearchTraverse.ExtendedReportCollectionTraverse(fieldCache, collector);
+      new DepthFirstSearchTraverse.ExtendedReportCollectionTraverse(fieldCache, collector, this);
     traverse.start(startRoots);
+  }
+
+  /**
+   *  Sort classes from the histogram using the specified {@param extractorForComparator} and register top
+   *  {@code NOMINATED_CLASSES_NUMBER_IN_SECTION} of them as nominated classes.
+   */
+  private void addNominatedClassesFromHistogram(@NotNull final ExceededClusterStatistics exceededClusterStatistics,
+                                                @NotNull final Map<String, ObjectsStatistics> histogram,
+                                                @NotNull final ToLongFunction<Map.Entry<String, ObjectsStatistics>> extractorForComparator) {
+    histogram.entrySet().stream().filter(e -> !CLASS_FQN.equals(e.getKey())).sorted(
+        Comparator.comparingLong(extractorForComparator).reversed())
+      .limit(NOMINATED_CLASSES_NUMBER_IN_SECTION).forEach(e -> exceededClusterStatistics.addNominatedClass(e.getKey(), e.getValue()));
+  }
+
+  public void printExceededClusterStatisticsIfNeeded(@NotNull final Consumer<String> writer,
+                                                     @NotNull final ComponentsSet.Component component) {
+    if (!componentToExceededClustersStatistics.containsKey(component)) {
+      return;
+    }
+    ExceededClusterStatistics statistics = componentToExceededClustersStatistics.get(component);
+    List<Pair<String, ObjectsStatistics>> nominatedClassesInOrder = statistics.nominatedClassesTotalStatistics.entrySet().stream()
+      .sorted(Comparator.comparingInt((Map.Entry<String, ObjectsStatistics> e) -> e.getValue().getObjectsCount()).reversed())
+      .map(e -> new Pair<>(e.getKey(), e.getValue())).toList();
+
+    writer.accept("======== INSTANCES OF EACH NOMINATED CLASS ========");
+    writer.accept("Nominated classes:");
+    for (Pair<String, ObjectsStatistics> pair : nominatedClassesInOrder) {
+      writer.accept(
+        String.format(Locale.US, " --> [%s] %s", HeapTraverseUtil.getObjectsStatsPresentation(pair.second, OPTIMAL_UNITS), pair.first));
+    }
+    writer.accept("");
+
+    for (Pair<String, ObjectsStatistics> pair : nominatedClassesInOrder) {
+      writer.accept(String.format(Locale.US, "CLASS: %s (%d objects)", pair.first, pair.second.getObjectsCount()));
+      rootPathTree.printPathTreeForComponentAndNominatedType(writer, statistics, statistics.nominatedClassesEnumeration.getInt(pair.first),
+                                                             pair.second);
+    }
   }
 
   static class CategoryHistogram extends ClusterHistogram {
