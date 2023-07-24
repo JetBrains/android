@@ -20,7 +20,6 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBScrollPane
@@ -310,14 +309,4 @@ class GalleryTabsTest {
       .filter { it is ActionButtonWithText }
       .collect(Collectors.toList())
       .map { it as ActionButtonWithText }
-
-  private fun findTabs(parent: Component) = findToolbar(parent, "Gallery Tabs")
-
-  private fun findToolbar(parent: Component, place: String): ActionToolbarImpl =
-    TreeWalker(parent)
-      .descendantStream()
-      .filter { it is ActionToolbarImpl }
-      .collect(Collectors.toList())
-      .map { it as ActionToolbarImpl }
-      .first { it.place == place }
 }
