@@ -18,8 +18,8 @@ package com.android.tools.idea.adblib
 import com.android.adblib.AdbServerChannelProvider
 import com.android.adblib.AdbSession
 import com.android.adblib.AdbSessionHost
-import com.android.adblib.tools.debugging.impl.SharedJdwpSessionProviderDelegateSessionFinder
-import com.android.adblib.tools.debugging.impl.addSharedJdwpSessionProviderDelegateSessionFinder
+import com.android.adblib.tools.debugging.impl.JdwpProcessSessionFinder
+import com.android.adblib.tools.debugging.impl.addJdwpProcessSessionFinder
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.DdmPreferences
 import com.android.tools.idea.adb.AdbFileProvider
@@ -74,7 +74,7 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
         connectionTimeout = Duration.ofMillis(DdmPreferences.getTimeOut().toLong())
       ).also { projectSession ->
         // Ensure all JDWP connections are delegated to the application session
-        projectSession.addSharedJdwpSessionProviderDelegateSessionFinder(MyDelegateSessionFinder(projectSession))
+        projectSession.addJdwpProcessSessionFinder(ProjectSessionFinder(projectSession))
       }
     }
 
@@ -91,9 +91,11 @@ internal class AdbLibServiceImpl(val project: Project) : AdbLibService, Disposab
       }
     }
 
-    class MyDelegateSessionFinder(private val projectSession: AdbSession) : SharedJdwpSessionProviderDelegateSessionFinder {
+    class ProjectSessionFinder(private val projectSession: AdbSession) : JdwpProcessSessionFinder {
       override fun findDelegateSession(forSession: AdbSession): AdbSession {
         return if (projectSession === forSession) {
+          // Until we properly support one Android SDK per project, delegate to the
+          // application level AdbSession for JDWP processes and connections.
           AdbLibApplicationService.instance.session
         } else {
           forSession
