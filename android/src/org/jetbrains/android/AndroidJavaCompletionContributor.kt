@@ -19,30 +19,25 @@ import com.intellij.psi.PsiReferenceExpression
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.inspections.AndroidDeprecationInspection
 
+/**
+ * [CompletionContributor] that currently does two things: removing deprecation warnings in code where the element was not yet
+ * deprecated (e.g. limited by SDK level) and filtering out private resources.
+ *
+ * TODO(b/292553413): See if we can unify this private resource logic with the similar code in `AndroidKotlinCompletionContributor`.
+ */
 class AndroidJavaCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
     super.fillCompletionVariants(parameters, resultSet)
     val position = parameters.position
     val facet = AndroidFacet.getInstance(position) ?: return
     val filterPrivateResources = shouldFilterPrivateResources(position, facet)
-    resultSet.runRemainingContributors(parameters) { result: CompletionResult? ->
-      var modifiedResult = result
-      if (filterPrivateResources) {
-        if (isForPrivateResource(modifiedResult!!, facet)) {
-          modifiedResult = null
-        }
-      }
-      if (modifiedResult != null) {
-        modifiedResult = fixDeprecationPresentation(modifiedResult, parameters)
-      }
-      if (modifiedResult != null) {
-        resultSet.passResult(modifiedResult)
-      }
+    resultSet.runRemainingContributors(parameters) {
+      if (!filterPrivateResources || !isForPrivateResource(it, facet)) resultSet.passResult(fixDeprecationPresentation(it, parameters))
     }
   }
 
   /**
-   * Wrapper around a [LookupElement] that removes the deprecation strikeout. It's used when we we are in a code branch specific to
+   * Wrapper around a [LookupElement] that removes the deprecation strikeout. It's used when we are in a code branch specific to
    * an old SDK where a given [PsiElement] was not yet deprecated.
    *
    * @see AndroidDeprecationInspection.DeprecationFilter
@@ -55,81 +50,46 @@ class AndroidJavaCompletionContributor : CompletionContributor() {
   }
 
   companion object {
-    private val EXCLUDED_PACKAGES = arrayOf("javax.swing", "javafx")
     private fun shouldFilterPrivateResources(position: PsiElement, facet: AndroidFacet): Boolean {
-      var filterPrivateResources = false
       // Filter out private resources when completing R.type.name expressions, if any.
-      if (position.parent is PsiReferenceExpression) {
-        val ref = position.parent as PsiReferenceExpression
-        if (ref.qualifierExpression != null &&
-          ref.qualifierExpression is PsiReferenceExpression
-        ) {
-          val ref2 = ref.qualifierExpression as PsiReferenceExpression?
-          if (ref2!!.qualifierExpression is PsiReferenceExpression) {
-            val ref3 = ref2.qualifierExpression as PsiReferenceExpression?
-            if (SdkConstants.R_CLASS == ref3!!.referenceName) {
-              // We do the filtering only on the R class of this module, users who explicitly reference other R classes are assumed to know
-              // what they're doing.
-              val qualifierExpression = ref3.qualifierExpression
-              if (qualifierExpression == null) {
-                filterPrivateResources = true
-              } else if (qualifierExpression is PsiReferenceExpression) {
-                val referenceExpression = qualifierExpression
-                if (facet.getModuleSystem().getPackageName() == referenceExpression.qualifiedName || facet.getModuleSystem()
-                    .getTestPackageName() == referenceExpression.qualifiedName
-                ) {
-                  filterPrivateResources = true
-                }
-              }
-            }
-          }
-        }
-      }
-      return filterPrivateResources
+      val r = (position.parent as? PsiReferenceExpression)
+                ?.qualifierReferenceExpression
+                ?.qualifierReferenceExpression
+                ?.takeIf { it.referenceName == SdkConstants.R_CLASS}
+              ?: return false
+      // We do the filtering only on the R class of this module, users who explicitly reference other R classes are assumed to know
+      // what they're doing. So if R is unqualified or is qualified by the package or test package name, then filter.
+      val rQualifier = r.qualifierExpression ?: return true
+      val rQualifierName = (rQualifier as? PsiReferenceExpression)?.qualifiedName ?: return false
+      return facet.getModuleSystem().let { it.getPackageName() == rQualifierName || it.getTestPackageName() == rQualifierName }
     }
+
+    private val PsiReferenceExpression.qualifierReferenceExpression : PsiReferenceExpression?
+      get() = qualifierExpression as? PsiReferenceExpression
 
     fun fixDeprecationPresentation(
       result: CompletionResult,
       parameters: CompletionParameters
     ): CompletionResult {
-      var result = result
-      val obj = result.lookupElement.getObject()
-      if (obj is PsiDocCommentOwner) {
-        val docCommentOwner = obj
-        if (docCommentOwner.isDeprecated) {
-          for (filter in AndroidDeprecationInspection.getFilters()) {
-            if (filter.isExcluded(docCommentOwner, parameters.position, null)) {
-              result = result.withLookupElement(NonDeprecatedDecorator(result.lookupElement))
-            }
-          }
-        }
-      }
-      return result
+      val deprecatedObj = (result.lookupElement.getObject() as? PsiDocCommentOwner)?.takeIf { it.isDeprecated } ?: return result
+      return AndroidDeprecationInspection.getFilters()
+        .filter { it.isExcluded(deprecatedObj, parameters.position, null) }
+        // TODO(b/292544477): Fix this to only wrap once after conversion CL is submitted.
+        .fold(result) { r, _ -> r.withLookupElement(NonDeprecatedDecorator(r.lookupElement)) }
     }
 
+    /** Returns true iff this result is the `bar` in something of the form `R.foo.bar` and this resource is private. */
     fun isForPrivateResource(result: CompletionResult, facet: AndroidFacet): Boolean {
-      val obj = result.lookupElement.getObject() as? PsiField ?: return false
-      val psiField = obj
-      val containingClass = psiField.containingClass
-      if (containingClass != null) {
-        val rClass = containingClass.containingClass
-        if (rClass != null && SdkConstants.R_CLASS == rClass.name) {
-          val resourceTypeName = containingClass.name ?: return false
-          val type = ResourceType.fromClassName(containingClass.name!!)
-          val repositoryManager = StudioResourceRepositoryManager.getInstance(facet)
-          return type != null && !isAccessible(repositoryManager.namespace, type, psiField.name, facet)
-        }
-      }
-      return false
-    }
-
-    private fun isAllowedInAndroid(qName: String): Boolean {
-      for (aPackage in EXCLUDED_PACKAGES) {
-        if (qName.startsWith("$aPackage.")) {
-          return false
-        }
-      }
-      return true
+      // First get the field itself, e.g. R.foo.bar
+      val psiField = result.lookupElement.getObject() as? PsiField ?: return false
+      // Now extract the type "foo", provided it is under "R".
+      val resourceType = psiField.containingClass
+                           ?.takeIf { it.containingClass?.name == SdkConstants.R_CLASS } // Don't bother if it's not under R.
+                           ?.name
+                           ?.let { ResourceType.fromClassName(it) }
+                         ?: return false  // If there's no type, we can't look it up, so return false.
+      val namespace = StudioResourceRepositoryManager.getInstance(facet).namespace
+      return !isAccessible(namespace, resourceType, psiField.name, facet)
     }
   }
 }
