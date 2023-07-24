@@ -16,12 +16,14 @@
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.ui.NO_PROCESS_ACTION
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.process.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -217,6 +219,30 @@ class SingleDeviceSelectProcessActionTest {
     assertThat(selectProcessActions).hasLength(1)
     val isSelected = (selectProcessActions[0] as ToggleAction).isSelected(createFakeEvent())
     assertThat(isSelected).isTrue()
+  }
+
+  @Test
+  fun testActionIsNotVisibleByDefault() {
+    val value = LayoutInspectorSettings.getInstance().autoConnectEnabled
+    LayoutInspectorSettings.getInstance().autoConnectEnabled = true
+
+    val processPicker =
+      SingleDeviceSelectProcessAction(
+        mock(),
+        targetDeviceSerialNumber = "serial",
+        onProcessSelected = {}
+      )
+
+    val fakeEvent = createFakeEvent()
+    processPicker.update(fakeEvent)
+    assertThat(fakeEvent.presentation.isVisible).isFalse()
+
+    LayoutInspectorSettings.getInstance().autoConnectEnabled = false
+
+    processPicker.update(fakeEvent)
+    assertThat(fakeEvent.presentation.isVisible).isTrue()
+
+    LayoutInspectorSettings.getInstance().autoConnectEnabled = value
   }
 }
 
