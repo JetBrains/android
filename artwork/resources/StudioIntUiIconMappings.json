@@ -167,6 +167,7 @@
         "toolbar": {
           "back.svg": "studio/icons/emulator/toolbar/back.svg",
           "fold.svg": "studio/icons/emulator/toolbar/fold.svg",
+          "hardware-input.svg": "studio/icons/emulator/toolbar/hardware-input.svg",
           "home.svg": "studio/icons/emulator/toolbar/home.svg",
           "overview.svg": "studio/icons/emulator/toolbar/overview.svg",
           "power.svg": "studio/icons/emulator/toolbar/power.svg",
