@@ -28,15 +28,22 @@ import org.junit.Test
 @RunsInEdt
 class DeclarativeCompletionContributorTest : AndroidTestCase() {
   @Before
-  override fun setUp() {
+  public override fun setUp() {
     super.setUp()
     StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
   }
 
   @After
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
+  public override fun tearDown() {
+    try {
+      StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
+    }
+    catch (e: Throwable) {
+      addSuppressedException(e)
+    }
+    finally {
+      super.tearDown()
+    }
   }
 
   @Test
@@ -193,7 +200,7 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
       "build.gradle.toml", declarativeFile)
     myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
     myFixture.completeBasic()
-    val map: Map<String, String> = myFixture.lookupElements.associate {
+    val map: Map<String, String> = myFixture.lookupElements!!.associate {
       val presentation = LookupElementPresentation()
       it.renderElement(presentation)
       it.lookupString to (presentation.typeText ?: "")
