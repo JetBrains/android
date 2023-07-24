@@ -166,7 +166,6 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       // inject Layout Inspector UI
       value.enableLayoutInspector()
 
-      // TODO(b/265150325) remove before the end of canaries
       showExperimentalWarning(value.layoutInspector)
     }
 
