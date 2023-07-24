@@ -111,10 +111,10 @@ internal class DeviceToolWindowPanel(
     val disposable = Disposer.newDisposable()
     contentDisposable = disposable
 
-    savedUiState as DeviceUiState?
-    val initialOrientation = savedUiState?.orientation ?: UNKNOWN_ORIENTATION
+    val uiState = savedUiState as DeviceUiState? ?: DeviceUiState()
+    val initialOrientation = uiState.orientation
     val primaryDisplayPanel = DeviceDisplayPanel(disposable, deviceClient, initialOrientation, project, zoomToolbarVisible)
-    savedUiState?.zoomScrollState?.let { primaryDisplayPanel.zoomScrollState = it }
+    uiState.zoomScrollState?.let { primaryDisplayPanel.zoomScrollState = it }
 
     displayPanel = primaryDisplayPanel
     val deviceView = primaryDisplayPanel.displayView
@@ -139,7 +139,7 @@ internal class DeviceToolWindowPanel(
 
     installFileDropHandler(this, id.serialNumber, deviceView, project)
 
-    savedUiState?.let { restoreActiveNotifications(it) }
+    restoreActiveNotifications(uiState)
   }
 
   /**
@@ -181,7 +181,7 @@ internal class DeviceToolWindowPanel(
   }
 
   class DeviceUiState : UiState() {
-    var orientation = 0
+    var orientation = UNKNOWN_ORIENTATION
     var zoomScrollState: AbstractDisplayPanel.ZoomScrollState? = null
   }
 }

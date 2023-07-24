@@ -61,7 +61,7 @@ abstract class RunningDevicePanel(
   protected val mainToolbar: ActionToolbar
   protected val secondaryToolbar: ActionToolbar
   protected val centerPanel = BorderLayoutPanel()
-  private val notifications = mutableListOf<EditorNotificationPanel>()
+  private val pendingNotifications = mutableListOf<EditorNotificationPanel>()
 
   // Start time of the current device mirroring session in milliseconds since epoch.
   private var mirroringStartTime: Long = 0
@@ -96,17 +96,13 @@ abstract class RunningDevicePanel(
 
   /** Adds a notification panel that is removed when its close icon is clicked. */
   fun addNotification(notificationPanel: EditorNotificationPanel) {
-    if (notifications.add(notificationPanel)) {
-      notificationPanel.setCloseAction { removeNotification(notificationPanel) }
-      findNotificationHolderPanel()?.addNotification(notificationPanel)
-    }
+    notificationPanel.setCloseAction { removeNotification(notificationPanel) }
+    findNotificationHolderPanel()?.addNotification(notificationPanel) ?: pendingNotifications.add(notificationPanel)
   }
 
   /** Removes the given notification panel. */
   fun removeNotification(notificationPanel: EditorNotificationPanel) {
-    if (notifications.remove(notificationPanel)) {
-      findNotificationHolderPanel()?.removeNotification(notificationPanel)
-    }
+    findNotificationHolderPanel()?.removeNotification(notificationPanel) ?: pendingNotifications.remove(notificationPanel)
   }
 
   internal abstract fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState? = null)
@@ -117,14 +113,18 @@ abstract class RunningDevicePanel(
 
   internal fun saveActiveNotifications(uiState: UiState) {
     findNotificationHolderPanel()?.let { uiState.activeNotifications.addAll(it.notificationPanels) }
+    uiState.activeNotifications.addAll(pendingNotifications)
+    pendingNotifications.clear()
   }
 
   internal fun restoreActiveNotifications(uiState: UiState) {
     val activeNotifications = uiState.activeNotifications
-    if (activeNotifications.isNotEmpty()) {
+    if (activeNotifications.isNotEmpty() || pendingNotifications.isNotEmpty()) {
       val notificationHolderPanel = findNotificationHolderPanel()
       if (notificationHolderPanel != null) {
         activeNotifications.forEach { notificationHolderPanel.addNotification(it) }
+        pendingNotifications.forEach { notificationHolderPanel.addNotification(it) }
+        pendingNotifications.clear()
       }
     }
   }
