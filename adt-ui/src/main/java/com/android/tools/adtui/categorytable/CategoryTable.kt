@@ -115,9 +115,14 @@ class CategoryTable<T : Any>(
 
   /** We sort groups of leaf rows in the table by these sorters, in order. */
   var columnSorters: List<ColumnSortOrder<T>> = emptyList()
-    private set
+    private set(value) {
+      field = value
+      groupAndSortValues()
+      updateComponents()
+      header.repaint()
+    }
 
-  private val collapsedNodes = mutableSetOf<CategoryList<T>>()
+  val collapsedNodes = mutableSetOf<CategoryList<T>>()
 
   val selection = CategoryTableSingleSelection(this)
 
@@ -244,6 +249,10 @@ class CategoryTable<T : Any>(
     }
   }
 
+  fun setSortOrder(columnSortOrder: List<ColumnSortOrder<T>>) {
+    columnSorters = columnSortOrder.toList()
+  }
+
   fun <C> toggleSortOrder(attribute: Attribute<T, C>) {
     if (attribute.sorter != null) {
       val currentSortOrders = columnSorters
@@ -256,10 +265,6 @@ class CategoryTable<T : Any>(
       columnSorters =
         listOf(ColumnSortOrder(attribute, newSortOrder)) +
           currentSortOrders.filter { it.attribute != attribute }
-
-      groupAndSortValues()
-      updateComponents()
-      header.repaint()
     }
   }
 

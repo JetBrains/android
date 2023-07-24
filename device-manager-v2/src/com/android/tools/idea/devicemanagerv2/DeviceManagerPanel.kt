@@ -30,8 +30,12 @@ import com.android.sdklib.deviceprovisioner.pairWithNestedState
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.categorytable.CategoryTable
+import com.android.tools.adtui.categorytable.CategoryTablePersistentStateComponent
+import com.android.tools.adtui.categorytable.CategoryTableStateSerializer
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
+import com.android.tools.adtui.categorytable.enumSerializer
+import com.android.tools.adtui.categorytable.stringSerializer
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.stdui.EmptyStatePanel
 import com.android.tools.adtui.util.ActionToolbarUtil
@@ -53,6 +57,10 @@ import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.components.RoamingType
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.State
+import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -196,7 +204,13 @@ constructor(
     add(toolbar.component, BorderLayout.NORTH)
 
     deviceTable.categoryIndent = 0
-    deviceTable.toggleSortOrder(DeviceTableColumns.nameAttribute)
+
+    val persistentState = project?.service<DeviceTablePersistentStateComponent>()
+    if (persistentState != null) {
+      persistentState.table = deviceTable
+    } else {
+      deviceTable.toggleSortOrder(DeviceTableColumns.nameAttribute)
+    }
     deviceTable.addToScrollPane(scrollPane)
 
     splitter.firstComponent = scrollPane
@@ -416,3 +430,21 @@ private const val TOOLBAR_ID = "DeviceManager2"
 internal val DEVICE_MANAGER_PANEL_KEY = DataKey.create<DeviceManagerPanel>("DeviceManagerPanel")
 internal val DEVICE_MANAGER_COROUTINE_SCOPE_KEY =
   DataKey.create<CoroutineScope>("DeviceManagerCoroutineScope")
+
+@Service(Service.Level.PROJECT)
+@State(
+  name = "DeviceTable",
+  storages = [Storage("deviceManager.xml", roamingType = RoamingType.DISABLED)],
+)
+class DeviceTablePersistentStateComponent : CategoryTablePersistentStateComponent() {
+  override val serializer =
+    CategoryTableStateSerializer(
+      listOf(
+        DeviceTableColumns.Status.attribute.enumSerializer("Status"),
+        DeviceTableColumns.Name.attribute.stringSerializer("Name"),
+        DeviceTableColumns.Api.attribute.stringSerializer("API"),
+        DeviceTableColumns.HandleType.attribute.stringSerializer("Type"),
+        DeviceTableColumns.FormFactor.enumSerializer("FormFactor"),
+      )
+    )
+}
