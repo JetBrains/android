@@ -42,10 +42,10 @@ val CPU_BENCHMARK = Benchmark.Builder("Cpu time")
 private val ANALYZER = listOf(
   WindowDeviationAnalyzer.Builder()
     .setMetricAggregate(Analyzer.MetricAggregate.MEDIAN)
-    // This means, out of last 100 runs, only consider the last 11 "recent", including the current one.
+    // This means, out of last 100 runs, only consider the last 50 "recent", including the current one.
     // The rest is "historic". The analyzer works by compares the set of recent values and historic values
     .setRunInfoQueryLimit(100)
-    .setRecentWindowSize(11)
+    .setRecentWindowSize(50)
     .addMedianTolerance(
       WindowDeviationAnalyzer.MedianToleranceParams.Builder()
         .setConstTerm(0.0)
