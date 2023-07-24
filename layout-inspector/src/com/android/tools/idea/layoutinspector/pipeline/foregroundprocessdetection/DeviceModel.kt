@@ -38,7 +38,9 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
     processesModel: ProcessesModel,
     foregroundProcessDetectionSupportedDeviceTest: Set<DeviceDescriptor>
   ) : this(parentDisposable, processesModel) {
-    foregroundProcessDetectionSupportedDevices.addAll(foregroundProcessDetectionSupportedDeviceTest)
+    foregroundProcessDetectionSupportedDeviceTest.forEach {
+      foregroundProcessDetectionDevicesSupport[it] = ForegroundProcessDetectionSupport.SUPPORTED
+    }
   }
 
   init {
@@ -91,8 +93,9 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
 
   val newSelectedDeviceListeners = CopyOnWriteArraySet<(DeviceDescriptor?) -> Unit>()
 
-  /** The set of connected devices that support foreground process detection. */
-  internal val foregroundProcessDetectionSupportedDevices = mutableSetOf<DeviceDescriptor>()
+  /** The set of connected devices and their support of foreground process detection. */
+  internal val foregroundProcessDetectionDevicesSupport =
+    mutableMapOf<DeviceDescriptor, ForegroundProcessDetectionSupport>()
 
   val devices: Set<DeviceDescriptor>
     get() {
@@ -109,7 +112,20 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
       return processesModel.processes
     }
 
-  fun supportsForegroundProcessDetection(device: DeviceDescriptor): Boolean {
-    return foregroundProcessDetectionSupportedDevices.contains(device)
+  fun getForegroundProcessDetectionSupport(
+    device: DeviceDescriptor
+  ): ForegroundProcessDetectionSupport {
+    return foregroundProcessDetectionDevicesSupport[device]
+      ?: ForegroundProcessDetectionSupport.NOT_SUPPORTED
   }
+}
+
+enum class ForegroundProcessDetectionSupport {
+  SUPPORTED,
+  NOT_SUPPORTED,
+  /**
+   * The handshake is started but not concluded yet. So we don't know if fg process detection is
+   * supported or not.
+   */
+  HANDSHAKE_IN_PROGRESS
 }

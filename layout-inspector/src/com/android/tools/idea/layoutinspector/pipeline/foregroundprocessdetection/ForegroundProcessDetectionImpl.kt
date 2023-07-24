@@ -216,7 +216,8 @@ class ForegroundProcessDetectionImpl(
       // We don't know exactly all the configurations on which the handshake can fail (device in
       // weird states),
       // this is our last resort to recover from false negatives.
-      if (!deviceModel.supportsForegroundProcessDetection(device)) {
+      val supportType = deviceModel.getForegroundProcessDetectionSupport(device)
+      if (supportType == ForegroundProcessDetectionSupport.NOT_SUPPORTED) {
         scope.launch { initiateNewHandshake(device) }
       }
     }
@@ -290,13 +291,16 @@ class ForegroundProcessDetectionImpl(
                       handshakeExecutor.post(
                         HandshakeState.UnknownSupported(trackingForegroundProcessSupportedEvent)
                       )
+                      deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
+                        ForegroundProcessDetectionSupport.NOT_SUPPORTED
                     }
                     LayoutInspector.TrackingForegroundProcessSupported.SupportType.SUPPORTED -> {
                       handshakeExecutor.post(
                         HandshakeState.Supported(trackingForegroundProcessSupportedEvent)
                       )
 
-                      deviceModel.foregroundProcessDetectionSupportedDevices.add(streamDevice)
+                      deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
+                        ForegroundProcessDetectionSupport.SUPPORTED
 
                       // If there are no devices connected, we can automatically connect to the
                       // first device.
@@ -315,11 +319,16 @@ class ForegroundProcessDetectionImpl(
                         HandshakeState.NotSupported(trackingForegroundProcessSupportedEvent)
                       )
 
+                      deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
+                        ForegroundProcessDetectionSupport.NOT_SUPPORTED
+
                       // the device is not added to
                       // DeviceModel#foregroundProcessDetectionSupportedDevices,
                       // so it will be handled in the UI by showing a process picker.
                     }
                     LayoutInspector.TrackingForegroundProcessSupported.SupportType.UNRECOGNIZED -> {
+                      deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
+                        ForegroundProcessDetectionSupport.NOT_SUPPORTED
                       throw RuntimeException("Unrecognized support type: $supportType")
                     }
                   }
@@ -335,10 +344,12 @@ class ForegroundProcessDetectionImpl(
           }
 
           handshakeExecutor.post(HandshakeState.Connected)
+          deviceModel.foregroundProcessDetectionDevicesSupport[streamDevice] =
+            ForegroundProcessDetectionSupport.HANDSHAKE_IN_PROGRESS
           handshakeExecutors[streamDevice] = handshakeExecutor
         } else if (activity is StreamDisconnected) {
           connectedStreams.remove(stream.streamId)
-          deviceModel.foregroundProcessDetectionSupportedDevices.remove(streamDevice)
+          deviceModel.foregroundProcessDetectionDevicesSupport.remove(streamDevice)
 
           val handler = handshakeExecutors.remove(streamDevice)
           handler?.post(HandshakeState.Disconnected)
@@ -385,8 +396,8 @@ class ForegroundProcessDetectionImpl(
     }
 
     if (newStream != null) {
-      val isStreamSupported = deviceModel.supportsForegroundProcessDetection(newDevice)
-      if (!isStreamSupported) {
+      val supportType = deviceModel.getForegroundProcessDetectionSupport(newDevice)
+      if (supportType == ForegroundProcessDetectionSupport.NOT_SUPPORTED) {
         deviceModel.selectedDevice = null
       } else {
         sendStartOnDevicePollingCommand(newStream.stream)

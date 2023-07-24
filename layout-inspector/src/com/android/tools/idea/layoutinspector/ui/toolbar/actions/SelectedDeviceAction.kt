@@ -25,6 +25,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionSupport
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -90,10 +91,10 @@ class SelectDeviceAction(
     deviceModel.devices
       .sortedBy { it.buildDeviceName() }
       .forEach { device ->
-        if (deviceModel.supportsForegroundProcessDetection(device)) {
-          add(DeviceAction(device))
-        } else {
-          add(DeviceProcessPickerAction(device))
+        when (deviceModel.getForegroundProcessDetectionSupport(device)) {
+          ForegroundProcessDetectionSupport.SUPPORTED -> add(DeviceAction(device))
+          ForegroundProcessDetectionSupport.NOT_SUPPORTED -> add(DeviceProcessPickerAction(device))
+          ForegroundProcessDetectionSupport.HANDSHAKE_IN_PROGRESS -> {}
         }
       }
 

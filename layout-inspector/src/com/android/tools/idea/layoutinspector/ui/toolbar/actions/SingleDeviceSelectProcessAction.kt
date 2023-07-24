@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.ide.ui.NO_PROCESS_ACTION
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetectionSupport
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -46,7 +47,9 @@ class SingleDeviceSelectProcessAction(
     val targetDevice = deviceModel.devices.find { it.serial == targetDeviceSerialNumber } ?: return
 
     // no need to show the process picker if the device supports auto-connect
-    event.presentation.isVisible = !deviceModel.supportsForegroundProcessDetection(targetDevice)
+    event.presentation.isVisible =
+      deviceModel.getForegroundProcessDetectionSupport(targetDevice) ==
+        ForegroundProcessDetectionSupport.NOT_SUPPORTED
     event.presentation.icon = targetDevice.toIcon()
     deviceModel.selectedProcess?.name?.let { event.presentation.text = it }
   }
