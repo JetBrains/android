@@ -102,8 +102,6 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
 
   override fun shouldCreateNewTabWhenEmpty() = !insideShowLogcatListener
 
-  override fun isApplicable(project: Project) = isAndroidEnvironment(project)
-
   override fun generateTabName(tabNames: Set<String>) =
     UniqueNameGenerator.generateUniqueName("Logcat", "", "", " (", ")") { !tabNames.contains(it) }
 

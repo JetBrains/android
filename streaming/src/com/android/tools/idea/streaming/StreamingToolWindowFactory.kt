@@ -53,7 +53,7 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   }
 
   override fun isApplicable(project: Project): Boolean {
-    return isAndroidEnvironment(project) && (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled)
+    return (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled)
   }
 
   private fun canLaunchEmulator(): Boolean =

@@ -15,11 +15,19 @@
  */
 package com.android.tools.idea.sdk
 
+import com.android.tools.idea.hasAndroidOrApkFacet
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ext.LibrarySearchHelper
 
-class AndroidSdkLibrarySearcher: LibrarySearchHelper {
+/**
+ * A [LibrarySearchHelper] that checks for an Android or APK Facet
+ */
+class AndroidOrApkFacetChecker : LibrarySearchHelper {
   override fun isLibraryExists(project: Project): Boolean {
-    return AndroidSdkPathStore.getInstance().androidSdkPath != null
+    val value = project.hasAndroidOrApkFacet()
+    thisLogger().debug { "isLibraryExists -> $value" }
+    return value
   }
 }

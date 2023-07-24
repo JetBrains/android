@@ -28,8 +28,9 @@
 
     <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
     <library.toolWindow id="Running Devices"
-                librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
+                librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                 anchor="right"
                 secondary="true"
                 canCloseContents="true"

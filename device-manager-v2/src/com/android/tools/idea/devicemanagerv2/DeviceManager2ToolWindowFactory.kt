@@ -26,7 +26,7 @@ import com.intellij.ui.content.ContentFactory
 internal class DeviceManager2ToolWindowFactory : ToolWindowFactory, DumbAware {
 
   override fun isApplicable(project: Project): Boolean =
-    isAndroidEnvironment(project) && StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()
+    StudioFlags.UNIFIED_DEVICE_MANAGER_ENABLED.get()
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val content =

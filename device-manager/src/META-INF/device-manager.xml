@@ -15,8 +15,9 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
     <library.toolWindow id="Device Manager"
-                librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
+                librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
                 anchor="right"
                 icon="StudioIcons.Shell.ToolWindows.DEVICE_MANAGER"
                 factoryClass="com.android.tools.idea.devicemanager.DeviceManagerToolWindowFactory"/>

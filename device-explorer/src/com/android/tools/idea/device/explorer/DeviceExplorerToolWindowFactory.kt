@@ -38,7 +38,7 @@ import java.nio.file.Path
 class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
 
   override fun isApplicable(project: Project) =
-    StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()  && isAndroidEnvironment(project)
+    StudioFlags.MERGED_DEVICE_FILE_EXPLORER_AND_DEVICE_MONITOR_TOOL_WINDOW_ENABLED.get()
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER)
