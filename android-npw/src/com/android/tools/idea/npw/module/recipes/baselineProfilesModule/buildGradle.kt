@@ -39,7 +39,7 @@ fun baselineProfilesBuildGradle(
   val packageName = newModule.packageName
   val apis = newModule.apis
   val language = newModule.projectTemplateData.language
-  val gradlePluginVersion = newModule.projectTemplateData.gradlePluginVersion
+  val agpVersion = newModule.projectTemplateData.agpVersion
   // TODO(b/149203281): Fix support for composite builds.
   val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path
   val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavors, useGradleKts)
@@ -93,7 +93,7 @@ ${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)
 
 android {
   namespace '$packageName'
-  ${toAndroidFieldVersion("compileSdk", "${maxOf(BENCHMARK_MIN_COMPILE_SDK, apis.buildApi.api)}", gradlePluginVersion)}
+  ${toAndroidFieldVersion("compileSdk", "${maxOf(BENCHMARK_MIN_COMPILE_SDK, apis.buildApi.api)}", agpVersion)}
 
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -103,8 +103,8 @@ android {
   $kotlinOptionsBlock
 
   defaultConfig {
-        ${toAndroidFieldVersion("minSdk", "${maxOf(apis.minApi.api, BENCHMARK_MIN_API)}", gradlePluginVersion)}
-        ${toAndroidFieldVersion("targetSdk", "${maxOf(apis.targetApi.api, BENCHMARK_MIN_API)}", gradlePluginVersion)}
+        ${toAndroidFieldVersion("minSdk", "${maxOf(apis.minApi.api, BENCHMARK_MIN_API)}", agpVersion)}
+        ${toAndroidFieldVersion("targetSdk", "${maxOf(apis.targetApi.api, BENCHMARK_MIN_API)}", agpVersion)}
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

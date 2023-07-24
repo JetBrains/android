@@ -20,7 +20,6 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
-import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.renderIf
 
@@ -30,7 +29,7 @@ fun buildGradle(
   minApi: String,
   targetApiString: String,
   language: Language,
-  gradlePluginVersion: GradlePluginVersion,
+  agpVersion: AgpVersion,
   useGradleKts: Boolean,
   useVersionCatalog: Boolean
 ): String {
@@ -42,7 +41,7 @@ fun buildGradle(
   """
   }
 
-  val isNewAGP = AgpVersion.parse(gradlePluginVersion).compareIgnoringQualifiers("3.6.0") >= 0
+  val isNewAGP = agpVersion.compareIgnoringQualifiers("3.6.0") >= 0
 
   val testBuildTypeBlock = renderIf(isNewAGP) { """testBuildType = "release"""" }
 
@@ -60,7 +59,7 @@ ${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)
 
 android {
     namespace '$packageName'
-    ${toAndroidFieldVersion("compileSdk", buildApiString, gradlePluginVersion)}
+    ${toAndroidFieldVersion("compileSdk", buildApiString, agpVersion)}
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -70,8 +69,8 @@ android {
     $kotlinOptionsBlock
 
     defaultConfig {
-        ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
-        ${toAndroidFieldVersion("targetSdk", targetApiString, gradlePluginVersion)}
+        ${toAndroidFieldVersion("minSdk", minApi, agpVersion)}
+        ${toAndroidFieldVersion("targetSdk", targetApiString, agpVersion)}
 
         testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'
     }

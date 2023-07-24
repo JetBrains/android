@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.eq
@@ -31,7 +32,6 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.ApiVersion
-import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -57,14 +57,14 @@ class BaselineProfilesMacrobenchmarkCommonTest {
     val moduleName = "module_name"
     val highestKnownApi = ApiVersion(HIGHEST_KNOWN_STABLE_API, HIGHEST_KNOWN_STABLE_API.toString())
     val apiTemplateData = ApiTemplateData(highestKnownApi, highestKnownApi, highestKnownApi, 0)
-    val pluginVersion = GradlePluginVersion()
+    val pluginVersion = AgpVersion.parse("0.0.0")
 
     var customizeCalled = false
     val customizeModule: RecipeExecutor.() -> Unit = {
       customizeCalled = true
     }
 
-    whenever(projectTemplateDataMock.gradlePluginVersion).thenReturn(pluginVersion)
+    whenever(projectTemplateDataMock.agpVersion).thenReturn(pluginVersion)
     whenever(projectTemplateDataMock.language).thenReturn(Language.Kotlin)
     whenever(projectTemplateDataMock.kotlinVersion).thenReturn("1.8.10")
     whenever(projectTemplateDataMock.androidXSupport).thenReturn(true)

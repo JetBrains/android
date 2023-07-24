@@ -62,7 +62,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   val buildFile = if (useGradleKts) SdkConstants.FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
   save(
     buildGradle(
-      projectData.gradlePluginVersion,
+      projectData.agpVersion,
       useGradleKts,
       false,
       true,
@@ -77,7 +77,7 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     ), moduleOut.resolve(buildFile)
   )
 
-  applyPlugin("com.android.dynamic-feature", projectData.gradlePluginVersion)
+  applyPlugin("com.android.dynamic-feature", projectData.agpVersion)
   addKotlinIfNeeded(projectData, targetApi = targetApi.api)
 
   save(manifestXml, manifestOut.resolve(FN_ANDROID_MANIFEST_XML))

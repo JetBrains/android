@@ -21,6 +21,7 @@ import com.android.SdkConstants.GRADLE_API_CONFIGURATION
 import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
@@ -109,7 +110,7 @@ class DefaultRecipeExecutor(
   @VisibleForTesting
   val projectBuildModel: ProjectBuildModel? by lazy {
     ProjectBuildModel.getOrLog(project)
-      ?.also { it.context.agpVersion = AndroidGradlePluginVersion.parse(projectTemplateData.gradlePluginVersion) }
+      ?.also { it.context.agpVersion = AndroidGradlePluginVersion.parse(projectTemplateData.agpVersion.toString()) }
   }
   private val projectSettingsModel: GradleSettingsModel? by lazy { projectBuildModel?.projectSettingsModel }
   private val projectGradleBuildModel: GradleBuildModel? by lazy { projectBuildModel?.projectBuildModel }
@@ -206,11 +207,20 @@ class DefaultRecipeExecutor(
     applyPluginInBuildModel(plugin, buildModel, revision, minRev)
   }
 
+  override fun applyPlugin(plugin: String, revision: AgpVersion) {
+    applyPlugin(plugin, revision.toString(), null)
+  }
+
+
   override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
     referencesExecutor.applyPluginInModule(plugin, module, revision, minRev)
 
     val buildModel = projectBuildModel?.getModuleBuildModel(module) ?: return
     applyPluginInBuildModel(plugin, buildModel, revision, minRev)
+  }
+
+  override fun applyPluginInModule(plugin: String, module: Module, revision: AgpVersion) {
+    applyPluginInModule(plugin, module, revision.toString(), null)
   }
 
   private fun applyPluginInBuildModel(plugin: String, buildModel: GradleBuildModel, revision: String?, minRev: String?) {
@@ -292,7 +302,7 @@ class DefaultRecipeExecutor(
    */
   override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?, toBase: Boolean) {
     // Translate from "compile" to "implementation" based on the parameter map context
-    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
     referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev, moduleDir, toBase)
 
     val baseFeature = context.moduleTemplateData?.baseFeature
@@ -309,7 +319,7 @@ class DefaultRecipeExecutor(
       }
     } ?: return
 
-    var resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    var resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
 
     val resolvedMavenCoordinate =
       when {
@@ -339,7 +349,7 @@ class DefaultRecipeExecutor(
 
   override fun addPlatformDependency(mavenCoordinate: String, configuration: String, enforced: Boolean) {
     // TODO: Delete this once we no longer support ancient Gradle plugins
-    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
     require(configuration == newConfiguration) { "Platform dependencies are not supported in Gradle plugin < 3.0" }
 
     referencesExecutor.addPlatformDependency(configuration, mavenCoordinate, enforced)
@@ -364,7 +374,7 @@ class DefaultRecipeExecutor(
     require(moduleName.isNotEmpty() && moduleName.first() != ':') {
       "incorrect module name (it should not be empty or include first ':')"
     }
-    val resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.agpVersion, false)
 
     val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
     buildModel.dependencies().addModule(resolvedConfiguration, ":$moduleName")

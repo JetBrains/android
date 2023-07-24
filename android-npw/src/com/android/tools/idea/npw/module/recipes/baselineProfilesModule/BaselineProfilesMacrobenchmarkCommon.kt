@@ -51,7 +51,7 @@ object BaselineProfilesMacrobenchmarkCommon {
     save(buildGradleContent, newModule.rootDir.resolve(buildFile))
 
     // Apply all required dependencies
-    applyPlugin("com.android.test", newModule.projectTemplateData.gradlePluginVersion)
+    applyPlugin("com.android.test", newModule.projectTemplateData.agpVersion)
 
     addDependency("androidx.test.ext:junit:+", "implementation")
     addDependency("androidx.test.espresso:espresso-core:+", "implementation")

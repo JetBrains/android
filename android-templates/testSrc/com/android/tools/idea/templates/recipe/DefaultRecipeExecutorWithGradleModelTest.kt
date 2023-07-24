@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates.recipe
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.testutils.MockitoKt
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
@@ -49,7 +50,7 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
   @Before
   fun init() {
     MockitoKt.whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
-    MockitoKt.whenever(mockProjectTemplateData.gradlePluginVersion).thenReturn("8.0.0")
+    MockitoKt.whenever(mockProjectTemplateData.agpVersion).thenReturn(AgpVersion.parse("8.0.0"))
   }
 
   @Test

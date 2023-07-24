@@ -94,7 +94,7 @@ class ProjectTemplateDataBuilder(val isNewProject: Boolean) {
 
   fun build() = ProjectTemplateData(
     androidXSupport!!,
-    agpVersion!!.toString(),
+    agpVersion!!,
     sdkDir,
     Language.valueOf(language!!.toString()),
     kotlinVersion!!,
