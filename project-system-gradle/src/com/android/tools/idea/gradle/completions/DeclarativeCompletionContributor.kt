@@ -43,7 +43,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.util.findParentOfType
 import com.intellij.util.ProcessingContext
 import com.intellij.util.ThreeState
+import org.toml.lang.psi.TomlArrayTable
 import org.toml.lang.psi.TomlFile
+import org.toml.lang.psi.TomlHeaderOwner
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlKeyValue
@@ -320,7 +322,7 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       }
       while (key != null)
     }
-    val parentTableHeaderKey = nextElement.findParentOfType<TomlTable>()?.header?.key
+    val parentTableHeaderKey = nextElement.findParentOfType<TomlHeaderOwner>()?.header?.key
     parentTableHeaderKey?.appendReversedSegments(result, psiElement)
     return result.reversed()
   }

@@ -48,11 +48,11 @@ import static com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.Valu
 
 public class PluginModelImpl implements PluginModel {
   @NonNls public static final String ALIAS = "alias";
-  @NonNls private static final String APPLY = "apply";
+  @NonNls public static final String APPLY = "apply";
   @NonNls public static final String ID = "id";
   @NonNls public static final String KOTLIN = "kotlin";
   @NonNls public static final String PLUGIN = "plugin";
-  @NonNls private static final String VERSION = "version";
+  @NonNls public static final String VERSION = "version";
 
   @NotNull
   private final GradleDslElement myCompleteElement;

@@ -268,6 +268,18 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
       "$caret"
      )
 
+  fun testSuggestionsWithinArrayTable() =
+    doTest("""
+      [[plugins]]
+      $caret
+      """.trimIndent()) { suggestions ->
+      Truth.assertThat(suggestions.toList()).containsAllOf(
+        "id" to "String",
+        "version" to "String",
+        "apply" to "Boolean",
+      )
+    }
+
   private fun doTest(declarativeFile: String, check: (Map<String, String>) -> Unit) {
     val buildFile = myFixture.addFileToProject(
       "build.gradle.toml", declarativeFile)
