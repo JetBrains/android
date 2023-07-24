@@ -2495,22 +2495,26 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         module                        : :-:kmpFirstLib-androidMain
                         module                        : :-:kmpFirstLib-commonMain
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
-                        javaLibrary                   : junit:junit:4.13.2
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3
                         javaLibrary                   : org.jetbrains:annotations:13.0
+                        javaLibrary                   : junit:junit:4.13.2
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3
                         module                        : :-:androidLib-MAIN
                     runtimeClasspath
                         module                        : :-:kmpFirstLib-commonTest
                         module                        : :-:kmpFirstLib-androidMain
                         module                        : :-:kmpFirstLib-commonMain
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
-                        javaLibrary                   : junit:junit:4.13.2
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION>
+                        javaLibrary                   : org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3
                         javaLibrary                   : org.jetbrains:annotations:13.0
+                        javaLibrary                   : junit:junit:4.13.2
+                        javaLibrary                   : org.hamcrest:hamcrest-core:1.3
                         module                        : :-:androidLib-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)

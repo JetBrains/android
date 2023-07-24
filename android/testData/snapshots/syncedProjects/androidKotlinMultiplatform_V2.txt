@@ -1329,6 +1329,8 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
@@ -1497,6 +1499,8 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION> [=]
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
         ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
@@ -2524,6 +2528,10 @@ PROJECT                       : Kotlin Multiplatform
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION>
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-test-junit/<KOTLIN_VERSION>/kotlin-test-junit-<KOTLIN_VERSION>.jar!/
+        LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION>
+            *CLASSES                      : jar://<M2>/org/jetbrains/kotlin/kotlin-test/<KOTLIN_VERSION>/kotlin-test-<KOTLIN_VERSION>.jar!/
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
             *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
     BUILD_TASKS
