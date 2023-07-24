@@ -573,7 +573,7 @@ class StreamingToolWindowManagerTest {
 
     assertThat(toolWindow.tabActions).isNotEmpty()
     val newTabAction = toolWindow.tabActions[0]
-    assertThat(newTabAction.templateText).isEqualTo("New Tab")
+    assertThat(newTabAction.templateText).isEqualTo("Add Device")
     assertThat(newTabAction.templatePresentation.icon).isEqualTo(AllIcons.General.Add)
 
     newTabAction.actionPerformed(createTestEvent(toolWindow.component, project))

@@ -1023,7 +1023,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
-  private inner class NewTabAction : DumbAwareAction("New Tab", "Show a new device", AllIcons.General.Add), DumbAware {
+  private inner class NewTabAction : DumbAwareAction("Add Device", "Show a new device", AllIcons.General.Add), DumbAware {
 
     override fun actionPerformed(event: AnActionEvent) {
       val component = event.inputEvent?.component
