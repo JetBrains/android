@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.device-manager-v2.iml"],
     resources = ["resources"],
+    test_agents = ["//tools/base/threading-agent:threading_agent.jar"],
     test_class = "com.android.tools.idea.devicemanagerv2.DeviceManagerTestSuite",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

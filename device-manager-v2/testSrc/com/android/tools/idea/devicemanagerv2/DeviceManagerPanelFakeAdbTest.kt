@@ -18,19 +18,24 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.RunsInEdt
 import kotlinx.coroutines.isActive
 import org.junit.Rule
 import org.junit.Test
 
 /** Tests for the DeviceManagerPanel that use FakeAdb. */
+@RunsInEdt
 class DeviceManagerPanelFakeAdbTest {
+
   private val deviceProvisionerRule = DeviceProvisionerRule()
   private val androidExecutorsRule = AndroidExecutorsRule()
   private val projectRule = ProjectRule()
 
-  @get:Rule val ruleChain = RuleChain(projectRule, androidExecutorsRule, deviceProvisionerRule)
+  @get:Rule
+  val ruleChain = RuleChain(EdtRule(), projectRule, androidExecutorsRule, deviceProvisionerRule)
 
   @Test
   fun viewDetails() {

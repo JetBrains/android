@@ -20,6 +20,7 @@ import com.android.tools.adtui.categorytable.TablePresentationManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
@@ -29,6 +30,7 @@ import org.junit.Test
 import org.junit.rules.ExternalResource
 import org.junit.rules.RuleChain
 
+@RunsInEdt
 class TwoLineLabelTest {
   private val themeManagerRule = ThemeManagerRule()
 

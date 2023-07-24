@@ -24,6 +24,7 @@ import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.RowKey.ValueRowKey
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
@@ -39,6 +40,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
 
@@ -161,9 +163,11 @@ class DeviceManagerPanelTest {
     values.mapNotNull { primaryKey(it).takeIf { isRowVisibleByKey(it) } }
 
   private fun runTestWithFixture(block: suspend Fixture.() -> Unit) = runTest {
-    val fixture = Fixture(projectRule.project, this)
-    fixture.block()
-    fixture.scope.cancel()
+    withContext(uiThread) {
+      val fixture = Fixture(projectRule.project, this@runTest)
+      fixture.block()
+      fixture.scope.cancel()
+    }
   }
 
   private class Fixture(project: Project, testScope: TestScope) {

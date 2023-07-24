@@ -19,6 +19,7 @@ import com.android.adblib.utils.createChildScope
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanagerv2.PairingStatus
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.common.truth.Truth.assertThat
@@ -35,6 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -129,9 +131,11 @@ class PairedDevicesPanelTest {
   }
 
   private fun runTestWithFixture(block: suspend Fixture.() -> Unit) = runTest {
-    val fixture = Fixture(this)
-    fixture.block()
-    fixture.scope.cancel()
+    withContext(uiThread) {
+      val fixture = Fixture(this@runTest)
+      fixture.block()
+      fixture.scope.cancel()
+    }
   }
 
   private class Fixture(testScope: TestScope) {
