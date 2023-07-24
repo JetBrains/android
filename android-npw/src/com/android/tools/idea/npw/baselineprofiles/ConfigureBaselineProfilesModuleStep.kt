@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.baselineprofiles
 
 import com.android.AndroidProjectTypes
-import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.adtui.device.FormFactor
 import com.android.tools.adtui.validation.Validator
@@ -29,6 +28,7 @@ import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedPr
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
 import com.android.tools.idea.npw.module.ConfigureModuleStep
 import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.BP_PLUGIN_MIN_SUPPORTED
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.observable.ui.SelectedItemProperty
@@ -49,7 +49,6 @@ import javax.swing.JComboBox
 import javax.swing.JPanel
 
 
-private const val BASELINE_PROFILES_AGP_MIN_VERSION = "8.0.0"
 private const val GMD_LINK = "https://d.android.com/r/studio-ui/testing/gradle-managed-devices"
 
 private val USES_FEATURE_OTHER_FORM_FACTORS = setOf(
@@ -82,6 +81,7 @@ class ConfigureBaselineProfilesModuleStep(
     validateMinAgpVersion()
 
     bindings.bind(model.useGmd, SelectedProperty(useGmdCheck))
+    bindings.bind(model.agpVersion, agpVersion)
   }
 
   private fun bindTargetModule() {
@@ -135,12 +135,10 @@ class ConfigureBaselineProfilesModuleStep(
   }
 
   private fun validateMinAgpVersion() {
-    val minAgpVersion = AgpVersion.parse(BASELINE_PROFILES_AGP_MIN_VERSION)
-
     validatorPanel.registerValidator(agpVersion, createValidator { version ->
-      if (version.isPresent && version.get().compareIgnoringQualifiers(minAgpVersion) < 0) {
+      if (version.isPresent && version.get().compareIgnoringQualifiers(BP_PLUGIN_MIN_SUPPORTED) < 0) {
         Validator.Result.fromNullableMessage(
-          AndroidBundle.message("android.wizard.validate.module.needs.new.agp.baseline.profiles", BASELINE_PROFILES_AGP_MIN_VERSION)
+          AndroidBundle.message("android.wizard.validate.module.needs.new.agp.baseline.profiles", BP_PLUGIN_MIN_SUPPORTED.toString())
         )
       }
       else {

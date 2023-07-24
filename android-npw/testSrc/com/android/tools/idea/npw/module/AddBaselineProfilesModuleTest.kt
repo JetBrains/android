@@ -21,6 +21,7 @@ import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleMode
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.observable.BatchInvoker
+import com.android.tools.idea.npw.project.determineAgpVersion
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
@@ -79,6 +80,7 @@ class AddBaselineProfilesModuleTest(
       targetModule.value = project.findAppModule()
       useGradleKts.set(useGradleKtsParam)
       useGmd.set(useGmdParam)
+      agpVersion.value = determineAgpVersion(project, false)
     }
 
     model.handleFinished() // Generate module files
