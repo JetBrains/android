@@ -32,7 +32,7 @@ class EssentialsModeToggleAction : ToggleAction(
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    EssentialsMode.setEnabled(state, e.project!!)
+    EssentialsMode.setEnabled(state, e.project)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
