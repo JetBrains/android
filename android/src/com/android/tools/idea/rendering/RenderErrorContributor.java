@@ -298,34 +298,34 @@ public class RenderErrorContributor {
                           ? VALUE_MATCH_PARENT : VALUE_FILL_PARENT;
 
       ApplicationManager.getApplication()
-                        .runReadAction(() -> AddMissingAttributesFix.findViewsMissingSizes(psiFile, resourceResolver).stream()
-                                                                    .map(SmartPsiElementPointer::getElement)
-                                                                    .filter(Objects::nonNull)
-                                                                    .filter(XmlTag::isValid)
-                                                                    .forEach(tag -> {
-                                                                      boolean missingWidth =
-                                                                        !AddMissingAttributesFix.definesWidth(tag, resourceResolver);
-                                                                      boolean missingHeight =
-                                                                        !AddMissingAttributesFix.definesHeight(tag, resourceResolver);
-                                                                      assert missingWidth || missingHeight;
+        .runReadAction(() -> AddMissingAttributesFix.findViewsMissingSizes(psiFile, resourceResolver).stream()
+          .map(SmartPsiElementPointer::getElement)
+          .filter(Objects::nonNull)
+          .filter(XmlTag::isValid)
+          .forEach(tag -> {
+            boolean missingWidth =
+              !AddMissingAttributesFix.definesWidth(tag, resourceResolver);
+            boolean missingHeight =
+              !AddMissingAttributesFix.definesHeight(tag, resourceResolver);
+            assert missingWidth || missingHeight;
 
-                                                                      String id = tag.getAttributeValue(ATTR_ID);
-                                                                      if (id == null || id.isEmpty()) {
-                                                                        id = '<' + tag.getName() + '>';
-                                                                      }
-                                                                      else {
-                                                                        id = '"' + stripIdPrefix(id) + '"';
-                                                                      }
+            String id = tag.getAttributeValue(ATTR_ID);
+            if (id == null || id.isEmpty()) {
+              id = '<' + tag.getName() + '>';
+            }
+            else {
+              id = '"' + stripIdPrefix(id) + '"';
+            }
 
-                                                                      if (missingWidth) {
-                                                                        reportMissingSize(builder, fill, tag, id,
-                                                                                          ATTR_LAYOUT_WIDTH);
-                                                                      }
-                                                                      if (missingHeight) {
-                                                                        reportMissingSize(builder, fill, tag, id,
-                                                                                          ATTR_LAYOUT_HEIGHT);
-                                                                      }
-                                                                    }));
+            if (missingWidth) {
+              reportMissingSize(builder, fill, tag, id,
+                                ATTR_LAYOUT_WIDTH);
+            }
+            if (missingHeight) {
+              reportMissingSize(builder, fill, tag, id,
+                                ATTR_LAYOUT_HEIGHT);
+            }
+          }));
 
       builder.newline()
         .add("Or: ")
@@ -1014,12 +1014,14 @@ public class RenderErrorContributor {
         builder.addLink("Add constraint-layout library dependency to the project",
                         myLinkManager.createAddDependencyUrl(artifact.toString()));
         builder.add(", ");
-      } else if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
+      }
+      else if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add flexbox layout library dependency to the project",
                         myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT.toString()));
         builder.add(", ");
-      } else if (CLASS_COMPOSE_VIEW_ADAPTER.equals(className)) {
+      }
+      else if (CLASS_COMPOSE_VIEW_ADAPTER.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add ui-tooling-preview library dependency to the project",
                         myLinkManager.createAddDebugDependencyUrl(GoogleMavenArtifactId.COMPOSE_TOOLING.toString()));
@@ -1029,8 +1031,8 @@ public class RenderErrorContributor {
       builder.addLink("Fix Build Path", myLinkManager.createEditClassPathUrl());
 
       String fileType = mySourceFile.getFileType() == XmlFileType.INSTANCE
-        ? "XML"
-        : "File";
+                        ? "XML"
+                        : "File";
       builder.add(", ");
       builder.addLink("Edit " + fileType, myLinkManager.createShowTagUrl(className));
 
@@ -1048,7 +1050,7 @@ public class RenderErrorContributor {
     builder
       .addIcon(HtmlBuilderHelper.getTipIconPath())
       .addLink("Tip: Try to ", "build", " the module.",
-                    myLinkManager.createBuildModuleUrl())
+               myLinkManager.createBuildModuleUrl())
       .newline()
       .addLink("Tip: Try to ", "build", " the project.",
                myLinkManager.createBuildProjectUrl())
@@ -1162,8 +1164,9 @@ public class RenderErrorContributor {
     final String fragmentTagDisplayName = "<" + fragmentTagName + ">";
 
     HtmlBuilder builder = new HtmlBuilder();
-    builder.add("A ").addHtml("<code>").add(fragmentTagDisplayName).addHtml("</code>").add(" tag allows a layout file to dynamically include " +
-                                                                                 "different layouts at runtime. ")
+    builder.add("A ").addHtml("<code>").add(fragmentTagDisplayName).addHtml("</code>")
+      .add(" tag allows a layout file to dynamically include " +
+           "different layouts at runtime. ")
       .add("At layout editing time the specific layout to be used is not known. You can choose which layout you would " +
            "like previewed while editing the layout.");
     builder.beginList();
