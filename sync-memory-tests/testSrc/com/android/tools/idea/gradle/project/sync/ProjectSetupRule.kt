@@ -49,10 +49,27 @@ enum class BenchmarkProject(val projectPath: String, val maxHeapMB: Int, val dif
   STANDARD_50(STANDARD_PATH, maxHeapMB = 400, listOf("diff-50")),
   STANDARD_100(STANDARD_PATH, maxHeapMB = 600, listOf("diff-100")),
   STANDARD_200(STANDARD_PATH, maxHeapMB = 1300, listOf("diff-200")),
-  STANDARD_500(STANDARD_PATH, maxHeapMB = 4000, listOf("diff-500")),
-  STANDARD_1000(STANDARD_PATH, maxHeapMB = 7400, listOf("diff-1000")),
-  STANDARD_2000(STANDARD_PATH, maxHeapMB = 22000, listOf("diff-app")),
-  STANDARD_4200(STANDARD_PATH, maxHeapMB = 60000, emptyList());
+  // Below are some experimented values, with gradle 8.2.
+  // Keeping them here to make the next update smoother as well
+  // Measured usage =  2059 mb, GC time ~11,000 ms
+  // x1.15 -  2400 mb -> ~15,500 ms -> BAD
+  // x1.30 -  2700 mb -> ~13,000 ms -> BAD
+  // x1.45 -  3000 mb -> ~10,000 ms -> GOOD
+  // x1.55 -  3200 mb ->   9,000 ms -> GOOD
+  STANDARD_500(STANDARD_PATH, maxHeapMB = 3000, listOf("diff-500")),
+  // Measured usage =  4233 mb, GC time ~22,000 ms
+  // x1.15 -  4800 mb -> ~25,500 ms -> BAD
+  // x1.30 -  5500 mb -> ~24,700 ms -> BAD
+  // x1.35 -  5700 mb -> ~23,300 ms -> BAD
+  // x1.41 -  6000 mb -> ~16,500 ms -> GOOD
+  STANDARD_1000(STANDARD_PATH, maxHeapMB = 6000, listOf("diff-1000")),
+  // Measured usage = 10931 mb, GC time ~19,000 ms
+  // x1.15 - 12500 mb -> ~22,500ms  -> BAD
+  // x1.30 - 14200 mb -> ~14,300ms  -> BORDERLINE?
+  // x1.40 - 15300 mb -> ~13,600ms  -> GOOD
+  // x1.55 - 17000 mb -> ~13,000 ms -> GOOD
+  STANDARD_2000(STANDARD_PATH, maxHeapMB = 15300, listOf("diff-app")),
+  STANDARD_4200(STANDARD_PATH, maxHeapMB = 30000, emptyList());
 }
 
 /**
