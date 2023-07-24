@@ -168,7 +168,11 @@ class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCa
         ?.issueDetails
         ?.sampleEvents
         ?: return null
-    return cachedEvents.firstOrNull { it.matchInterval(issueRequest.filters.interval) }
+    return cachedEvents.firstOrNull {
+      it.matchInterval(issueRequest.filters.interval) &&
+        it.eventData.device in issueRequest.filters.devices &&
+        it.eventData.operatingSystemInfo in issueRequest.filters.operatingSystems
+    }
   }
 
   override fun getNotes(connection: Connection, issueId: IssueId): List<Note>? {

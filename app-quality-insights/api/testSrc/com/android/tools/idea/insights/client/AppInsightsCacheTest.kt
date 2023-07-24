@@ -326,7 +326,9 @@ class AppInsightsCacheTest {
     val looseFilter =
       QueryFilters(
         Interval(now.minus(Duration.ofDays(30)), now.minus(Duration.ofDays(4))),
-        eventTypes = FailureType.values().toList()
+        eventTypes = FailureType.values().toList(),
+        devices = setOf(testEvent.eventData.device),
+        operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
       )
     var topIssues = cache.getTopIssues(IssueRequest(connection, looseFilter))
     assertThat(topIssues).hasSize(1)
@@ -340,7 +342,9 @@ class AppInsightsCacheTest {
     val strictFilter =
       QueryFilters(
         Interval(now.minus(Duration.ofDays(3)), now),
-        eventTypes = FailureType.values().toList()
+        eventTypes = FailureType.values().toList(),
+        devices = setOf(testEvent.eventData.device),
+        operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
       )
     topIssues = cache.getTopIssues(IssueRequest(connection, strictFilter))
     assertThat(topIssues).hasSize(1)
@@ -441,5 +445,122 @@ class AppInsightsCacheTest {
     cache.populateConnections(listOf(connection2))
 
     assertThat(cache.getRecentConnections()).containsExactly(connection2)
+  }
+
+  @Test
+  fun `getEvent filters on interval, device, and operating system`() {
+    val issue =
+      AppInsightsIssue(
+        IssueDetails(
+          IssueId("1"),
+          "Issue1",
+          "com.google.crash.Crash",
+          FailureType.FATAL,
+          "Sample Event",
+          "1.2.3",
+          "1.2.3",
+          10L,
+          12L,
+          5L,
+          10L,
+          emptySet(),
+          "https://url.for-crash.com",
+          0,
+          emptyList()
+        ),
+        testEvent
+      )
+
+    val cache = AppInsightsCacheImpl()
+    cache.populateIssues(connection, listOf(issue))
+
+    val issueRequest =
+      IssueRequest(
+        connection,
+        QueryFilters(
+          interval = Interval(now.minus(Duration.ofDays(3)), now),
+          devices = setOf(Device("Google", "Pixel 5"), Device("Samsung", "Galaxy S7")),
+          operatingSystems =
+            setOf(OperatingSystemInfo("Android 11", "11"), OperatingSystemInfo("Android 12", "12"))
+        )
+      )
+
+    // Mismatch device
+    assertThat(
+        cache.getEvent(
+          IssueRequest(
+            connection,
+            QueryFilters(
+              interval = Interval(now.minus(Duration.ofDays(10)), now),
+              devices = setOf(Device("Google", "Pixel 5"), Device("Samsung", "Galaxy S7")),
+              operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
+            )
+          ),
+          issue.id
+        )
+      )
+      .isNull()
+
+    // Mismatch OS
+    assertThat(
+        cache.getEvent(
+          IssueRequest(
+            connection,
+            QueryFilters(
+              interval = Interval(now.minus(Duration.ofDays(10)), now),
+              devices = setOf(testEvent.eventData.device),
+              operatingSystems =
+                setOf(
+                  OperatingSystemInfo("Android 11", "11"),
+                  OperatingSystemInfo("Android 12", "12")
+                )
+            )
+          ),
+          issue.id
+        )
+      )
+      .isNull()
+
+    // Mismatch interval
+    assertThat(
+        cache.getEvent(
+          IssueRequest(
+            connection,
+            QueryFilters(
+              interval = Interval(now.minus(Duration.ofDays(5)), now),
+              devices = setOf(testEvent.eventData.device),
+              operatingSystems = setOf(testEvent.eventData.operatingSystemInfo)
+            )
+          ),
+          issue.id
+        )
+      )
+      .isNull()
+
+    // Match
+    assertThat(
+        cache.getEvent(
+          IssueRequest(
+            connection,
+            QueryFilters(
+              interval = Interval(now.minus(Duration.ofDays(14)), now),
+              devices =
+                setOf(
+                  Device("Google", "Pixel 5"),
+                  Device("Samsung", "Galaxy S7"),
+                  testEvent.eventData.device
+                ),
+              operatingSystems =
+                setOf(
+                  OperatingSystemInfo("Android 11", "11"),
+                  OperatingSystemInfo("Android 12", "12"),
+                  testEvent.eventData.operatingSystemInfo
+                )
+            )
+          ),
+          issue.id
+        )
+      )
+      .isEqualTo(testEvent)
   }
 }
