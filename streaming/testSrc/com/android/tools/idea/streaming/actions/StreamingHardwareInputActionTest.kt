@@ -24,6 +24,7 @@ import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.DeviceClient
 import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
+import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
 import com.android.tools.idea.streaming.device.UNKNOWN_ORIENTATION
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
@@ -56,8 +57,8 @@ import javax.swing.JPanel
 @RunWith(JUnit4::class)
 class StreamingHardwareInputActionTest {
 
-  val emulatorViewRule = EmulatorViewRule()
-  val agentRule = FakeScreenSharingAgentRule()
+  private val emulatorViewRule = EmulatorViewRule()
+  private val agentRule = FakeScreenSharingAgentRule()
 
   @get:Rule
   val rule = RuleChain(emulatorViewRule, agentRule)
@@ -132,8 +133,7 @@ class StreamingHardwareInputActionTest {
 
     assertThat(labels).comparingElementsUsing(LabelCorrespondence()).apply {
       contains("Hardware Input")
-      contains(
-        "Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device")
+      contains("Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device")
     }
   }
 
@@ -150,12 +150,10 @@ class StreamingHardwareInputActionTest {
     assertThat(labels).comparingElementsUsing(LabelCorrespondence()).contains("Ctrl+Shift+J")
   }
 
-  private fun createDeviceView(device: FakeScreenSharingAgentRule.FakeDevice): DeviceView {
-    return DeviceView(
-        testRootDisposable,
-        DeviceClient(testRootDisposable, device.serialNumber, device.handle, device.configuration, device.deviceState.cpuAbi, project),
-        UNKNOWN_ORIENTATION,
-        project)
+  private fun createDeviceView(device: FakeDevice): DeviceView {
+    val client =
+        DeviceClient(testRootDisposable, device.serialNumber, device.handle, device.configuration, device.deviceState.cpuAbi, project)
+    return DeviceView(testRootDisposable, client, UNKNOWN_ORIENTATION, project)
   }
 
   private fun showPopup(presentation: Presentation): FakeJBPopup<Unit> {
