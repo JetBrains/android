@@ -116,7 +116,7 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
           return true
         }
         val resourceClassFacet = resourceClassModule.androidFacet ?: return false
-        val androidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module, false)
+        val androidDependencies = AndroidDependenciesCache.getAllAndroidDependencies(module.getMainModule(), false)
         return androidDependencies.contains(resourceClassFacet)
       }
 
