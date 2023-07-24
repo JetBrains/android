@@ -36,13 +36,8 @@ class AndroidJavaCompletionContributor : CompletionContributor() {
     }
   }
 
-  /**
-   * Wrapper around a [LookupElement] that removes the deprecation strikeout. It's used when we are in a code branch specific to
-   * an old SDK where a given [PsiElement] was not yet deprecated.
-   *
-   * @see AndroidDeprecationInspection.DeprecationFilter
-   */
-  private class NonDeprecatedDecorator(delegate: LookupElement) : LookupElementDecorator<LookupElement?>(delegate) {
+  /** Wrapper around a [LookupElement] that removes the text strikeout. */
+  private class RemoveStrikeoutDecorator(delegate: LookupElement) : LookupElementDecorator<LookupElement?>(delegate) {
     override fun renderElement(presentation: LookupElementPresentation) {
       super.renderElement(presentation)
       presentation.isStrikeout = false
@@ -67,15 +62,22 @@ class AndroidJavaCompletionContributor : CompletionContributor() {
     private val PsiReferenceExpression.qualifierReferenceExpression : PsiReferenceExpression?
       get() = qualifierExpression as? PsiReferenceExpression
 
+    /**
+     * Removes the deprecation strikeout if the result is not actually deprecated at the specific location, e.g. when we are in a code
+     * branch specific to an old SDK where a given [PsiElement] was not yet deprecated.
+     *
+     * @see AndroidDeprecationInspection.DeprecationFilter
+     */
     fun fixDeprecationPresentation(
       result: CompletionResult,
       parameters: CompletionParameters
     ): CompletionResult {
       val deprecatedObj = (result.lookupElement.getObject() as? PsiDocCommentOwner)?.takeIf { it.isDeprecated } ?: return result
-      return AndroidDeprecationInspection.getFilters()
-        .filter { it.isExcluded(deprecatedObj, parameters.position, null) }
-        // TODO(b/292544477): Fix this to only wrap once after conversion CL is submitted.
-        .fold(result) { r, _ -> r.withLookupElement(NonDeprecatedDecorator(r.lookupElement)) }
+      // If any filters say we shouldn't consider this deprecated at this position, remove the text strikeout.
+      if (AndroidDeprecationInspection.getFilters().any { it.isExcluded(deprecatedObj, parameters.position, null) }) {
+        return result.withLookupElement(RemoveStrikeoutDecorator(result.lookupElement))
+      }
+      return result
     }
 
     /** Returns true iff this result is the `bar` in something of the form `R.foo.bar` and this resource is private. */
