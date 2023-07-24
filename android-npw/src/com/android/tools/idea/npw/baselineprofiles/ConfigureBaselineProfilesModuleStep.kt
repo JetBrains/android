@@ -81,7 +81,7 @@ class ConfigureBaselineProfilesModuleStep(
     bindTargetModule()
     validateMinAgpVersion()
 
-    bindings.bindTwoWay(SelectedProperty(useGmdCheck), model.useGmd)
+    bindings.bind(model.useGmd, SelectedProperty(useGmdCheck))
   }
 
   private fun bindTargetModule() {

@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.baselineprofiles.ConfigureBaselineProfilesModu
 import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.tools.idea.observable.BatchInvoker
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
@@ -35,7 +36,6 @@ import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -73,7 +73,7 @@ class AddBaselineProfilesModuleTest(
     val model = NewBaselineProfilesModuleModel(
       project = project,
       moduleParent = ":",
-      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
+      projectSyncInvoker = emptyProjectSyncInvoker,
     ).apply {
       androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API)
       targetModule.value = project.findAppModule()
@@ -100,82 +100,96 @@ class ConfigureBaselineProfilesModuleStepTest {
   @Before
   fun setup() {
     disposable = Disposer.newDisposable()
+    BatchInvoker.setOverrideStrategy(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY)
   }
 
   @After
   fun tearDown() {
+    BatchInvoker.clearOverrideStrategy()
     Disposer.dispose(disposable)
   }
 
-  private suspend fun buildStepWithProject(targetProjectPath: String): ConfigureBaselineProfilesModuleStep {
+  private suspend fun buildStepWithProject(targetProjectPath: String): Pair<ConfigureBaselineProfilesModuleStep, NewBaselineProfilesModuleModel> {
     return withContext(Dispatchers.EDT) {
+      val model = NewBaselineProfilesModuleModel(
+        project = projectRule.project,
+        moduleParent = ":",
+        projectSyncInvoker = emptyProjectSyncInvoker
+      )
       projectRule.loadProject(targetProjectPath)
       ConfigureBaselineProfilesModuleStep(
         disposable = disposable,
-        model = NewBaselineProfilesModuleModel(
-          project = projectRule.project,
-          moduleParent = ":",
-          projectSyncInvoker = object : ProjectSyncInvoker {
-            override fun syncProject(project: Project) {}
-          }
-        )
-      )
+        model = model
+      ) to model
     }
   }
 
   @Test
   fun withAppProjectWithPhoneAndWearAndTvAndAutomotive() = runBlocking(Dispatchers.EDT) {
-    val step = buildStepWithProject(TestProjectPaths.APP_WITH_WEAR_AND_TV_AND_AUTOMOTIVE)
+    val (step, model) = buildStepWithProject(TestProjectPaths.APP_WITH_WEAR_AND_TV_AND_AUTOMOTIVE)
 
     assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
     assertEquals(4, step.targetModuleCombo.itemCount)
     assertTrue(step.useGmdCheck.isEnabled)
     assertTrue(step.useGmdCheck.isSelected)
+    assertTrue(model.useGmd.get())
 
     step.targetModuleCombo.selectedItem = projectRule.project.findModule("automotiveApp")
     assertFalse(step.useGmdCheck.isEnabled)
     assertFalse(step.useGmdCheck.isSelected)
+    assertFalse(model.useGmd.get())
 
     step.targetModuleCombo.selectedItem = projectRule.project.findModule("wearApp")
     assertFalse(step.useGmdCheck.isEnabled)
     assertFalse(step.useGmdCheck.isSelected)
+    assertFalse(model.useGmd.get())
 
     step.targetModuleCombo.selectedItem = projectRule.project.findModule("tvApp")
     assertFalse(step.useGmdCheck.isEnabled)
     assertFalse(step.useGmdCheck.isSelected)
+    assertFalse(model.useGmd.get())
 
     step.targetModuleCombo.selectedItem = projectRule.project.findAppModule()
     assertTrue(step.useGmdCheck.isEnabled)
     assertTrue(step.useGmdCheck.isSelected)
+    assertTrue(model.useGmd.get())
   }
 
   @Test
   fun withLibProjectOnly() = runBlocking(Dispatchers.EDT) {
-    val step = buildStepWithProject(TestProjectPaths.KOTLIN_LIB)
+    val (step, model) = buildStepWithProject(TestProjectPaths.KOTLIN_LIB)
 
     assertNull(step.targetModuleCombo.selectedItem)
     assertEquals(0, step.targetModuleCombo.itemCount)
     assertFalse(step.useGmdCheck.isEnabled)
     assertFalse(step.useGmdCheck.isSelected)
+    assertFalse(model.useGmd.get())
   }
 
   @Test
   fun withAppWithLibProject() = runBlocking(Dispatchers.EDT) {
-    val step = buildStepWithProject(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+    val (step, model) = buildStepWithProject(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
 
     assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
     assertEquals(1, step.targetModuleCombo.itemCount)
     assertTrue(step.useGmdCheck.isEnabled)
     assertTrue(step.useGmdCheck.isSelected)
+    assertTrue(model.useGmd.get())
   }
 
   @Test
   fun withWearAppProjectOnly() = runBlocking(Dispatchers.EDT) {
-    val step = buildStepWithProject(TestProjectPaths.WEAR_WATCHFACE)
+    val (step, model) = buildStepWithProject(TestProjectPaths.WEAR_WATCHFACE)
 
     assertEquals(step.targetModuleCombo.selectedItem, projectRule.project.findAppModule())
     assertEquals(1, step.targetModuleCombo.itemCount)
     assertFalse(step.useGmdCheck.isEnabled)
     assertFalse(step.useGmdCheck.isSelected)
+    assertFalse(model.useGmd.get())
   }
+}
+
+// Ignore project sync (to speed up test), if later we are going to perform a gradle build anyway.
+private val emptyProjectSyncInvoker = object : ProjectSyncInvoker {
+  override fun syncProject(project: Project) {}
 }
