@@ -184,27 +184,31 @@ int32_t RoundUpToMultipleOf(int32_t value, int32_t power_of_two) {
   return (value + power_of_two - 1) & ~(power_of_two - 1);
 }
 
-Size ComputeVideoSize(Size rotated_display_size, Size max_resolution, Size size_alignment) {
+Size ComputeVideoSize(Size rotated_display_size, const CodecInfo& codec_info, Size max_video_resolution) {
+  int32_t max_width = min(max_video_resolution.width, codec_info.max_resolution.width);
+  int32_t max_height = min(max_video_resolution.height, codec_info.max_resolution.height);
   double display_width = rotated_display_size.width;
   double display_height = rotated_display_size.height;
-  if (size_alignment.width < 8) {
-    size_alignment.width = 8;  // Increase horizontal size alignment to accommodate FFmpeg video decoder.
-  }
-  double scale = max(min(1.0, min(max_resolution.width / display_width, max_resolution.height / display_height)),
+  double scale = max(min(1.0, min(max_width / display_width, max_height / display_height)),
                      max(MIN_VIDEO_RESOLUTION / display_width, MIN_VIDEO_RESOLUTION / display_height));
-  // We are computing width of the frame first and the height based on the width to make sure that,
-  // if the video frame has a sightly different aspect ration than the display, it is taller rather
-  // than wider.
-  int32_t width = RoundUpToMultipleOf(lround(display_width * scale), size_alignment.width);
-  int32_t height = RoundUpToMultipleOf(lround(width * display_height / display_width), size_alignment.height);
+  // The horizontal size alignment is multiple of 8 to accommodate FFmpeg video decoder.
+  int32_t alignment_width = RoundUpToMultipleOf(codec_info.size_alignment.width, 8);
+  int32_t alignment_height = codec_info.size_alignment.height;
+  // Video width is computed first and height is computed based on the width to make sure that,
+  // if the video has a sightly different aspect ratio than the display, it is taller rather than
+  // wider.
+  int32_t width = RoundUpToMultipleOf(lround(display_width * scale), alignment_width);
+  int32_t height;
+  while (width > codec_info.max_resolution.width ||
+      (height = RoundUpToMultipleOf(lround(width * display_height / display_width), alignment_height)) > codec_info.max_resolution.height) {
+    width -= alignment_width;  // Reduce video size to stay within maximum resolution of the codec.
+  }
   return Size { width, height };
 }
 
 Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_video_resolution, AMediaFormat* media_format,
                     const DisplayInfo& display_info) {
-  Size max_resolution = Size(min(max_video_resolution.width, codec_info.max_resolution.width),
-                             min(max_video_resolution.height, codec_info.max_resolution.height));
-  Size video_size = ComputeVideoSize(display_info.logical_size, max_resolution, codec_info.size_alignment);
+  Size video_size = ComputeVideoSize(display_info.logical_size, codec_info, max_video_resolution);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
   media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
