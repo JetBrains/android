@@ -20,7 +20,7 @@ import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionL
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
 
-class OpenMenuItem(listener: DeviceFileExplorerActionListener) : TreeMenuItem(listener) {
+class OpenMenuItem(listener: DeviceFileExplorerActionListener) : NonToggleMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String = "Open"
 
   override val icon: Icon

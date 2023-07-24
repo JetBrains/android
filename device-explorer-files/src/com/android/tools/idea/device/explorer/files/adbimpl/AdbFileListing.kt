@@ -64,6 +64,17 @@ class AdbFileListing(
     }
   }
 
+  suspend fun getDataDirectory(): AdbFileListingEntry {
+    return withContext(dispatcher) {
+      val command = getCommand(null, "stat -c \"%A %U %G %z %s %n\" ").withDirectoryEscapedPath("/data/data").build() //$NON-NLS-1$
+      val commandResult = myShellCommandsUtil.executeCommand(command)
+      if (commandResult.output.isEmpty() || commandResult.isError) {
+        commandResult.throwIfError()
+      }
+      processStatOutputLine(commandResult.output[0])
+    }
+  }
+
   /**
    * Determine if a symlink entry points to a directory. This is a best effort process,
    * as the target of the symlink might not be accessible, in which case the return value

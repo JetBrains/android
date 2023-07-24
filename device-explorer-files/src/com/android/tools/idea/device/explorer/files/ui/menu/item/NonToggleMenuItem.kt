@@ -15,25 +15,9 @@
  */
 package com.android.tools.idea.device.explorer.files.ui.menu.item
 
-import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionListener
 
-/**
- * A [TreeMenuItem] that is active only for single element selections
- */
-
-abstract class SingleSelectionTreeMenuItem(listener: DeviceFileExplorerActionListener) : NonToggleMenuItem(listener) {
-  override fun isEnabled(nodes: List<DeviceFileEntryNode>): Boolean =
-    super.isEnabled(nodes) && nodes.size == 1
-
-  override fun isVisible(nodes: List<DeviceFileEntryNode>): Boolean =
-    super.isVisible(nodes) && nodes.size == 1
-
-  override fun run(nodes: List<DeviceFileEntryNode>) {
-    if (nodes.size == 1) {
-      run(nodes[0])
-    }
-  }
-
-  abstract fun run(node: DeviceFileEntryNode)
+abstract class NonToggleMenuItem(listener: DeviceFileExplorerActionListener): TreeMenuItem(listener) {
+  override fun isSelected(): Boolean = false
+  override fun setSelected(selected: Boolean) {}
 }

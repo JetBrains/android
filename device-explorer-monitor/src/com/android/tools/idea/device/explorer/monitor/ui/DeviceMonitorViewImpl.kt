@@ -107,8 +107,8 @@ class DeviceMonitorViewImpl(
     listeners.forEach(Consumer { it.debugNodes(getModelRows(table.selectedRows)) })
   }
 
-  override fun setPackageFilter(isActive: Boolean) {
-    listeners.forEach(Consumer { it.setPackageFilter(isActive) })
+  override fun packageFilterToggled(isActive: Boolean) {
+    listeners.forEach(Consumer { it.packageFilterToggled(isActive) })
   }
 
   private fun setUpTable() {

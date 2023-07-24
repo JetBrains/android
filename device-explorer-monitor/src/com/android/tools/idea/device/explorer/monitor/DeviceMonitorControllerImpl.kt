@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
+import com.android.adblib.serialNumber
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.device.explorer.common.DeviceExplorerControllerListener
+import com.android.tools.idea.device.explorer.common.DeviceExplorerTab
+import com.android.tools.idea.device.explorer.common.DeviceExplorerTabController
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider
 import com.android.tools.idea.projectsystem.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
@@ -40,12 +45,13 @@ class DeviceMonitorControllerImpl(
   private val model: DeviceMonitorModel,
   private val view: DeviceMonitorView,
   private val deviceService: DeviceService
-): Disposable, DeviceMonitorController {
+): Disposable, DeviceExplorerTabController {
 
   private val uiThreadScope = AndroidCoroutineScope(this, AndroidDispatchers.uiThread)
   private val setupJob = CompletableDeferred<Unit>()
   private val deviceServiceListener = ModelDeviceServiceListener()
   private val viewListener = ViewListener()
+  override var controllerListener: DeviceExplorerControllerListener? = null
 
   init {
     Disposer.register(project, this)
@@ -78,7 +84,8 @@ class DeviceMonitorControllerImpl(
     )
   }
 
-  override fun setActiveConnectedDevice(serialNumber: String?) {
+  override fun setActiveConnectedDevice(deviceHandle: DeviceHandle?) {
+    val serialNumber = deviceHandle?.state?.connectedDevice?.serialNumber
     uiThreadScope.launch {
       val iDevice = deviceService.getIDeviceFromSerialNumber(serialNumber)
       model.activeDeviceChanged(iDevice)
@@ -86,6 +93,14 @@ class DeviceMonitorControllerImpl(
   }
 
   override fun getViewComponent(): JComponent = view.panelComponent
+
+  override fun getTabName(): String = DeviceExplorerTab.Processes.name
+
+  override fun setPackageFilter(isActive: Boolean) {
+    uiThreadScope.launch {
+      model.setPackageFilter(isActive)
+    }
+  }
 
   override fun dispose() {
     view.removeListener(viewListener)
@@ -142,15 +157,8 @@ class DeviceMonitorControllerImpl(
       }
     }
 
-    override fun setPackageFilter(isActive: Boolean) {
-      uiThreadScope.launch {
-        model.setPackageFilter(isActive)
-        trackAction(DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED)
-        trackAction(
-          if (isActive) DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED_ON
-          else DeviceExplorerEvent.Action.APPLICATION_ID_FILTER_TOGGLED_OFF
-        )
-      }
+    override fun packageFilterToggled(isActive: Boolean) {
+      controllerListener?.packageFilterToggled(isActive)
     }
   }
 

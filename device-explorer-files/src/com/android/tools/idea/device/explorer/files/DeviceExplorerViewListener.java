@@ -16,8 +16,6 @@
 package com.android.tools.idea.device.explorer.files;
 
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode;
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
 import java.nio.file.Path;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -34,4 +32,5 @@ public interface DeviceExplorerViewListener {
   void synchronizeNodesInvoked();
   void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode);
   void uploadFilesInvoked(@NotNull DeviceFileEntryNode treeNode, List<Path> files);
+  void togglePackageFilterInvoked(boolean isActive);
 }

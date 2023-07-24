@@ -24,7 +24,7 @@ public interface DeviceFileExplorerView {
   void addListener(@NotNull DeviceExplorerViewListener listener);
   void removeListener(@NotNull DeviceExplorerViewListener listener);
 
-  void setup();
+  void setup(boolean packageFilterActive);
 
   void showNoDeviceScreen();
 
@@ -46,4 +46,6 @@ public interface DeviceFileExplorerView {
   void setProgressWarningColor();
   void setProgressText(@NotNull String text);
   void stopProgress();
+  void setPackageFilterSelection(boolean isSelected);
+  void enablePackageFilter(boolean shouldEnable);
 }

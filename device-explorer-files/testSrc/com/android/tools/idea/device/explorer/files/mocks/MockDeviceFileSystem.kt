@@ -32,7 +32,8 @@ import kotlin.math.min
 
 class MockDeviceFileSystem(private val edtExecutor: FutureCallbackExecutor, override val name: String) : DeviceFileSystem {
 
-  val root: MockDeviceFileEntry = createRoot(this)
+  val root: MockDeviceFileEntry = createRoot(this, "")
+  val data: MockDeviceFileEntry = createRoot(this, "data")
   var downloadChunkSize: Long = 1024
   var uploadChunkSize: Long = 1024
   var downloadChunkIntervalMillis = OPERATION_TIMEOUT_MILLIS
@@ -47,6 +48,12 @@ class MockDeviceFileSystem(private val edtExecutor: FutureCallbackExecutor, over
     delay(OPERATION_TIMEOUT_MILLIS)
     rootDirectoryError?.let { throw it }
     return this.root
+  }
+
+  override suspend fun dataDirectory(): DeviceFileEntry {
+    delay(OPERATION_TIMEOUT_MILLIS)
+    rootDirectoryError?.let { throw it }
+    return this.data
   }
 
   suspend fun downloadFile(entry: DeviceFileEntry, localPath: Path, progress: FileTransferProgress) {

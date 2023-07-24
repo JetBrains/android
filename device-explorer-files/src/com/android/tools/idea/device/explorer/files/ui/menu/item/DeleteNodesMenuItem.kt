@@ -23,7 +23,7 @@ import javax.swing.Icon
 class DeleteNodesMenuItem(
   listener: DeviceFileExplorerActionListener,
   private val context: MenuContext
-) : TreeMenuItem(listener) {
+) : NonToggleMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String = "Delete..."
 
   override val icon: Icon

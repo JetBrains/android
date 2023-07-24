@@ -11,6 +11,7 @@ iml_module(
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module]",
         "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files[module]",
         "//tools/adt/idea/device-explorer-monitor:intellij.android.device-explorer-monitor[module]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
@@ -44,12 +45,11 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common[module, test]",
         "//tools/adt/idea/device-explorer:intellij.android.device-explorer[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/adt/idea/device-explorer-files:intellij.android.device-explorer-files[module, test]",
-        "//tools/adt/idea/device-explorer-monitor:intellij.android.device-explorer-monitor[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

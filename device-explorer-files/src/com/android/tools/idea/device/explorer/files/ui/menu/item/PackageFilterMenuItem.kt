@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer.monitor.ui.menu.item
+package com.android.tools.idea.device.explorer.files.ui.menu.item
 
 import com.android.tools.idea.IdeInfo
-import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
+import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
+import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionListener
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
 
-class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuItem(listener) {
+class PackageFilterMenuItem(listener: DeviceFileExplorerActionListener) : TreeMenuItem(listener) {
   var isActionSelected = false
   var shouldBeEnabled = false
 
-  override fun getText(numOfNodes: Int): String {
+  override fun getText(nodes: List<DeviceFileEntryNode>): String {
     val selectionText = if (isActionSelected) "off" else "on"
     val buttonText = "Turn $selectionText package filter"
     return if(!shouldBeEnabled)
@@ -57,7 +58,7 @@ class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuIte
     }
 
   override fun run() {
-    listener.packageFilterToggled(!isActionSelected)
+    listener.setPackageFilter(!isActionSelected)
   }
 
   override fun isSelected(): Boolean {
@@ -65,4 +66,5 @@ class PackageFilterMenuItem(listener: DeviceMonitorActionsListener): TreeMenuIte
   }
 
   override fun setSelected(selected: Boolean) {}
+  override fun run(nodes: List<DeviceFileEntryNode>) {}
 }

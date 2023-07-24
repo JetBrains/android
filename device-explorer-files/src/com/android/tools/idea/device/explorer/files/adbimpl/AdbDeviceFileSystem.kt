@@ -51,6 +51,10 @@ class AdbDeviceFileSystem(
     return AdbDeviceDefaultFileEntry(this, adbFileListing.getRoot(), null)
   }
 
+  override suspend fun dataDirectory(): DeviceFileEntry {
+    return AdbDeviceDefaultFileEntry(this, adbFileListing.getDataDirectory(), null)
+  }
+
   suspend fun resolveMountPoint(entry: AdbDeviceFileEntry): AdbDeviceFileEntry =
     withContext(dispatcher) {
       when {

@@ -28,4 +28,6 @@ interface DeviceFileSystem {
    * can be used to traverse the file system recursively.
    */
   suspend fun rootDirectory(): DeviceFileEntry
+
+  suspend fun dataDirectory(): DeviceFileEntry
 }

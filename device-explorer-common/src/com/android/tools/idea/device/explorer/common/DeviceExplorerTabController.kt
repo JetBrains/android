@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.device.explorer
+package com.android.tools.idea.device.explorer.common
 
-enum class DeviceExplorerTab {
-  Files,
-  Processes;
+import com.android.sdklib.deviceprovisioner.DeviceHandle
+import javax.swing.JComponent
+
+interface DeviceExplorerTabController {
+  var controllerListener: DeviceExplorerControllerListener?
+  fun setup()
+  fun setActiveConnectedDevice(deviceHandle: DeviceHandle?)
+  fun getViewComponent(): JComponent
+  fun getTabName(): String
+  fun setPackageFilter(isActive: Boolean)
 }

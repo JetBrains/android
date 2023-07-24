@@ -23,7 +23,7 @@ import javax.swing.Icon
 class SynchronizeNodesMenuItem(
   listener: DeviceFileExplorerActionListener,
   private val context: MenuContext
-) : TreeMenuItem(listener) {
+) : NonToggleMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String = "Synchronize"
 
   override val icon: Icon
