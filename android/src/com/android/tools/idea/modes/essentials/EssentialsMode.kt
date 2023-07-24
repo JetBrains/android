@@ -22,11 +22,14 @@ import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EssentialsModeEvent
 import com.intellij.ide.EssentialHighlightingMode
+import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.registry.RegistryManager
+import com.intellij.openapi.wm.impl.status.widget.StatusBarWidgetsManager
 import com.jetbrains.rd.util.string.print
 import com.jetbrains.rd.util.string.printToString
 import com.jetbrains.rd.util.string.println
@@ -60,8 +63,23 @@ class EssentialsMode {
       if (beforeSet != value) {
         messenger.sendMessage()
         essentialsModeLogger.info("Essentials mode isEnabled set to $value")
+        updateUI(value)
         project?.service<EssentialsModeNotifier>()?.notifyProject()
         trackEvent(value)
+      }
+    }
+
+    // update the widget across projects, and if the mode was disabled remove, get rid of stale notifications
+    private fun updateUI(value: Boolean) {
+      for (project in ProjectManager.getInstance().openProjects) {
+        project.service<StatusBarWidgetsManager>().updateWidget(EssentialsModeWidgetFactory::class.java)
+        if (!value) {
+          // potentially can get duplicate notifications across multiple projects, in this case remove them
+          for (essentialsModeNotification in NotificationsManager.getNotificationsManager().getNotificationsOfType(
+            EssentialsModeNotifier.EssentialsModeNotification::class.java, project)) {
+            essentialsModeNotification.expire()
+          }
+        }
       }
     }
 

@@ -249,7 +249,8 @@
     <postStartupActivity implementation="com.android.tools.idea.modes.essentials.EssentialsModeRecommender"/>
     <postStartupActivity implementation="com.android.tools.idea.modes.essentials.EssentialsModeNotifierOnStartup"/>
     <applicationConfigurable groupId="appearance" groupWeight="140" id="essentials.mode.settings"
-                             instance="com.android.tools.idea.modes.essentials.EssentialsModeSettings"/>
+                             instance="com.android.tools.idea.modes.essentials.EssentialsModeSettingsPage"/>
+    <statusBarWidgetFactory id="Essentials Mode Widget" implementation="com.android.tools.idea.modes.essentials.EssentialsModeWidgetFactory"/>
     <postStartupActivity implementation="com.intellij.ide.actions.EssentialHighlightingNotifier"/>
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>

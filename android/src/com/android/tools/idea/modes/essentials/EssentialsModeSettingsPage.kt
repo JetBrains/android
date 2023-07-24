@@ -17,21 +17,25 @@ package com.android.tools.idea.modes.essentials
 
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.notification.NotificationsManager
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.actionSystem.EditorActionManager
+import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
 
-class EssentialsModeSettings : BoundConfigurable("Essentials Mode"), SearchableConfigurable {
+class EssentialsModeSettingsPage : BoundConfigurable("Essentials Mode"), SearchableConfigurable {
   override fun createPanel(): DialogPanel {
     return panel {
       enabled(StudioFlags.ESSENTIALS_MODE_VISIBLE.get())
       group("Essentials Mode") {
-        row{
+        row {
           checkBox("Enable Essentials Mode")
-            .bindSelected({EssentialsMode.isEnabled()}, {expireNotificationsAndToggle(it)})
+            .bindSelected({ EssentialsMode.isEnabled() }, { EssentialsMode.setEnabled(it, null) })
           rowComment("Essentials mode turns on Essential Highlighting which waits to perform code highlighting " +
                      "and analysis until receiving a file saving action. File saving actions can " +
                      "occur explicitly by invoking it via ${KeymapUtil.getShortcutText("SaveAll")} or from the menu by " +
@@ -42,13 +46,5 @@ class EssentialsModeSettings : BoundConfigurable("Essentials Mode"), SearchableC
     }
   }
 
-  private fun expireNotificationsAndToggle(boolean: Boolean) {
-    for (essentialsModeNotification in NotificationsManager.getNotificationsManager().getNotificationsOfType(
-      EssentialsModeNotifier.EssentialsModeNotification::class.java, null)) {
-      essentialsModeNotification.expire()
-    }
-    EssentialsMode.setEnabled(boolean, null)
-  }
   override fun getId(): String = "essentials.mode.settings"
-
 }
