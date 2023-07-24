@@ -21,13 +21,14 @@ import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.intellij.ide.HelpTooltip
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.project.Project
 
 /**
  * ToggleAction for hardware input.
@@ -39,12 +40,12 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
 
   override fun isSelected(event: AnActionEvent): Boolean {
     val deviceId = getDeviceId(event) ?: return false
-    return event.project?.getService(HardwareInputStateStorage::class.java)?.isHardwareInputEnabled(deviceId) ?: false
+    return event.project?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(deviceId) ?: false
   }
 
   override fun setSelected(event: AnActionEvent, selected: Boolean) {
     val deviceId = getDeviceId(event) ?: return
-    event.project?.getService(HardwareInputStateStorage::class.java)?.setHardwareInputEnabled(deviceId, selected)
+    event.project?.service<HardwareInputStateStorage>()?.setHardwareInputEnabled(deviceId, selected)
     getDisplayView(event)?.hardwareInputStateChanged(event, selected)
   }
 
@@ -57,6 +58,7 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
     }
     super.update(event)
     presentation.putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, HelpTooltip().apply {
+      @Suppress("DialogTitleCapitalization")
       setTitle(presentation.text)
       setDescription(presentation.description)
       val shortcut = KeymapUtil.getFirstKeyboardShortcutText(ACTION_ID)
@@ -65,6 +67,8 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
       }
     })
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   private fun getDisplayView(event: AnActionEvent): AbstractDisplayView? {
     return event.getData(EMULATOR_VIEW_KEY) ?: event.getData(DEVICE_VIEW_KEY)
@@ -100,10 +104,4 @@ internal class HardwareInputStateStorage {
       is DeviceId.EmulatorDeviceId -> this.emulatorId.avdFolder.toString()
       is DeviceId.PhysicalDeviceId -> this.serialNumber
     }
-
-  companion object {
-    @JvmStatic
-    fun getInstance(project: Project): HardwareInputStateStorage =
-        project.getService(HardwareInputStateStorage::class.java)
-  }
 }
