@@ -80,6 +80,16 @@ data class HighlightProjectTestDef(
         )
       ),
       HighlightProjectTestDef(
+        TestProject.CUSTOM_NAMESPACE,
+        modulesAndFiles = mapOf(
+          GradleSourceSetProjectPath(
+            "/",
+            ":app",
+            IdeModuleWellKnownSourceSet.MAIN
+          ) to listOf("src/main/java/google/simpleapplication/MyActivity.java")
+        )
+      ),
+      HighlightProjectTestDef(
         TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL,
         checkHighlighting = ::validateNonTransitiveRClass,
         modulesAndFiles = mapOf(

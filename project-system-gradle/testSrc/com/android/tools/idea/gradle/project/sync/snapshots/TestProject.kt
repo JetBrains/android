@@ -177,6 +177,7 @@ enum class TestProject(
       root.resolve("build.gradle").writeText("*** this is an error ***")
     }
   ),
+  CUSTOM_NAMESPACE(TestProjectToSnapshotPaths.CUSTOM_NAMESPACE),
   WITH_GRADLE_METADATA(TestProjectToSnapshotPaths.WITH_GRADLE_METADATA),
   BASIC_CMAKE_APP(TestProjectToSnapshotPaths.BASIC_CMAKE_APP),
   PSD_SAMPLE_GROOVY(TestProjectToSnapshotPaths.PSD_SAMPLE_GROOVY),

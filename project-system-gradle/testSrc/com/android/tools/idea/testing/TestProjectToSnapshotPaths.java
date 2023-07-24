@@ -42,6 +42,7 @@ public final class TestProjectToSnapshotPaths {
 
   public static final String SIMPLE_APPLICATION_CORRUPTED_MISSING_IML_40 = "projects/simpleApplication_corrupted_missing_iml_40";
   public static final String SIMPLE_APPLICATION_VERSION_CATALOG = "projects/simpleApplicationVersionCatalog";
+  public static final String CUSTOM_NAMESPACE = "projects/customNamespace";
   public static final String TEST_FIXTURES = "projects/testFixtures";
   public static final String TEST_ONLY_MODULE = "projects/testOnlyModule";
   public static final String TRANSITIVE_DEPENDENCIES = "projects/transitiveDependencies";

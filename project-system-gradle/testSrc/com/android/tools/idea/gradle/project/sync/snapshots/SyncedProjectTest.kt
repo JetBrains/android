@@ -80,6 +80,9 @@ abstract class SyncedProjectTest(
   fun testSimpleApplication_appViaSymLink() = testProject(TestProject.SIMPLE_APPLICATION_APP_VIA_SYMLINK)
 
   @Test
+  fun testCustomNamespace() = testProject(TestProject.CUSTOM_NAMESPACE)
+
+  @Test
   fun testAppWithMlModels() = testProject(TestProject.APP_WITH_ML_MODELS)
 
   @Test
