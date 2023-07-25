@@ -28,7 +28,7 @@ import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.util.containers.MultiMap
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.idea.framework.KotlinSdkType
-import org.jetbrains.kotlin.util.collectionUtils.filterIsInstanceMapNotNull
+import org.jetbrains.kotlin.utils.filterIsInstanceMapNotNull
 import org.junit.Test
 import kotlin.test.assertContentEquals
 
