@@ -17,76 +17,114 @@ package com.android.tools.idea.wear.preview
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
+import com.intellij.psi.impl.source.tree.injected.changesHandler.range
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert
+import org.assertj.core.api.Assertions.assertThat
+import org.jetbrains.uast.UFile
+import org.jetbrains.uast.UMethod
+import org.jetbrains.uast.toUElementOfType
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class WearTilePreviewElementFinderTest {
-  @get:Rule
-  val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule: AndroidProjectRule = AndroidProjectRule.inMemory()
 
   private val project
     get() = projectRule.project
   private val fixture
     get() = projectRule.fixture
 
-  private lateinit var sourceFileTwo: PsiFile
-  private lateinit var sourceFileSolo: PsiFile
-  private lateinit var sourceFileNone: PsiFile
-
   @Before
   fun setUp() {
     fixture.addFileToProjectAndInvalidate(
-      "androidx/wear/tiles/TileService.kt",
+      "androidx/wear/tiles/tooling/preview/TilePreview.kt",
       // language=kotlin
       """
-        package androidx.wear.tiles
+        package androidx.wear.tiles.tooling.preview
 
-        class TileService {}
+        object WearDevices {
+            const val LARGE_ROUND = "id:wearos_large_round"
+            const val SMALL_ROUND = "id:wearos_small_round"
+            const val SQUARE = "id:wearos_square"
+            const val RECT = "id:wearos_rect"
+        }
+
+        annotation class TilePreview(
+            val name: String = "",
+            val group: String = "",
+            val device: String = WearDevices.SMALL_ROUND,
+        )
         """
         .trimIndent()
     )
-    sourceFileTwo =
+  }
+
+  @Test
+  fun testWearTileElementsFinder() = runBlocking {
+    val previewsTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFileTwo.kt",
+        "com/android/test/Src.kt",
         // language=kotlin
         """
         package com.android.test
 
         import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.tooling.preview.TilePreview
+        import androidx.wear.tiles.tooling.preview.WearDevices
 
-        class MyTile1 : TileService {
+        @TilePreview
+        class ThisShouldNotBePreviewed : TileService
 
+        @TilePreview
+        private fun tilePreview() {
         }
 
-        class MyTile2 : TileService {
-
+        @TilePreview(
+          device = WearDevices.LARGE_ROUND
+        )
+        private fun largeRoundTilePreview() {
         }
 
+        @TilePreview(
+          name = "some name"
+        )
+        private fun namedTilePreview() {
+        }
+
+        @TilePreview(
+          group = "some group",
+          device = WearDevices.SQUARE
+        )
+        private fun tilePreviewWithGroup() {
+        }
+
+        fun someRandomMethod() {
+        }
         """
           .trimIndent()
       )
 
-    sourceFileSolo =
+    val otherFileTest =
       fixture.addFileToProjectAndInvalidate(
-        "com/android/test/SourceFileOne.kt",
+        "com/android/test/OtherFile.kt",
         // language=kotlin
         """
         package com.android.test
 
-        import androidx.wear.tiles.TileService
+        import androidx.wear.tiles.tooling.preview.TilePreview
 
-        class MyTileSolo : TileService {
-
+        @TilePreview
+        private fun tilePreviewInAnotherFile() {
         }
         """
           .trimIndent()
       )
 
-    sourceFileNone =
+    val fileWithNoPreviews =
       fixture.addFileToProjectAndInvalidate(
         "com/android/test/SourceFileNone.kt",
         // language=kotlin
@@ -95,36 +133,124 @@ class WearTilePreviewElementFinderTest {
 
         import androidx.wear.tiles.TileService
 
-        class NotWearTile {}
+        class WearTileService : TileService
+
+        fun someRandomMethod() {
+        }
         """
           .trimIndent()
       )
-  }
 
-  @Test
-  fun testWearTileElementsFinder() = runBlocking {
-    Assert.assertTrue(
-      WearTilePreviewElementFinder.hasPreviewElements(project, sourceFileTwo.virtualFile)
-    )
-    Assert.assertTrue(
-      WearTilePreviewElementFinder.hasPreviewElements(project, sourceFileSolo.virtualFile)
-    )
-    Assert.assertFalse(
-      WearTilePreviewElementFinder.hasPreviewElements(project, sourceFileNone.virtualFile)
-    )
+    assertThat(WearTilePreviewElementFinder.hasPreviewElements(project, previewsTest.virtualFile))
+      .isTrue()
+    assertThat(WearTilePreviewElementFinder.hasPreviewElements(project, otherFileTest.virtualFile))
+      .isTrue()
+    assertThat(
+        WearTilePreviewElementFinder.hasPreviewElements(project, fileWithNoPreviews.virtualFile)
+      )
+      .isFalse()
 
     runBlocking {
-      Assert.assertEquals(
-        listOf("com.android.test.MyTile1", "com.android.test.MyTile2"),
-        WearTilePreviewElementFinder.findPreviewElements(project, sourceFileTwo.virtualFile).map {
-          it.fqcn
+      val previewElements =
+        WearTilePreviewElementFinder.findPreviewElements(project, previewsTest.virtualFile)
+      assertThat(previewElements).hasSize(4)
+
+      previewElements.elementAt(0).let {
+        assertThat(it.displaySettings.name).isEqualTo("tilePreview")
+        assertThat(it.displaySettings.group).isNull()
+        assertThat(it.displaySettings.showBackground).isTrue()
+        assertThat(it.displaySettings.showDecoration).isFalse()
+        assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
+        assertThat(it.configuration.device).isEqualTo("id:wearos_small_round")
+
+        ReadAction.run<Throwable> {
+          assertThat(it.previewBodyPsi?.psiRange?.range)
+            .isEqualTo(previewsTest.textRange("tilePreview"))
+          assertThat(it.previewElementDefinitionPsi?.element?.text).isEqualTo("@TilePreview")
         }
-      )
-      Assert.assertEquals(
-        listOf("com.android.test.MyTileSolo"),
-        WearTilePreviewElementFinder.findPreviewElements(project, sourceFileSolo.virtualFile)
-          .map { it.fqcn }
-      )
+      }
+
+      previewElements.elementAt(1).let {
+        assertThat(it.displaySettings.name).isEqualTo("largeRoundTilePreview")
+        assertThat(it.displaySettings.group).isNull()
+        assertThat(it.displaySettings.showBackground).isTrue()
+        assertThat(it.displaySettings.showDecoration).isFalse()
+        assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
+        assertThat(it.configuration.device).isEqualTo("id:wearos_large_round")
+
+        ReadAction.run<Throwable> {
+          assertThat(it.previewBodyPsi?.psiRange?.range)
+            .isEqualTo(previewsTest.textRange("largeRoundTilePreview"))
+          assertThat(it.previewElementDefinitionPsi?.element?.text)
+            .isEqualTo(
+              """
+            @TilePreview(
+              device = WearDevices.LARGE_ROUND
+            )
+          """
+                .trimIndent()
+            )
+        }
+      }
+
+      previewElements.elementAt(2).let {
+        assertThat(it.displaySettings.name).isEqualTo("namedTilePreview - some name")
+        assertThat(it.displaySettings.group).isNull()
+        assertThat(it.displaySettings.showBackground).isTrue()
+        assertThat(it.displaySettings.showDecoration).isFalse()
+        assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
+        assertThat(it.configuration.device).isEqualTo("id:wearos_small_round")
+
+        ReadAction.run<Throwable> {
+          assertThat(it.previewBodyPsi?.psiRange?.range)
+            .isEqualTo(previewsTest.textRange("namedTilePreview"))
+          assertThat(it.previewElementDefinitionPsi?.element?.text)
+            .isEqualTo(
+              """
+            @TilePreview(
+              name = "some name"
+            )
+          """
+                .trimIndent()
+            )
+        }
+      }
+
+      previewElements.elementAt(3).let {
+        assertThat(it.displaySettings.name).isEqualTo("tilePreviewWithGroup")
+        assertThat(it.displaySettings.group).isEqualTo("some group")
+        assertThat(it.displaySettings.showBackground).isTrue()
+        assertThat(it.displaySettings.showDecoration).isFalse()
+        assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
+        assertThat(it.configuration.device).isEqualTo("id:wearos_square")
+
+        ReadAction.run<Throwable> {
+          assertThat(it.previewBodyPsi?.psiRange?.range)
+            .isEqualTo(previewsTest.textRange("tilePreviewWithGroup"))
+          assertThat(it.previewElementDefinitionPsi?.element?.text)
+            .isEqualTo(
+              """
+            @TilePreview(
+              group = "some group",
+              device = WearDevices.SQUARE
+            )
+          """
+                .trimIndent()
+            )
+        }
+      }
     }
   }
 }
+
+private fun PsiFile.textRange(methodName: String): TextRange {
+  return ReadAction.compute<TextRange, Throwable> {
+    toUElementOfType<UFile>()?.method(methodName)?.uastBody?.sourcePsi?.textRange!!
+  }
+}
+
+private fun UFile.declaredMethods(): Sequence<UMethod> =
+  classes.asSequence().flatMap { it.methods.asSequence() }
+
+private fun UFile.method(name: String): UMethod? =
+  declaredMethods().filter { it.name == name }.singleOrNull()

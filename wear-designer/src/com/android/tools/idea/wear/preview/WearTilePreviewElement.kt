@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.tools.idea.preview.MethodPreviewElement
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
@@ -24,5 +25,18 @@ open class WearTilePreviewElement(
   override val displaySettings: PreviewDisplaySettings,
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
-  override val fqcn: String
-) : ClassPreviewElement
+  override val methodFqn: String,
+  val configuration: WearTilePreviewConfiguration
+) : MethodPreviewElement
+
+data class WearTilePreviewConfiguration
+internal constructor(
+  val device: String
+) {
+  companion object {
+    fun forValues(device: String?) =
+      WearTilePreviewConfiguration(
+        device = device ?: ""
+      )
+  }
+}
