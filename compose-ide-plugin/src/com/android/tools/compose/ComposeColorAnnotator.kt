@@ -167,7 +167,7 @@ data class ColorIconRenderer(val element: UCallExpression, val color: Color) : G
         val valueArgumentList = ktCallExpression.valueArgumentList
         if (valueArgumentList != null) {
           val needsArgumentName = valueArgumentList.arguments.any { it.getArgumentName() != null }
-          val hexString = color.rgb.toHexString()
+          val hexString = "0x${String.format("%08X", color.rgb)}"
           val argumentText = if (needsArgumentName) "(color = $hexString)" else "($hexString)"
           valueArgumentList.replace(KtPsiFactory(ktCallExpression.project).createCallArguments(argumentText))
         }

@@ -134,6 +134,38 @@ class ComposeColorAnnotatorTest {
   }
 
   @Test
+  fun testColorWithLeadingZero() {
+    val psiFile = myFixture.addFileToProject(
+      "src/com/android/test/A.kt",
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0xFFFF0000)
+      }
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    checkGutterIconInfos(
+      listOf(
+        Color(255, 0, 0, 255),
+      ),
+      includeClickAction = true
+    )
+    setNewColor("Co|lor(0xFFFF0000)", Color(0x0DFF0000, true))
+    assertThat(myFixture.editor.document.text).isEqualTo(
+      //language=kotlin
+      """
+      package com.android.test
+      import androidx.compose.ui.graphics.Color
+      class A {
+        val other = Color(0x0DFF0000)
+      }
+      """.trimIndent()
+    )
+  }
+
+  @Test
   fun testColorInt() {
     val psiFile = myFixture.addFileToProject(
       "src/com/android/test/A.kt",
