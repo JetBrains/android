@@ -34,6 +34,8 @@ import org.junit.Assert.*
 /**
  * Generates files from a template and performs checks on them to ensure they're valid and can be
  * checked in as golden files
+ *
+ * For context and instructions on running and generating golden files, see go/template-diff-tests
  */
 class BaselineValidator(
   template: Template,

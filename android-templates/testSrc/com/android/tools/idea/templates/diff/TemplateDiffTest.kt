@@ -48,6 +48,8 @@ import org.junit.runners.Parameterized.*
 /**
  * Template test that generates the template files and diffs them against golden files located in
  * android-templates/testData/golden
+ *
+ * For context and instructions on running and generating golden files, see go/template-diff-tests
  */
 @RunWith(Parameterized::class)
 class TemplateDiffTest(private val testMode: TestMode) {
