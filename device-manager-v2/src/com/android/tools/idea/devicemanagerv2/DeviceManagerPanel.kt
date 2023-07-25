@@ -40,7 +40,6 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ConcurrentHashMultiset
-import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -167,7 +166,7 @@ constructor(
 
   private val toolbar: ActionToolbar = run {
     val groupingActions =
-      DefaultActionGroup("Group", null, AllIcons.Actions.GroupBy).apply {
+      DefaultActionGroup("Group", null, StudioIcons.Common.GROUP).apply {
         isPopup = true
         add(Separator.create("Group By"))
         add(GroupByNoneAction(deviceTable))
