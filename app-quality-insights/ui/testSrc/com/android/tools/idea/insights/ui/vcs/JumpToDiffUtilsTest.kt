@@ -85,7 +85,6 @@ class JumpToDiffUtilsTest {
         .isEqualTo(
           "Foo.kt (${PathUtil.toSystemDependentName(vcsInsightsRule.projectBaseDir.path)})"
         )
-      Truth.assertThat(contentTitles).containsExactly(BEFORE_REVISION, "Your version").inOrder()
 
       val customTitles = getUserData(DiffUserDataKeysEx.EDITORS_TITLE_CUSTOMIZER)
       Truth.assertThat(customTitles).isNotNull()
@@ -99,7 +98,11 @@ class JumpToDiffUtilsTest {
             }
           }
         )
-        .containsExactly("File from the affected commit: $BEFORE_REVISION", "Your version")
+        .containsExactly(
+          "<html>Historical source at commit: <a href=''>$BEFORE_REVISION</a> " +
+            "<i>(Source at the app version referenced in the issue)</i></html>",
+          "Current source"
+        )
         .inOrder()
 
       val scrollToLine = getUserData(DiffUserDataKeysEx.SCROLL_TO_LINE)

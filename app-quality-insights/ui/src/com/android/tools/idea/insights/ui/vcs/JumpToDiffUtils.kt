@@ -34,8 +34,10 @@ import com.intellij.openapi.vcs.changes.Change
 import com.intellij.openapi.vcs.changes.actions.diff.ChangeDiffRequestProducer
 import com.intellij.openapi.vcs.changes.ui.ChangeDiffRequestChain
 import com.intellij.openapi.vcs.history.VcsDiffUtil.createChangesWithCurrentContentForFile
-import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.HyperlinkAdapter
 import com.intellij.ui.components.JBLabel
+import javax.swing.event.HyperlinkEvent
+import javax.swing.event.HyperlinkListener
 
 /**
  * Context data for showing the diff view.
@@ -77,7 +79,7 @@ class InsightsDiffRequestChain(val context: ContextDataForDiff, val project: Pro
           DiffUserDataKeysEx.EDITORS_TITLE_CUSTOMIZER to
             listOfNotNull(
               createEditorTitleFromContext(context, project),
-              createEditorTitle("Your version")
+              createEditorTitle("Current source")
             ),
           // Customize caret place
           DiffUserDataKeys.SCROLL_TO_LINE to Pair.create(Side.LEFT, context.lineNumber - 1),
@@ -115,12 +117,20 @@ private fun createEditorTitleFromContext(
 ): DiffEditorTitleCustomizer {
   val shortVcsRevisionNumber = createShortRevisionString(vcsContext.vcsKey, vcsContext.revision)
 
-  val displayText = "File from the affected commit: <hyperlink>$shortVcsRevisionNumber</hyperlink>"
+  val displayText =
+    "<html>Historical source at commit: <a href=''>${shortVcsRevisionNumber}</a> " +
+      "<i>(Source at the app version referenced in the issue)</i></html>"
 
   return DiffEditorTitleCustomizer {
-    HyperlinkLabel().apply {
-      setTextWithHyperlink(displayText)
-      this.addHyperlinkListener { jumpToRevision(project, vcsContext.revision) }
-    }
+    object : JBLabel(displayText) {
+        override fun createHyperlinkListener(): HyperlinkListener {
+          return object : HyperlinkAdapter() {
+            override fun hyperlinkActivated(e: HyperlinkEvent) {
+              jumpToRevision(project, vcsContext.revision)
+            }
+          }
+        }
+      }
+      .apply { setCopyable(true) }
   }
 }
