@@ -39,8 +39,13 @@ data class ActiveConnectionChanged(val connection: Connection) : ChangeEvent {
         issues = LoadingState.Loading,
         currentIssueDetails = LoadingState.Ready(null),
         currentNotes = LoadingState.Ready(null),
-        // reset the version filter (implying Version.ALL) upon connection change.
-        filters = state.filters.copy(versions = MultiSelection.emptySelection())
+        // reset the version, device and OS filters upon connection change.
+        filters =
+          state.filters.copy(
+            versions = MultiSelection.emptySelection(),
+            devices = MultiSelection.emptySelection(),
+            operatingSystems = MultiSelection.emptySelection()
+          )
       ),
       action =
         Action.Fetch(

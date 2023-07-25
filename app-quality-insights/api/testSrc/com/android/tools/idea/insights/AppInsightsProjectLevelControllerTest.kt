@@ -128,7 +128,12 @@ class AppInsightsProjectLevelControllerTest {
         model.copy(
           connections = model.connections.select(CONNECTION2),
           issues = LoadingState.Loading,
-          filters = model.filters.copy(versions = MultiSelection.emptySelection())
+          filters =
+            model.filters.copy(
+              versions = MultiSelection.emptySelection(),
+              devices = MultiSelection.emptySelection(),
+              operatingSystems = MultiSelection.emptySelection()
+            )
         )
       )
     client.completeIssuesCallWith(
