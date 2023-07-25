@@ -145,7 +145,6 @@ public class GuiTestRule implements TestRule {
       .around(myRobotTestRule)
       .around(myOuterTimeout) // Rules should be inside this timeout when possible
       .around(new IdeControl(myRobotTestRule::getRobot))
-      .around(new BlockReloading())
       .around(new BazelUndeclaredOutputs())
       .around(myLeakCheck)
       .around(new IdeHandling())
