@@ -42,7 +42,6 @@ import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.google.common.truth.Truth.assertThat
-import com.intellij.diff.comparison.isEquals
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.mock.MockModule
@@ -119,10 +118,9 @@ class BaselineProfilesModuleTest {
   fun setupRunConfigurations_emptyVariants() {
     projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
     val appModule = projectRule.project.findAppModule()
-    val agpVersion = AgpVersion(8, 2, 0)
     val runManager = RunManager.getInstance(appModule.project)
 
-    setupRunConfigurations(emptyList(), appModule, agpVersion, runManager)
+    setupRunConfigurations(emptyList(), appModule, BP_PLUGIN_FILTERING_SUPPORTED, runManager)
 
     assertConfigurationsSize(runManager.allConfigurationsList, 1)
 
@@ -137,10 +135,9 @@ class BaselineProfilesModuleTest {
     val appModule = projectRule.project.findAppModule()
 
     val runManager = RunManager.getInstance(appModule.project)
-    val agpVersion = AgpVersion(8, 2, 0)
     val variants = listOf("release")
 
-    setupRunConfigurations(variants, appModule, agpVersion, runManager)
+    setupRunConfigurations(variants, appModule, BP_PLUGIN_FILTERING_SUPPORTED, runManager)
 
     assertConfigurationsSize(runManager.allConfigurationsList, variants.size)
 
@@ -154,10 +151,9 @@ class BaselineProfilesModuleTest {
     projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
     val appModule = projectRule.project.findAppModule()
     val runManager = RunManager.getInstance(appModule.project)
-    val agpVersion = AgpVersion(8, 2, 0)
     val variants = listOf("demoFree", "demoPaid", "prodFree", "prodPaid")
 
-    setupRunConfigurations(variants, appModule, agpVersion, runManager)
+    setupRunConfigurations(variants, appModule, BP_PLUGIN_FILTERING_SUPPORTED, runManager)
 
     assertConfigurationsSize(runManager.allConfigurationsList, variants.size)
 
