@@ -21,6 +21,7 @@ kotlin {
 
     sourceSets.getByName("androidInstrumentedTest") {
       dependencies {
+        implementation("androidx.appcompat:appcompat:1.4.1")
         implementation("androidx.test:runner:1.4.0-alpha06")
         implementation("androidx.test:core:1.4.0-alpha06")
         implementation("androidx.test.ext:junit:1.1.2")

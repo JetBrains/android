@@ -433,7 +433,7 @@ class KotlinModelConverter {
       signingConfigs = listOfNotNull(
         androidTestAndroidCompilation?.instrumentedTestInfo?.signingConfig?.convert()
       ),
-      aaptOptions = IdeAaptOptionsImpl(IdeAaptOptions.Namespacing.REQUIRED),
+      aaptOptions = IdeAaptOptionsImpl(IdeAaptOptions.Namespacing.DISABLED),
       lintOptions = IdeLintOptionsImpl(), // TODO(b/269755640): support lint in the IDE
       javaCompileOptions = IdeJavaCompileOptionsImpl(
         encoding = Charset.defaultCharset().name(),
