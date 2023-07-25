@@ -32,7 +32,6 @@ import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import org.jetbrains.plugins.gradle.issue.GradleIssueChecker
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -52,15 +51,26 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     val tooOldMatcher = AgpVersionTooOld.PATTERN.matcher(message)
     val incompatiblePreviewMatcher = AgpVersionIncompatible.PATTERN.matcher(message)
     val tooNewMatcher = AgpVersionTooNew.PATTERN.matcher(message)
+
+    fun reportFailure(failure: AndroidStudioEvent.GradleSyncFailure) =
+      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, failure)
+
     val (matcher, userMessage, url) = when {
-      tooOldMatcher.find() -> Triple(tooOldMatcher, tooOldMatcher.group(0), TOO_OLD_URL)
-      incompatiblePreviewMatcher.find() -> Triple(incompatiblePreviewMatcher, incompatiblePreviewMatcher.group(0), PREVIEW_URL)
-      tooNewMatcher.find() -> Triple(tooNewMatcher, tooNewMatcher.group(0), TOO_NEW_URL)
+      tooOldMatcher.find() -> {
+        reportFailure(AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN)
+        Triple(tooOldMatcher, tooOldMatcher.group(0), TOO_OLD_URL)
+      }
+      incompatiblePreviewMatcher.find() -> {
+        reportFailure(AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE)
+        Triple(incompatiblePreviewMatcher, incompatiblePreviewMatcher.group(0), PREVIEW_URL)
+      }
+      tooNewMatcher.find() -> {
+        reportFailure(AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW)
+        Triple(tooNewMatcher, tooNewMatcher.group(0), TOO_NEW_URL)
+      }
       else -> return null
     }
     val version = AgpVersion.tryParse(matcher.group(1)) ?: return null
-
-    logMetrics(issueData.projectPath)
 
     val buildIssueComposer = BuildIssueComposer(userMessage)
 
@@ -86,10 +96,6 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
         OpenLinkQuickFix(url)
       )
     }.composeBuildIssue()
-  }
-
-  private fun logMetrics(issueDataProjectPath: String) {
-    SyncFailureUsageReporter.getInstance().collectFailure(issueDataProjectPath, AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN)
   }
 
   override fun consumeBuildOutputFailureMessage(
