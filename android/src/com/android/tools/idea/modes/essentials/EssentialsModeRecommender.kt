@@ -52,7 +52,7 @@ class EssentialsModeRecommender : ProjectActivity {
 
     val notification = notificationGroup.createNotification(
       "Switch to Essentials Mode?",
-      "Essentials Mode improves performance by limiting functionality until receiving a file saving action.",
+      "Improve performance by limiting background functionality until receiving a file saving action.",
       com.intellij.notification.NotificationType.INFORMATION
     )
     notification.addAction(EssentialsModeResponseYes())
