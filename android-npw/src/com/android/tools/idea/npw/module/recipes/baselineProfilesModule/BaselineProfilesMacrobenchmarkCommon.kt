@@ -41,7 +41,7 @@ object BaselineProfilesMacrobenchmarkCommon {
   /**
    * Baseline profiles Gradle plugin automatically adds filtering instrumentation argument from this version of AGP.
    */
-  val BP_PLUGIN_FILTERING_SUPPORTED = AgpVersion(8, 2, 0)
+  val BP_PLUGIN_FILTERING_SUPPORTED = AgpVersion.parse("8.2.0-alpha03")
 
   /**
    * Creates a new Gradle module for Macrobenchmark / Baseline Profiles module.
