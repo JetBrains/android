@@ -15,7 +15,7 @@ class EssentialsModeNotifierTest : LightPlatform4TestCase() {
 
   @Before
   fun setup() {
-    PropertiesComponent.getInstance().setValue(EssentialsModeNotifier(project).ignore, false)
+    PropertiesComponent.getInstance().setValue(EssentialsModeNotifier().ignore, false)
     EssentialsMode.setEnabled(false, project)
     expireNotifications()
     EssentialsMode.setEnabled(false, project)
@@ -23,10 +23,10 @@ class EssentialsModeNotifierTest : LightPlatform4TestCase() {
 
   @Test
   fun `notification does not show when property set to ignore`() {
-    PropertiesComponent.getInstance().setValue(EssentialsModeNotifier(project).ignore, true)
+    PropertiesComponent.getInstance().setValue(EssentialsModeNotifier().ignore, true)
     project.service<EssentialsModeNotifier>().notifyProject()
     Truth.assertThat(notificationCount()).isEqualTo(0)
-    PropertiesComponent.getInstance().setValue(EssentialsModeNotifier(project).ignore, false)
+    PropertiesComponent.getInstance().setValue(EssentialsModeNotifier().ignore, false)
   }
 
   @Test

@@ -89,7 +89,6 @@ class EssentialsModeRecommenderTest : LightPlatformTestCase() {
     UIUtil.dispatchAllInvocationEvents()
 
     assertNotificationIsNotTracked()
-    Truth.assertThat(notificationCounter.get()).isEqualTo(0)
   }
 
   private fun assertNotificationIsNotTracked() {

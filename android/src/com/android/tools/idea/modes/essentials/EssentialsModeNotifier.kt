@@ -26,7 +26,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
 
 @Service(Service.Level.PROJECT)
-class EssentialsModeNotifier(private val project: Project) {
+class EssentialsModeNotifier {
 
   private var notification = EssentialsModeNotification()
   val ignore : String = AndroidBundle.message("essentials.mode.notification.ignore")
@@ -38,7 +38,7 @@ class EssentialsModeNotifier(private val project: Project) {
     }
     if (EssentialsMode.isEnabled()) {
       notification = EssentialsModeNotification()
-      notification.notify(project)
+      notification.notify(null)
     } else {
       notification.expire()
     }
