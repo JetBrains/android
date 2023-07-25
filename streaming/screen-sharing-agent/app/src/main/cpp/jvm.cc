@@ -302,14 +302,14 @@ JObject JClass::CallStaticObjectMethod(JNIEnv* jni_env, jmethodID method, ...) c
 void JClass::CallStaticVoidMethod(jmethodID method, ...) const {
   va_list args;
   va_start(args, method);
-  GetJni()->CallStaticObjectMethodV(ref(), method, args);
+  GetJni()->CallStaticVoidMethodV(ref(), method, args);
   va_end(args);
 }
 
 void JClass::CallStaticVoidMethod(JNIEnv* jni_env, jmethodID method, ...) const {
   va_list args;
   va_start(args, method);
-  jni_env->CallStaticObjectMethodV(ref(), method, args);
+  jni_env->CallStaticVoidMethodV(ref(), method, args);
   va_end(args);
 }
 

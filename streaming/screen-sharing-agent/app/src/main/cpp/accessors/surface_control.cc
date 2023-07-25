@@ -97,11 +97,11 @@ void SurfaceControl::DestroyDisplay(Jni jni, jobject display_token) {
 }
 
 void SurfaceControl::SetDisplaySurface(Jni jni, jobject display_token, ANativeWindow* surface) {
-  surface_control_class_.CallStaticObjectMethod(jni, set_display_surface_method_, display_token, SurfaceToJava(jni, surface).ref());
+  surface_control_class_.CallStaticVoidMethod(jni, set_display_surface_method_, display_token, SurfaceToJava(jni, surface).ref());
 }
 
 void SurfaceControl::SetDisplayLayerStack(Jni jni, jobject display_token, int32_t layer_stack) {
-  surface_control_class_.CallStaticObjectMethod(jni, set_display_layer_stack_method_, display_token, static_cast<jint>(layer_stack));
+  surface_control_class_.CallStaticVoidMethod(jni, set_display_layer_stack_method_, display_token, static_cast<jint>(layer_stack));
 }
 
 void SurfaceControl::SetDisplayProjection(
@@ -111,7 +111,7 @@ void SurfaceControl::SetDisplayProjection(
          display_rect.right - display_rect.left, display_rect.bottom - display_rect.top);
   JObject java_layer_stack_rect = ToJava(jni, layer_stack_rect);
   JObject java_display_rect = ToJava(jni, display_rect);
-  surface_control_class_.CallStaticObjectMethod(
+  surface_control_class_.CallStaticVoidMethod(
       jni, set_display_projection_method_, display_token, static_cast<jint>(orientation),
       java_layer_stack_rect.ref(), java_display_rect.ref());
 }
