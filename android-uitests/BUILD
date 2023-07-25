@@ -1412,23 +1412,6 @@ java_test(
 )
 
 java_test(
-    name = "CreateNewMobileProjectTest",
-    size = "large",
-    data = COMMON_DATA + [
-        "//prebuilts/studio/layoutlib/data:framework_res.jar",
-    ],
-    flaky = True,
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateNewMobileProjectTest"],
-    tags = COMMON_TAGS + [
-        "no_windows",
-        "ui_test",
-        "very_flaky",  # b/278938074
-    ],
-    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
-    runtime_deps = [":intellij.android.guiTests_testlib"],
-)
-
-java_test(
     name = "CreateCppKotlinProjectTest",
     size = "large",
     data = COMMON_DATA + [
