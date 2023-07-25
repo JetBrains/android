@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.intellij.openapi.module.Module
@@ -37,3 +38,9 @@ val Module.androidAppId: String?
     }
     return appId
   }
+
+fun Project.hasRequiredAgpVersion(requiredAppVersion: String): Boolean {
+  val androidPluginInfo = AndroidPluginInfo.findFromModel(this)?.pluginVersion ?: return false
+
+  return androidPluginInfo >= requiredAppVersion
+}

@@ -20,16 +20,14 @@ import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.vcs.createVcsDocument
 import com.android.tools.idea.insights.vcs.getVcsManager
+import com.android.tools.idea.insights.vcs.isVcsInfoEnabledInAgp
 import com.android.tools.idea.insights.vcs.locateRepository
-import com.android.tools.idea.projectsystem.cacheInvalidatingOnSyncModifications
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.diff.comparison.iterables.FairDiffIterable
 import com.intellij.diff.tools.util.text.LineOffsetsUtil
 import com.intellij.diff.util.Range
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
 import com.intellij.openapi.vcs.VcsException
 import com.intellij.openapi.vcs.ex.compareLines
 import com.intellij.openapi.vfs.VirtualFile
@@ -42,9 +40,7 @@ fun Project.isChangeAwareAnnotationEnabled(): Boolean {
     return false
   }
 
-  return cacheInvalidatingOnSyncModifications {
-    modules.asList().any { it.getModuleSystem().enableVcsInfo }
-  }
+  return isVcsInfoEnabledInAgp()
 }
 
 fun AppInsight.tryCreateVcsDocumentOrNull(contextVFile: VirtualFile, project: Project): Document? {

@@ -29,6 +29,7 @@ class AppInsightsSettings : PersistentStateComponent<AppInsightsSettings> {
   var selectedTabId: String? = null
   var tabSettings: MutableMap<String, InsightsFilterSettings> = mutableMapOf()
   var isOfflineNotificationDismissed: Boolean = false
+  var isSuggestVcsIntegrationDismissed: Boolean = false
 
   override fun getState() = this
 
