@@ -97,6 +97,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon EXPORT = load("studio/icons/common/export.svg", 593586009, 2);
     /** 16x16 */ public static final @NotNull Icon FILTER = load("studio/icons/common/filter.svg", -2134244780, 2);
     /** 17x16 */ public static final @NotNull Icon GRID_VIEW = load("studio/icons/common/grid-view.svg", 1462364029, 2);
+    /** 16x16 */ public static final @NotNull Icon GROUP = load("studio/icons/common/group.svg", 2143396005, 2);
     /** 16x16 */ public static final @NotNull Icon HELP = load("studio/icons/common/help.svg", 991073187, 2);
     /** 16x16 */ public static final @NotNull Icon IMPORT_DATA = load("studio/icons/common/import-data.svg", -1016873592, 2);
     /** 16x16 */ public static final @NotNull Icon INFO_INLINE_SELECTED = load("studio/icons/common/info-inline-selected.svg", -1651116757, 0);

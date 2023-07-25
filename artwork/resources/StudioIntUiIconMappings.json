@@ -55,6 +55,7 @@
         "export.svg": "studio/icons/common/export.svg",
         "filter.svg": "studio/icons/common/filter.svg",
         "grid-view.svg": "studio/icons/common/grid-view.svg",
+        "group.svg": "studio/icons/common/group.svg",
         "help.svg": "studio/icons/common/help.svg",
         "import-data.svg": "studio/icons/common/import-data.svg",
         "info.svg": "studio/icons/common/info.svg",
