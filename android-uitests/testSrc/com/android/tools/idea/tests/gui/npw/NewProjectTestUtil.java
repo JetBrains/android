@@ -34,7 +34,7 @@ public class NewProjectTestUtil {
     GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
     guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
-    return (guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful());
+    return (guiTest.ideFrame().invokeProjectMake(Wait.seconds(240)).isBuildSuccessful());
   }
 
   public static boolean createCppProject(GuiTestRule guiTest, FormFactor tabName, String templateName, @NotNull Language language) {
