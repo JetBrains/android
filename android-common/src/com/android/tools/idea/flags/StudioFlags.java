@@ -928,7 +928,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_NOTIFICATIONS = Flag.create(
     EMBEDDED_EMULATOR, "trace.notifications", "Enable Emulator Notification Tracing",
     "Enables tracing of received Emulator notifications",
-    false);
+    true);
   public static final Flag<Boolean> EMBEDDED_EMULATOR_TRACE_DISCOVERY = Flag.create(
     EMBEDDED_EMULATOR, "trace.discovery", "Enable Tracing of Emulator Discovery",
     "Enables tracing of Emulator discovery",
