@@ -23,6 +23,9 @@
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
                     overrides="true"/>
+
+    <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidStudioProjectActivity" />
+
     <actionConfigurationCustomizer id="Startup.GradleSpecificActionCustomizer" order="after Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.GradleSpecificActionCustomizer" />
     <applicationInitializedListener id="Startup.GradleSpecificInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
     <directoryIndexExcludePolicy implementation="com.android.tools.idea.gradle.project.importing.InitialImportExcludeDirectoryPolicy" />

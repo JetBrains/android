@@ -37,7 +37,6 @@ import com.android.tools.idea.gradle.project.sync.idea.findAndSetupSelectedCache
 import com.android.tools.idea.gradle.project.sync.idea.getSelectedVariantAndAbis
 import com.android.tools.idea.gradle.project.upgrade.AgpVersionChecker
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
-import com.android.tools.idea.gradle.util.AndroidStudioPreferences
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.model.AndroidModel
 import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
@@ -96,13 +95,6 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
     if (shouldSyncOrAttachModels()) {
       removeEmptyModules(project)
       attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
-    }
-
-    // Disable all settings sections that we don't want to be present in Android Studio.
-    // See AndroidStudioPreferences for a full list.
-    if (IdeInfo.getInstance().isAndroidStudio) {
-      AndroidStudioPreferences.cleanUpPreferences(project)
-      showNeededNotifications(project)
     }
   }
 }

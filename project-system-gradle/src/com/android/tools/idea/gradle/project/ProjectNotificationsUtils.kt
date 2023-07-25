@@ -21,14 +21,29 @@ import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.android.tools.idea.sdk.IdeSdks
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.plugins.gradle.settings.GradleSettings
 
-fun showNeededNotifications(project: Project) {
-    notifyOnLegacyAndroidProject(project)
-    notifyOnInvalidGradleJDKEnv(project)
+suspend fun showNeededNotifications(project: Project) {
+  notifyOnLegacyAndroidProject(project)
+  notifyOnInvalidGradleJDKEnv(project)
+  // Many JDK tests rely on this not running in order to test invalid JDK messages.
+  // This is not an ideal solution but allows it to work for now.
+  if (!ApplicationManager.getApplication().isUnitTestMode) {
     notifyOnInvalidGradleJdk(project)
+  } else {
+    // This is only run in tests!
+    // The reason we need this is otherwise we get sporadic un-disposed pointers in tests.
+    // It seems calling this ensures that the tests correctly dispose the internal JDK along with all roots.
+    // This is a temporary solution until we can figure out something better.
+    ExternalSystemJdkUtil.getAvailableJdk(project)
+  }
 }
 
 private fun notifyOnLegacyAndroidProject(project: Project) {
@@ -56,7 +71,7 @@ private fun notifyOnInvalidGradleJDKEnv(project: Project) {
   }
 }
 
-private fun notifyOnInvalidGradleJdk(project: Project) {
+private suspend fun notifyOnInvalidGradleJdk(project: Project) {
   GradleSettings.getInstance(project).linkedProjectsSettings
     .mapNotNull { it.externalProjectPath }
     .plus(project.basePath)
@@ -64,8 +79,10 @@ private fun notifyOnInvalidGradleJdk(project: Project) {
     .toSet()
     .forEach {
       val gradleJdkException = GradleJdkValidationManager.getInstance(project).validateProjectGradleJvmPath(project, it)
-      runWriteAction {
-        gradleJdkException?.recover()
+      withContext(Dispatchers.EDT) {
+        runWriteAction {
+          gradleJdkException?.recover()
+        }
       }
     }
 }
