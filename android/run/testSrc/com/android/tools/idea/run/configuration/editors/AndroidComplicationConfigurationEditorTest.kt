@@ -16,6 +16,9 @@
 package com.android.tools.idea.run.configuration.editors
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.ignore.IgnoreTestRule
+import com.android.testutils.ignore.IgnoreWithCondition
+import com.android.testutils.ignore.OnWindows
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.enableHeadlessDialogs
@@ -70,6 +73,9 @@ import javax.swing.ListCellRenderer
 class AndroidComplicationConfigurationEditorTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory().onEdt()
+
+  @get:Rule
+  val ignoreTests = IgnoreTestRule()
 
   private val fixture get() = projectRule.fixture
 
@@ -225,6 +231,7 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  @IgnoreWithCondition(reason = "b/290892445", condition = OnWindows::class)
   fun testCleanupComplicationNameOnModuleChange() {
     runConfiguration.componentLaunchOptions.componentName = "com.example.MyIconComplication"
     runConfiguration.setModule(module)
