@@ -21,11 +21,13 @@ import com.android.adblib.isOnline
 import com.android.adblib.selector
 import com.android.adblib.shellAsLines
 import com.android.adblib.shellAsText
+import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.adtui.device.ScreenDiagram
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.ibm.icu.number.NumberFormatter
 import com.ibm.icu.util.MeasureUnit
 import com.intellij.icons.AllIcons
@@ -48,10 +50,10 @@ import javax.swing.JPanel
 import javax.swing.LayoutStyle
 import javax.swing.plaf.basic.BasicGraphicsUtils
 import kotlin.reflect.KProperty
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** A panel within the [DeviceDetailsPanel] that shows a table of information about the device. */
 internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
@@ -87,11 +89,13 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
     )
 
   var copyPropertiesButton: JComponent = JPanel()
+    @UiThread
     set(value) {
       layout.replace(field, value)
       field = value
     }
   var propertiesSection: JComponent = JPanel()
+    @UiThread
     set(value) {
       layout.replace(field, value)
       field = value
@@ -180,6 +184,7 @@ internal class InfoSection(heading: String, private val labeledValues: List<Labe
  *
  * It can be used as a property delegate, such that the value is tied to the property.
  */
+@UiThread
 class LabeledValue(label: String) {
   constructor(label: String, value: String) : this(label) {
     this.value.text = value
@@ -258,7 +263,7 @@ private val EXCLUDED_LOCAL_AVD_PROPERTIES =
   )
 
 internal suspend fun populateDeviceInfo(deviceInfoPanel: DeviceInfoPanel, handle: DeviceHandle) =
-  coroutineScope {
+  withContext(uiThread) {
     val state = handle.state
     val properties = state.properties
     val device = state.connectedDevice?.takeIf { it.isOnline }

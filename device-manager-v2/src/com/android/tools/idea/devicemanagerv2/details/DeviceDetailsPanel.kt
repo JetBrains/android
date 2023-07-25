@@ -73,7 +73,7 @@ private constructor(
       pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>
     ): DeviceDetailsPanel {
       val deviceInfoPanel = DeviceInfoPanel()
-      scope.launch { populateDeviceInfo(deviceInfoPanel, handle) }
+      scope.launch(uiThread) { populateDeviceInfo(deviceInfoPanel, handle) }
 
       val pairedDevicesPanel =
         handle.state.properties.wearPairingId?.let {

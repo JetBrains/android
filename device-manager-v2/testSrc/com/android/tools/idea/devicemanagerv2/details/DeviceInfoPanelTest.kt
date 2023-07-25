@@ -27,13 +27,18 @@ import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.Resolution
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.devices.Abi
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
 import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.junit.Rule
 import org.junit.Test
 
 class DeviceInfoPanelTest {
+
+  @get:Rule val applicationRule = ApplicationRule()
 
   @get:Rule
   val deviceProvisionerRule = DeviceProvisionerRule {
@@ -104,7 +109,7 @@ class DeviceInfoPanelTest {
   }
 
   @Test
-  fun testPopulateDeviceInfo() {
+  fun testPopulateDeviceInfo() = runBlocking {
     val handle =
       deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(
         "1",
@@ -121,43 +126,46 @@ class DeviceInfoPanelTest {
         }
       )
 
-    val panel = DeviceInfoPanel()
-    runBlocking {
-      handle.activationAction.activate()
+    handle.activationAction.activate()
 
-      yieldUntil { handle.state.isOnline() }
+    yieldUntil { handle.state.isOnline() }
+
+    withContext(uiThread) {
+      val panel = DeviceInfoPanel()
 
       populateDeviceInfo(panel, handle)
-    }
 
-    assertThat(panel.apiLevel).isEqualTo("33-ext4")
-    assertThat(panel.power).isEqualTo("Battery: 83")
-    assertThat(panel.resolution).isEqualTo("1080 × 2280")
-    assertThat(panel.resolutionDp).isEqualTo("393 × 830")
-    assertThat(panel.abiList).isEqualTo("arm64-v8a")
-    assertThat(panel.availableStorage).isEqualTo("2,542 MB")
+      assertThat(panel.apiLevel).isEqualTo("33-ext4")
+      assertThat(panel.power).isEqualTo("Battery: 83")
+      assertThat(panel.resolution).isEqualTo("1080 × 2280")
+      assertThat(panel.resolutionDp).isEqualTo("393 × 830")
+      assertThat(panel.abiList).isEqualTo("arm64-v8a")
+      assertThat(panel.availableStorage).isEqualTo("2,542 MB")
+    }
   }
 
   @Test
-  fun infoSectionFormat() {
-    val buffer = StringBuilder()
-    InfoSection(
-        "Properties",
-        listOf(
-          LabeledValue("Type", "Phone"),
-          LabeledValue("System image", "/tmp/foo/system.img"),
-          LabeledValue("API", "33")
+  fun infoSectionFormat() = runBlocking {
+    withContext(uiThread) {
+      val buffer = StringBuilder()
+      InfoSection(
+          "Properties",
+          listOf(
+            LabeledValue("Type", "Phone"),
+            LabeledValue("System image", "/tmp/foo/system.img"),
+            LabeledValue("API", "33")
+          )
         )
-      )
-      .writeTo(buffer)
-    assertThat(buffer.toString())
-      .isEqualTo(
-        String.format(
-          "Properties%n" +
-            "Type         Phone%n" +
-            "System image /tmp/foo/system.img%n" +
-            "API          33%n"
+        .writeTo(buffer)
+      assertThat(buffer.toString())
+        .isEqualTo(
+          String.format(
+            "Properties%n" +
+              "Type         Phone%n" +
+              "System image /tmp/foo/system.img%n" +
+              "API          33%n"
+          )
         )
-      )
+    }
   }
 }
