@@ -19,13 +19,13 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertNotEmpty
 import com.intellij.testFramework.runInEdtAndWait
-import org.jetbrains.kotlin.idea.actions.internal.refactoringTesting.readAction
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
@@ -46,7 +46,7 @@ class GradleKtsResolveSymbolsTest {
     projectRule.load(projectPath)
 
     var ktsFiles: Collection<VirtualFile>? = null
-    readAction {
+    runReadAction {
       ktsFiles = FilenameIndex.getAllFilesByExt(projectRule.project, GradleConstants.KOTLIN_DSL_SCRIPT_EXTENSION)
     }
     assertNotEmpty(ktsFiles)
