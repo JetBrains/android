@@ -50,10 +50,7 @@ import org.jetbrains.annotations.TestOnly;
 final class ModuleResourceRepository extends MultiResourceRepository implements SingleNamespaceResourceRepository {
   @NotNull private final AndroidFacet myFacet;
   @NotNull private final ResourceNamespace myNamespace;
-  @NotNull private final SourceSet mySourceSet;
   @NotNull private final ResourceFolderRegistry myRegistry;
-
-  private enum SourceSet { MAIN, TEST }
 
   /**
    * Creates a new resource repository for the given module, <b>not</b> including its dependent modules.
@@ -78,8 +75,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
       return new ModuleResourceRepository(facet,
                                           namespace,
-                                          childRepositories,
-                                          SourceSet.MAIN);
+                                          childRepositories);
     }
 
 
@@ -90,7 +86,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
       List<LocalResourceRepository> childRepositories = new ArrayList<>(1 + resourceDirectories.size());
       childRepositories.add(dynamicResources);
       addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
-      moduleRepository = new ModuleResourceRepository(facet, namespace, childRepositories, SourceSet.MAIN);
+      moduleRepository = new ModuleResourceRepository(facet, namespace, childRepositories);
     }
     catch (Throwable t) {
       Disposer.dispose(dynamicResources);
@@ -123,7 +119,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     List<LocalResourceRepository> childRepositories = new ArrayList<>(resourceDirectories.size());
     addRepositoriesInReverseOverlayOrder(resourceDirectories, childRepositories, facet, resourceFolderRegistry);
 
-    return new ModuleResourceRepository(facet, namespace, childRepositories, SourceSet.TEST);
+    return new ModuleResourceRepository(facet, namespace, childRepositories);
   }
 
   /**
@@ -152,12 +148,10 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
 
   private ModuleResourceRepository(@NotNull AndroidFacet facet,
                                    @NotNull ResourceNamespace namespace,
-                                   @NotNull List<? extends LocalResourceRepository> delegates,
-                                   @NotNull SourceSet sourceSet) {
+                                   @NotNull List<? extends LocalResourceRepository> delegates) {
     super(facet.getModule().getName());
     myFacet = facet;
     myNamespace = namespace;
-    mySourceSet = sourceSet;
     myRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
 
     setChildren(delegates, ImmutableList.of(), ImmutableList.of());
@@ -246,7 +240,6 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-      .addValue(mySourceSet)
       .toString();
   }
 
@@ -267,7 +260,7 @@ final class ModuleResourceRepository extends MultiResourceRepository implements 
     ResourceFolderRegistry resourceFolderRegistry = ResourceFolderRegistry.getInstance(facet.getModule().getProject());
     resourceDirectories.forEach(dir -> delegates.add(resourceFolderRegistry.get(facet, dir, namespace)));
 
-    ModuleResourceRepository repository = new ModuleResourceRepository(facet, namespace, delegates, SourceSet.MAIN);
+    ModuleResourceRepository repository = new ModuleResourceRepository(facet, namespace, delegates);
     Disposer.register(facet, repository);
     return repository;
   }
