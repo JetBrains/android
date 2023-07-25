@@ -364,7 +364,13 @@ public class AndroidLintIdeProject extends LintIdeProject {
   private static LintModelModule getLintModuleModel(AndroidFacet facet, boolean shallowModel) {
     final var project = facet.getModule().getProject();
     final var cacheValueManager = CachedValuesManager.getManager(project);
-    return cacheValueManager.getCachedValue(facet, () -> buildModuleModel(facet, shallowModel));
+    // This if statement may seem redundant, but is needed to ensure the cached value providers (the lambdas) are distinct classes that do
+    // not hold any state other than facet (i.e. they do not depend on shallowModel).
+    if (shallowModel) {
+      return cacheValueManager.getCachedValue(facet, () -> buildModuleModel(facet, true));
+    } else {
+      return cacheValueManager.getCachedValue(facet, () -> buildModuleModel(facet, false));
+    }
   }
 
   @NotNull
