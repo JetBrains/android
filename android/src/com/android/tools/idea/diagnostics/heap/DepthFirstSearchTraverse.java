@@ -19,6 +19,8 @@ import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.MAX_
 import static com.android.tools.idea.diagnostics.heap.MemoryReportJniHelper.getObjectTag;
 
 import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.containers.WeakList;
 import java.util.Stack;
 import org.jetbrains.annotations.NotNull;
@@ -237,6 +239,13 @@ abstract class DepthFirstSearchTraverse {
           extendedReportStatistics.rootPathTree.addObjectWithPathToRoot(pathToRoot, rootObject, exceededClusterStatistics,
                                                                         exceededClusterStatistics.nominatedClassesEnumeration.getInt(
                                                                           currentObjectClassName));
+        }
+        if (stackNode.getObject() instanceof Disposable) {
+          //noinspection deprecation
+          if (Disposer.isDisposed((Disposable)stackNode.getObject())) {
+            extendedReportStatistics.rootPathTree.addDisposedReferencedObjectWithPathToRoot(pathToRoot, rootObject,
+                                                                                            exceededClusterStatistics);
+          }
         }
       }
     }

@@ -179,10 +179,12 @@ public final class MemoryReportCollector implements Disposable {
           }
           statistics.addObjectToTotal(currentObjectSize, isPlatformObject, node.isRetainedByPlatform);
 
+          boolean isDisposedButReferenced = false;
           if (statistics.getConfig().collectDisposerTreeInfo && currentObject instanceof Disposable) {
             //noinspection deprecation
             if (Disposer.isDisposed((Disposable)currentObject)) {
               statistics.addDisposedButReferencedObject(currentObjectSize, currentObjectClassName);
+              isDisposedButReferenced = true;
             }
           }
 
@@ -208,7 +210,8 @@ public final class MemoryReportCollector implements Disposable {
             statistics.addOwnedObjectSizeToCategoryComponent(category.getId(),
                                                              currentObjectSize,
                                                              currentObjectClassName, objectIsAComponentRoot, isPlatformObject,
-                                                             node.isRetainedByPlatform);
+                                                             node.isRetainedByPlatform,
+                                                             isDisposedButReferenced);
           }
 
           if (node.ownedByComponentMask == 0) {
@@ -218,10 +221,11 @@ public final class MemoryReportCollector implements Disposable {
               statistics.getConfig().getComponentsSet().getUncategorizedComponent().getComponentCategory()
                 .getId();
             statistics.addOwnedObjectSizeToComponent(uncategorizedComponentId, currentObjectSize,
-                                                     currentObjectClassName, false, isPlatformObject, node.isRetainedByPlatform);
+                                                     currentObjectClassName, false, isPlatformObject, node.isRetainedByPlatform,
+                                                     isDisposedButReferenced);
             statistics.addOwnedObjectSizeToCategoryComponent(uncategorizedCategoryId,
                                                              currentObjectSize, currentObjectClassName, false, isPlatformObject,
-                                                             node.isRetainedByPlatform);
+                                                             node.isRetainedByPlatform, isDisposedButReferenced);
           }
           else if (isPowerOfTwo(node.ownedByComponentMask)) {
             int componentId = log2(node.ownedByComponentMask, RoundingMode.UP);
@@ -229,13 +233,13 @@ public final class MemoryReportCollector implements Disposable {
             // if only owned by one component
             statistics.addOwnedObjectSizeToComponent(componentId, currentObjectSize,
                                                      currentObjectClassName, objectIsAComponentRoot, isPlatformObject,
-                                                     node.isRetainedByPlatform);
+                                                     node.isRetainedByPlatform, isDisposedButReferenced);
           }
           else {
             // if owned by multiple components -> add to shared
             statistics.addObjectSizeToSharedComponent(node.ownedByComponentMask, currentObjectSize,
                                                       currentObjectClassName, node.isMergePoint, isPlatformObject,
-                                                      node.isRetainedByPlatform);
+                                                      node.isRetainedByPlatform, isDisposedButReferenced);
           }
 
           processObjectTagPreorderTraverse(currentObject, currentObjectId, node, currentObjectComponent);

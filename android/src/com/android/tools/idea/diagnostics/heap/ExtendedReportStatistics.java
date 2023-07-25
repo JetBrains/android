@@ -88,24 +88,28 @@ public class ExtendedReportStatistics {
   void addClassNameToComponentOwnedHistogram(@NotNull final ComponentsSet.Component component,
                                              @NotNull final String className,
                                              long size,
-                                             boolean isRoot) {
-    componentHistograms.get(component.getId()).addObjectClassName(className, size, isRoot);
+                                             boolean isRoot,
+                                             boolean isDisposedButReferenced) {
+    componentHistograms.get(component.getId()).addObjectClassName(className, size, isRoot, isDisposedButReferenced);
   }
 
   void addClassNameToCategoryOwnedHistogram(@NotNull final ComponentsSet.ComponentCategory componentCategory,
                                             @NotNull final String className,
                                             long size,
-                                            boolean isRoot) {
-    categoryHistograms.get(componentCategory.getId()).addObjectClassName(className, size, isRoot);
+                                            boolean isRoot,
+                                            boolean isDisposedButReferenced) {
+    categoryHistograms.get(componentCategory.getId()).addObjectClassName(className, size, isRoot, isDisposedButReferenced);
   }
 
   public void addClassNameToSharedClusterHistogram(@NotNull final HeapSnapshotStatistics.SharedClusterStatistics sharedClusterStatistics,
                                                    @NotNull String className,
                                                    long size,
-                                                   boolean isMergePoint) {
+                                                   boolean isMergePoint,
+                                                   boolean isDisposedButReferenced) {
     sharedClustersHistograms.putIfAbsent(sharedClusterStatistics.componentsMask,
                                          new ClusterHistogram(ClusterHistogram.ClusterType.SHARED_CLUSTER));
-    sharedClustersHistograms.get(sharedClusterStatistics.componentsMask).addObjectClassName(className, size, isMergePoint);
+    sharedClustersHistograms.get(sharedClusterStatistics.componentsMask)
+      .addObjectClassName(className, size, isMergePoint, isDisposedButReferenced);
   }
 
   public void logCategoryHistogram(@NotNull Consumer<String> writer, @NotNull final ComponentsSet.ComponentCategory componentCategory) {
@@ -208,6 +212,12 @@ public class ExtendedReportStatistics {
       rootPathTree.printPathTreeForComponentAndNominatedType(writer, statistics, statistics.nominatedClassesEnumeration.getInt(pair.first),
                                                              pair.second);
     }
+
+    ObjectsStatistics totalDisposedButReferencedObjectsStatistics = new ObjectsStatistics();
+    for (ObjectsStatistics value : componentHistograms.get(component.getId()).disposedButReferencedObjects.values()) {
+      totalDisposedButReferencedObjectsStatistics.addStats(value);
+    }
+    rootPathTree.printPathTreeForComponentDisposedReferencedObjects(writer, statistics, totalDisposedButReferencedObjectsStatistics);
   }
 
   static class CategoryHistogram extends ClusterHistogram {
@@ -226,6 +236,8 @@ public class ExtendedReportStatistics {
 
     private final static int HISTOGRAM_PRINT_LIMIT = 50;
 
+    @NotNull final Map<String, ObjectsStatistics> disposedButReferencedObjects = Maps.newHashMap();
+
     @NotNull final Map<String, ObjectsStatistics> histogram =
       Maps.newHashMap();
     @NotNull final Map<String, ObjectsStatistics> rootHistogram = Maps.newHashMap();
@@ -237,12 +249,17 @@ public class ExtendedReportStatistics {
       this.clusterType = clusterType;
     }
 
-    public void addObjectClassName(@NotNull final String className, long size, boolean isRoot) {
+    public void addObjectClassName(@NotNull final String className, long size, boolean isRoot, boolean isDisposedButReferenced) {
       histogram.putIfAbsent(className, new ObjectsStatistics());
       histogram.get(className).addObject(size);
       if (isRoot) {
         rootHistogram.putIfAbsent(className, new ObjectsStatistics());
         rootHistogram.get(className).addObject(size);
+      }
+
+      if (isDisposedButReferenced) {
+        disposedButReferencedObjects.putIfAbsent(className, new ObjectsStatistics());
+        disposedButReferencedObjects.get(className).addObject(size);
       }
     }
 
@@ -281,6 +298,16 @@ public class ExtendedReportStatistics {
         .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
                                                   HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
                                                   e.getKey())));
+
+      if (!disposedButReferencedObjects.isEmpty()) {
+        writer.accept("      Disposed but strong referenced objects:");
+        disposedButReferencedObjects.entrySet().stream().sorted(
+            Comparator.comparingInt(
+              (Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getObjectsCount()).reversed())
+          .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
+                                                    HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
+                                                    e.getKey())));
+      }
     }
   }
 }

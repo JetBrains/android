@@ -31,6 +31,7 @@ import com.google.wireless.android.sdk.stats.MemoryUsageReportEvent;
 import com.intellij.ide.PowerSaveMode;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.testFramework.PlatformLiteFixture;
 import com.intellij.util.TriConsumer;
@@ -44,7 +45,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.assertj.core.util.Sets;
@@ -57,8 +57,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class HeapAnalyzerTest extends PlatformLiteFixture {
-
-  private static final int MAX_DEPTH = 100;
 
   @Before
   public void setUp() throws Exception {
@@ -569,7 +567,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     roots.add(new ReferenceToB(b));
     roots.add(new D(b2, new B()));
     roots.add(new D(b2));
-
+    Disposer.register(b, b2);
+    Disposer.dispose(b);
 
     MemoryReportCollector.collectAndSendExtendedMemoryReport(componentsSet, List.of(componentsSet.getComponents().get(1)), () -> roots);
     assertSize(1, crushReporter.crashReports);
@@ -589,6 +588,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
               48B/3 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
             Component roots histogram:
               64B/4 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+            Disposed but strong referenced objects:
+              32B/2 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
       Number of instances of tracked classes:
             com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D:4
       Platform object: 0B/0 objects[0B/0 objects]
@@ -627,7 +628,15 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
       [    2/ 66%/   32B]       32B/2 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
       Root 2:
       [    1/ 33%/   16B]       16B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB
-      [    1/ 33%/   16B]       16B/1 objects *        myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B""");
+      [    1/ 33%/   16B]       16B/1 objects *        myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+      ================= DISPOSED OBJECTS ================
+      Root 1:
+      [    1/ 50%/   16B]       16B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB
+      [    1/ 50%/   16B]       16B/1 objects *        myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+      Root 2:
+      [    1/ 50%/   16B]       16B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D
+      [    1/ 50%/   16B]       24B/1 objects          myArray: [Lcom.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B;
+      [    1/ 50%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B""");
   }
 
   @Test

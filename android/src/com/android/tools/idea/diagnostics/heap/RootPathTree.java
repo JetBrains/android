@@ -21,6 +21,7 @@ import static com.google.common.base.Strings.padStart;
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,8 @@ public class RootPathTree {
   // 2) disposed but referenced objects
   // 3) Objects that were loaded with a regular ClassLoader but refer to objects loaded with `StudioModuleClassLoader`
   private static final int MAX_NUMBER_OF_NOMINATED_NODE_TYPES = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3 + 2;
+  private static final int DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE = 9;
+  private static final IntSet NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION = IntSet.of(9);
   @NotNull
   private final List<RootPathTreeNode> roots = Lists.newArrayList();
 
@@ -51,11 +54,17 @@ public class RootPathTree {
     this.extendedReportStatistics = extendedReportStatistics;
   }
 
+  public void addDisposedReferencedObjectWithPathToRoot(@NotNull final Stack<RootPathElement> rootPath,
+                                      @NotNull final Object rootObject,
+                                      @NotNull final ExceededClusterStatistics exceededClusterStatistics) {
+    addObjectWithPathToRoot(rootPath, rootObject, exceededClusterStatistics, DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE);
+  }
+
   public void addObjectWithPathToRoot(@NotNull final Stack<RootPathElement> rootPath,
                                       @NotNull final Object rootObject,
                                       @NotNull final ExceededClusterStatistics exceededClusterStatistics,
                                       int nominatedNodeTypeId) {
-    if (rootPath.size() > ROOT_PATH_TREE_MAX_OBJECT_DEPTH) {
+    if (rootPath.size() > ROOT_PATH_TREE_MAX_OBJECT_DEPTH && !NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION.contains(nominatedNodeTypeId)) {
       return;
     }
 
@@ -118,10 +127,18 @@ public class RootPathTree {
     addPathElementIteration(childNode, iterator, exceededClusterId, nominatedNodeTypeId);
   }
 
+  public void printPathTreeForComponentDisposedReferencedObjects(@NotNull final Consumer<String> writer,
+                                                                 @NotNull final ExceededClusterStatistics exceededClusterStatistics,
+                                                                 @NotNull final ObjectsStatistics totalNominatedTypeStatistics) {
+    writer.accept("================= DISPOSED OBJECTS ================");
+    printPathTreeForComponentAndNominatedType(writer, exceededClusterStatistics, DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE,
+                                          totalNominatedTypeStatistics);
+  }
+
   public void printPathTreeForComponentAndNominatedType(@NotNull final Consumer<String> writer,
-                                                        @NotNull final ExceededClusterStatistics exceededClusterStatistics,
-                                                        int nominatedNodeTypeId,
-                                                        @NotNull final ObjectsStatistics totalNominatedTypeStatistics) {
+                                                    @NotNull final ExceededClusterStatistics exceededClusterStatistics,
+                                                    int nominatedNodeTypeId,
+                                                    @NotNull final ObjectsStatistics totalNominatedTypeStatistics) {
     Map<RootPathTreeNode, ObjectsStatistics> nominatedObjectsStatsInTheNodeSubtree = new HashMap<>();
     for (RootPathTreeNode root : roots) {
       calculateNominatedObjectsStatisticsInTheSubtree(root, exceededClusterStatistics.exceededClusterIndex, nominatedNodeTypeId,

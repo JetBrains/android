@@ -102,7 +102,7 @@ public final class HeapSnapshotStatistics {
   }
 
   void addObjectSizeToSharedComponent(long sharedMask, long size, String objectClassName, boolean isMergePoint,
-                                      boolean isPlatformObject, boolean isRetainedByPlatform) {
+                                      boolean isPlatformObject, boolean isRetainedByPlatform, boolean isDisposedButReferenced) {
     if (!maskToSharedComponentStats.containsKey(sharedMask)) {
       maskToSharedComponentStats.put(sharedMask, new SharedClusterStatistics(sharedMask));
     }
@@ -110,12 +110,12 @@ public final class HeapSnapshotStatistics {
     stats.getStatistics().addObject(size, isPlatformObject, isRetainedByPlatform);
 
     if (config.collectHistograms && extendedReportStatistics != null) {
-      extendedReportStatistics.addClassNameToSharedClusterHistogram(stats, objectClassName, size, isMergePoint);
+      extendedReportStatistics.addClassNameToSharedClusterHistogram(stats, objectClassName, size, isMergePoint, isDisposedButReferenced);
     }
   }
 
   void addOwnedObjectSizeToComponent(int componentId, long size, String objectClassName, boolean isRoot, boolean isPlatformObject,
-                                     boolean isRetainedByPlatform) {
+                                     boolean isRetainedByPlatform, boolean isDisposedButReferenced) {
     ComponentClusterObjectsStatistics stats = componentStats.get(componentId);
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
     
@@ -124,7 +124,8 @@ public final class HeapSnapshotStatistics {
     }
 
     if (config.collectHistograms && extendedReportStatistics != null) {
-      extendedReportStatistics.addClassNameToComponentOwnedHistogram(stats.getComponent(), objectClassName, size, isRoot);
+      extendedReportStatistics.addClassNameToComponentOwnedHistogram(stats.getComponent(), objectClassName, size, isRoot,
+                                                                     isDisposedButReferenced);
     }
   }
 
@@ -138,14 +139,16 @@ public final class HeapSnapshotStatistics {
 
   void addOwnedObjectSizeToCategoryComponent(int categoryId, long size, String objectClassName, boolean isRoot,
                                              boolean isPlatformObject,
-                                             boolean isRetainedByPlatform) {
+                                             boolean isRetainedByPlatform,
+                                             boolean isDisposedButReferenced) {
     CategoryClusterObjectsStatistics stats = categoryComponentStats.get(categoryId);
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
     if (stats.getComponentCategory().getTrackedFQNs() != null && stats.getComponentCategory().getTrackedFQNs().contains(objectClassName)) {
       stats.addTrackedFQNInstance(objectClassName);
     }
     if (config.collectHistograms && extendedReportStatistics != null) {
-      extendedReportStatistics.addClassNameToCategoryOwnedHistogram(stats.getComponentCategory(), objectClassName, size, isRoot);
+      extendedReportStatistics.addClassNameToCategoryOwnedHistogram(stats.getComponentCategory(), objectClassName, size, isRoot,
+                                                                    isDisposedButReferenced);
     }
   }
 
