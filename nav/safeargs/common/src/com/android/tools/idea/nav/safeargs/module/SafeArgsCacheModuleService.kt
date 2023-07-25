@@ -19,6 +19,7 @@ import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
@@ -31,10 +32,10 @@ import org.jetbrains.android.facet.AndroidFacet
  * built on top of.
  */
 @ThreadSafe
-class SafeArgsCacheModuleService private constructor(module: Module) {
+class SafeArgsCacheModuleService private constructor(module: Module) : Disposable.Default {
   private class Status(val directions: List<LightDirectionsClass>, val args: List<LightArgsClass>)
 
-  private val currentStatus by NavStatusCache(module, SafeArgsMode.JAVA) { navInfo ->
+  private val currentStatus by NavStatusCache(this, module, SafeArgsMode.JAVA) { navInfo ->
     val directions = navInfo.entries
       .flatMap { entry -> createLightDirectionsClasses(navInfo, entry) }
       .toList()

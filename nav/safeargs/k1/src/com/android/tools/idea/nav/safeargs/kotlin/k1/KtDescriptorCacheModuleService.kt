@@ -22,6 +22,7 @@ import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.android.tools.idea.nav.safeargs.module.NavInfoFetcher
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.psi.impl.source.xml.XmlTagImpl
@@ -45,8 +46,8 @@ import org.jetbrains.kotlin.storage.StorageManager
  * [KtDirectionsPackageDescriptor]s) by querying from [NavXmlIndex].
  *
  */
-class KtDescriptorCacheModuleService(private val module: Module) {
-  private val fetcher = NavInfoFetcher(module, SafeArgsMode.KOTLIN)
+class KtDescriptorCacheModuleService(private val module: Module) : Disposable.Default {
+  private val fetcher = NavInfoFetcher(this, module, SafeArgsMode.KOTLIN)
 
   private data class QualifiedDescriptor(val fqName: FqName, val descriptor: PackageFragmentDescriptor)
 
