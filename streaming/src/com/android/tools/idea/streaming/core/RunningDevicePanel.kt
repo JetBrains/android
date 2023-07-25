@@ -140,6 +140,9 @@ abstract class RunningDevicePanel(
    * Records the end of a device mirroring session.
    */
   protected fun mirroringEnded(deviceKind: DeviceMirroringSession.DeviceKind) {
+    if (mirroringStartTime == 0L) {
+      return
+    }
     val durationSec = (System.currentTimeMillis() - mirroringStartTime) / 1000
     mirroringStartTime = 0
 
