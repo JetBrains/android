@@ -16,7 +16,7 @@
 package com.android.tools.idea.diagnostics.heap;
 
 import static com.android.tools.idea.diagnostics.heap.HeapTraverseUtil.getFieldValue;
-import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS;
+import static com.android.tools.idea.diagnostics.heap.MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.OPTIMAL_UNITS;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

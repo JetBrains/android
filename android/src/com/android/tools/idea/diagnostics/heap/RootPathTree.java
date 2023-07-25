@@ -252,7 +252,7 @@ public class RootPathTree {
            padStart(HeapReportUtils.INSTANCE.toShortStringAsSize(nominatedObjectsInTheSubtree.getTotalSizeInBytes()), 6, ' ') +
            ']' +
            padStart(HeapTraverseUtil.getObjectsStatsPresentation(node.instancesStatistics[exceededClusterId][nominatedNodeTypeId],
-                                                                 MemoryReportCollector.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS),
+                                                                 MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.OPTIMAL_UNITS),
                     20, ' ') +
            ' ' + (node.isNodeNominated[exceededClusterId][nominatedNodeTypeId] ? '*' : ' ') +
            ' ' + (node.isRepeated ? "(rep)" : "     ") +

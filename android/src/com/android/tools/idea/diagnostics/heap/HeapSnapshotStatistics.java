@@ -171,7 +171,7 @@ public final class HeapSnapshotStatistics {
 
   private static String getOptimalUnitsStatisticsPresentation(@NotNull final ObjectsStatistics statistics) {
     return HeapTraverseUtil.getObjectsStatsPresentation(statistics,
-                                                        MemoryReportCollector.HeapSnapshotPresentationConfig.SizePresentationStyle.OPTIMAL_UNITS);
+                                                        MemoryReportCollector.HeapSnapshotPresentationConfig.PresentationStyle.OPTIMAL_UNITS);
   }
 
   @NotNull

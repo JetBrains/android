@@ -556,11 +556,11 @@ public final class MemoryReportCollector implements Disposable {
   }
 
   static class HeapSnapshotPresentationConfig {
-    final SizePresentationStyle sizePresentation;
+    final PresentationStyle sizePresentation;
     final boolean shouldLogSharedClusters;
     final boolean shouldLogRetainedSizes;
 
-    HeapSnapshotPresentationConfig(SizePresentationStyle sizePresentation,
+    HeapSnapshotPresentationConfig(PresentationStyle sizePresentation,
                                    boolean shouldLogSharedClusters,
                                    boolean shouldLogRetainedSizes) {
       this.sizePresentation = sizePresentation;
@@ -568,8 +568,8 @@ public final class MemoryReportCollector implements Disposable {
       this.shouldLogRetainedSizes = shouldLogRetainedSizes;
     }
 
-    enum SizePresentationStyle {
-      BYTES,
+    enum PresentationStyle {
+      PLAIN_VALUES,
       OPTIMAL_UNITS,
     }
   }
