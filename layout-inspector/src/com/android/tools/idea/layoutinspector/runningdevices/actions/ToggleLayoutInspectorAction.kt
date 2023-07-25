@@ -74,7 +74,7 @@ class ToggleLayoutInspectorAction :
     RunningDevicesStateObserver.getInstance(project).update(isEnabled)
 
     val displayView = DISPLAY_VIEW_KEY.getData(e.dataContext)
-    val apiLevel = displayView?.apiLevel
+    val apiLevel = runCatching { displayView?.apiLevel }.getOrNull()
     if (apiLevel == null) {
       e.presentation.isEnabled = false
     } else if (apiLevel < 29) {
