@@ -386,6 +386,14 @@
                             id="AndroidJavaCompletionContributor"
                             implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor"
                             order="first"/>
+    <completion.contributor language="kotlin"
+                            id="ResourceCompletionContributor"
+                            implementationClass="com.android.tools.idea.res.completion.ResourceCompletionContributor"
+                            order="first" />
+    <completion.contributor language="JAVA"
+                            id="ResourceCompletionContributor"
+                            implementationClass="com.android.tools.idea.res.completion.ResourceCompletionContributor"
+                            order="first" />
     <completion.contributor language="JAVA"
                             implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
                             id="resourceTypeCompletion"

@@ -15,21 +15,14 @@
  */
 package com.android.tools.compose.code.completion
 
-import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.vectordrawable.VdPreview
-import com.android.resources.ResourceType
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
 import com.android.tools.compose.aa.code.isComposableFunctionParameter
 import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.android.tools.compose.code.isComposableFunctionParameter
 import com.android.tools.compose.isComposableFunction
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.rendering.GutterIconCache
-import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.res.getSourceAsVirtualFile
-import com.android.tools.idea.util.androidFacet
 import com.google.common.base.CaseFormat
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -49,12 +42,9 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.asSafely
 import icons.StudioIcons
-import org.jetbrains.android.AndroidAnnotatorUtil
-import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
@@ -68,7 +58,6 @@ import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DescriptorBasedDeclarationLookupObject
@@ -150,11 +139,11 @@ class ComposeCompletionContributor : CompletionContributor() {
     }
 
     resultSet.runRemainingContributors(parameters) { completionResult ->
-      transformCompletionResult(parameters.position.containingFile, completionResult)?.let(resultSet::passResult)
+      transformCompletionResult(completionResult)?.let(resultSet::passResult)
     }
   }
 
-  private fun transformCompletionResult(psiFile: PsiFile, completionResult: CompletionResult): CompletionResult? {
+  private fun transformCompletionResult(completionResult: CompletionResult): CompletionResult? {
     val lookupElement = completionResult.lookupElement
 
     // If there's no PsiElement, just leave the result alone.
@@ -166,9 +155,6 @@ class ComposeCompletionContributor : CompletionContributor() {
         else completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
 
       ComposeMaterialIconLookupElement.appliesTo(psi) -> completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
-
-      ComposeDrawableLookupElement.appliesTo(psi) && StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED.get() ->
-        completionResult.withLookupElement(ComposeDrawableLookupElement(psiFile, lookupElement))
 
       // No transformation needed.
       else -> completionResult
@@ -249,31 +235,6 @@ private class ComposableFunctionLookupElement(original: LookupElement) : LookupE
     presentation.clearTail()
     parameters?.let { presentation.appendTailTextItalic(it, /* grayed = */ false) }
     tail?.let { presentation.appendTailText(" $it", /* grayed = */ true) }
-  }
-}
-
-/** Lookup element that decorates a Drawable property with the actual Drawable it represents. */
-@VisibleForTesting
-internal class ComposeDrawableLookupElement(private val psiFile: PsiFile, private val original: LookupElement)
-  : LookupElementDecorator<LookupElement>(original) {
-  override fun renderElement(presentation: LookupElementPresentation) {
-    super.renderElement(presentation)
-
-    val resourceLightField = original.psiElement as? ResourceLightField ?: return
-    val module = resourceLightField.module ?: return
-    val facet = module.androidFacet ?: return
-    val file = StudioResourceRepositoryManager.getInstance(module)
-                 ?.appResources
-                 ?.getResources(ResourceNamespace.RES_AUTO, resourceLightField.resourceType,
-                                resourceLightField.resourceName)
-                 ?.firstNotNullOfOrNull { it.getSourceAsVirtualFile() }
-               ?: return
-    val resolver = AndroidAnnotatorUtil.pickConfiguration(psiFile.originalFile, facet)?.resourceResolver ?: return
-    presentation.icon = GutterIconCache.getInstance().getIcon(file, resolver, facet)
-  }
-
-  companion object {
-    fun appliesTo(psiElement: PsiElement) = psiElement is ResourceLightField && psiElement.resourceType == ResourceType.DRAWABLE
   }
 }
 
