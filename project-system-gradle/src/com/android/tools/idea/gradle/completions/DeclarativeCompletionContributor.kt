@@ -18,8 +18,8 @@ package com.android.tools.idea.gradle.completions
 import com.android.SdkConstants
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.completions.ElementType.*
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.TOML
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
@@ -269,22 +269,21 @@ class DeclarativeCompletionContributor : CompletionContributor() {
   }
 
   private fun getSuggestions(path: List<String>, rootNode: NamedNode): Iterable<Suggestion> {
-    val rootModel = GradleBuildFile.BuildGradlePropertiesDslElementSchema()
-    var currentModel: GradlePropertiesDslElementSchema = rootModel
+    var currentModel: GradlePropertiesDslElementSchema = GradleBuildFile.BuildGradlePropertiesDslElementSchema()
     var currentNode: NamedNode? = rootNode
 
     path.forEach { element ->
       currentNode = currentNode?.getChild(element)
-      val blockElement = currentModel.getBlockElementDescription(element) ?: return listOf()
+      val blockElement = currentModel.getBlockElementDescription(TOML, element) ?: return listOf()
       currentModel = blockElement.schemaConstructor.construct()
     }
     val result = mutableListOf<Suggestion>()
-    result += currentModel.blockElementDescriptions.map {
+    result += currentModel.getBlockElementDescriptions(TOML).map {
       Suggestion(it.key,
                  if(isArrayBlock(it.value)) ARRAY_TABLE else BLOCK
       )
     }
-    result += currentModel.getPropertiesInfo(GradleDslNameConverter.Kind.TOML).entrySet
+    result += currentModel.getPropertiesInfo(TOML).entrySet
       .filterNot { currentNode?.children?.contains(it.surfaceSyntaxDescription.name) ?: false }
       .map {
         val propertyDescription = it.modelEffectDescription.property

@@ -60,7 +60,7 @@ public class CompileOptionsDslElement extends BaseCompileOptionsDslElement {
   public static final class CompileOptionsDslElementSchema extends GradlePropertiesDslElementSchema {
     @NotNull
     @Override
-    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return ImmutableMap.of();
     }
 

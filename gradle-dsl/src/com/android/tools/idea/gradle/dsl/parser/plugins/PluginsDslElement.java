@@ -15,20 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.plugins;
 
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.AIDL_PACKAGED_LIST;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.ASSET_PACKS;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.BUILD_TOOLS_VERSION;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.COMPILE_SDK_VERSION;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.DEFAULT_PUBLISH_CONFIG;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.DYNAMIC_FEATURES;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.FLAVOR_DIMENSIONS;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.GENERATE_PURE_SPLITS;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.NAMESPACE;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.NDK_VERSION;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.PUBLISH_NON_DEFAULT;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.RESOURCE_PREFIX;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.TARGET_PROJECT_PATH;
-import static com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl.TEST_NAMESPACE;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType.BOOLEAN;
@@ -64,7 +50,7 @@ public class PluginsDslElement extends GradleDslElementList {
   public static final class AndroidPluginsDslElementSchema extends GradlePropertiesDslElementSchema {
     @NotNull
     @Override
-    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    public ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return ImmutableMap.of();
     }
 

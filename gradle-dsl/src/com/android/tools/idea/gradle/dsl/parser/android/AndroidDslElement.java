@@ -23,6 +23,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
@@ -159,13 +160,13 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   public static final class AndroidGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
     @NotNull
     @Override
-    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 
     @NotNull
     @Override
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+    public ExternalToModelMap getPropertiesInfo(Kind kind) {
       return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
     }
   }

@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.android;
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
+import static com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.*;
+
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema;
@@ -33,15 +34,15 @@ public class DefaultConfigDslElement extends AbstractProductFlavorDslElement {
   }
 
   public static final class DefaultConfigDslElementSchema extends GradlePropertiesDslElementSchema {
-    @Override
     @NotNull
-    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    @Override
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 
     @Override
     @NotNull
-    public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
+    public ExternalToModelMap getPropertiesInfo(Kind kind) {
       return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
     }
   }

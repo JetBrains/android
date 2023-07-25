@@ -15,26 +15,48 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Goal is to have light schema for GradlePropertiesDslElement.
  * Without creating element itself, we can get possible element children - blocks and properties
+ * Blocks and properties are in use to restrict auto-complete
  */
 public abstract class GradlePropertiesDslElementSchema {
-  @NotNull
-  public abstract ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions();
 
-  @Nullable
-  public PropertiesElementDescription getBlockElementDescription(String name) {
-    return getBlockElementDescriptions().get(name);
+  /**
+   * Method supposed to be override in children and returns all block element description for particular Dsl Element
+   */
+  @NotNull
+  protected abstract ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions();
+
+  /**
+   * Returns descriptions filtered by file type (Kts, Groovy, Toml). It is currently used for editor code suggestions
+   */
+  @NotNull
+  public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions(GradleDslNameConverter.Kind kind){
+    return getAllBlockElementDescriptions().entrySet().stream().filter(val -> val.getValue().isValidForKind.test(kind))
+      .collect(toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
+  @Nullable
+  public PropertiesElementDescription getBlockElementDescription(GradleDslNameConverter.Kind kind, String name) {
+    return getBlockElementDescriptions(kind).get(name);
+  }
+
+  /**
+   * Returns properties of some Dsl element that are valid
+   * @param kind
+   * @return
+   */
   @NotNull
   public abstract ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind);
 }

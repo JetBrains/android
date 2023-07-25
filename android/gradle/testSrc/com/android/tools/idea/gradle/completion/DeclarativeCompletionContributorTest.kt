@@ -55,6 +55,14 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
     }
 
   @Test
+  fun testExtExcludedFromSuggestions() =
+    doTest("$caret") { suggestions ->
+      Truth.assertThat(suggestions.toList()).doesNotContain(
+        "ext" to "Block element"
+      )
+    }
+
+  @Test
   fun testBasicCompletionInTableHeader() =
     doTest("[a$caret]") { suggestions ->
       Truth.assertThat(suggestions.toList()).containsExactly(

@@ -154,7 +154,7 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
   public static final class BuildTypeDslElementSchema extends GradlePropertiesDslElementSchema {
     @NotNull
     @Override
-    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return CHILD_PROPERTIES_ELEMENT_DESCRIPTION_MAP;
     }
 

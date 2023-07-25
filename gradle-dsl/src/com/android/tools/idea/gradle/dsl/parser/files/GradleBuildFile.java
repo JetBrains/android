@@ -197,7 +197,7 @@ public class GradleBuildFile extends GradleScriptFile {
   public static final class BuildGradlePropertiesDslElementSchema extends GradlePropertiesDslElementSchema {
     @NotNull
     @Override
-    public ImmutableMap<String, PropertiesElementDescription> getBlockElementDescriptions() {
+    protected ImmutableMap<String, PropertiesElementDescription> getAllBlockElementDescriptions() {
       return CHILD_PROPERTIES_ELEMENTS_MAP;
     }
 
