@@ -50,7 +50,7 @@ class AndroidStudioProjectActivity : ProjectActivity {
     // Many JDK tests rely on this not running in order to test invalid JDK messages.
     // This is not an ideal solution but allows it to work for now.
     if (!ApplicationManager.getApplication().isUnitTestMode) {
-      notifyOnInvalidGradleJdk(project)
+      checkForInvalidGradleJdksAndAttemptToRecover(project)
     } else {
       // This is only run in tests!
       // The reason we need this is otherwise we get sporadic un-disposed pointers in tests.
@@ -86,7 +86,7 @@ private fun notifyOnInvalidGradleJDKEnv(project: Project) {
   }
 }
 
-private suspend fun notifyOnInvalidGradleJdk(project: Project) {
+private suspend fun checkForInvalidGradleJdksAndAttemptToRecover(project: Project) {
   GradleSettings.getInstance(project).linkedProjectsSettings
     .mapNotNull { it.externalProjectPath }
     .plus(project.basePath)
