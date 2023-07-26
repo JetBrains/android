@@ -29,11 +29,13 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.VfsTestUtil.createFile
+import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import java.io.File
 
 /**
@@ -44,13 +46,16 @@ import java.io.File
 sealed class TestRClassesTest : AndroidGradleTestCase() {
 
   protected open val disableNonTransitiveRClass = false
+
+  protected val projectRootDirectory by lazy { project.guessProjectDir()!! }
+
   override fun setUp() {
     super.setUp()
 
     val projectRoot = prepareProjectForImport(TestProjectPaths.PROJECT_WITH_APPAND_LIB)
 
     createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/androidTest/res/values/strings.xml",
       // language=xml
       """
@@ -63,7 +68,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
     )
 
     createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "lib/src/androidTest/res/values/strings.xml",
       // language=xml
       """
@@ -76,7 +81,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
     )
 
     createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "lib/src/main/res/values/strings.xml",
       // language=xml
       """
@@ -87,7 +92,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
     )
 
     if (disableNonTransitiveRClass) {
-      File(project.guessProjectDir()!!.toIoFile(), "gradle.properties").appendText(
+      File(projectRootDirectory.toIoFile(), "gradle.properties").appendText(
         "android.nonTransitiveRClass=false"
       )
     }
@@ -123,7 +128,7 @@ sealed class TestRClassesTest : AndroidGradleTestCase() {
 class EnableNonTransitiveRClassTest: TestRClassesTest() {
   fun testNonTransitive_withoutRestart() {
     val normalClass = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/main/java/com/example/projectwithappandlib/app/NormalClass.java",
       // language=java
       """
@@ -165,7 +170,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testAppTestResources() {
     val androidTest = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
       // language=java
       """
@@ -207,7 +212,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testLibTestResources() {
     val androidTest = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
       // language=java
       """
@@ -246,7 +251,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testResolveScope() {
     val unitTest = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/test/java/com/example/projectwithappandlib/app/RClassUnitTest.java",
       // language=java
       """
@@ -267,7 +272,7 @@ class TransitiveTestRClassesTest : TestRClassesTest() {
     myFixture.checkHighlighting()
 
     val normalClass = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/main/java/com/example/projectwithappandlib/app/NormalClass.java",
       // language=java
       """
@@ -383,7 +388,7 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
     assertThat(project.findAppModule().getModuleSystem().isRClassTransitive).named("transitive flag").isFalse()
 
     val androidTest = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
       // language=java
       """
@@ -420,7 +425,7 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
 
   fun testLibTestResources() {
     val androidTest = createFile(
-      project.guessProjectDir()!!,
+      projectRootDirectory,
       "lib/src/androidTest/java/com/example/projectwithappandlib/lib/RClassAndroidTest.java",
       // language=java
       """
@@ -448,6 +453,80 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
 
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
+  }
+
+  fun testNavigateToDefinitionJavaToAppTestResource() {
+    val androidTest = createFile(
+      projectRootDirectory,
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.java",
+      // language=java
+      """
+      package com.example.projectwithappandlib.app;
+
+      public class RClassAndroidTest {
+          void useResources() {
+             int id = com.example.projectwithappandlib.app.test.R.string.${caret}appTestResource;
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+
+    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    assertThat(fileEditorManager.openFiles).hasLength(1)
+    assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.java")
+
+    // TODO(b/265199079): This should not actually throw, and instead should execute the goto action.
+    assertThrows(NullPointerException::class.java) {
+      CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+    }
+
+    //// Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
+    //assertThat(fileEditorManager.openFiles).hasLength(2)
+    //assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/androidTest/res/values/strings.xml")
+    //
+    //val selectedEditor = fileEditorManager.selectedTextEditor!!
+    //val textAfterCaret =
+    //  selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
+    //assertThat(textAfterCaret).startsWith("appTestResource'>app test resource</string>")
+  }
+
+  fun testNavigateToDefinitionKotlinToAppTestResource() {
+    val androidTest = createFile(
+      projectRootDirectory,
+      "app/src/androidTest/java/com/example/projectwithappandlib/app/RClassAndroidTest.kt",
+      // language=kotlin
+      """
+      package com.example.projectwithappandlib.app
+
+      class RClassAndroidTest {
+          fun useResources() {
+             val id = com.example.projectwithappandlib.app.test.R.string.${caret}appTestResource
+          }
+      }
+      """.trimIndent()
+    )
+
+    myFixture.configureFromExistingVirtualFile(androidTest)
+
+    val fileEditorManager = FileEditorManagerEx.getInstanceEx(project)
+    assertThat(fileEditorManager.openFiles).hasLength(1)
+    assertThat(fileEditorManager.currentFile?.name).isEqualTo("RClassAndroidTest.kt")
+
+    // TODO(b/265199079): This should not actually throw, and instead should execute the goto action.
+    assertThrows(NullPointerException::class.java) {
+      CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+    }
+
+    //// Verify that the correct file opened up, and that the caret is moved to the correct definition in the file.
+    //assertThat(fileEditorManager.openFiles).hasLength(2)
+    //assertThat(fileEditorManager.currentFile?.path).endsWith("app/src/androidTest/res/values/strings.xml")
+    //
+    //val selectedEditor = fileEditorManager.selectedTextEditor!!
+    //val textAfterCaret =
+    //  selectedEditor.document.text.substring(selectedEditor.caretModel.offset)
+    //assertThat(textAfterCaret).startsWith("appTestResource'>app test resource</string>")
   }
 }
 
