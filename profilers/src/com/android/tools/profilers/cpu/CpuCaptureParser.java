@@ -21,7 +21,6 @@ import static com.google.wireless.android.sdk.stats.CpuImportTraceMetadata.Impor
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.idea.protobuf.ByteString;
-import com.android.tools.perflib.vmtrace.VmTraceParser;
 import com.android.tools.profilers.IdeProfilerServices;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.compose.ComposeTracingConstants;
@@ -31,11 +30,8 @@ import com.android.tools.profilers.cpu.config.UnspecifiedConfiguration;
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeModel;
 import com.android.tools.profilers.cpu.simpleperf.SimpleperfTraceParser;
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser;
-import com.android.tools.profilers.cpu.systemtrace.AtraceProducer;
-import com.android.tools.profilers.cpu.systemtrace.PerfettoProducer;
 import com.android.tools.profilers.perfetto.PerfettoParser;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import com.google.wireless.android.sdk.stats.CpuImportTraceMetadata;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
@@ -46,15 +42,12 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -259,11 +252,11 @@ public class CpuCaptureParser {
   }
 
   public static class FileHeaderParsingFailureException extends ParsingFailureException {
-    private FileHeaderParsingFailureException(@NotNull String traceFilePath, @NotNull TraceType type) {
+    public FileHeaderParsingFailureException(@NotNull String traceFilePath, @NotNull TraceType type) {
       super(String.format("Trace file '%s' expected to be of type %s but failed header verification.", traceFilePath, type));
     }
 
-    private FileHeaderParsingFailureException(@NotNull String traceFilePath, @NotNull TraceType type, @NotNull Throwable cause) {
+    public FileHeaderParsingFailureException(@NotNull String traceFilePath, @NotNull TraceType type, @NotNull Throwable cause) {
       super(String.format("Trace file '%s' expected to be of type %s but failed header verification.", traceFilePath, type), cause);
     }
   }
@@ -379,14 +372,6 @@ public class CpuCaptureParser {
     private final Supplier<TraceParser> PERFETTO_PARSER_SUPPLIER =
       () -> new PerfettoParser(getMainProcessSelector(), getProfilerServices());
 
-    // Each tester function verifies if a passed-in file is of the respective configuration type.
-    private static final Predicate<File> ART_TESTER = (t) -> ArtTraceParser.verifyFileHasArtHeader(t);
-    private static final Predicate<File> SIMPLE_PREF_TESTER = (t) -> SimpleperfTraceParser.verifyFileHasSimpleperfHeader(t);
-    private static final Predicate<File> ATRACE_FILE_TESTER = (t) -> AtraceProducer.verifyFileHasAtraceHeader(t);
-    private static final Predicate<File> PERFETTO_FILE_TESTER = (t) -> PerfettoProducer.verifyFileHasPerfettoTraceHeader(t);
-    private static final Set<TraceType> AVAILABLE_TRACE_TYPES =
-      ImmutableSet.of(TraceType.ART, TraceType.SIMPLEPERF, TraceType.ATRACE, TraceType.PERFETTO);
-
     @VisibleForTesting
     ProcessTraceAction(
       @NotNull File traceFile, long traceId, @NotNull TraceType preferredProfilerType,
@@ -406,33 +391,12 @@ public class CpuCaptureParser {
     }
 
     private CpuCapture parseToCapture(@NotNull File traceFile, long traceId, @NotNull TraceType profilerType) {
-      final TraceType traceType = getFileTraceType(traceFile, profilerType);
+      final TraceType traceType = CpuCaptureParserUtil.getFileTraceType(traceFile, profilerType);
       if (traceType == null) {
         // None of the types able to parse the given file
         throw new UnknownParserParsingFailureException(traceFile.getAbsolutePath());
       }
       return parseWith(traceType, traceFile, traceId);
-    }
-
-    @Nullable
-    private TraceType getFileTraceType(@NotNull File traceFile, @NotNull TraceType profilerType) {
-      boolean isKnownType = !TraceType.UNSPECIFIED.equals(profilerType);
-      final Set<TraceType> traceTypesToTry = getTraceTypesToTryToParseWith(profilerType, isKnownType);
-      for (TraceType traceType : traceTypesToTry) {
-        final Optional<Boolean> inputVerification = getInputVerification(traceType, traceFile, isKnownType);
-        // If parser can take this trace, then traceType is found.
-        if (inputVerification.isPresent() && inputVerification.get()) {
-          return traceType;
-        }
-      }
-      return null;
-    }
-
-    private Set<TraceType> getTraceTypesToTryToParseWith(@NotNull TraceType profilerType, boolean isKnownType) {
-      if (isKnownType) {
-        return ImmutableSet.of(profilerType);
-      }
-      return AVAILABLE_TRACE_TYPES;
     }
 
     @NotNull
@@ -443,34 +407,6 @@ public class CpuCaptureParser {
     @NotNull
     private IdeProfilerServices getProfilerServices() {
       return services;
-    }
-
-    private Optional<Boolean> getInputVerification(@NotNull TraceType type, @NotNull File traceFile, boolean expectedToBeCorrectParser) {
-      Optional<Predicate<File>> traceInputVerification = getTraceInputVerification(type);
-      if (traceInputVerification.isEmpty()) {
-        return Optional.empty();
-      }
-      try {
-        final boolean inputVerificationStatus = traceInputVerification.get().test(traceFile);
-        // If we expected this to be the correct parser and parser can't take this trace, then we need to throw
-        if (expectedToBeCorrectParser && !inputVerificationStatus) {
-          throw new FileHeaderParsingFailureException(traceFile.getAbsolutePath(), type);
-        }
-        return Optional.of(inputVerificationStatus);
-      } catch (Throwable t) {
-        throw new FileHeaderParsingFailureException(traceFile.getAbsolutePath(), type, t);
-      }
-    }
-
-    @VisibleForTesting
-    Optional<Predicate<File>> getTraceInputVerification(@NotNull TraceType type) {
-      return switch (type) {
-        case ART -> Optional.of(ART_TESTER);
-        case SIMPLEPERF -> Optional.of(SIMPLE_PREF_TESTER);
-        case ATRACE -> Optional.of(ATRACE_FILE_TESTER);
-        case PERFETTO -> Optional.of(PERFETTO_FILE_TESTER);
-        default -> Optional.empty();
-      };
     }
 
     private CpuCapture parseWith(@NotNull TraceType type, @NotNull File traceFile, long traceId) {
