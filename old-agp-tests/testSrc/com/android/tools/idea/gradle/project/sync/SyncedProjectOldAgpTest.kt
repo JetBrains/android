@@ -34,6 +34,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_80
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_81
 import com.android.tools.idea.testing.applicableAgpVersions
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.annotations.Contract
@@ -76,6 +77,7 @@ class SyncProject_AGP_72Test: SyncedProjectTest(agpVersion = AGP_72)
 class SyncProject_AGP_73Test: SyncedProjectTest(agpVersion = AGP_73)
 class SyncProject_AGP_74Test: SyncedProjectTest(agpVersion = AGP_74)
 class SyncProject_AGP_80Test: SyncedProjectTest(agpVersion = AGP_80)
+class SyncProject_AGP_81Test: SyncedProjectTest(agpVersion = AGP_81)
 
 
 class OldAgpTestProjectTest: TestProjectTest() {

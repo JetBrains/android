@@ -38,6 +38,7 @@ AGP_7_2 = "7.2.0"
 AGP_7_3 = "7.3.0"
 AGP_7_4 = "7.4.1"
 AGP_8_0 = "8.0.0-beta04"
+AGP_8_1 = "8.1.0"
 
 AGP_MAVEN_REPOS = {
     AGP_3_1_4: ["//tools/base/build-system/previous-versions:3.1.4"],
@@ -52,6 +53,7 @@ AGP_MAVEN_REPOS = {
     AGP_7_3: ["//tools/base/build-system/previous-versions:7.3.0"],
     AGP_7_4: ["//tools/base/build-system/previous-versions:7.4.1"],
     AGP_8_0: ["//tools/base/build-system/previous-versions:8.0.0"],
+    AGP_8_1: ["//tools/base/build-system/previous-versions:8.1.0"],
 }
 
 AGP_DATA = {
@@ -102,6 +104,10 @@ AGP_DATA = {
     ],
     AGP_8_0: [
         "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:platforms/latest",
+    ],
+    AGP_8_1: [
+        "//prebuilts/studio/sdk:build-tools/33.0.1",
         "//prebuilts/studio/sdk:platforms/latest",
     ],
 }
