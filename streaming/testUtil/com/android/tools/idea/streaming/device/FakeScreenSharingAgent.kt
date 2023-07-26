@@ -157,6 +157,7 @@ class FakeScreenSharingAgent(
 
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   private var displayOrientation = 0
+  private var displayOrientationCorrection = 0
   private var shellProtocol: ShellV2Protocol? = null
 
   /**
@@ -300,6 +301,13 @@ class FakeScreenSharingAgent(
   suspend fun renderDisplay(flavor: Int) {
     return withContext(singleThreadedDispatcher) {
       displayStreamer?.renderDisplay(flavor)
+    }
+  }
+
+  suspend fun setDisplayOrientationCorrection(value: Int) {
+    withContext(singleThreadedDispatcher) {
+      displayOrientationCorrection = value
+      displayStreamer?.renderDisplay()
     }
   }
 
@@ -595,6 +603,7 @@ class FakeScreenSharingAgent(
         packetHeader.originationTimestampUs = System.currentTimeMillis() * 1000
         packetHeader.displaySize.size = getFoldedDisplaySize()
         packetHeader.displayOrientation = displayOrientation
+        packetHeader.displayOrientationCorrection = displayOrientationCorrection
         packetHeader.frameNumber = (++frameNumber).toLong()
         val packetSize = packet.size()
         val packetData = packet.data().asByteBufferOfSize(packetSize)

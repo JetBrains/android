@@ -247,7 +247,11 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     val imageSize = displayRectangle.size.rotatedByQuadrants(displayOrientationQuadrants)
     // Mouse pointer coordinates compensated for the device display rotation.
     val normalized = Point()
-    when (displayOrientationQuadrants) {
+    val rotation = when {
+      displayOrientationCorrectionQuadrants % 2 == 0 -> displayOrientationQuadrants + displayOrientationCorrectionQuadrants % 4
+      else -> displayOrientationQuadrants
+    }
+    when (rotation) {
       0 -> {
         normalized.x = p.x.scaled(screenScale) - displayRectangle.x
         normalized.y = p.y.scaled(screenScale) - displayRectangle.y

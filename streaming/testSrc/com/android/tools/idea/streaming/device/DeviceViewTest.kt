@@ -287,6 +287,40 @@ internal class DeviceViewTest {
   }
 
   @Test
+  fun testUpsideDownMouseInput() {
+    assumeFFmpegAvailable()
+    createDeviceView(200, 300, 2.0)
+    waitForFrame()
+    assertThat(view.displayRectangle).isEqualTo(Rectangle(61, 0, 277, 600))
+    assertThat(view.displayOrientationQuadrants).isEqualTo(0)
+
+    executeStreamingAction("android.device.rotate.right", view, project)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(3))
+    executeStreamingAction("android.device.rotate.right", view, project)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetDeviceOrientationMessage(2))
+    assertThat(view.displayOrientationQuadrants).isEqualTo(2)
+    assertThat(view.displayOrientationCorrectionQuadrants).isEqualTo(0)
+
+    fakeUi.mouse.press(40, 30)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(1007, 2107, 0)), MotionEventMessage.ACTION_DOWN, 0, 0, 0))
+    fakeUi.mouse.release()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(1007, 2107, 0)), MotionEventMessage.ACTION_UP, 0, 0, 0))
+
+    runBlocking { agent.setDisplayOrientationCorrection(2) }
+    waitForFrame()
+    assertThat(view.displayOrientationQuadrants).isEqualTo(2)
+    assertThat(view.displayOrientationCorrectionQuadrants).isEqualTo(2)
+    fakeUi.mouse.press(40, 30)
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(235, 1008, 0)), MotionEventMessage.ACTION_DOWN, 0, 0, 0))
+    fakeUi.mouse.release()
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        MotionEventMessage(listOf(MotionEventMessage.Pointer(235, 1008, 0)), MotionEventMessage.ACTION_UP, 0, 0, 0))
+  }
+
+  @Test
   fun testRoundWatch() {
     assumeFFmpegAvailable()
     device = agentRule.connectDevice("Pixel Watch", 30, Dimension(384, 384), roundDisplay = true, abi = "armeabi-v7a",
