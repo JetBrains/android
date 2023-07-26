@@ -16,14 +16,12 @@
 package com.android.tools.idea.modes.essentials
 
 import com.android.tools.idea.flags.StudioFlags
-import com.intellij.notification.NotificationsManager
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.actionSystem.EditorActionManager
-import com.intellij.openapi.editor.impl.EditorImpl
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.options.SearchableConfigurable
-import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.options.ex.Settings
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
@@ -41,6 +39,21 @@ class EssentialsModeSettingsPage : BoundConfigurable("Essentials Mode"), Searcha
                      "occur explicitly by invoking it via ${KeymapUtil.getShortcutText("SaveAll")} or from the menu by " +
                      "navigating to File \u2192 Save All. " +
                      "File saving actions can also occur implicitly on occasion for example, when the IDE loses focus")
+        }
+      }
+      group("Related Features") {
+        row {
+          text("In addition to Essential Highlighting, enabling Essentials Mode also enables a number of related features.  " +
+                     "Their state can be controlled using the links below.")
+        }
+        row {
+          text("<a>Compose Preview resource usage</a>") {
+            DataManager.getInstance().dataContextFromFocusAsync.onSuccess { context: DataContext? ->
+              if (context == null) return@onSuccess
+              val settings = Settings.KEY.getData(context) ?: return@onSuccess
+              settings.select(settings.find("nele.options"))
+            }
+          }
         }
       }
     }

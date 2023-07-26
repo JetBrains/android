@@ -1010,6 +1010,8 @@
     <option name="mode" hit="Enable Essentials Mode" />
     <option name="essentials" hit="Essentials Mode" />
     <option name="mode" hit="Essentials Mode" />
+    <option name="features" hit="Related Features" />
+    <option name="related" hit="Related Features" />
   </configurable>
   <configurable id="instant.run" configurable_name="Deployment">
     <option name="apply" hit="Automatically perform &quot;Run&quot; when Apply Changes fails" />
