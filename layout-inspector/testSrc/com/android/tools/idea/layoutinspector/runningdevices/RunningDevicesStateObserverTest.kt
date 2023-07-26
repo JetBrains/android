@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
+import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ToolWindowManager
@@ -41,8 +42,20 @@ class RunningDevicesStateObserverTest {
 
   @Before
   fun setUp() {
-    tab1 = TabInfo(TabId("tab1"), JPanel(), JPanel(), displayViewRule.newEmulatorView())
-    tab2 = TabInfo(TabId("tab2"), JPanel(), JPanel(), displayViewRule.newEmulatorView())
+    tab1 =
+      TabInfo(
+        DeviceId.ofPhysicalDevice("tab1"),
+        JPanel(),
+        JPanel(),
+        displayViewRule.newEmulatorView()
+      )
+    tab2 =
+      TabInfo(
+        DeviceId.ofPhysicalDevice("tab2"),
+        JPanel(),
+        JPanel(),
+        displayViewRule.newEmulatorView()
+      )
 
     fakeToolWindowManager = FakeToolWindowManager(displayViewRule.project, emptyList())
 
@@ -62,24 +75,24 @@ class RunningDevicesStateObserverTest {
     val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project)
     runningDevicesStateObserver.update(true)
 
-    val observedSelectedTabs = mutableListOf<TabId?>()
-    val observedExistingTabs = mutableListOf<List<TabId>>()
+    val observedSelectedTabs = mutableListOf<DeviceId?>()
+    val observedExistingTabs = mutableListOf<List<DeviceId>>()
 
     val listener =
       object : RunningDevicesStateObserver.Listener {
-        override fun onSelectedTabChanged(tabId: TabId?) {
+        override fun onSelectedTabChanged(tabId: DeviceId?) {
           observedSelectedTabs.add(tabId)
         }
 
-        override fun onExistingTabsChanged(existingTabs: List<TabId>) {
+        override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
           observedExistingTabs.add(existingTabs)
         }
       }
 
     runningDevicesStateObserver.addListener(listener)
 
-    assertThat(observedSelectedTabs).containsExactly(tab1.tabId)
-    assertThat(observedExistingTabs).containsExactly(listOf(tab1.tabId, tab2.tabId))
+    assertThat(observedSelectedTabs).containsExactly(tab1.deviceId)
+    assertThat(observedExistingTabs).containsExactly(listOf(tab1.deviceId, tab2.deviceId))
   }
 
   @Test
@@ -87,16 +100,16 @@ class RunningDevicesStateObserverTest {
     val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project)
     runningDevicesStateObserver.update(true)
 
-    val observedSelectedTabs = mutableListOf<TabId?>()
-    val observedExistingTabs = mutableListOf<List<TabId>>()
+    val observedSelectedTabs = mutableListOf<DeviceId?>()
+    val observedExistingTabs = mutableListOf<List<DeviceId>>()
 
     val listener =
       object : RunningDevicesStateObserver.Listener {
-        override fun onSelectedTabChanged(tabId: TabId?) {
+        override fun onSelectedTabChanged(tabId: DeviceId?) {
           observedSelectedTabs.add(tabId)
         }
 
-        override fun onExistingTabsChanged(existingTabs: List<TabId>) {
+        override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
           observedExistingTabs.add(existingTabs)
         }
       }
@@ -112,13 +125,13 @@ class RunningDevicesStateObserverTest {
     fakeToolWindowManager.removeContent(tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    assertThat(observedSelectedTabs).containsExactly(null, tab1.tabId, tab2.tabId)
+    assertThat(observedSelectedTabs).containsExactly(null, tab1.deviceId, tab2.deviceId)
     assertThat(observedExistingTabs)
       .containsExactly(
-        emptyList<TabId>(),
-        listOf(tab1.tabId),
-        listOf(tab1.tabId, tab2.tabId),
-        listOf(tab2.tabId)
+        emptyList<DeviceId>(),
+        listOf(tab1.deviceId),
+        listOf(tab1.deviceId, tab2.deviceId),
+        listOf(tab2.deviceId)
       )
   }
 
@@ -127,16 +140,16 @@ class RunningDevicesStateObserverTest {
     val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project)
     runningDevicesStateObserver.update(true)
 
-    val observedSelectedTabs = mutableListOf<TabId?>()
-    val observedExistingTabs = mutableListOf<List<TabId>>()
+    val observedSelectedTabs = mutableListOf<DeviceId?>()
+    val observedExistingTabs = mutableListOf<List<DeviceId>>()
 
     val listener =
       object : RunningDevicesStateObserver.Listener {
-        override fun onSelectedTabChanged(tabId: TabId?) {
+        override fun onSelectedTabChanged(tabId: DeviceId?) {
           observedSelectedTabs.add(tabId)
         }
 
-        override fun onExistingTabsChanged(existingTabs: List<TabId>) {
+        override fun onExistingTabsChanged(existingTabs: List<DeviceId>) {
           observedExistingTabs.add(existingTabs)
         }
       }
@@ -158,12 +171,13 @@ class RunningDevicesStateObserverTest {
     fakeToolWindowManager.setSelectedContent(tab1)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    assertThat(observedSelectedTabs).containsExactly(null, tab1.tabId, tab2.tabId, tab1.tabId)
+    assertThat(observedSelectedTabs)
+      .containsExactly(null, tab1.deviceId, tab2.deviceId, tab1.deviceId)
     assertThat(observedExistingTabs)
       .containsExactly(
-        emptyList<TabId>(),
-        listOf(tab1.tabId),
-        listOf(tab1.tabId, tab2.tabId),
+        emptyList<DeviceId>(),
+        listOf(tab1.deviceId),
+        listOf(tab1.deviceId, tab2.deviceId),
       )
   }
 }

@@ -17,7 +17,8 @@ package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
-import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
+import com.android.tools.idea.streaming.core.DeviceId
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
@@ -26,8 +27,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
-
-data class TabId(val deviceSerialNumber: String)
 
 /**
  * Class responsible for observing the state of Running Devices tabs. Can be used by other classes
@@ -38,9 +37,9 @@ class RunningDevicesStateObserver(private val project: Project) {
 
   interface Listener {
     /** Called when the selected tab in Running Devices changes */
-    fun onSelectedTabChanged(tabId: TabId?)
+    fun onSelectedTabChanged(deviceId: DeviceId?)
     /** Called when a tab is added or removed to Running Devices */
-    fun onExistingTabsChanged(existingTabs: List<TabId>)
+    fun onExistingTabsChanged(existingTabs: List<DeviceId>)
   }
 
   companion object {
@@ -52,7 +51,7 @@ class RunningDevicesStateObserver(private val project: Project) {
 
   private val listeners = mutableListOf<Listener>()
 
-  private var selectedTab: TabId? = null
+  private var selectedTab: DeviceId? = null
     set(value) {
       ApplicationManager.getApplication().assertIsDispatchThread()
       if (value == field) {
@@ -63,7 +62,7 @@ class RunningDevicesStateObserver(private val project: Project) {
       listeners.forEach { it.onSelectedTabChanged(value) }
     }
 
-  private var existingTabs = emptyList<TabId>()
+  private var existingTabs = emptyList<DeviceId>()
     set(value) {
       if (value == field) {
         return
@@ -122,13 +121,13 @@ class RunningDevicesStateObserver(private val project: Project) {
   }
 
   private fun updateSelectedTab() {
-    val tabId = project.getRunningDevicesSelectedTabDeviceSerialNumber()
-    selectedTab = tabId
+    val deviceId = project.getRunningDevicesSelectedTabDeviceSerialNumber()
+    selectedTab = deviceId
   }
 
   private fun updateExistingTabs() {
-    val tabIds = project.getRunningDevicesExistingTabsDeviceSerialNumber()
-    existingTabs = tabIds
+    val deviceIds = project.getRunningDevicesExistingTabsDeviceSerialNumber()
+    existingTabs = deviceIds
   }
 
   /** [ContentManagerListener] used to observe the content of the Running Devices Tool Window. */
@@ -159,27 +158,24 @@ fun Project.getRunningDevicesContentManager(): ContentManager? {
     ?.contentManager
 }
 
-/** Returns [TabId] of the selected tab in the Running Devices Tool Window. */
-private fun Project.getRunningDevicesSelectedTabDeviceSerialNumber(): TabId? {
+/** Returns [DeviceId] of the selected tab in the Running Devices Tool Window. */
+private fun Project.getRunningDevicesSelectedTabDeviceSerialNumber(): DeviceId? {
   val contentManager = getRunningDevicesContentManager() ?: return null
   val selectedContent = contentManager.selectedContent ?: return null
   val selectedTabDataProvider = selectedContent.component as? DataProvider ?: return null
 
-  val deviceSerialNumber =
-    selectedTabDataProvider.getData(SERIAL_NUMBER_KEY.name) as? String ?: return null
-  return TabId(deviceSerialNumber)
+  return selectedTabDataProvider.getData(DEVICE_ID_KEY.name) as? DeviceId ?: return null
 }
 
-/** Returns the list of [TabId]s for every tab in the Running Devices Tool Window. */
-private fun Project.getRunningDevicesExistingTabsDeviceSerialNumber(): List<TabId> {
+/** Returns the list of [DeviceId]s for every tab in the Running Devices Tool Window. */
+private fun Project.getRunningDevicesExistingTabsDeviceSerialNumber(): List<DeviceId> {
   val contentManager = getRunningDevicesContentManager() ?: return emptyList()
   val contents = contentManager.contents ?: return emptyList()
   val tabIds =
     contents
       .map { it.component }
       .filterIsInstance<DataProvider>()
-      .mapNotNull { dataProvider -> dataProvider.getData(SERIAL_NUMBER_KEY.name) as? String }
-      .map { TabId(it) }
+      .mapNotNull { dataProvider -> dataProvider.getData(DEVICE_ID_KEY.name) as? DeviceId }
 
   return tabIds
 }

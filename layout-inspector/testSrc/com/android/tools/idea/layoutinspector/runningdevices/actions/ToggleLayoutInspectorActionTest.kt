@@ -21,12 +21,13 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.layoutinspector.runningdevices.FakeToolWindowManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager
 import com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerGlobalState
-import com.android.tools.idea.layoutinspector.runningdevices.TabId
 import com.android.tools.idea.layoutinspector.runningdevices.TabInfo
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.core.AbstractDisplayView
+import com.android.tools.idea.streaming.core.DEVICE_ID_KEY
 import com.android.tools.idea.streaming.core.DISPLAY_VIEW_KEY
+import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.STREAMING_CONTENT_PANEL_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
@@ -67,7 +68,13 @@ class ToggleLayoutInspectorActionTest {
   fun setUp() {
     LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.clear()
 
-    tab1 = TabInfo(TabId("tab1"), JPanel(), JPanel(), displayViewRule.newEmulatorView())
+    tab1 =
+      TabInfo(
+        DeviceId.ofPhysicalDevice("tab1"),
+        JPanel(),
+        JPanel(),
+        displayViewRule.newEmulatorView()
+      )
 
     // replace ToolWindowManager with fake one
     displayViewRule.project.replaceService(
@@ -171,7 +178,9 @@ class ToggleLayoutInspectorActionTest {
     toggleLayoutInspectorAction.update(fakeActionEvent)
     assertThat(fakeActionEvent.presentation.isEnabled).isTrue()
 
-    LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.add(TabId("device1"))
+    LayoutInspectorManagerGlobalState.tabsWithLayoutInspector.add(
+      DeviceId.ofPhysicalDevice("device1")
+    )
 
     toggleLayoutInspectorAction.update(fakeActionEvent)
     assertThat(fakeActionEvent.presentation.isEnabled).isFalse()
@@ -189,7 +198,8 @@ class ToggleLayoutInspectorActionTest {
   }
 
   private fun AnAction.getFakeActionEvent(
-    deviceSerialNumber: String = "serial_number"
+    deviceSerialNumber: String = "serial_number",
+    deviceId: DeviceId = DeviceId.ofPhysicalDevice(deviceSerialNumber)
   ): AnActionEvent {
     val contentPanelContainer = JPanel()
     val contentPanel = BorderLayoutPanel()
@@ -201,6 +211,7 @@ class ToggleLayoutInspectorActionTest {
         SERIAL_NUMBER_KEY.name -> deviceSerialNumber
         STREAMING_CONTENT_PANEL_KEY.name -> contentPanel
         DISPLAY_VIEW_KEY.name -> displayView
+        DEVICE_ID_KEY.name -> deviceId
         else -> null
       }
     }
@@ -220,12 +231,12 @@ class ToggleLayoutInspectorActionTest {
 
     override fun addStateListener(listener: LayoutInspectorManager.StateListener) {}
 
-    override fun enableLayoutInspector(tabId: TabId, enable: Boolean) {
+    override fun enableLayoutInspector(tabId: DeviceId, enable: Boolean) {
       toggleLayoutInspectorInvocations += 1
       isEnabled = enable
     }
 
-    override fun isEnabled(tabId: TabId) = isEnabled
+    override fun isEnabled(tabId: DeviceId) = isEnabled
     override fun dispose() {}
   }
 }

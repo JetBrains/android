@@ -38,6 +38,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.actions.ToggleDeepI
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SingleDeviceSelectProcessAction
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
@@ -78,8 +79,20 @@ class LayoutInspectorManagerTest {
 
   @Before
   fun setUp() {
-    tab1 = TabInfo(TabId("tab1"), JPanel(), JPanel(), spy(displayViewRule.newEmulatorView()))
-    tab2 = TabInfo(TabId("tab2"), JPanel(), JPanel(), spy(displayViewRule.newEmulatorView()))
+    tab1 =
+      TabInfo(
+        DeviceId.ofPhysicalDevice("tab1"),
+        JPanel(),
+        JPanel(),
+        spy(displayViewRule.newEmulatorView())
+      )
+    tab2 =
+      TabInfo(
+        DeviceId.ofPhysicalDevice("tab2"),
+        JPanel(),
+        JPanel(),
+        spy(displayViewRule.newEmulatorView())
+      )
     fakeToolWindowManager = FakeToolWindowManager(displayViewRule.project, listOf(tab1, tab2))
 
     // replace ToolWindowManager with fake one
@@ -139,11 +152,11 @@ class LayoutInspectorManagerTest {
   fun testToggleLayoutInspectorOnOff() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     assertHasWorkbench(tab1)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
     assertDoesNotHaveWorkbench(tab1)
   }
@@ -153,12 +166,12 @@ class LayoutInspectorManagerTest {
   fun testToggleLayoutInspectorOnMultipleTimesForSameTab() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     assertHasWorkbench(tab1)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
     assertDoesNotHaveWorkbench(tab1)
   }
@@ -168,12 +181,12 @@ class LayoutInspectorManagerTest {
   fun testToggleLayoutInspectorOffMultipleTimesForSameTab() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     assertHasWorkbench(tab1)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
     assertDoesNotHaveWorkbench(tab1)
   }
@@ -183,21 +196,21 @@ class LayoutInspectorManagerTest {
   fun testToggleLayoutInspectorOnMultipleTabs() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     assertHasWorkbench(tab1)
 
-    layoutInspectorManager.enableLayoutInspector(tab2.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab2.deviceId, true)
 
     assertDoesNotHaveWorkbench(tab1)
     assertHasWorkbench(tab2)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
     assertDoesNotHaveWorkbench(tab1)
     assertHasWorkbench(tab2)
 
-    layoutInspectorManager.enableLayoutInspector(tab2.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab2.deviceId, false)
 
     assertDoesNotHaveWorkbench(tab2)
   }
@@ -207,7 +220,7 @@ class LayoutInspectorManagerTest {
   fun testWorkbenchHasDataProvider() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     val workbench = tab1.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
     val dataContext = DataManager.getInstance().getDataContext(workbench)
@@ -220,7 +233,7 @@ class LayoutInspectorManagerTest {
   fun testSelectedTabDoesNotChange() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     assertHasWorkbench(tab1)
 
@@ -237,10 +250,10 @@ class LayoutInspectorManagerTest {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     fakeToolWindowManager.setSelectedContent(tab1)
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     fakeToolWindowManager.setSelectedContent(tab2)
-    layoutInspectorManager.enableLayoutInspector(tab2.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab2.deviceId, true)
 
     assertDoesNotHaveWorkbench(tab1)
     assertHasWorkbench(tab2)
@@ -259,10 +272,10 @@ class LayoutInspectorManagerTest {
     layoutInspector.stopInspectorListeners.add { stopInspectorCounts += 1 }
 
     fakeToolWindowManager.setSelectedContent(tab1)
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     fakeToolWindowManager.setSelectedContent(tab2)
-    layoutInspectorManager.enableLayoutInspector(tab2.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab2.deviceId, true)
 
     assertDoesNotHaveWorkbench(tab1)
     assertHasWorkbench(tab2)
@@ -293,7 +306,7 @@ class LayoutInspectorManagerTest {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
     var refreshCount = 0
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     val layoutInspectorRenderer =
       tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
@@ -302,7 +315,7 @@ class LayoutInspectorManagerTest {
     layoutInspector.inspectorModel.setSelection(ViewNode("node1"), SelectionOrigin.COMPONENT_TREE)
     assertThat(refreshCount).isEqualTo(1)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
     layoutInspector.inspectorModel.setSelection(ViewNode("node2"), SelectionOrigin.COMPONENT_TREE)
     assertThat(refreshCount).isEqualTo(1)
@@ -314,7 +327,7 @@ class LayoutInspectorManagerTest {
   fun testDeepInspectIsDisabledOnProcessChange() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     val layoutInspectorRenderer =
       tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
@@ -335,7 +348,7 @@ class LayoutInspectorManagerTest {
     layoutInspector.inspectorClientSettings.isCapturingModeOn = false
     assertThat(layoutInspector.inspectorClientSettings.isCapturingModeOn).isFalse()
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     assertThat(layoutInspector.inspectorClientSettings.isCapturingModeOn).isFalse()
 
@@ -352,7 +365,7 @@ class LayoutInspectorManagerTest {
 
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     assertHasWorkbench(tab1)
     val notifications1 = notificationModel.notifications
@@ -365,9 +378,9 @@ class LayoutInspectorManagerTest {
     assertThat(firstNotification.actions[0].name).isEqualTo("Don't Show Again")
     assertThat(firstNotification.actions[1].name).isEqualTo("Opt-out")
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     assertHasWorkbench(tab1)
     val notifications2 = notificationModel.notifications
@@ -379,14 +392,14 @@ class LayoutInspectorManagerTest {
     val notifications3 = notificationModel.notifications
     assertThat(notifications3).hasSize(0)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     val notifications4 = notificationModel.notifications
     assertThat(notifications4).hasSize(0)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
     assertDoesNotHaveWorkbench(tab1)
   }
@@ -396,7 +409,7 @@ class LayoutInspectorManagerTest {
   fun testDeepInspectEnablesClickIntercept() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     val layoutInspectorRenderer =
       tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
@@ -418,7 +431,7 @@ class LayoutInspectorManagerTest {
       .isTrue()
     assertThat(layoutInspectorRenderer.interceptClicks).isTrue()
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
   }
 
   @Test
@@ -426,13 +439,13 @@ class LayoutInspectorManagerTest {
   fun testGlobalStateIsUpdated() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     assertHasWorkbench(tab1)
     assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector)
-      .containsExactly(tab1.tabId)
+      .containsExactly(tab1.deviceId)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
     assertDoesNotHaveWorkbench(tab1)
     assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector).isEmpty()
@@ -443,11 +456,11 @@ class LayoutInspectorManagerTest {
   fun testGlobalStateIsUpdatedOnDispose() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     assertHasWorkbench(tab1)
     assertThat(LayoutInspectorManagerGlobalState.tabsWithLayoutInspector)
-      .containsExactly(tab1.tabId)
+      .containsExactly(tab1.deviceId)
 
     Disposer.dispose(layoutInspectorManager)
 
@@ -460,13 +473,13 @@ class LayoutInspectorManagerTest {
   fun testWorkbenchIsDisposedWhenLIIsDisabled() = withEmbeddedLayoutInspector {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     var isWorkbenchDisposed = false
     val workBench = tab1.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
     Disposer.register(workBench) { isWorkbenchDisposed = true }
 
-    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
     assertThat(isWorkbenchDisposed).isTrue()
   }
