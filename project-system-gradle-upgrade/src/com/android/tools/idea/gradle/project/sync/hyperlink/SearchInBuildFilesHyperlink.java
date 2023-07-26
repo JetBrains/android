@@ -78,8 +78,7 @@ public class SearchInBuildFilesHyperlink extends SyncIssueNotificationHyperlink 
 
     boolean showPanelIfOnlyOneUsage = !FindSettings.getInstance().isSkipResultsWithOneUsage();
 
-    final FindUsagesProcessPresentation processPresentation =
-      setupProcessPresentation(project, showPanelIfOnlyOneUsage, presentation);
+    FindUsagesProcessPresentation processPresentation = setupProcessPresentation(showPanelIfOnlyOneUsage, presentation);
 
     UsageTarget usageTarget = new StringUsageTarget(project, findModel);
 
