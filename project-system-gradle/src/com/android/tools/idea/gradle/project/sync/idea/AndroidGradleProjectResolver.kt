@@ -64,6 +64,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanup
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectJdkUpdateData
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.idea.issues.validateProjectGradleJdk
+import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.project.sync.stackTraceAsMultiLineMessage
@@ -763,6 +764,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         }
       }
       else if (rootCause is AndroidSyncException) {
+        rootCause.reportFailureTypeIfNecessary(projectPath)
         val ideSyncIssues = rootCause.mySyncIssues
         if (ideSyncIssues?.isNotEmpty() == true) {
           val ideaProject = resolverCtx.models.getModel(IdeaProject::class.java)
@@ -783,6 +785,17 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       }
     }
     return super.getUserFriendlyError(buildEnvironment, error, projectPath, buildFilePath)
+  }
+
+  //TODO(b/292231180): This can and should be refactored but for now it is better than nothing reported at all.
+  private fun AndroidSyncException.reportFailureTypeIfNecessary(rootProjectPath: String) = when {
+    message?.startsWith("No variants found for '") == true ->
+      SyncFailureUsageReporter.getInstance().collectFailure(rootProjectPath, GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
+    message?.startsWith("No valid Native abi found to request!") == true ->
+      SyncFailureUsageReporter.getInstance().collectFailure(rootProjectPath, GradleSyncFailure.ANDROID_SYNC_NO_VALID_NATIVE_ABI_FOUND)
+    // Other cases currently should be covered by MultipleAgpVersionsIssueChecker and AgpVersionNotSupportedIssueChecker
+    else -> Unit
+
   }
 
   private fun displayInternalWarningIfForcedUpgradesAreDisabled() {
