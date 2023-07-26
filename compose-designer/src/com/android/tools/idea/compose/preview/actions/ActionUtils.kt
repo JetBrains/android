@@ -84,7 +84,7 @@ internal fun AnAction.visibleOnlyInComposeDefaultPreview(): ActionGroup =
   ComposePreviewDefaultWrapper(listOf(this))
 
 /**
- * The given disables the actions if a12 surface is refreshing or if the [sceneView] contains
+ * The given disables the actions if any surface is refreshing or if the [sceneView] contains
  * errors.
  */
 fun List<AnAction>.disabledIfRefreshingOrRenderErrors(sceneView: SceneView): List<AnAction> = map {
