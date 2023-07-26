@@ -125,8 +125,7 @@ class SearchInBuildFilesQuickFix(private val text: String): BuildIssueQuickFix {
 
       val presentation = FindInProjectUtil.setupViewPresentation(true, findModelCopy)
       val showPanelIfOnlyOneUsage = !FindSettings.getInstance().isSkipResultsWithOneUsage
-      val processPresentation =
-        FindInProjectUtil.setupProcessPresentation(project, showPanelIfOnlyOneUsage, presentation)
+      val processPresentation = FindInProjectUtil.setupProcessPresentation(showPanelIfOnlyOneUsage, presentation)
 
       usageViewManager.searchAndShowUsages(arrayOf(StringUsageTarget(project, findModel)), {
         UsageSearcher { processor ->
