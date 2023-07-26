@@ -215,10 +215,13 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
   Size video_size = ComputeVideoSize(display_info.logical_size, codec_info, max_video_resolution);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
+  int32_t bit_rate = 0;
+  AMediaFormat_getInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, &bit_rate);
   media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
   if (status != AMEDIA_OK) {
-    Log::Fatal("AMediaCodec_configure returned %d for video_size=%dx%d", status, video_size.width, video_size.height);
+    Log::Fatal("AMediaCodec_configure returned %d for video_size=%dx%d bit rate=%d", status, video_size.width, video_size.height, bit_rate);
   }
+  Log::I("Configured %s video_size=%dx%d bit rate=%d", codec_info.name.c_str(), video_size.width, video_size.height, bit_rate);
   return video_size;
 }
 
