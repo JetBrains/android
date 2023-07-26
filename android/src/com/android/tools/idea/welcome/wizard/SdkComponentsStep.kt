@@ -43,8 +43,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.ui.layout.CCFlags.push
-import com.intellij.ui.layout.panel
 import com.intellij.ui.table.JBTable
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridLayoutManager
@@ -54,6 +52,9 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate
 import com.android.tools.sdk.AndroidSdkData
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.LabelPosition
+import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.annotations.Contract
 import java.awt.BorderLayout
 import java.awt.Container
@@ -97,7 +98,6 @@ class SdkComponentsStep(
   private val componentsSize: Long
     get() = model.componentTree.childrenToInstall.map(InstallableComponent::downloadSize).sum()
 
-  private val instructionsLabel = JBLabel("Check the components you want to update/install. Click Next to continue.")
   private val contentPanel = JBLoadingPanel(BorderLayout(), this).apply {
     contentPanel!!.add(componentsTable, BorderLayout.CENTER)
   }
@@ -114,39 +114,32 @@ class SdkComponentsStep(
   }
 
 
-  private val sdkLocationLabel = JBLabel("Android SDK Location:")
-
   private val neededSpace = JBLabel("Loading...")
   private val availableSpace = JBLabel("Loading...")
   private val innerPanel = panel {
     row("Total download size: ") {
-      neededSpace()
+      cell(neededSpace)
     }
     row("Available space: ") {
-      availableSpace()
+      cell(availableSpace)
     }
   }
 
   private val sdkPath = TextFieldWithBrowseButton().apply {
     text = model.sdkLocation.toString()
   }
-  private val errorMessage = JBLabel("Label")
 
   private val outerPanel = panel {
     row {
-      instructionsLabel()
+      cell(body)
+        .label("Check the components you want to update/install. Click Next to continue.", LabelPosition.TOP)
     }
     row {
-      body(grow, push)
-    }
-    row {
-      innerPanel()
-    }
-    row {
-      sdkLocationLabel()
-    }
-    row {
-      sdkPath()
+      cell(sdkPath)
+        .label("Android SDK Location", LabelPosition.TOP)
+        .align(AlignX.FILL)
+        .resizableColumn()
+      cell(innerPanel)
     }
   }
 
@@ -172,7 +165,6 @@ class SdkComponentsStep(
     val smallLabelFont = JBUI.Fonts.smallFont()
     neededSpace.font = smallLabelFont
     availableSpace.font = smallLabelFont
-    errorMessage.text = null
 
     validatorPanel.apply {
       registerValidator(TextProperty(sdkPath), SdkPathValidator())
