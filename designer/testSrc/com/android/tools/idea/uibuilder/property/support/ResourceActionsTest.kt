@@ -60,7 +60,7 @@ class ResourceActionsTest {
     val util = SupportTestUtil(projectRule, SdkConstants.TEXT_VIEW)
     val property =
       util.makeProperty(SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT, NlPropertyType.STRING)
-    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM.name, property)
+    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, property)
     val event = AnActionEvent.createFromDataContext("", null, context)
     deleteXmlTag(property)
 
@@ -84,7 +84,7 @@ class ResourceActionsTest {
     // Verify that the textColor is not set:
     assertThat(property.value).isNull()
 
-    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM.name, property)
+    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, property)
     val event = AnActionEvent.createFromDataContext("", null, context)
     action.actionPerformed(event)
     val picker = colorPicker ?: error("colorPicker expected")
@@ -117,7 +117,7 @@ class ResourceActionsTest {
     // Verify that the textColor is not set:
     assertThat(property.delegate).isEqualTo(actualProperty)
 
-    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM.name, property)
+    val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM, property)
     val event = AnActionEvent.createFromDataContext("", null, context)
     action.actionPerformed(event)
     val picker = colorPicker ?: error("colorPicker expected")
