@@ -78,7 +78,7 @@ class VisualLintAnalysisTest {
     InspectionProfileManager.getInstance(projectRule.project)
       .currentProfile
       .setErrorLevel(
-        HighlightDisplayKey.find(VisualLintErrorType.BOUNDS.shortName),
+        HighlightDisplayKey.find(VisualLintErrorType.BOUNDS.shortName)!!,
         HighlightDisplayLevel.ERROR,
         projectRule.project
       )
