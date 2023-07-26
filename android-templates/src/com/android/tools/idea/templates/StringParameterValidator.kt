@@ -130,7 +130,8 @@ fun StringParameter.validateStringType(
       project ?: return false
       if (isK2Plugin()) {
         val packageFqName = if (packageName != null) FqName(packageName) else FqName.ROOT
-        val topLevelCallableNames = project.createDeclarationProvider(searchScope).getTopLevelCallableNamesInPackage(packageFqName)
+        val declarationProvider = project.createDeclarationProvider(searchScope, module = null)
+        val topLevelCallableNames = declarationProvider.getTopLevelCallableNamesInPackage(packageFqName)
         topLevelCallableNames.any { it.identifierOrNullIfSpecial == value }
       } else {
         module ?: return false
