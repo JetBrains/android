@@ -20,6 +20,13 @@
 
 namespace screensharing {
 
+enum ExitCode {
+  GENERIC_FAILURE = EXIT_FAILURE,
+  INVALID_COMMAND_LINE = 2,
+  WEAK_VIDEO_ENCODER = 3,
+  REPEATED_VIDEO_ENCODER_ERRORS = 4
+};
+
 class Log {
 public:
   enum class Level {
@@ -46,9 +53,13 @@ public:
   static void E(const char* msg, ...)
       __attribute__((format(printf, 1, 2)));
 
-  // Logs an error message and terminates the program.
+  // Logs an error message and terminates the program with exit code 1.
   [[noreturn]] static void Fatal(const char* msg, ...)
       __attribute__((format(printf, 1, 2)));
+
+  // Logs an error message and terminates the program with the given exit code.
+  [[noreturn]] static void Fatal(ExitCode exit_code, const char* msg, ...)
+  __attribute__((format(printf, 2, 3)));
 
   static void SetLevel(Level level) {
     level_ = level;

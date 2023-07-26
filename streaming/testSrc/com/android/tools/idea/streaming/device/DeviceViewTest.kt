@@ -40,6 +40,7 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
 import com.android.tools.idea.streaming.executeStreamingAction
+import com.android.tools.idea.streaming.extractText
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
 import com.android.tools.idea.testing.executeCapturingLoggedErrors
@@ -130,7 +131,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.JButton
-import javax.swing.JLabel
+import javax.swing.JEditorPane
 import javax.swing.JScrollPane
 
 /**
@@ -568,9 +569,9 @@ internal class DeviceViewTest {
       agent.writeToStderr("Kaput\n")
       agent.crash()
     }
-    val errorMessage = fakeUi.getComponent<JLabel>()
+    val errorMessage = fakeUi.getComponent<JEditorPane>()
     waitForCondition(2, SECONDS) { fakeUi.isShowing(errorMessage) }
-    assertThat(errorMessage.text).isEqualTo("Lost connection to the device. See the error log.")
+    assertThat(extractText(errorMessage.text)).isEqualTo("Lost connection to the device. See the error log.")
     var events = usageTrackerRule.agentTerminationEventsAsStrings()
     assertThat(events.size).isEqualTo(1)
     val eventPattern = Regex(
@@ -612,13 +613,13 @@ internal class DeviceViewTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue() // Let all ongoing activity finish before attempting to reconnect.
     val loggedErrors = executeCapturingLoggedErrors {
       fakeUi.clickOn(button)
-      waitForCondition(5, SECONDS) { errorMessage.text.isNotEmpty() }
+      waitForCondition(5, SECONDS) { extractText(errorMessage.text).isNotEmpty() }
       for (i in 1 until 3) {
         ConcurrencyUtil.awaitQuiescence(AndroidExecutors.getInstance().workerThreadExecutor as ThreadPoolExecutor, 5, SECONDS)
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
       }
     }
-    assertThat(errorMessage.text).isEqualTo("Failed to initialize the device agent. See the error log.")
+    assertThat(extractText(errorMessage.text)).isEqualTo("Failed to initialize the device agent. See the error log.")
     assertThat(button.text).isEqualTo("Retry")
     assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
 
@@ -646,9 +647,9 @@ internal class DeviceViewTest {
     agent.startDelayMillis = 300
     val loggedErrors = executeCapturingLoggedErrors {
       createDeviceViewWithoutWaitingForAgent(500, 1000, screenScale = 1.0)
-      val errorMessage = fakeUi.getComponent<JLabel>()
+      val errorMessage = fakeUi.getComponent<JEditorPane>()
       waitForCondition(2, SECONDS) { fakeUi.isShowing(errorMessage) }
-      assertThat(errorMessage.text).isEqualTo("Device agent is not responding")
+      assertThat(extractText(errorMessage.text)).isEqualTo("Device agent is not responding")
     }
     assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
   }

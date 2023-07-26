@@ -166,7 +166,7 @@ internal class DeviceView(
   private var clipboardSynchronizer: DeviceClipboardSynchronizer? = null
   private val connectionStateListeners = mutableListOf<ConnectionStateListener>()
   private val agentTerminationListener = object: AgentTerminationListener {
-    override fun agentTerminated(exitCode: Int) { disconnected(initialDisplayOrientation) }
+    override fun agentTerminated(exitCode: Int) { disconnected(initialDisplayOrientation, AgentTerminatedException(exitCode)) }
     override fun deviceDisconnected() { disconnected(initialDisplayOrientation) }
   }
   private val frameListener = MyFrameListener()
@@ -227,6 +227,7 @@ internal class DeviceView(
 
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
+    frameNumber = 0
     connectionState = ConnectionState.CONNECTING
     val maxOutputSize = physicalSize
     AndroidCoroutineScope(this@DeviceView).launch {
@@ -280,30 +281,49 @@ internal class DeviceView(
   private fun disconnected(initialDisplayOrientation: Int, exception: Throwable? = null) {
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
     UIUtil.invokeLaterIfNeeded {
-      if (disposed) {
+      if (disposed || connectionState == ConnectionState.DISCONNECTED) {
         return@invokeLaterIfNeeded
       }
       hideLongRunningOperationIndicatorInstantly()
       stopClipboardSynchronization()
       val message: String
       val reconnector: Reconnector
-      when (connectionState) {
-        ConnectionState.CONNECTING -> {
+      when (frameNumber) {
+        0 -> {
           thisLogger().error("Failed to initialize the screen sharing agent", exception)
-          message = (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See the error log."
+          message = getConnectionErrorMessage(exception)
           reconnector = Reconnector("Retry", "Connecting to the device") { connectToAgentAsync(initialDisplayOrientation) }
         }
 
-        ConnectionState.CONNECTED -> {
-          message = "Lost connection to the device. See the error log."
+        else -> {
+          message = getDisconnectionErrorMessage(exception)
           reconnector = Reconnector("Reconnect", "Attempting to reconnect") { connectToAgentAsync(UNKNOWN_ORIENTATION) }
         }
-
-        else -> return@invokeLaterIfNeeded
       }
 
       connectionState = ConnectionState.DISCONNECTED
       showDisconnectedStateMessage(message, reconnector)
+    }
+  }
+
+  private fun getConnectionErrorMessage(exception: Throwable?): String {
+    return when {
+      (exception as? AgentTerminatedException)?.exitCode == AGENT_WEAK_VIDEO_ENCODER ->
+          "The device may not have sufficient computing power for encoding display contents. See the error log."
+      (exception as? AgentTerminatedException)?.exitCode == AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
+          "Repeated video encoder errors during initialization of the device agent. See the error log."
+      else -> (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See the error log."
+    }
+  }
+
+  private fun getDisconnectionErrorMessage(exception: Throwable?): String {
+    return when {
+      (exception as? AgentTerminatedException)?.exitCode == AGENT_WEAK_VIDEO_ENCODER ->
+          "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
+          " See the error log."
+      (exception as? AgentTerminatedException)?.exitCode == AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
+          "Repeated video encoder errors. See the error log."
+      else -> "Lost connection to the device. See the error log."
     }
   }
 

@@ -150,16 +150,20 @@ CodecInfo* SelectVideoEncoder(const string& mime_type) {
   return new CodecInfo(mime_type, codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment));
 }
 
-string GetVideoEncoderDetails(const string& codec_name, const string& mime_type, int32_t width, int32_t height) {
+string GetVideoEncoderDetails(const CodecInfo& codec_info, int32_t width, int32_t height) {
+  string codec_name = codec_info.name;
+  string mime_type = codec_info.mime_type;
   Jni jni = Jvm::GetJni();
   JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
   jmethodID method = clazz.GetStaticMethod("getVideoEncoderDetails", "(Ljava/lang/String;Ljava/lang/String;II)Ljava/lang/String;");
   return clazz.CallStaticObjectMethod(method, JString(jni, codec_name).ref(), JString(jni, mime_type).ref(), width, height).ToString();
 }
 
-[[noreturn]] void FatalVideoEncoderError(const char* error_message, const string& codec_name, const string& mime_type,
-                                         int32_t width, int32_t height) {
-  Log::Fatal("%s:\n%s", error_message, GetVideoEncoderDetails(codec_name, mime_type, width, height).c_str());
+[[noreturn]] void FatalVideoEncoderError(const char* error_message, const CodecInfo& codec_info, int32_t width, int32_t height) {
+  if (codec_info.max_resolution.width <= 640 && codec_info.max_resolution.height <= 640) {
+    Log::Fatal(WEAK_VIDEO_ENCODER, "%s:\n%s", error_message, GetVideoEncoderDetails(codec_info, width, height).c_str());
+  }
+  Log::Fatal(REPEATED_VIDEO_ENCODER_ERRORS, "%s:\n%s", error_message, GetVideoEncoderDetails(codec_info, width, height).c_str());
 }
 
 void WriteChannelHeader(const string& codec_name, int socket_fd) {
@@ -312,8 +316,7 @@ void DisplayStreamer::Run() {
       }
     }
     // Use heuristics for determining a bit rate value that doesn't cause SIGABRT in the encoder (b/251659422).
-    int32_t bit_rate = IsUnderpoweredCodec(codec_info_->max_resolution, display_info.logical_size) ?
-        BIT_RATE_REDUCED : BIT_RATE;
+    int32_t bit_rate = IsUnderpoweredCodec(codec_info_->max_resolution, display_info.logical_size) ? BIT_RATE_REDUCED : BIT_RATE;
     if (max_bit_rate_ > 0 && bit_rate > max_bit_rate_) {
       bit_rate = max_bit_rate_;
     }
@@ -384,8 +387,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     CodecOutputBuffer codec_buffer(codec);
     if (!codec_buffer.Deque(-1)) {
       if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS) {
-        FatalVideoEncoderError("Too many video encoder errors", codec_info_->name, codec_info_->mime_type,
-                               packet_header->display_width, packet_header->display_height);
+        FatalVideoEncoderError("Too many video encoder errors", *codec_info_, packet_header->display_width, packet_header->display_height);
       }
       continue;
     }

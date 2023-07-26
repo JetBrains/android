@@ -70,6 +70,15 @@ import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
+// Predefined agent's exit codes. Other exit codes are possible.
+internal const val AGENT_GENERIC_FAILURE = 1
+internal const val AGENT_INVALID_COMMAND_LINE = 2
+internal const val AGENT_WEAK_VIDEO_ENCODER = 3
+internal const val AGENT_REPEATED_VIDEO_ENCODER_ERRORS = 4
+internal const val AGENT_SIGABORT = 134
+internal const val AGENT_SIGKILL = 137
+internal const val AGENT_SIGSEGV = 139
+
 internal const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 internal const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
 internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/streaming/screen-sharing-agent"
@@ -514,3 +523,5 @@ internal class DeviceClient(
     private data class Message(val timestamp: Long, val text: String)
   }
 }
+
+internal class AgentTerminatedException(val exitCode: Int) : RuntimeException()

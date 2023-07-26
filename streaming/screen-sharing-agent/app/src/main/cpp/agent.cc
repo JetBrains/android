@@ -59,7 +59,7 @@ int CreateAndConnectSocket(const string& socket_name) {
 }
 
 [[noreturn]] void InvalidCommandLineArgument(const string& arg) {
-  Log::Fatal("Invalid command line argument: \"%s\"", arg.c_str());
+  Log::Fatal(INVALID_COMMAND_LINE, "Invalid command line argument: \"%s\"", arg.c_str());
 }
 
 void sighup_handler(int signal_number) {
