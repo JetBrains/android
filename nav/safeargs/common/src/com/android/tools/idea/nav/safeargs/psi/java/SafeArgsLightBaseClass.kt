@@ -17,6 +17,8 @@ package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.module.NavEntry
+import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
@@ -32,24 +34,24 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Common functionality for all safe args light classes.
  */
-abstract class SafeArgsLightBaseClass(facet: AndroidFacet,
-                                      modulePackage: String,
-                                      private val suffix: String,
-                                      private val navigationResource: ResourceItem,
-                                      destination: NavDestinationData)
-  : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.FINAL)) {
+abstract class SafeArgsLightBaseClass(
+  protected val navInfo: NavInfo,
+  protected val navEntry: NavEntry,
+  val destination: NavDestinationData,
+  suffix: String,
+) : AndroidLightClassBase(PsiManager.getInstance(navInfo.facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.FINAL)) {
 
   private val name: String
   private val qualifiedName: String
   private val backingFile: PsiJavaFile
-  protected val backingResourceFile by lazy { findResourceFile() }
 
   init {
+    super.setModuleInfo(navInfo.facet.module, false)
     val fileFactory = PsiFileFactory.getInstance(project)
 
     qualifiedName = destination.name.let { name ->
-      val nameWithoutDirections = if (!name.startsWith('.')) name else "$modulePackage$name"
-      "$nameWithoutDirections$suffix"
+      val nameWithoutSuffix = if (!name.startsWith('.')) name else "${navInfo.packageName}$name"
+      "$nameWithoutSuffix$suffix"
     }
     name = qualifiedName.substringAfterLast('.')
 
@@ -65,11 +67,6 @@ abstract class SafeArgsLightBaseClass(facet: AndroidFacet,
   override fun getContainingClass(): PsiClass? = null
   override fun isValid() = true
   override fun getNavigationElement(): PsiElement {
-    return backingResourceFile ?: return super.getNavigationElement()
-  }
-
-  private fun findResourceFile(): XmlFile? {
-    val virtualFile = navigationResource.getSourceAsVirtualFile() ?: return null
-    return PsiManager.getInstance(project).findFile(virtualFile) as XmlFile
+    return navEntry.backingXmlFile ?: return super.getNavigationElement()
   }
 }

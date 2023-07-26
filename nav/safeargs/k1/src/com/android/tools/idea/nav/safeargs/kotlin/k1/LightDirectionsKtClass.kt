@@ -16,17 +16,14 @@
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
 import com.android.SdkConstants
-import com.android.ide.common.gradle.Version
-import com.android.tools.idea.nav.safeargs.index.NavActionData
-import com.android.tools.idea.nav.safeargs.index.NavArgumentData
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
-import com.android.tools.idea.nav.safeargs.index.NavXmlData
+import com.android.tools.idea.nav.safeargs.module.NavEntry
+import com.android.tools.idea.nav.safeargs.module.NavInfo
+import com.android.tools.idea.nav.safeargs.psi.ArgumentUtils.getActionsWithResolvedArguments
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
-import com.android.tools.idea.nav.safeargs.psi.java.getPsiTypeStr
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.findFirstMatchingElementByTraversingUp
-import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlTag
@@ -99,10 +96,10 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  */
 class LightDirectionsKtClass(
-  private val navigationVersion: Version,
+  private val navInfo: NavInfo,
+  private val navEntry: NavEntry,
   name: Name,
   private val destination: NavDestinationData,
-  private val navResourceData: NavXmlData,
   sourceElement: SourceElement,
   containingDescriptor: DeclarationDescriptor,
   private val storageManager: StorageManager
@@ -142,7 +139,10 @@ class LightDirectionsKtClass(
           // action methods
           val navDirectionType = directionsClassDescriptor.builtIns.getKotlinType("androidx.navigation.NavDirections", null,
                                                                                   directionsClassDescriptor.module)
-          destination.resolveActions()
+          destination.getActionsWithResolvedArguments(
+              navEntry.data,
+              navInfo.packageName,
+              adjustArgumentsWithDefaults = (navInfo.navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS))
             .asSequence()
             .mapNotNull { action ->
               val valueParametersProvider = { method: SimpleFunctionDescriptorImpl ->
@@ -184,58 +184,6 @@ class LightDirectionsKtClass(
               )
             }
             .toList()
-        }
-
-        /**
-         * For each of action, besides args from target destination, args from its surrounding action are collected to
-         * support args overrides.
-         * (https://developer.android.com/guide/navigation/navigation-pass-data#override_a_destination_argument_in_an_action)
-         */
-        private fun NavDestinationData.resolveActions(): List<NavActionData> {
-          return this.actions
-            .asSequence()
-            .mapNotNull { action ->
-              val destinationId = action.resolveDestination() ?: return@mapNotNull null
-
-              // Null implies only 'popUpTo' attribute is defined, so no args are supposed to be passed.
-              action.destination ?: return@mapNotNull object : NavActionData by action {
-                override val arguments: List<NavArgumentData> = emptyList()
-              }
-
-              val argsFromTargetDestination = navResourceData.resolvedDestinations.firstOrNull { it.id == destinationId }?.arguments
-                                              ?: emptyList()
-
-              val resolvedArguments = (action.arguments + argsFromTargetDestination)
-                .groupBy { it.name }
-                .map { entry ->
-                  if (entry.value.size > 1) checkArguments(entry)
-                  entry.value.first()
-                }
-
-              object : NavActionData by action {
-                override val arguments: List<NavArgumentData> =
-                  if (navigationVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
-                    resolvedArguments.sortedBy { it.defaultValue != null }
-                  else
-                    resolvedArguments
-              }
-            }
-            .toList()
-        }
-
-        /**
-         * Warn if incompatible types of argument exist. We still provide best results though it fails to compile.
-         */
-        private fun checkArguments(entry: Map.Entry<String, List<NavArgumentData>>) {
-          val modulePackageName = directionsClassDescriptor.module.toModule()?.getModuleSystem()?.getPackageName() ?: ""
-          val types = entry.value
-            .asSequence()
-            .map { arg ->
-              getPsiTypeStr(modulePackageName, arg.type, arg.defaultValue)
-            }
-            .toSet()
-
-          if (types.size > 1) LOG.warn("Incompatible types of argument ${entry.key}.")
         }
 
         override fun getContributedDescriptors(

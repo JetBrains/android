@@ -36,11 +36,11 @@ class SafeArgsCacheModuleService private constructor(module: Module) {
 
   private val currentStatus by NavStatusCache(module, SafeArgsMode.JAVA) { navInfo ->
     val directions = navInfo.entries
-      .flatMap { entry -> createLightDirectionsClasses(navInfo.facet, navInfo.packageName, entry) }
+      .flatMap { entry -> createLightDirectionsClasses(navInfo, entry) }
       .toList()
 
     val args = navInfo.entries
-      .flatMap { entry -> createLightArgsClasses(navInfo.facet, navInfo.packageName, navInfo.navVersion, entry) }
+      .flatMap { entry -> createLightArgsClasses(navInfo, entry) }
       .toList()
 
     Status(directions, args)
@@ -52,20 +52,17 @@ class SafeArgsCacheModuleService private constructor(module: Module) {
   val args: List<LightArgsClass>
     get() = currentStatus?.args ?: emptyList()
 
-  private fun createLightDirectionsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightDirectionsClass> {
-    return entry.data.resolvedDestinations
+  private fun createLightDirectionsClasses(navInfo: NavInfo, navEntry: NavEntry): Collection<LightDirectionsClass> {
+    return navEntry.data.resolvedDestinations
       .filter { destination -> destination.actions.isNotEmpty() }
-      .map { destination -> LightDirectionsClass(facet, modulePackage, entry.resource, entry.data, destination) }
+      .map { destination -> LightDirectionsClass(navInfo, navEntry, destination) }
       .toSet()
   }
 
-  private fun createLightArgsClasses(facet: AndroidFacet,
-                                     modulePackage: String,
-                                     navigationVersion: Version,
-                                     entry: NavEntry): Collection<LightArgsClass> {
-    return entry.data.resolvedDestinations
+  private fun createLightArgsClasses(navInfo: NavInfo, navEntry: NavEntry): Collection<LightArgsClass> {
+    return navEntry.data.resolvedDestinations
       .filter { destination -> destination.arguments.isNotEmpty() }
-      .map { destination -> LightArgsClass(facet, modulePackage, navigationVersion, entry.resource, destination) }
+      .map { destination -> LightArgsClass(navInfo, navEntry, destination) }
       .toSet()
   }
 

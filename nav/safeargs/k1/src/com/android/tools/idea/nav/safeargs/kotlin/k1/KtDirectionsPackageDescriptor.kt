@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
-import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
-import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -38,21 +36,19 @@ import org.jetbrains.kotlin.utils.alwaysTrue
  * Directions Kt package descriptor, which wraps and indirectly exposes a [LightDirectionsKtClass] class descriptor
  */
 class KtDirectionsPackageDescriptor(
-  private val containingModuleInfo: SafeArgsModuleInfo,
-  private val navigationVersion: Version,
+  private val containingNavFileInfo: SafeArgsNavFileInfo,
   fqName: FqName,
   val className: Name,
   private val destination: NavDestinationData,
-  private val navResourceData: NavXmlData,
   private val sourceElement: SourceElement,
   private val storageManager: StorageManager
-) : PackageFragmentDescriptorImpl(containingModuleInfo.moduleDescriptor, fqName) {
+) : PackageFragmentDescriptorImpl(containingNavFileInfo.moduleDescriptor, fqName) {
   private val scope = storageManager.createLazyValue { SafeArgsModuleScope() }
 
   override fun getMemberScope(): MemberScope = scope()
 
   override fun getContainingDeclaration(): ModuleDescriptor {
-    return containingModuleInfo.module.toDescriptor() ?: super.getContainingDeclaration()
+    return containingNavFileInfo.module.toDescriptor() ?: super.getContainingDeclaration()
   }
 
   private val safeArgsPackageDescriptor = this@KtDirectionsPackageDescriptor
@@ -60,10 +56,10 @@ class KtDirectionsPackageDescriptor(
   private inner class SafeArgsModuleScope : MemberScopeImpl() {
     private val classes = storageManager.createLazyValue {
       val directionsClass = LightDirectionsKtClass(
-        navigationVersion,
+        containingNavFileInfo.navInfo,
+        containingNavFileInfo.navEntry,
         className,
         destination,
-        navResourceData,
         sourceElement,
         safeArgsPackageDescriptor,
         storageManager

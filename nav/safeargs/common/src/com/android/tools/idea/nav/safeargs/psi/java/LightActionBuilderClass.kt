@@ -17,6 +17,7 @@ package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.SdkConstants
 import com.android.tools.idea.nav.safeargs.index.NavActionData
+import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.android.tools.idea.nav.safeargs.psi.xml.findFirstMatchingElementByTraversingUp
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
@@ -41,12 +42,11 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 class LightActionBuilderClass(
   className: String,
-  private val backingResourceFile: XmlFile?,
-  facet: AndroidFacet,
-  private val modulePackage: String,
+  private val navInfo: NavInfo,
   private val directionsClass: LightDirectionsClass,
-  private val action: NavActionData
-) : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)) {
+  private val action: NavActionData,
+  private val backingResourceFile: XmlFile?,
+) : AndroidLightClassBase(PsiManager.getInstance(navInfo.facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC)) {
   private val NAV_DIRECTIONS_FQCN = "androidx.navigation.NavDirections"
   private val name: String = className
   private val qualifiedName: String = "${directionsClass.qualifiedName}.$name"
@@ -83,7 +83,7 @@ class LightActionBuilderClass(
 
     return action.arguments.flatMap { arg ->
       // Create a getter and setter per argument
-      val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
+      val argType = arg.parsePsiType(navInfo.packageName, this)
       val setter = createMethod(name = "set${arg.name.toUpperCamelCase()}",
                                 navigationElement = getFieldNavigationElementByName(arg.name),
                                 returnType = annotateNullability(thisType))
@@ -101,7 +101,7 @@ class LightActionBuilderClass(
     val privateConstructor = createConstructor().apply {
       action.arguments.forEach { arg ->
         if (arg.defaultValue == null) {
-          val argType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
+          val argType = arg.parsePsiType(navInfo.packageName, this)
           this.addParameter(arg.name.toCamelCase(), argType)
         }
       }
@@ -121,7 +121,7 @@ class LightActionBuilderClass(
         // we search in the target destination tag.
         val targetArgumentTag = _navigationElement?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
                                 ?: targetDestinationTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
-        createField(arg, modulePackage, targetArgumentTag)
+        createField(arg, navInfo.packageName, targetArgumentTag)
       }
       .toList()
       .toTypedArray()

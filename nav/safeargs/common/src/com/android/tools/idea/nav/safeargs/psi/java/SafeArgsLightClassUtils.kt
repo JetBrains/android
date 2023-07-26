@@ -67,7 +67,7 @@ private val NAV_TO_JAVA_TYPE_MAP = mapOf(
  *    `typeStr` itself is not specified.
  *
  */
-internal fun parsePsiType(modulePackage: String, typeStr: String?, defaultValue: String?, context: PsiElement): PsiType {
+fun parsePsiType(modulePackage: String, typeStr: String?, defaultValue: String?, context: PsiElement): PsiType {
   val psiTypeStr = getPsiTypeStr(modulePackage, typeStr, defaultValue)
   return try {
     PsiElementFactory.getInstance(context.project).createTypeFromText(psiTypeStr, context)
@@ -76,6 +76,9 @@ internal fun parsePsiType(modulePackage: String, typeStr: String?, defaultValue:
     PsiElementFactory.getInstance(context.project).createTypeFromText(FALLBACK_TYPE, context)
   }
 }
+
+fun NavArgumentData.parsePsiType(modulePackage: String, context: PsiElement): PsiType =
+  parsePsiType(modulePackage, type, defaultValue, context)
 
 fun getPsiTypeStr(modulePackage: String, typeStr: String?, defaultValue: String?): String {
   // When specified as inputs to safe args, inner classes in XML should use the Java syntax (e.g. "Outer$Inner"), but IntelliJ resolves
@@ -90,6 +93,9 @@ fun getPsiTypeStr(modulePackage: String, typeStr: String?, defaultValue: String?
   psiTypeStr = NAV_TO_JAVA_TYPE_MAP.getOrDefault(psiTypeStr, psiTypeStr)
   return if (!psiTypeStr.startsWith('.')) psiTypeStr else "$modulePackage$psiTypeStr"
 }
+
+fun NavArgumentData.getPsiTypeStr(modulePackage: String): String =
+  getPsiTypeStr(modulePackage, type, defaultValue)
 
 private fun guessFromDefaultValue(defaultValue: String?): String? {
   if (defaultValue == null || defaultValue == "@null") {
@@ -169,7 +175,7 @@ internal fun PsiClass.createConstructor(
 }
 
 internal fun PsiClass.createField(arg: NavArgumentData, modulePackage: String, xmlTag: XmlTag?): LightFieldBuilder {
-  val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
+  val psiType = arg.parsePsiType(modulePackage, this)
   val nonNull = psiType is PsiPrimitiveType || arg.isNonNull()
   return NullabilityLightFieldBuilder(manager, arg.name, psiType, nonNull, PsiModifier.PUBLIC, PsiModifier.FINAL).apply {
     this.navigationElement = xmlTag ?: this.navigationElement

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.kotlin.k1
 
-import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -38,29 +37,35 @@ import org.jetbrains.kotlin.utils.alwaysTrue
  * Args Kt package descriptor, which wraps and indirectly exposes a [LightArgsKtClass] class descriptor
  */
 class KtArgsPackageDescriptor(
-  private val containingModuleInfo: SafeArgsModuleInfo,
-  private val navigationVersion: Version,
+  private val containingNavFileInfo: SafeArgsNavFileInfo,
   fqName: FqName,
   val className: Name,
   private val destination: NavDestinationData,
   private val superTypesProvider: (PackageFragmentDescriptorImpl) -> Collection<KotlinType>,
   private val sourceElement: SourceElement,
   private val storageManager: StorageManager
-) : PackageFragmentDescriptorImpl(containingModuleInfo.moduleDescriptor, fqName) {
+) : PackageFragmentDescriptorImpl(containingNavFileInfo.moduleDescriptor, fqName) {
   private val scope = storageManager.createLazyValue { SafeArgsModuleScope() }
 
   override fun getMemberScope(): MemberScope = scope()
 
   override fun getContainingDeclaration(): ModuleDescriptor {
-    return containingModuleInfo.module.toDescriptor() ?: super.getContainingDeclaration()
+    return containingNavFileInfo.module.toDescriptor() ?: super.getContainingDeclaration()
   }
 
   private val safeArgsPackageDescriptor = this@KtArgsPackageDescriptor
 
   private inner class SafeArgsModuleScope : MemberScopeImpl() {
     private val classes = storageManager.createLazyValue {
-      val argsClass = LightArgsKtClass(navigationVersion, className, destination, superTypesProvider(safeArgsPackageDescriptor),
-                                       sourceElement, safeArgsPackageDescriptor, storageManager)
+      val argsClass = LightArgsKtClass(
+        containingNavFileInfo.navInfo,
+        className,
+        destination,
+        superTypesProvider(safeArgsPackageDescriptor),
+        sourceElement,
+        safeArgsPackageDescriptor,
+        storageManager
+      )
       listOfNotNull(argsClass)
     }
 

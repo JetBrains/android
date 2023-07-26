@@ -103,6 +103,7 @@ class DirectionsClassKtDescriptorsTest {
     assertThat(directionsClassMetadata.companionObject!!.functions.map { it.toString() }).containsExactly(
       "actionFragment1ToFragment2(): androidx.navigation.NavDirections",
       "actionFragment1ToMain(): androidx.navigation.NavDirections",
+      "actionWithoutDestination(): androidx.navigation.NavDirections",
     )
     assertThat(directionsClassMetadata.functions).isEmpty()
   }

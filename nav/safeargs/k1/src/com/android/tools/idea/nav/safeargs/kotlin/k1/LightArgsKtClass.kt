@@ -18,6 +18,8 @@ package com.android.tools.idea.nav.safeargs.kotlin.k1
 import com.android.SdkConstants
 import com.android.ide.common.gradle.Version
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.module.NavEntry
+import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.java.toCamelCase
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
@@ -82,7 +84,7 @@ import org.jetbrains.kotlin.utils.Printer
  * ```
  */
 class LightArgsKtClass(
-  private val navigationVersion: Version,
+  private val navInfo: NavInfo,
   name: Name,
   private val destination: NavDestinationData,
   superTypes: Collection<KotlinType>,
@@ -104,7 +106,7 @@ class LightArgsKtClass(
 
   private fun computePrimaryConstructor(): ClassConstructorDescriptor {
     val valueParametersProvider = { constructor: ClassConstructorDescriptor ->
-      val resolvedArguments = if (navigationVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
+      val resolvedArguments = if (navInfo.navVersion >= SafeArgsFeatureVersions.ADJUST_PARAMS_WITH_DEFAULTS)
         destination.arguments.sortedBy { it.defaultValue != null }
       else
         destination.arguments
@@ -156,7 +158,7 @@ class LightArgsKtClass(
             valueParametersProvider = fromBundleParametersProvider
           ))
 
-          if (navigationVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
+          if (navInfo.navVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
             val fromSavedStateHandleParametersProvider = { method: SimpleFunctionDescriptorImpl ->
               val handleType =
                 argsClassDescriptor.builtIns.getKotlinType("androidx.lifecycle.SavedStateHandle", null, argsClassDescriptor.module)
@@ -253,7 +255,7 @@ class LightArgsKtClass(
         .toList()
 
       // Add on version specific methods since the navigation library side is keeping introducing new methods.
-      if (navigationVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
+      if (navInfo.navVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
         methods.add(
           argsClassDescriptor.createMethod(
             name = "toSavedStateHandle",

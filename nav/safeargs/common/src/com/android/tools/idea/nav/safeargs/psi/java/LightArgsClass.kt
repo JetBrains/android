@@ -16,9 +16,9 @@
 package com.android.tools.idea.nav.safeargs.psi.java
 
 import com.android.SdkConstants
-import com.android.ide.common.gradle.Version
-import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.module.NavEntry
+import com.android.tools.idea.nav.safeargs.module.NavInfo
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
 import com.android.tools.idea.nav.safeargs.psi.xml.findChildTagElementByNameAttr
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
@@ -29,7 +29,6 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.PsiTypesUtil
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Light class for Args classes generated from navigation xml files.
@@ -56,22 +55,17 @@ import org.jetbrains.android.facet.AndroidFacet
  *  }
  * ```
  */
-class LightArgsClass(facet: AndroidFacet,
-                     private val modulePackage: String,
-                     private val navigationVersion: Version,
-                     navigationResource: ResourceItem,
-                     val destination: NavDestinationData)
-  : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, destination) {
-
-  init {
-    setModuleInfo(facet.module, false)
-  }
+class LightArgsClass(
+  navInfo: NavInfo,
+  navEntry: NavEntry,
+  destination: NavDestinationData,
+) : SafeArgsLightBaseClass(navInfo, navEntry, destination, "Args") {
 
   private val NAV_ARGS_FQCN = "androidx.navigation.NavArgs"
-  private val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
+  private val builderClass = LightArgsBuilderClass(navInfo, this)
   private val _fields by lazy { computeFields() }
   private val _methods by lazy { computeMethods() }
-  private val backingXmlTag by lazy { backingResourceFile?.findXmlTagById(destination.id) }
+  private val backingXmlTag by lazy { navEntry.backingXmlFile?.findXmlTagById(destination.id) }
   private val navArgsType by lazy { PsiType.getTypeByName(NAV_ARGS_FQCN, project, this.resolveScope) }
   private val navArgsClass by lazy { JavaPsiFacade.getInstance(project).findClass(NAV_ARGS_FQCN, this.resolveScope) }
 
@@ -96,13 +90,13 @@ class LightArgsClass(facet: AndroidFacet,
 
   private fun computeMethods(): Array<PsiMethod> {
     val thisType = PsiTypesUtil.getClassType(this)
-    val bundleType = parsePsiType(modulePackage, "android.os.Bundle", null, this)
-    val savedStateHandleType = parsePsiType(modulePackage, "androidx.lifecycle.SavedStateHandle", null, this)
+    val bundleType = parsePsiType(navInfo.packageName, "android.os.Bundle", null, this)
+    val savedStateHandleType = parsePsiType(navInfo.packageName, "androidx.lifecycle.SavedStateHandle", null, this)
 
     val methods = mutableListOf<PsiMethod>()
 
     methods.addAll(destination.arguments.map { arg ->
-      val psiType = parsePsiType(modulePackage, arg.type, arg.defaultValue, this)
+      val psiType = arg.parsePsiType(navInfo.packageName, this)
       createMethod(name = "get${arg.name.toUpperCamelCase()}",
                    navigationElement = getFieldNavigationElementByName(arg.name),
                    returnType = annotateNullability(psiType, arg.isNonNull()))
@@ -114,7 +108,7 @@ class LightArgsClass(facet: AndroidFacet,
                   .addParameter("bundle", bundleType))
 
     // Add on version specific methods since the navigation library side is keeping introducing new methods.
-    if (navigationVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
+    if (navInfo.navVersion >= SafeArgsFeatureVersions.FROM_SAVED_STATE_HANDLE) {
       methods.add(
         createMethod(
           name = "fromSavedStateHandle",
@@ -125,7 +119,7 @@ class LightArgsClass(facet: AndroidFacet,
     }
 
     // Add on version specific methods since the navigation library side is keeping introducing new methods.
-    if (navigationVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
+    if (navInfo.navVersion >= SafeArgsFeatureVersions.TO_SAVED_STATE_HANDLE) {
       methods.add(createMethod(name = "toSavedStateHandle", returnType = annotateNullability(savedStateHandleType)))
     }
 
@@ -142,7 +136,7 @@ class LightArgsClass(facet: AndroidFacet,
       .asSequence()
       .map { arg ->
         val targetArgumentTag = backingXmlTag?.findChildTagElementByNameAttr(SdkConstants.TAG_ARGUMENT, arg.name)
-        createField(arg, modulePackage, targetArgumentTag)
+        createField(arg, navInfo.packageName, targetArgumentTag)
       }
       .toList()
       .toTypedArray()

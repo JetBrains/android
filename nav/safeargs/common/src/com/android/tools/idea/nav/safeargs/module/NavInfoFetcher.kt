@@ -33,23 +33,31 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.xml.XmlFile
 import net.jcip.annotations.GuardedBy
 import org.jetbrains.android.facet.AndroidFacet
 import kotlin.reflect.KProperty
 
 /** Information about a single navigation file. */
 data class NavEntry(
+  /** The [AndroidFacet] for the module containing this navigation file. */
+  val facet: AndroidFacet,
   /** The [ResourceItem] for the nav XML item. */
   val resource: ResourceItem,
   /** The source file of the nav XML item. */
   val file: VirtualFile,
   /** The [NavXmlData] for the nav XML item. */
   val data: NavXmlData,
-)
+) {
+  val backingXmlFile: XmlFile? by lazy {
+    PsiManager.getInstance(facet.module.project).findFile(file) as? XmlFile
+  }
+}
 
-/** The current navigation state of the project. */
+/** The current navigation state of a module. */
 data class NavInfo(
-  /** The [AndroidFacet] for the project. */
+  /** The [AndroidFacet] for the module. */
   val facet: AndroidFacet,
   /** The package name for the generated classes. */
   val packageName: String,
@@ -118,7 +126,7 @@ class NavInfoFetcher(
     val entries = navResources.values().mapNotNull { resource ->
       val file = resource.getSourceAsVirtualFile() ?: return@mapNotNull null
       val data = NavXmlIndex.getDataForFile(module.project, file) ?: return@mapNotNull null
-      NavEntry(resource, file, data)
+      NavEntry(facet, resource, file, data)
     }
 
     return NavInfo(facet, modulePackage, entries, navVersion, modificationCount)
