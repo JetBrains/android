@@ -91,7 +91,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -102,6 +101,7 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
@@ -455,6 +455,7 @@ class ComposePreviewRepresentation(
               lastMode = it.newMode
               restoreMode = it.currentMode
             }
+            withUiContext { currentLayoutMode = it.newMode.layoutMode }
             modeFlow.value = it.newMode
           }
           else -> Unit
@@ -1717,8 +1718,6 @@ class ComposePreviewRepresentation(
   }
 
   private suspend fun onEnter(mode: PreviewMode) {
-    invokeLater { currentLayoutMode = mode.layoutMode }
-
     when (mode) {
       is PreviewMode.Default -> {
         sceneComponentProvider.enabled = true
