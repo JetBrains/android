@@ -48,7 +48,6 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
@@ -59,15 +58,17 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.VisibleForTesting
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtFile
 import java.util.concurrent.Executor
 
@@ -98,31 +99,7 @@ class LiveEditServiceImpl(val project: Project,
     val adapter = EmulatorLiveEditAdapter(project)
     LiveEditIssueNotificationAction.registerProject(project, adapter)
     Disposer.register(this) { LiveEditIssueNotificationAction.unregisterProject(project) }
-    ApplicationManager.getApplication().invokeLater {
-      val toolWindowManager = project.getServiceIfCreated(ToolWindowManager::class.java)
-      toolWindowManager?.invokeLater {
-        val runningDevicesWindow = toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
-        runningDevicesWindow?.addContentManagerListener(object : ContentManagerListener {
-          override fun contentAdded(event: ContentManagerEvent) {
-            val dataProvider = event.content.component as? DataProvider ?: return
-            val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
-            serial?.let { adapter.register(it) }
-          }
-
-          override fun contentRemoveQuery(event: ContentManagerEvent) {
-            val dataProvider = event.content.component as? DataProvider ?: return
-            val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
-            serial?.let { adapter.unregister(it) }
-          }
-        })
-
-        runningDevicesWindow?.contentManagerIfCreated?.contents?.forEach {
-          val dataProvider = it.component as? DataProvider ?: return@forEach
-          val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
-          serial?.let { s -> adapter.register(s) }
-        }
-      }
-    }
+    registerWithRunningDevices(project, adapter)
 
     // TODO: Deactivate this when not needed.
     val listener = PsiListener(this::onPsiChanged)
@@ -292,5 +269,55 @@ class LiveEditServiceImpl(val project: Project,
     // TODO(b/286911223): Check if its possible to retrieve AndroidFacet from BlazeCommandRunConfiguration instance of RunProfile and if LaunchUtils.canDebugApp may be run on it
     // Check if the run profile deploys to local device to allow BlazeCommandRunConfiguration based run profiles
     return DeployableToDevice.deploysToLocalDevice(runProfile)
+  }
+
+  /**
+   * Wrapper function to add listeners to the running devices tool window. This wrapper is needed due to changing startup sequence,
+   * forcing us to determine if we need to wait for the running devices tool window initialization first.
+   */
+  private fun registerWithRunningDevices(project: Project, adapter: EmulatorLiveEditAdapter) {
+    val toolWindow = project.getServiceIfCreated(ToolWindowManager::class.java)?.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)
+    if (toolWindow == null) {
+      // If our service gets initialized before running devices tool window, then we need to listen for when the tool window is created,
+      // then add listeners to it.
+      val connection = project.messageBus.connect()
+      connection.subscribe(ToolWindowManagerListener.TOPIC, object: ToolWindowManagerListener {
+        override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
+          if (ids.contains(RUNNING_DEVICES_TOOL_WINDOW_ID)) {
+            toolWindowManager.getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID)?.let { addListenersToRunningDevices(adapter, it) }
+            connection.disconnect()
+          }
+        }
+      })
+    }
+    else {
+      // If the running devices tool window is already initialized, then we can safely add listeners to it.
+      addListenersToRunningDevices(adapter, toolWindow)
+    }
+  }
+
+  /**
+   * Adds content listeners, so we know when a device is added/removed to the running devices tool window.
+   */
+  private fun addListenersToRunningDevices(adapter: EmulatorLiveEditAdapter, runningDevicesWindow: ToolWindow) {
+    runningDevicesWindow.addContentManagerListener(object : ContentManagerListener {
+      override fun contentAdded(event: ContentManagerEvent) {
+        val dataProvider = event.content.component as? DataProvider ?: return
+        val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
+        serial?.let { adapter.register(it) }
+      }
+
+      override fun contentRemoveQuery(event: ContentManagerEvent) {
+        val dataProvider = event.content.component as? DataProvider ?: return
+        val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
+        serial?.let { adapter.unregister(it) }
+      }
+    })
+
+    runningDevicesWindow.contentManagerIfCreated?.contents?.forEach {
+      val dataProvider = it.component as? DataProvider ?: return@forEach
+      val serial = dataProvider.getData(SERIAL_NUMBER_KEY.name) as String?
+      serial?.let { s -> adapter.register(s) }
+    }
   }
 }
