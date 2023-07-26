@@ -88,6 +88,7 @@ class UpgradeAssistantWindowModel(
   val currentVersionProvider: () -> AgpVersion?,
   var recommended: AgpVersion? = null,
   val latestKnownVersion : AgpVersion = AgpVersions.latestKnown,
+  val newProjectVersion : AgpVersion = AgpVersions.newProject,
   val knownVersionsRequester: () -> Set<AgpVersion> = { AgpVersions.getAvailableVersions() }
 ) : GradleSyncListener, Disposable {
 
@@ -386,8 +387,8 @@ class UpgradeAssistantWindowModel(
   }
 
   fun suggestedVersionsList(avaliableVersions: Set<AgpVersion>): List<AgpVersion> = avaliableVersions
-    // Make sure the current (if known) and recommended versions are present, whether published or not
-    .union(listOfNotNull(current, recommended)).asSequence()
+    // Make sure the current (if known), recommended and new project versions are present, whether published or not
+    .union(listOfNotNull(current, recommended, newProjectVersion)).asSequence()
     // Keep only versions that are later than or equal to current
     .filter { current?.let { current -> it >= current } ?: false }
     // Keep only versions that are no later than the latest version we support

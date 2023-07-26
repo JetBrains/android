@@ -799,7 +799,7 @@ class ContentManagerImplTest {
   fun testToolWindowDropdownInitializedWithCurrentAndLatest() {
     val contentManager = ContentManagerImpl(project)
     val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID)!!
-    val model = UpgradeAssistantWindowModel(project, { currentAgpVersion }) { setOf<AgpVersion>() }
+    val model = UpgradeAssistantWindowModel(project, { currentAgpVersion }, newProjectVersion = currentAgpVersion) { setOf() }
     val view = UpgradeAssistantView(model, toolWindow.contentManager)
     assertThat(view.versionTextField.model.selectedItem).isEqualTo(latestAgpVersion)
     assertThat(view.versionTextField.model.size).isEqualTo(1)
@@ -987,7 +987,7 @@ class ContentManagerImplTest {
 
   @Test
   fun testSuggestedVersions() {
-    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion })
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion }, newProjectVersion = currentAgpVersion)
     val knownVersions = listOf("4.1.0", "20000.1.0").map { AgpVersion.parse(it) }.toSet()
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions).isEqualTo(listOf(currentAgpVersion))
@@ -1027,7 +1027,7 @@ class ContentManagerImplTest {
 
   @Test
   fun testSuggestedVersionsDoesNotIncludeForcedUpgrades() {
-    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion })
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { currentAgpVersion }, newProjectVersion = AgpVersion.parse("4.0.0"))
     val knownVersions = listOf("4.1.0", "4.2.0-dev", "4.2.0").map { AgpVersion.parse(it) }.toSet()
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions)
@@ -1051,10 +1051,28 @@ class ContentManagerImplTest {
       "7.4.2",
       "7.4.1",
       ).map { AgpVersion.parse(it) }.toSet()
-    val toolWindowModel = UpgradeAssistantWindowModel(project, { AgpVersion.parse("7.4.2") }, null, latestKnownNotPublished) { knownVersions }
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { AgpVersion.parse("7.4.2") }, null, latestKnownNotPublished, newProjectVersion = AgpVersion.parse("8.0.2")) { knownVersions }
     val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
     assertThat(suggestedVersions.map { it.toString() })
       .containsExactly("8.1.0-rc01", "8.0.2", "8.0.1", "8.0.0", "8.0.0-rc01", "7.4.2").inOrder()
+  }
+
+  @Test
+  fun `test suggested versions does include current alpha if that version will be used for new projects`() {
+    val latestKnownNotPublished = AgpVersion.parse("8.2.0-alpha11")
+    val knownVersions = listOf(
+      "8.2.0-alpha10", "8.2.0-alpha09", "8.2.0-alpha08", "8.2.0-alpha07", "8.2.0-alpha06", "8.2.0-alpha05", "8.2.0-alpha04", "8.2.0-alpha03", "8.2.0-alpha02", "8.2.0-alpha01",
+      "8.1.0-rc01",
+      "8.1.0-beta05", "8.1.0-beta04", "8.1.0-beta03", "8.1.0-beta02", "8.1.0-beta01",
+      "8.1.0-alpha11", "8.1.0-alpha10", "8.1.0-alpha09", "8.1.0-alpha08", "8.1.0-alpha07", "8.1.0-alpha06", "8.1.0-alpha05", "8.1.0-alpha04", "8.1.0-alpha03", "8.1.0-alpha02", "8.1.0-alpha01",
+      "8.0.2",
+      "8.0.1",
+      "8.0.0",
+    ).map { AgpVersion.parse(it) }.toSet()
+    val toolWindowModel = UpgradeAssistantWindowModel(project, { AgpVersion.parse("8.0.1") }, null, latestKnownNotPublished, newProjectVersion = latestKnownNotPublished) { knownVersions }
+    val suggestedVersions = toolWindowModel.suggestedVersionsList(knownVersions)
+    assertThat(suggestedVersions.map { it.toString() })
+      .containsExactly("8.2.0-alpha11", "8.1.0-rc01", "8.0.2", "8.0.1").inOrder()
   }
 
   @Test
