@@ -41,7 +41,7 @@ class PairEnumFinderTest(
     @Parameterized.Parameters(name = "\"{0}\" conversion test")
     @JvmStatic
     fun myTestParameters() = PairEnumFinder.permissibleConversions.map {
-      arrayOf(it.key.simpleName, it.key, it.value as EnumConverter<Enum<*>, Enum<*>>)
+      arrayOf(it.key.simpleName, it.key, it.value as EnumConverter<*, *>)
     }
   }
 }

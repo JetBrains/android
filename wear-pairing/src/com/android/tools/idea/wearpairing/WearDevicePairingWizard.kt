@@ -77,6 +77,7 @@ class WearDevicePairingWizard {
     when (selectedDevice?.isWearDevice) {
       true -> model.selectedWearDevice.setNullableValue(selectedDevice)
       false -> model.selectedPhoneDevice.setNullableValue(selectedDevice)
+      null -> { }
     }
     val modelWizard = ModelWizard.Builder()
       .addStep(DeviceListStep(model, project, wizardAction))

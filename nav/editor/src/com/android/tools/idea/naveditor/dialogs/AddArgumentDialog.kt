@@ -280,7 +280,7 @@ class AddArgumentDialog(
     when {
       selectedType == Type.BOOLEAN && !isArray -> {
         (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")
-        defaultValueComboModel.update(Lists.newArrayList<String>(null, "true", "false"))
+        defaultValueComboModel.update(listOf(null, "true", "false"))
       }
       selectedType == Type.CUSTOM_ENUM && !isArray -> {
         (dialogUI.myDefaultValuePanel.layout as CardLayout).show(dialogUI.myDefaultValuePanel, "comboDefaultValue")

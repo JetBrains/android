@@ -99,7 +99,7 @@ class SafeArgsIconsRenderingTest {
     fixture.moveCaret("val argsClass = |")
     fixture.type("Args")
     fixture.completeBasic()
-    var icons = fixture.lookupElements
+    var icons = fixture.lookupElements!!
       .filter { it.lookupString.endsWith("FragmentArgs") }
       .map { DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
@@ -109,7 +109,7 @@ class SafeArgsIconsRenderingTest {
     fixture.moveCaret("val directionsClass = |")
     fixture.type("Directions")
     fixture.completeBasic()
-    icons = fixture.lookupElements
+    icons = fixture.lookupElements!!
       .filter { it.lookupString.endsWith("FragmentDirections") }
       .mapNotNull { DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
@@ -144,7 +144,7 @@ class SafeArgsIconsRenderingTest {
     // check static method from args class
     fixture.moveCaret("val argsClass1 = SecondFragmentArgs.|")
     fixture.completeBasic()
-    var icons = fixture.lookupElements
+    var icons = fixture.lookupElements!!
       .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
     assertThat(icons).contains("fromBundle" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function))
@@ -152,7 +152,7 @@ class SafeArgsIconsRenderingTest {
     // check static method from directions class
     fixture.moveCaret("val directionsClass1 = SecondFragmentDirections.|")
     fixture.completeBasic()
-    icons = fixture.lookupElements
+    icons = fixture.lookupElements!!
       .mapNotNull { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
     assertThat(icons).contains("actionSecondFragmentToFirstFragment" to IconManager.getInstance().getPlatformIcon(PlatformIcons.Function))
@@ -161,7 +161,7 @@ class SafeArgsIconsRenderingTest {
     fixture.moveCaret("val argsClass2 = SecondFragmentArgs().|")
 
     fixture.completeBasic()
-    icons = fixture.lookupElements
+    icons = fixture.lookupElements!!
       .map { it.lookupString to DefaultLookupItemRenderer.getRawIcon(it) }
       .toSet()
     assertThat(icons).containsAllOf(

@@ -116,7 +116,7 @@ open class FakeComponentPopupBuilder(
 
   override fun setMinSize(minSize: Dimension?) = this
 
-  override fun setFocusOwners(focusOwners: Array<out Component>?) = this
+  override fun setFocusOwners(focusOwners: Array<out Component>) = this
 
   override fun setCommandButton(commandButton: ActiveComponent) = this
 

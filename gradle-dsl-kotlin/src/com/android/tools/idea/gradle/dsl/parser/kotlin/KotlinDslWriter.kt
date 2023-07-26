@@ -201,6 +201,8 @@ class KotlinDslWriter(override val internalContext: BuildModelContext) : KotlinD
           when (syntax) {
             ASSIGNMENT -> statementText += " = \"abc\""
             AUGMENTED_ASSIGNMENT -> statementText += " += \"abc\""
+            METHOD -> {}
+            UNKNOWN -> {}
           }
         }
       }

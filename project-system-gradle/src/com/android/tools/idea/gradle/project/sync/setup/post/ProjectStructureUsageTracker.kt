@@ -136,6 +136,7 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
           IdeAndroidProjectType.PROJECT_TYPE_FEATURE -> Unit
           IdeAndroidProjectType.PROJECT_TYPE_INSTANTAPP -> Unit
           IdeAndroidProjectType.PROJECT_TYPE_TEST -> Unit
+          else -> {}
         }
       }
     }

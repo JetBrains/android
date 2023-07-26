@@ -102,6 +102,7 @@ private fun createDeviceEnumProvider(module: Module): EnumValuesProvider = {
       DeviceGroup.TV -> devices.forEach(devicesEnumValueBuilder::addTv)
       DeviceGroup.AUTOMOTIVE -> devices.forEach(devicesEnumValueBuilder::addAuto)
       DeviceGroup.DESKTOP -> devices.forEach(devicesEnumValueBuilder::addDesktop)
+      DeviceGroup.ADDITIONAL_DEVICE -> {}
     }
   }
   devicesEnumValueBuilder.includeDefaultsAndBuild()

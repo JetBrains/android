@@ -35,10 +35,10 @@ abstract class AbstractAndroidCompletionTest : KotlinAndroidTestCase() {
         codeCompletionOldValue = settings.AUTOCOMPLETE_ON_CODE_COMPLETION
         smartTypeCompletionOldValue = settings.AUTOCOMPLETE_ON_SMART_TYPE_COMPLETION
 
-        @Suppress("NON_EXHAUSTIVE_WHEN")
         when (completionType()) {
             CompletionType.SMART -> settings.AUTOCOMPLETE_ON_SMART_TYPE_COMPLETION = false
             CompletionType.BASIC -> settings.AUTOCOMPLETE_ON_CODE_COMPLETION = false
+            CompletionType.CLASS_NAME -> {}
         }
     }
 

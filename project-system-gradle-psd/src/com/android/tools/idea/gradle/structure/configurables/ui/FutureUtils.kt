@@ -56,11 +56,11 @@ internal fun <I> ListenableFuture<I>.whenCompletedInvokeOnEdt(callback: (Listena
     })
   }
 
-internal fun <T> ListenableFuture<T>.handleFailureOnEdt(function: (Throwable?) -> Unit): ListenableFuture<T> =
+internal fun <T> ListenableFuture<T>.handleFailureOnEdt(function: (Throwable?) -> Unit): ListenableFuture<T?> =
   Futures.catching(
     this,
     Throwable::class.java,
-    Function<Throwable?, T> { ex ->
+    { ex ->
       val application = ApplicationManager.getApplication()
       if (application.isDispatchThread) function(ex)
       else application.invokeLater({ function(ex) }, ModalityState.any())

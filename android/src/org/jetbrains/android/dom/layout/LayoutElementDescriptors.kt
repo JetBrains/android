@@ -137,7 +137,7 @@ object AndroidLayoutNSDescriptor : XmlNSDescriptorImpl() {
     DataBindingDomFileDescription()
   )
 
-  override fun getRootElementsDescriptors(doc: XmlDocument?): Array<LayoutElementDescriptor>? {
+  override fun getRootElementsDescriptors(doc: XmlDocument?): Array<LayoutElementDescriptor> {
     if (doc == null) return emptyArray()
     val facet = AndroidFacet.getInstance(doc) ?: return emptyArray()
     val manager = DomManager.getDomManager(doc.project)

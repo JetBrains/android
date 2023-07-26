@@ -147,7 +147,7 @@ class PsContextImpl constructor(
       }
       .continueOnEdt {
         future = null
-        if (disposed) return@continueOnEdt
+        if (it == null || disposed) return@continueOnEdt
         LOG.info("PSD fetched (${it.size} Gradle model(s). Refreshing the UI model.")
         this.project.refreshFrom(it)
         gradleSyncEventDispatcher.multicaster.ended()

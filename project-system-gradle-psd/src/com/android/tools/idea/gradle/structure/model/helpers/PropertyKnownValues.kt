@@ -21,6 +21,7 @@ import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.concurrency.readOnPooledThread
 import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.concurrency.transformNullable
 import com.android.tools.idea.gradle.plugin.AgpVersions
 import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Importance.FORCE
 import com.android.tools.idea.gradle.project.upgrade.computeGradlePluginUpgradeState
@@ -180,10 +181,10 @@ fun androidGradlePluginVersionValues(model: PsProject): ListenableFuture<List<Va
     directExecutor())
 
 fun versionValues(): ListenableFuture<KnownValues<String>> =
-  GradleVersionsRepository.getKnownVersionsFuture().transform(directExecutor()) {
+  GradleVersionsRepository.getKnownVersionsFuture().transformNullable(directExecutor()) { versions: List<String>? ->
     object : KnownValues<String> {
       override val literals: List<ValueDescriptor<String>> =
-        it.sortedByDescending { Version.parse(it) }.map { ValueDescriptor(it) }
+        versions?.sortedByDescending { Version.parse(it) }?.map { ValueDescriptor(it) } ?: emptyList()
       override fun isSuitableVariable(variable: Annotated<ParsedValue.Set.Parsed<String>>): Boolean = false
     }
   }

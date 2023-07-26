@@ -21,6 +21,7 @@ import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionEvent
 import com.android.tools.idea.common.surface.InteractionInputEvent
+import com.android.tools.idea.common.surface.InteractionNonInputEvent
 import com.android.tools.idea.common.surface.MouseDraggedEvent
 import com.android.tools.idea.common.surface.MouseMovedEvent
 import com.android.tools.idea.common.surface.MousePressedEvent
@@ -69,6 +70,8 @@ class PanInteraction(private val pannable: Pannable) : Interaction() {
       is MouseMovedEvent -> updateMouseScrollEvent(event)
       is MouseDraggedEvent -> updateMouseScrollEvent(event)
       is MouseReleasedEvent -> updateMouseScrollEvent(event)
+      is InteractionInputEvent<*>,
+      is InteractionNonInputEvent -> {}
     }
   }
 

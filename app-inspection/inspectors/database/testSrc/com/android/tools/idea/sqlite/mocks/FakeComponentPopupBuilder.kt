@@ -107,13 +107,11 @@ open class FakeComponentPopupBuilder : ComponentPopupBuilder {
 
   override fun setMinSize(minSize: Dimension?) = this
 
-  override fun setFocusOwners(focusOwners: Array<out Component>?) = this
+  override fun setFocusOwners(focusOwners: Array<out Component>) = this
 
   override fun setCommandButton(commandButton: ActiveComponent) = this
 
-  override fun setKeyboardActions(
-    keyboardActions: List<out Pair<ActionListener, KeyStroke>>
-  ) = this
+  override fun setKeyboardActions(keyboardActions: List<out Pair<ActionListener, KeyStroke>>) = this
 
   override fun setKeyEventHandler(handler: BooleanFunction<in KeyEvent>) = this
 

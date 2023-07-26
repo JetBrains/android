@@ -104,7 +104,7 @@ class SafeArgsKtCompletionContributorTest {
     fixture.moveCaret("val argsClass = |")
     fixture.type("Args")
     fixture.completeBasic()
-    val argsElements = fixture.lookupElements
+    val argsElements = fixture.lookupElements!!
       .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
@@ -121,7 +121,7 @@ class SafeArgsKtCompletionContributorTest {
     fixture.moveCaret("val directionsClass = |")
     fixture.type("Directions")
     fixture.completeBasic()
-    val directionsElements = fixture.lookupElements
+    val directionsElements = fixture.lookupElements!!
       .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
@@ -138,7 +138,7 @@ class SafeArgsKtCompletionContributorTest {
     // check all safe args classes
     fixture.moveCaret("val generatedClass = |")
     fixture.completeBasic()
-    val allElements = fixture.lookupElements
+    val allElements = fixture.lookupElements!!
       .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
@@ -178,7 +178,7 @@ class SafeArgsKtCompletionContributorTest {
     // no safe args classes show up in completions
     fixture.moveCaret("import com.|")
     fixture.completeBasic()
-    fixture.lookupElements
+    fixture.lookupElements!!
       .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
@@ -191,7 +191,7 @@ class SafeArgsKtCompletionContributorTest {
     // (Just for sanity check, completions are not provided by [SafeArgsKtCompletionContributor])
     fixture.moveCaret("import com.example.mylibrary.|")
     fixture.completeBasic()
-    val allElements = fixture.lookupElements
+    val allElements = fixture.lookupElements!!
       .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
@@ -230,7 +230,7 @@ class SafeArgsKtCompletionContributorTest {
     // no safe args classes show up in completions
     fixture.moveCaret("com.|")
     fixture.completeBasic()
-    fixture.lookupElements
+    fixture.lookupElements!!
       .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)
@@ -243,7 +243,7 @@ class SafeArgsKtCompletionContributorTest {
     // (Just for sanity check, completions are not provided by [SafeArgsKtCompletionContributor])
     fixture.moveCaret("com.example.mylibrary.|")
     fixture.completeBasic()
-    val allElements = fixture.lookupElements
+    val allElements = fixture.lookupElements!!
       .map {
         val presentation = LookupElementPresentation()
         it.renderElement(presentation)

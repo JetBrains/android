@@ -38,6 +38,7 @@ fun errorMessage(exception: LiveEditUpdateException) : String {
   when (exception.error) {
     LiveEditUpdateException.Error.COMPILATION_ERROR -> return leErrorMessage(exception.error, exception?.source.name)
     LiveEditUpdateException.Error.ANALYSIS_ERROR -> return leErrorMessage(LiveEditUpdateException.Error.COMPILATION_ERROR, exception?.source.name)
+    else -> {}
   }
   return "${exception.error.message}: \n ${exception.details} \n"
 }

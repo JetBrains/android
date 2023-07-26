@@ -25,7 +25,7 @@ internal enum class LiveEditClassType {
 
 internal class LiveEditCompiledClass(val name: String, var data: ByteArray, val module: Module?, val type: LiveEditClassType)
 
-data class LiveEditCompilerOutput internal constructor (val classes: List<LiveEditCompiledClass> = emptyList(),
+data class LiveEditCompilerOutput internal constructor (internal val classes: List<LiveEditCompiledClass> = emptyList(),
                                                         val irClasses: List<IrClass> = emptyList(),
                                                         val groupIds: List<Int> = emptyList(),
                                                         val resetState: Boolean = false) {

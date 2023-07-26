@@ -1680,6 +1680,8 @@ private fun createAndroidModuleDataNode(
         )
       )
     }
+
+    null -> {}
   }
 
   fun IdeBaseArtifactCore.setup() {
