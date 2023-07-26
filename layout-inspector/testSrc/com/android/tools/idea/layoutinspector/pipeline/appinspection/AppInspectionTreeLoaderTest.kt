@@ -149,8 +149,8 @@ class AppInspectionTreeLoaderTest {
               screenHeightDp = 800
               grammaticalGender = GRAMMATICAL_GENDER_FEMININE
             }
-            screenHeight = 800
-            screenWidth = 480
+            mainDisplayHeight = 800
+            mainDisplayWidth = 480
             themeBuilder.apply {
               type = 7
               namespace = 2

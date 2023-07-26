@@ -423,8 +423,8 @@ class AppInspectionSnapshotSupportTest {
           screenHeightDp = 800
           grammaticalGender = GRAMMATICAL_GENDER_FEMININE
         }
-        screenWidth = 800
-        screenHeight = 1600
+        mainDisplayWidth = 800
+        mainDisplayHeight = 1600
         theme = ViewResource(13, 12, 11)
       }
     }

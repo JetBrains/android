@@ -140,7 +140,9 @@ fun LayoutInspectorViewProtocol.Locale.convert(): Locale {
 fun LayoutInspectorViewProtocol.AppContext.convert(): AppContext {
   return AppContext(
     theme.convert(),
-    if (screenWidth > 0 && screenHeight > 0) Dimension(screenWidth, screenHeight) else null,
+    if (mainDisplayWidth > 0 && mainDisplayHeight > 0)
+      Dimension(mainDisplayWidth, mainDisplayHeight)
+    else null,
     mainDisplayOrientation
   )
 }

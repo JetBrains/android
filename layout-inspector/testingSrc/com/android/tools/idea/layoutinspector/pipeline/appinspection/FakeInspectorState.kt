@@ -828,8 +828,8 @@ class FakeInspectorState(
                           }
                           appContextBuilder.apply {
                             theme = ViewResource(208, 210, 223)
-                            screenWidth = 800
-                            screenHeight = 1600
+                            mainDisplayWidth = 800
+                            mainDisplayHeight = 1600
                           }
                           propertiesBuilder.apply {
                             for (id in propertyGroups.keys) {
@@ -1032,8 +1032,8 @@ class FakeInspectorState(
           }
           appContextBuilder.apply {
             theme = ViewResource(208, 210, 223)
-            screenWidth = 800
-            screenHeight = 1600
+            mainDisplayWidth = 800
+            mainDisplayHeight = 1600
           }
         }
       }
