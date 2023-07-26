@@ -160,9 +160,6 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
         the&nbsp;<font color = $linkColorString><a href='DeviceManager'>Device&nbsp;Manager</a></font>
         or run your app while targeting a&nbsp;virtual device.</p>
         <p/>
-        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option
-        in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>.
-        </p>
         </center>
         """.trimIndent()
       emulatorLaunchesInToolWindow && !emulatorVersionIsSufficient && deviceMirroringEnabled ->
@@ -182,9 +179,6 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
         Please <font color = $linkColorString><a href='CheckForUpdate'>check for&nbsp;updates</a></font> and install
         the&nbsp;latest version of the&nbsp;Android&nbsp;Emulator.</p>
         <p/>
-        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option
-        in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>.
-        </p>
         </center>
         """.trimIndent()
       deviceMirroringEnabled ->
@@ -193,7 +187,6 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
         <p>To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option
         in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>.</p>
         <p/>
-        <p>To mirror a&nbsp;physical device, connect it via USB cable or over WiFi.</p>
         </center>
         """.trimIndent()
       else ->
@@ -202,9 +195,6 @@ internal class EmptyStatePanel(project: Project): JBPanel<EmptyStatePanel>(GridB
         <p>To launch virtual devices in this window, select the&nbsp;<i>Launch in&nbsp;a&nbsp;tool window</i> option
         in&nbsp;the&nbsp;<font color = $linkColorString><a href='EmulatorSettings'>Emulator&nbsp;settings</a></font>.</p>
         <p/>
-        <p>To mirror physical devices, select the&nbsp;<i>Enable mirroring of physical Android devices</i> option
-        in&nbsp;the&nbsp;<font color = $linkColorString><a href='DeviceMirroringSettings'>Device&nbsp;Mirroring&nbsp;settings</a></font>.
-        </p>
         </center>
         """.trimIndent()
     }
