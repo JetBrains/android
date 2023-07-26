@@ -29,6 +29,7 @@ import java.io.IOException
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.LinkedList
 
 private const val METADATA_TEMP_FILE_NAME = "icons_metadata_temp_copy.txt"
 
@@ -56,16 +57,10 @@ class MaterialIconsCopyHandler(
   private val urlPattern = metadata.urlPattern
   private val families = metadata.families
 
-  private val iconNameToWriteData = HashMap<String, VdIconWriteData>()
+  private val iconNameToWriteData = LinkedList<VdIconWriteData>()
 
   init {
-    // Create data model where we have a relationship of icon names and all information required for it: URL by style, file name, metadata
-    val iconNameToMetadata = HashMap<String, MaterialMetadataIcon>()
-    metadata.icons.forEach {
-      // Build a map of icons names and their metadata.
-      iconNameToMetadata[it.name] = it
-    }
-
+    val icons = metadata.icons.toSet()
     val iconNameToStyleAndUrl = HashMap<String, HashMap<String, VdIconURLWithFileName>>()
     // Build a map of icons names and the URL for every available style.
     materialVdIcons.styles.forEach { style ->
@@ -82,14 +77,15 @@ class MaterialIconsCopyHandler(
         }
       }
     }
-    iconNameToMetadata.forEach { (iconName, metadata) ->
-      if (iconNameToStyleAndUrl.containsKey(iconName)) {
+
+    icons.forEach {
+      if (iconNameToStyleAndUrl.containsKey(it.name)) {
         // Combine the information from both maps.
         // Note that this is error prone if the mapped icon name doesn't match for both maps.
-        iconNameToWriteData[iconName] = VdIconWriteData(iconNameToStyleAndUrl[iconName]!!, metadata)
+        iconNameToWriteData.add(VdIconWriteData(iconNameToStyleAndUrl[it.name]!!, it))
       }
       else {
-        LOG.warn("Files not found for '$iconName'")
+        LOG.warn("Files not found for '${it.name}'")
       }
     }
   }
@@ -115,19 +111,19 @@ class MaterialIconsCopyHandler(
     copyIcons(iconsToCopy, metadataBuilder, targetPath)
   }
 
-  private fun getRemainingIconsToCopy(metadataBuilder: MaterialIconsMetadataBuilder): HashMap<String, VdIconWriteData> {
-    val iconsToCopy = HashMap(iconNameToWriteData) // Don't modify the original data map.
+  private fun getRemainingIconsToCopy(metadataBuilder: MaterialIconsMetadataBuilder): Set<VdIconWriteData> {
+    val iconsToCopy = iconNameToWriteData.toMutableSet()
 
-    metadataBuilder.build().icons.forEach {
+    metadataBuilder.build().icons.forEach { iconMetadata ->
       // Remove any icons from the map that has already been copied.
-      iconsToCopy.remove(it.name)
+      iconsToCopy.removeIf { it.metadataIcon == iconMetadata }
     }
     return iconsToCopy
   }
 
-  private fun copyIcons(iconsToCopy: HashMap<String, VdIconWriteData>, metadataBuilder: MaterialIconsMetadataBuilder, targetPath: File) {
+  private fun copyIcons(iconsToCopy: Set<VdIconWriteData>, metadataBuilder: MaterialIconsMetadataBuilder, targetPath: File) {
     var cancelled = false
-    iconsToCopy.values.forEach { writeData ->
+    iconsToCopy.forEach { writeData ->
       if (ProgressManager.getInstance().progressIndicator?.isCanceled == true) {
         cancelled = true
         return@forEach
