@@ -17,7 +17,6 @@ package com.android.tools.profilers.tasks
 
 enum class ProfilerTaskType(val description: String) {
   UNSPECIFIED("Unspecified"),
-  IMPORT("Import"),
   CALLSTACK_SAMPLE("Callstack Sample"),
   SYSTEM_TRACE("System Trace"),
   JAVA_KOTLIN_METHOD_TRACE("Java/Kotlin Method Trace"),
