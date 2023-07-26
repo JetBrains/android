@@ -163,6 +163,7 @@ abstract class RunningDevicePanel(
       DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDisplayView
       SERIAL_NUMBER_KEY.name -> id.serialNumber
       STREAMING_CONTENT_PANEL_KEY.name -> centerPanel
+      DEVICE_ID_KEY.name -> id
       else -> null
     }
   }

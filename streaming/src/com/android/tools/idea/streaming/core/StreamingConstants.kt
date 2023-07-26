@@ -30,6 +30,8 @@ import icons.StudioIcons
 
 @JvmField internal val NUMBER_OF_DISPLAYS_KEY = DataKey.create<Int>("NumberOfDisplays")
 
+@JvmField val DEVICE_ID_KEY = DataKey.create<DeviceId>("DeviceId")
+
 internal val RUNNING_DEVICES_NOTIFICATION_GROUP: NotificationGroup
   get() = findRegisteredGroup("Running Devices Messages")!!
 
