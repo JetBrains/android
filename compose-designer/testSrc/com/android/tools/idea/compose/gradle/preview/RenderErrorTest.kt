@@ -125,10 +125,10 @@ class RenderErrorTest {
               add(previewView, BorderLayout.CENTER)
             },
             1.0,
-            true
+            true,
           )
         fakeUi.root.validate()
-      }
+      },
     )
 
     runBlocking { composePreviewRepresentation.activateAndWaitForRender(fakeUi) }
