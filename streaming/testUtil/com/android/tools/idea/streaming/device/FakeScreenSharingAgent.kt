@@ -212,9 +212,9 @@ class FakeScreenSharingAgent(
   /**
    * Stops the agent.
    */
-  suspend fun stop() {
+  suspend fun stop(exitCode: Int = 0) {
     withContext(singleThreadedDispatcher) {
-      terminateAgent(0)
+      terminateAgent(exitCode)
     }
   }
 
@@ -222,9 +222,7 @@ class FakeScreenSharingAgent(
    * Simulates a crash of the agent. The agent dies without a normal shutdown.
    */
   suspend fun crash() {
-    withContext(singleThreadedDispatcher) {
-      terminateAgent(139)
-    }
+    stop(AGENT_SIGSEGV)
   }
 
   suspend fun writeToStderr(message: String) {
