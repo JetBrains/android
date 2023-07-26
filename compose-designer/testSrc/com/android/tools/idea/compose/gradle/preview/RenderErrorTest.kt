@@ -23,6 +23,7 @@ import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
+import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.PreviewMode
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
@@ -49,6 +50,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -56,11 +58,11 @@ import javax.swing.JPanel
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.kotlin.utils.alwaysTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -222,21 +224,32 @@ class RenderErrorTest {
     assertEquals("RenderError.kt", navigatable.file.name)
   }
 
-  @Ignore("b/289364358")
   @Test
   fun testVisualLintErrors() {
-    val issueModel = VisualLintService.getInstance(project).issueModel
-    runBlocking {
-      delayUntilCondition(delayPerIterationMs = 200, timeout = 10.seconds) {
-        issueModel.issueCount == 4
+    val modelsWithIssues =
+      listOf(
+        "PreviewWithContrastError",
+        "PreviewWithContrastErrorAgain",
+        "PreviewWithWideButton",
+        "PreviewWithLongText",
+      )
+
+    modelsWithIssues.forEach { modelWithIssues ->
+      startUiCheckForModel(modelWithIssues)
+
+      val issues = visualLintRenderIssues()
+      // 1-2% of the time we get two issues instead of one. Only one of the issues has a component
+      // field that is populated. We attempt to retrieve it here.
+      val issue = runInEdtAndGet {
+        issues.first { it.components.firstOrNull()?.navigatable is OpenFileDescriptor }
       }
-    }
-    issueModel.issues.forEach {
-      assertTrue(it is VisualLintRenderIssue)
-      assertEquals("Visual Lint Issue", it.category)
-      val navigatable = (it as VisualLintRenderIssue).components[0].navigatable
+
+      assertEquals("Visual Lint Issue", issue.category)
+      val navigatable = issue.components[0].navigatable
       assertTrue(navigatable is OpenFileDescriptor)
       assertEquals("RenderError.kt", (navigatable as OpenFileDescriptor).file.name)
+
+      stopUiCheck()
     }
   }
 
@@ -263,11 +276,17 @@ class RenderErrorTest {
 
   private fun startUiCheckForModel(model: String) {
     runBlocking {
-      val uiCheckElement =
+      lateinit var uiCheckElement: ComposePreviewElementInstance
+      delayUntilCondition(
+        250,
+        timeout = 1.minutes,
+      ) {
         previewView.mainSurface.models
-          .first { it.modelDisplayName == model }
-          .dataContext
-          .getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)!!
+          .firstOrNull { it.modelDisplayName == model }
+          ?.dataContext
+          ?.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+          ?.also { uiCheckElement = it } != null
+      }
 
       composePreviewRepresentation.setMode(
         PreviewMode.UiCheck(
@@ -286,16 +305,29 @@ class RenderErrorTest {
     }
   }
 
-  private fun accessibilityIssues() = runBlocking {
-    val issueModel = VisualLintService.getInstance(project).issueModel
-    var accessibilityIssues = emptyList<VisualLintRenderIssue>()
-    delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
-      accessibilityIssues =
-        issueModel.issues.filterIsInstance<VisualLintRenderIssue>().filter {
-          it.type == VisualLintErrorType.ATF
-        }
-      accessibilityIssues.isNotEmpty()
+  private fun stopUiCheck() {
+    runBlocking {
+      composePreviewRepresentation.setMode(PreviewMode.Default)
+
+      delayUntilCondition(
+        250,
+        timeout = 2.minutes,
+      ) {
+        composePreviewRepresentation.isInNormalMode
+      }
     }
-    accessibilityIssues
   }
+
+  private fun visualLintRenderIssues(filter: (VisualLintRenderIssue) -> Boolean = alwaysTrue()) =
+    runBlocking {
+      val issueModel = VisualLintService.getInstance(project).issueModel
+      var issues = emptyList<VisualLintRenderIssue>()
+      delayUntilCondition(delayPerIterationMs = 200, timeout = 30.seconds) {
+        issues = issueModel.issues.filterIsInstance<VisualLintRenderIssue>().filter(filter)
+        issues.isNotEmpty()
+      }
+      issues
+    }
+
+  private fun accessibilityIssues() = visualLintRenderIssues { it.type == VisualLintErrorType.ATF }
 }
