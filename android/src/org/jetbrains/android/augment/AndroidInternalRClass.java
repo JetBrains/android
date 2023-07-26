@@ -99,7 +99,7 @@ public class AndroidInternalRClass extends AndroidLightClassBase {
       return buildResourceFields(repository, ResourceNamespace.ANDROID, null,
                                  FieldModifier.FINAL,
                                  (resource) -> true,
-                                 myResourceType,
+                                 resourceType,
                                  AndroidInternalRClass.this);
     }
 

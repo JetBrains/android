@@ -14,7 +14,7 @@ class ResourceRepositoryInnerRClass(
   private val resourcesSource: ResourcesSource,
   parentClass: PsiClass
 ) : InnerRClassBase(parentClass, resourceType) {
-  override fun doGetFields() = buildLocalResourceFields(myResourceType, resourcesSource, this)
+  override fun doGetFields() = buildLocalResourceFields(resourceType, resourcesSource, this)
 
   /**
    * This implementation adds a fast path for non-final resources and delegates to the super implementation in
@@ -28,7 +28,7 @@ class ResourceRepositoryInnerRClass(
     // Bail if this is a scenario we don't fully support.
     if (scenarioUnsupported(name)) return super.findFieldByName(name, checkBases)
 
-    if (!resourcesSource.resourceRepository.hasResources(resourcesSource.resourceNamespace, myResourceType, name)) return null
+    if (!resourcesSource.resourceRepository.hasResources(resourcesSource.resourceNamespace, resourceType, name)) return null
 
     return ResourceLightField(
       name,
@@ -50,7 +50,7 @@ class ResourceRepositoryInnerRClass(
    *   `ResourceRepository.hasResources` will not find the correct resource.
    */
   private fun scenarioUnsupported(name: String) =
-    myResourceType == ResourceType.STYLEABLE
+    resourceType == ResourceType.STYLEABLE
     || resourcesSource.fieldModifier == AndroidLightField.FieldModifier.FINAL
     || name.contains("_")
 
