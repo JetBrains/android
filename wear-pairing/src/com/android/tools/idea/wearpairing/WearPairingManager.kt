@@ -30,7 +30,6 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection.getDefaultAvdManag
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.ddms.DevicePropertyUtil.getManufacturer
 import com.android.tools.idea.ddms.DevicePropertyUtil.getModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.project.AndroidNotification
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
@@ -216,7 +215,7 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservableP
       LOG.error("Memory leak adding listeners")
     }
 
-    updateDevicesChannel.trySend(Unit)
+    pairedDevicesList.forEach(listener::pairingStatusChanged)
   }
 
   @Synchronized
