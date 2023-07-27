@@ -326,6 +326,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         layoutInspector.coroutineScope,
         layoutInspector.renderLogic,
         layoutInspector.renderModel,
+        layoutInspector.notificationModel,
         { tabComponents.displayView.displayRectangle },
         { tabComponents.displayView.screenScalingFactor },
         {

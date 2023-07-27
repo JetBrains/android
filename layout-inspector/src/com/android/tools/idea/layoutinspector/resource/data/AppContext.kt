@@ -25,5 +25,6 @@ import java.awt.Dimension
 class AppContext(
   val theme: Resource = Resource(),
   val screenSize: Dimension? = null,
-  val mainDisplayOrientation: Int
+  val mainDisplayOrientation: Int,
+  val isRunningInMainDisplay: Boolean
 )

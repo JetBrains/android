@@ -41,7 +41,8 @@ class ConfigurationParamsBuilder(private val strings: TestStringTable) {
           ResourceReference.style(ResourceNamespace.fromPackageName(packageName), "AppTheme")
         )!!,
       screenSize = Dimension(1080, 1920),
-      mainDisplayOrientation = 90
+      mainDisplayOrientation = 90,
+      true
     )
   }
 

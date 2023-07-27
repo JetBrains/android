@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
@@ -60,6 +62,7 @@ class LayoutInspectorRenderer(
   private val coroutineScope: CoroutineScope,
   private val renderLogic: RenderLogic,
   private val renderModel: RenderModel,
+  private val notificationModel: NotificationModel,
   private val displayRectangleProvider: () -> Rectangle?,
   private val screenScaleProvider: () -> Double,
   private val orientationQuadrantProvider: () -> Int,
@@ -82,6 +85,10 @@ class LayoutInspectorRenderer(
   }
 
   private val listeners = mutableListOf<RefreshListener>()
+
+  companion object {
+    private const val RENDERING_NOT_SUPPORTED_ID = "rendering.in.secondary.display.not.supported"
+  }
 
   init {
     Disposer.register(disposable, this)
@@ -198,6 +205,23 @@ class LayoutInspectorRenderer(
 
     val g2d = g.create() as Graphics2D
 
+    // TODO(b/293584238) Remove once we support rendering on multiple displays.
+    val notificationId = RENDERING_NOT_SUPPORTED_ID
+    if (renderModel.model.resourceLookup.isRunningInMainDisplay == false) {
+      if (!notificationModel.hasNotification(notificationId)) {
+        notificationModel.addNotification(
+          notificationId,
+          LayoutInspectorBundle.message(notificationId)
+        )
+      }
+      // Do no render view bounds, because they would be on the wrong display.
+      return
+    } else {
+      if (notificationModel.hasNotification(notificationId)) {
+        notificationModel.removeNotification(notificationId)
+      }
+    }
+
     val displayRectangle = displayRectangleProvider() ?: return
 
     // Scale the display rectangle from physical to logical pixels.
@@ -213,6 +237,12 @@ class LayoutInspectorRenderer(
 
   /** Transform panel coordinates to model coordinates. */
   private fun toModelCoordinates(originalCoordinates: Point2D): Point2D? {
+    // TODO(b/293584238) Remove once we support rendering on multiple displays.
+    if (renderModel.model.resourceLookup.isRunningInMainDisplay == false) {
+      // Do no render provide coordinates, because they would be on the wrong display.
+      return null
+    }
+
     val scaledCoordinates = originalCoordinates.scale(screenScaleProvider())
     val transformedPoint2D = Point2D.Double()
 

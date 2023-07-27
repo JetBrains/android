@@ -84,6 +84,9 @@ class ResourceLookup(private val project: Project) {
   var displayOrientation: Int? = null
     @VisibleForTesting set
 
+  var isRunningInMainDisplay: Boolean? = null
+    @VisibleForTesting set
+
   @VisibleForTesting
   val defaultTheme: StyleResourceValue?
     get() = resolver?.defaultTheme
@@ -97,19 +100,21 @@ class ResourceLookup(private val project: Project) {
     fontScaleFromConfig: Float = 0f,
     mainDisplayOrientation: Int = 0,
     screenSize: Dimension? = null,
+    isRunningInMainDisplay: Boolean? = null
   ) {
     dpi = folderConfig.densityQualifier?.value?.dpiValue?.takeIf { it > 0 }
     fontScale = fontScaleFromConfig.takeIf { it > 0f }
     resolver = createResolver(folderConfig, theme, process)
     screenDimension = screenSize
     displayOrientation = mainDisplayOrientation
+    this.isRunningInMainDisplay = isRunningInMainDisplay
   }
 
   /** Update the configuration after a legacy reload, or snapshot load. */
   fun updateConfiguration(
     deviceDpi: Int?,
     deviceFontScale: Float? = null,
-    screenSize: Dimension? = null
+    screenSize: Dimension? = null,
   ) {
     dpi = deviceDpi?.takeIf { it > 0 }
     fontScale = deviceFontScale?.takeIf { it > 0f }

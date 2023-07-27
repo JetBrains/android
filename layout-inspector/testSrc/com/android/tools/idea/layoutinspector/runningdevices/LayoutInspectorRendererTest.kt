@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatisti
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
@@ -551,6 +552,37 @@ class LayoutInspectorRendererTest {
     assertThat(renderModel.model.selection).isNull()
   }
 
+  @Test
+  fun testLayoutInspectorRenderingOutsideOfMainDisplayShowError() {
+    val inspectorModelWithLeftBorder = model {
+      view(ROOT, 10, 0, deviceScreenDimension.width, deviceScreenDimension.height) {
+        view(VIEW1, 10, 15, 25, 25) { image() }
+      }
+    }
+    inspectorModelWithLeftBorder.resourceLookup.isRunningInMainDisplay = false
+
+    val renderModel =
+      RenderModel(inspectorModelWithLeftBorder, mock(), treeSettings) { DisconnectedClient }
+    val notificationModel = NotificationModel(androidProjectRule.project)
+    var seenNotificationIds = listOf<String>()
+    notificationModel.notificationListeners.add {
+      seenNotificationIds = notificationModel.notifications.map { it.id }
+    }
+    val layoutInspectorRenderer =
+      createRenderer(renderModel = renderModel, notificationModel = notificationModel)
+
+    val renderImage = createRenderImage()
+    paint(renderImage, layoutInspectorRenderer)
+
+    assertThat(seenNotificationIds).containsExactly("rendering.in.secondary.display.not.supported")
+
+    inspectorModelWithLeftBorder.resourceLookup.isRunningInMainDisplay = true
+
+    paint(renderImage, layoutInspectorRenderer)
+
+    assertThat(seenNotificationIds).isEmpty()
+  }
+
   private fun paint(
     image: BufferedImage,
     layoutInspectorRenderer: LayoutInspectorRenderer,
@@ -588,13 +620,15 @@ class LayoutInspectorRendererTest {
   private fun createRenderer(
     renderModel: RenderModel = this.renderModel,
     deviceDisplayRectangle: Rectangle = this.deviceDisplayRectangle,
-    displayOrientation: Int = 0
+    displayOrientation: Int = 0,
+    notificationModel: NotificationModel = NotificationModel(androidProjectRule.project)
   ): LayoutInspectorRenderer {
     return LayoutInspectorRenderer(
       androidProjectRule.testRootDisposable,
       AndroidCoroutineScope(androidProjectRule.testRootDisposable),
       renderLogic,
       renderModel,
+      notificationModel,
       displayRectangleProvider = { deviceDisplayRectangle },
       screenScaleProvider = { 1.0 },
       orientationQuadrantProvider = { displayOrientation },

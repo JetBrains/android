@@ -79,6 +79,10 @@ class NotificationModel(val project: Project) {
     notifyChanges()
   }
 
+  fun hasNotification(id: String): Boolean {
+    return notifications.find { it.id == id } != null
+  }
+
   fun removeNotification(id: String) {
     if (isDisposed) {
       return
