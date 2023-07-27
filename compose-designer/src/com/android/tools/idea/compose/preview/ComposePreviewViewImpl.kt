@@ -44,7 +44,9 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditor
@@ -63,6 +65,7 @@ import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
 private const val ISSUE_SPLITTER_DIVIDER_WIDTH_PX = 3
 private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
@@ -248,12 +251,15 @@ internal class ComposePreviewViewImpl(
   override val mainSurface =
     mainDesignSurfaceBuilder
       .setDelegateDataProvider { key ->
-        if (PANNABLE_KEY.`is`(key)) {
-          this@ComposePreviewViewImpl
-        } else if (GuiInputHandler.CURSOR_RECEIVER.`is`(key)) {
+        when {
+          PANNABLE_KEY.`is`(key) -> this@ComposePreviewViewImpl
           // TODO(b/229842640): We should actually pass the [scrollPane] here, but it does not work
-          workbench
-        } else dataProvider.getData(key)
+          GuiInputHandler.CURSOR_RECEIVER.`is`(key) -> workbench
+          PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(key) -> {
+            DataProvider { getDataInBackground(it) }
+          }
+          else -> dataProvider.getData(key)
+        }
       }
       .build()
       .apply {
@@ -261,6 +267,21 @@ internal class ComposePreviewViewImpl(
         // zoom-to-fit is triggered.
         setScale(0.25)
       }
+
+  private fun getDataInBackground(dataId: String): Any? {
+    if (CommonDataKeys.PSI_ELEMENT.`is`(dataId)) {
+      // DesignSurface's data provider will return the root XML element, which for Compose
+      // Previews is a ComposeViewAdapter. This is used, for example, to populate the editor's
+      // navigation bar. If we return ComposeViewAdapter, the navigation bar will show the file
+      // that contains it, i.e. the ComposeAdapterLightVirtualFile XML file. Instead, we should
+      // return its origin file, so the navigation bar will show the kotlin file containing the
+      // composable.
+      return (mainSurface.models.firstOrNull()?.virtualFile as? ComposeAdapterLightVirtualFile)
+        ?.originFile
+        ?.toPsiFile(project)
+    }
+    return null
+  }
 
   override val isPannable: Boolean
     get() = mainSurface.isPannable
