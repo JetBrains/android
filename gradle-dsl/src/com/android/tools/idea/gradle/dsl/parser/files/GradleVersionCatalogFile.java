@@ -95,10 +95,10 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     public GradleDslVersionLiteral(
       @NotNull GradleDslElement parent,
       @NotNull GradleNameElement name,
-      @NotNull Object value
+      @NotNull Class<?> valueClass
     ) {
       super(parent, name);
-      ref = value instanceof ReferenceTo;
+      ref = ReferenceTo.class.isAssignableFrom(valueClass);
       initialRef = ref;
     }
 
