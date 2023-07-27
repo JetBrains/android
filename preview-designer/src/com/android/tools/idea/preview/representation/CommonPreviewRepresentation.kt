@@ -188,8 +188,18 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(module, this) { requestRefresh() }
 
-  private val previewElementProvider: PreviewElementProvider<T> =
+  private val singleElementFlow = MutableStateFlow<T?>(null)
+
+  private val memoizedPreviewElementProvider: PreviewElementProvider<T> =
     MemoizedPreviewElementProvider(previewProvider, previewFreshnessTracker)
+
+  private val previewElementProvider: PreviewElementProvider<T> =
+    object : PreviewElementProvider<T> {
+      override suspend fun previewElements(): Sequence<T> {
+        return singleElementFlow.value?.let { sequenceOf(it) }
+          ?: memoizedPreviewElementProvider.previewElements()
+      }
+    }
   private var renderedElements: List<T> = emptyList()
 
   // TODO(b/239802877): We need to cover the case where the RefreshRequest with invalidate=true gets
@@ -472,6 +482,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
     if (mode is PreviewMode.Interactive) return
 
     LOG.debug("Starting interactive preview mode on: $element")
+    singleElementFlow.value = element as T
     createRefreshJob(invalidate = true)?.join()
     interactiveManager.start()
     surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
@@ -480,6 +491,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
 
   private suspend fun stopInteractivePreview() {
     LOG.debug("Stopping interactive preview mode")
+    singleElementFlow.value = null
     interactiveManager.stop()
     createRefreshJob(invalidate = true)?.join()
   }
