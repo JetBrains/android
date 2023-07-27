@@ -104,7 +104,7 @@ private class SmallAarInnerRClass(
     )
   }
 
-  override fun getFieldsDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
+  override val fieldsDependencies: ModificationTracker = ModificationTracker.NEVER_CHANGED
 }
 
 /**
@@ -254,5 +254,5 @@ private class TransitiveAarInnerRClass(
     )
   }
 
-  override fun getFieldsDependencies(): ModificationTracker = ModificationTracker.NEVER_CHANGED
+  override val fieldsDependencies: ModificationTracker = ModificationTracker.NEVER_CHANGED
 }

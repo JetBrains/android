@@ -1,5 +1,8 @@
 package org.jetbrains.android.augment
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.resources.ResourceType
 import com.android.resources.ResourceVisibility
 import com.android.tools.idea.res.ResourceRepositoryRClass.ResourcesSource
@@ -7,6 +10,7 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiTypes
+import java.util.function.Predicate
 
 /** Implementation of [InnerRClassBase] backed by a `ResourceRepository`. */
 class ResourceRepositoryInnerRClass(
@@ -40,7 +44,7 @@ class ResourceRepositoryInnerRClass(
     )
   }
 
-  override fun getFieldsDependencies() = ModificationTracker { resourcesSource.resourceRepository.modificationCount }
+  override val fieldsDependencies = ModificationTracker { resourcesSource.resourceRepository.modificationCount }
 
   /**
    * Returns whether this scenario is unsupported. This can be due to one of three reasons:
@@ -62,9 +66,19 @@ class ResourceRepositoryInnerRClass(
           resourceNamespace,
           resourceRepositoryManager,
           fieldModifier,
-          ACCESSIBLE_RESOURCE_FILTER,
+          Predicate(::isResourceAccessible),
           resourceType,
           context)
       }
+
+    /** Returns whether the [resource] is visible (as opposed to private). */
+    private fun isResourceAccessible(resource: ResourceItem) = when {
+      resource.namespace != ResourceNamespace.ANDROID && resource.libraryName == null -> true
+      resource is ResourceItemWithVisibility -> resource.visibility == ResourceVisibility.PUBLIC
+      else -> throw AssertionError(
+        "Library resource ${resource.type}/${resource.name} of type ${resource.javaClass.simpleName} doesn't implement " +
+        "ResourceItemWithVisibility"
+      )
+    }
   }
 }
