@@ -42,6 +42,7 @@ import com.android.tools.profilers.memory.AllocationSessionArtifact;
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact;
 import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.tasks.ProfilerTaskType;
+import com.android.tools.profilers.tasks.TaskTypeMappingUtils;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
@@ -376,6 +377,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     SessionItem sessionItem = new SessionItem(myProfilers, session, metadata);
     mySessionItems.put(session.getSessionId(), sessionItem);
     mySessionMetaDatas.put(session.getSessionId(), metadata);
+    mySessionIdToProfilerTaskType.put(session.getSessionId(), TaskTypeMappingUtils.convertTaskType(sessionData.getTaskType()));
     return sessionItem;
   }
 
@@ -445,22 +447,41 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   }
 
   public void beginSession(long streamId, @NotNull Common.Device device, @NotNull Common.Process process) {
+    beginSession(streamId, device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK);
+  }
+
+  /**
+   * Overloaded beginSession that allows for the BeginSession request to be built with a task type.
+   */
+  public void beginSession(long streamId,
+                           @NotNull Common.Device device,
+                           @NotNull Common.Process process,
+                           @NotNull Common.ProfilerTaskType taskType) {
+    BeginSession.Builder requestBuilder = BeginSession.newBuilder()
+      .setSessionName(buildSessionName(device, process))
+      .setRequestTimeEpochMs(System.currentTimeMillis())
+      .setProcessAbi(process.getAbiCpuArch())
+      .setTaskType(taskType);
+    // Attach agent for advanced profiling if JVMTI is enabled and the process is debuggable
+    doBeginSession(streamId, device, process, requestBuilder);
+  }
+
+  private void doBeginSession(long streamId,
+                              @NotNull Common.Device device,
+                              @NotNull Common.Process process,
+                              @NotNull BeginSession.Builder beginSession) {
+
     // We currently don't support more than one profiling session at a time.
     assert Common.Session.getDefaultInstance().equals(myProfilingSession);
     assert device.getState() == Device.State.ONLINE;
     assert process.getState() == Common.Process.State.ALIVE;
-
     assert streamId != 0;
-    BeginSession.Builder requestBuilder = BeginSession.newBuilder()
-      .setSessionName(buildSessionName(device, process))
-      .setRequestTimeEpochMs(System.currentTimeMillis())
-      .setProcessAbi(process.getAbiCpuArch());
-    // Attach agent for advanced profiling if JVMTI is enabled and the process is debuggable
+
     if (device.getFeatureLevel() >= AndroidVersion.VersionCodes.O &&
         process.getExposureLevel() == Common.Process.ExposureLevel.DEBUGGABLE) {
       // If an agent has been previously attached, Perfd will only re-notify the existing agent of the updated grpc target instead
       // of re-attaching an agent. See ProfilerService::AttachAgent on the Perfd side for more details.
-      requestBuilder.setJvmtiConfig(
+      beginSession.setJvmtiConfig(
         BeginSession.JvmtiConfig.newBuilder()
           .setAttachAgent(true)
           .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
@@ -473,7 +494,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     Command command = Command.newBuilder()
       .setStreamId(streamId)
       .setPid(process.getPid())
-      .setBeginSession(requestBuilder)
+      .setBeginSession(beginSession)
       .setType(Command.CommandType.BEGIN_SESSION)
       .build();
     myProfilers.getClient().executeAsync(command, myProfilers.getIdeServices().getPoolExecutor());

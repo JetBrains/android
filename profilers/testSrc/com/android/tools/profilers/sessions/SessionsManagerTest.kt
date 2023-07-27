@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Common.Device
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.Trace
@@ -36,6 +37,7 @@ import com.android.tools.profilers.memory.AllocationSessionArtifact
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
+import com.android.tools.profilers.tasks.ProfilerTaskType
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -103,6 +105,39 @@ class SessionsManagerTest {
     assertThat(session.pid).isEqualTo(pid)
     assertThat(myManager.profilingSession).isEqualTo(session)
     assertThat(myManager.isSessionAlive).isTrue()
+
+    // The selectedSessionProfilerTaskType is updated with the task type from the event data received for a newly started session.
+    // Here we check if the correct task type was populated with the UNSPECIFIED_TASK type as task type was not provided.
+    val taskType = myManager.selectedSessionProfilerTaskType
+    assertThat(taskType).isEqualTo(ProfilerTaskType.UNSPECIFIED)
+
+    val sessionItems = myManager.sessionArtifacts
+    assertThat(sessionItems).hasSize(1)
+    assertThat(sessionItems.first().session).isEqualTo(session)
+
+    assertThat(myObserver.sessionsChangedCount).isEqualTo(1)
+    assertThat(myObserver.profilingSessionChangedCount).isEqualTo(1)
+    assertThat(myObserver.selectedSessionChangedCount).isEqualTo(1)
+  }
+
+  @Test
+  fun testBeginSessionWithTask() {
+    val streamId = 1L
+    val pid = 10
+    val onlineDevice = Common.Device.newBuilder().setDeviceId(streamId).setState(Common.Device.State.ONLINE).build()
+    val onlineProcess = Common.Process.newBuilder().setPid(pid).setState(Common.Process.State.ALIVE).build()
+    beginSessionWithTaskHelper(onlineDevice, onlineProcess, Common.ProfilerTaskType.SYSTEM_TRACE)
+
+    val session = myManager.selectedSession
+    assertThat(session.streamId).isEqualTo(streamId)
+    assertThat(session.pid).isEqualTo(pid)
+    assertThat(myManager.profilingSession).isEqualTo(session)
+    assertThat(myManager.isSessionAlive).isTrue()
+
+    // The selectedSessionProfilerTaskType is updated with the task type from the event data received for a newly started session.
+    // Here we check if the correct task type was populated.
+    val taskType = myManager.selectedSessionProfilerTaskType
+    assertThat(taskType).isEqualTo(ProfilerTaskType.SYSTEM_TRACE)
 
     val sessionItems = myManager.sessionArtifacts
     assertThat(sessionItems).hasSize(1)
@@ -719,6 +754,11 @@ class SessionsManagerTest {
 
   private fun beginSessionHelper(device: Common.Device, process: Common.Process) {
     myManager.beginSession(1, device, process)
+    myManager.update()
+  }
+
+  private fun beginSessionWithTaskHelper(device: Device, process: Common.Process, taskType: Common.ProfilerTaskType) {
+    myManager.beginSession(1, device, process, taskType)
     myManager.update()
   }
 
