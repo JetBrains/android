@@ -16,14 +16,20 @@
 package com.android.tools.idea.gradle.dependencies
 
 import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.RichVersion
+import com.android.ide.common.repository.keysMatch
 import com.android.ide.common.repository.pickLibraryVariableName
 import com.android.ide.common.repository.pickVersionVariableName
 import com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.Companion.calculateAddDependencyPolicy
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.*
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
 import com.intellij.openapi.diagnostic.Logger
@@ -85,8 +91,8 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
                                      dependency: Dependency): Alias? {
       val libraries = catalogModel.libraryDeclarations()
       val names = libraries.getAllAliases()
-      val reference = addCatalogVersion(catalogModel, dependency)
-      if (reference == null) {
+      val version = addCatalogVersion(catalogModel, dependency)
+      if (version == null) {
         log.warn("Cannot add catalog library (wrong version format): $dependency") // this depends on correct version syntax
         return null
       }
@@ -97,7 +103,7 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
       }
       val alias: Alias = pickLibraryVariableName(dependency, false, names)
 
-      libraries.addDeclaration(alias, dependency.name, group, reference)
+      libraries.addDeclaration(alias, dependency.name, group, ReferenceTo(version, libraries))
       return alias
     }
 
@@ -112,8 +118,40 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
       return addCatalogLibrary(catalogModel, dependency)
     }
 
+    @JvmStatic
+    fun updateCatalogLibrary(catalogsModel: GradleVersionCatalogsModel,
+                             dependency: ArtifactDependencyModel,
+                             version: RichVersion): Boolean {
+      val catalogModel: GradleVersionCatalogModel = dependency.findVersionCatalogModel(catalogsModel) ?: return false
+      val alias = dependency.getAlias() ?: return false
+      val libraries = catalogModel.libraryDeclarations()
+
+      //construct new dependency with version
+      val dependencySpec = Dependency.parse(dependency.spec.compactNotation()).copy(version = version)
+
+      val result = libraries.getAll().entries.find { keysMatch(it.key, alias) } ?: return false
+      val version = addCatalogVersion(catalogModel, dependencySpec) ?: return false.also {
+        log.warn("Cannot update catalog library (wrong version format): $dependency")
+      }
+
+      result.value.updateVersion(version)
+      return true
+    }
+
+    private fun ArtifactDependencyModel.findVersionCatalogModel(catalogsModel: GradleVersionCatalogsModel): GradleVersionCatalogModel? {
+      val referenceString: String = completeModel().unresolvedModel.getValue(STRING_TYPE) ?: return null
+      val catalogName = referenceString.substringBefore(".")
+      return catalogsModel.getVersionCatalogModel(catalogName)
+    }
+
+    private fun ArtifactDependencyModel.getAlias(): String? {
+      val referenceString: String = completeModel().unresolvedModel.getValue(STRING_TYPE) ?: return null
+      if (!referenceString.contains(".")) return null
+      return referenceString.substringAfter(".")
+    }
+
     private fun addCatalogVersion(catalogModel: GradleVersionCatalogModel,
-                                  dependency: Dependency): ReferenceTo? {
+                                  dependency: Dependency): VersionDeclarationModel? {
       val versions = catalogModel.versionDeclarations()
       val names = versions.getAllAliases()
       val alias: Alias = pickVersionVariableName(dependency, names)

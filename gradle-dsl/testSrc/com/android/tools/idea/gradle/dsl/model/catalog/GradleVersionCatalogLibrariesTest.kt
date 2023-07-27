@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.catalog
 
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.dependencies.LibraryDeclarationSpecImpl
 import com.android.tools.idea.gradle.dsl.model.dependencies.VersionDeclarationSpecImpl
@@ -254,7 +255,7 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
     val declarations = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations()
 
     val versionDeclaration = versions.addDeclaration("coreVersion", "1.8.0")
-    declarations.addDeclaration("core", "core-ktx", "androidx.core", versionDeclaration!!)
+    declarations.addDeclaration("core", "core-ktx", "androidx.core", ReferenceTo(versionDeclaration!!, declarations))
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myVersionCatalogFile, """
@@ -277,7 +278,7 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
 
     val versionDeclaration = versions.addDeclaration("coreVersion",
                                                      VersionDeclarationSpecImpl.create("[1.6.0,1.8.0]!!1.8.0")!!)
-    declarations.addDeclaration("core", "core-ktx", "androidx.core", versionDeclaration!!)
+    declarations.addDeclaration("core", "core-ktx", "androidx.core", ReferenceTo(versionDeclaration!!, declarations))
 
     applyChangesAndReparse(buildModel)
     verifyFileContents(myVersionCatalogFile, """

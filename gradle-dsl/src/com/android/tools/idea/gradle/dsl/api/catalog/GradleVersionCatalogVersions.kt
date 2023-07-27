@@ -28,9 +28,9 @@ interface GradleVersionCatalogVersions : GradleBlockModel {
   /**
    * Adds version declaration. Returns null if string has invalid format.
    */
-  fun addDeclaration(alias: String, version: String): ReferenceTo?
+  fun addDeclaration(alias: String, version: String): VersionDeclarationModel?
 
-  fun addDeclaration(alias: String, version: VersionDeclarationSpec): ReferenceTo?
+  fun addDeclaration(alias: String, version: VersionDeclarationSpec): VersionDeclarationModel?
 
   fun remove(alias: String)
 }

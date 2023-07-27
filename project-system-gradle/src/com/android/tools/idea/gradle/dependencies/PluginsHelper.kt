@@ -21,6 +21,7 @@ import com.android.ide.common.repository.pickPluginVersionVariableName
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME
 import com.intellij.openapi.diagnostic.Logger
@@ -118,13 +119,13 @@ class PluginsHelper(private val projectModel: ProjectBuildModel) {
       }
       val alias: Alias = pickPluginVariableName(pluginId, names)
 
-      plugins.addDeclaration(alias, pluginId, reference)
+      plugins.addDeclaration(alias, pluginId, ReferenceTo(reference, plugins))
       return alias
     }
 
     private fun addCatalogVersion(catalogModel: GradleVersionCatalogModel,
                                   pluginId: String,
-                                  version: RichVersion): ReferenceTo? {
+                                  version: RichVersion): VersionDeclarationModel? {
       val versions = catalogModel.versionDeclarations()
       val names = versions.getAllAliases()
       val alias: Alias =  pickPluginVersionVariableName(pluginId, names)

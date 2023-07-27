@@ -47,15 +47,12 @@ class GradleVersionCatalogVersionsImpl(private val dslElement: GradlePropertiesD
     }
   }.toMap()
 
-  override fun addDeclaration(alias: String, version: String): ReferenceTo? {
-    val newElement = LiteralVersionDeclarationModel.createNew(dslElement, alias, version)
-    return newElement?.let { ReferenceTo(it, this) }
-  }
+  override fun addDeclaration(alias: String, version: String): VersionDeclarationModel? =
+    LiteralVersionDeclarationModel.createNew(dslElement, alias, version)
 
-  override fun addDeclaration(alias: String, version: VersionDeclarationSpec): ReferenceTo? {
-    val newElement = MapVersionDeclarationModel.createNew(dslElement, alias, version)
-    return newElement?.let { ReferenceTo(it, this) }
-  }
+
+  override fun addDeclaration(alias: String, version: VersionDeclarationSpec): VersionDeclarationModel? =
+    MapVersionDeclarationModel.createNew(dslElement, alias, version)
 
   override fun remove(alias: String) {
     val dependency = getAll()[alias]

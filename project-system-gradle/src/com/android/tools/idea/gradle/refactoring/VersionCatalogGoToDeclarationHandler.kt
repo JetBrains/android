@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.refactoring
 
 import com.android.SdkConstants
+import com.android.ide.common.repository.keysMatch
 import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
 import com.intellij.openapi.editor.Editor
@@ -168,27 +169,6 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     }
 
     return null
-  }
-
-  private fun keysMatch(s1: String?, s2: String): Boolean {
-    s1 ?: return false
-    if (s1.length != s2.length) {
-      return false
-    }
-    for (i in s1.indices) {
-      if (s1[i].normalize() != s2[i].normalize()) {
-        return false
-      }
-    }
-    return true
-  }
-
-  // Gradle converts dashed-keys or dashed_keys into dashed.keys
-  private fun Char.normalize(): Char {
-    if (this == '-' || this == '_') {
-      return '.'
-    }
-    return this
   }
 
   private fun findVersionCatalog(reference: String, project: Project): TomlFile? {
