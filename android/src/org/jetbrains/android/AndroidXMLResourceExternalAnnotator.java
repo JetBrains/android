@@ -42,7 +42,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
   @Override
   @Nullable
   protected FileAnnotationInfo collectInformation(@NotNull PsiFile file, @NotNull Editor editor) {
-    if (EssentialHighlightingMode.Companion.isEnabled()) return null;
+    if (EssentialHighlightingMode.INSTANCE.isEnabled()) return null;
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet == null) {
       return null;
