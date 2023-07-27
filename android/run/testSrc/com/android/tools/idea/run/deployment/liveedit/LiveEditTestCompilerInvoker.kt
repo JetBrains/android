@@ -24,19 +24,19 @@ import org.jetbrains.kotlin.idea.util.psi.patternMatching.matches
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
-internal fun compile(file: PsiFile?, functionName: String) =
-  compile(file!!, findFunction(file, functionName))
+internal fun compile(file: PsiFile?, functionName: String, irClassCache: MutableIrClassCache? = null) =
+  compile(file!!, findFunction(file, functionName), irClassCache)
 
-internal fun compile(file: PsiFile, function: KtNamedFunction) =
-  compile(listOf(LiveEditCompilerInput(file, function)))
+internal fun compile(file: PsiFile, function: KtNamedFunction, irClassCache: MutableIrClassCache? = null) =
+  compile(listOf(LiveEditCompilerInput(file, function)), irClassCache)
 
-internal fun compile(inputs: List<LiveEditCompilerInput>) : LiveEditCompilerOutput {
+internal fun compile(inputs: List<LiveEditCompilerInput>, irClassCache: MutableIrClassCache? = null) : LiveEditCompilerOutput {
   // The real Live Edit / Fast Preview has a retry system should the compilation got cancelled.
   // We are going to use a simplified version of that here and continue to try until
   // compilation succeeds.
   var output: LiveEditCompilerOutput? = null
   while (output == null) {
-    output = LiveEditCompiler(inputs.first().file.project).compile(inputs).get().compilerOutput
+    output = LiveEditCompiler(inputs.first().file.project, irClassCache).compile(inputs).get().compilerOutput
   }
   return output
 }

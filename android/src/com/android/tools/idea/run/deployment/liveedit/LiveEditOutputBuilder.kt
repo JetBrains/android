@@ -47,9 +47,14 @@ internal object LiveEditOutputBuilder {
       throw LiveEditUpdateException.internalError("No compiler output.")
     }
 
-    val keyMetaFile = outputFiles.single(::isKeyMeta)
-    val keyMetaClass = IrClass(keyMetaFile.asByteArray())
-    val groupTree = FunctionKeyMeta.parseTreeFrom(keyMetaClass)
+    val keyMetaFiles = outputFiles.filter(::isKeyMeta)
+    if (keyMetaFiles.size > 1) {
+      throw IllegalStateException("Multiple KeyMeta files Found: $keyMetaFiles")
+    }
+    val kotlinOnly = keyMetaFiles.isEmpty()
+
+    val keyMetaClass = if (kotlinOnly) { null } else {IrClass(keyMetaFiles.single().asByteArray())}
+    val groupTree = keyMetaClass?.let { FunctionKeyMeta.parseTreeFrom(it) }
 
     for (classFile in outputFiles) {
       if (isKeyMeta(classFile)) {
@@ -65,7 +70,7 @@ internal object LiveEditOutputBuilder {
 
   private fun handleClassFile(classFile: OutputFile,
                               sourceFile: KtFile,
-                              groupTree: ComposeGroupTree,
+                              groupTree: ComposeGroupTree?,
                               irCache: IrClassCache,
                               inlineCandidateCache: SourceInlineCandidateCache,
                               output: LiveEditCompilerOutput.Builder): IrClass {
@@ -81,9 +86,12 @@ internal object LiveEditOutputBuilder {
       inlineCandidateCache.computeIfAbsent(newClass.name) { SourceInlineCandidate(sourceFile, it) }.setByteCode(classBytes)
       output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, LiveEditClassType.SUPPORT_CLASS))
 
-      val groupIds = computeGroupIds(newClass.methods, sourceFile, groupTree)
-      groupIds.forEach { output.addGroupId(it) }
-
+      if (groupTree == null) {
+        output.resetState = true
+      } else {
+        val groupIds = computeGroupIds(newClass.methods, sourceFile, groupTree)
+        groupIds.forEach { output.addGroupId(it) }
+      }
       return newClass
     }
 
@@ -133,8 +141,12 @@ internal object LiveEditOutputBuilder {
     if (!isSynthetic && modifiedIrMethods.any { !isComposableMethod(it) }) {
       output.resetState = true
     } else {
-      val groupIds = computeGroupIds(modifiedIrMethods, sourceFile, groupTree)
-      groupIds.forEach { output.addGroupId(it) }
+      if (groupTree == null) {
+        output.resetState = true
+      } else {
+        val groupIds = computeGroupIds(modifiedIrMethods, sourceFile, groupTree)
+        groupIds.forEach { output.addGroupId(it) }
+      }
     }
 
     return newClass
