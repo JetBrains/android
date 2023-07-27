@@ -113,13 +113,16 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInf
       myProfilers.getSessionsManager().setSession(mySession);
     }
 
-    if (isImportedSession()) {
+    boolean isTaskBasedUxEnabled = getProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+    // Do not return early if task based ux is enabled as it will use the utilize the proceeding logic for imported sessions.
+    if (isImportedSession() && !isTaskBasedUxEnabled) {
       // Sessions created from imported traces handle its selection callback via a session change listener, so we just return early here.
       return;
     }
 
     // If CPU profiler is not yet open, we need to do it.
     boolean needsToOpenCpuProfiler = !(myProfilers.getStage() instanceof CpuProfilerStage);
+    // Do not set the stage if task based ux is enabled as the respective task handler will handle stage selection.
     if (needsToOpenCpuProfiler) {
       myProfilers.setStage(new CpuProfilerStage(myProfilers, CpuCaptureMetadata.CpuProfilerEntryPoint.ONGOING_SESSION_SELECTION));
     }
@@ -131,7 +134,18 @@ public class CpuCaptureSessionArtifact implements SessionArtifact<Trace.TraceInf
     // Otherwise, we set and select the capture in the CpuProfilerStage
     else {
       assert myProfilers.getStage() instanceof CpuProfilerStage;
-      ((CpuProfilerStage)myProfilers.getStage()).setAndSelectCapture(myInfo.getTraceId());
+
+      // If the session is imported, we can use the session start timestamp as the traceId, otherwise we can access the traceId
+      // explicitly from myInfo (which is of type Trace.TraceInfo and thus contains the collected trace information).
+      long traceId;
+      if (isImportedSession() && isTaskBasedUxEnabled) {
+        traceId = getSession().getStartTimestamp();
+      }
+      else {
+        traceId = myInfo.getTraceId();
+      }
+
+      ((CpuProfilerStage)myProfilers.getStage()).setAndSelectCapture(traceId);
     }
 
     myProfilers.getIdeServices().getFeatureTracker()
