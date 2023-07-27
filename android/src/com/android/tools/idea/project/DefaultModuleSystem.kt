@@ -45,6 +45,7 @@ import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviderManager
 import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -52,6 +53,7 @@ import com.android.tools.idea.run.NonGradleApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toPathString
+import com.android.tools.module.ModuleDependencies
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.application.ApplicationManager
@@ -301,6 +303,9 @@ class DefaultModuleSystem(override val module: Module) :
   override var useAndroidX: Boolean by UserData(Keys.useAndroidX, false)
 
   override var enableVcsInfo: Boolean by UserData(Keys.enableVcsInfo, false)
+
+  override val moduleDependencies: ModuleDependencies
+    get() = StudioModuleDependencies(module)
 }
 
 /**

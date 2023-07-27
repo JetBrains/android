@@ -26,10 +26,12 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildMode
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager.BuildStatus
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.module.ModuleDependencies
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -245,6 +247,9 @@ class TestProjectSystem @JvmOverloads constructor(
 
       override val useAndroidX: Boolean
         get() = this@TestProjectSystem.useAndroidX
+
+      override val moduleDependencies: ModuleDependencies
+        get() = StudioModuleDependencies(module)
     }
 
     return TestAndroidModuleSystemImpl()

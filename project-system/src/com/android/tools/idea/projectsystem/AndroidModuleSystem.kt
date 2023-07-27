@@ -26,6 +26,7 @@ import com.android.tools.idea.run.ApkProvisionException
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.util.CommonAndroidUtil
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.module.ModuleDependencies
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.application.ApplicationManager
@@ -374,6 +375,8 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val desugarLibraryConfigFilesNotKnownUserMessage: String? get() = "Only supported for Gradle projects"
 
   val desugarLibraryConfigFiles: List<Path> get() = listOf()
+
+  val moduleDependencies: ModuleDependencies get() = error("Not implemented")
 }
 
 /**

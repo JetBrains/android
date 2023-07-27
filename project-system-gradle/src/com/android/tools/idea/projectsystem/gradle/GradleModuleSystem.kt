@@ -64,6 +64,7 @@ import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isUnitTestModule
 import com.android.tools.idea.projectsystem.sourceProviders
+import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.run.ApplicationIdProvider
@@ -72,6 +73,7 @@ import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild
 import com.android.tools.idea.stats.recordTestLibraries
 import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.module.ModuleDependencies
 import com.google.wireless.android.sdk.stats.TestLibraries
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -581,6 +583,8 @@ class GradleModuleSystem(
     }
   override val desugarLibraryConfigFiles: List<Path>
     get() = GradleAndroidModel.get(module)?.androidProject?.desugarLibraryConfigFiles?.map { it.toPath() } ?: emptyList()
+
+  override val moduleDependencies: ModuleDependencies get() = StudioModuleDependencies(module)
 
   companion object {
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(

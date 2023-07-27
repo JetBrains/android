@@ -50,7 +50,7 @@ class StudioConfigurationModelModule(val module: Module): ConfigurationModelModu
   override val project: Project = module.project
   override val name: String = module.name
   override val layoutlibContext: LayoutlibContext = StudioLayoutlibContext(module.project)
-  override val dependencies: ModuleDependencies = StudioModuleDependencies(module)
+  override val dependencies: ModuleDependencies = module.getModuleSystem().moduleDependencies
   override fun getCompatibilityTarget(target: IAndroidTarget): CompatibilityRenderTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target)
 
   override val moduleKey: ModuleKey
