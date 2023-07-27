@@ -37,7 +37,6 @@ import java.awt.GraphicsEnvironment
 import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
-import java.lang.ref.WeakReference
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -99,14 +98,14 @@ class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPa
     }
   }
 
-  /** Adds a notification panel that is removed when its close icon is clicked. */
+  /**
+   * Adds a notification panel. If the [notificationPanel] has a close action, that action has to make
+   * sure that the notification is removed when the action is executed.
+   */
   fun addNotification(notificationPanel: EditorNotificationPanel) {
     setLayer(notificationPanel, POPUP_LAYER)
     add(notificationPanel)
     revalidate()
-    // Use a weak reference to prevent leaking NotificationHolderPanel through the notification panel.
-    val weakHolder = WeakReference(this)
-    notificationPanel.setCloseAction { weakHolder.get()?.removeNotification(notificationPanel) }
   }
 
   /** Removes the given notification panel. */

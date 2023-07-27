@@ -94,7 +94,10 @@ abstract class RunningDevicePanel(
     }
   }
 
-  /** Adds a notification panel that is removed when its close icon is clicked. */
+  /**
+   * Adds a notification panel. If the [notificationPanel] has a close action, that action has to make
+   * sure that the notification is removed when the action is executed.
+   */
   fun addNotification(notificationPanel: EditorNotificationPanel) {
     findNotificationHolderPanel()?.addNotification(notificationPanel) ?: pendingNotifications.add(notificationPanel)
   }
