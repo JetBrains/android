@@ -70,8 +70,11 @@ import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.android.tools.idea.rendering.GutterIconCache
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.ui.MaterialColorUtils
@@ -1505,18 +1508,14 @@ private fun isLocalResourceDirectoryInAnyVariant(dir: PsiDirectory): Boolean {
   val vf = dir.virtualFile
   val module = ModuleUtilCore.findModuleForFile(vf, dir.project) ?: return false
   val facet = AndroidFacet.getInstance(module) ?: return false
-  for (provider in SourceProviders.getInstance(facet).currentAndSomeFrequentlyUsedInactiveSourceProviders) {
-    for (resDir in provider.resDirectories)
-      if (vf == resDir) {
-        return true
-      }
-  }
-  for (resDir in AndroidRootUtil.getResourceOverlayDirs(facet)) {
-    if (vf == resDir) {
-      return true
-    }
-  }
-  return false
+
+  val sourceProviders = SourceProviders.getInstance(facet)
+  val namedIdeaSourceProviders =
+    if (module.isLinkedAndroidModule() && module.isAndroidTestModule()) sourceProviders.currentAndroidTestSourceProviders
+    else sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
+
+  return namedIdeaSourceProviders.any { it.resDirectories.contains(vf) } ||
+    AndroidRootUtil.getResourceOverlayDirs(facet).contains(vf)
 }
 
 fun isInResourceSubdirectoryInAnyVariant(file: PsiFile, resourceType: String? = null): Boolean {

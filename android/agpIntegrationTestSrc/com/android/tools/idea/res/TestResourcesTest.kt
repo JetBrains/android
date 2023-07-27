@@ -17,6 +17,9 @@ package com.android.tools.idea.res
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.moveCaret
+import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import org.jetbrains.android.dom.inspections.AndroidDomInspection
 
 class TestResourcesTest : AndroidGradleTestCase() {
@@ -29,5 +32,18 @@ class TestResourcesTest : AndroidGradleTestCase() {
 
     myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
     myFixture.checkHighlighting()
+  }
+
+  fun testGoToDefinition_referenceInsideSameFile() {
+    loadProject(TestProjectPaths.TEST_RESOURCES)
+
+    myFixture.openFileInEditor(myFixture.project.baseDir.findFileByRelativePath("app/src/androidTest/res/values/strings.xml")!!)
+    myFixture.moveCaret("@string/androidTest|AppString")
+
+    CodeInsightTestUtil.gotoImplementation(myFixture.editor, null)
+
+    // Validate that the cursor moved to the correct location.
+    assertThat(myFixture.editor.document.text.substring(myFixture.editor.caretModel.offset))
+      .startsWith("androidTestAppString\">String defined in Application androidTest</string>")
   }
 }
