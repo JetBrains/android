@@ -1,0 +1,158 @@
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.idea.gradle.project
+
+import com.android.sdklib.AndroidVersion
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.serverflags.protos.StudioVersionRecommendation
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.UpgradeAndroidStudioDialogStats
+import com.intellij.CommonBundle
+import com.intellij.openapi.application.ApplicationInfo
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.updateSettings.impl.UpdateChecker
+import com.intellij.ui.ScrollPaneFactory
+import com.intellij.util.ui.JBDimension
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
+import org.jetbrains.android.util.AndroidBundle
+import java.awt.event.ActionEvent
+import javax.swing.AbstractAction
+import javax.swing.Action
+import javax.swing.JComponent
+import javax.swing.JEditorPane
+import javax.swing.ScrollPaneConstants
+
+class AndroidSdkCompatibilityDialog(
+  val project: Project,
+  val recommendedVersion: StudioVersionRecommendation,
+  val potentialFallbackVersion: StudioVersionRecommendation?,
+  val modulesViolatingSupportRules: List<Pair<String, AndroidVersion>>
+) : DialogWrapper(project) {
+
+  init {
+    title = AndroidBundle.message("project.upgrade.studio.notification.title")
+    setCancelButtonText(CommonBundle.getCloseButtonText())
+    init()
+  }
+
+  override fun createCenterPanel(): JComponent {
+    val dialogContent = if (!recommendedVersion.versionReleased) {
+      if (potentialFallbackVersion != null) {
+        AndroidBundle.message(
+          "project.upgrade.studio.notification.body.different.channel.recommendation",
+          ApplicationInfo.getInstance().fullVersion,
+          potentialFallbackVersion.buildDisplayName
+        ) + getAffectedModules(modulesViolatingSupportRules)
+      } else {
+        AndroidBundle.message(
+          "project.upgrade.studio.notification.body.no.recommendation",
+          ApplicationInfo.getInstance().fullVersion,
+        ) + getAffectedModules(modulesViolatingSupportRules)
+      }
+    } else {
+      // We can't recommend upgrading to the latest version of AS (from the same channel) that will support
+      // the required API level
+      AndroidBundle.message(
+        "project.upgrade.studio.notification.body.same.channel.recommendation",
+        ApplicationInfo.getInstance().fullVersion,
+        recommendedVersion.buildDisplayName
+      ) + getAffectedModules(modulesViolatingSupportRules)
+    }
+    val messageArea = JEditorPane("text/html", dialogContent).apply {
+      border = JBUI.Borders.empty(3)
+      isEditable = false
+      background = UIUtil.getComboBoxDisabledBackground()
+    }
+    return JBUI.Panels.simplePanel(10, 10).apply {
+      addToCenter(ScrollPaneFactory.createScrollPane(
+        messageArea,
+        ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+      ))
+      preferredSize = JBDimension(700, 300)
+    }
+  }
+
+  override fun createActions(): Array<Action> {
+    return if (recommendedVersion.versionReleased) {
+      arrayOf(UpgradeStudioAction(), cancelAction, DontAskAgainAction())
+    } else {
+      arrayOf(cancelAction, DontAskAgainAction())
+    }
+  }
+
+  override fun doCancelAction() {
+    logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.CANCEL)
+    super.doCancelAction()
+  }
+
+  private fun logEvent(project: Project, action: UpgradeAndroidStudioDialogStats.UserAction) {
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .withProjectId(project)
+        .setKind(AndroidStudioEvent.EventKind.UPGRADE_ANDROID_STUDIO_DIALOG)
+        .setUpgradeAndroidStudioDialog(
+          UpgradeAndroidStudioDialogStats.newBuilder().apply {
+            userAction = action
+          }
+        )
+    )
+  }
+
+  private fun getAffectedModules(modules: List<Pair<String, AndroidVersion>>): String {
+    val modulesToShow = modules.take(AndroidSdkCompatibilityChecker.MAX_NUM_OF_MODULES)
+    val remainingModules = modules.drop(AndroidSdkCompatibilityChecker.MAX_NUM_OF_MODULES)
+
+    val content = StringBuilder()
+    content.append(
+      "Affected modules: " + modulesToShow.joinToString {
+        "<br/>'${it.first}' (compileSdk=${it.second.apiStringWithoutExtension})"
+      }
+    )
+
+    if (remainingModules.isNotEmpty()) {
+      content.append(" (and ${remainingModules.size} more)")
+    }
+    return content.toString()
+  }
+
+  private inner class UpgradeStudioAction: AbstractAction(UPDATE_STUDIO_BUTTON_TEXT) {
+    override fun actionPerformed(e: ActionEvent) {
+      logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.UPGRADE_STUDIO)
+      UpdateChecker.updateAndShowResult(project)
+      close(OK_EXIT_CODE)
+    }
+  }
+
+  private inner class DontAskAgainAction: AbstractAction(DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT) {
+    override fun actionPerformed(e: ActionEvent?) {
+      logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.DO_NOT_ASK_AGAIN)
+      AndroidSdkCompatibilityChecker.StudioUpgradeReminder(project).apply {
+        doNotAskAgainProjectLevel = true
+        doNotAskAgainIdeLevel = true
+      }
+      close(OK_EXIT_CODE)
+    }
+  }
+
+  companion object {
+    const val UPDATE_STUDIO_BUTTON_TEXT = "Upgrade Android Studio"
+    const val DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT = "Don't ask for this project"
+  }
+}

@@ -18,24 +18,16 @@ package com.android.tools.idea.gradle.project
 import com.android.SdkConstants
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
-import com.android.tools.analytics.UsageTracker
-import com.android.tools.analytics.withProjectId
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
 import com.android.tools.idea.serverflags.protos.RecommendedVersions
-import com.android.tools.idea.serverflags.protos.StudioVersionRecommendation
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ProductDetails
-import com.google.wireless.android.sdk.stats.UpgradeAndroidStudioDialogStats
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
-import com.intellij.openapi.updateSettings.impl.UpdateChecker
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import org.jetbrains.android.util.AndroidBundle
 
@@ -91,64 +83,15 @@ class AndroidSdkCompatibilityChecker {
       else -> return
     }
 
-    // We can't recommend upgrading to the latest version of AS (from the same channel) that will support
-    // the required API level
-    val content = if (!recommendedVersion.versionReleased) {
-      if (potentialFallbackVersion != null) {
-        AndroidBundle.message(
-          "project.upgrade.studio.notification.body.different.channel.recommendation",
-          ApplicationInfo.getInstance().fullVersion,
-          potentialFallbackVersion.buildDisplayName
-        ) + getAffectedModules(modulesViolatingSupportRules)
-      } else {
-        AndroidBundle.message(
-          "project.upgrade.studio.notification.body.no.recommendation",
-          ApplicationInfo.getInstance().fullVersion,
-        ) + getAffectedModules(modulesViolatingSupportRules)
-      }
-    } else {
-      AndroidBundle.message(
-        "project.upgrade.studio.notification.body.same.channel.recommendation",
-        ApplicationInfo.getInstance().fullVersion,
-        recommendedVersion.buildDisplayName
-      ) + getAffectedModules(modulesViolatingSupportRules)
-    }
-
-    ApplicationManager.getApplication().invokeAndWait({
-      val dontAskAgain: DialogWrapper.DoNotAskOption = object : DialogWrapper.DoNotAskOption.Adapter() {
-        override fun rememberChoice(isSelected: Boolean, exitCode: Int) {
-          if (isSelected) {
-            logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.DO_NOT_ASK_AGAIN)
-            StudioUpgradeReminder(project).doNotAskAgainProjectLevel = true
-            StudioUpgradeReminder(project).doNotAskAgainIdeLevel = true
-          }
-        }
-
-        override fun getDoNotShowMessage(): String {
-          return DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT
-        }
-      }
-      val (options, defaultOption) = if(recommendedVersion.versionReleased) {
-        Pair(arrayOf(Messages.getCancelButton(), UPDATE_STUDIO_BUTTON_TEXT), 1)
-      } else {
-        Pair(arrayOf(Messages.getCancelButton()), 0)
-      }
-
-      val selection = Messages.showIdeaMessageDialog(
-        project,
-        content,
-        AndroidBundle.message("project.upgrade.studio.notification.title"),
-        options,
-        defaultOption,
-        Messages.getInformationIcon(), dontAskAgain
-      )
-
-      when (selection) {
-        0 -> logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.CANCEL)
-        1 -> {
-          logEvent(project, UpgradeAndroidStudioDialogStats.UserAction.UPGRADE_STUDIO)
-          UpdateChecker.updateAndShowResult(project)
-        }
+    ApplicationManager.getApplication().invokeLater({
+      if (!project.isDisposed) {
+        val dialog = AndroidSdkCompatibilityDialog(
+          project,
+          recommendedVersion,
+          potentialFallbackVersion,
+          modulesViolatingSupportRules
+        )
+        dialog.show()
       }
     }, ModalityState.NON_MODAL)
   }
@@ -163,41 +106,8 @@ class AndroidSdkCompatibilityChecker {
     }
   }
 
-  private fun logEvent(project: Project, action: UpgradeAndroidStudioDialogStats.UserAction) {
-    UsageTracker.log(
-      AndroidStudioEvent.newBuilder()
-        .withProjectId(project)
-        .setKind(AndroidStudioEvent.EventKind.UPGRADE_ANDROID_STUDIO_DIALOG)
-        .setUpgradeAndroidStudioDialog(
-          UpgradeAndroidStudioDialogStats.newBuilder().apply {
-            userAction = action
-          }
-        )
-    )
-  }
-
-  private fun getAffectedModules(modules: List<Pair<String, AndroidVersion>>): String {
-    val modulesToShow = modules.take(MAX_NUM_OF_MODULES)
-    val remainingModules = modules.drop(MAX_NUM_OF_MODULES)
-
-    val content = StringBuilder()
-    content.append(
-      "Affected modules: " + modulesToShow.joinToString {
-        "<br/>'${it.first}' (compileSdk=${it.second.apiStringWithoutExtension})"
-      }
-    )
-
-    if (remainingModules.isNotEmpty()) {
-      content.append(" (and ${remainingModules.size} more)")
-    }
-    return content.toString()
-  }
-
   companion object {
     val MAX_RECOMMENDED_COMPILE_SDK_VERSION: AndroidVersion = SdkConstants.MAX_SUPPORTED_ANDROID_PLATFORM_VERSION
-    const val UPDATE_STUDIO_BUTTON_TEXT = "Upgrade Android Studio"
-    const val DO_NOT_ASK_FOR_PROJECT_BUTTON_TEXT = "Don't ask for this project"
-    const val CANCEL_BUTTON_TEXT = "Cancel"
     const val MAX_NUM_OF_MODULES = 5
 
     fun getInstance(): AndroidSdkCompatibilityChecker {
