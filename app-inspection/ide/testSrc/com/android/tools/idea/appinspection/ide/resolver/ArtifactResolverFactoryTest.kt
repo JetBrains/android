@@ -68,6 +68,7 @@ class ArtifactResolverFactoryTest(private val ideBrand: IdeBrand) {
             )
             .isInstanceOf(HttpArtifactResolver::class.java)
         }
+      else -> error("Unknown IDE: $ideBrand")
     }
   }
 }

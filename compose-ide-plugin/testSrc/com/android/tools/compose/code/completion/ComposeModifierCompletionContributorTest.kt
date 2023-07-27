@@ -192,7 +192,7 @@ class ComposeModifierCompletionContributorTest {
   fun modifierAsArgument() {
     fun checkArgumentCompletion() {
       myFixture.lookup.currentItem =
-        myFixture.lookupElements.find { it.lookupString.contains("extensionFunction") }
+        myFixture.lookupElements!!.find { it.lookupString.contains("extensionFunction") }
       myFixture.finishLookup('\n')
       myFixture.checkResult(
         """
@@ -213,7 +213,7 @@ class ComposeModifierCompletionContributorTest {
 
     fun checkNamedArgumentCompletion() {
       myFixture.lookup.currentItem =
-        myFixture.lookupElements.find { it.lookupString.contains("extensionFunction") }
+        myFixture.lookupElements!!.find { it.lookupString.contains("extensionFunction") }
       myFixture.finishLookup('\n')
       myFixture.checkResult(
         """
@@ -361,7 +361,7 @@ class ComposeModifierCompletionContributorTest {
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
 
     myFixture.lookup.currentItem =
-      myFixture.lookupElements.find { it.lookupString.contains("extensionFunction") }
+      myFixture.lookupElements!!.find { it.lookupString.contains("extensionFunction") }
     myFixture.finishLookup('\n')
     // TODO(302558638): Fix this redundant import issue for K1.
     val redundantImport = if (!isK2Plugin()) "import androidx.compose.ui.Modifier\n      " else ""
@@ -546,7 +546,7 @@ class ComposeModifierCompletionContributorTest {
     assertThat(lookupStrings.indexOf("extensionFunction")).isEqualTo(0)
 
     myFixture.lookup.currentItem =
-      myFixture.lookupElements.find { it.lookupString == "extensionFunction" }
+      myFixture.lookupElements!!.find { it.lookupString == "extensionFunction" }
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(

@@ -21,6 +21,7 @@ import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppVcsInfo
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.Frame
+import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.insights.ui.AppInsightsGutterRenderer
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.google.common.truth.Truth
@@ -46,7 +47,7 @@ internal fun buildAppInsight(frame: Frame, issue: AppInsightsIssue): AppInsight 
     line = frame.line.toInt() - 1,
     issue = issue,
     stackFrame = frame,
-    cause = MockitoKt.mock(),
+    cause = MockitoKt.mock<Cause.Frame>(),
     provider = MockitoKt.mock(),
     markAsSelectedCallback = MockitoKt.mock()
   )
