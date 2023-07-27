@@ -67,6 +67,7 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     }
     preferredSize = scaledSize
     revalidate()
+    repaint()
     return true
   }
 
