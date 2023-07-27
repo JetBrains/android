@@ -20,6 +20,7 @@ import com.android.tools.idea.io.grpc.Status
 import com.android.tools.idea.io.grpc.StatusRuntimeException
 import com.android.tools.idea.io.grpc.protobuf.StatusProto
 import com.google.api.client.auth.oauth2.TokenResponseException
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.intellij.openapi.diagnostic.Logger
 import java.io.IOException
 import java.net.SocketException
@@ -133,6 +134,7 @@ suspend fun <T> runGrpcCatching(
           LoadingState.Unauthorized("$SUGGEST_FOR_UNAUTHORIZED ${exception.message}", exception)
         is UnknownHostException,
         is SocketException -> LoadingState.NetworkFailure(exception.message, exception)
+        is GoogleJsonResponseException -> LoadingState.ServerFailure(exception)
         else -> LoadingState.UnknownFailure(exception.message, exception)
       }
     } catch (exception: TimeoutCancellationException) {
