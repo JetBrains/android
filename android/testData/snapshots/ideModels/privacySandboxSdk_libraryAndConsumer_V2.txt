@@ -2191,7 +2191,7 @@ MODULE                        : project.ads-sdk-implementation
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -3424,7 +3424,7 @@ MODULE                        : project.app
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -4667,7 +4667,7 @@ MODULE                        : project.app-with-dynamic-feature
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -5121,7 +5121,7 @@ MODULE                        : project.feature
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true

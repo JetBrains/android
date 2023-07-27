@@ -1067,10 +1067,6 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
             Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
-            Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :module2:assemble, :module2:testClasses
@@ -1236,8 +1232,6 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
             Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :module2:assemble, :module2:testClasses

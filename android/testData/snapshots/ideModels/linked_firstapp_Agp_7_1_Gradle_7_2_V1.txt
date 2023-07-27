@@ -1677,7 +1677,7 @@ MODULE                        : My_First_App.app
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -2337,7 +2337,7 @@ MODULE                        : My_First_App.app.mysharedlibrary
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true

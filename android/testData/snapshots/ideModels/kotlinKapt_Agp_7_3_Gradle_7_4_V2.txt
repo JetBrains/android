@@ -2504,7 +2504,7 @@ MODULE                        : MainActivity.app
             - localDebugUnitTest          : main
             - localDebugUnitTest          : local
             - localDebugUnitTest          : debug
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             localDebug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -2648,7 +2648,7 @@ MODULE                        : MainActivity.javaLib
         additionalVisibleSourceSets
             main                          : <empty>
             - test                        : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             main
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -3839,7 +3839,7 @@ MODULE                        : MainActivity.lib
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true

@@ -1727,7 +1727,7 @@ MODULE                        : TestCompositeLib1.app
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -2402,7 +2402,7 @@ MODULE                        : TestCompositeLib1.lib
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -3475,7 +3475,7 @@ MODULE                        : TestCompositeLib3.app
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -5544,7 +5544,7 @@ MODULE                        : project.app
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -6201,7 +6201,7 @@ MODULE                        : project.lib
             - debugAndroidTest            : main
             - debugUnitTest               : debug
             - debugUnitTest               : main
-        cachedCompilerArgumentsBySourceSet
+        compilerArgumentsBySourceSet
             debug
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true

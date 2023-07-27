@@ -627,11 +627,7 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
-                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.app.main
@@ -742,10 +738,6 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
-            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
-                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
@@ -882,11 +874,7 @@ PROJECT                       : Kotlin Multiplatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-            LibraryLevel                  : module
-            IsModuleLevel                 : true
             Scope                         : Test
-            LIBRARY                       : Gradle: org.jetbrains:annotations:13.0
-                *CLASSES                      : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.app.main
@@ -1007,7 +995,7 @@ PROJECT                       : Kotlin Multiplatform
         LinkedProjectPath             : <PROJECT>/kmpFirstLib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/kmpFirstLib/Kotlin_Multiplatform.kmpFirstLib.androidInstrumentedTest.iml [-]
@@ -1048,7 +1036,7 @@ PROJECT                       : Kotlin Multiplatform
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpFirstLib
-            IsTestModule                  : false
+            IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
             LanguageLevel                 : 1.9
             MergedCompilerArguments
@@ -1065,55 +1053,96 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest
-            JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest/kotlin
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest/java [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest/resources [-]
+            JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest/kotlin
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidInstrumentedTest/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: androidx.activity:activity:1.2.4 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.1.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.3.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.4.1 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.4.1 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.core:core:1.7.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.customview:customview:1.0.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.fragment:fragment:1.3.6 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.3.1 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.3.1 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.3.1 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.3.1 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.loader:loader:1.0.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.1.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.test.ext:junit:1.1.2 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.test.services:storage:1.4.0-alpha06 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.test:core:1.4.0-alpha06 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.test:monitor:1.4.0-alpha06 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.test:runner:1.4.0-alpha06 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: junit:junit:4.12 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest
             -                             : file://<PROJECT>/kmpFirstLib/build/processedResources/android/instrumentedTest
@@ -1257,7 +1286,7 @@ PROJECT                       : Kotlin Multiplatform
         LinkedProjectPath             : <PROJECT>/kmpFirstLib
         RootProjectPath               : <PROJECT>
         COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/unitTest [-]
+            compilerTestOutputPath        : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/unitTest [-]
             isCompilerPathInherited       : false
             isExcludeOutput               : true
         ModuleFile                    : <PROJECT>/.idea/modules/kmpFirstLib/Kotlin_Multiplatform.kmpFirstLib.androidUnitTest.iml [-]
@@ -1298,7 +1327,7 @@ PROJECT                       : Kotlin Multiplatform
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpFirstLib
-            IsTestModule                  : false
+            IsTestModule                  : true
             Kind                          : COMPILATION_AND_SOURCE_SET_HOLDER
             LanguageLevel                 : 1.9
             MergedCompilerArguments
@@ -1316,26 +1345,38 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/androidUnitTest
-            JavaSource                    : file://<PROJECT>/kmpFirstLib/src/androidUnitTest/kotlin
-        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/kmpFirstLib/src/androidUnitTest/java [-]
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/androidUnitTest/resources [-]
+            JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/androidUnitTest/kotlin
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/kmpFirstLib/src/androidUnitTest/java [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/androidUnitTest/resources [-]
         JDK                           : <NAME_CUT> Android SDK
         *isInherited                  : false
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: junit:junit:4.13.2 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonTest
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/unitTest
             -                             : file://<PROJECT>/kmpFirstLib/build/processedResources/android/unitTest
@@ -1451,6 +1492,8 @@ PROJECT                       : Kotlin Multiplatform
             compilerTestOutputPath        : file://<PROJECT>/build/classes/test/Kotlin_Multiplatform.kmpFirstLib.commonTest [-]
             isCompilerPathInherited       : true
             isExcludeOutput               : true
+        TEST_MODULE_PROPERTIES
+            productionModuleName          : Kotlin_Multiplatform.kmpFirstLib.commonMain
         ModuleFile                    : <PROJECT>/.idea/modules/kmpFirstLib/Kotlin_Multiplatform.kmpFirstLib.commonTest.iml [-]
         ModuleTypeName                : JAVA_MODULE
         FACET                         : Kotlin
@@ -1472,7 +1515,7 @@ PROJECT                       : Kotlin Multiplatform
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             ExternalProjectId             : :kmpFirstLib
-            IsTestModule                  : false
+            IsTestModule                  : true
             Kind                          : SOURCE_SET_HOLDER
             LanguageLevel                 : 1.9
             MergedCompilerArguments
@@ -1489,24 +1532,35 @@ PROJECT                       : Kotlin Multiplatform
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/kmpFirstLib/src/commonTest
-            JavaSource                    : file://<PROJECT>/kmpFirstLib/src/commonTest/kotlin
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/kmpFirstLib/src/commonTest/resources [-]
+            JavaSource (test)             : file://<PROJECT>/kmpFirstLib/src/commonTest/kotlin
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/kmpFirstLib/src/commonTest/resources [-]
         JDK                           : <NAME_CUT> JavaSDK
         *isInherited                  : true
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: junit:junit:4.13.2 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test-junit:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-test:<KOTLIN_VERSION> [=]
+            Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.androidLib.main
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
+            Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
+            Scope                         : Test
         Classes
-            -                             : file://<PROJECT>/build/classes/production/Kotlin_Multiplatform.kmpFirstLib.commonTest
+            -                             : file://<PROJECT>/build/classes/test/Kotlin_Multiplatform.kmpFirstLib.commonTest
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :kmpFirstLib:assemble, :kmpFirstLib:testClasses
@@ -1710,8 +1764,6 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
             Scope                         : Test
-        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :kmpJvmOnly:assemble, :kmpJvmOnly:testClasses
@@ -1880,8 +1932,6 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
             Scope                         : Test
-        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :kmpJvmOnly:assemble, :kmpJvmOnly:testClasses
@@ -2077,9 +2127,9 @@ PROJECT                       : Kotlin Multiplatform
         FACET                         : Kotlin
             TypeId                        : kotlin-language
             ExternalSource                : GRADLE
-            ApiLevel                      : 1.8
+            ApiLevel                      : 1.9
             CompilerArguments
-                apiVersion                    : 1.8
+                apiVersion                    : 1.9
                 languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
@@ -2097,7 +2147,7 @@ PROJECT                       : Kotlin Multiplatform
             Kind                          : SOURCE_SET_HOLDER
             LanguageLevel                 : 1.9
             MergedCompilerArguments
-                apiVersion                    : 1.8
+                apiVersion                    : 1.9
                 languageVersion               : 1.9
                 multiPlatform                 : true
                 - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar

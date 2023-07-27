@@ -489,10 +489,6 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.app.commonMain
             Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.app.jvmMain
-            Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.app.jvmMain
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :app:assemble, :app:testClasses
@@ -658,8 +654,6 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.app.jvmMain
             Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.app.jvmMain
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :app:assemble, :app:testClasses
@@ -1488,10 +1482,6 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmAndAndroid
             Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
-            Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :module2:assemble, :module2:testClasses
@@ -1738,8 +1728,6 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
             Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.jvmMain
-            Scope                         : Runtime
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
                 ASSEMBLE                      : :module2:assemble, :module2:testClasses
