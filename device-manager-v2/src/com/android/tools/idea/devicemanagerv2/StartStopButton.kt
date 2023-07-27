@@ -22,6 +22,8 @@ import com.android.sdklib.deviceprovisioner.DeviceState.Disconnected
 import com.android.sdklib.deviceprovisioner.RepairDeviceAction
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_LAUNCH_ACTION
+import com.google.wireless.android.sdk.stats.DeviceManagerEvent.EventKind.VIRTUAL_STOP_ACTION
 import icons.StudioIcons
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -46,9 +48,20 @@ internal class StartStopButton(
 
     addActionListener {
       when (baseIcon) {
-        activationPresentation.value.icon -> handle.scope.launch { activationAction.activate() }
+        activationPresentation.value.icon ->
+          handle.scope.launch {
+            if (handle.state.properties.isVirtual == true) {
+              DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_LAUNCH_ACTION)
+            }
+            activationAction.activate()
+          }
         deactivationPresentation.value.icon ->
-          handle.scope.launch { deactivationAction.deactivate() }
+          handle.scope.launch {
+            if (handle.state.properties.isVirtual == true) {
+              DeviceManagerUsageTracker.logDeviceManagerEvent(VIRTUAL_STOP_ACTION)
+            }
+            deactivationAction.deactivate()
+          }
         repairPresentation?.value?.icon -> {
           handle.scope.launch { repairDeviceAction?.repair() }
         }
