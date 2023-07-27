@@ -377,6 +377,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
         val workBench =
           createLayoutInspectorWorkbench(project, disposable, layoutInspector, mainPanel)
+        workBench.isFocusCycleRoot = false
 
         inspectorPanel.add(InspectorBanner(layoutInspector.notificationModel), BorderLayout.NORTH)
         inspectorPanel.add(workBench, BorderLayout.CENTER)

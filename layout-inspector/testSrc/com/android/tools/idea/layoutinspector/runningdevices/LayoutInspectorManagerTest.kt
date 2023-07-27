@@ -490,6 +490,10 @@ class LayoutInspectorManagerTest {
     assertThat(tabInfo.container.allChildren().filterIsInstance<WorkBench<LayoutInspector>>())
       .hasSize(1)
 
+    val workbench =
+      tabInfo.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+    assertThat(workbench.isFocusCycleRoot).isFalse()
+
     val toolbars =
       tabInfo.container.allChildren().filterIsInstance<ActionToolbar>().filter {
         it.component.name == "LayoutInspector.MainToolbar"
