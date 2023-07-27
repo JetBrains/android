@@ -96,11 +96,9 @@ private class SmallAarInnerRClass(
     return buildResourceFields(
       aarResources,
       resourceNamespace,
-      null,
       FieldModifier.NON_FINAL,
-      { true},
       resourceType,
-      this
+      this,
     )
   }
 

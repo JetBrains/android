@@ -46,11 +46,11 @@ class AndroidInternalRClass(psiManager: PsiManager, private val platform: Androi
       val repository = AndroidTargetData.get(platform.sdkData, platform.target).getFrameworkResources(ImmutableSet.of())
                        ?: return PsiField.EMPTY_ARRAY
       return buildResourceFields(
-        repository, ResourceNamespace.ANDROID, studioResourceRepositoryManager = null,
+        repository,
+        ResourceNamespace.ANDROID,
         AndroidLightField.FieldModifier.FINAL,
-        resourceFilter = { true },
         resourceType,
-        context = this@AndroidInternalRClass
+        context = this@AndroidInternalRClass,
       )
     }
 

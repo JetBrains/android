@@ -24,10 +24,11 @@ import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.AndroidResolveScopeEnlarger
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier.FINAL
 import org.jetbrains.android.augment.InnerRClassBase.Companion.buildResourceFields
-import java.util.function.Predicate
 
 /** Provides a [ResourceRepository] for the given [ResourceNamespace], if possible. */
 private typealias RepositoryProvider = (ResourceNamespace) -> ResourceRepository?
+
+private typealias ResourceFilter = (ResourceItem) -> Boolean
 
 /**
  * Base class for light implementations of inner classes of the R class, e.g. `R.string`.
@@ -65,17 +66,17 @@ abstract class InnerRClassBase(context: PsiClass, val resourceType: ResourceType
     protected fun buildResourceFields(
       repository: ResourceRepository,
       namespace: ResourceNamespace,
-      studioResourceRepositoryManager: StudioResourceRepositoryManager?,
       fieldModifier: AndroidLightField.FieldModifier,
-      resourceFilter: Predicate<ResourceItem>,
       resourceType: ResourceType,
-      context: PsiClass
+      context: PsiClass,
+      studioResourceRepositoryManager: StudioResourceRepositoryManager? = null,
+      resourceFilter: ResourceFilter = { true },
     ): Array<PsiField> {
       val otherFields = mutableMapOf<String, ResourceVisibility>()
       val styleableFields = mutableMapOf<String, ResourceVisibility>()
       val styleableAttrFields = mutableListOf<StyleableAttrFieldUrl>()
       repository.getResources(namespace, resourceType).values().forEach {
-        val visibility = if (resourceFilter.test(it)) ResourceVisibility.PUBLIC else ResourceVisibility.PRIVATE
+        val visibility = if (resourceFilter(it)) ResourceVisibility.PUBLIC else ResourceVisibility.PRIVATE
         if (it.type == ResourceType.STYLEABLE) {
           styleableFields.merge(it.name, visibility, ResourceVisibility::max)
           styleableAttrFields.addAll(
@@ -129,19 +130,19 @@ abstract class InnerRClassBase(context: PsiClass, val resourceType: ResourceType
       attrName: String,
       attrNamespace: ResourceNamespace,
       repositoryProvider: RepositoryProvider,
-      resourceFilter: Predicate<ResourceItem>,
+      resourceFilter: ResourceFilter,
     ): ResourceReference? =
       repositoryProvider(attrNamespace)
         ?.getResources(attrNamespace, ResourceType.ATTR, attrName)
         ?.firstOrNull()
-        ?.takeIf { resourceFilter.test(it) }
+        ?.takeIf(resourceFilter::invoke)
         ?.let { ResourceReference(it.namespace, it.type, it.name) }
 
     /** Returns all `Styleable` attribute fields of [resource] as [StyleableAttrFieldUrl]s. */
     private fun findStyleableAttrFields(
       resource: ResourceItem,
       repositoryProvider: RepositoryProvider,
-      resourceFilter: Predicate<ResourceItem>
+      resourceFilter: ResourceFilter,
     ): List<StyleableAttrFieldUrl> {
       val attributes = (resource.resourceValue as? StyleableResourceValue)?.allAttributes ?: return emptyList()
       val resourceReference = ResourceReference(resource.namespace, ResourceType.STYLEABLE, resource.name)
