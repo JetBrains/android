@@ -194,12 +194,12 @@ class VitalsTabTest {
         assertThat(icon).isEqualTo(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE)
       }
       with(firstRowComponents[2] as JLabel) {
-        assertThat(text).isEqualTo("8 → 13")
+        assertThat(text).isEqualTo("Android 2.2 (API 8) → Android 3.2 (API 13)")
         assertThat(icon).isEqualTo(StudioIcons.LayoutEditor.Toolbar.ANDROID_API)
       }
 
       // Device, OS Version, affected versions
-      fakeUi.findComponent<JLabel> { it.text == "Versions affected: 1.2.3 → 2.0.0" }
+      fakeUi.findComponent<JLabel> { it.text == "App versions: 1.2.3 → 2.0.0" }
 
       // Time, link to Vitals
       assertThat(

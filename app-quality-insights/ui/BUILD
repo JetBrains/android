@@ -18,6 +18,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
     ],
 )
 

@@ -97,9 +97,7 @@ class VitalsIntegrationTest {
         }
       )
 
-      studio.waitForComponentWithExactText(
-        "${TEST_ISSUE1.issueDetails.lowestAffectedApiLevel} → ${TEST_ISSUE1.issueDetails.highestAffectedApiLevel}"
-      )
+      studio.waitForComponentWithExactText("Android 2.2 (API 8) → Android 3.2 (API 13)")
 
       studio.waitForComponentWithExactText("Most affected Android version: $MOST_AFFECTED_OS")
     }
