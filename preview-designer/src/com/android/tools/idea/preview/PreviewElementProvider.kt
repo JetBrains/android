@@ -76,8 +76,8 @@ class MemoizedPreviewElementProvider<P : PreviewElement>(
   }
 
   /**
-   * Returns the latest value of the [ComposePreviewElement]s contained in the [delegate]. If the
-   * [modificationTracker] has not changed, this property will return a cached value.
+   * Returns the latest value of the [P]s contained in the [delegate]. If the [modificationTracker]
+   * has not changed, this property will return a cached value.
    *
    * _This call might be [Slow]. Do not call on the UI thread._
    */
