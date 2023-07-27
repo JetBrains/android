@@ -27,7 +27,7 @@ iml_module(
         },
         "perfgateComposeGradle": {
             "tags": ["perfgate"],
-            "shard_count": 2,
+            "shard_count": 5,
             "test_filter": "com.android.tools.idea.rendering.PerfgateComposeGradleTest",
         },
         "non-perfgate": {
@@ -49,6 +49,7 @@ iml_module(
         "//prebuilts/studio/layoutlib/data/keyboards",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native:libjni_object_tagger.prebuilt",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         "//tools/adt/idea/designer-perf-tests/testData",
