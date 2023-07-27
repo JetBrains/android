@@ -1274,6 +1274,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.FlavorsExecutionTest"],
     tags = COMMON_TAGS + [
+        "manual",
         "no_windows",
         "qa_smoke",
         "qa_smoke_unreliable",  # b/160247726
@@ -1499,6 +1500,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.AbiSplitApksTest"],
     tags = COMMON_TAGS + [
+        "manual",
         "no_crostini",
         "no_windows",
         "qa_fast",
@@ -1516,6 +1518,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.X86AbiSplitApksTest"],
     tags = COMMON_TAGS + [
+        "manual",
         "no_crostini",
         "no_windows",
         "qa_fast",
@@ -1658,6 +1661,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.naveditor.ManuallyAddNavLibTest"],
     tags = COMMON_TAGS + [
+        "manual",
         "no_windows",
         "qa_fast",
     ],
@@ -2234,6 +2238,7 @@ java_test(
     ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwAndroidTVTemplatesTest"],
     tags = COMMON_TAGS + [
+        "manual",
         "no_windows",
         "qa_fast",
     ],
@@ -2678,6 +2683,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.CLionIntegrationTest"],
     tags = COMMON_TAGS + [
+        "manual",
         "no_windows",
         "qa_fast",
     ],
@@ -3122,6 +3128,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.CreateFromPreexistingApkTest"],
     tags = COMMON_TAGS + [
+        "manual",
         "no_windows",
         "qa_fast",
     ],
