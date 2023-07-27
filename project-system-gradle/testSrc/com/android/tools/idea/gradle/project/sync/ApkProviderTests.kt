@@ -455,26 +455,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = TestTargetRunConfiguration("com.example.feature1.ExampleInstrumentedTest"),
       ),
       // Do not run with the current version of the AGP.
-      IGNORE = { if (agpVersion == AGP_CURRENT || agpVersion == AGP_80 || agpVersion == AGP_81) TODO("b/189202602") },
       expectApks = mapOf(
-        *(arrayOf(AGP_80, AGP_81, AGP_CURRENT) eachTo """
-              ApplicationId: google.simpleapplication
-              Files:
-                base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
-                base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
-                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-master.apk
-                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-mdpi.apk
-                feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-master.apk
-                feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-mdpi.apk
-              RequiredInstallationOptions: []
-
-              ApplicationId: com.example.feature1.test
-              Files:
-                 -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
-              RequiredInstallationOptions: []
-            """
-        ),
-        *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73, AGP_74) eachTo """
+        *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73, AGP_74, AGP_80, AGP_81, AGP_CURRENT) eachTo """
               ApplicationId: google.simpleapplication
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
@@ -500,6 +482,22 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               RequiredInstallationOptions: []
             """
         ),
+        AGP_41 to """
+              ApplicationId: google.simpleapplication
+              Files:
+                base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
+                base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
+                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-master.apk
+                dependsOnFeature1 -> project/app/build/intermediates/extracted_apks/debug/dependsOnFeature1-mdpi.apk
+                feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-master.apk
+                feature1 -> project/app/build/intermediates/extracted_apks/debug/feature1-mdpi.apk
+              RequiredInstallationOptions: []
+
+              ApplicationId: com.example.feature1.test
+              Files:
+                 -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
+              RequiredInstallationOptions: []
+            """,
         AGP_40 to """
               ApplicationId: google.simpleapplication
               Files:
