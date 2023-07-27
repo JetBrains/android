@@ -33,15 +33,18 @@ import java.io.IOException
 class StudioModuleDependencies(private val module: Module) : ModuleDependencies {
   override fun dependsOn(artifactId: GoogleMavenArtifactId): Boolean = module.dependsOn(artifactId)
 
-  override fun getResourcePackageNames(): List<String> =
+  override fun getResourcePackageNames(includeExternalLibraries: Boolean): List<String> =
     (
       (
         sequenceOf(module) +
           // Get all project (not external libraries) dependencies
-          AndroidDependenciesCache.getAllAndroidDependencies(module, false).map { it.module }
+          AndroidDependenciesCache.getAllAndroidDependencies(module, false).map { it.module }.asSequence()
         ).map { it.getModuleSystem().getPackageName() } +
         // Get all external (libraries) dependencies
-        module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN).map { getPackageName(it) }
+        when (includeExternalLibraries) {
+          true -> module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN).map { getPackageName(it) }.asSequence()
+          false -> emptySequence<String>()
+        }
       ).filterNotNull().toList()
 
   override fun findPsiClassInModuleAndDependencies(fqcn: String): PsiClass? {

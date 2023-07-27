@@ -406,7 +406,7 @@ public class ViewLoader {
   }
 
   private void loadRClasses(@NotNull ResourceIdManager.RClassParser rClassParser) {
-    myModule.getDependencies().getResourcePackageNames().forEach((resourcePackageName) -> {
+    myModule.getDependencies().getResourcePackageNames(true).forEach((resourcePackageName) -> {
       try {
         if (resourcePackageName == null) {
           LOG.info(

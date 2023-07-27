@@ -28,7 +28,7 @@ interface ModuleDependencies {
     .any { dependsOn(it) }
 
   /** Returns a list of `R` class package names (resource package names) from the module and all of its dependencies. */
-  fun getResourcePackageNames(): List<String>
+  fun getResourcePackageNames(includeExternalLibraries: Boolean): List<String>
 
   fun findPsiClassInModuleAndDependencies(fqcn: String): PsiClass?
 }
