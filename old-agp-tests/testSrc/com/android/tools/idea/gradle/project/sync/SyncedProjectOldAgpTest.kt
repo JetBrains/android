@@ -88,7 +88,7 @@ class OldAgpTestProjectTest: TestProjectTest() {
   }
 
   @Test
-  @OldAgpTest(agpVersions = ["8.0.0-beta04"], gradleVersions = ["8.0"])
+  @OldAgpTest(agpVersions = ["8.0.2"], gradleVersions = ["8.0"])
   override fun testMigratePackageAttribute_agp80() {
     super.testMigratePackageAttribute_agp80()
   }

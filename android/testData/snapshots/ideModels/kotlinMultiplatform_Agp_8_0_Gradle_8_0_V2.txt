@@ -1117,7 +1117,7 @@ MODULE                        : kotlinMultiPlatform
         externalSystemId              : GRADLE
 MODULE                        : kotlinMultiPlatform.app
     GradleModuleModel
-        agpVersion                    : 8.0.0-beta04
+        agpVersion                    : 8.0.2
         gradlePath                    : :app
         gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
@@ -1138,7 +1138,7 @@ MODULE                        : kotlinMultiPlatform.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.0.0-beta04
+    ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -2244,7 +2244,7 @@ MODULE                        : kotlinMultiPlatform.app.main
 MODULE                        : kotlinMultiPlatform.app.unitTest
 MODULE                        : kotlinMultiPlatform.module2
     GradleModuleModel
-        agpVersion                    : 8.0.0-beta04
+        agpVersion                    : 8.0.2
         gradlePath                    : :module2
         gradleVersion                 : 8.0
         buildFile                     : <ROOT>/module2/build.gradle
@@ -2265,7 +2265,7 @@ MODULE                        : kotlinMultiPlatform.module2
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :module2
-    ModelVersion                  : 8.0.0-beta04
+    ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/module2/build [-]

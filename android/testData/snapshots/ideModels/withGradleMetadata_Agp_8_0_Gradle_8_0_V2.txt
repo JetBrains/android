@@ -190,7 +190,7 @@ MODULE                        : withGradleMetadata
         externalSystemId              : GRADLE
 MODULE                        : withGradleMetadata.app
     GradleModuleModel
-        agpVersion                    : 8.0.0-beta04
+        agpVersion                    : 8.0.2
         gradlePath                    : :app
         gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
@@ -211,7 +211,7 @@ MODULE                        : withGradleMetadata.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.0.0-beta04
+    ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]

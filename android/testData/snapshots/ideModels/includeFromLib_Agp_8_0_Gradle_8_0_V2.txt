@@ -1214,7 +1214,7 @@ MODULE                        : navgraph
         externalSystemId              : GRADLE
 MODULE                        : navgraph.app
     GradleModuleModel
-        agpVersion                    : 8.0.0-beta04
+        agpVersion                    : 8.0.2
         gradlePath                    : :app
         gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
@@ -1235,7 +1235,7 @@ MODULE                        : navgraph.app
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :app
-    ModelVersion                  : 8.0.0-beta04
+    ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_APP
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/app/build [-]
@@ -1399,7 +1399,7 @@ MODULE                        : navgraph.app
                     BaselineProfileDirectories    : <ROOT>/app/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.0.0-beta04 [-]
+            ProguardFiles                 : <ROOT>/app/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.0.2 [-]
             ProguardFiles                 : <ROOT>/app/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
@@ -2626,7 +2626,7 @@ MODULE                        : navgraph.app.main
 MODULE                        : navgraph.app.unitTest
 MODULE                        : navgraph.lib
     GradleModuleModel
-        agpVersion                    : 8.0.0-beta04
+        agpVersion                    : 8.0.2
         gradlePath                    : :lib
         gradleVersion                 : 8.0
         buildFile                     : <ROOT>/lib/build.gradle
@@ -2647,7 +2647,7 @@ MODULE                        : navgraph.lib
     RootBuildId                   : <ROOT>
     BuildId                       : <ROOT>
     ProjectPath                   : :lib
-    ModelVersion                  : 8.0.0-beta04
+    ModelVersion                  : 8.0.2
     ProjectType                   : PROJECT_TYPE_LIBRARY
     CompileTarget                 : android-<SDK_VERSION>
     BuildFolder                   : <ROOT>/lib/build [-]
@@ -2806,7 +2806,7 @@ MODULE                        : navgraph.lib
                     BaselineProfileDirectories    : <ROOT>/lib/src/testDebug/baselineProfiles [-]
         BuildType
             Name                          : release
-            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.0.0-beta04 [-]
+            ProguardFiles                 : <ROOT>/lib/build/intermediates/default_proguard_files/global/proguard-android-optimize.txt-8.0.2 [-]
             ProguardFiles                 : <ROOT>/lib/proguard-rules.pro
             IsDebuggable                  : false
             IsJniDebuggable               : false
