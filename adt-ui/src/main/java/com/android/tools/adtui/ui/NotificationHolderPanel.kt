@@ -48,8 +48,6 @@ private const val TOTAL_FRAMES = 150
  * A panel that can display a notification at the top.
  */
 class NotificationHolderPanel(private val contentPanel: Component) : JBLayeredPane() {
-  val notificationPanels: List<EditorNotificationPanel>
-    get() = components.filter { it != contentPanel && it != fadeOutNotificationPopup }.filterIsInstance(EditorNotificationPanel::class.java)
 
   private val fadeOutNotificationContent = EditorNotificationPanel(HintUtil.INFORMATION_COLOR_KEY)
   private val fadeOutNotificationPopup = NotificationPopup(fadeOutNotificationContent)

@@ -38,7 +38,6 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
 import com.android.tools.adtui.swing.popup.FakeListPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
-import com.android.tools.adtui.ui.NotificationHolderPanel
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.concurrency.AndroidExecutors
@@ -89,7 +88,6 @@ import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQu
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.content.ContentManager
 import com.intellij.util.ConcurrencyUtil.awaitQuiescence
@@ -264,7 +262,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testUiStatePreservation() {
-
     val tempFolder = emulatorRule.avdRoot
     val emulator = emulatorRule.newEmulator(FakeEmulator.createPhoneAvd(tempFolder))
 
@@ -286,27 +283,17 @@ class StreamingToolWindowManagerTest {
     // Wait for the extended controls to show.
     waitForCondition(2, SECONDS) { emulator.extendedControlsVisible }
 
-    var panel = contentManager.contents[0].component as EmulatorToolWindowPanel
-
-    val notificationPanel = EditorNotificationPanel(EditorNotificationPanel.Status.Info).apply { text = "Test notification" }
-    panel.addNotification(notificationPanel)
+    val panel = contentManager.contents[0].component as EmulatorToolWindowPanel
 
     toolWindow.hide()
-
     // Wait for the extended controls to close.
     waitForCondition(4, SECONDS) { !emulator.extendedControlsVisible }
     // Wait for the prior visibility state of the extended controls to propagate to Studio.
     waitForCondition(2, SECONDS) { panel.lastUiState?.extendedControlsShown ?: false }
-    assertThat(panel.lastUiState?.activeNotifications).containsExactly(notificationPanel)
 
     toolWindow.show()
-    waitForCondition(1, SECONDS) { contentManager.contentCount != 0 }
-    panel = contentManager.contents[0].component as EmulatorToolWindowPanel
-
     // Wait for the extended controls to show.
     waitForCondition(2, SECONDS) { emulator.extendedControlsVisible }
-    assertThat(panel.primaryDisplayView?.findContainingComponent<NotificationHolderPanel>()?.notificationPanels)
-        .containsExactly(notificationPanel)
   }
 
   @Test

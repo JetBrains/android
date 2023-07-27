@@ -138,8 +138,6 @@ internal class DeviceToolWindowPanel(
     })
 
     installFileDropHandler(this, id.serialNumber, deviceView, project)
-
-    restoreActiveNotifications(uiState)
   }
 
   /**
@@ -149,7 +147,6 @@ internal class DeviceToolWindowPanel(
     mirroringEnded(DeviceMirroringSession.DeviceKind.PHYSICAL)
 
     val uiState = DeviceUiState()
-    saveActiveNotifications(uiState)
     uiState.orientation = primaryDisplayView?.displayOrientationQuadrants ?: 0
     uiState.zoomScrollState = displayPanel?.zoomScrollState
 
@@ -180,7 +177,7 @@ internal class DeviceToolWindowPanel(
     }
   }
 
-  class DeviceUiState : UiState() {
+  class DeviceUiState : UiState {
     var orientation = UNKNOWN_ORIENTATION
     var zoomScrollState: AbstractDisplayPanel.ZoomScrollState? = null
   }

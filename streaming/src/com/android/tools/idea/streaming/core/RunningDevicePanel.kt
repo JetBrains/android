@@ -61,7 +61,6 @@ abstract class RunningDevicePanel(
   protected val mainToolbar: ActionToolbar
   protected val secondaryToolbar: ActionToolbar
   protected val centerPanel = BorderLayoutPanel()
-  private val pendingNotifications = mutableListOf<EditorNotificationPanel>()
 
   // Start time of the current device mirroring session in milliseconds since epoch.
   private var mirroringStartTime: Long = 0
@@ -99,12 +98,12 @@ abstract class RunningDevicePanel(
    * sure that the notification is removed when the action is executed.
    */
   fun addNotification(notificationPanel: EditorNotificationPanel) {
-    findNotificationHolderPanel()?.addNotification(notificationPanel) ?: pendingNotifications.add(notificationPanel)
+    findNotificationHolderPanel()?.addNotification(notificationPanel)
   }
 
   /** Removes the given notification panel. */
   fun removeNotification(notificationPanel: EditorNotificationPanel) {
-    findNotificationHolderPanel()?.removeNotification(notificationPanel) ?: pendingNotifications.remove(notificationPanel)
+    findNotificationHolderPanel()?.removeNotification(notificationPanel)
   }
 
   internal abstract fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState? = null)
@@ -112,24 +111,6 @@ abstract class RunningDevicePanel(
   internal abstract fun setDeviceFrameVisible(visible: Boolean)
   /** Returns device information for metrics collection. */
   protected abstract fun getDeviceInfo(): DeviceInfo
-
-  internal fun saveActiveNotifications(uiState: UiState) {
-    findNotificationHolderPanel()?.let { uiState.activeNotifications.addAll(it.notificationPanels) }
-    uiState.activeNotifications.addAll(pendingNotifications)
-    pendingNotifications.clear()
-  }
-
-  internal fun restoreActiveNotifications(uiState: UiState) {
-    val activeNotifications = uiState.activeNotifications
-    if (activeNotifications.isNotEmpty() || pendingNotifications.isNotEmpty()) {
-      val notificationHolderPanel = findNotificationHolderPanel()
-      if (notificationHolderPanel != null) {
-        activeNotifications.forEach { notificationHolderPanel.addNotification(it) }
-        pendingNotifications.forEach { notificationHolderPanel.addNotification(it) }
-        pendingNotifications.clear()
-      }
-    }
-  }
 
   /**
    * Records the start of a device mirroring session.
@@ -183,7 +164,5 @@ abstract class RunningDevicePanel(
   private fun findNotificationHolderPanel() =
       primaryDisplayView?.findContainingComponent<NotificationHolderPanel>()
 
-  internal abstract class UiState {
-    val activeNotifications: MutableList<EditorNotificationPanel> = mutableListOf()
-  }
+  internal interface UiState
 }

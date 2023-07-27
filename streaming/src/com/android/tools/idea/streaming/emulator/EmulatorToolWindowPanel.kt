@@ -224,8 +224,6 @@ internal class EmulatorToolWindowPanel(
         showExtendedControls(emulator, project)
       }
     }
-
-    restoreActiveNotifications(uiState)
   }
 
   /**
@@ -238,7 +236,6 @@ internal class EmulatorToolWindowPanel(
     multiDisplayStateStorage.removeUpdater(multiDisplayStateUpdater)
 
     val uiState = EmulatorUiState()
-    saveActiveNotifications(uiState)
 
     for (panel in displayPanels.values) {
       uiState.zoomScrollState[panel.displayId] = panel.zoomScrollState
@@ -435,7 +432,7 @@ internal class EmulatorToolWindowPanel(
     }
   }
 
-  class EmulatorUiState : UiState() {
+  class EmulatorUiState : UiState {
     var manageSnapshotsDialogShown = false
     var extendedControlsShown = false
     var multiDisplayState: MultiDisplayState? = null
