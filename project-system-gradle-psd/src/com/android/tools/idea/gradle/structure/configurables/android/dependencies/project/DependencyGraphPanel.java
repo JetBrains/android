@@ -26,10 +26,8 @@ import com.android.tools.idea.gradle.structure.configurables.dependencies.detail
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.ModuleDependencyDetails;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.MultipleLibraryDependenciesDetails;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.AbstractResolvedDependencyNode;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.GoToModuleAction;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeRootNode;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.graph.DependenciesTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.issues.DependencyViewIssuesRenderer;
@@ -46,34 +44,40 @@ import com.android.tools.idea.gradle.structure.model.PsIssue;
 import com.android.tools.idea.gradle.structure.model.PsModule;
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPopupMenu;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.navigation.Place;
+import com.intellij.ui.tree.AsyncTreeModel;
+import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
-import java.util.ArrayList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.event.TreeSelectionListener;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class DependencyGraphPanel extends AbstractDependenciesPanel {
   @NotNull private final PsContext myContext;
 
   @NotNull private final Tree myTree;
-  @NotNull private final DependenciesTreeBuilder myTreeBuilder;
+  @NotNull private final StructureTreeModel<DependenciesTreeStructure> myStructureTreeModel;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
   @NotNull private final SelectionChangeEventDispatcher<List<AbstractDependencyNode<?, ? extends PsBaseDependency>>> myEventDispatcher =
@@ -92,8 +96,9 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
     setIssuesViewer(new IssuesViewer(myContext, new DependencyViewIssuesRenderer(myContext)));
 
-    DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
-    myTree = new Tree(treeModel) {
+    DependenciesTreeStructure treeStructure = new DependenciesTreeStructure(createRootNode());
+    myStructureTreeModel = new StructureTreeModel<>(treeStructure, this);
+    myTree = new Tree(new AsyncTreeModel(myStructureTreeModel, this)) {
       {
         setRowHeight(JBUI.scale(24));
       }
@@ -114,12 +119,8 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
       }
     };
 
+    JScrollPane scrollPane = setUp(myTree, "dependenciesTree");
     getContentsPanel().add(createActionsPanel(), BorderLayout.NORTH);
-
-    DependenciesTreeStructure treeStructure = new DependenciesTreeStructure(createRootNode());
-    myTreeBuilder = new DependenciesTreeBuilder(myTree, treeModel, treeStructure);
-
-    JScrollPane scrollPane = setUp(myTreeBuilder, "dependenciesTree");
     getContentsPanel().add(scrollPane, BorderLayout.CENTER);
 
     TreeSelectionListener treeSelectionListener = e -> {
@@ -146,24 +147,21 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
       }
     });
 
-    myTreeBuilder.getInitialized().doWhenDone(this::doEnsureSelection);
+    doEnsureSelection();
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, ModuleDependencyNode.class, myContext, true);
 
     PsModule.DependenciesChangeListener dependenciesChangeListener = event -> {
-      if (event instanceof PsModule.DependencyAddedEvent) {
-        // set the selection to the newly-added dependency
-        PsDeclaredDependency dependency = ((PsModule.DependencyAddedEvent)event).getDependency().getValue();
-        myTreeBuilder.reset(() -> {
-          AbstractDependencyNode found = myTreeBuilder.findDeclaredDependency(dependency);
-          if (found != null) {
-            myTreeBuilder.select(found);
-          }
-        });
-      }
-      else {
-        myTreeBuilder.reset(() -> {});
-      }
+      myStructureTreeModel.getInvoker().invoke(() -> myStructureTreeModel.getTreeStructure().reset());
+      myStructureTreeModel.invalidateAsync().thenRun(() -> {
+        if (event instanceof PsModule.DependencyAddedEvent) {
+          // set the selection to the newly-added dependency
+          PsDeclaredDependency dependency = ((PsModule.DependencyAddedEvent)event).getDependency().getValue();
+          myStructureTreeModel.getInvoker()
+            .compute(() -> myStructureTreeModel.getTreeStructure().findDeclaredDependencyNode(dependency))
+            .onSuccess(nodeOptional -> nodeOptional.ifPresent(node -> myStructureTreeModel.select(node, myTree, path -> {})));
+        }
+      });
     };
     myContext.getProject().forEachModule(module -> module.add(dependenciesChangeListener, this));
   }
@@ -179,7 +177,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
   @NotNull
   private List<AbstractDependencyNode<?, ? extends PsBaseDependency>> getSelection() {
     List<AbstractDependencyNode<?, ? extends PsBaseDependency>> selection = new ArrayList<>();
-    Set<AbstractDependencyNode> matchingSelection = myTreeBuilder.getSelectedElements(AbstractDependencyNode.class);
+    List<AbstractDependencyNode> matchingSelection = TreeUtil.collectSelectedObjectsOfType(myTree, AbstractDependencyNode.class);
     for (AbstractDependencyNode node : matchingSelection) {
       selection.add(node);
     }
@@ -245,7 +243,7 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         myTree.requestFocusInWindow();
-        myTreeBuilder.expandAllNodes();
+        TreeUtil.expandAll(myTree);
         doEnsureSelection();
       }
     });
@@ -253,11 +251,11 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
     actions.add(new AbstractBaseCollapseAllAction(myTree, Collapseall) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
-        myTreeBuilder.clearSelection();
+        myTree.clearSelection();
         notifySelectionChanged(Collections.emptyList());
 
         myTree.requestFocusInWindow();
-        myTreeBuilder.collapseAllNodes();
+        TreeUtil.collapseAll(myTree, -1);
         doEnsureSelection();
       }
     });
@@ -271,7 +269,6 @@ class DependencyGraphPanel extends AbstractDependenciesPanel {
 
   @Override
   public void dispose() {
-    Disposer.dispose(myTreeBuilder);
     Disposer.dispose(myHyperlinkSupport);
   }
 

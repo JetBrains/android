@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.structure.configurables.dependencies.treevi
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.DependencySelection;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.GoToModuleAction;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ModuleDependencyNode;
-import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ResolvedDependenciesTreeBuilder;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.treeview.ResolvedDependenciesTreeStructure;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeEventDispatcher;
 import com.android.tools.idea.gradle.structure.configurables.ui.SelectionChangeListener;
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowPanel;
@@ -44,8 +44,11 @@ import com.intellij.openapi.util.ActionCallback;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.ui.PopupHandler;
+import com.intellij.ui.tree.AsyncTreeModel;
+import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.tree.TreeUtil;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -63,7 +66,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class ResolvedDependenciesPanel extends ToolWindowPanel implements DependencySelection {
   @NotNull private final Tree myTree;
-  @NotNull private final ResolvedDependenciesTreeBuilder myTreeBuilder;
   @NotNull private final PsContext myContext;
   @NotNull private final NodeHyperlinkSupport<ModuleDependencyNode> myHyperlinkSupport;
 
@@ -85,8 +87,9 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     super(title, StudioIcons.Misc.PROJECT_SYSTEM_VARIANT, anchor);
     myContext = context;
 
-    DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
-    myTree = new Tree(treeModel) {
+    ResolvedDependenciesTreeStructure treeStructure = new ResolvedDependenciesTreeStructure(module, myContext.getUiSettings());
+    StructureTreeModel<ResolvedDependenciesTreeStructure> structureTreeModel = new StructureTreeModel<>(treeStructure, this);
+    myTree = new Tree(new AsyncTreeModel(structureTreeModel, this)) {
       @Override
       protected void processMouseEvent(MouseEvent e) {
         int id = e.getID();
@@ -105,15 +108,11 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     };
     myTree.setRowHeight(JBUI.scale(24));
 
+    module.add(event -> treeStructure.reset(), this);
+
     setHeaderActions();
     getHeader().setPreferredFocusedComponent(myTree);
-
-    myTreeBuilder = new ResolvedDependenciesTreeBuilder(
-      module, myTree, treeModel, myContext.getUiSettings());
-
-    module.add(event -> myTreeBuilder.reset(), this);
-
-    JScrollPane scrollPane = setUp(myTreeBuilder, "resolvedDependencies");
+    JScrollPane scrollPane = setUp(myTree, "resolvedDependencies");
     add(scrollPane, BorderLayout.CENTER);
 
     TreeSelectionListener treeSelectionListener = e -> {
@@ -166,7 +165,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
     myTree.requestFocusInWindow();
 
     myIgnoreTreeSelectionEvents = true;
-    myTreeBuilder.collapseAllNodes();
+    TreeUtil.collapseAll(myTree, -1);
     myIgnoreTreeSelectionEvents = false;
   }
 
@@ -188,7 +187,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   @Override
   public ActionCallback setSelection(@Nullable Collection<PsBaseDependency> selection) {
     if (selection == null || selection.isEmpty()) {
-      myTreeBuilder.clearSelection();
+      myTree.clearSelection();
     }
     return ActionCallback.DONE;
   }
@@ -213,7 +212,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
 
   @Nullable
   private AbstractPsModelNode getSelectionIfSingle() {
-    Set<AbstractPsModelNode> selection = myTreeBuilder.getSelectedElements(AbstractPsModelNode.class);
+    List<AbstractPsModelNode> selection = TreeUtil.collectSelectedObjectsOfType(myTree, AbstractPsModelNode.class);
     if (selection.size() == 1) {
       return getFirstItem(selection);
     }
@@ -223,7 +222,6 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
   @Override
   public void dispose() {
     super.dispose();
-    Disposer.dispose(myTreeBuilder);
     Disposer.dispose(myHyperlinkSupport);
   }
 }
