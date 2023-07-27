@@ -406,13 +406,14 @@ public class ViewLoader {
   }
 
   private void loadRClasses(@NotNull ResourceIdManager.RClassParser rClassParser) {
-    myModule.getDependencies().getRClassesNames().forEach((rClassName) -> {
+    myModule.getDependencies().getResourcePackageNames().forEach((resourcePackageName) -> {
       try {
-        if (rClassName == null) {
+        if (resourcePackageName == null) {
           LOG.info(
             String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
           return;
         }
+        String rClassName = resourcePackageName + '.' + SdkConstants.R_CLASS;
         myLogger.setResourceClass(rClassName);
         loadAndParseRClass(rClassName, rClassParser);
       }
