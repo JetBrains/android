@@ -128,6 +128,7 @@
         "screen-size.svg": "studio/icons/device-configuration/screen-size.svg",
         "screen-width.svg": "studio/icons/device-configuration/screen-width.svg",
         "smallest-screen-size.svg": "studio/icons/device-configuration/smallest-screen-size.svg",
+        "screen-roundness.svg": "studio/icons/device-configuration/screen-roundness.svg",
         "text-input.svg": "studio/icons/device-configuration/text-input.svg",
         "touch-screen.svg": "studio/icons/device-configuration/touch-screen.svg",
         "ui-mode.svg": "studio/icons/device-configuration/ui-mode.svg",
