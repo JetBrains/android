@@ -16,9 +16,11 @@
 package com.android.tools.idea.gradle.dsl.model.catalog
 
 import com.android.tools.idea.gradle.dsl.TestFileName
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.android.tools.idea.gradle.dsl.model.dependencies.LibraryDeclarationSpecImpl
 import com.android.tools.idea.gradle.dsl.model.dependencies.VersionDeclarationSpecImpl
+import com.intellij.openapi.command.WriteCommandAction
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
@@ -413,6 +415,79 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testUpdateVersionLiteral() {
+    doCatalogTest("""
+      [libraries]
+      core = "androidx.core:core-ktx:1.8.0"
+    """.trimIndent(),"""
+      [libraries]
+      core = "androidx.core:core-ktx:1.8.1"
+    """.trimIndent()) { catalog ->
+      val declarations = catalog.libraryDeclarations()
+      val declaration = declarations.getAll()["core"]!!
+      declaration.updateVersion("1.8.1")
+    }
+  }
+
+  @Test
+  fun testUpdateVersionFromMap() {
+    doCatalogTest("""
+      [libraries]
+      core = { group="androidx.core", name="core-ktx", version="1.8.0" }
+    """.trimIndent(),"""
+      [libraries]
+      core = { group="androidx.core", name="core-ktx", version="1.8.1" }
+    """.trimIndent()) { model ->
+      val declarations = model.libraryDeclarations()
+      val declaration = declarations.getAll()["core"]!!
+      WriteCommandAction.runWriteCommandAction(project) {
+        declaration.updateVersion("1.8.1")
+      }
+    }
+  }
+
+  @Test
+  fun testUpdateVersionWithReference() {
+    doCatalogTest("""
+      [versions]
+      coreVersion = "1.8.0"
+      [libraries]
+      core = { group="androidx.core", name="core-ktx", version.ref="coreVersion" }
+    """.trimIndent(), """
+      [versions]
+      coreVersion = "1.8.0"
+      newVersion = "1.8.1"
+      [libraries]
+      core = { group="androidx.core", name="core-ktx", version.ref="newVersion" }
+    """.trimIndent()) { catalog ->
+      val versions = catalog.versionDeclarations()
+      versions.addDeclaration("newVersion", "1.8.1")
+      val newVersion = versions.getAll()["newVersion"]!!
+      val declaration = catalog.libraryDeclarations().getAll()["core"]!!
+      WriteCommandAction.runWriteCommandAction(project) {
+        declaration.updateVersion(newVersion)
+      }
+    }
+  }
+
+  @Test
+  fun testUpdateVersionFromMap2() {
+    doCatalogTest("""
+      [libraries]
+      core = { group="androidx.core", name="core-ktx", version = { require = "1.8.0"} }
+    """.trimIndent(), """
+      [libraries]
+      core = { group="androidx.core", name="core-ktx", version="1.8.1" }
+    """.trimIndent()) { model ->
+      val declarations = model.libraryDeclarations()
+      val declaration = declarations.getAll()["core"]!!
+      WriteCommandAction.runWriteCommandAction(project) {
+        declaration.updateVersion("1.8.1")
+      }
+    }
+  }
+
+  @Test
   fun testRemoveLastDeclaration() {
     writeToBuildFile("")
     writeToVersionCatalogFile("""
@@ -428,6 +503,20 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
     verifyFileContents(myVersionCatalogFile, """
       [libraries]
     """.trimIndent())
+  }
+
+  fun doCatalogTest(initialCatalog: String, catalogToCompare: String, change: (GradleVersionCatalogModel) -> Unit) {
+    writeToBuildFile("")
+    writeToVersionCatalogFile(initialCatalog)
+    val buildModel = projectBuildModel
+    val catalogModel = buildModel.versionCatalogsModel
+    val catalog = catalogModel.getVersionCatalogModel("libs")!!
+
+    change.invoke(catalog)
+    WriteCommandAction.runWriteCommandAction(project) {
+      applyChanges(buildModel)
+    }
+    verifyFileContents(myVersionCatalogFile, catalogToCompare)
   }
 
   internal enum class TestFile(private val path: @SystemDependent String) : TestFileName {

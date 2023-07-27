@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies
 
-import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder
 
@@ -32,6 +31,10 @@ interface LibraryDeclarationModel : PsiElementHolder {
   fun group(): ResolvedPropertyModel
 
   fun version(): VersionDeclarationModel
+
+  fun updateVersion(compactNotation: String)
+
+  fun updateVersion(version: VersionDeclarationModel)
 
   fun completeModel(): ResolvedPropertyModel?
 }
