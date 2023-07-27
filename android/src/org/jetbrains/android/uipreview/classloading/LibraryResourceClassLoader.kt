@@ -28,6 +28,7 @@ import com.android.tools.res.ResourceClassRegistry
 import com.android.tools.res.ResourceNamespacing
 import com.android.tools.res.ids.ResourceIdManager
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
@@ -85,23 +86,15 @@ private fun registerResources(module: Module) {
   // If final ids are used, we will read the real class from disk later (in loadAndParseRClass), using this class loader. So we
   // can't treat it specially here, or we will read the wrong bytecode later.
   if (!idManager.finalIdsUsed) {
-    classRegistry.addLibrary(repositoryManager.appResources,
-                             idManager,
-                             ReadAction.compute<String?, RuntimeException> {
-                               androidFacet.getModuleSystem().getPackageName()
-                             },
-                             repositoryManager.namespace)
-
-    AndroidDependenciesCache.getAllAndroidDependencies(module, false)
-      .distinct()
-      .forEach { facet ->
-        classRegistry.addLibrary(repositoryManager.appResources,
-                                 idManager,
-                                 ReadAction.compute<String?, RuntimeException> {
-                                   facet.getModuleSystem().getPackageName()
-                                 },
-                                 repositoryManager.namespace)
-      }
+    val resourcePackageNames = runReadAction {
+      androidFacet.getModuleSystem().moduleDependencies.getResourcePackageNames(false)
+    }
+    for (resourcePackageName in resourcePackageNames) {
+      classRegistry.addLibrary(repositoryManager.appResources,
+                               idManager,
+                               resourcePackageName,
+                               repositoryManager.namespace)
+    }
   }
   module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN)
     .filter { it.hasResources }

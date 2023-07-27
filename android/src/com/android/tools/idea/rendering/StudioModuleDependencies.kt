@@ -45,7 +45,7 @@ class StudioModuleDependencies(private val module: Module) : ModuleDependencies 
           true -> module.getModuleSystem().getAndroidLibraryDependencies(DependencyScopeType.MAIN).map { getPackageName(it) }.asSequence()
           false -> emptySequence<String>()
         }
-      ).filterNotNull().toList()
+      ).filterNotNull().distinct().toList()
 
   override fun findPsiClassInModuleAndDependencies(fqcn: String): PsiClass? {
     val facade = JavaPsiFacade.getInstance(module.project)
