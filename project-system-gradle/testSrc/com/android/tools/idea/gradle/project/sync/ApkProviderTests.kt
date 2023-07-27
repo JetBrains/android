@@ -710,7 +710,7 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
          Files:
             -> project/app-with-dynamic-feature/build/intermediates/extracted_apks_from_privacy_sandbox_sdks/debug/ads-sdk/standalone.apk
          RequiredInstallationOptions: []
-         
+
          ApplicationId: com.example.rubidumconsumer
          Files:
            project.app-with-dynamic-feature -> project/app-with-dynamic-feature/build/intermediates/apk/debug/app-with-dynamic-feature-debug.apk
@@ -731,6 +731,43 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
                 -> project/kmpFirstLib/build/intermediates/apk/androidTest/main/kmpFirstLib-androidTest.apk
              RequiredInstallationOptions: []
           """.trimIndent())
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        viaBundle = true,
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app:main"),
+        device = AndroidVersion(33)
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           base -> project/app/build/intermediates/extracted_apks/debug/base-master_2.apk
+           base -> project/app/build/intermediates/extracted_apks/debug/base-mdpi.apk
+           commyrbsdk -> project/app/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
+    ),
+    def(
+      stackMarker = { it() },
+      TestScenario(
+        viaBundle = true,
+        testProject = AndroidCoreTestProject.PRIVACY_SANDBOX_SDK_LIBRARY_AND_CONSUMER,
+        target = NamedAppTargetRunConfiguration(externalSystemModuleId = ":app-with-dynamic-feature:main"),
+        device = AndroidVersion(33)
+      ),
+      IGNORE = { if (agpVersion != AGP_CURRENT) error("Not supported by this version") },
+      expectApks = mapOf(AGP_CURRENT to """
+         ApplicationId: com.example.rubidumconsumer
+         Files:
+           base -> project/app-with-dynamic-feature/build/intermediates/extracted_apks/debug/base-master_2.apk
+           base -> project/app-with-dynamic-feature/build/intermediates/extracted_apks/debug/base-mdpi.apk
+           feature -> project/app-with-dynamic-feature/build/intermediates/extracted_apks/debug/feature-master.apk
+           commyrbsdk -> project/app-with-dynamic-feature/build/intermediates/extracted_sdk_apks/debug/splits/commyrbsdk-master.apk
+         RequiredInstallationOptions: []
+      """.trimIndent())
     ),
   )
 
