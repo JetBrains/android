@@ -937,6 +937,7 @@ public class EditorFixture {
     DOWN("EditorDown"),
     ESCAPE("EditorEscape"),
     GOTO_DECLARATION("GotoDeclaration"),
+    FIND_USAGES("FindUsages"),
     GOTO_IMPLEMENTATION("GotoImplementation"),
     SAVE("SaveAll"),
     SELECT_ALL("$SelectAll"),

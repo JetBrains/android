@@ -69,7 +69,7 @@ public final class WizardUtils {
       .selectBuildConfigurationLanguage(buildConfigurationLanguage)
       .enterPackageName("com.google.myapplication")
       .wizard()
-      .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300))
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)

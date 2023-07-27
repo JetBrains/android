@@ -34,7 +34,7 @@ public class FindToolWindowFixture {
   public static class ContentFixture {
     @NotNull private final Content myContent;
 
-    ContentFixture(@NotNull IdeFrameFixture parent) {
+    public ContentFixture(@NotNull IdeFrameFixture parent) {
       UsageViewContentManager usageViewManager = UsageViewContentManager.getInstance(parent.getProject());
       myContent = verifyNotNull(usageViewManager.getSelectedContent());
     }
@@ -67,7 +67,7 @@ public class FindToolWindowFixture {
     }
 
     @NotNull
-    private Tree getContentsTree() {
+    public Tree getContentsTree() {
       JComponent component = myContent.getComponent();
       OccurenceNavigatorSupport navigatorSupport = field("mySupport").ofType(OccurenceNavigatorSupport.class).in(component).get();
       return (Tree)field("myTree").ofType(JTree.class).in(navigatorSupport).get();

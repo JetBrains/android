@@ -1332,6 +1332,20 @@ java_test(
 )
 
 java_test(
+    name = "GradleVersionCatalogTest2",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/VersionCatalogProject/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.GradleVersionCatalogTest2"],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "LaunchApkViewerTest",
     size = "large",
     data = COMMON_DATA + glob([
