@@ -411,7 +411,15 @@ internal class VideoDecoder(
       fun createBuffer(): ByteBuffer =
         ByteBuffer.allocate(WIRE_SIZE).order(LITTLE_ENDIAN)
 
-      private const val WIRE_SIZE = 4 + 4 + 4 + 4 + 8 + 8 + 8
+      private const val WIRE_SIZE = 4 + // width
+                                    4 + // height
+                                    1 + // displayOrientation
+                                    1 + // displayOrientationCorrection
+                                    2 + // displayRound
+                                    4 + // packetSize
+                                    8 + // frameNumber
+                                    8 + // originationTimestampUs
+                                    8   // presentationTimestampUs
     }
   }
 }
