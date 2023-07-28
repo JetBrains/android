@@ -287,27 +287,27 @@ internal fun <T> Benchmark.measureOperation(measures: List<MetricMeasurement<T>>
                                             samplesCount: Int = NUMBER_OF_SAMPLES,
                                             printSamples: Boolean = false,
                                             operation: () -> T) {
-  assert(measures.map { it.metric.metricName }.distinct().count() == measures.map { it.metric.metricName }.count()) {
+  // Make sure to make any memory measurements at the end as their 'after' method
+  // is slow and may affect the result of other time related metrics
+  val sortedMeasures = measures.sortedBy { it is HeapSnapshotMemoryUseMeasurement }
+  assert(sortedMeasures.map { it.metric.metricName }.distinct().count() == sortedMeasures.map { it.metric.metricName }.count()) {
     "Metrics can not have duplicate names"
   }
   repeat(warmUpCount) {
     operation()
   }
   runGC()
-  // Make sure to make any memory measurements at the end as their 'after' method
-  // is slow and may affect the result of other time related metrics
-  measures.sortedBy { it is HeapSnapshotMemoryUseMeasurement }
   val metricSamples: LinkedListMultimap<String, MetricSample> = LinkedListMultimap.create()
   repeat(samplesCount) {
-    measures.forEach { it.before() }
+    sortedMeasures.forEach { it.before() }
     val result = operation()
-    measures.forEach {
+    sortedMeasures.forEach {
       it.after(result)?.let { value -> metricSamples.put(it.metric.metricName, value) }
     }
     runGC()
   }
 
-  measures.forEach { measure ->
+  sortedMeasures.forEach { measure ->
     val metric = measure.metric
     val samples = metricSamples.get(metric.metricName)
     if (samples.isNotEmpty()) {
