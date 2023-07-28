@@ -116,8 +116,15 @@ public class MacDisplay implements Display {
     // It's possible (and even likely) that the format below won't be supported; ffmpeg will output
     // "Selected pixel format (yuv420p) is not supported by the input device." in that case.
     ProcessBuilder pb =
-      new ProcessBuilder(ffmpeg.toString(), "-framerate", "25", "-f", "avfoundation", "-video_device_index", videoDeviceIndex, "-i",
-                         "default:none", "-pix_fmt", "yuv420p", mkv.toString());
+      new ProcessBuilder(
+        ffmpeg.toString(),
+        "-framerate", "25",
+        "-f", "avfoundation",
+        "-video_device_index", videoDeviceIndex,
+        "-i", "default:none",
+        "-pix_fmt", "yuv420p",
+        "-movflags", "faststart",
+        mkv.toString());
     pb.redirectOutput(dir.resolve("ffmpeg_stdout.txt").toFile());
     pb.redirectError(dir.resolve("ffmpeg_stderr.txt").toFile());
 
