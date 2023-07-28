@@ -78,7 +78,7 @@ public class AndroidStudioUpdateStrategyCustomization extends UpdateStrategyCust
   }
 
   protected ChannelStatus versionNameToChannelStatus(String versionName) {
-    if (versionNameContainsChannel(versionName, "nightly")) {
+    if (versionNameContainsChannel(versionName, "nightly") || versionNameContainsChannel(versionName, "dev")) {
       return ChannelStatus.MILESTONE;
     }
     if (versionNameContainsChannel(versionName, "canary")) {
