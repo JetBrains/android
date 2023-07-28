@@ -25,24 +25,21 @@ import com.android.tools.idea.annotations.isAnnotatedWith
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
-import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewNode
+import com.android.tools.idea.preview.findPreviewDefaultValues
+import com.android.tools.idea.preview.qualifiedName
+import com.android.tools.idea.preview.toSmartPsiPointer
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiLiteralExpression
-import com.intellij.psi.impl.compiled.ClsClassImpl
-import com.intellij.psi.impl.compiled.ClsMethodImpl
 import com.intellij.util.containers.sequenceOfNotNull
 import com.intellij.util.text.nullize
-import org.jetbrains.kotlin.asJava.classes.KtLightClass
-import org.jetbrains.kotlin.asJava.elements.KtLightMethod
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
-import org.jetbrains.uast.UClass
 import org.jetbrains.uast.UClassLiteralExpression
 import org.jetbrains.uast.UExpression
 import org.jetbrains.uast.UMethod
@@ -307,29 +304,6 @@ internal fun UAnnotation.getContainingComposableUMethod() =
 /** Returns true when the UMethod is not null, and it is annotated with @Composable */
 private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_ANNOTATION_FQ_NAME)
 
-internal fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
-  when (val resolvedImplementation = this.resolve()) {
-    is ClsClassImpl ->
-      resolvedImplementation.methods
-        .map { psiMethod ->
-          Pair(
-            psiMethod.name,
-            (psiMethod as ClsMethodImpl).defaultValue?.text?.trim('"')?.nullize()
-          )
-        }
-        .toMap()
-    is KtLightClass ->
-      resolvedImplementation.methods
-        .map { psiMethod ->
-          Pair(
-            psiMethod.name,
-            (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize()
-          )
-        }
-        .toMap()
-    else -> mapOf()
-  }
-
 private fun UAnnotation.findClassNameValue(name: String) =
   (findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
 
@@ -368,9 +342,6 @@ private fun attributesToConfiguration(
     wallpaper,
   )
 }
-
-private val UMethod.qualifiedName: String
-  get() = "${(this.uastParent as UClass).qualifiedName}.${this.name}"
 
 /** Converts the given [previewAnnotation] to a [ComposePreviewElement]. */
 private fun previewAnnotationToPreviewElement(

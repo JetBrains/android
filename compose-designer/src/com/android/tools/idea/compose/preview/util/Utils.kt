@@ -19,15 +19,6 @@ import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.intellij.openapi.util.Segment
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.SmartPsiElementPointer
-import org.jetbrains.uast.UElement
-
-fun UElement?.toSmartPsiPointer(): SmartPsiElementPointer<PsiElement>? {
-  val bodyPsiElement = this?.sourcePsi ?: return null
-  return SmartPointerManager.createPointer(bodyPsiElement)
-}
 
 fun Segment?.containsOffset(offset: Int) =
   this?.let { it.startOffset <= offset && offset <= it.endOffset } ?: false

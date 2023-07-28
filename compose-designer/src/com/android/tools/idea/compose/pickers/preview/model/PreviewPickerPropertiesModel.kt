@@ -54,8 +54,8 @@ import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
 import com.android.tools.idea.compose.preview.UNDEFINED_API_LEVEL
 import com.android.tools.idea.compose.preview.UNDEFINED_DIMENSION
-import com.android.tools.idea.compose.preview.findPreviewDefaultValues
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
