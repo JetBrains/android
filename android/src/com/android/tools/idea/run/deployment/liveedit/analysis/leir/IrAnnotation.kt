@@ -45,6 +45,10 @@ class IrAnnotation(annotation: AnnotationNode) {
           }
         }
 
+        is Array<*> -> {
+          values[name] = value.toList()
+        }
+
         is AnnotationNode -> {
           values[name] = IrAnnotation(value)
         }
