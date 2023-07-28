@@ -20,7 +20,6 @@ import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -44,8 +43,9 @@ import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger
 import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
+import com.intellij.ide.impl.runUnderModalProgressIfIsEdt
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
 import com.intellij.openapi.externalSystem.model.DataNode
@@ -64,10 +64,11 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleSourceOrderEntry
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFileManager
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer
@@ -76,18 +77,20 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 
 /**
- * Syncs Android Gradle project with the persisted project data on startup.
+ * Sync Android Gradle project with the persisted project data on startup.
  */
-class AndroidGradleProjectStartupActivity : StartupActivity {
-  override fun runActivity(project: Project) {
-    if (Registry.`is`("android.gradle.project.startup.activity.disabled")) return
+class AndroidGradleProjectStartupActivity : ProjectActivity {
+  override suspend fun execute(project: Project) {
+    if (Registry.`is`("android.gradle.project.startup.activity.disabled", false)) {
+      return
+    }
 
     val gradleProjectInfo = GradleProjectInfo.getInstance(project)
 
     fun shouldSyncOrAttachModels(): Boolean {
       if (gradleProjectInfo.isSkipStartupActivity) return false
 
-      // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
+      // Opening an IDEA project with Android modules (AS and IDEA - i.e., previously synced).
       if (gradleProjectInfo.androidModules.isNotEmpty()) return true
 
       // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
@@ -113,11 +116,19 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
 
     showNeededNotifications(project)
   }
+
+  @TestOnly
+  fun runActivity(project: Project) {
+    @Suppress("DEPRECATION")
+    runUnderModalProgressIfIsEdt {
+      execute(project)
+    }
+  }
 }
 
 private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.java)
 
-private fun removeEmptyModules(project: Project) {
+private suspend fun removeEmptyModules(project: Project) {
   val moduleManager = ModuleManager.getInstance(project)
   val modulesToRemove =
     moduleManager
@@ -131,7 +142,7 @@ private fun removeEmptyModules(project: Project) {
       .takeUnless { it.isEmpty() }
       ?: return
 
-  runWriteAction {
+  writeAction {
     with(moduleManager.getModifiableModel()) {
       modulesToRemove.forEach {
         LOG.warn(
@@ -146,7 +157,7 @@ private fun removeEmptyModules(project: Project) {
 
 /**
  * Attempts to see if the models cached by IDEAs external system are valid, if they are then we attach them to the facet,
- * if they are not then we request a project sync in order to ensure that the IDE has access to all of models it needs to function.
+ * if they are not, then we request a project sync in order to ensure that the IDE has access to all models it needs to function.
  */
 private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo: GradleProjectInfo) {
 
@@ -298,9 +309,9 @@ private fun attachCachedModelsOrTriggerSync(project: Project, gradleProjectInfo:
       return { facet.attach(model) }
     }
 
-    // For models that can be broken into source sets we need to check the parent datanode for the model
+    // For models that can be broken into source sets, we need to check the parent datanode for the model,
     // For now we check both the current and parent node for code simplicity, once we finalize the layout for NDK and switch to
-    // module per source set we should replace this code with were we know the model will be living.
+    // module per source set, we should replace this code with were we know the model will be living.
     fun <T> getModelForMaybeSourceSetDataNode(): (DataNode<*>, Key<T>) -> T? {
       return { n, k -> getModelFromDataNode(n, k) ?: n.parent?.let { getModelFromDataNode(it, k) } }
     }
