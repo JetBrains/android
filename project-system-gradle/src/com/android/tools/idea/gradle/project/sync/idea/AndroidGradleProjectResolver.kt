@@ -137,6 +137,7 @@ import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
+import org.jetbrains.plugins.gradle.service.project.ArtifactMappingService
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.util.GradleConstants
@@ -1083,7 +1084,7 @@ private fun IdeAndroidSyncIssuesAndExceptions.process(moduleDataNode: DataNode<M
 @VisibleForTesting
 fun mergeProjectResolvedArtifacts(
   kmpArtifactToModuleIdMap: Map<String, List<String>>,
-  platformArtifactToModuleIdMap: Map<String, String>,
+  platformArtifactToModuleIdMap: ArtifactMappingService,
   project: Project?,
   rootProjectPath: @SystemIndependent String
 ): Map<String, Set<String>> =

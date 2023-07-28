@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea
 
+import org.jetbrains.plugins.gradle.service.project.MapBasedArtifactMappingService
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -24,10 +25,10 @@ class AndroidGradleProjectResolverTest {
   fun `Given sample app project When merge artifactsToModuleMaps Then expect same provided artifacts`() {
     val mergedArtifactsModuleIdMap = mergeProjectResolvedArtifacts(
       kmpArtifactToModuleIdMap = mutableMapOf(),
-      platformArtifactToModuleIdMap = mutableMapOf(
+      platformArtifactToModuleIdMap = MapBasedArtifactMappingService(mutableMapOf(
         "app/build/classes/java/main" to ":app:main",
         "app/build/classes/java/test" to ":app:test",
-      ),
+      )),
       project = null,
       rootProjectPath = "/"
     )
@@ -47,7 +48,7 @@ class AndroidGradleProjectResolverTest {
       kmpArtifactToModuleIdMap = mutableMapOf(
         "desktop/build/libs/desktop-jvm.jar" to listOf(":desktop:jvmMain", ":desktop:commonMain")
       ),
-      platformArtifactToModuleIdMap = mutableMapOf(),
+      platformArtifactToModuleIdMap = MapBasedArtifactMappingService(mutableMapOf()),
       project = null,
       rootProjectPath = "/"
     )
@@ -66,12 +67,12 @@ class AndroidGradleProjectResolverTest {
       kmpArtifactToModuleIdMap = mutableMapOf(
         "desktop/build/libs/desktop-jvm.jar" to listOf(":desktop:jvmMain", ":desktop:commonMain")
       ),
-      platformArtifactToModuleIdMap = mutableMapOf(
+      platformArtifactToModuleIdMap = MapBasedArtifactMappingService(mutableMapOf(
         "desktop/build/classes/java/main" to ":desktop:main",
         "desktop/build/classes/java/test" to ":desktop:test",
         "desktop/build/libs/desktop-jvm.jar" to ":desktop:jvmMain",
         "desktop/build/libs/desktop-jvm.jar-MPP" to ":desktop:commonMain"
-      ),
+      )),
       project = null,
       rootProjectPath = "/"
     )
@@ -93,10 +94,10 @@ class AndroidGradleProjectResolverTest {
       kmpArtifactToModuleIdMap = mutableMapOf(
         "common/build/libs/common-jvm.jar" to listOf(":common:jvmMain", ":common:commonMain")
       ),
-      platformArtifactToModuleIdMap = mutableMapOf(
+      platformArtifactToModuleIdMap = MapBasedArtifactMappingService(mutableMapOf(
         "common/build/classes/java/main" to ":common:main",
         "common/build/classes/java/test" to ":common:test",
-      ),
+      )),
       project = null,
       rootProjectPath = "/"
     )
@@ -117,9 +118,9 @@ class AndroidGradleProjectResolverTest {
       kmpArtifactToModuleIdMap = mutableMapOf(
         "desktop/build/libs/desktop-jvm.jar" to listOf(":desktop:jvmMain", ":desktop:commonMain")
       ),
-      platformArtifactToModuleIdMap = mutableMapOf(
+      platformArtifactToModuleIdMap = MapBasedArtifactMappingService(mutableMapOf(
         "desktop/build/libs/desktop-jvm.jar" to ":desktop:main",
-      ),
+      )),
       project = null,
       rootProjectPath = "/"
     )
