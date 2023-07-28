@@ -116,14 +116,6 @@ interface ComposePreviewManager : Disposable, PreviewModeManager {
   val visualLintingEnabled: Boolean
     get() = (currentOrNextMode as? PreviewMode.UiCheck)?.visualLintingEnabled ?: false
 
-  /**
-   * Indicates whether the preview is in its default mode by opposition to one of the special modes
-   * (interactive, animation, UI check). Both [PreviewMode.Default] and [PreviewMode.Gallery] are
-   * normal modes.
-   */
-  val isInNormalMode: Boolean
-    get() = mode is PreviewMode.Default || mode is PreviewMode.Gallery
-
   val isUiCheckPreview: Boolean
     get() = mode is PreviewMode.UiCheck
 

@@ -15,15 +15,24 @@
  */
 package com.android.tools.idea.preview.actions
 
+import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
+import com.android.tools.idea.uibuilder.scene.hasRenderErrors
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.AnActionWrapper
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 
@@ -72,3 +81,72 @@ private fun FileEditor.getPreviewModeManager(): PreviewModeManager? =
       this.preview.currentRepresentation as? PreviewModeManager
     else -> null
   }
+
+private class PreviewNonInteractiveActionWrapper(actions: List<AnAction>) :
+  DefaultActionGroup(actions) {
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+
+    e.getData(PreviewModeManager.KEY)?.let { e.presentation.isVisible = it.isInNormalMode }
+  }
+}
+
+/**
+ * Makes the given list of actions only visible when the preview is not in interactive or animation
+ * modes. Returns an [ActionGroup] that handles the visibility.
+ */
+fun List<AnAction>.visibleOnlyInStaticPreview(): ActionGroup =
+  PreviewNonInteractiveActionWrapper(this)
+
+/**
+ * Makes the given action only visible when the Compose preview is not in interactive or animation
+ * modes. Returns an [ActionGroup] that handles the visibility.
+ */
+fun AnAction.visibleOnlyInStaticPreview(): ActionGroup = listOf(this).visibleOnlyInStaticPreview()
+
+/** Hide the given actions if the [sceneView] contains render errors. */
+fun List<AnAction>.hideIfRenderErrors(sceneView: SceneView): List<AnAction> = map {
+  ShowUnderConditionWrapper(it) { !sceneView.hasRenderErrors() }
+}
+
+/** Wrapper that delegates whether the given action is visible or not to the passed condition. */
+private class ShowUnderConditionWrapper(delegate: AnAction, private val isVisible: () -> Boolean) :
+  AnActionWrapper(delegate), CustomComponentAction {
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    val curVisibleStatus = e.presentation.isVisible
+    e.presentation.isVisible = curVisibleStatus && isVisible()
+  }
+
+  override fun createCustomComponent(presentation: Presentation, place: String) =
+    ActionButtonWithToolTipDescription(delegate, presentation, place)
+}
+
+/**
+ * The given disables the actions if the given predicate returns true.
+ *
+ * @param predicate the predicate that returns true if the action should be disabled.
+ */
+fun List<AnAction>.disabledIf(predicate: (DataContext) -> Boolean): List<AnAction> = map {
+  EnableUnderConditionWrapper(it) { context -> !predicate(context) }
+}
+
+/**
+ * Wrapper that delegates whether the given action is enabled or not to the passed condition. If
+ * [isEnabled] returns true, the `delegate` action will be shown as disabled.
+ */
+private class EnableUnderConditionWrapper(
+  delegate: AnAction,
+  private val isEnabled: (context: DataContext) -> Boolean
+) : AnActionWrapper(delegate), CustomComponentAction {
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    val delegateEnabledStatus = e.presentation.isEnabled
+    e.presentation.isEnabled = delegateEnabledStatus && isEnabled(e.dataContext)
+  }
+
+  override fun createCustomComponent(presentation: Presentation, place: String) =
+    ActionButtonWithToolTipDescription(delegate, presentation, place)
+}

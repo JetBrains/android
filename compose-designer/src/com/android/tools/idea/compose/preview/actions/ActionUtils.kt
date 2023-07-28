@@ -15,29 +15,16 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
+import com.android.tools.idea.preview.actions.disabledIf
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.AnActionWrapper
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.actionSystem.ex.CustomComponentAction
-
-private class ComposePreviewNonInteractiveActionWrapper(actions: List<AnAction>) :
-  DefaultActionGroup(actions) {
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-
-    e.getData(COMPOSE_PREVIEW_MANAGER)?.let { e.presentation.isVisible = it.isInNormalMode }
-  }
-}
 
 // TODO(b/292057010) Enable group filtering for Gallery mode.
 private class ComposePreviewDefaultWrapper(actions: List<AnAction>) : DefaultActionGroup(actions) {
@@ -51,20 +38,6 @@ private class ComposePreviewDefaultWrapper(actions: List<AnAction>) : DefaultAct
 }
 
 /**
- * Makes the given list of actions only visible when the Compose preview is not in interactive or
- * animation modes. Returns an [ActionGroup] that handles the visibility.
- */
-internal fun List<AnAction>.visibleOnlyInComposeStaticPreview(): ActionGroup =
-  ComposePreviewNonInteractiveActionWrapper(this)
-
-/**
- * Makes the given action only visible when the Compose preview is not in interactive or animation
- * modes. Returns an [ActionGroup] that handles the visibility.
- */
-internal fun AnAction.visibleOnlyInComposeStaticPreview(): ActionGroup =
-  listOf(this).visibleOnlyInComposeStaticPreview()
-
-/**
  * Makes the given action only visible when the Compose preview is not in interactive or animation
  * modes. Returns an [ActionGroup] that handles the visibility.
  */
@@ -75,46 +48,7 @@ internal fun AnAction.visibleOnlyInComposeDefaultPreview(): ActionGroup =
  * The given disables the actions if any surface is refreshing or if the [sceneView] contains
  * errors.
  */
-fun List<AnAction>.disabledIfRefreshingOrRenderErrors(sceneView: SceneView): List<AnAction> = map {
-  EnableUnderConditionWrapper(it) { context ->
-    !(isAnyPreviewRefreshing(context) || sceneView.hasRenderErrors())
+fun List<AnAction>.disabledIfRefreshingOrRenderErrors(sceneView: SceneView): List<AnAction> =
+  disabledIf { context ->
+    isAnyPreviewRefreshing(context) || sceneView.hasRenderErrors()
   }
-}
-
-/** Hide the given actions if the [sceneView] contains render errors. */
-fun List<AnAction>.hideIfRenderErrors(sceneView: SceneView): List<AnAction> = map {
-  ShowUnderConditionWrapper(it) { !sceneView.hasRenderErrors() }
-}
-
-/**
- * Wrapper that delegates whether the given action is enabled or not to the passed condition. If
- * [isEnabled] returns true, the `delegate` action will be shown as disabled.
- */
-private class EnableUnderConditionWrapper(
-  delegate: AnAction,
-  private val isEnabled: (context: DataContext) -> Boolean
-) : AnActionWrapper(delegate), CustomComponentAction {
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    val delegateEnabledStatus = e.presentation.isEnabled
-    e.presentation.isEnabled = delegateEnabledStatus && isEnabled(e.dataContext)
-  }
-
-  override fun createCustomComponent(presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(delegate, presentation, place)
-}
-
-/** Wrapper that delegates whether the given action is visible or not to the passed condition. */
-private class ShowUnderConditionWrapper(delegate: AnAction, private val isVisible: () -> Boolean) :
-  AnActionWrapper(delegate), CustomComponentAction {
-
-  override fun update(e: AnActionEvent) {
-    super.update(e)
-    val curVisibleStatus = e.presentation.isVisible
-    e.presentation.isVisible = curVisibleStatus && isVisible()
-  }
-
-  override fun createCustomComponent(presentation: Presentation, place: String) =
-    ActionButtonWithToolTipDescription(delegate, presentation, place)
-}

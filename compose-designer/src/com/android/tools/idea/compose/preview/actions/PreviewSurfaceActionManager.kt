@@ -25,6 +25,8 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.preview.actions.EnableInteractiveAction
 import com.android.tools.idea.preview.actions.createStatusIcon
+import com.android.tools.idea.preview.actions.hideIfRenderErrors
+import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -97,7 +99,7 @@ internal class PreviewSurfaceActionManager(
               )
               .disabledIfRefreshingOrRenderErrors(sceneView)
               .hideIfRenderErrors(sceneView)
-              .visibleOnlyInComposeStaticPreview()
+              .visibleOnlyInStaticPreview()
         ),
         true,
         false
@@ -116,7 +118,7 @@ internal class PreviewSurfaceActionManager(
 
   override fun getSceneViewStatusIcon(sceneView: SceneView) =
     createStatusIcon(
-      ComposePreviewStatusIconAction(sceneView).visibleOnlyInComposeStaticPreview(),
+      ComposePreviewStatusIconAction(sceneView).visibleOnlyInStaticPreview(),
       surface
     )
 }
