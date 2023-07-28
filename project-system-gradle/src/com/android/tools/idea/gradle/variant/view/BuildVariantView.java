@@ -113,7 +113,7 @@ public class BuildVariantView {
 
     myImportDefaultsButton = new JButton();
     myImportDefaultsButton.setToolTipText(
-        "Resets variant selection to the default variants (automatically selected if not specified in build.gradle)");
+        "Resets variant selection to the default variants (automatically selected if not specified in Gradle build files)");
     myImportDefaultsButton.addActionListener(
       event -> BuildVariantUpdater.requestGradleSync(myProject, null, true));
   }
