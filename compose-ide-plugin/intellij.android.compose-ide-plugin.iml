@@ -20,11 +20,11 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.7.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/compiler-hosted.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-1.4.7-sources.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/compiler-hosted-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
