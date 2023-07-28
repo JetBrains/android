@@ -32,8 +32,8 @@ class IrMethod(node: MethodNode) {
 
   val annotations = toAnnotationList(node.visibleAnnotations, node.invisibleAnnotations)
   val instructions = IrInstructionList(node.instructions)
-  val localVariables = node.localVariables.map { IrLocalVariable(it, instructions.labels) }
-  val tryCatchBlocks = node.tryCatchBlocks.map{ IrTryCatchBlock(it, instructions.labels) }
+  val localVariables = node.localVariables?.map { IrLocalVariable(it, instructions.labels) } ?: emptyList()
+  val tryCatchBlocks = node.tryCatchBlocks?.map { IrTryCatchBlock(it, instructions.labels) } ?: emptyList()
 
   // We currently ignore the following MethodNode members when parsing, because they're either irrelevant to LiveEdit, don't appear in the
   // classfile, or are metadata about other information that we're already parsing.

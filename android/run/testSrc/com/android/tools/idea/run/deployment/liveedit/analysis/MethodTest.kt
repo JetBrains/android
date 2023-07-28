@@ -223,4 +223,14 @@ class MethodTest {
       })
     })
   }
+
+  @Test
+  fun testSAM() {
+    val original = projectRule.compile("""
+      fun interface Sam {
+        fun getNewString() : String
+      }""", "A.kt")
+
+    assertNull(diff(original, original))
+  }
 }
