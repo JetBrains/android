@@ -33,7 +33,8 @@ public class GradleClassFinderUtil {
     List<IdeAndroidArtifact> artifacts = new ArrayList<>();
     artifacts.add(model.getMainArtifact());
     if (includeAndroidTests) {
-      artifacts.add(model.getArtifactForAndroidTest());
+      IdeAndroidArtifact testArtifact = model.getArtifactForAndroidTest();
+      if (testArtifact != null) artifacts.add(testArtifact);
     }
     return artifacts.stream().flatMap((artifactInfo) -> artifactInfo.getClassesFolder().stream());
   }
