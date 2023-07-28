@@ -335,7 +335,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
     val moduleElements =
       moduleClasses.map {
         DaggerRelatedElement(
-          ModuleDaggerElement(it.navigationElement),
+          ModuleDaggerElement(it.kotlinOriginOrSelf),
           DaggerBundle.message("modules.included"),
           "navigate.to.included.module"
         )
@@ -343,7 +343,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
     val subcomponentElements =
       subcomponentClasses.map {
         DaggerRelatedElement(
-          SubcomponentDaggerElement(it.navigationElement),
+          SubcomponentDaggerElement(it.kotlinOriginOrSelf),
           DaggerBundle.message("subcomponents"),
           "navigate.to.subcomponent"
         )

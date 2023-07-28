@@ -82,7 +82,7 @@ abstract class IndexValue {
   fun resolveToDaggerElements(project: Project, scope: GlobalSearchScope): List<DaggerElement> {
     val candidates =
       getResolveCandidates(project, scope).mapNotNull {
-        daggerElementIdentifiers.getDaggerElement(it.navigationElement)
+        daggerElementIdentifiers.getDaggerElement(it)
       }
 
     // Validate that the type of [DaggerElement] specified by this [IndexValue] matches what was
