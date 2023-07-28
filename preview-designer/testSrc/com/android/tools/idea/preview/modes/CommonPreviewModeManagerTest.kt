@@ -10,7 +10,6 @@ import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.yield
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.After
 import org.junit.Before
@@ -54,9 +53,6 @@ class CommonPreviewModeManagerTest {
         onEnter = { onEnterArguments += it },
         onExit = { onExitArguments += it },
       )
-
-    // allow for the coroutine in the manager to execute
-    yield()
 
     for (newMode in newModes) {
       manager.setMode(newMode)

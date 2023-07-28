@@ -56,10 +56,11 @@ class CommonPreviewModeManager(
   private var restoreMode: PreviewMode.Settable? = null
 
   init {
+    // Keep track of the last mode that was set to ensure it is correctly disposed
+    var lastMode = modeFlow.value
+
     // Launch handling of Preview modes
     scope.launch {
-      // Keep track of the last mode that was set to ensure it is correctly disposed
-      var lastMode = modeFlow.value
       modeFlow.collectLatest {
         when (it) {
           is PreviewMode.Switching -> {
