@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.adblib.ddmlibcompatibility
 
-import com.android.adblib.AdbFailResponseException
 import com.android.adblib.DeviceSelector
-import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adblib.AdbLibApplicationService
@@ -37,9 +35,6 @@ internal val defaultDdmTimeoutMillis
 
 internal val deviceServices
   get() = AdbLibApplicationService.instance.session.deviceServices
-
-internal val ioDispatcher
-  get() = AdbLibApplicationService.instance.session.host.ioDispatcher
 
 /**
  * Returns a [DeviceSelector] instance that identifies this [IDevice]
@@ -65,10 +60,3 @@ internal suspend fun createOpenFileChannel(localFilename: String) =
 internal suspend fun createOpenFileChannel(path: Path) =
   AdbLibApplicationService.instance.session.channelFactory.openFile(path)
 
-internal inline fun <R> mapToDdmlibException(block: () -> R): R {
-  return try {
-    block()
-  } catch(e: AdbFailResponseException) {
-    throw AdbCommandRejectedException.create(e.failMessage)
-  }
-}

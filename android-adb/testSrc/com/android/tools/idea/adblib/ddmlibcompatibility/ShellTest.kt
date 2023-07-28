@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.adblib.ddmlibcompatibility
 
+import com.android.adblib.AdbServerChannelProvider
+import com.android.adblib.AdbSession
+import com.android.adblib.testingutils.CloseablesRule
+import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.ddmlib.AdbCommandRejectedException
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.MultiLineReceiver
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assert_
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestLoggerFactory
 import org.junit.Rule
 import org.junit.Test
@@ -30,16 +32,15 @@ import org.junit.rules.ExpectedException
 import org.junit.rules.RuleChain
 
 class ShellTest {
-  private val projectRule = ProjectRule()
   private val fakeAdbRule = FakeAdbRule()
-  private val fakeAdbServiceRule = FakeAdbServiceRule({ projectRule.project }, fakeAdbRule)
+  private val closeables = CloseablesRule()
 
   @JvmField
   @Rule
   var exceptionRule: ExpectedException = ExpectedException.none()
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(fakeAdbRule).around(fakeAdbServiceRule)!!
+  val ruleChain = RuleChain.outerRule(fakeAdbRule).around(closeables)!!
 
   @Test
   fun executeShellCommandShouldWork() {
@@ -49,7 +50,7 @@ class ShellTest {
     val receiver = ListReceiver()
 
     // Act
-    executeShellCommand(device, "getprop", receiver)
+    executeShellCommand(fakeAdbRule.createAdbSession(closeables), device, "getprop", receiver)
 
     // Assert
     val expected = """# This is some build info
@@ -76,7 +77,7 @@ class ShellTest {
 
     // Act
     exceptionRule.expect(AdbCommandRejectedException::class.java)
-    executeShellCommand(device, "foobarz", receiver)
+    executeShellCommand(fakeAdbRule.createAdbSession(closeables), device, "foobarz", receiver)
 
     // Assert
     assert_().fail() // should not be reached
@@ -91,5 +92,13 @@ class ShellTest {
     }
 
     override fun isCancelled() = false
+  }
+
+  // TODO: Remove when this file is moved under adblib-ddmlibcompatibility/
+  fun FakeAdbRule.createAdbSession(closeables: CloseablesRule): AdbSession {
+    val host = TestingAdbSessionHost()
+    val channelProvider =
+      AdbServerChannelProvider.createOpenLocalHost(host) { this.fakeAdbServerPort }
+    return closeables.register(AdbSession.create(host, channelProvider))
   }
 }

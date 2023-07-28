@@ -19,28 +19,24 @@
 
 package com.android.tools.idea.adblib.ddmlibcompatibility
 
-import com.android.adblib.DeviceSelector
+import com.android.adblib.AdbFailResponseException
+import com.android.adblib.AdbSession
 import com.android.adblib.ShellCollector
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.AdbCommandRejectedException
+import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.ddmlib.TimeoutException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.channels.trySendBlocking
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.IOException
@@ -52,13 +48,11 @@ import java.nio.ByteBuffer
 @Deprecated(deprecationMessage, ReplaceWith("AdbDeviceServices.shell"))
 @WorkerThread
 @Throws(IOException::class, AdbCommandRejectedException::class, TimeoutException::class, ShellCommandUnresponsiveException::class)
-fun executeShellCommand(device: IDevice, command: String, receiver: IShellOutputReceiver) {
-  throwIfDispatchThread()
-
+fun executeShellCommand(adbSession: AdbSession, device: IDevice, command: String, receiver: IShellOutputReceiver) {
   val stdoutCollector = ShellCollectorToIShellOutputReceiver(receiver)
-  val flow = deviceServices.shell(device.toDeviceSelector(), command, stdoutCollector)
+  val flow = adbSession.deviceServices.shell(device.toDeviceSelector(), command, stdoutCollector)
   return runBlocking {
-    withTimeout(defaultDdmTimeoutMillis) {
+    withTimeout(DdmPreferences.getTimeOut().toLong()) {
       mapToDdmlibException {
         // Note: We know there is only one item in the flow (Unit), because our
         //       ShellCollector implementation forwards buffers directly to
@@ -74,7 +68,7 @@ fun executeShellCommand(device: IDevice, command: String, receiver: IShellOutput
  * like that produced by [AdbDeviceServices.shell].
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-fun <T> executeShellCommand(device: IDevice, command: String, shellCollector: ShellCollector<T>): Flow<T> =
+fun <T> executeShellCommand(adbSession: AdbSession, device: IDevice, command: String, shellCollector: ShellCollector<T>): Flow<T> =
   flow {
     shellCollector.start(this)
     callbackFlow<ByteBuffer> {
@@ -91,8 +85,17 @@ fun <T> executeShellCommand(device: IDevice, command: String, shellCollector: Sh
           channel.isClosedForSend
       })
       awaitClose()
-    }.flowOn(ioDispatcher).collect { value ->
+    }.flowOn(adbSession.host.ioDispatcher).collect { value ->
       shellCollector.collect(this, value)
     }
     shellCollector.end(this)
   }
+
+private inline fun <R> mapToDdmlibException(block: () -> R): R {
+  return try {
+    block()
+  }
+  catch (e: AdbFailResponseException) {
+    throw AdbCommandRejectedException.create(e.failMessage)
+  }
+}
