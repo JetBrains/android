@@ -22,6 +22,7 @@ import com.android.utils.Base128OutputStream
 import com.android.utils.FlightRecorder
 import com.android.utils.TraceUtils
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
+import java.awt.Dimension
 import kotlin.text.Charsets.UTF_8
 
 // Classes in this file have to be kept in sync with tools/adt/idea/streaming/screen-sharing-agent/app/src/main/cpp/control_messages.h.
@@ -35,17 +36,14 @@ sealed class ControlMessage(val type: Int) {
     stream.writeInt(type)
   }
 
-  override fun equals(other: Any?): Boolean {
-    return javaClass == other?.javaClass
-  }
+  override fun equals(other: Any?): Boolean =
+      javaClass == other?.javaClass
 
-  override fun hashCode(): Int {
-    return javaClass.hashCode()
-  }
+  override fun hashCode(): Int =
+      javaClass.hashCode()
 
-  override fun toString(): String {
-    return javaClass.simpleName
-  }
+  override fun toString(): String =
+      javaClass.simpleName
 
   interface Deserializer {
     fun deserialize(stream: Base128InputStream): ControlMessage
@@ -96,9 +94,8 @@ internal data class MotionEventMessage(
     stream.writeInt(displayId)
   }
 
-  override fun toString(): String {
-    return "MotionEventMessage(pointers=$pointers, action=$action, buttonState=$buttonState actionButton=$actionButton displayId=$displayId)"
-  }
+  override fun toString(): String =
+      "MotionEventMessage(pointers=$pointers, action=$action, buttonState=$buttonState actionButton=$actionButton displayId=$displayId)"
 
   companion object : Deserializer {
     const val TYPE = 1
@@ -176,8 +173,8 @@ internal data class MotionEventMessage(
     }
 
     override fun toString(): String {
-      if (axisValues == null) return "Pointer(x=$x, y=$y, pointerId=$pointerId)"
-      return "Pointer(x=$x, y=$y, pointerId=$pointerId, axisValues=$axisValues)"
+      return if (axisValues == null) "Pointer(x=$x, y=$y, pointerId=$pointerId)"
+             else "Pointer(x=$x, y=$y, pointerId=$pointerId, axisValues=$axisValues)"
     }
   }
 }
@@ -196,9 +193,8 @@ internal data class KeyEventMessage(
     stream.writeInt(metaState)
   }
 
-  override fun toString(): String {
-    return "KeyEventMessage(action=$action, keyCode=$keyCode, metaState=0x${metaState.toString(16)})"
-  }
+  override fun toString(): String =
+      "KeyEventMessage(action=$action, keyCode=$keyCode, metaState=0x${metaState.toString(16)})"
 
   companion object : Deserializer {
     const val TYPE = 2
@@ -223,9 +219,8 @@ internal data class TextInputMessage(
     stream.writeString(text)
   }
 
-  override fun toString(): String {
-    return "TextInputMessage(text=\"$text\")"
-  }
+  override fun toString(): String =
+      "TextInputMessage(text=\"$text\")"
 
   companion object : Deserializer {
     const val TYPE = 3
@@ -245,9 +240,8 @@ internal data class SetDeviceOrientationMessage(val orientation: Int) : ControlM
     stream.writeInt(orientation)
   }
 
-  override fun toString(): String {
-    return "SetDeviceOrientationMessage(orientation=$orientation)"
-  }
+  override fun toString(): String =
+      "SetDeviceOrientationMessage(orientation=$orientation)"
 
   companion object : Deserializer {
     const val TYPE = 4
@@ -260,17 +254,16 @@ internal data class SetDeviceOrientationMessage(val orientation: Int) : ControlM
 }
 
 /** Sets maximum display streaming resolution. */
-internal data class SetMaxVideoResolutionMessage(val width: Int, val height: Int) : ControlMessage(TYPE) {
+internal data class SetMaxVideoResolutionMessage(val size: Dimension) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
-    stream.writeInt(width)
-    stream.writeInt(height)
+    stream.writeInt(size.width)
+    stream.writeInt(size.height)
   }
 
-  override fun toString(): String {
-    return "SetMaxVideoResolutionMessage(width=$width, height=$height)"
-  }
+  override fun toString(): String =
+      "SetMaxVideoResolutionMessage(size=${size.width}x${size.height})"
 
   companion object : Deserializer {
     const val TYPE = 5
@@ -278,7 +271,7 @@ internal data class SetMaxVideoResolutionMessage(val width: Int, val height: Int
     override fun deserialize(stream: Base128InputStream): SetMaxVideoResolutionMessage {
       val width = stream.readInt()
       val height = stream.readInt()
-      return SetMaxVideoResolutionMessage(width, height)
+      return SetMaxVideoResolutionMessage(Dimension(width, height))
     }
   }
 }
@@ -318,9 +311,8 @@ internal data class StartClipboardSyncMessage(val maxSyncedLength: Int, val text
     stream.writeBytes(text.toByteArray(UTF_8))
   }
 
-  override fun toString(): String {
-    return "StartClipboardSyncMessage(maxSyncedLength=$maxSyncedLength, text='$text')"
-  }
+  override fun toString(): String =
+      "StartClipboardSyncMessage(maxSyncedLength=$maxSyncedLength, text='$text')"
 
   companion object : Deserializer {
     const val TYPE = 8
@@ -358,9 +350,8 @@ internal data class RequestDeviceStateMessage(val state: Int) : ControlMessage(T
     stream.writeInt(state + 1) // Add 1 to make sure that PHYSICAL_STATE is encoded efficiently.
   }
 
-  override fun toString(): String {
-    return "RequestDeviceStateMessage(state=$state)"
-  }
+  override fun toString(): String =
+      "RequestDeviceStateMessage(state=$state)"
 
   companion object : Deserializer {
     const val TYPE = 10
@@ -382,9 +373,8 @@ internal data class ClipboardChangedNotification(val text: String) : ControlMess
     stream.writeBytes(text.toByteArray(UTF_8))
   }
 
-  override fun toString(): String {
-    return "ClipboardChangedNotification(text=\"$text\")"
-  }
+  override fun toString(): String =
+      "ClipboardChangedNotification(text=\"$text\")"
 
   companion object : Deserializer {
     const val TYPE = 11
@@ -415,9 +405,8 @@ internal data class SupportedDeviceStatesNotification(val text: String) : Contro
     stream.writeBytes(text.toByteArray(UTF_8))
   }
 
-  override fun toString(): String {
-    return "SupportedDeviceStatesNotification(text=\"$text\")"
-  }
+  override fun toString(): String =
+      "SupportedDeviceStatesNotification(text=\"$text\")"
 
   companion object : Deserializer {
     const val TYPE = 12
@@ -440,9 +429,8 @@ internal data class DeviceStateNotification(val deviceState: Int) : ControlMessa
     stream.writeInt(deviceState)
   }
 
-  override fun toString(): String {
-    return "DeviceStateNotification(deviceState=$deviceState)"
-  }
+  override fun toString(): String =
+      "DeviceStateNotification(deviceState=$deviceState)"
 
   companion object : Deserializer {
     const val TYPE = 13

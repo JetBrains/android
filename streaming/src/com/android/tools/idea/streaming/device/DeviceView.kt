@@ -264,9 +264,10 @@ internal class DeviceView(
 
   private fun updateVideoSize() {
     val videoDecoder = deviceClient.videoDecoder ?: return
-    if (videoDecoder.maxOutputSize != physicalSize) {
-      videoDecoder.maxOutputSize = physicalSize
-      deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(physicalWidth, physicalHeight))
+    val maxSize = physicalSize
+    if (videoDecoder.maxOutputSize != maxSize) {
+      videoDecoder.maxOutputSize = maxSize
+      deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(maxSize))
     }
   }
 

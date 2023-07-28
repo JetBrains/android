@@ -404,7 +404,7 @@ class FakeScreenSharingAgent(
   }
 
   private suspend fun setMaxVideoResolutionMessage(message: SetMaxVideoResolutionMessage) {
-    maxVideoResolution = Dimension(message.width, message.height)
+    maxVideoResolution = message.size
     displayStreamer?.renderDisplay()
   }
 
