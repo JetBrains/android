@@ -467,6 +467,7 @@ class EmulatorView(
     }
     else if (connectionState == ConnectionState.DISCONNECTED) {
       lastScreenshot = null
+      hideLongRunningOperationIndicatorInstantly()
       showDisconnectedStateMessage("Disconnected from the Emulator")
     }
 
