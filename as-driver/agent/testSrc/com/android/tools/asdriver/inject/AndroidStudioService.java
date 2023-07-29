@@ -71,6 +71,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -390,10 +391,11 @@ public class AndroidStudioService extends AndroidStudioGrpc.AndroidStudioImplBas
    */
   private static Collection<HighlightInfo> analyzeViaTrafficLightRenderer(Project project, Document document)
     throws ExecutionException, InterruptedException {
-    TrafficLightRenderer renderer = ReadAction.nonBlocking(() -> new TrafficLightRenderer(project, document)).submit(
-      AppExecutorUtil.getAppExecutorService()).get();
+    ExecutorService appExecService = AppExecutorUtil.getAppExecutorService();
+    TrafficLightRenderer renderer = ReadAction.nonBlocking(() -> new TrafficLightRenderer(project, document)).submit(appExecService).get();
     while (true) {
-      TrafficLightRenderer.DaemonCodeAnalyzerStatus status = renderer.getDaemonCodeAnalyzerStatus();
+      TrafficLightRenderer.DaemonCodeAnalyzerStatus status =
+        ReadAction.nonBlocking(renderer::getDaemonCodeAnalyzerStatus).submit(appExecService).get();
       if (status.reasonWhyDisabled != null) {
         // One reason I've seen for why it can be disabled is loading a file through the
         // "wrong" path, e.g. loading through the "/var" symlink on macOS will have
