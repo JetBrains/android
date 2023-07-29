@@ -47,7 +47,6 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.TimeoutCancellationException
@@ -61,7 +60,6 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -168,9 +166,10 @@ fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = Em
  * Ensure [job] is cancelled if it is still active when [disposable] is disposed.
  */
 private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
+  val disposableId = disposable.toString() // Don't capture the parent disposable inside the lambda.
   Disposer.register(disposable) {
     if (!job.isCancelled) {
-      job.cancel(CancellationException("$disposable has been disposed."))
+      job.cancel(CancellationException("$disposableId has been disposed."))
     }
   }
 }

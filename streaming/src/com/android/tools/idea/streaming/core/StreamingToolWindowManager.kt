@@ -143,7 +143,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private val properties = PropertiesComponent.getInstance(project)
   private val emulatorSettings = EmulatorSettings.getInstance()
   private val deviceMirroringSettings = DeviceMirroringSettings.getInstance()
-  private val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
+  private val deviceProvisioner
+    @AnyThread get() = project.service<DeviceProvisionerService>().deviceProvisioner
   private var initialized = false
   private var contentCreated = false
   private var mirroringConfirmationDialogShowing = false
