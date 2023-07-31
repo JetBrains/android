@@ -16,8 +16,8 @@
 package com.android.tools.idea.compose.preview.gallery
 
 import com.android.tools.adtui.util.ActionToolbarUtil
-import com.android.tools.idea.compose.preview.Colors
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.Colors
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionPlaces

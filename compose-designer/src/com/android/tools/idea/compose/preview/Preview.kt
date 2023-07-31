@@ -56,6 +56,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
+import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
@@ -113,8 +114,6 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
-import com.intellij.ui.ExperimentalUI
-import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import java.io.File
 import java.time.Duration
@@ -150,11 +149,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
-
-/** Background color for the surface while "Interactive" is enabled. */
-@Suppress("UnstableApiUsage")
-private val INTERACTIVE_BACKGROUND_COLOR =
-  if (ExperimentalUI.isNewUI()) JBColor.PanelBackground else JBColor(0xCBD2D9, 0x46454D)
 
 /** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
 const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
@@ -573,7 +567,7 @@ class ComposePreviewRepresentation(
     interactiveManager.start()
     requestVisibilityAndNotificationsUpdate()
 
-    surface.background = INTERACTIVE_BACKGROUND_COLOR
+    surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
     ActivityTracker.getInstance().inc()
   }
 
@@ -582,7 +576,7 @@ class ComposePreviewRepresentation(
       "Starting UI check. ATF checks enabled: $atfChecksEnabled, Visual Linting enabled: $visualLintingEnabled"
     )
     uiCheckFilterFlow.value = UiCheckModeFilter.Enabled(instance)
-    surface.background = INTERACTIVE_BACKGROUND_COLOR
+    surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
     withContext(uiThread) {
       IssuePanelService.getInstance(project)
         .startUiCheck(
@@ -1705,7 +1699,7 @@ class ComposePreviewRepresentation(
             updateAnimationPanelVisibility()
           }
           updateAnimationPanelVisibility()
-          surface.background = INTERACTIVE_BACKGROUND_COLOR
+          surface.background = Colors.INTERACTIVE_BACKGROUND_COLOR
         }
         forceRefresh().join()
       }

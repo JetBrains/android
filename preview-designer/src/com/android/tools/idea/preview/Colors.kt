@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.preview
 
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.JBColor
 
 object Colors {
@@ -24,4 +25,9 @@ object Colors {
    * interactive preview.
    */
   val DEFAULT_BACKGROUND_COLOR = JBColor(0xFFFFFF, 0x1E1F22)
+
+  /** Background color for the surface while "Interactive" is enabled. */
+  @Suppress("UnstableApiUsage")
+  val INTERACTIVE_BACKGROUND_COLOR =
+    if (ExperimentalUI.isNewUI()) JBColor.PanelBackground else JBColor(0xCBD2D9, 0x46454D)
 }
