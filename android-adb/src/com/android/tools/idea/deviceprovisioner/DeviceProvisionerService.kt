@@ -21,13 +21,12 @@ import com.android.tools.idea.concurrency.createChildScope
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
-import icons.StudioIcons
 
 /**
  * A project service that instantiates and provides access to the [DeviceProvisioner] and its
  * plugins.
  */
-@Service
+@Service(Service.Level.PROJECT)
 class DeviceProvisionerService(project: Project) : Disposable {
   private val session = AdbLibService.getSession(project)
   private val coroutineScope =
