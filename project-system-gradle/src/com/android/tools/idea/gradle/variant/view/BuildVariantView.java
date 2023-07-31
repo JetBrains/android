@@ -21,6 +21,7 @@ import static com.intellij.util.ui.JBUI.scale;
 import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
 import static com.intellij.util.ui.UIUtil.getToolTipBackground;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.idea.fileTypes.AndroidIconProvider;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot;
@@ -578,7 +579,7 @@ public class BuildVariantView {
           isAndriodGradleModule = GradleAndroidModel.get(module) != null;
         }
       }
-
+      myModuleNameLabel.setForeground(AdtUiUtils.DEFAULT_FONT_COLOR);
       myModuleNameLabel.setFont(table.getFont());
       myModuleNameLabel.setText(moduleName == null ? "" : moduleName);
       myModuleNameLabel.setIcon(moduleIcon);
@@ -600,7 +601,6 @@ public class BuildVariantView {
       }
 
       myPanel.setBackground(background);
-
       Border border = hasFocus ? getTableFocusCellHighlightBorder() : EMPTY_BORDER;
       myPanel.setBorder(border);
     }
