@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.api.process.ProcessDiscovery
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.appinspection.ide.AppInspectionDiscoveryService
 import com.android.tools.idea.appinspection.ide.ui.RecentProcess
+import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.metrics.ForegroundProcessDetectionMetrics
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
@@ -71,6 +72,9 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
 
   private var layoutInspector: LayoutInspector? = null
 
+  // TODO(b/289017459): refactor how the connection process works
+  private var globalDeviceModel: DeviceModel? = null
+
   /**
    * Creates an instance of [LayoutInspector]. [LayoutInspector] will automatically connect to the
    * device, so call this method only when Layout Inspector is meant to be used.
@@ -110,7 +114,9 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
         disposable,
         AppInspectionDiscoveryService.instance.apiServices.processDiscovery,
         edtExecutor
-      )
+      ) {
+        globalDeviceModel
+      }
     val scheduledExecutor = createScheduledExecutor(disposable)
     val model = InspectorModel(project, scheduledExecutor, processesModel)
 
@@ -137,6 +143,8 @@ class LayoutInspectorProjectService(private val project: Project) : Disposable {
       )
 
     val deviceModel = DeviceModel(disposable, processesModel)
+    globalDeviceModel = deviceModel
+
     val foregroundProcessDetection =
       createForegroundProcessDetection(
         project,
@@ -194,12 +202,39 @@ fun createProcessesModel(
   project: Project,
   disposable: Disposable,
   processDiscovery: ProcessDiscovery,
-  executor: Executor
+  executor: Executor,
+  deviceModelProvider: () -> DeviceModel?
 ): ProcessesModel {
   return ProcessesModel(
       executor = executor,
       processDiscovery = processDiscovery,
-      isPreferred = { RecentProcess.isRecentProcess(it, project) }
+      isPreferred = { processDescriptor ->
+        isPreferredProcess(project, processDescriptor, deviceModelProvider)
+      }
     )
     .also { Disposer.register(disposable, it) }
+}
+
+/**
+ * If it returns true, it means Layout Inspector should automatically connect to
+ * [processDescriptor].
+ */
+@VisibleForTesting
+fun isPreferredProcess(
+  project: Project,
+  processDescriptor: ProcessDescriptor,
+  deviceModelProvider: () -> DeviceModel?
+): Boolean {
+  val deviceModel = deviceModelProvider()
+  return if (
+    LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled &&
+      deviceModel?.forcedDeviceSerialNumber != null &&
+      deviceModel.forcedDeviceSerialNumber != processDescriptor.device.serial
+  ) {
+    // When embedded LI is enabled, we don't want to force-connect to a process that doesn't belong
+    // to the selected device.
+    false
+  } else {
+    RecentProcess.isRecentProcess(processDescriptor, project)
+  }
 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.appinspection.ide.ui
 
-import com.android.ddmlib.IDevice
-import com.android.ddmlib.internal.DeviceImpl
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -63,8 +61,7 @@ fun DeviceDescriptor.createProcess(
 class RecentProcessTest {
   @Test
   fun testPreferredProcessMatchesModernDeviceOnly() {
-    val d1 = DeviceImpl(null, "123456", IDevice.DeviceState.ONLINE)
-    val p1 = RecentProcess(d1, "p1")
+    val p1 = RecentProcess("123456", "p1")
     assertThat(p1.matches(MODERN_DEVICE.createProcess("p1"))).isTrue()
     assertThat(p1.matches(LEGACY_DEVICE.createProcess("p1"))).isFalse()
     assertThat(p1.matches(MODERN_DEVICE.createProcess("p2"))).isFalse()
@@ -72,8 +69,7 @@ class RecentProcessTest {
 
   @Test
   fun testPreferredProcessMatchesLegacyDeviceOnly() {
-    val d2 = DeviceImpl(null, "123", IDevice.DeviceState.ONLINE)
-    val p2 = RecentProcess(d2, "p2")
+    val p2 = RecentProcess("123", "p2")
     assertThat(p2.matches(LEGACY_DEVICE.createProcess("p2"))).isTrue()
     assertThat(p2.matches(MODERN_DEVICE.createProcess("p2"))).isFalse()
     assertThat(p2.matches(LEGACY_DEVICE.createProcess("p1"))).isFalse()

@@ -65,7 +65,7 @@ class AppInspectionExecutionListenerTest {
         .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler1)
 
       // Make sure that the process p1 is recorded as the recent process:
-      assertThat(RecentProcess.get(project)!!.device).isSameAs(device)
+      assertThat(RecentProcess.get(project)!!.deviceSerialNumber).isSameAs(device.serialNumber)
       assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("com.example.p1")
     }
 
@@ -79,12 +79,12 @@ class AppInspectionExecutionListenerTest {
         .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler2)
 
       // Make sure that the process p2 is now recorded as the recent process:
-      assertThat(RecentProcess.get(project)!!.device).isSameAs(device)
+      assertThat(RecentProcess.get(project)!!.deviceSerialNumber).isSameAs(device.serialNumber)
       assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("com.example.p2")
 
       // Kill process p1 and check that the recent process is still p2:
       handler1.killProcess()
-      assertThat(RecentProcess.get(project)!!.device).isSameAs(device)
+      assertThat(RecentProcess.get(project)!!.deviceSerialNumber).isSameAs(device.serialNumber)
       assertThat(RecentProcess.get(project)!!.packageName).isEqualTo("com.example.p2")
     }
   }

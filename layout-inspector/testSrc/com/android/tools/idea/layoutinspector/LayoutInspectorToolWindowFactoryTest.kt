@@ -302,7 +302,10 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
         deviceViewPanel.flatten(false).first { it is DeviceViewContentPanel }
           as DeviceViewContentPanel
       val processes = deviceViewPanel.layoutInspector.processModel!!
-      RecentProcess.set(project, RecentProcess(adbRule.bridge.devices.first(), MODERN_PROCESS.name))
+      RecentProcess.set(
+        project,
+        RecentProcess(adbRule.bridge.devices.first().serialNumber, MODERN_PROCESS.name)
+      )
 
       val modelUpdatedLatch = ReportingCountDownLatch(1)
       deviceViewContentPanel.inspectorModel.modificationListeners.add { _, _, _ ->

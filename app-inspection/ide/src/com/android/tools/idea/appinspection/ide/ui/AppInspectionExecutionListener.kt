@@ -74,7 +74,7 @@ class AppInspectionExecutionListener : ExecutionListener {
     applicationId: String,
     handler: ProcessHandler
   ) {
-    val recentProcess = RecentProcess(device, applicationId)
+    val recentProcess = RecentProcess(device.serialNumber, applicationId)
     RecentProcess.set(project, recentProcess)
 
     handler.addProcessListener(
