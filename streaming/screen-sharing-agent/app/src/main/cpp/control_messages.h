@@ -26,6 +26,7 @@
 #include "base128_input_stream.h"
 #include "base128_output_stream.h"
 #include "common.h"
+#include "geom.h"
 
 namespace screensharing {
 
@@ -199,15 +200,13 @@ private:
 // Sets maximum display streaming resolution.
 class SetMaxVideoResolutionMessage : ControlMessage {
 public:
-  SetMaxVideoResolutionMessage(int32_t width, int32_t height)
+  SetMaxVideoResolutionMessage(Size size)
       : ControlMessage(TYPE),
-        width_(width),
-        height_(height) {
+        size_(size) {
   }
   virtual ~SetMaxVideoResolutionMessage() {};
 
-  int32_t width() const { return width_; }
-  int32_t height() const { return height_; }
+  const Size& size() const { return size_; }
 
   static constexpr int TYPE = 5;
 
@@ -216,8 +215,7 @@ private:
 
   static SetMaxVideoResolutionMessage* Deserialize(Base128InputStream& stream);
 
-  int32_t width_;
-  int32_t height_;
+  Size size_;
 
   DISALLOW_COPY_AND_ASSIGN(SetMaxVideoResolutionMessage);
 };

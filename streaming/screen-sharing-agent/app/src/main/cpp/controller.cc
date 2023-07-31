@@ -395,11 +395,12 @@ void Controller::ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& 
 }
 
 void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message) {
-  if (message.width() <= 0 || message.height() <= 0) {
-    Log::E("An attempt to set an invalid video resolution: %dx%d", message.width(), message.height());
+  const Size& size = message.size();
+  if (size.width <= 0 || size.height <= 0) {
+    Log::E("An attempt to set an invalid video resolution: %dx%d", size.width, size.height);
     return;
   }
-  Agent::SetMaxVideoResolution(Size(message.width(), message.height()));
+  Agent::SetMaxVideoResolution(size);
 }
 
 void Controller::StopVideoStream() {

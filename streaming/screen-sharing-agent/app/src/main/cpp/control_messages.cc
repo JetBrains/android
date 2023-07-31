@@ -117,7 +117,7 @@ SetDeviceOrientationMessage* SetDeviceOrientationMessage::Deserialize(Base128Inp
 SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::Deserialize(Base128InputStream& stream) {
   int32_t width = stream.ReadInt32();
   int32_t height = stream.ReadInt32();
-  return new SetMaxVideoResolutionMessage(width, height);
+  return new SetMaxVideoResolutionMessage(Size(width, height));
 }
 
 StopVideoStreamMessage* StopVideoStreamMessage::Deserialize(Base128InputStream& stream) {
