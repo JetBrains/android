@@ -51,7 +51,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
 import javax.swing.Box
 import javax.swing.JLabel
@@ -174,7 +174,7 @@ class VitalsTabTest {
 
       // Stack trace view
       // Header row
-      assertThat(fakeUi.findComponent<SimpleColoredComponent> { it.toString() == "crash.Crash" })
+      assertThat(fakeUi.findComponent<JBLabel> { it.text == "<html>crash.<B>Crash</B></html>" })
         .isNotNull()
 
       // events count, user count, api range, device model

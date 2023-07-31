@@ -33,13 +33,14 @@ class DetailsPanelHeaderTest {
 
     detailsPanelHeader.updateWithIssue(ISSUE1)
 
-    assertThat(detailsPanelHeader.titleLabel.toString()).isEqualTo("crash.Crash")
+    assertThat(detailsPanelHeader.titleLabel.text).isEqualTo("<html>crash.<B>Crash</B></html>")
     assertThat(detailsPanelHeader.toolbar.component.isVisible).isTrue()
 
     detailsPanelHeader.updateWithIssue(null)
 
     assertThat(detailsPanelHeader.toolbar.component.isVisible).isFalse()
-    assertThat(detailsPanelHeader.titleLabel.toString()).isEmpty()
+    assertThat(detailsPanelHeader.titleLabel.text).isNull()
+    assertThat(detailsPanelHeader.titleLabel.icon).isNull()
   }
 
   @Test

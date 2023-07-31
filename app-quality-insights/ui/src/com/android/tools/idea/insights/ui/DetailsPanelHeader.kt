@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.insights.AppInsightsIssue
-import com.android.tools.idea.insights.IssueState
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -30,17 +28,17 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actions.AbstractToggleUseSoftWrapsAction
 import com.intellij.openapi.editor.impl.softwrap.SoftWrapAppliancePlaces
 import com.intellij.ui.JBColor
-import com.intellij.ui.SimpleColoredComponent
-import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
+import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JPanel
 import javax.swing.border.CompoundBorder
 import org.jetbrains.annotations.VisibleForTesting
 
-class DetailsPanelHeader(editor: Editor) : JPanel(TabularLayout("*,Fit", "Fit")) {
-  @VisibleForTesting val titleLabel = SimpleColoredComponent()
+class DetailsPanelHeader(editor: Editor) : JPanel(BorderLayout()) {
+  @VisibleForTesting val titleLabel = JBLabel()
 
   private val wrapAction =
     object : AbstractToggleUseSoftWrapsAction(SoftWrapAppliancePlaces.CONSOLE, false) {
@@ -58,7 +56,7 @@ class DetailsPanelHeader(editor: Editor) : JPanel(TabularLayout("*,Fit", "Fit"))
 
   init {
     border = JBUI.Borders.empty()
-    add(titleLabel, TabularLayout.Constraint(0, 0))
+    add(titleLabel, BorderLayout.WEST)
     toolbar.targetComponent = this
     toolbar.layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
     toolbar.setReservePlaceAutoPopupIcon(false)
@@ -67,35 +65,26 @@ class DetailsPanelHeader(editor: Editor) : JPanel(TabularLayout("*,Fit", "Fit"))
       isOpaque = false
       isVisible = false
     }
-    add(toolbar.component, TabularLayout.Constraint(0, 1))
+    add(toolbar.component, BorderLayout.EAST)
     border =
-      CompoundBorder(JBUI.Borders.customLineBottom(JBColor.border()), JBUI.Borders.empty(0, 8))
+      CompoundBorder(JBUI.Borders.customLineBottom(JBColor.border()), JBUI.Borders.emptyLeft(8))
     preferredSize = Dimension(0, JBUIScale.scale(28))
   }
 
   fun updateWithIssue(issue: AppInsightsIssue?) {
-    titleLabel.clear()
+    titleLabel.icon = null
+    titleLabel.text = null
     toolbar.component.isVisible = false
 
     if (issue == null) return
 
     titleLabel.icon = issue.issueDetails.fatality.getIcon()
     val (className, methodName) = issue.issueDetails.getDisplayTitle()
-    val style =
-      when (issue.state) {
-        IssueState.OPEN,
-        IssueState.OPENING -> SimpleTextAttributes.STYLE_PLAIN
-        IssueState.CLOSED,
-        IssueState.CLOSING -> SimpleTextAttributes.STYLE_STRIKEOUT
-      }
-    titleLabel.append(className, SimpleTextAttributes(style, null))
-    if (methodName.isNotEmpty()) {
-      titleLabel.append(".", SimpleTextAttributes(style, null))
-      titleLabel.append(
-        methodName,
-        SimpleTextAttributes(style or SimpleTextAttributes.STYLE_BOLD, null)
-      )
-    }
+    val methodString =
+      if (methodName.isNotEmpty()) {
+        ".<B>$methodName</B>"
+      } else ""
+    titleLabel.text = "<html>$className$methodString</html>"
     toolbar.component.isVisible = true
   }
 }
