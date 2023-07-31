@@ -45,7 +45,7 @@ fun navigateBack(e: AnActionEvent) {
  * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT
  * thread. For actions using it, they should use [ActionUpdateThread.BGT].
  */
-internal fun findPreviewModeManagersForContext(context: DataContext): List<PreviewModeManager> {
+fun findPreviewModeManagersForContext(context: DataContext): List<PreviewModeManager> {
   context.getData(PreviewModeManager.KEY)?.let {
     // The context is associated to a PreviewModeManager so return it
     return listOf(it)

@@ -15,10 +15,11 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.ComposePreviewManager
-import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.preview.actions.findPreviewModeManagersForContext
 import com.android.tools.idea.preview.actions.navigateBack
+import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.AnActionButton
@@ -28,7 +29,9 @@ import icons.StudioIcons
  * Action to stop the interactive preview (including animation inspection). Only visible when it's
  * already running and if the preview is not refreshing.
  */
-class StopInteractivePreviewAction :
+class StopInteractivePreviewAction(
+  private val forceDisable: (e: AnActionEvent) -> Boolean
+) :
   AnActionButton(
     message("action.stop.interactive.title"),
     message("action.stop.interactive.description"),
@@ -38,14 +41,11 @@ class StopInteractivePreviewAction :
 
   override fun updateButton(e: AnActionEvent) {
     e.presentation.isEnabled =
-      findComposePreviewManagersForContext(e.dataContext).any {
-        // The action should be disabled when refreshing.
-        !it.status().isRefreshing &&
-          (it.status().interactiveMode == ComposePreviewManager.InteractiveMode.READY)
-      }
+      findPreviewModeManagersForContext(e.dataContext).any { it.isInteractiveModeReady() } &&
+        !forceDisable(e)
     e.presentation.isVisible =
-      findComposePreviewManagersForContext(e.dataContext).any {
-        it.status().interactiveMode != ComposePreviewManager.InteractiveMode.DISABLED
+      findPreviewModeManagersForContext(e.dataContext).any {
+        it.isInteractiveModeStartingStartedOrStopping()
       }
   }
 
@@ -56,4 +56,13 @@ class StopInteractivePreviewAction :
   // BGT is needed when calling findComposePreviewManagersForContext because it accesses the
   // VirtualFile
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
+  private fun PreviewModeManager.isInteractiveModeReady() = mode is PreviewMode.Interactive
+
+  private fun PreviewModeManager.isInteractiveModeStartingStartedOrStopping(): Boolean {
+    val isInteractiveModeStopping =
+      (mode as? PreviewMode.Switching)?.currentMode is PreviewMode.Interactive
+    val isInteractiveModeStartingOrStarted = currentOrNextMode is PreviewMode.Interactive
+    return isInteractiveModeStartingOrStarted || isInteractiveModeStopping
+  }
 }

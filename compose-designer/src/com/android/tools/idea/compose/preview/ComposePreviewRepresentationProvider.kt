@@ -68,7 +68,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
   private inner class ComposePreviewNorthGroup :
     DefaultActionGroup(
       listOfNotNull(
-        StopInteractivePreviewAction(),
+        StopInteractivePreviewAction(forceDisable = { isAnyPreviewRefreshing(it.dataContext) }),
         StopAnimationInspectorAction(),
         StopUiCheckPreviewAction(),
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled { ComposeFilterShowHistoryAction() },
