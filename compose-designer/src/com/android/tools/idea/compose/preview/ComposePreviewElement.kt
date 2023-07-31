@@ -33,6 +33,7 @@ import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefin
 import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
 import com.android.tools.idea.configurations.Wallpaper
 import com.android.tools.idea.preview.DisplayPositioning
+import com.android.tools.idea.preview.MethodPreviewElement
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.preview.PreviewElementProvider
@@ -297,9 +298,9 @@ data class PreviewParameter(
 )
 
 /** Definition of a Composable preview element */
-interface ComposePreviewElement : PreviewElement {
+interface ComposePreviewElement : MethodPreviewElement {
   /** Fully Qualified Name of the composable method */
-  val composableMethodFqn: String
+  override val methodFqn: String
 
   /** Preview element configuration that affects how LayoutLib resolves the resources */
   val configuration: PreviewConfiguration
@@ -344,7 +345,7 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
         .androidAttribute(ATTR_MIN_WIDTH, "1px")
         .androidAttribute(ATTR_MIN_HEIGHT, "1px")
         // [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call
-        .toolsAttribute("composableName", composableMethodFqn)
+        .toolsAttribute("composableName", methodFqn)
 
     if (displaySettings.showBackground) {
       xmlBuilder.androidAttribute(
@@ -365,27 +366,26 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
 
     other as ComposePreviewElementInstance
 
-    return composableMethodFqn == other.composableMethodFqn &&
+    return methodFqn == other.methodFqn &&
       instanceId == other.instanceId &&
       displaySettings == other.displaySettings &&
       configuration == other.configuration
   }
 
-  override fun hashCode(): Int =
-    Objects.hash(composableMethodFqn, displaySettings, configuration, instanceId)
+  override fun hashCode(): Int = Objects.hash(methodFqn, displaySettings, configuration, instanceId)
 }
 
 /**
  * Definition of a single preview element instance. This represents a `Preview` with no parameters.
  */
 class SingleComposePreviewElementInstance(
-  override val composableMethodFqn: String,
+  override val methodFqn: String,
   override val displaySettings: PreviewDisplaySettings,
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
   override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
   override val configuration: PreviewConfiguration
 ) : ComposePreviewElementInstance() {
-  override val instanceId: String = composableMethodFqn
+  override val instanceId: String = methodFqn
 
   companion object {
     @JvmStatic
@@ -424,7 +424,7 @@ class ParametrizedComposePreviewElementInstance(
   val index: Int,
   val maxIndex: Int
 ) : ComposePreviewElementInstance(), ComposePreviewElement by basePreviewElement {
-  override val instanceId: String = "$composableMethodFqn#$parameterName$index"
+  override val instanceId: String = "$methodFqn#$parameterName$index"
 
   override val displaySettings: PreviewDisplaySettings =
     PreviewDisplaySettings(

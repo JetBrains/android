@@ -181,7 +181,7 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
     val scheme = EditorColorsManager.getInstance().globalScheme
     val background = scheme.getColor(EditorColors.DOCUMENTATION_COLOR) ?: scheme.defaultBackground
     return SingleComposePreviewElementInstance(
-      composableMethodFqn = fqName,
+      methodFqn = fqName,
       displaySettings =
         PreviewDisplaySettings(
           name = "",

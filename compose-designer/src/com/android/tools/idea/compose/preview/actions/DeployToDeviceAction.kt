@@ -83,7 +83,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
     val composePreviewRunConfiguration =
       ComposePreviewRunConfiguration(project, factory, COMPOSE_PREVIEW_ACTIVITY_FQN).apply {
         name = previewElement.displaySettings.name
-        composableMethodFqn = previewElement.composableMethodFqn
+        composableMethodFqn = previewElement.methodFqn
         previewElement.previewProviderClassAndIndex()?.let {
           providerClassFqn = it.first
           providerIndex = it.second

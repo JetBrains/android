@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview
-
-import com.android.tools.idea.preview.PreviewElement
+package com.android.tools.idea.preview
 
 /** A preview element that represents a method. */
 interface MethodPreviewElement : PreviewElement {
-  val methodFqcn: String
+  /** Fully Qualified Name of the method representing the preview element */
+  val methodFqn: String
 }

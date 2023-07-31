@@ -264,7 +264,7 @@ class ComposePreviewRepresentationTest {
 
       val previewElements =
         mainSurface.models.mapNotNull { it.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) }
-      val uiCheckElement = previewElements.single { it.composableMethodFqn == "TestKt.Preview1" }
+      val uiCheckElement = previewElements.single { it.methodFqn == "TestKt.Preview1" }
 
       val contentManager =
         ToolWindowManager.getInstance(project).getToolWindow(ProblemsView.ID)!!.contentManager
@@ -307,7 +307,7 @@ class ComposePreviewRepresentationTest {
         """
           .trimIndent(),
         preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
-          "${it.composableMethodFqn}\n${it.configuration.deviceSpec}\n"
+          "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
         }
       )
 
@@ -339,7 +339,7 @@ class ComposePreviewRepresentationTest {
         """
           .trimIndent(),
         preview.filteredPreviewElementsInstancesFlowForTest().value.joinToString("\n") {
-          "${it.composableMethodFqn}\n${it.configuration.deviceSpec}\n"
+          "${it.methodFqn}\n${it.configuration.deviceSpec}\n"
         }
       )
 

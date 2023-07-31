@@ -552,9 +552,9 @@ class AnnotationFileComposePreviewElementFinderTest {
         .toList()
     assertEquals(2, elements.size)
 
-    elements[0].let { assertEquals("TestKt.Preview1", it.composableMethodFqn) }
+    elements[0].let { assertEquals("TestKt.Preview1", it.methodFqn) }
 
-    elements[1].let { assertEquals("TestKt.Preview2", it.composableMethodFqn) }
+    elements[1].let { assertEquals("TestKt.Preview2", it.methodFqn) }
   }
 
   @Test
@@ -828,7 +828,7 @@ class AnnotationFileComposePreviewElementFinderTest {
         }
       }
       .sortByDisplayAndSourcePosition()
-      .map { it.composableMethodFqn }
+      .map { it.methodFqn }
       .toTypedArray()
       .let {
         assertArrayEquals(

@@ -201,7 +201,7 @@ class ParametrizedPreviewTest {
         // pointing to the fake method used to handle failures to load the PreviewParameterProvider.
         assertEquals(
           "google.simpleapplication.FailingProvider.$FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD",
-          it.composableMethodFqn
+          it.methodFqn
         )
         assertTrue(it is SingleComposePreviewElementInstance)
         assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
@@ -260,7 +260,7 @@ class ParametrizedPreviewTest {
         // we'll try to render a composable with an empty sequence defined in ParametrizedPreviews
         assertEquals(
           "google.simpleapplication.ParametrizedPreviewsKt.TestEmptyProvider",
-          it.composableMethodFqn
+          it.methodFqn
         )
         assertTrue(it is ParametrizedComposePreviewElementInstance)
         assertNull(renderPreviewElementForResult(projectRule.androidFacet(":app"), it).get())
@@ -322,7 +322,7 @@ class ParametrizedPreviewTest {
         it
           .filterIsInstance<ParametrizedComposePreviewElementInstance>()
           .map {
-            "${it.composableMethodFqn} provider=${it.providerClassFqn} index=${it.index} max=${it.maxIndex}"
+            "${it.methodFqn} provider=${it.providerClassFqn} index=${it.index} max=${it.maxIndex}"
           }
           .joinToString("\n")
 

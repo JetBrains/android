@@ -137,13 +137,13 @@ class GlancePreviewElementFinderTest {
       Assert.assertEquals(
         listOf("com.android.test.SourceFileBothKt.Foo1", "com.android.test.SourceFileBothKt.Foo3"),
         AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileBoth.virtualFile).map {
-          it.methodFqcn
+          it.methodFqn
         }
       )
       Assert.assertEquals(
         listOf("com.android.test.SourceFileWidgetKt.Foo31"),
         AppWidgetPreviewElementFinder.findPreviewElements(project, sourceFileAppWidgets.virtualFile)
-          .map { it.methodFqcn }
+          .map { it.methodFqn }
       )
     }
   }
@@ -167,13 +167,13 @@ class GlancePreviewElementFinderTest {
       Assert.assertEquals(
         listOf("com.android.test.SourceFileBothKt.Foo2", "com.android.test.SourceFileBothKt.Foo3"),
         TilePreviewElementFinder.findPreviewElements(project, sourceFileBoth.virtualFile).map {
-          it.methodFqcn
+          it.methodFqn
         }
       )
       Assert.assertEquals(
         listOf("com.android.test.SourceFileTileKt.Foo21"),
         TilePreviewElementFinder.findPreviewElements(project, sourceFileTiles.virtualFile).map {
-          it.methodFqcn
+          it.methodFqn
         }
       )
     }

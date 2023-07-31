@@ -82,14 +82,14 @@ class ComposePreviewElementFlowTest {
           }
           .stateIn(flowScope)
       flow.awaitStatus(timeout = 5.seconds) { elements ->
-        elements.singleOrNull()?.composableMethodFqn == "OtherFileKt.Preview1"
+        elements.singleOrNull()?.methodFqn == "OtherFileKt.Preview1"
       }
 
       listenersReady.complete(Unit)
 
       // Wait for the final state we care about
       flow.awaitStatus(timeout = 5.seconds) { elements ->
-        elements.map { it.composableMethodFqn }.sorted().joinToString("\n") ==
+        elements.map { it.methodFqn }.sorted().joinToString("\n") ==
           """
             OtherFileKt.Preview1
             OtherFileKt.Preview2

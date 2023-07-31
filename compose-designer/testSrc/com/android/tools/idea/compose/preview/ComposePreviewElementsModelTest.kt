@@ -66,7 +66,7 @@ class ComposePreviewElementsModelTest {
         filterFlow
       )
 
-    assertThat(filteredInstancesFlow.first().map { it.composableMethodFqn })
+    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
       .containsExactly(
         "PreviewMethod1",
         "SeparatePreview",
@@ -81,17 +81,16 @@ class ComposePreviewElementsModelTest {
       ComposePreviewElementsModel.Filter.Single(
         allPreviews.first() as SingleComposePreviewElementInstance
       )
-    assertThat(filteredInstancesFlow.first().map { it.composableMethodFqn })
-      .containsExactly("PreviewMethod1")
+    assertThat(filteredInstancesFlow.first().map { it.methodFqn }).containsExactly("PreviewMethod1")
 
     // Set the group filter
     filterFlow.value = ComposePreviewElementsModel.Filter.Group(namedGroup("GroupA"))
-    assertThat(filteredInstancesFlow.first().map { it.composableMethodFqn })
+    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
       .containsExactly("PreviewMethod1", "SeparatePreview")
 
     // Remove instance filter
     filterFlow.value = ComposePreviewElementsModel.Filter.Disabled
-    assertThat(filteredInstancesFlow.first().map { it.composableMethodFqn })
+    assertThat(filteredInstancesFlow.first().map { it.methodFqn })
       .containsExactly(
         "PreviewMethod1",
         "SeparatePreview",

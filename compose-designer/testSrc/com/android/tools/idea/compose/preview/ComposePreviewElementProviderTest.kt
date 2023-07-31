@@ -35,22 +35,20 @@ class ComposePreviewElementProviderTest {
 
     var filterWord = "internal"
     val filtered =
-      FilteredPreviewElementProvider(staticPreviewProvider) {
-        !it.composableMethodFqn.contains(filterWord)
-      }
+      FilteredPreviewElementProvider(staticPreviewProvider) { !it.methodFqn.contains(filterWord) }
 
     assertEquals(3, staticPreviewProvider.previewElements().count())
     // The filtered provider contains all elements without the word internal
     assertEquals(
       listOf("com.sample.TestClass.PreviewMethod1", "com.sample.TestClass.PreviewMethod2"),
-      filtered.previewElements().map { it.composableMethodFqn }.toList()
+      filtered.previewElements().map { it.methodFqn }.toList()
     )
 
     // Now remove all elements with the word Preview
     filterWord = "Preview"
     assertEquals(
       "internal.com.sample.TestClass.AMethod",
-      filtered.previewElements().single().composableMethodFqn
+      filtered.previewElements().single().methodFqn
     )
   }
 }

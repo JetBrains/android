@@ -16,6 +16,7 @@
 package com.android.tools.idea.glance.preview
 
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.preview.MethodPreviewElement
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.representation.CommonPreviewRepresentation

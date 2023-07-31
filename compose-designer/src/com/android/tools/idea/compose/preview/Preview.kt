@@ -1641,7 +1641,7 @@ class ComposePreviewRepresentation(
 
               val singleInstance =
                 SingleComposePreviewElementInstance(
-                  base.composableMethodFqn,
+                  base.methodFqn,
                   displaySettings,
                   base.previewElementDefinitionPsi,
                   base.previewBodyPsi,

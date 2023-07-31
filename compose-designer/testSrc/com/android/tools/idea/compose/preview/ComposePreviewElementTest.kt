@@ -179,7 +179,7 @@ $t
   fun testEquals() {
     class TestComposePreviewElementInstance(
       override val instanceId: String,
-      override val composableMethodFqn: String,
+      override val methodFqn: String,
       override val displaySettings: PreviewDisplaySettings,
       override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>?,
       override val previewBodyPsi: SmartPsiElementPointer<PsiElement>?,
