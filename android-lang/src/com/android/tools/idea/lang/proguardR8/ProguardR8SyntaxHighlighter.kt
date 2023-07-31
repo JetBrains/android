@@ -17,6 +17,7 @@ package com.android.tools.idea.lang.proguardR8
 
 import com.android.tools.idea.lang.proguardR8.parser.ProguardR8Lexer
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.ABSTRACT
+import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.AT_INTERFACE
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.BOOLEAN
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.BYTE
 import com.android.tools.idea.lang.proguardR8.psi.ProguardR8PsiTypes.CHAR
@@ -74,7 +75,7 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
 val JAVA_KEY_WORDS = TokenSet.create(CLASS, INTERFACE, ENUM, EXTENDS, IMPLEMENTS, STATIC, ABSTRACT, PRIVATE, PROTECTED, PUBLIC,
-                                     SYNCHRONIZED, STRICTFP, FINAL, NATIVE, VOLATILE, TRANSIENT)
+                                     SYNCHRONIZED, STRICTFP, FINAL, NATIVE, VOLATILE, TRANSIENT, AT_INTERFACE)
 
 val JAVA_PRIMITIVE = TokenSet.create(BOOLEAN, BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE, VOID)
 
