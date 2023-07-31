@@ -174,7 +174,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testFrameListener() {
-    assumeFFmpegAvailable()
     createDeviceView(200, 300, 2.0)
     var frameListenerCalls = 0
 
@@ -198,7 +197,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testResizingRotationAndMouseInput() {
-    assumeFFmpegAvailable()
     createDeviceView(200, 300, 2.0)
     assertThat(agent.commandLine).matches("CLASSPATH=$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME app_process" +
                                           " $DEVICE_PATH_BASE com.android.tools.screensharing.Main" +
@@ -293,7 +291,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testUpsideDownMouseInput() {
-    assumeFFmpegAvailable()
     createDeviceView(200, 300, 2.0)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(61, 0, 277, 600))
@@ -327,7 +324,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testRoundWatch() {
-    assumeFFmpegAvailable()
     device = agentRule.connectDevice("Pixel Watch", 30, Dimension(384, 384), roundDisplay = true, abi = "armeabi-v7a",
                                      additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
 
@@ -343,7 +339,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testMultiTouch() {
-    assumeFFmpegAvailable()
     createDeviceView(50, 100, 2.0)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(4, 0, 92, 200))
@@ -388,7 +383,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testKeyboardInput() {
-    assumeFFmpegAvailable()
     createDeviceView(150, 250, 1.5)
     waitForFrame()
 
@@ -500,7 +494,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testZoom() {
-    assumeFFmpegAvailable()
     createDeviceView(100, 200, 2.0)
     waitForFrame()
 
@@ -567,7 +560,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testClipboardSynchronization() {
-    assumeFFmpegAvailable()
     createDeviceView(100, 200, 1.5)
     waitForFrame()
 
@@ -585,7 +577,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testAgentCrashAndReconnect() {
-    assumeFFmpegAvailable()
     createDeviceView(500, 1000, screenScale = 1.0)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(19, 0, 462, 1000))
@@ -670,7 +661,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testConnectionTimeout() {
-    assumeFFmpegAvailable()
     StudioFlags.DEVICE_MIRRORING_CONNECTION_TIMEOUT_MILLIS.override(200, testRootDisposable)
     agent.startDelayMillis = 300
     val loggedErrors = executeCapturingLoggedErrors {
@@ -684,7 +674,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testDeviceDisconnection() {
-    assumeFFmpegAvailable()
     createDeviceView(500, 1000)
     waitForFrame()
 
@@ -799,7 +788,6 @@ internal class DeviceViewTest {
 
   @Test
   fun testDisableMultiTouchDuringHardwareInput() {
-    assumeFFmpegAvailable()
     createDeviceView(50, 100)
     waitForFrame()
     assertThat(view.displayRectangle).isEqualTo(Rectangle(4, 0, 92, 200))

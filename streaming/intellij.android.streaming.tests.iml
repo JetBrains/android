@@ -28,6 +28,8 @@
     <orderEntry type="module" module-name="intellij.android.streaming.testUtil" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="ffmpeg" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="ffmpeg-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="jetbrains.kotlinx.coroutines.test" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="library" scope="TEST" name="kotlin-test" level="project" />

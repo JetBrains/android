@@ -69,6 +69,7 @@ iml_module(
     test_friends = ["//tools/adt/idea/streaming:intellij.android.streaming"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/.idea/libraries:ffmpeg-platform"],
     # do not sort: must match IML order
     deps = [
         "//tools/analytics-library/crash:analytics-crash[module, test]",
@@ -90,6 +91,7 @@ iml_module(
         "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
+        "//tools/adt/idea/.idea/libraries:ffmpeg[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/.idea/libraries:jimfs[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",

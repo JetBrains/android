@@ -54,7 +54,6 @@ import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.ClipboardSynchronizationDisablementRule
 import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
-import com.android.tools.idea.streaming.device.assumeFFmpegAvailable
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel
 import com.android.tools.idea.streaming.emulator.EmulatorView
@@ -344,7 +343,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testPhysicalDevice() {
-    assumeFFmpegAvailable()
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -409,7 +407,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testPhysicalDeviceActivateOnConnection() {
-    assumeFFmpegAvailable()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -426,7 +423,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testPhysicalDeviceRequestsAttention() {
-    assumeFFmpegAvailable()
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnAppLaunch.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnTestLaunch.override(true, testRootDisposable)
@@ -460,7 +456,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testPhysicalDeviceRequestsAttentionWithoutAdvancedTabControl() {
-    assumeFFmpegAvailable()
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
     deviceMirroringSettings::activateOnAppLaunch.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
@@ -493,7 +488,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testPhysicalDeviceRequestsAttentionMirroringDisabled() {
-    assumeFFmpegAvailable()
     deviceMirroringSettings.deviceMirroringEnabled = false
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -509,7 +503,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testMirroringDisablementEnablement() {
-    assumeFFmpegAvailable()
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -542,7 +535,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testMirroringStoppingStarting() {
-    assumeFFmpegAvailable()
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
@@ -605,7 +597,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testMirroringManager() {
-    assumeFFmpegAvailable()
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -647,7 +638,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testLivenessIndicator() {
-    assumeFFmpegAvailable()
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
@@ -674,7 +664,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testAvdStarting() {
-    assumeFFmpegAvailable()
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     EmulatorSettings.getInstance()::launchInToolWindow.override(false, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
@@ -710,7 +699,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testMirroringUserInvolvementRequired() {
-    assumeFFmpegAvailable()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
     if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
@@ -736,7 +724,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testMirroringConfirmationDialogAccept() {
-    assumeFFmpegAvailable()
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -761,7 +748,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testMirroringConfirmationDialogReject() {
-    assumeFFmpegAvailable()
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
@@ -779,7 +765,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testMirroringConfirmationDialogRejectWithoutAdvancedTabControl() {
-    assumeFFmpegAvailable()
     StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
     deviceMirroringSettings::activateOnConnection.override(true, testRootDisposable)
     assertThat(contentManager.contents).isEmpty()
@@ -800,7 +785,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testUnsupportedPhysicalPhone() {
-    assumeFFmpegAvailable()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
@@ -816,7 +800,6 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testUnsupportedPhysicalWatch() {
-    assumeFFmpegAvailable()
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
