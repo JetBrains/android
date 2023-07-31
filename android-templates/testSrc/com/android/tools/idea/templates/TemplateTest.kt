@@ -491,10 +491,11 @@ class TemplateTest {
   @TemplateCheck
   @Test
   fun testNewEmptyComposeForTVActivity() {
-    val withSpecificKotlin: ProjectStateCustomizer = { moduleData: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
-      projectData.language = Language.Kotlin
-      projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true)
-    }
+    val withSpecificKotlin: ProjectStateCustomizer =
+      { _: ModuleTemplateDataBuilder, projectData: ProjectTemplateDataBuilder ->
+        projectData.language = Language.Kotlin
+        projectData.kotlinVersion = RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = false)
+      }
     checkCreateTemplate("Empty Activity", withSpecificKotlin, formFactor = FormFactor.Tv)
   }
 

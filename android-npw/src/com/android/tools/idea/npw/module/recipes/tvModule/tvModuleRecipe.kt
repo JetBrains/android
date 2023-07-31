@@ -32,10 +32,11 @@ fun RecipeExecutor.generateTvModule(
     generateManifest(
       hasApplicationBlock = !data.isLibrary,
       hasRoundIcon = false,
-      theme = "@style/${data.themesData.main.name}"
+      theme = "@android:style/Theme.DeviceDefault"
     ),
     iconsGenerationStyle = IconsGenerationStyle.MIPMAP_SQUARE_ONLY,
-    themesXml = "<resources></resources>", colorsXml = null,
+    themesXml = null,
+    colorsXml = null,
     useVersionCatalog = useVersionCatalog
   )
 }
