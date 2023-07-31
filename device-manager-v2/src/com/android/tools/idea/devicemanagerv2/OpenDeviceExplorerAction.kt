@@ -35,7 +35,11 @@ internal class OpenDeviceExplorerAction :
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isEnabled = e.deviceHandle()?.state is DeviceState.Connected
+    if (e.project == null) {
+      e.presentation.isEnabledAndVisible = false
+    } else {
+      e.presentation.isEnabled = e.deviceHandle()?.state is DeviceState.Connected
+    }
   }
 
   override fun actionPerformed(e: AnActionEvent) {
