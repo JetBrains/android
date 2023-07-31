@@ -449,7 +449,7 @@ public final class StudioFlags {
     "adb.jdwp.scache.enabled",
     "Enable JDWP SCache",
     "Enables JDWP Speculative Cache (SCache)",
-    false);
+    true);
 
   public static final Flag<Boolean> JDWP_SCACHE_REMOTE_ONLY = Flag.create(
     RUNDEBUG,
