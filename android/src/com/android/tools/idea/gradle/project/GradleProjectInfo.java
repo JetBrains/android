@@ -58,7 +58,9 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
   private volatile boolean myNewProject;
+  private volatile boolean myImportedProject;
   private final ProjectFacetManager myFacetManager;
+  private volatile boolean mySkipStartupActivity;
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
@@ -76,6 +78,14 @@ public class GradleProjectInfo {
 
   public void setNewProject(boolean newProject) {
     myNewProject = newProject;
+  }
+
+  public boolean isSkipStartupActivity() {
+    return mySkipStartupActivity;
+  }
+
+  public void setSkipStartupActivity(boolean skipStartupActivity) {
+    mySkipStartupActivity = skipStartupActivity;
   }
 
   /**
