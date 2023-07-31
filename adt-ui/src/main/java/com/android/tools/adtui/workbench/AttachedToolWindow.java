@@ -13,6 +13,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
@@ -459,14 +460,23 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
         group.addSeparator();
       }
     }
-    DefaultActionGroup attachedSide = DefaultActionGroup.createPopupGroup(() -> "Attached Side");
-    attachedSide.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
-    attachedSide.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
-    attachedSide.add(new SwapAction());
-    if (myDefinition.isFloatingAllowed()) {
-      attachedSide.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
+    DefaultActionGroup attachedLocation = DefaultActionGroup.createPopupGroup(() -> "Attached to");
+    if (myDefinition.isSplitModeChangesAllowed()) {
+      attachedLocation.add(new AttachedLocationAction(AttachedLocation.LeftTop));
+      attachedLocation.add(new AttachedLocationAction(AttachedLocation.LeftBottom));
+      attachedLocation.add(new AttachedLocationAction(AttachedLocation.RightTop));
+      attachedLocation.add(new AttachedLocationAction(AttachedLocation.RightBottom));
     }
-    group.add(attachedSide);
+    else {
+      attachedLocation.add(new TogglePropertyTypeAction(PropertyType.LEFT, "Left"));
+      attachedLocation.add(new ToggleOppositePropertyTypeAction(PropertyType.LEFT, "Right"));
+    }
+
+    attachedLocation.add(new SwapAction());
+    if (myDefinition.isFloatingAllowed()) {
+      attachedLocation.add(new TogglePropertyTypeAction(PropertyType.DETACHED, "None"));
+    }
+    group.add(attachedLocation);
     ActionManager manager = ActionManager.getInstance();
     if (myDefinition.isAutoHideAllowed()) {
       group.add(
@@ -474,9 +484,6 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
     if (myDefinition.isFloatingAllowed()) {
       group.add(new TogglePropertyTypeAction(PropertyType.FLOATING, manager.getAction(InternalDecorator.TOGGLE_FLOATING_MODE_ACTION_ID)));
-    }
-    if (myDefinition.isSplitModeChangesAllowed()) {
-      group.add(new TogglePropertyTypeAction(PropertyType.SPLIT, manager.getAction(InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID)));
     }
   }
 
@@ -776,6 +783,34 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     @Override
     public void setSelected(@NotNull AnActionEvent event, boolean state) {
       setPropertyAndUpdate(myProperty, state);
+    }
+  }
+
+  private class AttachedLocationAction extends AnAction {
+    private final AttachedLocation myLocation;
+
+    private AttachedLocationAction(@NotNull AttachedLocation location) {
+      super(location.getTitle(), null, location.getIcon());
+      myLocation = location;
+    }
+
+    @NotNull
+    @Override
+    public ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.EDT;
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent event) {
+      boolean isCurrentLocation = myLocation.isLeft() == getProperty(PropertyType.LEFT) &&
+                                  myLocation.isBottom() == getProperty(PropertyType.SPLIT);
+      event.getPresentation().setEnabled(!isCurrentLocation);
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
+      setProperty(PropertyType.LEFT, myLocation.isLeft());
+      setPropertyAndUpdate(PropertyType.SPLIT, myLocation.isBottom());
     }
   }
 

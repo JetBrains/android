@@ -368,9 +368,40 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     assertThat(panel.isGearActionPerformed()).isTrue();
   }
 
-  public void testSelectLeftFromButtonRightClick() {
-    myToolWindow.setLeft(false);
+  public void testSelectLeftTopFromButtonRightClick() {
+    testSetLocationFromButtonRightClick(AttachedLocation.LeftTop);
+  }
 
+  public void testSelectLeftBottomFromButtonRightClick() {
+    testSetLocationFromButtonRightClick(AttachedLocation.LeftBottom);
+  }
+
+  public void testSelectRightTopFromButtonRightClick() {
+    testSetLocationFromButtonRightClick(AttachedLocation.RightTop);
+  }
+
+  public void testSelectRightBottomFromButtonRightClick() {
+    testSetLocationFromButtonRightClick(AttachedLocation.RightBottom);
+  }
+
+  private void testSetLocationFromButtonRightClick(@NotNull AttachedLocation location) {
+    myToolWindow.setLeft(!location.isLeft());
+    myToolWindow.setSplit(!location.isBottom());
+
+    AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), location.getTitle());
+    assertThat(action).isNotNull();
+    action.actionPerformed(createActionEvent(action));
+
+    assertThat(myToolWindow.isLeft()).isEqualTo(location.isLeft());
+    assertThat(myToolWindow.isSplit()).isEqualTo(location.isBottom());
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.SPLIT));
+  }
+
+  public void testSelectLeftFromButtonRightClick() {
+    myDefinition = PalettePanelToolContent.getBasicDefinition();
+    myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
+
+    myToolWindow.setLeft(false);
     AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), "Left");
     assertThat(action).isNotNull();
     action.actionPerformed(createActionEvent(action));
@@ -380,8 +411,10 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   }
 
   public void testSelectRightFromButtonRightClick() {
-    myToolWindow.setLeft(true);
+    myDefinition = PalettePanelToolContent.getBasicDefinition();
+    myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
 
+    myToolWindow.setLeft(true);
     AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), "Right");
     assertThat(action).isNotNull();
     action.actionPerformed(createActionEvent(action));
@@ -444,22 +477,6 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.DETACHED));
   }
 
-  public void testToggleSplitModeFromButtonRightClick() {
-    myToolWindow.setSplit(false);
-
-    AnAction action = findActionWithName(getPopupMenuFromButtonRightClick(), InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID);
-    assertThat(action).isNotNull();
-    action.actionPerformed(createActionEvent(action));
-
-    assertThat(myToolWindow.isSplit()).isTrue();
-    verify(myModel).update(eq(myToolWindow), eq(PropertyType.SPLIT));
-
-    action.actionPerformed(createActionEvent(action));
-
-    assertThat(myToolWindow.isSplit()).isFalse();
-    verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.SPLIT));
-  }
-
   public void testHideFromButtonInHeader() {
     myToolWindow.setFloating(false);
 
@@ -482,9 +499,40 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     assertThat(panel.isAdditionalActionPerformed()).isTrue();
   }
 
-  public void testSelectLeftFromGearButtonInHeader() {
-    myToolWindow.setLeft(false);
+  public void testSelectLeftTopFromGearButtonInHeader() {
+    testSetLocationFromGearButtonInHeader(AttachedLocation.LeftTop);
+  }
 
+  public void testSelectLeftBottomFromGearButtonInHeader() {
+    testSetLocationFromGearButtonInHeader(AttachedLocation.LeftBottom);
+  }
+
+  public void testSelectRightTopFromGearButtonInHeader() {
+    testSetLocationFromGearButtonInHeader(AttachedLocation.RightTop);
+  }
+
+  public void testSelectRightBottomFromGearButtonInHeader() {
+    testSetLocationFromGearButtonInHeader(AttachedLocation.RightBottom);
+  }
+
+  private void testSetLocationFromGearButtonInHeader(@NotNull AttachedLocation location) {
+    myToolWindow.setLeft(!location.isLeft());
+    myToolWindow.setSplit(!location.isBottom());
+
+    AnAction action = findActionWithName(getPopupMenuFromGearButtonInHeader(), location.getTitle());
+    assertThat(action).isNotNull();
+    action.actionPerformed(createActionEvent(action));
+
+    assertThat(myToolWindow.isLeft()).isEqualTo(location.isLeft());
+    assertThat(myToolWindow.isSplit()).isEqualTo(location.isBottom());
+    verify(myModel).update(eq(myToolWindow), eq(PropertyType.SPLIT));
+  }
+
+  public void testSelectLeftFromGearButtonInHeader() {
+    myDefinition = PalettePanelToolContent.getBasicDefinition();
+    myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
+
+    myToolWindow.setLeft(false);
     AnAction action = findActionWithName(getPopupMenuFromGearButtonInHeader(), "Left");
     assertThat(action).isNotNull();
     action.actionPerformed(createActionEvent(action));
@@ -494,8 +542,10 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   }
 
   public void testSelectRightFromGearButtonInHeader() {
-    myToolWindow.setLeft(true);
+    myDefinition = PalettePanelToolContent.getBasicDefinition();
+    myToolWindow = new AttachedToolWindow<>(myDefinition, myDragListener, myWorkBench, myModel, false);
 
+    myToolWindow.setLeft(true);
     AnAction action = findActionWithName(getPopupMenuFromGearButtonInHeader(), "Right");
     assertThat(action).isNotNull();
     action.actionPerformed(createActionEvent(action));
@@ -546,22 +596,6 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
     assertThat(myToolWindow.isFloating()).isFalse();
     assertThat(myToolWindow.isDetached()).isTrue();
     verify(myModel).update(eq(myToolWindow), eq(PropertyType.FLOATING));
-  }
-
-  public void testToggleSplitModeFromGearButtonInHeader() {
-    myToolWindow.setSplit(false);
-
-    AnAction action = findActionWithName(getPopupMenuFromGearButtonInHeader(), InternalDecorator.TOGGLE_SIDE_MODE_ACTION_ID);
-    assertThat(action).isNotNull();
-    action.actionPerformed(createActionEvent(action));
-
-    assertThat(myToolWindow.isSplit()).isTrue();
-    verify(myModel).update(eq(myToolWindow), eq(PropertyType.SPLIT));
-
-    action.actionPerformed(createActionEvent(action));
-
-    assertThat(myToolWindow.isSplit()).isFalse();
-    verify(myModel, times(2)).update(eq(myToolWindow), eq(PropertyType.SPLIT));
   }
 
   public void testSearchButtonInHeader() {

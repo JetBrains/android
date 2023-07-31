@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.android.tools.adtui.workbench.ToolWindowDefinition.ALLOW_ALL;
+import static com.android.tools.adtui.workbench.ToolWindowDefinition.ALLOW_BASICS;
 import static com.intellij.openapi.actionSystem.ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE;
 
 class PalettePanelToolContent implements ToolContent<String> {
@@ -46,6 +47,9 @@ class PalettePanelToolContent implements ToolContent<String> {
   private final static ToolWindowDefinition<String> ourThirdDefinition = new ToolWindowDefinition<>(
     "Other", AllIcons.Toolwindows.ToolWindowAnt, "THIRD", Side.RIGHT, Split.TOP, AutoHide.DOCKED,
     MIN_TOOL_WIDTH, DEFAULT_MINIMUM_BUTTON_SIZE, ALLOW_ALL, PalettePanelToolContent::new);
+  private final static ToolWindowDefinition<String> ourBasicDefinition = new ToolWindowDefinition<>(
+    "Other", AllIcons.Toolwindows.ToolWindowAnt, "THIRD", Side.RIGHT, Split.TOP, AutoHide.DOCKED,
+    MIN_TOOL_WIDTH, DEFAULT_MINIMUM_BUTTON_SIZE, ALLOW_BASICS, PalettePanelToolContent::new);
 
   private final AnAction myGearAction;
   private final AnAction myAdditionalAction;
@@ -91,6 +95,10 @@ class PalettePanelToolContent implements ToolContent<String> {
 
   public static ToolWindowDefinition<String> getThirdDefinition() {
     return ourThirdDefinition;
+  }
+
+  public static ToolWindowDefinition<String> getBasicDefinition() {
+    return ourBasicDefinition;
   }
 
   public void restore() {
