@@ -98,7 +98,7 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
       removeEmptyModules(project)
       attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
     }
-    
+
     gradleProjectInfo.isSkipStartupActivity = false
   }
 }

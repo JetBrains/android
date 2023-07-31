@@ -60,6 +60,12 @@ public class GradleProjectInfo {
   private volatile boolean myNewProject;
   private volatile boolean myImportedProject;
   private final ProjectFacetManager myFacetManager;
+  /**
+   * See <a href="https://issuetracker.google.com/291935296">this bug</a> for more info.
+   * <p>
+   * This field, related getters and setters and their usages need to be maintained for the time being
+   * since the gradle-profiler intelliJ IDEA plugin still rely on them.
+   */
   private volatile boolean mySkipStartupActivity;
 
   @NotNull
@@ -80,10 +86,12 @@ public class GradleProjectInfo {
     myNewProject = newProject;
   }
 
+  @Deprecated
   public boolean isSkipStartupActivity() {
     return mySkipStartupActivity;
   }
 
+  @Deprecated
   public void setSkipStartupActivity(boolean skipStartupActivity) {
     mySkipStartupActivity = skipStartupActivity;
   }
