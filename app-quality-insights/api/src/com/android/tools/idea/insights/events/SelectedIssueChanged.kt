@@ -30,6 +30,9 @@ data class SelectedIssueChanged(val issue: AppInsightsIssue?) : ChangeEvent {
     state: AppInsightsState,
     tracker: AppInsightsTracker
   ): StateTransition<Action> {
+    if (issue == state.selectedIssue) {
+      return StateTransition(state, Action.NONE)
+    }
     if (issue != null) {
       tracker.logCrashListDetailView(
         AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.newBuilder()
