@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.actions
+package com.android.tools.idea.preview.actions
 
-import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.preview.actions.findPreviewModeManagersForContext
-import com.android.tools.idea.preview.actions.navigateBack
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -29,9 +27,7 @@ import icons.StudioIcons
  * Action to stop the interactive preview (including animation inspection). Only visible when it's
  * already running and if the preview is not refreshing.
  */
-class StopInteractivePreviewAction(
-  private val forceDisable: (e: AnActionEvent) -> Boolean
-) :
+class StopInteractivePreviewAction(private val forceDisable: (e: AnActionEvent) -> Boolean) :
   AnActionButton(
     message("action.stop.interactive.title"),
     message("action.stop.interactive.description"),
