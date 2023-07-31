@@ -105,7 +105,11 @@ import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.ALT_DOWN_MASK
+import java.awt.event.KeyEvent.CHAR_UNDEFINED
+import java.awt.event.KeyEvent.CTRL_DOWN_MASK
 import java.awt.event.KeyEvent.KEY_PRESSED
+import java.awt.event.KeyEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent.VK_BACK_SPACE
 import java.awt.event.KeyEvent.VK_CONTROL
 import java.awt.event.KeyEvent.VK_DELETE
@@ -114,6 +118,7 @@ import java.awt.event.KeyEvent.VK_END
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_HOME
+import java.awt.event.KeyEvent.VK_J
 import java.awt.event.KeyEvent.VK_KP_DOWN
 import java.awt.event.KeyEvent.VK_KP_LEFT
 import java.awt.event.KeyEvent.VK_KP_RIGHT
@@ -457,39 +462,30 @@ internal class DeviceViewTest {
       fakeUi.keyboard.releaseForModifiers(hostKeyStroke.modifiers)
       when (androidMetaState) {
         AMETA_SHIFT_ON -> {
-          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
-              KeyEventMessage(ACTION_DOWN, AKEYCODE_SHIFT_LEFT, AMETA_SHIFT_ON))
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_SHIFT_LEFT, AMETA_SHIFT_ON))
         }
         AMETA_CTRL_ON -> {
-          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
-              KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
         }
         AMETA_CTRL_SHIFT_ON -> {
-          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
-              KeyEventMessage(ACTION_DOWN, AKEYCODE_SHIFT_LEFT, AMETA_SHIFT_ON))
-          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
-              KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_SHIFT_ON))
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_SHIFT_LEFT, AMETA_SHIFT_ON))
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_SHIFT_ON))
         }
         else -> {}
       }
 
-      assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
-          KeyEventMessage(ACTION_DOWN_AND_UP, androidKeyCode, androidMetaState))
+      assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN_AND_UP, androidKeyCode, androidMetaState))
 
       when (androidMetaState) {
         AMETA_SHIFT_ON -> {
-          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
-              KeyEventMessage(ACTION_UP, AKEYCODE_SHIFT_LEFT, 0))
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_SHIFT_LEFT, 0))
         }
         AMETA_CTRL_ON -> {
-          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
-              KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
         }
         AMETA_CTRL_SHIFT_ON -> {
-          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
-              KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, AMETA_SHIFT_ON))
-          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(
-              KeyEventMessage(ACTION_UP, AKEYCODE_SHIFT_LEFT, 0))
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, AMETA_SHIFT_ON))
+          assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_SHIFT_LEFT, 0))
         }
         else -> {}
       }
@@ -498,8 +494,7 @@ internal class DeviceViewTest {
     focusManager = Mockito.spy(focusManager)
     replaceKeyboardFocusManager(focusManager, testRootDisposable)
     focusManager.focusOwner = view
-    focusManager.processKeyEvent(
-        view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
+    focusManager.processKeyEvent(view, KeyEvent(view, KEY_PRESSED, System.currentTimeMillis(), SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
     Mockito.verify(focusManager, Mockito.atLeast(1)).focusNextComponent(eq(view))
   }
 
@@ -702,11 +697,11 @@ internal class DeviceViewTest {
     createDeviceView(500, 1000)
     waitForFrame()
 
-    val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
+    val altMPressedEvent = KeyEvent(view, KEY_PRESSED, System.currentTimeMillis(), ALT_DOWN_MASK, VK_M, VK_M.toChar())
     focusManager.redispatchEvent(view, altMPressedEvent)
     assertThat(altMPressedEvent.isConsumed).isFalse()
 
-    val altMReleasedEvent = KeyEvent(view, KeyEvent.KEY_RELEASED, System.nanoTime(), KeyEvent.ALT_DOWN_MASK, VK_M, VK_M.toChar())
+    val altMReleasedEvent = KeyEvent(view, KeyEvent.KEY_RELEASED, System.currentTimeMillis(), ALT_DOWN_MASK, VK_M, VK_M.toChar())
     focusManager.redispatchEvent(view, altMReleasedEvent)
     assertThat(altMReleasedEvent.isConsumed).isFalse()
   }
@@ -718,8 +713,7 @@ internal class DeviceViewTest {
 
     executeStreamingAction("android.streaming.hardware.input", view, agentRule.project)
 
-    assertThat(view.skipKeyEventDispatcher(
-      KeyEvent(view, KEY_PRESSED, System.nanoTime(), 0, KeyEvent.VK_M, KeyEvent.VK_M.toChar()))).isTrue()
+    assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KEY_PRESSED, System.currentTimeMillis(), 0, VK_M, VK_M.toChar()))).isTrue()
   }
 
   @Test
@@ -731,9 +725,8 @@ internal class DeviceViewTest {
     val keymapManager = KeymapManager.getInstance()
     keymapManager.activeKeymap.addShortcut("android.streaming.hardware.input", KeyboardShortcut.fromString("control shift J"))
 
-    assertThat(view.skipKeyEventDispatcher(KeyEvent(view, KeyEvent.KEY_PRESSED, System.nanoTime(),
-                                                    KeyEvent.SHIFT_DOWN_MASK or KeyEvent.CTRL_DOWN_MASK, KeyEvent.VK_J,
-                                                    KeyEvent.CHAR_UNDEFINED))).isFalse()
+    val event = KeyEvent(view, KEY_PRESSED, System.currentTimeMillis(), SHIFT_DOWN_MASK or CTRL_DOWN_MASK, VK_J, CHAR_UNDEFINED)
+    assertThat(view.skipKeyEventDispatcher(event)).isFalse()
   }
 
   @Test
@@ -745,20 +738,16 @@ internal class DeviceViewTest {
     fakeUi.keyboard.setFocus(view)
 
     fakeUi.keyboard.press(VK_CONTROL)
-    assertThat(agent.getNextControlMessage(2, SECONDS)).
-        isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_CTRL_LEFT, AMETA_CTRL_ON))
 
     fakeUi.keyboard.press(KeyEvent.VK_S)
-    assertThat(agent.getNextControlMessage(2, SECONDS)).
-        isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_S, AMETA_CTRL_ON))
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_DOWN, AKEYCODE_S, AMETA_CTRL_ON))
 
     fakeUi.keyboard.release(KeyEvent.VK_S)
-    assertThat(agent.getNextControlMessage(2, SECONDS)).
-        isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_S, AMETA_CTRL_ON))
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_S, AMETA_CTRL_ON))
 
     fakeUi.keyboard.release(VK_CONTROL)
-    assertThat(agent.getNextControlMessage(2, SECONDS)).
-        isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
+    assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(KeyEventMessage(ACTION_UP, AKEYCODE_CTRL_LEFT, 0))
   }
 
   @Test
