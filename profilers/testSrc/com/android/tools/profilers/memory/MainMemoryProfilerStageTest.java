@@ -41,6 +41,7 @@ import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeFeatureTracker;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -871,6 +872,30 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     myStage.enter();
 
     assertThat(myStage.myNativeAllocationTracking).isTrue();
+  }
+
+  @Test
+  public void testLazyHeapDumpRecordingOption() {
+    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
+    RecordingOption recordingOption = stage.lazyHeapDumpRecordingOption;
+    // Call for the recording option again to confirm it is the original recording option instance.
+    assertThat(recordingOption).isEqualTo(stage.lazyHeapDumpRecordingOption);
+  }
+
+  @Test
+  public void testLazyNativeRecordingOption() {
+    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
+    RecordingOption recordingOption = stage.lazyNativeRecordingOption;
+    // Call for the recording option again to confirm it is the original recording option instance.
+    assertThat(recordingOption).isEqualTo(stage.lazyNativeRecordingOption);
+  }
+
+  @Test
+  public void testLazyJavaKotlinAllocationsRecordingOption() {
+    MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
+    RecordingOption recordingOption = stage.lazyJavaKotlinAllocationsRecordingOption;
+    // Call for the recording option again to confirm it is the original recording option instance.
+    assertThat(recordingOption).isEqualTo(stage.lazyJavaKotlinAllocationsRecordingOption);
   }
 
   private void assumePreO(boolean assumedPreO) {
