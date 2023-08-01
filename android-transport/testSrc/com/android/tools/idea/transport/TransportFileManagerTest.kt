@@ -36,6 +36,7 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.io.File
+import java.nio.file.Files
 
 class TransportFileManagerTest {
   @get:Rule
@@ -58,10 +59,8 @@ class TransportFileManagerTest {
 
   @Test
   fun testCopyNonExecutableFileToDevice() {
-    temporaryFolder.apply {
-      newFolder("dev")
-      newFile("dev/perfa.jar")
-    }
+    temporaryFolder.newFolder("dev")
+    val perfa = temporaryFolder.newFile("dev/perfa.jar").apply { setWritable(true) }
 
     val hostFile = DeployableFile.Builder("perfa.jar")
       .setReleaseDir("release")
@@ -76,6 +75,7 @@ class TransportFileManagerTest {
 
     fileManager.copyHostFileToDevice(hostFile)
     verify(mockDevice, times(1)).pushFile(hostPathCaptor.capture(), devicePathCaptor.capture())
+    assertThat(Files.isWritable(perfa.toPath())).isFalse()
 
     val expectedPaths = listOf(
       Pair("dev" + File.separator + "perfa.jar", "perfa.jar")
