@@ -37,7 +37,6 @@ import com.android.tools.idea.preview.MethodPreviewElement
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.preview.PreviewElementProvider
-import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.preview.xml.PreviewXmlBuilder
 import com.android.tools.idea.preview.xml.XmlSerializable
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
@@ -47,7 +46,6 @@ import com.android.tools.rendering.classloading.useWithClassLoader
 import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import java.awt.Dimension
@@ -77,13 +75,6 @@ private const val NO_WALLPAPER_SELECTED = -1
  */
 @VisibleForTesting
 const val FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD = "${'$'}FailToLoadPreviewParameterProvider"
-
-/** [InMemoryLayoutVirtualFile] for composable functions. */
-class ComposeAdapterLightVirtualFile(
-  name: String,
-  content: String,
-  originFileProvider: () -> VirtualFile?
-) : InMemoryLayoutVirtualFile("compose-$name", content, originFileProvider)
 
 /**
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the

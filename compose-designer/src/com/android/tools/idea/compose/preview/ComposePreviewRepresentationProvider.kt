@@ -36,6 +36,7 @@ import com.android.tools.idea.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.preview.actions.visibleOnlyInStaticPreview
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
+import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -55,6 +56,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.annotations.TestOnly
@@ -127,6 +129,13 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
 
   override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(surface, this)
 }
+
+/** [InMemoryLayoutVirtualFile] for composable functions. */
+class ComposeAdapterLightVirtualFile(
+  name: String,
+  content: String,
+  originFileProvider: () -> VirtualFile?
+) : InMemoryLayoutVirtualFile("compose-$name", content, originFileProvider)
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
 class ComposePreviewRepresentationProvider(
