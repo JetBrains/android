@@ -18,7 +18,7 @@ iml_module(
         },
         "perfgateVisualLint": {
             "tags": ["perfgate"],
-            "shard_count": 2,
+            "shard_count": 5,
             "test_filter": "com.android.tools.idea.uibuilder.visual.visuallint",
         },
         "perfgateJarManager": {

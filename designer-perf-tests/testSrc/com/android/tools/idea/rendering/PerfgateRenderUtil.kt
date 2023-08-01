@@ -123,22 +123,6 @@ internal class ElapsedTimeMeasurement<T>(metric: Metric) : MetricMeasurementAdap
 }
 
 /**
- * A [MetricMeasurement] that measures the memory usage delta between [before] and [after].
- */
-// TODO(b/292229448): replace all usages of this measurement with HeapSnapshotMemoryUseMeasurement
-internal class MemoryUseMeasurement<T>(metric: Metric) : MetricMeasurementAdapter<T>(metric) {
-  private var initialMemoryUse = -1L
-
-  override fun before() {
-    initialMemoryUse = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
-  }
-
-  override fun after(result: T) =
-    MetricSample(Instant.now().toEpochMilli(),
-                 Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - initialMemoryUse)
-}
-
-/**
  * A [MetricMeasurement] that measures the memory usage using the [HeapSnapshotTraverseService].
  *
  * When [component] is null, the measure is done over the whole [category]. Otherwhise, the
