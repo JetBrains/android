@@ -67,8 +67,6 @@ iml_module(
         "//tools/adt/idea/streaming/testData",
     ],
     test_friends = ["//tools/adt/idea/streaming:intellij.android.streaming"],
-    # b/294110886
-    test_jvm_flags = ["-Didea.leak.check.enabled=false"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     runtime_deps = ["//tools/adt/idea/.idea/libraries:ffmpeg-platform"],
