@@ -43,6 +43,7 @@ import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionMenu;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionPresentation;
 import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
+import com.android.tools.idea.uibuilder.api.actions.ZoomToSelectionAction;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -225,6 +226,7 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
     //noinspection ConstantConditions
     group.add(getRegisteredActionByName(IdeActions.ACTION_DELETE));
     group.addSeparator();
+    group.add(new ZoomToSelectionAction(mySurface));
     group.add(myGotoComponentAction);
 
     return group;
