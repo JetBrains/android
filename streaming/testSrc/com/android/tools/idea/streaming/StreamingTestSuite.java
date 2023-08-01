@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.streaming;
 
-import static org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8;
-import static org.bytedeco.ffmpeg.global.avcodec.avcodec_find_encoder;
-
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.adtui.swing.IconLoaderRule;
 import com.android.tools.idea.adb.AdbService;
@@ -34,8 +31,5 @@ public class StreamingTestSuite extends IdeaTestSuiteBase {
 
     // Disable production AdbService to prevent it from interfering with AndroidDebugBridge (b/281701515).
     AdbService.disabled = true;
-
-    // Preload FFmpeg codec native libraries before the test to avoid a race condition when unpacking them.
-    avcodec_find_encoder(AV_CODEC_ID_VP8).close();
   }
 }

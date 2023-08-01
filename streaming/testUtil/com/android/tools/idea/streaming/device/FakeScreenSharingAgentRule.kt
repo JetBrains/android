@@ -66,8 +66,6 @@ class FakeScreenSharingAgentRule : TestRule {
   private val testEnvironment = object : ExternalResource() {
 
     override fun before() {
-      // Preload FFmpeg codec native libraries before the test to avoid a race condition when unpacking them.
-      avcodec_find_encoder(AV_CODEC_ID_VP8).close()
       val binDir = Paths.get(StudioPathManager.getBinariesRoot())
       // Create fake screen-sharing-agent.jar and libscreen-sharing-agent.so files if they don't exist.
       createEmptyFileIfNotExists(binDir.resolve("$SCREEN_SHARING_AGENT_SOURCE_PATH/$SCREEN_SHARING_AGENT_JAR_NAME"))
@@ -88,6 +86,11 @@ class FakeScreenSharingAgentRule : TestRule {
 
   val project: ProjectEx
     get() = projectRule.project
+
+  init {
+    // Preload FFmpeg codec native libraries upfront to avoid a race condition when unpacking them.
+    avcodec_find_encoder(AV_CODEC_ID_VP8).close()
+  }
 
   override fun apply(base: Statement, description: Description): Statement {
     return projectRule.apply(
