@@ -32,27 +32,27 @@ class TryCatchFinallyTest {
 
   @Test
   fun testLineNumberChange() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method(): Int {
           return 0
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method(): Int {
           // This is a comment
           return 0
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNoChanges(original, new)
   }
 
   @Test
   fun testTryBlock() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method(): Int {
           try {
@@ -61,9 +61,9 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method(): Int {
           try {
@@ -73,14 +73,14 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertChanges(original, new)
   }
 
   @Test
   fun testCatch() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method(): Int {
           try {
@@ -89,9 +89,9 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method(): Int {
           try {
@@ -100,14 +100,14 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertChanges(original, new)
   }
 
   @Test
   fun testCatchBlock() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method(): Int {
           try {
@@ -116,9 +116,9 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method(): Int {
           try {
@@ -128,14 +128,14 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertChanges(original, new)
   }
 
   @Test
   fun testFinallyBlock() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method(): Int {
           try {
@@ -144,9 +144,9 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method(): Int {
           try {
@@ -156,7 +156,7 @@ class TryCatchFinallyTest {
             return 1
           }
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertChanges(original, new)
   }

@@ -32,20 +32,20 @@ class InstructionTest {
 
   @Test
   fun testLineNumberChange() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method(): Int {
           return 0
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method(): Int {
           // This is a comment
           return 0
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     // Line number changes should not count as a diff.
     assertNoChanges(original, new)

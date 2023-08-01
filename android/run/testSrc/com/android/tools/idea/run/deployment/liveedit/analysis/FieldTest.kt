@@ -32,15 +32,15 @@ class FieldTest {
 
   @Test
   fun testDesc() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         val field: Int = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         val field: String = "value"
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -72,15 +72,15 @@ class FieldTest {
 
   @Test
   fun testSignature() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         val field: List<Int>? = null
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         val field: List<String>? = null
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -112,15 +112,15 @@ class FieldTest {
 
   @Test
   fun testAccess() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         var field = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         val field = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -150,19 +150,19 @@ class FieldTest {
 
   @Test
   fun testAddRemoveField() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         val field = 0
         val other = 1
         val old = "hello"
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         val field = 0
         val other = 1
         val new = 2.0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -192,7 +192,7 @@ class FieldTest {
 
   @Test
   fun testAddRemoveFieldAnnotation() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       annotation class Q
       annotation class R
       annotation class S
@@ -202,9 +202,9 @@ class FieldTest {
         val field = 0
 
         val other = 1
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       annotation class Q
       annotation class R
       annotation class S
@@ -216,7 +216,7 @@ class FieldTest {
         @field:R
         @field:S
         val other = 1
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))

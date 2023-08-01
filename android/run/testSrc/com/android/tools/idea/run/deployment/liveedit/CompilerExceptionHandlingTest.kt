@@ -22,6 +22,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
+import kotlin.test.assertEquals
 
 class CompilerExceptionHandlingTest {
 
@@ -35,26 +36,26 @@ class CompilerExceptionHandlingTest {
 
   @Test
   fun notDropProcessCancelException() {
-    var file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
-    var input = Mockito.spy(LiveEditCompilerInput(file, findFunction(file, "foo")))
-    Mockito.`when`(input.element).thenThrow(ProcessCanceledException())
-    var inputs = listOf(input)
-    var output = LiveEditCompiler(inputs.first().file.project).compile(inputs)
+    val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
+    val input = LiveEditCompilerInput(file, findFunction(file, "foo"))
+    val cache = Mockito.spy(MutableIrClassCache())
+    Mockito.`when`(cache["AKt"]).thenThrow(ProcessCanceledException())
+    val output = LiveEditCompiler(file.project, cache).compile(listOf(input))
     assert(output.isEmpty)
   }
 
   @Test
   fun syntaxError() {
-    var file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
-    var input = Mockito.spy(LiveEditCompilerInput(file, findFunction(file, "foo")))
-    Mockito.`when`(input.element).thenThrow(LiveEditUpdateException.compilationError("some syntax error in file A.kt"))
-    var inputs = listOf(input)
+    val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
+    val input = LiveEditCompilerInput(file, findFunction(file, "foo"))
+    val cache = Mockito.spy(MutableIrClassCache())
+    Mockito.`when`(cache["AKt"]).thenThrow(LiveEditUpdateException.compilationError("some syntax error in file A.kt"))
 
     try {
-      LiveEditCompiler(inputs.first().file.project).compile(inputs)
+      LiveEditCompiler(file.project, cache).compile(listOf(input))
       Assert.fail("Expecting LiveEditUpdateException")
     } catch (e : LiveEditUpdateException) {
-
+      assertEquals(LiveEditUpdateException.Error.COMPILATION_ERROR, e.error)
     }
   }
 
@@ -62,13 +63,13 @@ class CompilerExceptionHandlingTest {
 
   @Test
   fun unknownException() {
-    var file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
-    var input = Mockito.spy(LiveEditCompilerInput(file, findFunction(file, "foo")))
-    Mockito.`when`(input.element).thenThrow(ExceptionUnknownToStudio())
-    var inputs = listOf(input)
+    val file = projectRule.fixture.configureByText("A.kt", "fun foo() = 1")
+    val input = LiveEditCompilerInput(file, findFunction(file, "foo"))
+    val cache = Mockito.spy(MutableIrClassCache())
+    Mockito.`when`(cache["AKt"]).thenThrow(ExceptionUnknownToStudio())
 
     try {
-      LiveEditCompiler(inputs.first().file.project).compile(inputs)
+      LiveEditCompiler(file.project, cache).compile(listOf(input))
       Assert.fail("Expecting LiveEditUpdateException")
     } catch (e : LiveEditUpdateException) {
 

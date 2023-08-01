@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
-import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.setUpComposeInProjectFixture
 import com.android.tools.idea.testing.AndroidProjectRule
 import org.junit.Before
@@ -35,7 +34,7 @@ class InlineTest {
 
   @Test
   fun testInline() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun inlineMethod(): Int {
           return 0
@@ -43,9 +42,9 @@ class InlineTest {
         fun method() {
           inlineMethod()
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         inline fun inlineMethod(): Int {
           return 0
@@ -53,22 +52,20 @@ class InlineTest {
         fun method() {
           inlineMethod()
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertChanges(original, new)
 
-    val oldClazz = IrClass(original)
-    val oldMethod = oldClazz.methods.first { it.name == "inlineMethod" }
+    val oldMethod = original.methods.first { it.name == "inlineMethod" }
     assertFalse(oldMethod.isInline())
 
-    val newClazz = IrClass(new)
-    val newMethod = newClazz.methods.first { it.name == "inlineMethod" }
+    val newMethod = new.methods.first { it.name == "inlineMethod" }
     assertTrue(newMethod.isInline())
   }
 
   @Test
   fun testNoInline() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         inline fun inlineMethod(first: () -> Int, second: () -> Int): Int {
           first()
@@ -78,9 +75,9 @@ class InlineTest {
         fun method() {
           inlineMethod({0}, {1})
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         inline fun inlineMethod(first: () -> Int, noinline second: () -> Int): Int {
           first()
@@ -90,7 +87,7 @@ class InlineTest {
         fun method() {
           inlineMethod({0}, {1})
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertChanges(original, new)
   }

@@ -15,22 +15,26 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import junit.framework.Assert
-import org.jetbrains.kotlin.idea.util.psi.patternMatching.matches
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
-internal fun compile(file: PsiFile?, functionName: String, irClassCache: MutableIrClassCache? = null) =
+internal fun compile(file: PsiFile, irClassCache: MutableIrClassCache = MutableIrClassCache()) : LiveEditCompilerOutput {
+  val ktFile = file as KtFile
+  return compile(listOf(LiveEditCompilerInput(ktFile, ktFile)), irClassCache)
+}
+
+internal fun compile(file: PsiFile?, functionName: String, irClassCache: MutableIrClassCache = MutableIrClassCache()) =
   compile(file!!, findFunction(file, functionName), irClassCache)
 
-internal fun compile(file: PsiFile, function: KtNamedFunction, irClassCache: MutableIrClassCache? = null) =
+internal fun compile(file: PsiFile, function: KtNamedFunction, irClassCache: MutableIrClassCache = MutableIrClassCache()) =
   compile(listOf(LiveEditCompilerInput(file, function)), irClassCache)
 
-internal fun compile(inputs: List<LiveEditCompilerInput>, irClassCache: MutableIrClassCache? = null) : LiveEditCompilerOutput {
+internal fun compile(inputs: List<LiveEditCompilerInput>,
+                     irClassCache: MutableIrClassCache = MutableIrClassCache()): LiveEditCompilerOutput {
   // The real Live Edit / Fast Preview has a retry system should the compilation got cancelled.
   // We are going to use a simplified version of that here and continue to try until
   // compilation succeeds.
@@ -48,7 +52,7 @@ internal fun findFunction(file: PsiFile?, name: String): KtNamedFunction {
   return findFirst(file) { it.name?.contains(name) ?: false }
 }
 
-internal inline fun <reified T : PsiElement> findFirst(file: PsiFile?, crossinline match: (T) -> Boolean) : T {
+internal inline fun <reified T : PsiElement> findFirst(file: PsiFile?, crossinline match: (T) -> Boolean): T {
   return runReadAction {
     file!!.collectDescendantsOfType<T>().first { match(it) }
   }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.analysis
 
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.ClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.Differ
@@ -24,26 +25,52 @@ import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.LocalVari
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.LocalVariableVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.MethodDiff
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.MethodVisitor
+import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrField
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrLocalVariable
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrMethod
-import com.android.tools.idea.run.deployment.liveedit.compile
+import com.android.tools.idea.run.deployment.liveedit.runWithCompileLock
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.jetbrains.kotlin.codegen.state.GenerationState
+import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.psi.KtFile
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-fun diff(old: ByteArray, new: ByteArray) = Differ.diff(old, new)
+fun diff(old: IrClass, new: IrClass) = Differ.diff(old, new)
 
-// We need to add a method to guarantee to have something to hook group detection logic onto, at least for now.
-const val TEST_COMPILE_METHOD = "f___"
+fun AndroidProjectRule.Typed<CodeInsightTestFixture, Nothing>.compileIr(text: String, fileName: String, className: String): IrClass {
+  return compileIr(text, fileName).single { it.name == className }
+}
 
-fun AndroidProjectRule.Typed<CodeInsightTestFixture, Nothing>.compile(text: String, fileName: String): ByteArray {
-  val classText = "${text.trimIndent().removeSuffix("}")}\tfun $TEST_COMPILE_METHOD() = 0\n}"
-  val originalFile = fixture.configureByText(fileName, classText) as KtFile
-  return compile(originalFile, "f___").classes[0].data
+fun AndroidProjectRule.Typed<CodeInsightTestFixture, Nothing>.compileIr(text: String, fileName: String): List<IrClass> {
+  val originalFile = fixture.configureByText(fileName, text) as KtFile
+  val output = mutableListOf<ByteArray>()
+  ApplicationManager.getApplication().runReadAction {
+    runWithCompileLock {
+      val inputFiles = listOf(originalFile)
+      val resolution = fetchResolution(project, inputFiles)
+      val analysisResult = analyze(inputFiles, resolution)
+      val generationState: GenerationState = try {
+        backendCodeGen(project,
+                       analysisResult,
+                       inputFiles,
+                       inputFiles.first().module!!,
+                       emptySet())
+      } catch (t: Throwable) {
+        throw LiveEditUpdateException.internalError("Internal Error During Code Gen", t)
+      }
+
+      generationState.factory.asList()
+        .filter { it.relativePath.endsWith(".class") }
+        .map { it.asByteArray() }
+        .forEach { output.add(it) }
+    }
+  }
+  return output.map { IrClass(it) }
 }
 
 /**
@@ -53,7 +80,7 @@ fun AndroidProjectRule.Typed<CodeInsightTestFixture, Nothing>.compile(text: Stri
  *  - the diff of [original] and [new] is null
  *  - the diff of [new] and [original] is null
  */
-fun assertNoChanges(original: ByteArray, new: ByteArray) {
+fun assertNoChanges(original: IrClass, new: IrClass) {
   assertNull(diff(original, original))
   assertNull(diff(new, new))
   assertNull(diff(original, new))
@@ -67,7 +94,7 @@ fun assertNoChanges(original: ByteArray, new: ByteArray) {
  *  - the diff of [original] and [new] has changes
  *  - the diff of [new] and [original] has changes
  */
-fun assertChanges(original: ByteArray, new: ByteArray) {
+fun assertChanges(original: IrClass, new: IrClass) {
   assertNull(diff(original, original))
   assertNull(diff(new, new))
   assertNotNull(diff(original, new))

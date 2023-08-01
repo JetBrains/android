@@ -34,21 +34,21 @@ class AnnotationTest {
 
   @Test
   fun testAnnotationWithEnumParams() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       enum class MyEnum { A, B }
       annotation class Q(val param: MyEnum)
       class A {
         @Q(MyEnum.A)
         val field: Int = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       enum class MyEnum { A, B }
       annotation class Q(val param: MyEnum)
       class A {
         @Q(MyEnum.B)
         val field: Int = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))

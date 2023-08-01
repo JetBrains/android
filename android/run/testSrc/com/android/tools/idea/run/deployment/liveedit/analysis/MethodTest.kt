@@ -33,15 +33,15 @@ class MethodTest {
 
   @Test
   fun testAccess() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         open fun method() = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         private fun method() = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -73,15 +73,15 @@ class MethodTest {
 
   @Test
   fun testSignature() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method(value: List<String>) = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method(value: List<Int>) = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -113,18 +113,18 @@ class MethodTest {
 
   @Test
   fun testAddRemoveMethod() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun methodA() = 0
         fun methodB() = 0
         fun methodC() = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun methodB() = "default"
         fun methodD() = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -154,7 +154,7 @@ class MethodTest {
 
   @Test
   fun testAddRemoveMethodAnnotation() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       annotation class Q
       annotation class R
       annotation class S
@@ -164,9 +164,9 @@ class MethodTest {
         fun method() = 0
   
         fun other() = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       annotation class Q
       annotation class R
       annotation class S
@@ -178,7 +178,7 @@ class MethodTest {
         @R
         @S
         fun other() = 0
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -226,10 +226,10 @@ class MethodTest {
 
   @Test
   fun testSAM() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       fun interface Sam {
         fun getNewString() : String
-      }""", "A.kt")
+      }""", "A.kt", "Sam")
 
     assertNull(diff(original, original))
   }

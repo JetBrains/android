@@ -30,21 +30,21 @@ class LocalVariableTest {
 
   @Test
   fun testAddRemoveLocalVar() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method() {
           var a = ""
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method() {
           var a = ""
           var b = ""
           var c = ""
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -80,19 +80,19 @@ class LocalVariableTest {
 
   @Test
   fun testName() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method() {
           var a = ""
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method() {
           var b = ""
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -124,19 +124,19 @@ class LocalVariableTest {
 
   @Test
   fun testDesc() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method() {
           var a = ""
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method() {
           var a = 0
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))
@@ -169,15 +169,15 @@ class LocalVariableTest {
   // Use of random() to force kotlinc to actually keep local variables around.
   @Test
   fun testSignature() {
-    val original = projectRule.compile("""
+    val original = projectRule.compileIr("""
       class A {
         fun method(): Int {
           var a = java.util.Random().nextInt()
           return a
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
-    val new = projectRule.compile("""
+    val new = projectRule.compileIr("""
       class A {
         fun method(): Int {
           if (true) {
@@ -186,7 +186,7 @@ class LocalVariableTest {
           }
           return 0
         }
-      }""", "A.kt")
+      }""", "A.kt", "A")
 
     assertNull(diff(original, original))
     assertNull(diff(new, new))

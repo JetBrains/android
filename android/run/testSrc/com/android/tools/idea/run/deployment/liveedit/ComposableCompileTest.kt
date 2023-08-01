@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.android.tools.idea.run.deployment.liveedit.analysis.compileIr
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.psi.PsiFile
 import junit.framework.Assert
+import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,34 +34,37 @@ class ComposableCompileTest {
   fun setUp() {
     setUpComposeInProjectFixture(projectRule)
 
-    files["ComposeSimple.kt"] = projectRule.fixture.configureByText("ComposeSimple.kt",
-                                                                    "@androidx.compose.runtime.Composable fun composableFun() : String { " +
-                                                                    "return \"hi\" " +
-                                                                    "}\n" +
-                                                                    "@androidx.compose.runtime.Composable fun composableFun2() : String { " +
-                                                                    "return \"hi2\" " +
-                                                                    "}\n")
 
-    files["ComposeNested.kt"] = projectRule.fixture.configureByText("ComposeNested.kt",
-                                                                    "@androidx.compose.runtime.Composable fun composableNested () : " +
-                                                                    "@androidx.compose.runtime.Composable (Int)->Unit { " +
-                                                                    "return { } " +
-                                                                    "}")
 
     files["HasComposableSingletons.kt"] = projectRule.fixture.configureByText("HasComposableSingletons.kt",
                                                                               "import androidx.compose.runtime.Composable\n" +
                                                                               "@Composable fun hasLambdaA(content: @Composable () -> Unit) { }\n" +
                                                                               "@Composable fun hasLambdaB() { hasLambdaA {} }")
 
-    files["Mixed.kt"] = projectRule.fixture.configureByText("Mixed.kt",
-                                                            "import androidx.compose.runtime.Composable\n" +
-                                                            "@Composable fun isComposable() {}\n" +
-                                                            "fun notComposable() {}\n")
   }
 
   @Test
   fun simpleComposeChange() {
-    val output = compile(files["ComposeSimple.kt"], "composableFun")
+    val cache = initialCache(mapOf("ComposeSimple.kt" to """
+      import androidx.compose.runtime.Composable
+      @Composable fun composableFun() : String {
+        var str = "hi"
+        return str
+      }
+      @Composable fun composableFun2() : String {
+        return "hi2"
+      }"""))
+
+    val file = projectRule.fixture.configureByText("ComposeSimple.kt","""
+      import androidx.compose.runtime.Composable
+      @Composable fun composableFun() : String {
+        var str = "hello"
+        return str
+      }
+      @Composable fun composableFun2() : String {
+        return "hi2"
+      }""")
+    val output = compile(file, cache)
     // We can't really invoke any composable without a "host". Normally that host will be the
     // Android activity. There are other hosts that we can possibly run as a Compose unit test.
     // We could potentially look into doing that. However, for the purpose of verifying the
@@ -80,25 +85,67 @@ class ComposableCompileTest {
 
   @Test
   fun simpleComposeNested() {
-    val output = compile(files["ComposeNested.kt"], "composableNested")
+    val cache = initialCache(mapOf("ComposeNested.kt" to """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun composableNested(): @Composable (Int) -> Unit {
+        return { }
+      }"""))
+    val file = projectRule.fixture.configureByText("ComposeNested.kt", """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun composableNested(): @Composable (Int) -> Unit {
+        val x = 0
+        return { val y = 0 }
+      }""")
+    val output = compile(file, cache)
     Assert.assertEquals(-1050554150, output.groupIds.first())
   }
 
   @Test
   fun multipleEditsInOneUpdate() {
-    // Testing an edit that has two files and three function modified.
-    val file1 = files["ComposeSimple.kt"]
-    val file2 = files["ComposeNested.kt"]
-    val output = compile(listOf(
-      LiveEditCompilerInput(file1!!, findFunction(file1, "composableFun")),
-      LiveEditCompilerInput(file1!!, findFunction(file1, "composableFun2")),
-      LiveEditCompilerInput(file1!!, findFunction(file1, "composableFun2")), // Multiple edits of the same function
-      LiveEditCompilerInput(file2!!, findFunction(file2, "composableNested")),
-      ))
+    val cache = initialCache(mapOf(
+      "ComposeSimple.kt" to """
+        import androidx.compose.runtime.Composable
+        @Composable fun composableFun() : String {
+          var str = "hi"
+          return str
+        }
+        @Composable fun composableFun2() : String {
+          return "hi2"
+        }""",
+      "ComposeNested.kt" to """
+        import androidx.compose.runtime.Composable
+        @Composable
+        fun composableNested(): @Composable (Int) -> Unit {
+          return { }
+         }"""))
 
-    Assert.assertEquals(4, output.classes.size)
+    // Testing an edit that has two files and three function modified.
+    val file1 = projectRule.fixture.configureByText("ComposeSimple.kt", """
+      import androidx.compose.runtime.Composable
+      @Composable fun composableFun() : String {
+        var str = "hello"
+        return str
+      }
+      @Composable fun composableFun2() : String {
+        return "hello"
+      }""")
+    val file2 = projectRule.fixture.configureByText("ComposeNested.kt", """
+      import androidx.compose.runtime.Composable
+      @Composable
+      fun composableNested(): @Composable (Int) -> Unit {
+        val x = 0
+        return { val y = 0 }
+      }""")
+      val output = compile(listOf(
+      LiveEditCompilerInput(file1, file1 as KtFile),
+      LiveEditCompilerInput(file1, file1),
+      LiveEditCompilerInput(file2, file2 as KtFile)), cache)
+
+    Assert.assertEquals(3, output.classes.size)
     Assert.assertEquals(2, output.classesMap.size)
-    Assert.assertEquals(2, output.supportClassesMap.size)
+    Assert.assertEquals(1, output.supportClassesMap.size)
     Assert.assertTrue(output.classesMap.get("ComposeSimpleKt")!!.isNotEmpty())
     Assert.assertTrue(output.classesMap.get("ComposeNestedKt")!!.isNotEmpty())
 
@@ -111,11 +158,31 @@ class ComposableCompileTest {
 
   @Test
   fun simpleMixed() {
-    var output = compile(files["Mixed.kt"], "isComposable")
+    val original = projectRule.compileIr("""
+     import androidx.compose.runtime.Composable
+     @Composable fun isComposable() {}
+     fun notComposable() {} 
+    """, "Mixed.kt")
+    val cache = MutableIrClassCache()
+    cache.update(original)
+
+    val editComposable = projectRule.fixture.configureByText("Mixed.kt", """
+     import androidx.compose.runtime.Composable
+     @Composable fun isComposable() { val x = 0 }
+     fun notComposable() {}
+    """)
+
+    var output = compile(editComposable, "isComposable", cache)
     Assert.assertEquals(-785806172, output.groupIds.first())
     Assert.assertFalse(output.resetState)
 
-    output = compile(files["Mixed.kt"], "notComposable")
+    val editNonComposable = projectRule.fixture.configureByText("Mixed.kt", """
+     import androidx.compose.runtime.Composable
+     @Composable fun isComposable() {}
+     fun notComposable() { val x = 0 }
+    """)
+
+    output = compile(editNonComposable, "notComposable", cache)
     // Editing a normal Kotlin function should not result any group IDs. Instead, it should manually trigger a full state reset every edit.
     Assert.assertTrue(output.groupIds.isEmpty())
     Assert.assertTrue(output.resetState)
@@ -130,5 +197,11 @@ class ComposableCompileTest {
     val getLambda = cl.methods.find { it.name.contains("getLambda") }
     // Make sure we have getLambda$<MODULE_NAME>
     Assert.assertTrue(getLambda!!.name.contains(projectRule.module.name))
+  }
+
+  private fun initialCache(files: Map<String, String>): MutableIrClassCache {
+    val cache = MutableIrClassCache()
+    files.map { projectRule.compileIr(it.value, it.key) }.forEach { cache.update(it) }
+    return cache
   }
 }
