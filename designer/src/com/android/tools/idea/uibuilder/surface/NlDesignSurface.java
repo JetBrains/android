@@ -1021,12 +1021,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     }
   }
 
-  @Override
-  protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
-    super.notifySelectionListeners(newSelection);
-    scrollToCenter(newSelection);
-  }
-
   @NotNull
   @Override
   public List<NlComponent> getSelectableComponents() {
