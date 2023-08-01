@@ -177,7 +177,11 @@ class LiveEditServiceImpl(val project: Project,
 
     // Listen for when a new Kotlin file opens.
     project.messageBus.connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-      override fun fileOpened(source: FileEditorManager, file: VirtualFile) = deployMonitor.notifyFileOpen(file)
+      override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
+        if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_CLASS_DIFFER.get()) {
+          deployMonitor.notifyFileOpen(file)
+        }
+      }
     })
   }
 

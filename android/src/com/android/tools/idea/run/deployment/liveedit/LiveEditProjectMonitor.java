@@ -252,7 +252,7 @@ public class LiveEditProjectMonitor implements Disposable {
       return;
     }
 
-    if (StringUtil.isEmpty(applicationId)) {
+    if (!hasAppBeenDeployed()) {
       return;
     }
 
@@ -386,7 +386,19 @@ public class LiveEditProjectMonitor implements Disposable {
     return true;
   }
 
+  private boolean hasAppBeenDeployed() {
+    return StringUtil.isNotEmpty(applicationId);
+  }
+
   public void notifyFileOpen(VirtualFile file) {
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
+      return;
+    }
+
+    if (!hasAppBeenDeployed()) {
+      return;
+    }
+
     // Precompile should only run the first time a file is opened after a deployment. Running precompile every time a given file opens may
     // cause changes to be missed when running in MANUAL mode: user makes changes -> closes file -> re-opens file -> precompile incorrectly
     // updates the IR cache with the new changes.

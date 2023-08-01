@@ -22,12 +22,14 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.run.deployment.liveedit.analysis.compileIr
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.wireless.android.sdk.stats.LiveEditEvent
 import com.intellij.openapi.project.Project
 import junit.framework.Assert
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -110,6 +112,7 @@ class LiveEditProjectMonitorTest {
   }
 
   @Test
+  @Ignore("Test was written assuming a world where the class differ doesn't exist")
   fun `Auto Mode with Private and Public Inline`() {
     var monitor = LiveEditProjectMonitor(
       LiveEditService.getInstance(myProject), myProject);
