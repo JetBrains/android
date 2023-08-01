@@ -1091,7 +1091,7 @@ fun mergeProjectResolvedArtifacts(
   (kmpArtifactToModuleIdMap.keys + platformArtifactToModuleIdMap.keys)
     .associateBy({ it }, {
       val kmpModuleIds = kmpArtifactToModuleIdMap[it]?.toSet()
-      val platformModuleId = platformArtifactToModuleIdMap[it]
+      val platformModuleId = platformArtifactToModuleIdMap.getModuleMapping(it)?.moduleId
       when {
         kmpModuleIds != null && platformModuleId != null -> {
           if (platformModuleId !in kmpModuleIds) {
