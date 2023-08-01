@@ -1,0 +1,235 @@
+/*
+ * Copyright (C) 2023 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.android.tools.profilers.com.android.tools.profilers.cpu
+
+import com.android.sdklib.AndroidVersion
+import com.android.tools.adtui.RangeTooltipComponent
+import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.instructions.InstructionsPanel
+import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
+import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.CpuProfilerLiveView
+import com.android.tools.profilers.cpu.CpuProfilerStage
+import com.android.tools.profilers.cpu.CpuUsageView
+import com.android.tools.profilers.event.FakeEventService
+import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.EdtRule
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import javax.swing.JPanel
+
+class CpuProfilerLiveViewTest {
+
+  private val myTimer = FakeTimer()
+  private val myComponents = FakeIdeProfilerComponents()
+  private val myIdeServices = FakeIdeProfilerServices()
+  private val myTransportService = FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S,
+                                                        Common.Process.ExposureLevel.PROFILEABLE)
+
+  @get:Rule
+  val myGrpcChannel = FakeGrpcChannel("CpuProfilerLiveViewTestChannel", myTransportService, FakeEventService())
+
+  @get:Rule
+  val myEdtRule = EdtRule()
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  private lateinit var myProfilersView: StudioProfilersView
+
+  private lateinit var myStage: CpuProfilerStage
+
+  @Before
+  fun setUp() {
+    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer)
+    profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
+    // One second must be enough for new devices (and processes) to be picked up
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
+    myStage = CpuProfilerStage(profilers)
+    myStage.studioProfilers.stage = myStage
+    myStage.enter()
+    myProfilersView = SessionProfilersView(profilers, myComponents, disposableRule.disposable)
+  }
+
+  @Test
+  fun testTooltipIsPresentUnderDetailsPanel() {
+    val cpuProfilerLiveView = CpuProfilerLiveView(myProfilersView, myStage)
+    val treeWalker = TreeWalker(cpuProfilerLiveView.component)
+    val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)
+    // Check for tooltip presence in live view component
+    assertThat(tooltipComponent.size).isEqualTo(1)
+
+    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .first()
+
+    // Top level component, has the main panel
+    assertThat(topLevelPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
+
+    val detailsPanel = TreeWalker(topLevelPanel)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .first()
+
+    assertThat(detailsPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
+
+    val rangeTooltipComponent = TreeWalker(detailsPanel)
+      .descendants()
+      .filterIsInstance<RangeTooltipComponent>()
+      .first()
+    // Range tooltip is present under DetailsPanel
+    assertThat(rangeTooltipComponent).isInstanceOf(RangeTooltipComponent::class.java)
+  }
+
+  @Test
+  fun testCpuUsageIsPresentUnderMainPanel() {
+    val cpuProfilerLiveView = CpuProfilerLiveView(myProfilersView, myStage)
+    val treeWalker = TreeWalker(cpuProfilerLiveView.component)
+    val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)
+    // Check for tooltip presence in live view component
+    assertThat(tooltipComponent.size).isEqualTo(1)
+
+    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .first()
+
+    // Top level component, has the main panel
+    assertThat(topLevelPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
+
+    val detailsPanel = TreeWalker(topLevelPanel)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .first()
+
+    assertThat(detailsPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
+
+    val mainPanel = TreeWalker(detailsPanel)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .last()
+    assertThat(mainPanel).isInstanceOf(JPanel::class.java)
+
+    val usagePanel = TreeWalker(detailsPanel)
+      .descendants()
+      .filterIsInstance<CpuUsageView>()
+      .first()
+    assertThat(usagePanel).isInstanceOf(CpuUsageView::class.java)
+  }
+
+  @Test
+  fun testCpuThreadsIsPresentUnderMainPanel() {
+    val cpuProfilerLiveView = CpuProfilerLiveView(myProfilersView, myStage)
+    val treeWalker = TreeWalker(cpuProfilerLiveView.component)
+    val tooltipComponent = treeWalker.descendants().filterIsInstance(RangeTooltipComponent::class.java)
+    // Check for tooltip presence in live view component
+    assertThat(tooltipComponent.size).isEqualTo(1)
+
+    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .first()
+
+    // Top level component, has the main panel
+    assertThat(topLevelPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
+
+    val detailsPanel = TreeWalker(topLevelPanel)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .first()
+
+    // Details panel has 2 component
+    assertThat(detailsPanel.getComponent(0)).isInstanceOf(JPanel::class.java)
+
+    val mainPanel = TreeWalker(detailsPanel)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .last()
+    assertThat(mainPanel).isInstanceOf(JPanel::class.java)
+
+    val cpuState = TreeWalker(mainPanel)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .last()
+    assertThat(cpuState).isInstanceOf(JPanel::class.java)
+
+    val cpuThread = TreeWalker(cpuState)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .first()
+
+    assertThat(cpuThread).isInstanceOf(JPanel::class.java)
+
+    // Since cpuThread is also type of JPanel, we make sure cpuThread is at the last level
+    val childOfCpuThread = TreeWalker(cpuThread).descendants().last()
+    // since no child, it wil be same as parent
+    assertThat(childOfCpuThread).isEqualTo(cpuThread)
+  }
+
+  @Test
+  fun testNoContextMenuItems() {
+    myComponents.clearContextMenuItems()
+    CpuProfilerLiveView(myProfilersView, myStage)
+    val items = myComponents.allContextMenuItems
+
+    // Context menu will not be present here since its present in main liveView component
+    assertThat(items.size).isEqualTo(0)
+  }
+
+  @Test
+  fun testShowTooltipSeekComponentHoverUsageView() {
+    val cpuProfilerLiveView = CpuProfilerLiveView(myProfilersView, myStage)
+    val instructions = TreeWalker(cpuProfilerLiveView.component).descendants().filterIsInstance<InstructionsPanel>()
+    assertThat(instructions.size).isEqualTo(0)
+
+    val ui = FakeUi(cpuProfilerLiveView.component)
+    val topLevelPanel = TreeWalker(cpuProfilerLiveView.component)
+      .descendants()
+      .filterIsInstance<JPanel>()
+      .first()
+    val usageViewPosition = ui.getPosition(topLevelPanel)
+
+    assertThat(usageViewPosition.y).isEqualTo(0)
+    assertThat(ui.isShowing(topLevelPanel)).isTrue()
+    // Tooltip seek component is visible
+    assertThat(ui.isShowing(topLevelPanel.getComponent(0))).isTrue()
+
+    val rangeTooltipComponent = TreeWalker(cpuProfilerLiveView.component)
+      .descendants()
+      .filterIsInstance<RangeTooltipComponent>()
+      .first()
+
+    ui.targetMouseEvent(100, 100)
+    // Graph is visible
+    assertThat(ui.isShowing(rangeTooltipComponent)).isTrue()
+  }
+}
