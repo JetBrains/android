@@ -112,7 +112,7 @@ class AndroidRunConfigurations(
       Logger.getInstance(AndroidRunConfigurations::class.java).warn(ex)
       null
     }
-    catch (ex: MergedManifestException.MergingError) {
+    catch (ex: MergedManifestException) {
       Logger.getInstance(AndroidRunConfigurations::class.java).warn(ex)
       null
     }
