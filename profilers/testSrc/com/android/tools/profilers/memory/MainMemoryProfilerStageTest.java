@@ -181,7 +181,7 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     // Native allocation recording is only enabled as a built-in recording option for Q+ api levels.
     // The call to RecordingOptionsModel::setRecording can only be done if native allocation recording
     // is a part of the built-in recording options list. Thus, we only run this test with api levels Q and above.
-    assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() >= AndroidVersion.VersionCodes.Q);
+    assumeQAndAbove(true);
     assertThat(myStage.isTrackingAllocations()).isFalse();
     assertThat(((FakeFeatureTracker)myIdeProfilerServices.getFeatureTracker()).isTrackRecordAllocationsCalled()).isFalse();
     // Set time to 1 second (in ns) before starting tracking to verify start time field of TraceStartStatus event.
@@ -898,8 +898,49 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(recordingOption).isEqualTo(stage.lazyJavaKotlinAllocationsRecordingOption.getValue());
   }
 
+  @Test
+  public void testStartHeapDumpCapture() {
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startHeapDumpCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(myStage.lazyHeapDumpRecordingOption.getValue());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+  }
+
+  @Test
+  public void testStartNativeAllocationCapture() {
+    assumeQAndAbove(true);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startNativeAllocationCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(myStage.lazyNativeRecordingOption.getValue());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+  }
+
+  @Test
+  public void testStartJavaKotlinAllocationCapturePreO() {
+    assumePreO(true);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startJavaKotlinAllocationCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
+      myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+  }
+
+  @Test
+  public void testStartJavaKotlinAllocationCaptureOAndAbove() {
+    assumePreO(false);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startJavaKotlinAllocationCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
+      myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+  }
+
   private void assumePreO(boolean assumedPreO) {
     assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() < AndroidVersion.VersionCodes.O == assumedPreO);
+  }
+
+  private void assumeQAndAbove(boolean assumedQAndAbove) {
+    assumeTrue(myStage.getDeviceForSelectedSession().getFeatureLevel() >= AndroidVersion.VersionCodes.Q == assumedQAndAbove);
   }
 
   @Parameterized.Parameters

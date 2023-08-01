@@ -227,6 +227,23 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     super.setPendingCaptureStartTime(pendingCaptureStartTime);
   }
 
+  public void startHeapDumpCapture() {
+    startMemoryRecording(lazyHeapDumpRecordingOption.getValue());
+  }
+
+  public void startNativeAllocationCapture() {
+    startMemoryRecording(lazyNativeRecordingOption.getValue());
+  }
+
+  public void startJavaKotlinAllocationCapture() {
+    startMemoryRecording(lazyJavaKotlinAllocationsRecordingOption.getValue());
+  }
+
+  private void startMemoryRecording(RecordingOption recordingOption) {
+    getRecordingOptionsModel().selectBuiltInOption(recordingOption);
+    getRecordingOptionsModel().start();
+  }
+
   private void startNativeAllocationTracking() {
     IdeProfilerServices ide = getStudioProfilers().getIdeServices();
     ide.getFeatureTracker().trackRecordAllocations();
