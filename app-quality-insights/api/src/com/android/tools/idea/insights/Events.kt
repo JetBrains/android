@@ -169,6 +169,8 @@ data class Version(
   }
 }
 
+data class Log(val eventTime: Instant, val title: String, val params: Map<String, String>)
+
 /** Event metadata captured at the time of the event, plus additional analysis. */
 data class EventData(
   // Metadata about the device.
@@ -189,7 +191,9 @@ data class Event(
   // Describes the crash or non-fatal error / exception, and potentially the
   // state of the other threads in the process at time of the Event.
   val stacktraceGroup: StacktraceGroup = StacktraceGroup(),
-  val appVcsInfo: AppVcsInfo = AppVcsInfo.NONE
+  val appVcsInfo: AppVcsInfo = AppVcsInfo.NONE,
+  val customKeys: Map<String, String> = emptyMap(),
+  val logs: List<Log> = emptyList()
 ) {
   companion object {
     val EMPTY = Event()
