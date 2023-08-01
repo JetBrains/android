@@ -305,12 +305,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     // Save the stats so that before-run task can access it
     env.putUserData(RunStats.KEY, stats);
-    Optional<AndroidConfigurationExecutor> provided = AndroidConfigurationExecutor.Provider.EP_NAME.extensions()
-      .map(it -> it.createAndroidConfigurationExecutor(env))
-      .filter(Objects::nonNull)
-      .findFirst();
-    if (provided.isPresent()) {
-      return new AndroidConfigurationExecutorRunProfileState(provided.get());
+    for (AndroidConfigurationExecutor.Provider provider : AndroidConfigurationExecutor.Provider.EP_NAME.getIterable()) {
+      final AndroidConfigurationExecutor providedExecutor = provider.createAndroidConfigurationExecutor(env);
+      if (providedExecutor != null) {
+        return new AndroidConfigurationExecutorRunProfileState(providedExecutor);
+      }
     }
 
     AndroidConfigurationExecutor configurationExecutor = getExecutor(env, facet, deviceFutures);

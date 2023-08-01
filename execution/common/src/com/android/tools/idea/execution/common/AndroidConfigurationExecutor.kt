@@ -33,6 +33,7 @@ interface AndroidConfigurationExecutor {
    * An extension point to provide custom [AndroidConfigurationExecutor]
    */
   interface Provider {
+    @Throws(ExecutionException::class)
     fun createAndroidConfigurationExecutor(env: ExecutionEnvironment): AndroidConfigurationExecutor?
 
     companion object {
