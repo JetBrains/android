@@ -26,7 +26,6 @@ import com.android.ide.common.resources.Locale
 import com.android.resources.Density
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
-import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.AndroidDpCoordinate
@@ -40,8 +39,6 @@ import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.preview.xml.PreviewXmlBuilder
 import com.android.tools.idea.preview.xml.XmlSerializable
-import com.android.tools.idea.projectsystem.isTestFile
-import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
@@ -52,19 +49,12 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.psi.util.parentOfType
 import java.awt.Dimension
 import java.util.Objects
 import kotlin.math.max
 import kotlin.math.min
 import org.jetbrains.android.uipreview.forFile
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.allConstructors
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import org.jetbrains.uast.UMethod
-import org.jetbrains.uast.toUElementOfType
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1
@@ -108,53 +98,6 @@ fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT)
   } else {
     "${dimension}dp"
   }
-
-private fun KtClass.hasDefaultConstructor() =
-  allConstructors.isEmpty().or(allConstructors.any { it.valueParameters.isEmpty() })
-
-/**
- * Returns whether a `@Composable` [COMPOSE_PREVIEW_ANNOTATION_FQN] is defined in a valid location,
- * which can be either:
- * 1. Top-level functions
- * 2. Non-nested functions defined in top-level classes that have a default (no parameter)
- *    constructor
- */
-internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
-  if (isTopLevel) {
-    return true
-  }
-
-  if (parentOfType<KtNamedFunction>() == null) {
-    // This is not a nested method
-    val containingClass = containingClass()
-    if (containingClass != null) {
-      // We allow functions that are not top level defined in top level classes that have a default
-      // (no parameter) constructor.
-      if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
-        return true
-      }
-    }
-  }
-  return false
-}
-
-internal fun KtNamedFunction.isInTestFile() =
-  isTestFile(this.project, this.containingFile.virtualFile)
-
-internal fun KtNamedFunction.isInUnitTestFile() =
-  isUnitTestFile(this.project, this.containingFile.virtualFile)
-
-/**
- * Whether this function is not in a test file and is properly annotated with
- * [COMPOSE_PREVIEW_ANNOTATION_FQN], considering indirect annotations when the Multipreview flag is
- * enabled, and validating the location of Previews
- *
- * @see [isValidPreviewLocation]
- */
-fun KtNamedFunction.isValidComposePreview() =
-  !isInTestFile() &&
-    isValidPreviewLocation() &&
-    this.toUElementOfType<UMethod>()?.let { it.hasPreviewElements() } == true
 
 /** Empty device spec when the user has not specified any. */
 private const val NO_DEVICE_SPEC = ""
