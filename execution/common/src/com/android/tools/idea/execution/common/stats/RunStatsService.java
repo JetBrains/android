@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.execution.common.stats;
 
-import com.intellij.execution.ExecutionListener;
-import com.intellij.execution.ExecutionManager;
-import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
 
 public class RunStatsService implements Disposable {
 
@@ -29,15 +25,6 @@ public class RunStatsService implements Disposable {
 
   public RunStatsService(Project project) {
     myProject = project;
-    project.getMessageBus().connect(this).subscribe(ExecutionManager.EXECUTION_TOPIC, new ExecutionListener() {
-      @Override
-      public void processNotStarted(@NotNull String executorId, @NotNull ExecutionEnvironment env) {
-        RunStats stats = env.getUserData(RunStats.KEY);
-        if (stats != null) {
-          stats.abort();
-        }
-      }
-    });
   }
 
   public synchronized RunStats create() {
