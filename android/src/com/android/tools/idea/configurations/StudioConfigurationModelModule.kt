@@ -22,7 +22,6 @@ import com.android.tools.configurations.ThemeInfoProvider
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.rendering.StudioLayoutlibContext
-import com.android.tools.idea.rendering.StudioModuleDependencies
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.module.AndroidModuleInfo
