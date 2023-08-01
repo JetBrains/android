@@ -33,6 +33,8 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.sessions.SessionArtifact;
+import com.android.tools.profilers.sessions.SessionItem;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.ApplicationRule;
@@ -102,6 +104,52 @@ public final class CpuProfilerTest {
     // Verify that CpuProfilerStage is open in Import trace mode
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myProfilers.getStage()).isInstanceOf(CpuCaptureStage.class);
+  }
+
+  @Test
+  public void testInsertCpuTraceEventEventEnabledWithTaskBasedDisabled() {
+    ((FakeIdeProfilerServices)myProfilers.getIdeServices()).enableTaskBasedUx(false);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+
+    // Importing a session from a trace file should select a Common.SessionMetaData.SessionType.CPU_CAPTURE session
+    assertThat(sessionsManager.importSessionFromFile(trace)).isTrue();
+
+    // Verify that CpuProfilerStage is open in Import trace mode
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myProfilers.getStage()).isInstanceOf(CpuCaptureStage.class);
+    List<SessionArtifact> sessionArtifacts = myProfilers.getSessionsManager().getSessionArtifacts();
+    assertThat(sessionArtifacts).hasSize(1);
+    SessionArtifact sessionArtifact = sessionArtifacts.get(0);
+    assertThat(sessionArtifact).isInstanceOf(SessionItem.class);
+    assertThat(((SessionItem)sessionArtifact).getChildArtifacts()).hasSize(1);
+    SessionArtifact childArtifact = ((SessionItem)sessionArtifact).getChildArtifacts().get(0);
+    assertThat(childArtifact).isInstanceOf(CpuCaptureSessionArtifact.class);
+  }
+
+  @Test
+  public void testInsertCpuTraceEventEventDisabledWithTaskBasedEnabled() {
+    ((FakeIdeProfilerServices)myProfilers.getIdeServices()).enableTaskBasedUx(true);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+
+    // Importing a session from a trace file should select a Common.SessionMetaData.SessionType.CPU_CAPTURE session
+    assertThat(sessionsManager.importSessionFromFile(trace)).isTrue();
+
+    // Verify that CpuProfilerStage is open in Import trace mode
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myProfilers.getStage()).isInstanceOf(CpuCaptureStage.class);
+    List<SessionArtifact> sessionArtifacts = myProfilers.getSessionsManager().getSessionArtifacts();
+    assertThat(sessionArtifacts).hasSize(1);
+    SessionArtifact sessionArtifact = sessionArtifacts.get(0);
+    assertThat(sessionArtifact).isInstanceOf(SessionItem.class);
+    // Child artifacts should be empty because insertion of CPU_TRACE event and thus creation of the child artifact was prevented due to
+    // Task Based UX being enabled.
+    assertThat(((SessionItem)sessionArtifact).getChildArtifacts()).isEmpty();
   }
 
   @Test

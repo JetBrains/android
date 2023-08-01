@@ -425,9 +425,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
         }
       }
     }
-    if (getStudioProfilers().getSession().getPid() == 0) {
+    if (getStudioProfilers().getSession().getPid() == 0 &&
+        !getStudioProfilers().getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       // For an imported traces we need to insert a CPU_TRACE event into the database. This is used by the Sessions' panel to display the
-      // correct trace type associated with the imported file.
+      // correct trace type associated with the imported file. In the Task Based UX, however, a CPU_TRACE event is inserted at import-time,
+      // so we do not need to insert another event here.
       insertImportedTraceEvent(capture);
     }
   }
