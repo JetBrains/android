@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.model.IdeBuildTypeContainer
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesInfo
+import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaCompileOptions
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
@@ -42,7 +43,6 @@ import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
@@ -73,6 +73,8 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.idea.gradle.configuration.CachedArgumentsRestoring.restoreExtractedArgs
 import org.jetbrains.kotlin.idea.gradle.configuration.EntityArgsInfo
 import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
@@ -81,9 +83,6 @@ import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
 import org.jetbrains.kotlin.idea.projectModel.CompilerArgumentsCacheAware
-import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
-import org.jetbrains.kotlin.idea.projectModel.KotlinSourceSet
-import org.jetbrains.kotlin.idea.projectModel.KotlinTarget
 import org.jetbrains.kotlin.idea.projectModel.KotlinTaskProperties
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
@@ -194,6 +193,17 @@ private val jbModelDumpers = listOf(
     )
   },
   SpecializedDumper(property = CommonCompilerArguments::pluginOptions) {
+  },
+  SpecializedDumper(property = KotlinGradleModel::compilerArgumentsBySourceSet) { compilerArgumentsBySourceSet ->
+    head(propertyName)
+    nest {
+      compilerArgumentsBySourceSet.forEach { (sourceSet, compilerArguments) ->
+        head(sourceSet)
+        nest {
+          prop("compilerArguments", parseCommandLineArguments<K2JVMCompilerArguments>(compilerArguments))
+        }
+      }
+    }
   },
   SpecializedDumper(property = KotlinMPPGradleModel::kotlinNativeHome) {
     // Do nothing as it is a machine specific path to `~/.konan` directory, where `~` is the true user home path rather than the one used
