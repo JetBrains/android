@@ -27,5 +27,5 @@ import org.jetbrains.kotlin.load.java.JvmAbi
  */
 fun IrMethod.isInline(): Boolean {
   val inlineName = "${JvmAbi.LOCAL_VARIABLE_NAME_PREFIX_INLINE_FUNCTION}$name"
-  return localVariables.filter { it.name == inlineName }.any { it.start.index == 1 && it.end.index == instructions.labels.size - 1 }
+  return localVariables.filter { it.name == inlineName }.any { it.start.index <= 1 && it.end.index == instructions.labels.size - 1 }
 }
