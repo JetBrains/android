@@ -231,8 +231,6 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   private var isLogcatPaused: Boolean = false
 
-  private var isSoftWrapEnabled: Boolean = false
-
   private var caretLine = 0
 
   @VisibleForTesting
@@ -310,9 +308,10 @@ internal class LogcatMainPanel @TestOnly constructor(
 
       scrollPane.border = Borders.customLine(JBColor.border(), 1, 1, 0, 0)
       UserInputHandlers(this).install()
+      editor.settings.customSoftWrapIndent = formattingOptions.getHeaderWidth()
     }
 
-    isSoftWrapEnabled = state?.isSoftWrap ?: false
+    editor.settings.isUseSoftWraps = state?.isSoftWrap ?: false
     addComponentListener(object : ComponentAdapter() {
       override fun componentResized(e: ComponentEvent) {
         val width = editor.scrollingModel.visibleArea.width
@@ -535,7 +534,7 @@ internal class LogcatMainPanel @TestOnly constructor(
         formattingConfig = if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
         filter = headerPanel.filter,
         filterMatchCase = headerPanel.filterMatchCase,
-        isSoftWrap = isSoftWrapEnabled))
+        isSoftWrap = isSoftWrapEnabled()))
   }
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
@@ -602,6 +601,7 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   @UiThread
   override fun reloadMessages() {
+    editor.settings.customSoftWrapIndent = formattingOptions.getHeaderWidth()
     document.setText("")
     coroutineScope.launch(workerThread) {
       messageProcessor.appendMessages(messageBacklog.get().messages)
@@ -670,10 +670,10 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
 
-  override fun isSoftWrapEnabled(): Boolean = isSoftWrapEnabled
+  override fun isSoftWrapEnabled(): Boolean = editor.settings.isUseSoftWraps
 
   override fun setSoftWrapEnabled(state: Boolean) {
-    isSoftWrapEnabled = state
+    editor.settings.isUseSoftWraps = state
     reloadMessages()
   }
 
@@ -814,7 +814,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {
-    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages, if (isSoftWrapEnabled) editorWidth else null)
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
   }
 
   private fun MouseEvent.getFilterHint(): FilterHint? {

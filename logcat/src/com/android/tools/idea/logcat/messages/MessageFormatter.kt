@@ -39,7 +39,6 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
     formattingOptions: FormattingOptions,
     textAccumulator: TextAccumulator,
     messages: List<LogcatMessage>,
-    softWrapWidth: Int? = null,
   ) {
     // Replace each newline with a newline followed by the indentation of the message portion
     val headerWidth = formattingOptions.getHeaderWidth()
@@ -71,12 +70,8 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
           else -> message.message
         }
 
-        val messageText = when {
-          softWrapWidth == null || softWrapWidth <= headerWidth -> msg
-          else -> wordWrap(msg, softWrapWidth - headerWidth)
-        }
         textAccumulator.accumulate(
-          text = messageText.replace("\n", newline),
+          text = msg.replace("\n", newline),
           textAttributesKey = logcatColors.getMessageKey(header.logLevel))
         previousTag = tag
         previousPid = header.pid
