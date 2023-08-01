@@ -339,6 +339,7 @@ class LogcatMainPanelTest {
     // test environment for some reason.
     assertThat(popupMenu.components.map { if (it is JPopupMenu.Separator) "-" else (it as ActionMenuItem).text }).containsExactly(
       "Copy",
+      "Search with Google",
       "Fold Lines Like This",
       "-",
       "Splitter Action",
