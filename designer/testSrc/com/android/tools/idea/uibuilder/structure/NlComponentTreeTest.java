@@ -68,6 +68,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorNavigatable;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.ide.CopyPasteManager;
@@ -436,7 +437,8 @@ public class NlComponentTreeTest extends LayoutTestCase {
   @NotNull
   private FileEditorManager enableFileOpenCaptures() {
     FileEditorManager fileManager = Mockito.mock(FileEditorManagerEx.class);
-    when(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor.class), ArgumentMatchers.anyBoolean()))
+    when(fileManager.openEditor(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean())).thenCallRealMethod();
+    when(fileManager.openFileEditor(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean()))
       .thenReturn(Collections.singletonList(Mockito.mock(FileEditor.class)));
     when(fileManager.getSelectedEditors()).thenReturn(FileEditor.EMPTY_ARRAY);
     when(fileManager.getOpenFiles()).thenReturn(VirtualFile.EMPTY_ARRAY);
@@ -455,9 +457,9 @@ public class NlComponentTreeTest extends LayoutTestCase {
     int lineNumber,
     @NotNull String text
   ) throws IOException {
-    ArgumentCaptor<OpenFileDescriptor> file = ArgumentCaptor.forClass(OpenFileDescriptor.class);
-    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true));
-    OpenFileDescriptor descriptor = file.getValue();
+    ArgumentCaptor<FileEditorNavigatable> file = ArgumentCaptor.forClass(FileEditorNavigatable.class);
+    Mockito.verify(fileManager).openFileEditor(file.capture(), ArgumentMatchers.eq(true));
+    OpenFileDescriptor descriptor = (OpenFileDescriptor)file.getValue(); // Downcast needed to extract file offset.
     Pair<LineColumn, String> line = findLineAtOffset(descriptor.getFile(), descriptor.getOffset());
     assertThat(descriptor.getFile().getName()).isEqualTo(fileName);
     assertThat(line.second).isEqualTo(text);

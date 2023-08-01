@@ -71,6 +71,7 @@ import com.intellij.openapi.command.impl.UndoManagerImpl
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorNavigatable
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.util.text.StringUtil
@@ -726,10 +727,10 @@ class NlPropertyItemTest {
     @Suppress("UnstableApiUsage") whenever(fileManager.openFilesWithRemotes).thenReturn(emptyList())
     whenever(fileManager.allEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     componentStack!!.registerServiceInstance(FileEditorManager::class.java, fileManager)
-    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
+    val file = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
     whenever(
-        fileManager.openEditor(
-          ArgumentMatchers.any(OpenFileDescriptor::class.java),
+        fileManager.openFileEditor(
+          ArgumentMatchers.any(FileEditorNavigatable::class.java),
           ArgumentMatchers.anyBoolean()
         )
       )
@@ -738,8 +739,9 @@ class NlPropertyItemTest {
     property.helpSupport.browse()
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
-    Mockito.verify(fileManager).openEditor(file.capture(), ArgumentMatchers.eq(true))
+    Mockito.verify(fileManager).openFileEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
+    check(descriptor is OpenFileDescriptor) // Downcast needed to extract file offset.
     assertThat(descriptor.file.name).isEqualTo("styles_material.xml")
     assertThat(findLineAtOffset(descriptor.file, descriptor.offset))
       .isEqualTo("<style name=\"TextAppearance.Material.Display2\">")

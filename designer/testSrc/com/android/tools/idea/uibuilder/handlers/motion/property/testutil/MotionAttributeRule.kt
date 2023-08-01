@@ -33,6 +33,7 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorNavigatable
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.util.text.LineColumn
@@ -106,12 +107,9 @@ class MotionAttributeRule(
 
   fun enableFileOpenCaptures() {
     fileManager = Mockito.mock(FileEditorManagerEx::class.java)
-    whenever(
-        fileManager!!.openEditor(
-          ArgumentMatchers.any(OpenFileDescriptor::class.java),
-          ArgumentMatchers.anyBoolean()
-        )
-      )
+    whenever(fileManager!!.openEditor(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean()))
+      .thenCallRealMethod()
+    whenever(fileManager!!.openFileEditor(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
     whenever(fileManager!!.selectedEditors).thenReturn(FileEditor.EMPTY_ARRAY)
     whenever(fileManager!!.openFiles).thenReturn(VirtualFile.EMPTY_ARRAY)
@@ -122,10 +120,11 @@ class MotionAttributeRule(
   }
 
   fun checkEditor(fileName: String, lineNumber: Int, text: String) {
-    val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
+    val file = ArgumentCaptor.forClass(FileEditorNavigatable::class.java)
     Mockito.verify(fileManager!!, times(++matchCount))
-      .openEditor(file.capture(), ArgumentMatchers.eq(true))
+      .openFileEditor(file.capture(), ArgumentMatchers.eq(true))
     val descriptor = file.value
+    check(descriptor is OpenFileDescriptor) // Downcast needed to extract file offset.
     val line = findLineAtOffset(descriptor.file, descriptor.offset)
     Truth.assertThat(descriptor.file.name).isEqualTo(fileName)
     Truth.assertThat(line.second).isEqualTo(text)
