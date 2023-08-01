@@ -34,6 +34,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.event.KeyEvent.VK_SHIFT
 import java.util.concurrent.TimeoutException
 import javax.swing.JLabel
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -52,9 +53,12 @@ internal fun getPsiFile(project: Project, relativePath: String): PsiFile {
 }
 
 /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
-suspend fun ComposePreviewRepresentation.activateAndWaitForRender(fakeUi: FakeUi) =
+suspend fun ComposePreviewRepresentation.activateAndWaitForRender(
+  fakeUi: FakeUi,
+  timeout: Duration = 30.seconds
+) =
   try {
-    withTimeout(timeout = 30.seconds) {
+    withTimeout(timeout = timeout) {
       Logger.getInstance(ComposePreviewRepresentation::class.java)
         .debug("Activating ComposePreviewRepresentation for tests")
       onActivate()

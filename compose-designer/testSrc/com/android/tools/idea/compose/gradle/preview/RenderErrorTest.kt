@@ -133,7 +133,9 @@ class RenderErrorTest {
       },
     )
 
-    runBlocking { composePreviewRepresentation.activateAndWaitForRender(fakeUi) }
+    runBlocking {
+      composePreviewRepresentation.activateAndWaitForRender(fakeUi, timeout = 1.minutes)
+    }
   }
 
   @Test
