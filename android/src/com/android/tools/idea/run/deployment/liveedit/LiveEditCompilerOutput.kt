@@ -47,7 +47,7 @@ data class LiveEditCompilerOutput internal constructor (internal val classes: Li
 
   internal class Builder(
     var classes: MutableList<LiveEditCompiledClass> = ArrayList(),
-    var groupIds: ArrayList<Int> = ArrayList(),
+    val groupIds: MutableSet<Int> = mutableSetOf(),
     var resetState: Boolean = false) {
 
     private val irClasses = mutableListOf<IrClass>()
@@ -67,6 +67,6 @@ data class LiveEditCompilerOutput internal constructor (internal val classes: Li
       return this
     }
 
-    fun build() = LiveEditCompilerOutput(classes, irClasses, groupIds, resetState)
+    fun build() = LiveEditCompilerOutput(classes, irClasses, groupIds.toList(), resetState)
   }
 }

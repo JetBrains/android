@@ -18,10 +18,10 @@ package com.android.tools.idea.run.deployment.liveedit.analysis
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrAnnotation
 import com.android.tools.idea.run.deployment.liveedit.analysis.leir.IrClass
 
-// Annotation type for KeyMeta class information
-private const val KEY_META_CLASS = "Landroidx/compose/runtime/internal/FunctionKeyMetaClass;"
+// Annotation type for KeyMeta annotations
+private const val KEY_META = "Landroidx/compose/runtime/internal/FunctionKeyMeta;"
 
-// Annotation type that contains KeyMeta annotations
+// Annotation type that contains multiple KeyMeta annotations
 private const val KEY_META_CONTAINER = "Landroidx/compose/runtime/internal/FunctionKeyMeta\$Container;"
 
 // Annotation parameter name for the array of KeyMeta annotations
@@ -44,17 +44,24 @@ data class FunctionKeyMeta(val key: Int, val startOffset: Int, val endOffset: In
 private fun parseKeyMeta(keyMetaClass: IrClass): List<FunctionKeyMeta> {
   val annotations = keyMetaClass.annotations.associateBy { it.desc }
 
-  val functionKeyMetaClass = annotations[KEY_META_CLASS] ?: throw IllegalStateException()
+  // Handle case of single @FunctionKeyMeta annotation
+  if (annotations.containsKey(KEY_META)) {
+    return listOf(toFunctionKeyMeta(annotations[KEY_META]!!))
+  }
+
   val functionKeyMetaContainer = annotations[KEY_META_CONTAINER] ?: throw IllegalStateException()
   val keyMetaList = mutableListOf<FunctionKeyMeta>()
 
   (functionKeyMetaContainer.values[KEY_META_ARRAY] as List<*>).forEach {
     val annotation = it as IrAnnotation
-    val keyMeta = FunctionKeyMeta(annotation.values["key"] as Int,
-                                  annotation.values["startOffset"] as Int,
-                                  annotation.values["endOffset"] as Int)
-    keyMetaList.add(keyMeta)
+    keyMetaList.add(toFunctionKeyMeta(annotation))
   }
 
   return keyMetaList
+}
+
+private fun toFunctionKeyMeta(annotation: IrAnnotation): FunctionKeyMeta {
+  return FunctionKeyMeta(annotation.values["key"] as Int,
+                         annotation.values["startOffset"] as Int,
+                         annotation.values["endOffset"] as Int)
 }

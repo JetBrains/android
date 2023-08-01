@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.android.tools.idea.run.deployment.liveedit.analysis.ComposeGroupTree
 import com.android.tools.idea.run.deployment.liveedit.analysis.FunctionKeyMeta
+import com.android.tools.idea.run.deployment.liveedit.analysis.PsiRange
 import com.android.tools.idea.run.deployment.liveedit.analysis.RegularClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.SyntheticClassVisitor
 import com.android.tools.idea.run.deployment.liveedit.analysis.diffing.Differ
@@ -113,8 +114,6 @@ internal object LiveEditOutputBuilder {
 
     output.addClass(LiveEditCompiledClass(newClass.name, classBytes, sourceFile.module, classType))
 
-    println(newClass.name)
-    newClass.annotations.forEach { println(it.desc) }
     // Run validation on the class and get a list of method diffs containing all modified methods
     val modifiedMethods = if (isSynthetic) {
       val validator = SyntheticClassVisitor(newClass.name)
@@ -154,28 +153,27 @@ internal object LiveEditOutputBuilder {
 
   private fun computeGroupIds(modifiedIrMethods: List<IrMethod>,
                               sourceFile: KtFile,
-                              groupTree: ComposeGroupTree): List<Int> {
-    val groupIds = mutableListOf<Int>()
+                              groupTree: ComposeGroupTree): Set<Int> {
+    val groupIds = mutableSetOf<Int>()
     for (method in modifiedIrMethods) {
       // If the method doesn't correspond to any lines in the source file, it can't have an associated FunctionKeyMeta.
       if (method.instructions.lines.isEmpty()) {
         continue
       }
 
-      val (startOffset, endOffset) = getMethodOffsets(method, sourceFile)
-      groupIds.addAll(groupTree.getGroupIds(startOffset, endOffset))
+      val methodOffsets = getMethodOffsets(method, sourceFile)
+      groupIds.addAll(groupTree.getGroupIds(methodOffsets))
     }
     return groupIds
   }
 }
 
-private fun getMethodOffsets(method: IrMethod, sourceFile: KtFile): Pair<Int, Int> {
+private fun getMethodOffsets(method: IrMethod, sourceFile: KtFile): PsiRange {
   val startLine = method.instructions.lines.first()
   val endLine = method.instructions.lines.last()
-  val startOffset = sourceFile.getLineStartOffset(startLine - 1) ?: throw IllegalStateException()
+  val startOffset = sourceFile.getLineStartOffset(startLine - 1, false) ?: throw IllegalStateException()
   val endOffset = sourceFile.getLineEndOffset(endLine - 1) ?: throw IllegalStateException()
-  println("\tchanged: ${method.name}${method.desc} = [$startOffset, $endOffset] (line $startLine to line $endLine)")
-  return Pair(startOffset, endOffset)
+  return PsiRange(startOffset, endOffset)
 }
 
 /**
