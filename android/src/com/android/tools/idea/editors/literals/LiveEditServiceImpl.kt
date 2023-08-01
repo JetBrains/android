@@ -52,10 +52,12 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
@@ -113,15 +115,28 @@ class LiveEditServiceImpl(val project: Project,
           return
         }
 
+        // This listener is called from the EDT/UI thread, so per IntelliJ threading rules, this is safe to call from here.
+        // See: https://plugins.jetbrains.com/docs/intellij/general-threading-rules.html#read-access
+        if (project.isDisposed) {
+          return
+        }
+
+        // Because a DocumentListener receives events from all open projects, filter events to only documents from this project.
+        val index = ProjectFileIndex.getInstance(project)
+        val file = FileDocumentManager.getInstance().getFile(event.document)
+        if (file == null || !index.isInProject(file)) {
+          return
+        }
+
         // Ensure that we have the original, VirtualFile-backed version of the file, since sometimes an event is generated with a
         // non-physical version of a given file, which will cause some Live Edit checks that assume a non-null VirtualFile to fail.
-        val file = PsiDocumentManager.getInstance(project).getPsiFile(event.document)?.originalFile
-        if (file !is KtFile) {
+        val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(event.document)?.originalFile
+        if (psiFile !is KtFile) {
           return
         }
 
         // Create a "fake" edit event until we refactor away the PSI event detection path.
-        val editEvent = EditEvent(file, file)
+        val editEvent = EditEvent(psiFile, psiFile)
         executor.execute { deployMonitor.onPsiChanged(editEvent) }
       }
     }, this)
