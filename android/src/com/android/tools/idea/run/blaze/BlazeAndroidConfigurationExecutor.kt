@@ -112,7 +112,6 @@ class BlazeAndroidConfigurationExecutor(
                             console: ConsoleView) = coroutineScope {
     val applicationId = applicationIdProvider.packageName
     val stat = RunStats.from(env).apply { setPackage(applicationId) }
-    env.putCopyableUserData(DeviceFutures.KEY, deviceFutures)
     env.putCopyableUserData(AppRunConfiguration.KEY, object : AppRunConfiguration {
       override val appId = applicationId
     })
