@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.profilers.taskbased.home.OpenHomeTabListener
 import com.android.tools.profilers.tasks.OpenProfilerTaskListener
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -64,6 +65,18 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
         }
       })
 
+      // Listen for events requesting that the home tab be opened.
+      project.messageBus.connect(toolWindow.disposable).subscribe(OpenHomeTabListener.TOPIC, OpenHomeTabListener {
+        AndroidCoroutineScope(toolWindow.disposable).launch {
+          withContext(AndroidDispatchers.uiThread) {
+            profilerToolWindow.openHomeTab()
+            toolWindow.activate(null)
+          }
+        }
+      })
+
+      // Prevents leaking AndroidProfilerToolWindow instance.
+      Disposer.register(project, profilerToolWindow)
       return
     }
 
