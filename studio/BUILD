@@ -11,6 +11,7 @@ app_icon(
     ico = "nightly/studio.ico",
     png = "nightly/studio.png",
     svg = "nightly/studio.svg",
+    svg_small = "nightly/studio-small.svg",
 )
 
 bool_flag(

@@ -7,6 +7,7 @@ AppIconInfo = provider(
         "ico": "The Windows app icon.",
         "icns": "The MacOS app icon.",
         "svg": "A svg file used on all platforms.",
+        "svg_small": "A smaller svg icon file.",
     },
 )
 
@@ -23,6 +24,7 @@ def _app_icon_impl(ctx):
         ico = ctx.file.ico,
         icns = ctx.file.icns,
         svg = ctx.file.svg,
+        svg_small = ctx.file.svg_small,
     )
 
 app_icon = rule(
@@ -41,6 +43,10 @@ app_icon = rule(
         ),
         "svg": attr.label(
             doc = "The svg file used on all platforms.",
+            allow_single_file = True,
+        ),
+        "svg_small": attr.label(
+            doc = "A smaller svg file.",
             allow_single_file = True,
         ),
     },
