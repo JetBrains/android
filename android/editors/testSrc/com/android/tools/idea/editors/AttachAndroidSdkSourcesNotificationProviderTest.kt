@@ -15,12 +15,18 @@
  */
 package com.android.tools.idea.editors
 
-import com.android.flags.junit.FlagRule
+import com.android.repository.impl.meta.RepositoryPackages
+import com.android.repository.testframework.FakePackage.FakeRemotePackage
+import com.android.repository.testframework.FakeRepoManager
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.repository.AndroidSdkHandler
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
 import com.android.tools.idea.wizard.model.ModelWizardDialog
+import com.android.tools.sdk.AndroidSdkData
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
@@ -32,6 +38,7 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -57,9 +64,34 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   private lateinit var myProvider: TestAttachAndroidSdkSourcesNotificationProvider
 
+  private val myRepositoryPackages = RepositoryPackages()
+
+  private var myOriginalAndroidSdkData: AndroidSdkData? = null
+
   @Before
   fun setup() {
     myProvider = TestAttachAndroidSdkSourcesNotificationProvider()
+
+    val sdkRoot = createInMemoryFileSystemAndFolder("sdk")
+    val repoManager = FakeRepoManager(sdkRoot, myRepositoryPackages)
+    val sdkHandler = AndroidSdkHandler(sdkRoot, sdkRoot.root.resolve("avd"), repoManager)
+    val sdkData: AndroidSdkData = mock()
+    whenever(sdkData.sdkHandler).thenReturn(sdkHandler)
+
+    myRepositoryPackages.setRemotePkgInfos(
+      listOf(
+        FakeRemotePackage("sources;android-30"),
+        FakeRemotePackage("sources;android-33")
+      ))
+
+    val androidSdks = AndroidSdks.getInstance()
+    myOriginalAndroidSdkData = androidSdks.tryToChooseAndroidSdk()
+    androidSdks.setSdkData(sdkData)
+  }
+
+  @After
+  fun tearDown() {
+    AndroidSdks.getInstance().setSdkData(myOriginalAndroidSdkData)
   }
 
   @Test
@@ -110,10 +142,27 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   }
 
   @Test
+  fun createNotificationPanel_downloadNotAvailable_panelHasCorrectLabel() {
+    myRepositoryPackages.setRemotePkgInfos(listOf())
+
+    val panel = invokeCreateNotificationPanel(androidSdkClassWithoutSources)
+    assertThat(panel).isNotNull()
+  }
+
+  @Test
   fun createNotificationPanel_panelHasDownloadLink() {
     val panel = invokeCreateNotificationPanel(androidSdkClassWithoutSources)
     val links: Map<String, Runnable> = panel!!.links
     assertThat(links.keys).containsExactly("Download")
+  }
+
+  @Test
+  fun createNotificationPanel_downloadNotAvailable_panelHasNoLinks() {
+    myRepositoryPackages.setRemotePkgInfos(listOf())
+
+    val panel = invokeCreateNotificationPanel(androidSdkClassWithoutSources)
+    val links: Map<String, Runnable> = panel!!.links
+    assertThat(links).isEmpty()
   }
 
   @Test

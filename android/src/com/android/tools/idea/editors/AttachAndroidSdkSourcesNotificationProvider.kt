@@ -58,7 +58,7 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     // AndroidPositionManager is responsible for detecting that a specific SDK is needed during a debugging session, and will set the
     // REQUIRED_SOURCES_KEY when necessary.
     val missingApiLevel = file.getUserData(REQUIRED_SOURCES_KEY) ?: return null
-    return createPanel(project, AndroidVersion(missingApiLevel), null)
+    return createPanel(project, AndroidVersion(missingApiLevel))
   }
 
   private fun createNotificationPanelForClassFiles(
@@ -78,25 +78,34 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     if (sdk.rootProvider.getFiles(OrderRootType.SOURCES).isNotEmpty()) return null
 
     val apiVersion = getInstance(sdk)?.apiVersion ?: return null
-    val refresh = Runnable { AndroidSdkUtils.updateSdkSourceRoot(sdk) }
 
-    return createPanel(myProject, apiVersion, refresh)
+    return createPanel(myProject, apiVersion) {
+      AndroidSdkUtils.updateSdkSourceRoot(sdk)
+    }
   }
 
   private fun createPanel(
     project: Project,
     requestedSourceVersion: AndroidVersion,
-    refreshAfterDownload: Runnable?
-  ): Function<FileEditor, EditorNotificationPanel?> = Function { fileEditor ->
-    val panel = MyEditorNotificationPanel(fileEditor)
-    panel.text = "Android SDK sources for API ${requestedSourceVersion.apiString} not found."
-    panel.createAndAddLink("Download") {
-      val sourcesPath = DetailsTypes.getSourcesPath(requestedSourceVersion)
-      if (createSdkDownloadDialog(project, listOf(sourcesPath))?.showAndGet() == true) {
-        refreshAfterDownload?.run()
+    refreshAfterDownload: Runnable? = null
+  ): Function<FileEditor, EditorNotificationPanel?> {
+    val sourcesPath = DetailsTypes.getSourcesPath(requestedSourceVersion)
+    val sourcesAvailable = SdkQuickfixUtils.checkPathIsAvailableForDownload(sourcesPath, project)
+
+    return Function { fileEditor ->
+      MyEditorNotificationPanel(fileEditor).apply {
+        if (sourcesAvailable) {
+          text = "Android SDK sources for API ${requestedSourceVersion.apiString} not found."
+          createAndAddLink("Download") {
+            if (createSdkDownloadDialog(project, listOf(sourcesPath))?.showAndGet() == true) {
+              refreshAfterDownload?.run()
+            }
+          }
+        } else {
+          text = "Android SDK sources for API ${requestedSourceVersion.apiString} are not available."
+        }
       }
     }
-    panel
   }
 
   @VisibleForTesting
