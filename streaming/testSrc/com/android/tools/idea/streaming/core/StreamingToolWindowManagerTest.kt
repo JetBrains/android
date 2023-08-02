@@ -632,6 +632,9 @@ class StreamingToolWindowManagerTest {
 
     agentRule.disconnectDevice(pixel7)
     waitForCondition(1, SECONDS) { mirroringManager.mirroringHandles.value[pixel7Handle] == null }
+    // Check that mirroring handles are updated when the tool window is hidden.
+    toolWindow.hide()
+    waitForCondition(1, SECONDS) { !toolWindow.isVisible }
     agentRule.disconnectDevice(pixel4)
     waitForCondition(1, SECONDS) { mirroringManager.mirroringHandles.value[pixel4Handle] == null }
   }

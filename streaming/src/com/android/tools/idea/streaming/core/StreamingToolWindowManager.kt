@@ -990,13 +990,19 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     private fun onlineDevicesChanged() {
       val removedExcluded = devicesExcludedFromMirroring.keys.retainAll(onlineDevices.keys)
-      if (removedExcluded) {
+      val removed = deviceClients.keys.minus(onlineDevices.keys)
+      if (contentCreated) {
+        for (device in removed) {
+          removePhysicalDevicePanel(device)
+        }
+      }
+      else {
+        deviceClients.keys.removeAll(removed)
+      }
+      if (removedExcluded || removed.isNotEmpty()) {
         updateMirroringHandlesFlow()
       }
-      val removed = deviceClients.keys.minus(onlineDevices.keys)
-      for (device in removed) {
-        removePhysicalDevicePanel(device)
-      }
+
       for ((serialNumber, device) in onlineDevices) {
         if (serialNumber !in mirroredDevices && serialNumber !in devicesExcludedFromMirroring) {
           coroutineScope.launch {
