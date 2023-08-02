@@ -21,8 +21,6 @@
     <orderEntry type="module" module-name="intellij.android.streaming" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="emulator-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="ffmpeg" level="project" />
-    <orderEntry type="library" scope="TEST" name="ffmpeg-javacpp" level="project" />
     <orderEntry type="library" scope="TEST" name="ffmpeg-platform" level="project" />
     <orderEntry type="library" scope="TEST" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
