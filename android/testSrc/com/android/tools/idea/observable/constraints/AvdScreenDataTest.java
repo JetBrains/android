@@ -40,11 +40,11 @@ public class AvdScreenDataTest {
 
     assertThat( AvdScreenData.getScreenDensity(false, 2048.0, 1080) ).isEqualTo(Density.XXXHIGH); // The maximum (for now)
 
-    assertThat( AvdScreenData.getScreenDensity(false, 279.5, 720) ).isEqualTo(Density.DPI_280);
-    assertThat( AvdScreenData.getScreenDensity(false, 360.0, 720) ).isEqualTo(Density.DPI_360);
-    assertThat( AvdScreenData.getScreenDensity(false, 399.5, 720) ).isEqualTo(Density.DPI_400);
-    assertThat( AvdScreenData.getScreenDensity(false, 420.0, 720) ).isEqualTo(Density.DPI_420);
-    assertThat( AvdScreenData.getScreenDensity(false, 560.5, 720) ).isEqualTo(Density.DPI_560);
+    assertThat( AvdScreenData.getScreenDensity(false, 279.5, 720) ).isEqualTo(Density.HIGH);
+    assertThat( AvdScreenData.getScreenDensity(false, 360.0, 720) ).isEqualTo(Density.XHIGH);
+    assertThat( AvdScreenData.getScreenDensity(false, 399.5, 720) ).isEqualTo(Density.XHIGH);
+    assertThat( AvdScreenData.getScreenDensity(false, 420.0, 720) ).isEqualTo(Density.XXHIGH);
+    assertThat( AvdScreenData.getScreenDensity(false, 560.5, 720) ).isEqualTo(Density.XXXHIGH);
 
     // TV densities
     // From https://developer.android.com/reference/android/util/DisplayMetrics.html#DENSITY_TV

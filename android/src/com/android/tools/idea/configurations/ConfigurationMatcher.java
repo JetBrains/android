@@ -841,13 +841,13 @@ public class ConfigurationMatcher {
       mDensitySort.put(Density.HIGH.getDpiValue(), ++i);
       mDensitySort.put(Density.MEDIUM.getDpiValue(), ++i);
       mDensitySort.put(Density.XHIGH.getDpiValue(), ++i);
-      mDensitySort.put(Density.DPI_400.getDpiValue(), ++i);
+      mDensitySort.put(400, ++i);
       mDensitySort.put(Density.XXHIGH.getDpiValue(), ++i);
-      mDensitySort.put(Density.DPI_560.getDpiValue(), ++i);
+      mDensitySort.put(560, ++i);
       mDensitySort.put(Density.XXXHIGH.getDpiValue(), ++i);
-      mDensitySort.put(Density.DPI_420.getDpiValue(), ++i);
-      mDensitySort.put(Density.DPI_360.getDpiValue(), ++i);
-      mDensitySort.put(Density.DPI_280.getDpiValue(), ++i);
+      mDensitySort.put(420, ++i);
+      mDensitySort.put(360, ++i);
+      mDensitySort.put(280, ++i);
       mDensitySort.put(Density.TV.getDpiValue(), ++i);
       mDensitySort.put(Density.LOW.getDpiValue(), ++i);
 

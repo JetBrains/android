@@ -109,7 +109,7 @@ class DeviceMenuActionTest {
         Nexus 10 (1280 × 800 dp, xhdpi)
         Nexus 9 (1024 × 768 dp, xhdpi)
         Nexus 7 (600 × 960 dp, xhdpi)
-        Nexus 7 (2012) (601 × 962 dp, 220dpi)
+        Nexus 7 (2012) (601 × 962 dp, tvdpi)
     Desktop
         Small Desktop (1366 × 768 dp, mdpi)
         Medium Desktop (1920 × 1080 dp, xhdpi)
@@ -122,7 +122,7 @@ class DeviceMenuActionTest {
     Wear OS Large Round (227 × 227 dp, xhdpi)
     ------------------------------------------------------
     TV
-    Television (4K) (960 × 540 dp, xhdpi)
+    Television (4K) (960 × 540 dp, xxxhdpi)
     Television (1080p) (960 × 540 dp, xhdpi)
     Television (720p) (962 × 541 dp, tvdpi)
     ------------------------------------------------------

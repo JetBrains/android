@@ -1,6 +1,8 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.uipreview;
 
+import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
+
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
@@ -20,23 +22,19 @@ import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
+import javax.swing.*;
+import javax.swing.event.*;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class DeviceConfiguratorPanel extends JPanel {
   private static final Logger LOG = Logger.getInstance(DeviceConfiguratorPanel.class);
@@ -507,40 +505,26 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private abstract class MyEnumBasedEditor<T extends ResourceQualifier, U extends Enum<U>> extends MyQualifierEditor<T> {
+  private abstract class MyComboBoxEditor<T extends ResourceQualifier, U extends ResourceEnum> extends MyQualifierEditor<T> {
+    private final ComboBoxModel<U> myModel;
     private final ComboBox<U> myComboBox = new ComboBox<>();
-    private final Class<U> myEnumClass;
 
-    protected MyEnumBasedEditor(@NotNull Class<U> enumClass) {
-      myEnumClass = enumClass;
+    protected MyComboBoxEditor(@NotNull ComboBoxModel<U> model) {
+      myModel = model;
     }
 
     @Override
     JComponent getComponent() {
-      myComboBox.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-          applyEditors();
-        }
-      });
-
-      myComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
-        if (value instanceof ResourceEnum) {
-          label.setText(((ResourceEnum)value).getShortDisplayValue());
-        }
-      }));
+      myComboBox.addActionListener(e -> applyEditors());
+      myComboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> label.setText(value.getShortDisplayValue())));
 
       final JPanel panel = new JPanel(new VerticalFlowLayout());
       final JBLabel label = new JBLabel(getCaption());
       label.setLabelFor(myComboBox);
-      myComboBox.setModel(createModel());
+      myComboBox.setModel(myModel);
       panel.add(label);
       panel.add(myComboBox);
       return panel;
-    }
-
-    protected ComboBoxModel<U> createModel() {
-      return new EnumComboBoxModel<>(myEnumClass);
     }
 
     @NotNull
@@ -573,6 +557,25 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
         throw new InvalidOptionValueException(getErrorMessage());
       }
       return getQualifier(selectedItem);
+    }
+  }
+
+  private abstract class MyEnumBasedEditor<T extends ResourceQualifier, U extends Enum<U> & ResourceEnum> extends MyComboBoxEditor<T, U> {
+    private final ComboBox<U> myComboBox = new ComboBox<>();
+
+    protected MyEnumBasedEditor(@NotNull Class<U> enumClass) {
+      super(new EnumComboBoxModel<>(enumClass));
+    }
+
+    @Override
+    void reset(@NotNull T qualifier) {
+      final U value = getValue(qualifier);
+      if (value != null) {
+        myComboBox.setSelectedItem(value);
+      }
+      else if (myComboBox.getItemCount() > 0) {
+        myComboBox.setSelectedIndex(0);
+      }
     }
   }
 
@@ -711,14 +714,9 @@ public abstract class DeviceConfiguratorPanel extends JPanel {
     }
   }
 
-  private class MyDensityEditor extends MyEnumBasedEditor<DensityQualifier, Density> {
+  private class MyDensityEditor extends MyComboBoxEditor<DensityQualifier, Density> {
     private MyDensityEditor() {
-      super(Density.class);
-    }
-
-    @Override
-    protected ComboBoxModel<Density> createModel() {
-      return new DensityComboBoxModel();
+      super(new DensityComboBoxModel());
     }
 
     @NotNull

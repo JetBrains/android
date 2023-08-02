@@ -49,7 +49,8 @@ internal object PickerTrackerHelper {
       Density.XXHIGH -> PreviewPickerValue.DENSITY_XX_HIGH
       Density.XXXHIGH -> PreviewPickerValue.DENSITY_XXX_HIGH
       else -> {
-        Logger.getInstance(this::class.java).warn("Unexpected density bucket: ${density.name}")
+        Logger.getInstance(this::class.java)
+          .warn("Unexpected density bucket: ${density.resourceValue}")
         PreviewPickerValue.UNKNOWN_PREVIEW_PICKER_VALUE
       }
     }

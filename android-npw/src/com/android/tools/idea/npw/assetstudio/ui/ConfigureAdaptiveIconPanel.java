@@ -60,6 +60,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.res.IdeResourceNameValidator;
+import com.android.tools.lint.detector.api.LintUtils;
 import com.android.tools.module.AndroidModuleInfo;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
@@ -448,13 +449,18 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     state.set(LEGACY_ICON_SHAPE_PROPERTY, myLegacyIconShape.get(), DEFAULT_ICON_SHAPE);
     state.set(SHOW_GRID_PROPERTY, myShowGrid.get(), false);
     state.set(SHOW_SAFE_ZONE_PROPERTY, myShowSafeZone.get(), true);
-    state.set(PREVIEW_DENSITY_PROPERTY, myPreviewDensity.get(), DEFAULT_PREVIEW_DENSITY);
+    state.setEncoded(PREVIEW_DENSITY_PROPERTY, nullIfDefault(myPreviewDensity.get()), Density::getResourceValue);
     state.set(OUTPUT_NAME_PROPERTY, myOutputName.get(), myDefaultOutputName);
     state.set(FOREGROUND_LAYER_NAME_PROPERTY, myForegroundLayerName.get(), defaultForegroundLayerName());
     state.set(BACKGROUND_LAYER_NAME_PROPERTY, myBackgroundLayerName.get(), defaultBackgroundLayerName());
     state.setChild(FOREGROUND_CLIPART_ASSET_PROPERTY, myForegroundClipartAssetButton.getState());
     state.setChild(FOREGROUND_TEXT_ASSET_PROPERTY, myForegroundTextAssetEditor.getAsset().getState());
     return state;
+  }
+
+  @Nullable
+  private Density nullIfDefault(Density density) {
+    return density == null || density.equals(DEFAULT_PREVIEW_DENSITY) ? null : density;
   }
 
   @Override
@@ -474,7 +480,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myLegacyIconShape.set(state.get(LEGACY_ICON_SHAPE_PROPERTY, DEFAULT_ICON_SHAPE));
     myShowGrid.set(state.get(SHOW_GRID_PROPERTY, false));
     myShowSafeZone.set(state.get(SHOW_SAFE_ZONE_PROPERTY, true));
-    myPreviewDensity.set(state.get(PREVIEW_DENSITY_PROPERTY, DEFAULT_PREVIEW_DENSITY));
+    myPreviewDensity.set(LintUtils.coalesce(state.getDecoded(PREVIEW_DENSITY_PROPERTY, Density::create), DEFAULT_PREVIEW_DENSITY));
     myOutputName.set(state.get(OUTPUT_NAME_PROPERTY, myDefaultOutputName));
     myForegroundLayerName.set(state.get(FOREGROUND_LAYER_NAME_PROPERTY, defaultForegroundLayerName()));
     myBackgroundLayerName.set(state.get(BACKGROUND_LAYER_NAME_PROPERTY, defaultBackgroundLayerName()));

@@ -86,7 +86,7 @@ internal object DensityEnumSupport : EnumSupport {
       .map { it.toEnumValue() }
 
   override fun createValue(stringValue: String): EnumValue =
-    AvdScreenData.getScreenDensity(
+    AvdScreenData.getCommonScreenDensity(
         false,
         stringValue.toDoubleOrNull() ?: Density.XXHIGH.dpiValue.toDouble(),
         0

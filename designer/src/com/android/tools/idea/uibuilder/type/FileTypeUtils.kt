@@ -71,8 +71,7 @@ fun ConfigurationManager.getPreviewConfig(): Configuration {
 
   val targetApiLevel = configurationManager.target?.version?.apiLevel ?: 1
   val targetDensity =
-    if (targetApiLevel >= PREVIEW_CONFIG_DENSITY.since()) PREVIEW_CONFIG_DENSITY
-    else Density.DPI_560
+    if (targetApiLevel >= PREVIEW_CONFIG_DENSITY.since()) PREVIEW_CONFIG_DENSITY else Density(560)
 
   val device =
     Device.Builder()

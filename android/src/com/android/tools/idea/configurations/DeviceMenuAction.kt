@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.configurations
 
-import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.avdmanager.AvdOptionsModel
-import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
@@ -256,9 +254,7 @@ class DeviceMenuAction(private val renderContext: ConfigurationHolder,
     val density = screen.pixelDensity
     val xDp = screen.xDimension.toDp(density).roundToInt()
     val yDp = screen.yDimension.toDp(density).roundToInt()
-    val isTv = HardwareConfigHelper.isTv(device)
-    val displayedDensity = AvdScreenData.getScreenDensity(isTv, density.dpiValue.toDouble(), screen.yDimension)
-    return "${device.displayName} ($xDp × $yDp dp, ${displayedDensity.resourceValue})"
+    return "${device.displayName} ($xDp × $yDp dp, ${density.resourceValue})"
   }
 
   companion object {

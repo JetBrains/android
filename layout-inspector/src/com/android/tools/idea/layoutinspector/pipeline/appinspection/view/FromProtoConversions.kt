@@ -227,7 +227,7 @@ fun LayoutInspectorViewProtocol.Configuration.convert(apiLevel: Int): FolderConf
   config.screenOrientationQualifier = orientationFromRawValue(orientation)
   config.uiModeQualifier = uiModeFromRawValue(uiMode)
   config.nightModeQualifier = nightModeFromRawValue(uiMode)
-  config.densityQualifier = Density.getEnum(density)?.let { DensityQualifier(it) }
+  config.densityQualifier = DensityQualifier(Density.create(density))
   config.touchTypeQualifier = touchScreenFromRawValue(touchScreen)
   config.textInputMethodQualifier = keyboardFromRawValue(keyboard)
   config.keyboardStateQualifier = keyboardStateFromRawValue(keyboardHidden, hardKeyboardHidden)

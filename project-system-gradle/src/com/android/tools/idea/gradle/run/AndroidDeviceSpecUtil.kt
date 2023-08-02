@@ -93,7 +93,7 @@ fun createSpec(
       log.info("Creating spec for resizable device")
     }
     else {
-      density = Density.getEnum(device.density)
+      density = Density.create(device.density)
     }
 
     // Note: the abis are returned in their preferred order which should be maintained while passing it on to Gradle.
@@ -217,7 +217,7 @@ fun IDevice.createSpec(): AndroidDeviceSpec {
   return AndroidDeviceSpecImpl(
     version,
     version,
-    Density.getEnum(density),
+    Density.create(density),
     abis,
     supportsPrivacySandboxSdkProvider =  { services().containsKey("sdk_sandbox") },
     languagesProvider = { getLanguages(Duration.ofSeconds(DEVICE_SPEC_TIMEOUT_SECONDS)).sorted() }

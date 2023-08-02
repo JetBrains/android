@@ -2236,7 +2236,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         return new VfsFileResourceItem(resourceType, name, configuration, visibility, relativePath, virtualFile);
       }
 
-      Density density = Density.values()[encodedDensity - 1];
+      Density density = Density.create(encodedDensity);
       return new VfsDensityBasedFileResourceItem(resourceType, name, configuration, visibility, relativePath, virtualFile, density);
     }
     else {
@@ -2247,7 +2247,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         return new BasicFileResourceItem(resourceType, name, configuration, visibility, relativePath);
       }
 
-      Density density = Density.values()[encodedDensity - 1];
+      Density density = Density.create(encodedDensity);
       return new BasicDensityBasedFileResourceItem(resourceType, name, configuration, visibility, relativePath, density);
     }
   }
