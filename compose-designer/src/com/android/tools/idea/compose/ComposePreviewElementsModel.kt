@@ -17,9 +17,8 @@ package com.android.tools.idea.compose
 
 import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.ComposePreviewElementTemplate
 import com.android.tools.idea.compose.preview.PreviewGroup
-import com.intellij.openapi.diagnostic.Logger
+import com.android.tools.idea.compose.preview.resolve
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -34,19 +33,7 @@ object ComposePreviewElementsModel {
   fun instantiatedPreviewElementsFlow(
     input: Flow<Collection<ComposePreviewElement>>,
   ): Flow<Collection<ComposePreviewElementInstance>> =
-    input.map { inputPreviews ->
-      inputPreviews.flatMap {
-        when (it) {
-          is ComposePreviewElementTemplate -> it.instances()
-          is ComposePreviewElementInstance -> sequenceOf(it)
-          else -> {
-            Logger.getInstance(ComposePreviewElementsModel::class.java)
-              .warn("Class was not instance or template ${it::class.qualifiedName}")
-            emptySequence()
-          }
-        }
-      }
-    }
+    input.map { inputPreviews -> inputPreviews.flatMap { it.resolve() } }
 
   /**
    * Filter mode that can be set in the preview. The preview will accept any of these types of

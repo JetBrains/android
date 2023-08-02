@@ -577,6 +577,23 @@ class ParametrizedComposePreviewElementTemplate(
 }
 
 /**
+ * Resolves an abstract [ComposePreviewElement] into a (possibly empty) sequence of
+ * [ComposePreviewElementInstance].
+ *
+ * TODO: Consider making [resolve] a polymorphic method.
+ */
+fun ComposePreviewElement.resolve(): Sequence<ComposePreviewElementInstance> =
+  when (this) {
+    is ComposePreviewElementTemplate -> this.instances()
+    is ComposePreviewElementInstance -> sequenceOf(this)
+    else -> {
+      Logger.getInstance(ComposePreviewElement::class.java)
+        .warn("Class was not instance or template ${this::class.qualifiedName}")
+      emptySequence()
+    }
+  }
+
+/**
  * A [PreviewElementProvider] that instantiates any [ComposePreviewElementTemplate]s in the
  * [delegate].
  */
@@ -584,15 +601,5 @@ class PreviewElementTemplateInstanceProvider(
   private val delegate: PreviewElementProvider<ComposePreviewElement>
 ) : PreviewElementProvider<ComposePreviewElementInstance> {
   override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
-    delegate.previewElements().flatMap {
-      when (it) {
-        is ComposePreviewElementTemplate -> it.instances()
-        is ComposePreviewElementInstance -> sequenceOf(it)
-        else -> {
-          Logger.getInstance(PreviewElementTemplateInstanceProvider::class.java)
-            .warn("Class was not instance or template ${it::class.qualifiedName}")
-          emptySequence()
-        }
-      }
-    }
+    delegate.previewElements().flatMap { it.resolve() }
 }
