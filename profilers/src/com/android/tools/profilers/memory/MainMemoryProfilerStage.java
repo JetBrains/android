@@ -319,6 +319,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
       }, getStudioProfilers().getIdeServices().getPoolExecutor());
   }
 
+  @VisibleForTesting
   public void toggleNativeAllocationTracking() {
     if (!myNativeAllocationTracking) {
       assert getStudioProfilers().getProcess() != null;
