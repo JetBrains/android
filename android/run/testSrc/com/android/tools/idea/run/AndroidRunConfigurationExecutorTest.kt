@@ -28,6 +28,7 @@ import com.android.tools.deployer.Deployer
 import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.literals.LiveEditServiceImpl
+import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
@@ -332,6 +333,36 @@ class AndroidRunConfigurationExecutorTest {
     }
       .isInstanceOf(ExecutionException::class.java)
       .withFailMessage("ApkProvisionException")
+  }
+
+  @Test
+  fun runGetApplicationIdException() {
+    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    val env = getExecutionEnvironment(listOf(device))
+    val configuration = env.runProfile as AndroidRunConfiguration
+    configuration.executeMakeBeforeRunStepInTest(device)
+
+    val runner = AndroidRunConfigurationExecutor(
+      applicationIdProvider = object : ApplicationIdProvider{
+        override fun getPackageName(): String {
+          throw ApkProvisionException("AndroidExecutionException packageName")
+        }
+
+        override fun getTestPackageName(): String? {
+          throw ApkProvisionException("AndroidExecutionException testPackageName")
+        }
+      },
+      env,
+      deviceFutures,
+      apkProvider = { throw ApkProvisionException("ApkProvisionException") })
+
+    assertThatThrownBy {
+      ProgressManager.getInstance()
+        .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
+    }
+      .isInstanceOf(AndroidExecutionException::class.java)
+      .withFailMessage("AndroidExecutionException packageName")
   }
 
   @Test

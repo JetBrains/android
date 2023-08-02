@@ -50,7 +50,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment,
                                                                                                                    apkProvider,
                                                                                                                    deployer) {
   private val watchFaceLaunchOptions = appRunSettings.componentLaunchOptions as WatchFaceLaunchOptions
-  override fun getStopCallback(console: ConsoleView, isDebug: Boolean) = getStopWatchFaceCallback(console, isDebug)
+  override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean) = getStopWatchFaceCallback(console, isDebug)
 
   @WorkerThread
   override fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator) {

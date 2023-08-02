@@ -96,7 +96,8 @@ class AndroidComplicationConfigurationExecutor(
     }
     val receiver = RecordOutputReceiver { indicator?.isCanceled == true }
 
-    val watchFaceInfo = "${complicationLaunchOptions.watchFaceInfo.appId} ${complicationLaunchOptions.watchFaceInfo.watchFaceFQName}"
+    val watchFaceInfo =
+      "${complicationLaunchOptions.watchFaceInfo.appId} ${complicationLaunchOptions.watchFaceInfo.watchFaceFQName}"
     try {
       app.activateComponent(
         complicationLaunchOptions.componentType,
@@ -127,8 +128,8 @@ class AndroidComplicationConfigurationExecutor(
     return applicationDeployer.fullDeploy(device, apkInfo, appRunSettings.deployOptions, indicator).app
   }
 
-  override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {
-    val complicationComponentName = AppComponent.getFQEscapedName(appId, complicationLaunchOptions.componentName!!)
+  override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit {
+    val complicationComponentName = AppComponent.getFQEscapedName(applicationId, complicationLaunchOptions.componentName!!)
     return getStopComplicationCallback(complicationComponentName, console, isDebug)
   }
 }

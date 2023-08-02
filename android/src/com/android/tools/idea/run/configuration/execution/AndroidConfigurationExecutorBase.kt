@@ -29,7 +29,6 @@ import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.configuration.isDebug
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
@@ -59,22 +58,18 @@ abstract class AndroidConfigurationExecutorBase(
   override val configuration: RunConfiguration = environment.runProfile as RunConfiguration
 
   protected val project = environment.project
-  protected val appId
-    get() = applicationIdProvider.packageName
-
-  protected val isDebug = environment.executor.isDebug
 
   @WorkerThread
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val devices = getDevices(deviceFutures, indicator, RunStats.from(environment))
+    val (applicationId, devices) = getApplicationIdAndDevices(environment, deviceFutures, applicationIdProvider, indicator)
+    RunStats.from(environment).setPackage(applicationId)
     val console = createConsole()
-    val processHandler = AndroidProcessHandler(appId, getStopCallback(console, false))
-
+    val processHandler = AndroidProcessHandler(applicationId, getStopCallback(console, applicationId, false))
 
     val onDevice = { device: IDevice ->
       LOG.info("Launching on device ${device.name}")
 
-      terminatePreviousAppInstance(device)
+      terminatePreviousAppInstance(device, applicationId)
 
       val result = try {
         // ApkProvider provides multiple ApkInfo only for instrumented tests.
@@ -82,7 +77,7 @@ abstract class AndroidConfigurationExecutorBase(
         applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
       }
       catch (e: DeployerException) {
-        throw ExecutionException("Failed to install app '$appId'. ${e.details.orEmpty()}", e)
+        throw ExecutionException("Failed to install app '$applicationId'. ${e.details.orEmpty()}", e)
       }
       launch(device, result.app, console, false, indicator)
       processHandler.addTargetDevice(device)
@@ -91,7 +86,7 @@ abstract class AndroidConfigurationExecutorBase(
     devices.map { async { onDevice(it) } }.joinAll()
 
     environment.putCopyableUserData(AppRunConfiguration.KEY, object : AppRunConfiguration {
-      override val appId: String = this@AndroidConfigurationExecutorBase.appId
+      override val appId = applicationId
     })
 
     createRunContentDescriptor(processHandler, console, environment)
@@ -99,7 +94,8 @@ abstract class AndroidConfigurationExecutorBase(
 
   @WorkerThread
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
-    val devices = getDevices(deviceFutures, indicator, RunStats.from(environment))
+    val (applicationId, devices) = getApplicationIdAndDevices(environment, deviceFutures, applicationIdProvider, indicator)
+    RunStats.from(environment).setPackage(applicationId)
     if (devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")
     }
@@ -107,14 +103,14 @@ abstract class AndroidConfigurationExecutorBase(
     val console = createConsole()
     val device = devices.single()
 
-    terminatePreviousAppInstance(device)
+    terminatePreviousAppInstance(device, applicationId)
 
     // ApkProvider provides multiple ApkInfo only for instrumented tests.
     val app = apkProvider.getApks(device).single()
     val deployResult = applicationDeployer.fullDeploy(device, app, appRunSettings.deployOptions, indicator)
 
     val runContentDescriptorDeferred = async {
-      startDebugSession(device, console, indicator).runContentDescriptor
+      startDebugSession(device, applicationId, console, indicator).runContentDescriptor
     }
 
     launch(device, deployResult.app, console, true, indicator)
@@ -125,13 +121,13 @@ abstract class AndroidConfigurationExecutorBase(
     catch (e: ExecutionException) {
       if (!device.isOffline) {
         try {
-          getStopCallback(console, isDebug).invoke(device)
+          getStopCallback(console, applicationId, true).invoke(device)
         }
         catch (e: Exception) {
           LOG.warn(e)
         }
         try {
-          ApplicationTerminator(device, appId).killApp()
+          ApplicationTerminator(device, applicationId).killApp()
         }
         catch (e: Exception) {
           LOG.warn(e)
@@ -142,18 +138,20 @@ abstract class AndroidConfigurationExecutorBase(
   }
 
   @Throws(ExecutionException::class)
-  protected abstract fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit
+  protected abstract fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit
 
   @VisibleForTesting
   @Throws(ExecutionException::class)
   abstract fun launch(device: IDevice, app: App, console: ConsoleView, isDebug: Boolean, indicator: ProgressIndicator)
 
-  protected abstract suspend fun startDebugSession(device: IDevice, console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl
+  protected abstract suspend fun startDebugSession(
+    device: IDevice, applicationId: String,
+                                                   console: ConsoleView, indicator: ProgressIndicator): XDebugSessionImpl
 
-  private fun terminatePreviousAppInstance(device: IDevice) {
-    val terminator = ApplicationTerminator(device, appId)
+  private fun terminatePreviousAppInstance(device: IDevice, applicationId: String) {
+    val terminator = ApplicationTerminator(device, applicationId)
     if (!terminator.killApp()) {
-      throw ExecutionException("Could not terminate running app $appId")
+      throw ExecutionException("Could not terminate running app $applicationId")
     }
   }
 

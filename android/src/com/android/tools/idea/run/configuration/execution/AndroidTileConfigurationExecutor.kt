@@ -57,8 +57,8 @@ class AndroidTileConfigurationExecutor(
                                      apkProvider,
                                      deployer) {
   private val tileLaunchOptions = appRunSettings.componentLaunchOptions as TileLaunchOptions
-  override fun getStopCallback(console: ConsoleView, isDebug: Boolean): (IDevice) -> Unit {
-    val tileName = AppComponent.getFQEscapedName(appId, tileLaunchOptions.componentName!!)
+  override fun getStopCallback(console: ConsoleView, applicationId: String, isDebug: Boolean): (IDevice) -> Unit {
+    val tileName = AppComponent.getFQEscapedName(applicationId, tileLaunchOptions.componentName!!)
     return getStopTileCallback(tileName, console, isDebug)
   }
 

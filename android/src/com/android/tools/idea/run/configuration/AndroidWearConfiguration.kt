@@ -145,9 +145,6 @@ abstract class AndroidWearConfiguration(project: Project, factory: Configuration
     val stats = RunStatsService.get(project).create()
     stats.setDebuggable(module!!.getModuleSystem().isDebuggable)
     stats.setExecutor(environment.executor.id)
-    val appId = project.getProjectSystem().getApplicationIdProvider(this)?.packageName
-                ?: throw RuntimeException("Cannot get ApplicationIdProvider")
-    stats.setPackage(appId)
     stats.setAppComponentType(componentLaunchOptions.componentType)
 
     // Save the stats so that before-run task can access it
