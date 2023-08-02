@@ -594,6 +594,14 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> EMIT_CONSOLE_OUTPUT_TO_LOGCAT = Flag.create(
+    RUNDEBUG,
+    "emit.console.output.to.logcat",
+    "Emit console output to Logcat",
+    "Emit console output, specifically breakpoint log expressions, to Logcat.",
+    true
+  );
+
   //endregion
 
   //region Logcat
