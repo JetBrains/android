@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyType
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
+import com.android.tools.idea.gradle.util.generateExistingPath
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -304,30 +305,6 @@ class DeclarativeCompletionContributor : CompletionContributor() {
       // TODO -  need to handle map type
       else -> GENERIC_PROPERTY
     }
-  }
-
-  private fun generateExistingPath(psiElement: TomlKeySegment): List<String> {
-    val result = mutableListOf<String>()
-    var key: TomlKey?
-    var nextElement: PsiElement = psiElement
-    if (psiElement.parent.parent !is TomlTableHeader) {
-      do {
-        // bubble up via inline tables to root/file
-        key = nextElement.findParentOfType<TomlKey>()
-        if (key != null) {
-          nextElement = key
-          key.appendReversedSegments(result, psiElement)
-        }
-      }
-      while (key != null)
-    }
-    val parentTableHeaderKey = nextElement.findParentOfType<TomlHeaderOwner>()?.header?.key
-    parentTableHeaderKey?.appendReversedSegments(result, psiElement)
-    return result.reversed()
-  }
-
-  private fun TomlKey.appendReversedSegments(list: MutableList<String>, startElement: PsiElement) {
-    segments.reversed().forEach { segment -> if (segment != startElement) list += segment.text }
   }
 
 }

@@ -169,6 +169,12 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     public ExternalToModelMap getPropertiesInfo(Kind kind) {
       return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
     }
+
+    @NotNull
+    @Override
+    public  String getAgpDocClass(){
+        return "com.android.build.api.dsl.ApplicationExtension";
+    }
   }
 
   public AndroidDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {

@@ -20,6 +20,7 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.esotericsoftware.kryo.kryo5.util.Null;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -59,4 +60,14 @@ public abstract class GradlePropertiesDslElementSchema {
    */
   @NotNull
   public abstract ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind);
+
+  /**
+   * Returns full qualified class name for AGP DSL element.
+   * Usually it's an interface that declared at Android plugin side to support gradle build
+   * file syntax.
+   */
+  @Nullable
+  public String getAgpDocClass() {
+    return null;
+  }
 }
