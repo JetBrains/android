@@ -40,20 +40,20 @@ namespace {
 int CreateAndConnectSocket(const string& socket_name) {
   int socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (socket_fd < 0) {
-    Log::Fatal("Failed to create a socket");
+    Log::Fatal(SOCKET_CONNECTIVITY_ERROR, "Failed to create a socket");
   }
   sockaddr_un address = { AF_UNIX, "" };
   // An abstract socket address is distinguished by a null byte in front of the socket name
   // and doesn't need a null terminator. See https://man7.org/linux/man-pages/man7/unix.7.html.
   if (socket_name.size() > sizeof(address.sun_path) - 2) {
-    Log::Fatal("Socket name \"%s\" is too long", socket_name.c_str());
+    Log::Fatal(SOCKET_CONNECTIVITY_ERROR, "Socket name \"%s\" is too long", socket_name.c_str());
   }
   strncpy(address.sun_path + 1, socket_name.c_str(), sizeof(address.sun_path) - 2);
   int len = sizeof(sa_family_t) + 1 + socket_name.size();
   int ret = connect(socket_fd, (const struct sockaddr*) &address, len);
   if (ret < 0) {
     close(socket_fd);
-    Log::Fatal("Failed to connect to socket \"%s\" - %s", socket_name.c_str(), strerror(errno));
+    Log::Fatal(SOCKET_CONNECTIVITY_ERROR, "Failed to connect to socket \"%s\" - %s", socket_name.c_str(), strerror(errno));
   }
   return socket_fd;
 }

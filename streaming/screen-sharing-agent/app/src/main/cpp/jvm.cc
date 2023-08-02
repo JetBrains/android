@@ -137,7 +137,7 @@ void JObject::SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const 
 
 string JObject::ToString() const {
   if (ref_ == nullptr) {
-    Log::Fatal("ToString is called on a null object");
+    Log::Fatal(NULL_POINTER, "ToString is called on a null object");
   }
   Jni jni = GetJni();
   JClass clazz = GetClass(jni);
@@ -173,7 +173,7 @@ void JObject::IllegalGlobalReferenceUse() {
 jfieldID JClass::GetStaticFieldId(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto field = jni_env->GetStaticFieldID(ref(), name, signature);
   if (field == nullptr) {
-    Log::Fatal("Unable to find the static %s.%s field with signature %s", GetName(jni_env).c_str(), name, signature);
+    Log::Fatal(FIELD_NOT_FOUND, "Unable to find the static %s.%s field with signature %s", GetName(jni_env).c_str(), name, signature);
   }
   return field;
 }
@@ -181,7 +181,7 @@ jfieldID JClass::GetStaticFieldId(JNIEnv* jni_env, const char* name, const char*
 jfieldID JClass::GetFieldId(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto field = jni_env->GetFieldID(ref(), name, signature);
   if (field == nullptr) {
-    Log::Fatal("Unable to find the %s.%s field with signature %s", GetName(jni_env).c_str(), name, signature);
+    Log::Fatal(FIELD_NOT_FOUND, "Unable to find the %s.%s field with signature %s", GetName(jni_env).c_str(), name, signature);
   }
   return field;
 }
@@ -189,7 +189,7 @@ jfieldID JClass::GetFieldId(JNIEnv* jni_env, const char* name, const char* signa
 jmethodID JClass::GetStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto method = jni_env->GetStaticMethodID(ref(), name, signature);
   if (method == nullptr) {
-    Log::Fatal("Unable to find the static %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
+    Log::Fatal(METHOD_NOT_FOUND, "Unable to find the static %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
   }
   return method;
 }
@@ -197,7 +197,7 @@ jmethodID JClass::GetStaticMethod(JNIEnv* jni_env, const char* name, const char*
 jmethodID JClass::GetMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto method = jni_env->GetMethodID(ref(), name, signature);
   if (method == nullptr) {
-    Log::Fatal("Unable to find the %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
+    Log::Fatal(METHOD_NOT_FOUND, "Unable to find the %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
   }
   return method;
 }
@@ -205,7 +205,7 @@ jmethodID JClass::GetMethod(JNIEnv* jni_env, const char* name, const char* signa
 jmethodID JClass::GetConstructor(JNIEnv* jni_env, const char* signature) const {
   auto constructor = jni_env->GetMethodID(ref(), "<init>", signature);
   if (constructor == nullptr) {
-    Log::Fatal("Unable to find the %s constructor with signature %s", GetName(jni_env).c_str(), signature);
+    Log::Fatal(CONSTRUCTOR_NOT_FOUND, "Unable to find the %s constructor with signature %s", GetName(jni_env).c_str(), signature);
   }
   return constructor;
 }
@@ -223,7 +223,8 @@ jmethodID JClass::GetDeclaredOrInheritedMethod(JNIEnv* jni_env, const char* name
     }
     jni_env->ExceptionClear();
   }
-  Log::Fatal("Unable to find the declared or inherited %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
+  Log::Fatal(METHOD_NOT_FOUND, "Unable to find the declared or inherited %s.%s method with signature %s",
+             GetName(jni_env).c_str(), name, signature);
 }
 
 jmethodID JClass::FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
@@ -323,7 +324,7 @@ JString::JString(JNIEnv* jni_env, const char* value)
 
 string JString::GetValue() const {
   if (IsNull()) {
-    Log::Fatal("JString::GetValue is called on a null String");
+    Log::Fatal(NULL_POINTER, "JString::GetValue is called on a null String");
   }
   const char* localName = GetJni()->GetStringUTFChars(ref(), nullptr);
   string result(localName);
@@ -342,7 +343,7 @@ void JObjectArray::SetElement(JNIEnv* jni_env, int32_t index, const JObject& ele
 JClass Jni::GetClass(const char* name) const {
   jclass clazz = jni_env_->FindClass(name);
   if (clazz == nullptr) {
-    Log::Fatal("Unable to find the %s class", name);
+    Log::Fatal(CLASS_NOT_FOUND, "Unable to find the %s class", name);
   }
   return JClass(jni_env_, clazz);
 }
@@ -369,7 +370,7 @@ JThrowable Jni::GetAndClearException() const {
 
 string JThrowable::Describe() const {
   if (IsNull()) {
-    Log::Fatal("Describe is called on a null object");
+    Log::Fatal(NULL_POINTER, "Describe is called on a null object");
   }
   Jni jni = GetJni();
   JClass clazz = jni.GetClass("com/android/tools/screensharing/ThrowableHelper");

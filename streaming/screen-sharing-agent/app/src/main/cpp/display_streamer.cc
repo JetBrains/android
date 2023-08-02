@@ -139,7 +139,7 @@ CodecInfo* SelectVideoEncoder(const string& mime_type) {
                                            "(Ljava/lang/String;)Lcom/android/tools/screensharing/CodecInfo;");
   JObject codec_info = clazz.CallStaticObjectMethod(method, JString(jni, mime_type).ref());
   if (codec_info.IsNull()) {
-    Log::Fatal("No video encoder is available for %s", mime_type.c_str());
+    Log::Fatal(VIDEO_ENCODER_NOT_FOUND, "No video encoder is available for %s", mime_type.c_str());
   }
   JString jname = JString(codec_info.GetObjectField(clazz.GetFieldId("name", "Ljava/lang/String;")));
   string codec_name = jname.IsNull() ? "<unnamed>" : jname.GetValue();
@@ -178,7 +178,7 @@ void WriteChannelHeader(const string& codec_name, int socket_fd) {
   }
   if (write(socket_fd, buf.c_str(), buf_size) != buf_size) {
     if (errno != EBADF && errno != EPIPE) {
-      Log::Fatal("Error writing to video socket - %s", strerror(errno));
+      Log::Fatal(SOCKET_IO_ERROR, "Error writing to video socket - %s", strerror(errno));
     }
     Agent::Shutdown();
   }
@@ -219,7 +219,8 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
   AMediaFormat_getInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, &bit_rate);
   media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
   if (status != AMEDIA_OK) {
-    Log::Fatal("AMediaCodec_configure returned %d for video_size=%dx%d bit rate=%d", status, video_size.width, video_size.height, bit_rate);
+    Log::Fatal(VIDEO_ENCODER_CONFIGURATION_ERROR, "AMediaCodec_configure returned %d for video_size=%dx%d bit rate=%d",
+               status, video_size.width, video_size.height, bit_rate);
   }
   Log::I("Configured %s video_size=%dx%d bit rate=%d", codec_info.name.c_str(), video_size.width, video_size.height, bit_rate);
   return video_size;
@@ -302,7 +303,7 @@ void DisplayStreamer::Run() {
   while (!streamer_stopped_ && !end_of_stream && !Agent::IsShuttingDown()) {
     AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
     if (codec == nullptr) {
-      Log::Fatal("Unable to create a %s video encoder", codec_info_->name.c_str());
+      Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Unable to create a %s video encoder", codec_info_->name.c_str());
     }
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     Log::D("display_info: %s", display_info.ToDebugString().c_str());
@@ -315,7 +316,7 @@ void DisplayStreamer::Run() {
       bool secure = Agent::api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
       display_token = SurfaceControl::CreateDisplay(jni, "screen-sharing-agent", secure);
       if (display_token.IsNull()) {
-        Log::Fatal("Unable to create a virtual display");
+        Log::Fatal(VIRTUAL_DISPLAY_CREATION_ERROR, "Unable to create a virtual display");
       }
     }
     // Use heuristics for determining a bit rate value that doesn't cause SIGABRT in the encoder (b/251659422).
@@ -340,7 +341,7 @@ void DisplayStreamer::Run() {
              display_info.rotation, rotation_correction, video_size.width, video_size.height);
       media_status_t status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
       if (status != AMEDIA_OK) {
-        Log::Fatal("AMediaCodec_createInputSurface returned %d", status);
+        Log::Fatal(INPUT_SURFACE_CREATION_ERROR, "AMediaCodec_createInputSurface returned %d", status);
       }
       if (virtual_display.HasDisplay()) {
         virtual_display.Resize(video_size.width, video_size.height, display_info_.logical_density_dpi);
@@ -433,7 +434,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     iovec buffers[] = { { packet_header, sizeof(*packet_header) }, { codec_buffer.buffer, static_cast<size_t>(codec_buffer.info.size) } };
     if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
       if (errno != EBADF && errno != EPIPE) {
-        Log::Fatal("Error writing to video socket - %s", strerror(errno));
+        Log::Fatal(SOCKET_IO_ERROR, "Error writing to video socket - %s", strerror(errno));
       }
       end_of_stream = true;
     }
