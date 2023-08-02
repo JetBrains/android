@@ -68,7 +68,7 @@ class RootPanelTest {
     val fakeTreePanel = JPanel()
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
 
-    assertThat(rootPanel.showProcessNotDebuggableText).isFalse()
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
 
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
@@ -77,14 +77,14 @@ class RootPanelTest {
       ForegroundProcess(0, "fakeprocess"),
       false
     )
-    assertThat(rootPanel.showProcessNotDebuggableText).isTrue()
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.PROCESS_NOT_DEBUGGABLE)
 
     layoutInspectorRule.fakeForegroundProcessDetection.addNewForegroundProcess(
       fakeDeviceDescriptor,
       ForegroundProcess(0, "fakeprocess"),
       true
     )
-    assertThat(rootPanel.showProcessNotDebuggableText).isFalse()
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
 
     // disable embedded Layout Inspector, showProcessNotDebuggableText should always be false
     enableEmbeddedLayoutInspector = false
@@ -95,7 +95,7 @@ class RootPanelTest {
       ForegroundProcess(0, "fakeprocess"),
       false
     )
-    assertThat(rootPanel.showProcessNotDebuggableText).isFalse()
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
   }
 
   @Test
@@ -104,7 +104,7 @@ class RootPanelTest {
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
     rootPanel.layoutInspector = layoutInspectorRule.inspector
 
-    assertThat(rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading).isFalse()
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.WAITING_TO_CONNECT)
 
     // Start connecting, loading should show
     layoutInspectorRule.launchSynchronously = false
@@ -112,22 +112,19 @@ class RootPanelTest {
     layoutInspectorRule.processes.selectedProcess =
       MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-    waitForCondition(1, TimeUnit.SECONDS) {
-      rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading
-    }
+    waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.START_LOADING }
+    assertThat(rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading).isTrue()
 
     // Release the response from the agent and wait for connection.
     // The loading should stop and the empty text should not be visible, because now we are
     // connected and showing views on screen
     layoutInspectorRule.awaitLaunch()
 
-    waitForCondition(1, TimeUnit.SECONDS) {
-      !rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading
-    }
+    waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.SHOW_TREE }
   }
 
   @Test
-  fun testLoadingPanelIsRemovesProcessNotDebuggable() = withEmbeddedLayoutInspector {
+  fun testLoadingPanelRemovesProcessNotDebuggable() = withEmbeddedLayoutInspector {
     val fakeTreePanel = JPanel()
     val rootPanel = RootPanel(androidProjectRule.testRootDisposable, fakeTreePanel)
     rootPanel.layoutInspector = layoutInspectorRule.inspector
@@ -137,9 +134,7 @@ class RootPanelTest {
       ForegroundProcess(0, "fakeprocess"),
       false
     )
-    assertThat(rootPanel.showProcessNotDebuggableText).isTrue()
-
-    assertThat(rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading).isFalse()
+    assertThat(rootPanel.uiState).isEqualTo(RootPanel.UiState.PROCESS_NOT_DEBUGGABLE)
 
     // Start connecting, loading should show
     layoutInspectorRule.launchSynchronously = false
@@ -147,19 +142,14 @@ class RootPanelTest {
     layoutInspectorRule.processes.selectedProcess =
       MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-    waitForCondition(1, TimeUnit.SECONDS) {
-      rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading
-    }
-
-    assertThat(rootPanel.showProcessNotDebuggableText).isFalse()
+    waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.START_LOADING }
+    assertThat(rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading).isTrue()
 
     // Release the response from the agent and wait for connection.
     // The loading should stop and the empty text should not be visible, because now we are
     // connected and showing views on screen
     layoutInspectorRule.awaitLaunch()
 
-    waitForCondition(1, TimeUnit.SECONDS) {
-      !rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading
-    }
+    waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.SHOW_TREE }
   }
 }

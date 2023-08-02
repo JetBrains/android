@@ -964,6 +964,18 @@ class LayoutInspectorTreePanelTest {
     UIUtil.pump()
     val table = tree.focusComponent as JTable
     val component = tree.component
+
+    // connect to a process to add the tree to the UI.
+    inspectorRule.launchSynchronously = false
+    inspectorRule.startLaunch(2)
+    inspectorRule.processes.selectedProcess =
+      MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
+    inspectorRule.awaitLaunch()
+
+    waitForCondition(1, TimeUnit.SECONDS) {
+      (component as RootPanel).uiState == RootPanel.UiState.SHOW_TREE
+    }
+
     component.size = Dimension(800, 1000)
     val ui = FakeUi(component, createFakeWindow = true)
     val treeColumnWidth = table.columnModel.getColumn(0).width
@@ -979,7 +991,7 @@ class LayoutInspectorTreePanelTest {
     assertThat(compose2.recompositions.count).isEqualTo(0)
     assertThat(compose2.recompositions.skips).isEqualTo(0)
     assertThat(selectionUpdate).isEqualTo(1)
-    assertThat(updateSettingsCommands).isEqualTo(2)
+    assertThat(updateSettingsCommands).isEqualTo(3)
     assertThat(lastUpdateSettingsCommand?.includeRecomposeCounts).isTrue()
 
     val data = DynamicLayoutInspectorSession.newBuilder()
@@ -1020,7 +1032,7 @@ class LayoutInspectorTreePanelTest {
     setToolContext(panel, inspectorRule.inspector)
 
     assertThat(inspectorRule.inspector.inspectorModel.selectionListeners).hasSize(1)
-    assertThat(inspectorRule.inspector.inspectorModel.connectionListeners).hasSize(1)
+    assertThat(inspectorRule.inspector.inspectorModel.connectionListeners).hasSize(2)
 
     Disposer.dispose(disposable)
 

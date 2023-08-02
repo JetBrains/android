@@ -15,90 +15,141 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.adtui.stdui.StandardColors
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.ui.LayoutInspectorLoadingObserver
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.util.ui.StatusText
+import com.intellij.ui.components.htmlComponent
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
-import java.awt.Graphics
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import javax.swing.JComponent
-import org.jetbrains.annotations.VisibleForTesting
+import javax.swing.JPanel
 
-/** Panel responsible for rendering the component tree, state messages and loading state. */
-class RootPanel(parentDisposable: Disposable, componentTreePanel: JComponent) :
-  BorderLayoutPanel() {
+/**
+ * Panel responsible for rendering the component tree, state messages and loading state.
+ *
+ * @param componentTreePanel The component containing the tree panel.
+ */
+class RootPanel(
+  parentDisposable: Disposable,
+  private val componentTreePanel: JComponent,
+) : BorderLayoutPanel(), Disposable {
   private val isEmbedded
     get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
-  @VisibleForTesting
-  var showProcessNotDebuggableText = false
-    private set
 
   private var layoutInspectorLoadingObserver: LayoutInspectorLoadingObserver? = null
+  private val connectionListener: (InspectorClient?) -> Unit = { inspectorClient ->
+    if (inspectorClient?.isConnected == true) {
+      // We are connected, show the component tree
+      updateUiState(UiState.SHOW_TREE)
+    }
+  }
+
+  override fun dispose() {
+    layoutInspector?.inspectorModel?.connectionListeners?.remove(connectionListener)
+  }
 
   var layoutInspector: LayoutInspector? = null
     set(value) {
-      // clean up listeners
+      // Clean up listeners.
       layoutInspectorLoadingObserver?.destroy()
       layoutInspectorLoadingObserver = null
+      field?.inspectorModel?.connectionListeners?.remove(connectionListener)
       field?.foregroundProcessDetection?.removeForegroundProcessListener(foregroundProcessListener)
-      // reset value
-      showProcessNotDebuggableText = false
+      // Reset UI.
+      updateUiState(UiState.WAITING_TO_CONNECT)
 
       field = value
 
-      // set up new listeners
-      if (isEmbedded) {
-        value?.foregroundProcessDetection?.addForegroundProcessListener(foregroundProcessListener)
+      if (value == null) {
+        return
       }
-      if (value != null) {
-        layoutInspectorLoadingObserver = createLoadingObserver(value)
+
+      // Set up new listeners.
+      layoutInspectorLoadingObserver = createLoadingObserver(value)
+      value.inspectorModel.connectionListeners.add(connectionListener)
+      if (isEmbedded) {
+        // Add the listener only if we're running in Embedded Layout Inspector.
+        // Outside of Layout Inspector the "app not debuggable" indicator is in the main panel.
+        value.foregroundProcessDetection?.addForegroundProcessListener(foregroundProcessListener)
       }
     }
 
-  /** Used to show a message when the foreground process is not debuggable */
   private val foregroundProcessListener = ForegroundProcessListener { _, _, isDebuggable ->
     if (isDebuggable) {
-      showProcessNotDebuggableText = false
-      loadingPanel.isVisible = true
-
-      invalidate()
-      repaint()
+      updateUiState(UiState.WAITING_TO_CONNECT)
     } else {
-      showProcessNotDebuggableText = true
-      loadingPanel.isVisible = false
-      invalidate()
-      repaint()
+      updateUiState(UiState.PROCESS_NOT_DEBUGGABLE)
     }
   }
 
-  /** Status text rendered when the foreground process is not debuggable */
-  private val processNotDebuggableText =
-    TreeStatusText(
-      owner = this,
-      lines =
-        listOf(
-          LayoutInspectorBundle.message("application.not.inspectable"),
-          LayoutInspectorBundle.message("navigate.to.debuggable.application")
-        ),
-      shouldShow = { showProcessNotDebuggableText && isEmbedded }
+  /** Panel shown when no other panel should be shown . */
+  private val defaultPanel = createTextPanel(listOf("Waiting for Layout Inspector to connect."))
+  /** Panel used to show a loading indicator. */
+  private val loadingPanel = JBLoadingPanel(BorderLayout(), parentDisposable, 0)
+  /** Panel used to indicate that the current foreground process is not debuggable. */
+  private val processNotDebuggablePanel =
+    createTextPanel(
+      listOf(
+        LayoutInspectorBundle.message("application.not.inspectable"),
+        LayoutInspectorBundle.message("navigate.to.debuggable.application")
+      )
     )
 
-  /** Panel used to show a loading indicator */
-  private val loadingPanel = JBLoadingPanel(BorderLayout(), parentDisposable, 0)
-
   init {
-    loadingPanel.add(componentTreePanel)
-    addToCenter(loadingPanel)
+    Disposer.register(parentDisposable, this)
+    updateUiState(UiState.WAITING_TO_CONNECT)
   }
 
-  override fun paintComponent(g: Graphics) {
-    super.paintComponent(g)
-    processNotDebuggableText.paint(this, g)
+  /** The set of possible states the UI can be in */
+  enum class UiState {
+    PROCESS_NOT_DEBUGGABLE,
+    SHOW_TREE,
+    WAITING_TO_CONNECT,
+    START_LOADING
+  }
+
+  @VisibleForTesting
+  var uiState: UiState? = null
+    private set
+
+  /**
+   * Update the state of the UI. Each time this method is called, all components are removed from
+   * the UI and the desired component is added. Only one component at a time should be visible.
+   */
+  private fun updateUiState(newUiState: UiState) {
+    if (uiState == newUiState) {
+      return
+    }
+    uiState = newUiState
+
+    remove(defaultPanel)
+    remove(componentTreePanel)
+    remove(processNotDebuggablePanel)
+    remove(loadingPanel)
+
+    when (newUiState) {
+      UiState.PROCESS_NOT_DEBUGGABLE -> addToCenter(processNotDebuggablePanel)
+      UiState.SHOW_TREE -> addToCenter(componentTreePanel)
+      UiState.WAITING_TO_CONNECT -> addToCenter(defaultPanel)
+      UiState.START_LOADING -> {
+        addToCenter(loadingPanel)
+        loadingPanel.startLoading()
+      }
+    }
+
+    revalidate()
+    repaint()
   }
 
   private fun createLoadingObserver(
@@ -108,13 +159,12 @@ class RootPanel(parentDisposable: Disposable, componentTreePanel: JComponent) :
     layoutInspectorLoadingObserver.listeners.add(
       object : LayoutInspectorLoadingObserver.Listener {
         override fun onStartLoading() {
-          loadingPanel.isVisible = true
-          showProcessNotDebuggableText = false
-          loadingPanel.startLoading()
+          updateUiState(UiState.START_LOADING)
         }
 
         override fun onStopLoading() {
-          loadingPanel.stopLoading()
+          // Never stop loading, the loading panel will be removed automatically when the UI is
+          // updated.
         }
       }
     )
@@ -122,14 +172,43 @@ class RootPanel(parentDisposable: Disposable, componentTreePanel: JComponent) :
   }
 }
 
-private class TreeStatusText(
-  owner: JComponent,
-  lines: List<String>,
-  private val shouldShow: () -> Boolean
-) : StatusText(owner) {
-  init {
-    lines.forEach { appendLine(it) }
-  }
+/**
+ * Creates a panel containing text centered vertically and horizontally. The text is wrapped if it
+ * doesn't fit in its container.
+ *
+ * @param lines Each string is shown on a separate line.
+ */
+private fun createTextPanel(lines: List<String>): JPanel {
+  val html =
+    """
+  <center>
+  ${ lines.joinToString(prefix = "<p>", postfix = "</p>", separator = "<p/>") { it } }
+  </center>
+  """
+      .trimIndent()
 
-  override fun isStatusVisible() = shouldShow()
+  val text =
+    htmlComponent(
+      text = html,
+      lineWrap = true,
+      font = JBUI.Fonts.label(13f),
+      foreground = StandardColors.PLACEHOLDER_TEXT_COLOR,
+    )
+
+  text.isOpaque = false
+  text.isFocusable = false
+  text.border = JBUI.Borders.empty()
+
+  // To center vertically
+  val panel = JPanel(GridBagLayout())
+  val constraints =
+    GridBagConstraints().apply {
+      fill = GridBagConstraints.BOTH
+      gridx = 0
+      gridy = 0
+      weightx = 1.0
+    }
+
+  panel.add(text, constraints)
+  return panel
 }
