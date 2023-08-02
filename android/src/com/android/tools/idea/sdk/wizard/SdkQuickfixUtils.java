@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk.wizard;
 
 import static org.jetbrains.android.util.AndroidBundle.message;
 
+import com.android.annotations.concurrency.Slow;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.ProgressIndicatorAdapter;
@@ -42,6 +43,7 @@ import com.intellij.CommonBundle;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
@@ -291,6 +293,34 @@ public final class SdkQuickfixUtils {
         unavailableDownloads.add(p);
       }
     }
+  }
+
+  /**
+   * Checks whether a given package path is available for download.
+   *
+   * @param path The package path to check, corresponding to {@link RepoPackage#getPath()}.
+   * @param project The {@link Project} used for this operation's progress runner.
+   */
+  @Slow
+  public static boolean checkPathIsAvailableForDownload(String path, Project project) {
+    ApplicationManager.getApplication().assertIsNonDispatchThread();
+
+    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
+    if (sdkData == null) return false;
+
+    RepoManager mgr = sdkData.getSdkHandler().getSdkManager(REPO_LOGGER);
+    mgr.loadSynchronously(
+      RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
+      /* onLocalComplete = */ null,
+      /* onSuccess = */ null,
+      /* onError = */ null,
+      new StudioProgressRunner(/* modal = */ false, /* cancellable = */ false, "Finding Available SDK Components", project),
+      new StudioDownloader(),
+      StudioSettingsController.getInstance());
+    RepositoryPackages packages = mgr.getPackages();
+
+    UpdatablePackage p = packages.getConsolidatedPkgs().get(path);
+    return p != null && p.hasRemote();
   }
 
   /**
