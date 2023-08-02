@@ -50,6 +50,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import javax.swing.SwingUtilities;
+import kotlin.Lazy;
 import kotlin.LazyKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,33 +85,35 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   private final RecordingOptionsModel myRecordingOptionsModel;
 
   @VisibleForTesting
-  public RecordingOption lazyHeapDumpRecordingOption = LazyKt.lazyOf(new RecordingOption(CAPTURE_HEAP_DUMP_TEXT, HEAP_DUMP_TOOLTIP, () -> {
-    requestHeapDump();
-    getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
-  })).getValue();
+  public Lazy<RecordingOption> lazyHeapDumpRecordingOption =
+    LazyKt.lazyOf(new RecordingOption(CAPTURE_HEAP_DUMP_TEXT, HEAP_DUMP_TOOLTIP, () -> {
+      requestHeapDump();
+      getStudioProfilers().getIdeServices().getFeatureTracker().trackDumpHeap();
+    }));
 
   @VisibleForTesting
-  public RecordingOption lazyNativeRecordingOption =
-    LazyKt.lazyOf(makeToggleOption(RECORD_NATIVE_TEXT, RECORD_NATIVE_DESC, this::toggleNativeAllocationTracking)).getValue();
+  public Lazy<RecordingOption> lazyNativeRecordingOption =
+    LazyKt.lazyOf(makeToggleOption(RECORD_NATIVE_TEXT, RECORD_NATIVE_DESC, this::toggleNativeAllocationTracking));
 
   @VisibleForTesting
-  public RecordingOption lazyJavaKotlinAllocationsRecordingOption = LazyKt.lazyOf(makeToggleOption(RECORD_JAVA_TEXT, RECORD_JAVA_TOOLTIP,
-                                                                                                   isLiveAllocationTrackingSupported() ?
-                                                                                                   // post-O
-                                                                                                   () -> getStudioProfilers().setStage(
-                                                                                                     AllocationStage.makeLiveStage(
-                                                                                                       getStudioProfilers())) :
-                                                                                                   // legacy
-                                                                                                   () -> {
-                                                                                                     if (isTrackingAllocations()) {
-                                                                                                       getStudioProfilers().getIdeServices()
-                                                                                                         .getFeatureTracker()
-                                                                                                         .trackRecordAllocations();
-                                                                                                     }
-                                                                                                     trackAllocations(
-                                                                                                       !isTrackingAllocations());
-                                                                                                   }
-  )).getValue();
+  public Lazy<RecordingOption> lazyJavaKotlinAllocationsRecordingOption =
+    LazyKt.lazyOf(makeToggleOption(RECORD_JAVA_TEXT, RECORD_JAVA_TOOLTIP,
+                                   isLiveAllocationTrackingSupported() ?
+                                   // post-O
+                                   () -> getStudioProfilers().setStage(
+                                     AllocationStage.makeLiveStage(
+                                       getStudioProfilers())) :
+                                   // legacy
+                                   () -> {
+                                     if (isTrackingAllocations()) {
+                                       getStudioProfilers().getIdeServices()
+                                         .getFeatureTracker()
+                                         .trackRecordAllocations();
+                                     }
+                                     trackAllocations(
+                                       !isTrackingAllocations());
+                                   }
+    ));
 
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers) {
     this(profilers, new CaptureObjectLoader());
@@ -167,11 +170,11 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
         myRecordingOptionsModel.setOptionNotReady(option, feature.getTitle() + " is not supported for profileable processes");
       }
     };
-    adder.accept(SupportLevel.Feature.MEMORY_HEAP_DUMP, lazyHeapDumpRecordingOption);
+    adder.accept(SupportLevel.Feature.MEMORY_HEAP_DUMP, lazyHeapDumpRecordingOption.getValue());
     if (isNativeAllocationSamplingEnabled()) {
-      adder.accept(SupportLevel.Feature.MEMORY_NATIVE_RECORDING, lazyNativeRecordingOption);
+      adder.accept(SupportLevel.Feature.MEMORY_NATIVE_RECORDING, lazyNativeRecordingOption.getValue());
     }
-    adder.accept(SupportLevel.Feature.MEMORY_JVM_RECORDING, lazyJavaKotlinAllocationsRecordingOption);
+    adder.accept(SupportLevel.Feature.MEMORY_JVM_RECORDING, lazyJavaKotlinAllocationsRecordingOption.getValue());
 
     // Update statuses after recording options model has been initialized
     updateAllocationTrackingStatus();

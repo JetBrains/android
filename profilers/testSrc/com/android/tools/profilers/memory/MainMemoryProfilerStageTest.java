@@ -877,25 +877,25 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   @Test
   public void testLazyHeapDumpRecordingOption() {
     MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
-    RecordingOption recordingOption = stage.lazyHeapDumpRecordingOption;
+    RecordingOption recordingOption = stage.lazyHeapDumpRecordingOption.getValue();
     // Call for the recording option again to confirm it is the original recording option instance.
-    assertThat(recordingOption).isEqualTo(stage.lazyHeapDumpRecordingOption);
+    assertThat(recordingOption).isEqualTo(stage.lazyHeapDumpRecordingOption.getValue());
   }
 
   @Test
   public void testLazyNativeRecordingOption() {
     MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
-    RecordingOption recordingOption = stage.lazyNativeRecordingOption;
+    RecordingOption recordingOption = stage.lazyNativeRecordingOption.getValue();
     // Call for the recording option again to confirm it is the original recording option instance.
-    assertThat(recordingOption).isEqualTo(stage.lazyNativeRecordingOption);
+    assertThat(recordingOption).isEqualTo(stage.lazyNativeRecordingOption.getValue());
   }
 
   @Test
   public void testLazyJavaKotlinAllocationsRecordingOption() {
     MainMemoryProfilerStage stage = new MainMemoryProfilerStage(myProfilers, myMockLoader);
-    RecordingOption recordingOption = stage.lazyJavaKotlinAllocationsRecordingOption;
+    RecordingOption recordingOption = stage.lazyJavaKotlinAllocationsRecordingOption.getValue();
     // Call for the recording option again to confirm it is the original recording option instance.
-    assertThat(recordingOption).isEqualTo(stage.lazyJavaKotlinAllocationsRecordingOption);
+    assertThat(recordingOption).isEqualTo(stage.lazyJavaKotlinAllocationsRecordingOption.getValue());
   }
 
   private void assumePreO(boolean assumedPreO) {
