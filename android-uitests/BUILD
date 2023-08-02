@@ -467,6 +467,26 @@ java_test(
 )
 
 java_test(
+    name = "ProblemsPanelTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib:build.prop",
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+        "//prebuilts/studio/layoutlib/data:native_libs",
+        "//prebuilts/studio/layoutlib/data/fonts",
+        "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/layoutlib/data/keyboards",
+    ] + glob(["testData/CodeGeneration/**"]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.designTools.problemsPanel.ProblemsPanelTest"],
+    tags = COMMON_TAGS + [
+        "no_windows",
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "SharedIssuePanelTest",
     size = "large",
     data = COMMON_DATA + [
