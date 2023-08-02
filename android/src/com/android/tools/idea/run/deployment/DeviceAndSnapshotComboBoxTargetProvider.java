@@ -36,16 +36,23 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   private final @NotNull Supplier<DeviceAndSnapshotComboBoxAction> myDeviceAndSnapshotComboBoxActionGetInstance;
   private final @NotNull DialogSupplier mySelectedDevicesErrorDialog;
 
+  @NotNull
+  private final Supplier<DeployTarget> myNewDeviceAndSnapshotComboBoxTarget;
+
   // TODO This should not be used in tests
   public DeviceAndSnapshotComboBoxTargetProvider() {
-    this(DeviceAndSnapshotComboBoxAction::getInstance, SelectedDevicesErrorDialog::new);
+    this(DeviceAndSnapshotComboBoxAction::getInstance,
+         SelectedDevicesErrorDialog::new,
+         () -> new DeviceAndSnapshotComboBoxTarget(DeviceAndSnapshotComboBoxAction.getInstance()::getSelectedTargets));
   }
 
   @VisibleForTesting
   DeviceAndSnapshotComboBoxTargetProvider(@NotNull Supplier<DeviceAndSnapshotComboBoxAction> deviceAndSnapshotComboBoxActionGetInstance,
-                                          @NotNull DialogSupplier selectedDevicesErrorDialog) {
+                                          @NotNull DialogSupplier selectedDevicesErrorDialog,
+                                          @NotNull Supplier<DeployTarget> newDeviceAndSnapshotComboBoxTarget) {
     myDeviceAndSnapshotComboBoxActionGetInstance = deviceAndSnapshotComboBoxActionGetInstance;
     mySelectedDevicesErrorDialog = selectedDevicesErrorDialog;
+    myNewDeviceAndSnapshotComboBoxTarget = newDeviceAndSnapshotComboBoxTarget;
   }
 
   @NotNull
@@ -105,13 +112,13 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
       }
     }
 
-    return new DeviceAndSnapshotComboBoxTarget(myDeviceAndSnapshotComboBoxActionGetInstance.get()::getSelectedTargets);
+    return myNewDeviceAndSnapshotComboBoxTarget.get();
   }
 
   @NotNull
   @Override
   public DeployTarget getDeployTarget(@NotNull Project project) {
-    return new DeviceAndSnapshotComboBoxTarget(myDeviceAndSnapshotComboBoxActionGetInstance.get()::getSelectedTargets);
+    return myNewDeviceAndSnapshotComboBoxTarget.get();
   }
 
   @Override

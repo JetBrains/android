@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,6 +25,7 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.android.tools.idea.run.deployment.Device.Type;
+import com.android.tools.idea.run.editor.DeployTarget;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
@@ -52,7 +54,7 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
   @Test
   public void requiresRuntimePrompt() {
     // Arrange
-    var provider = new DeviceAndSnapshotComboBoxTargetProvider(() -> myAction, (project, devices) -> myDialog);
+    var provider = new DeviceAndSnapshotComboBoxTargetProvider(() -> myAction, (project, devices) -> myDialog, () -> null);
 
     // Act
     var requires = provider.requiresRuntimePrompt(myProject);
@@ -83,7 +85,7 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     Mockito.when(myAction.getDevices(myProject)).thenReturn(Optional.of(devices));
     Mockito.when(myAction.getSelectedTargets(myProject)).thenReturn(Optional.of(targets));
 
-    var provider = new DeviceAndSnapshotComboBoxTargetProvider(() -> myAction, errorDialogSupplier);
+    var provider = new DeviceAndSnapshotComboBoxTargetProvider(() -> myAction, errorDialogSupplier, () -> null);
 
     Module module = Mockito.mock(Module.class);
     Mockito.when(module.getProject()).thenReturn(myProject);
@@ -97,5 +99,18 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     // Assert
     assert deployTarget == null;
     Mockito.verify(errorDialogSupplier).get(myProject, List.of(deviceWithError));
+  }
+
+  @Test
+  public void showPrompt() {
+    // Arrange
+    var expectedTarget = Mockito.mock(DeployTarget.class);
+    var provider = new DeviceAndSnapshotComboBoxTargetProvider(() -> myAction, (project, devices) -> myDialog, () -> expectedTarget);
+
+    // Act
+    var actualTarget = provider.showPrompt(myProject);
+
+    // Assert
+    assertEquals(expectedTarget, actualTarget);
   }
 }
