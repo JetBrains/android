@@ -106,7 +106,7 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
 
     new_res_jar = ctx.actions.declare_file(ctx.attr.name + ".%s.updated-app-icon-resources.jar" % platform_name)
     ctx.actions.run(
-        inputs = [file_map[resources_jar], icon_info.svg],
+        inputs = [file_map[resources_jar], icon_info.svg, icon_info.svg_small],
         outputs = [new_res_jar],
         arguments = [
             "--resources_jar",
