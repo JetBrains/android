@@ -1251,6 +1251,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.OpenCloseVisualizationToolTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -1326,6 +1327,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.GradleVersionCatalogTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -1340,6 +1342,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.GradleVersionCatalogTest2"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "qa_smoke",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
@@ -2043,6 +2046,7 @@ java_test(
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.intellijplatform.GotoDeclarationTest"],
     tags = COMMON_TAGS + [
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
@@ -2669,6 +2673,7 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.cpp.ShowFilesUnknownToCMakeActionTest"],
     tags = COMMON_TAGS + [
         "no_crostini",
+        "no_mac",
         "no_windows",
         "qa_smoke",
     ],
