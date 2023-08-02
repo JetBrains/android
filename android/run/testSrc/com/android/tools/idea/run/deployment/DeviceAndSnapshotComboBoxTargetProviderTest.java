@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -23,16 +24,15 @@ import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.android.tools.idea.run.deployment.Device.Type;
-import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -40,6 +40,27 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class DeviceAndSnapshotComboBoxTargetProviderTest {
+  @NotNull
+  private final DeviceAndSnapshotComboBoxAction myAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
+
+  @NotNull
+  private final DialogWrapper myDialog = Mockito.mock(DialogWrapper.class);
+
+  @NotNull
+  private final Project myProject = Mockito.mock(Project.class);
+
+  @Test
+  public void requiresRuntimePrompt() {
+    // Arrange
+    var provider = new DeviceAndSnapshotComboBoxTargetProvider(() -> myAction, (project, devices) -> myDialog);
+
+    // Act
+    var requires = provider.requiresRuntimePrompt(myProject);
+
+    // Assert
+    assertFalse(requires);
+  }
+
   @Test
   public void showErrorMessage() {
     // Arrange
@@ -52,32 +73,29 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
       .build();
 
     List<Device> devices = Arrays.asList(deviceWithError, TestDevices.buildPixel4Api30());
-    DialogWrapper errorDialog = Mockito.mock(DialogWrapper.class);
-    Project project = Mockito.mock(Project.class);
 
     DialogSupplier errorDialogSupplier = Mockito.mock(DialogSupplier.class);
-    Mockito.when(errorDialogSupplier.get(any(Project.class), anyList())).thenReturn(errorDialog);
+    Mockito.when(errorDialogSupplier.get(any(Project.class), anyList())).thenReturn(myDialog);
 
     Set<Target> targets = new HashSet<>(Arrays.asList(new QuickBootTarget(Keys.PIXEL_4_API_29), new QuickBootTarget(Keys.PIXEL_4_API_30)));
 
-    DeviceAndSnapshotComboBoxAction action = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
-    Mockito.when(action.getSelectedDevices(project)).thenReturn(devices);
-    Mockito.when(action.getDevices(project)).thenReturn(Optional.of(devices));
-    Mockito.when(action.getSelectedTargets(project)).thenReturn(Optional.of(targets));
+    Mockito.when(myAction.getSelectedDevices(myProject)).thenReturn(devices);
+    Mockito.when(myAction.getDevices(myProject)).thenReturn(Optional.of(devices));
+    Mockito.when(myAction.getSelectedTargets(myProject)).thenReturn(Optional.of(targets));
 
-    DeployTargetProvider provider = new DeviceAndSnapshotComboBoxTargetProvider(() -> action, errorDialogSupplier);
+    var provider = new DeviceAndSnapshotComboBoxTargetProvider(() -> myAction, errorDialogSupplier);
 
     Module module = Mockito.mock(Module.class);
-    Mockito.when(module.getProject()).thenReturn(project);
+    Mockito.when(module.getProject()).thenReturn(myProject);
 
-    boolean requiresRuntimePrompt = provider.requiresRuntimePrompt(project);
+    var requiresRuntimePrompt = provider.requiresRuntimePrompt(myProject);
     assertTrue(requiresRuntimePrompt);
 
     // Act
-    Object deployTarget = provider.showPrompt(project);
+    var deployTarget = provider.showPrompt(myProject);
 
     // Assert
     assert deployTarget == null;
-    Mockito.verify(errorDialogSupplier).get(project, Collections.singletonList(deviceWithError));
+    Mockito.verify(errorDialogSupplier).get(myProject, List.of(deviceWithError));
   }
 }
