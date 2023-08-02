@@ -80,6 +80,8 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
     if platform_name not in ["linux", "win", "mac", "mac_arm"]:
         fail("Unexpected platform name: '%s'" % platform_name)
 
+    resources_jar = "lib/resources.jar"
+
     new_file_map = {k: v for k, v in file_map.items()}
     if platform_name == "linux":
         if icon_info.png:
@@ -87,6 +89,7 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
         if icon_info.svg:
             new_file_map[_STUDIO_PATH_SVG] = icon_info.svg
     if platform_name in ["mac", "mac_arm"]:
+        resources_jar = "Contents/%s" % resources_jar
         if icon_info.icns:
             new_file_map[_STUDIO_PATH_ICNS] = icon_info.icns
         if icon_info.svg:
@@ -100,5 +103,24 @@ def replace_app_icon(ctx, platform_name, file_map, icon_info):
             new_file_map[_STUDIO_PATH_WINDOWS_EXE] = new_win_exe
         if icon_info.svg:
             new_file_map[_STUDIO_PATH_SVG] = icon_info.svg
+
+    new_res_jar = ctx.actions.declare_file(ctx.attr.name + ".%s.updated-app-icon-resources.jar" % platform_name)
+    ctx.actions.run(
+        inputs = [file_map[resources_jar], icon_info.svg],
+        outputs = [new_res_jar],
+        arguments = [
+            "--resources_jar",
+            file_map[resources_jar].path,
+            "--svg",
+            icon_info.svg.path,
+            "--svg_small",
+            icon_info.svg_small.path,
+            "--out",
+            new_res_jar.path,
+        ],
+        executable = ctx.executable._update_resources_jar,
+        mnemonic = "UpdateIntellijResourceJar",
+    )
+    new_file_map[resources_jar] = new_res_jar
 
     return new_file_map

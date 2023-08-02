@@ -859,6 +859,11 @@ _android_studio = rule(
             cfg = "exec",
             executable = True,
         ),
+        "_update_resources_jar": attr.label(
+            default = Label("//tools/adt/idea/studio/rules:update_resources_jar"),
+            cfg = "exec",
+            executable = True,
+        ),
     },
     outputs = {
         "linux": "%{name}.linux.zip",
