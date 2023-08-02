@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment;
 
+import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.run.editor.DeployTarget;
@@ -28,7 +29,6 @@ import com.intellij.openapi.project.Project;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,7 +81,11 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
       return false;
     }
 
-    boolean anyDeviceHasError = devicesWithError.stream().anyMatch(d -> d.getLaunchCompatibility().getState() == State.ERROR);
+    var anyDeviceHasError = devicesWithError.stream()
+      .map(Device::launchCompatibility)
+      .map(LaunchCompatibility::getState)
+      .anyMatch(state -> state.equals(State.ERROR));
+
     // Show dialog if any device has an error or if DO_NOT_SHOW_WARNING_ON_DEPLOYMENT is not true (null or false).
     return anyDeviceHasError || !Objects.equals(project.getUserData(SelectedDevicesErrorDialog.DO_NOT_SHOW_WARNING_ON_DEPLOYMENT), true);
   }
@@ -89,7 +93,7 @@ public final class DeviceAndSnapshotComboBoxTargetProvider extends DeployTargetP
   @NotNull
   private List<Device> selectedDevicesWithError(@NotNull Project project) {
     List<Device> selectedDevices = myDeviceAndSnapshotComboBoxActionGetInstance.get().getSelectedDevices(project);
-    return selectedDevices.stream().filter(d -> !d.getLaunchCompatibility().getState().equals(State.OK)).collect(Collectors.toList());
+    return selectedDevices.stream().filter(device -> !device.launchCompatibility().getState().equals(State.OK)).toList();
   }
 
   @Override
