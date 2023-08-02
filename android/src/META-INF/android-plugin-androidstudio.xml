@@ -43,10 +43,12 @@
     <backgroundPostStartupActivity implementation="com.android.tools.idea.serverflags.ServerFlagDownloader$Initializer" />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.diagnostics.WindowsCRuntimeChecker" os="windows" />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.diagnostics.DiagnosticsReportCleaner" />
-    <applicationService serviceInterface="com.intellij.toolWindow.DefaultToolWindowLayoutProvider"
-                        serviceImplementation="com.android.tools.idea.AndroidStudioDefaultToolWindowLayoutProvider"
-                        overrides="true"/>
     <defender.config implementation="com.android.tools.idea.diagnostics.windows.AndroidWindowsDefenderCheckerExt"/>
+    <defaultToolWindowLayout
+      id="AndroidStudioDefaultToolWindowLayoutExtension"
+      implementation="com.android.tools.idea.AndroidStudioDefaultToolWindowLayoutExtension"
+      order="last"
+    />
     <applicationService serviceInterface="com.intellij.diagnostic.LowMemoryNotifier" preload="true" overrides="true"
                         serviceImplementation="com.android.tools.idea.memorysettings.AndroidLowMemoryNotifier"/>
   </extensions>
