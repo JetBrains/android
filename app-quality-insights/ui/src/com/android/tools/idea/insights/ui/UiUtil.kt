@@ -145,14 +145,14 @@ class JListSimpleColoredComponent<T>(icon: Icon?, list: JList<T>, hasFocus: Bool
   }
 }
 
-fun prettyRangeString(lower: Any, upper: Any) =
+fun prettyRangeString(lower: Any, upper: Any = lower) =
   if (lower == upper) {
     lower.toString()
   } else {
     "$lower → $upper"
   }
 
-fun prettyApiLevelRangeString(lower: Int, upper: Int) =
+fun prettyApiLevelRangeString(lower: Int, upper: Int = lower) =
   prettyRangeString(
     computeFullReleaseName(lower, null, includeApiLevel = true),
     computeFullReleaseName(upper, null, includeApiLevel = true)
