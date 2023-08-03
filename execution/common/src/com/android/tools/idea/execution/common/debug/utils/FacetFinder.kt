@@ -20,6 +20,7 @@ import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.isAndroidTestModule
 import com.android.tools.idea.projectsystem.isMainModule
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.util.androidFacet
@@ -45,20 +46,28 @@ import kotlin.jvm.Throws
  */
 object FacetFinder {
 
+  data class Result(val facet: AndroidFacet, val applicationId: String)
+
   /**
    * Finds a suitable facet by process name to use in debugger attachment configuration.
    *
    * @return The facet to use for attachment configuration. Null if no suitable facet exists.
    */
   @Throws(ExecutionException::class)
-  fun findFacetForProcess(project: Project, clientData: ClientData): AndroidFacet {
+  fun findFacetForProcess(project: Project, clientData: ClientData): Result {
     return clientData.packageName?.let { heuristicApplicationId -> findFacetForApplicationId(project, heuristicApplicationId) }
            ?: findFacetForGlobalProcess(project, clientData.clientDescription ?: throw ExecutionException("Process name not found"))
+
            ?: throw ExecutionException("Unable to find project context to attach debugger for process ${clientData.clientDescription}")
   }
 
-  private fun findFacetForApplicationId(project: Project, applicationId: String): AndroidFacet? {
-    return project.getProjectSystem().findModulesWithApplicationId(applicationId).lastOrNull()?.androidFacet
+  private fun findFacetForApplicationId(project: Project, applicationId: String): Result? {
+    return project.getProjectSystem().findModulesWithApplicationId(applicationId).lastOrNull()?.androidFacet?.let {
+      Result(
+        facet = it,
+        applicationId = applicationId
+      )
+    }
   }
 
   /**
@@ -66,11 +75,21 @@ object FacetFinder {
    *
    * First finds the global process definition, and then if it is in a library, traverses up the graph to find a suitable applicaiton.
    */
-  private fun findFacetForGlobalProcess(project: Project, processName: String): AndroidFacet? {
+  private fun findFacetForGlobalProcess(project: Project, processName: String): Result? {
     val definingModule = findGlobalProcessDefinition(project, processName) ?: return null
-    if (definingModule.getModuleSystem().type != AndroidModuleSystem.Type.TYPE_LIBRARY) {
+    val definingModuleSystem = definingModule.getModuleSystem()
+    if (definingModule.isAndroidTestModule() || definingModuleSystem.type != AndroidModuleSystem.Type.TYPE_LIBRARY) {
       // Global process defined in an application or similar, just return that location.
-      return AndroidFacet.getInstance(definingModule)
+      val androidFacet = AndroidFacet.getInstance(definingModule) ?: error("AndroidFacet is null")
+      return Result(
+        facet = androidFacet,
+        applicationId = definingModuleSystem.getApplicationIdProvider().let {
+          when {
+            definingModule.isAndroidTestModule() -> it.testPackageName ?: error("testPackageName is null")
+            else -> it.packageName
+          }
+        }
+      )
     }
     val moduleManager = ModuleManager.getInstance(project)
     // Global process defined in a library, find modules that depend on that library
@@ -84,7 +103,12 @@ object FacetFinder {
         // Then prioritize by module dependency order
         .thenComparing(moduleManager.moduleDependencyComparator())
     ) ?: return null
-    return AndroidFacet.getInstance(candidate)
+    val androidFacet = AndroidFacet.getInstance(candidate)
+      ?: error("${candidate.name} depends on an AndroidModule ${definingModule.name} but AndroidFacet was not found")
+    return Result(
+      facet = androidFacet,
+      applicationId = androidFacet.getModuleSystem().getApplicationIdProvider().packageName
+    )
   }
 
   private val androidModuleTypeComparator: Comparator<Module> = Comparator.comparing {

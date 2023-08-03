@@ -33,7 +33,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionException
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -44,7 +43,6 @@ import org.junit.Test
 import org.mockito.Mockito
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNull
 
 class FacetFinderTest {
 
@@ -246,56 +244,65 @@ class FacetFinderTest {
   @Test
   fun testPackageName() {
     val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = "applicationId", processName = "overridden"))
-    assertEquals(appFacet.mainModule.androidFacet, result)
+    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testLocalProcessFromAppModule() {
     val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = "applicationId", processName = "applicationId:localfromapp"))
-    assertEquals(appFacet.mainModule.androidFacet, result)
+    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testLocalProcessFromLibModule() {
     val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = "applicationId", processName = "applicationId:localfromlib"))
-    assertEquals(appFacet.mainModule.androidFacet, result)
+    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromAppModule() {
     val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = null, processName = "globalfromapp"))
-    assertEquals(appFacet.mainModule.androidFacet, result)
+    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromAppAndroidTestModule() {
     val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = null, processName = "globalfromappandroidtest"))
-    assertEquals(appFacet.androidTestModule!!.androidFacet, result)
+    assertEquals(appFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals("testApplicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromLibModule() {
     val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = null, processName = "globalfromlib"))
-    assertEquals(appFacet.mainModule.androidFacet, result)
+    assertEquals(appFacet.mainModule.androidFacet, result.facet)
+    assertEquals("applicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromLibModuleAndroidTest() {
     val result = FacetFinder.findFacetForProcess(project, FakeClientData(applicationId = null, processName = "globalfromlibandroidtest"))
-    assertEquals(libFacet.androidTestModule!!.androidFacet, result)
+    assertEquals(libFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals("libTestApplicationId", result.applicationId)
   }
 
   @Test
   fun testGlobalProcessFromLibModuleAndroidTestDebug() {
     val result = FacetFinder.findFacetForProcess(project,
                                                  FakeClientData(applicationId = null, processName = "globalfromlibdebugandroidtest"))
-    assertEquals(libFacet.androidTestModule!!.androidFacet, result)
+    assertEquals(libFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals("libTestApplicationId", result.applicationId)  // Might be imprecise?
   }
 
   @Test
   fun testTestPackageName() {
     val result = FacetFinder.findFacetForProcess(project,
                                                  FakeClientData(applicationId = "libTestApplicationId", processName = "overridden"))
-    assertEquals(libFacet.androidTestModule!!.androidFacet, result)
+    assertEquals(libFacet.androidTestModule!!.androidFacet, result.facet)
+    assertEquals("libTestApplicationId", result.applicationId)
   }
 }
