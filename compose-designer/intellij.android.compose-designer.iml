@@ -59,7 +59,6 @@
     <orderEntry type="module" module-name="kotlin.highlighting.shared" />
     <orderEntry type="module" module-name="kotlin.base.util" />
     <orderEntry type="module" module-name="kotlin.base.code-insight" />
-    <orderEntry type="module" module-name="kotlin.base.fe10.highlighting" />
     <orderEntry type="module" module-name="kotlin.completion.impl-k1" />
     <orderEntry type="module" module-name="kotlin.completion.impl-shared" />
     <orderEntry type="module" module-name="intellij.platform.analysis" />
