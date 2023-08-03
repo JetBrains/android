@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.ide.common.resources.Locale
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.openapi.application.ReadAction
@@ -46,6 +47,8 @@ class WearTilePreviewElementFinderTest {
       """
         package androidx.wear.tiles.tooling.preview
 
+        import androidx.annotation.FloatRange
+
         object WearDevices {
             const val LARGE_ROUND = "id:wearos_large_round"
             const val SMALL_ROUND = "id:wearos_small_round"
@@ -57,6 +60,8 @@ class WearTilePreviewElementFinderTest {
             val name: String = "",
             val group: String = "",
             val device: String = WearDevices.SMALL_ROUND,
+            val locale: String = "",
+            @FloatRange(from = 0.01) val fontScale: Float = 1f,
         )
         """
         .trimIndent()
@@ -104,6 +109,19 @@ class WearTilePreviewElementFinderTest {
 
         fun someRandomMethod() {
         }
+
+        @TilePreview(
+          locale = "fr"
+        )
+        private fun tilePreviewWithLocale() {
+        }
+
+        @TilePreview(
+          fontScale = 1.2f
+        )
+        private fun tilePreviewWithFontScale() {
+        }
+
         """
           .trimIndent()
       )
@@ -153,7 +171,7 @@ class WearTilePreviewElementFinderTest {
     runBlocking {
       val previewElements =
         WearTilePreviewElementFinder.findPreviewElements(project, previewsTest.virtualFile)
-      assertThat(previewElements).hasSize(4)
+      assertThat(previewElements).hasSize(6)
 
       previewElements.elementAt(0).let {
         assertThat(it.displaySettings.name).isEqualTo("tilePreview")
@@ -162,6 +180,8 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.displaySettings.showDecoration).isFalse()
         assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
         assertThat(it.configuration.device).isEqualTo("id:wearos_small_round")
+        assertThat(it.configuration.locale).isNull()
+        assertThat(it.configuration.fontScale).isEqualTo(1f)
 
         ReadAction.run<Throwable> {
           assertThat(it.previewBodyPsi?.psiRange?.range)
@@ -177,6 +197,8 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.displaySettings.showDecoration).isFalse()
         assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
         assertThat(it.configuration.device).isEqualTo("id:wearos_large_round")
+        assertThat(it.configuration.locale).isNull()
+        assertThat(it.configuration.fontScale).isEqualTo(1f)
 
         ReadAction.run<Throwable> {
           assertThat(it.previewBodyPsi?.psiRange?.range)
@@ -200,6 +222,8 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.displaySettings.showDecoration).isFalse()
         assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
         assertThat(it.configuration.device).isEqualTo("id:wearos_small_round")
+        assertThat(it.configuration.locale).isNull()
+        assertThat(it.configuration.fontScale).isEqualTo(1f)
 
         ReadAction.run<Throwable> {
           assertThat(it.previewBodyPsi?.psiRange?.range)
@@ -223,6 +247,8 @@ class WearTilePreviewElementFinderTest {
         assertThat(it.displaySettings.showDecoration).isFalse()
         assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
         assertThat(it.configuration.device).isEqualTo("id:wearos_square")
+        assertThat(it.configuration.locale).isNull()
+        assertThat(it.configuration.fontScale).isEqualTo(1f)
 
         ReadAction.run<Throwable> {
           assertThat(it.previewBodyPsi?.psiRange?.range)
@@ -235,6 +261,54 @@ class WearTilePreviewElementFinderTest {
               device = WearDevices.SQUARE
             )
           """
+                .trimIndent()
+            )
+        }
+      }
+      previewElements.elementAt(4).let {
+        assertThat(it.displaySettings.name).isEqualTo("tilePreviewWithLocale")
+        assertThat(it.displaySettings.group).isNull()
+        assertThat(it.displaySettings.showBackground).isTrue()
+        assertThat(it.displaySettings.showDecoration).isFalse()
+        assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
+        assertThat(it.configuration.device).isEqualTo("id:wearos_small_round")
+        assertThat(it.configuration.locale).isEqualTo(Locale.create("fr"))
+        assertThat(it.configuration.fontScale).isEqualTo(1f)
+
+        ReadAction.run<Throwable> {
+          assertThat(it.previewBodyPsi?.psiRange?.range)
+            .isEqualTo(previewsTest.textRange("tilePreviewWithLocale"))
+          assertThat(it.previewElementDefinitionPsi?.element?.text)
+            .isEqualTo(
+              """
+           @TilePreview(
+             locale = "fr"
+           )
+         """
+                .trimIndent()
+            )
+        }
+      }
+      previewElements.elementAt(5).let {
+        assertThat(it.displaySettings.name).isEqualTo("tilePreviewWithFontScale")
+        assertThat(it.displaySettings.group).isNull()
+        assertThat(it.displaySettings.showBackground).isTrue()
+        assertThat(it.displaySettings.showDecoration).isFalse()
+        assertThat(it.displaySettings.backgroundColor).isEqualTo("#ff000000")
+        assertThat(it.configuration.device).isEqualTo("id:wearos_small_round")
+        assertThat(it.configuration.locale).isNull()
+        assertThat(it.configuration.fontScale).isEqualTo(1.2f)
+
+        ReadAction.run<Throwable> {
+          assertThat(it.previewBodyPsi?.psiRange?.range)
+            .isEqualTo(previewsTest.textRange("tilePreviewWithFontScale"))
+          assertThat(it.previewElementDefinitionPsi?.element?.text)
+            .isEqualTo(
+              """
+           @TilePreview(
+             fontScale = 1.2f
+           )
+         """
                 .trimIndent()
             )
         }

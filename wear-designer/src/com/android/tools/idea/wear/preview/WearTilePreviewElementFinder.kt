@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.ide.common.resources.Locale
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.annotations.hasAnnotation
 import com.android.tools.idea.annotations.isAnnotatedWith
@@ -76,9 +77,9 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTile
 
     val defaultValues = rootAnnotation.findPreviewDefaultValues()
 
-    val device =
-      rootAnnotation.findAttributeValue("device")?.evaluateString()?.nullize()
-        ?: defaultValues["device"]
+    val device = rootAnnotation.findAttributeValue("device")?.evaluateString()?.nullize() ?: defaultValues["device"]
+    val locale = (rootAnnotation.findAttributeValue("locale")?.evaluateString() ?: defaultValues["device"])?.nullize()
+    val fontScale = rootAnnotation.findAttributeValue("fontScale")?.evaluate() as? Float ?: defaultValues["fontScale"]?.toFloatOrNull()
     val name = rootAnnotation.findAttributeValue("name")?.evaluateString()?.nullize()
     val group = rootAnnotation.findAttributeValue("group")?.evaluateString()?.nullize()
 
@@ -98,7 +99,11 @@ internal object WearTilePreviewElementFinder : FilePreviewElementFinder<WearTile
       previewElementDefinitionPsi = rootAnnotation.toSmartPsiPointer(),
       previewBodyPsi = uMethod.uastBody.toSmartPsiPointer(),
       methodFqn = uMethod.qualifiedName,
-      configuration = WearTilePreviewConfiguration.forValues(device = device)
+      configuration = WearTilePreviewConfiguration.forValues(
+        device = device,
+        locale = locale?.let { Locale.create(it) },
+        fontScale = fontScale
+      )
     )
   }
 }

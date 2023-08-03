@@ -64,6 +64,10 @@ internal class WearTilePreviewElementModelAdapter<M : DataContextHolder> :
         setEffectiveDevice(null, null)
         setDevice(device, false)
       }
+      previewElement.configuration.locale?.let {
+        locale = it
+      }
+      fontScale = previewElement.configuration.fontScale
       finishBulkEditing()
     }
   }

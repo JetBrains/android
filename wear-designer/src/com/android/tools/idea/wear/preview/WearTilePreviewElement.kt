@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.wear.preview
 
+import com.android.ide.common.resources.Locale
 import com.android.tools.idea.preview.MethodPreviewElement
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
+import kotlin.math.max
 
 /** Preview elements implementation for a wear tile. */
 open class WearTilePreviewElement(
@@ -31,12 +33,16 @@ open class WearTilePreviewElement(
 
 data class WearTilePreviewConfiguration
 internal constructor(
-  val device: String
+  val device: String,
+  val locale: Locale?,
+  val fontScale: Float,
 ) {
   companion object {
-    fun forValues(device: String?) =
+    fun forValues(device: String? = null, locale: Locale? = null, fontScale: Float? = null) =
       WearTilePreviewConfiguration(
-        device = device ?: ""
+        device = device ?: "",
+        locale = locale,
+        fontScale = max(0f, fontScale ?: 1f)
       )
   }
 }
