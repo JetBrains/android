@@ -28,6 +28,7 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.idea.preview.modes.PreviewModeManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
@@ -36,6 +37,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -362,6 +364,73 @@ class ComposePreviewRepresentationTest {
       preview.onDeactivate()
     }
   }
+
+  @Test
+  fun testPreviewModeManagerShouldBeRegisteredInDataProvider() =
+    runBlocking(workerThread) {
+      val composeTest = runWriteActionAndWait {
+        fixture.addFileToProjectAndInvalidate(
+          "Test.kt",
+          // language=kotlin
+          """
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Composable
+        @Preview
+        fun Preview() {
+        }
+      """
+            .trimIndent()
+        )
+      }
+
+      val navigationHandler = ComposePreviewNavigationHandler()
+      val mainSurface =
+        NlDesignSurface.builder(project, fixture.testRootDisposable)
+          .setNavigationHandler(navigationHandler)
+          .build()
+      val modelRenderedLatch = CountDownLatch(2)
+
+      mainSurface.addListener(
+        object : DesignSurfaceListener {
+          override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+            val id = UUID.randomUUID().toString().substring(0, 5)
+            logger.info("modelChanged ($id)")
+            (surface.getSceneManager(model!!) as? LayoutlibSceneManager)?.addRenderListener {
+              logger.info("renderListener ($id)")
+              modelRenderedLatch.countDown()
+            }
+          }
+        }
+      )
+
+      val composeView = TestComposePreviewView(mainSurface)
+      lateinit var dataProvider: DataProvider
+      val preview =
+        ComposePreviewRepresentation(composeTest, PreferredVisibility.SPLIT) {
+          _,
+          _,
+          _,
+          provider,
+          _,
+          _ ->
+          dataProvider = provider
+          composeView
+        }
+      Disposer.register(fixture.testRootDisposable, preview)
+      withContext(Dispatchers.IO) {
+        logger.info("compile")
+        ProjectSystemService.getInstance(project).projectSystem.getBuildManager().compileProject()
+        logger.info("activate")
+        preview.onActivate()
+
+        modelRenderedLatch.await()
+        delayWhileRefreshingOrDumb(preview)
+      }
+
+      assertEquals(preview, dataProvider.getData(PreviewModeManager.KEY.name))
+    }
 
   private suspend fun delayWhileRefreshingOrDumb(preview: ComposePreviewRepresentation) {
     delayUntilCondition(250) {

@@ -626,7 +626,8 @@ class ComposePreviewRepresentation(
 
   private val dataProvider = DataProvider {
     when (it) {
-      COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
+      COMPOSE_PREVIEW_MANAGER.name,
+      PreviewModeManager.KEY.name -> this@ComposePreviewRepresentation
       // The Compose preview NlModels do not point to the actual file but to a synthetic file
       // generated for Layoutlib. This ensures we return the right file.
       CommonDataKeys.VIRTUAL_FILE.name -> psiFilePointer.virtualFile
