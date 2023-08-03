@@ -157,9 +157,9 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
 
   private void pressControlKeyAndOtherKey(int keyEvent) {
     if (SystemInfo.isMac) {
-      robot().pressKey(KeyEvent.VK_META);
+      robot().pressKey(KeyEvent.META_MASK);
       robot().pressAndReleaseKey(keyEvent);
-      robot().releaseKey(KeyEvent.VK_META);
+      robot().releaseKey(KeyEvent.META_MASK);
     }
     else {
       robot().pressKey(KeyEvent.VK_CONTROL);
