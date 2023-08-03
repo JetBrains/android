@@ -163,5 +163,11 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
     public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
       return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
     }
+
+    @NotNull
+    @Override
+    public  String getAgpDocClass(){
+      return "com.android.build.api.dsl.ApplicationDefaultConfig";
+    }
   }
 }

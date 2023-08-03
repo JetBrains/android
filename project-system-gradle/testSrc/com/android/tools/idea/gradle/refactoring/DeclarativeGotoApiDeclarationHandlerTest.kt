@@ -70,6 +70,34 @@ class DeclarativeGotoApiDeclarationHandlerTest : AndroidGradleTestCase() {
     )
   }
 
+  fun testGoToFromPropertyInComplexContext() {
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+
+    checkUsage(
+      "app/build.gradle.toml",
+      """
+        [[plugins]]
+        id = "application"
+        [android]
+        compileSdk = 12
+        aaptO|ptions.ignoreAssetsPattern = "aaa"
+      """.trimIndent(),
+      "com.android.build.api.dsl.CommonExtension",
+      "public abstract fun aaptOptions(action: com.android.build.api.dsl.AaptOptions.() -> kotlin.Unit)"
+    )
+  }
+
+  fun testGoToFromBuildType() {
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+
+    checkUsage(
+      "app/build.gradle.toml",
+      "android.buildTypes.debug.versionN|ameSuffix =\"aaa\"",
+      "com.android.build.api.dsl.ApplicationVariantDimension",
+      "var versionNameSuffix: kotlin.String?"
+    )
+  }
+
   private fun checkUsage(relativePath: String, caretContext: String, expectedClass: String, expected: String) {
     val caret = caretContext.indexOf('|')
     assertWithMessage("The caretContext must include | somewhere to point to the caret position").that(caret).isNotEqualTo(-1)

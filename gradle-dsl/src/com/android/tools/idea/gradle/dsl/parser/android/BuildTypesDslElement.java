@@ -83,5 +83,11 @@ public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslE
     public ExternalToModelMap getPropertiesInfo(GradleDslNameConverter.Kind kind) {
       return ExternalToModelMap.empty;
     }
+
+    @Nullable
+    @Override
+    public  String getAgpDocClass(){
+      return null;
+    }
   }
 }

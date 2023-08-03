@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.parser.semantics.ExternalToModelMap;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class DefaultConfigDslElement extends AbstractProductFlavorDslElement {
   public static final PropertiesElementDescription<DefaultConfigDslElement> DEFAULT_CONFIG =
@@ -44,6 +45,12 @@ public class DefaultConfigDslElement extends AbstractProductFlavorDslElement {
     @NotNull
     public ExternalToModelMap getPropertiesInfo(Kind kind) {
       return getExternalProperties(kind, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
+    }
+
+    @Nullable
+    @Override
+    public  String getAgpDocClass(){
+      return null;
     }
   }
 }
