@@ -27,18 +27,21 @@ import com.intellij.openapi.project.Project
  * plugins.
  */
 @Service(Service.Level.PROJECT)
-class DeviceProvisionerService(project: Project) : Disposable {
-  private val session = AdbLibService.getSession(project)
-  private val coroutineScope =
-    session.scope.createChildScope(isSupervisor = true, parentDisposable = this)
+class DeviceProvisionerService(private val project: Project) : Disposable {
 
-  val deviceProvisioner =
+  // Construction is lazy to avoid registering the coroutineScope as a child Disposable
+  // of this service before this service has its own parent. If construction aborts in that
+  // case, the service will be retained as a child of the root disposable and leaked.
+  val deviceProvisioner: DeviceProvisioner by lazy {
+    val session = AdbLibService.getSession(project)
+    val coroutineScope = session.scope.createChildScope(isSupervisor = true, parentDisposable = this)
+
     DeviceProvisioner.create(
       coroutineScope,
       session,
       DeviceProvisionerFactory.createProvisioners(coroutineScope, project),
-      StudioDefaultDeviceIcons
-    )
+      StudioDefaultDeviceIcons)
+  }
 
   override fun dispose() {}
 }
