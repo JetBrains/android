@@ -75,9 +75,11 @@ import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
+import org.jetbrains.kotlin.gradle.idea.tcs.IdeaKotlinDependency
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
+import org.jetbrains.kotlin.idea.projectModel.KotlinCompilation
 import org.jetbrains.kotlin.idea.projectModel.KotlinTaskProperties
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
@@ -173,9 +175,14 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(gradleAndroidModel: Grad
 }
 
 private val jbModelDumpers = listOf(
-  SpecializedDumper(property = CommonCompilerArguments::pluginOptions) {
+  SpecializedDumper(property = CommonCompilerArguments::pluginOptions),
+  SpecializedDumper<IdeaKotlinDependency> { dependency ->
+    prop(propertyName, dependency.coordinates.toString())
   },
-  SpecializedDumper(property = KotlinGradleModel::compilerArgumentsBySourceSet) { compilerArgumentsBySourceSet ->
+  SpecializedDumper(property = KotlinCompilation::compilerArguments) { _, compilerArguments ->
+    prop(propertyName, parseCommandLineArguments<K2JVMCompilerArguments>(compilerArguments))
+  },
+  SpecializedDumper(property = KotlinGradleModel::compilerArgumentsBySourceSet) { _, compilerArgumentsBySourceSet ->
     head(propertyName)
     nest {
       compilerArgumentsBySourceSet.forEach { (sourceSet, compilerArguments) ->
@@ -186,14 +193,21 @@ private val jbModelDumpers = listOf(
       }
     }
   },
-  SpecializedDumper(property = KotlinMPPGradleModel::kotlinNativeHome) {
-    // Do nothing as it is a machine specific path to `~/.konan` directory, where `~` is the true user home path rather than the one used
-    // in tests.
+  SpecializedDumper(property = KotlinMPPGradleModel::dependencies) { holder, dependencies ->
+    head(propertyName)
+    nest {
+      holder.sourceSetsByName.keys.forEach { sourceSet ->
+        head(sourceSet)
+        nest {
+          prop("dependency", dependencies[sourceSet].sortedBy { it.coordinates.toString() })
+        }
+      }
+    }
   },
-  SpecializedDumper(property = KotlinMPPGradleModel::dependencyMap) { dependencyMap ->
-    prop(propertyName, dependencyMap.entries.sortedBy { it.key }.associate { it.key to it.value })
-  },
-  SpecializedDumper(property = KotlinTaskProperties::pluginVersion) {
+  // Do nothing as it is a machine specific path to `~/.konan` directory, where `~` is the true user home path rather than the one used
+  // in tests.
+  SpecializedDumper(property = KotlinMPPGradleModel::kotlinNativeHome),
+  SpecializedDumper(property = KotlinTaskProperties::pluginVersion) { _, _ ->
     // We do not have access to `TestUtils.KOTLIN_VERSION_FOR_TESTS` here. Remove the property.
     prop(propertyName, "<CUT>")
   }

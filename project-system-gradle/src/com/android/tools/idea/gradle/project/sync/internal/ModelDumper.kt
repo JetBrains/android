@@ -93,7 +93,7 @@ inline fun <reified T : Any> SpecializedDumper(noinline dumper: ModelDumperConte
  */
 inline fun <reified T : Any, reified V : Any> SpecializedDumper(
   property: KProperty1<T, V>,
-  noinline dumper: ModelDumperContext.(V) -> Unit
+  noinline dumper: ModelDumperContext.(T, V) -> Unit
 ): SpecializedDumper =
   SpecializedDumperImpl.create(T::class, V::class, property, dumper)
 
@@ -114,9 +114,15 @@ inline fun <reified T : Any, reified V : Any> SpecializedDumper(
 @JvmName("SpecializedDumper_nullable")
 inline fun <reified T : Any, reified V : Any> SpecializedDumper(
   property: KProperty1<T, V?>,
-  noinline dumper: ModelDumperContext.(V) -> Unit
+  noinline dumper: ModelDumperContext.(T, V) -> Unit
 ): SpecializedDumper =
   SpecializedDumperImpl.create(T::class, V::class, property, dumper)
+
+@JvmName("SpecializedDumper_nullable")
+inline fun <reified T : Any, reified V : Any> SpecializedDumper(
+  property: KProperty1<T, V?>,
+): SpecializedDumper =
+  SpecializedDumperImpl.create(T::class, V::class, property) { _, _ -> }
 
 /**
  * A reflection based model dumper customizable through plugins provided in [specializedDumpers].
@@ -336,14 +342,14 @@ class SpecializedDumperImpl private constructor(
       hClass: KClass<T>,
       kClass: KClass<V>,
       property: KProperty1<T, V?>,
-      dumper: ModelDumperContext.(V) -> Unit
+      dumper: ModelDumperContext.(T, V) -> Unit
     ): SpecializedDumper {
       val expectedPropertyName = ModelClassDumperDescriptor.maybeMapJavaGetterToKotlinProperty(property) ?: property.name
       fun dumperImpl(projectDumper: ProjectDumper, modelDumper: ModelDumper, holder: Any?, propertyName: String, value: Any?): Boolean {
         val h: T = hClass.safeCast(holder) ?: return false
         val v: V = kClass.safeCast(value) ?: return false
         if (propertyName != expectedPropertyName) return false
-        dumper(ContextImpl(propertyName, modelDumper, projectDumper), v)
+        dumper(ContextImpl(propertyName, modelDumper, projectDumper), h, v)
         return true
       }
       return SpecializedDumperImpl(::dumperImpl)
