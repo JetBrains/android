@@ -748,7 +748,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       LOGCAT_PRESENTER_ACTION.name -> this
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name -> device?.let { DeviceArtScreenshotOptions(it.serialNumber, it.model) }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> device?.let {
-        ScreenRecorderAction.Parameters(it.name, it.serialNumber, it.sdk, if (it.isEmulator) it.deviceId else null, this)
+        ScreenRecorderAction.Parameters(it.name, it.serialNumber, it.featureLevel, if (it.isEmulator) it.deviceId else null, this)
       }
       CONNECTED_DEVICE.name -> device
       // Using CommonDataKeys.EDITOR causes the IJ framework to interfere with some components in the hierarchy

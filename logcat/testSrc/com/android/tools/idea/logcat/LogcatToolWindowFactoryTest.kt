@@ -153,7 +153,7 @@ class LogcatToolWindowFactoryTest {
     deviceTracker.addDevices(device)
 
     project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(
-      PhysicalDeviceInfo("device1", "11", 30, "Google", "Pixel"),
+      PhysicalDeviceInfo("device1", "11", 30, 30, "Google", "Pixel"),
       "com.test")
 
     waitForCondition { toolWindow.contentManager.contentCount == 1 }

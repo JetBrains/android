@@ -26,6 +26,7 @@ data class Device private constructor(
   val isOnline: Boolean,
   val release: String,
   val sdk: Int,
+  val featureLevel: Int,
   val model: String,
 ) {
 
@@ -39,9 +40,19 @@ data class Device private constructor(
       sdk: Int,
       manufacturer: String,
       model: String,
+      featureLevel: Int = sdk,
     ): Device {
       val deviceName = if (model.startsWith(manufacturer)) model else "$manufacturer $model"
-      return Device(deviceId = serialNumber, name = deviceName, serialNumber, isOnline, release.normalizeVersion(), sdk, model)
+      return Device(
+        deviceId = serialNumber,
+        name = deviceName,
+        serialNumber,
+        isOnline,
+        release.normalizeVersion(),
+        sdk,
+        featureLevel,
+        model
+      )
     }
 
     fun createEmulator(
@@ -50,9 +61,18 @@ data class Device private constructor(
       release: String,
       sdk: Int,
       avdName: String,
+      featureLevel: Int = sdk,
     ): Device {
       return Device(
-        deviceId = avdName, name = avdName.replace('_', ' '), serialNumber, isOnline, release.normalizeVersion(), sdk, model = "")
+        deviceId = avdName,
+        name = avdName.replace('_', ' '),
+        serialNumber,
+        isOnline,
+        release.normalizeVersion(),
+        sdk,
+        featureLevel,
+        model = ""
+      )
     }
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat.devices
 
 import com.android.adblib.serialNumber
+import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 
@@ -27,12 +28,13 @@ internal fun DeviceState.toDevice(): Device? {
   val properties = this.properties
 
   val release = properties.androidRelease ?: "Unknown"
-  val featureLevel = properties.androidVersion?.featureLevel ?: 0
+  val sdk = properties.androidVersion?.apiLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+  val featureLevel = properties.androidVersion?.featureLevel ?: sdk
   val manufacturer = properties.manufacturer ?: "Unknown"
   val model = properties.model ?: "Unknown"
 
   return when (properties) {
-    is LocalEmulatorProperties -> Device.createEmulator(serialNumber, true, release, featureLevel, properties.avdName)
-    else -> Device.createPhysical(serialNumber, true, release, featureLevel, manufacturer, model)
+    is LocalEmulatorProperties -> Device.createEmulator(serialNumber, true, release, sdk, properties.avdName, featureLevel)
+    else -> Device.createPhysical(serialNumber, true, release, sdk, manufacturer, model, featureLevel)
   }
 }

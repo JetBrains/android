@@ -152,7 +152,6 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
   companion object {
     internal val logcatPresenters = mutableListOf<LogcatPresenter>()
   }
-
 }
 
 private fun ToolWindowEx.findTab(name: String): Content? {
@@ -174,7 +173,7 @@ private fun getDefaultFormattingConfig(): LogcatPanelConfig.FormattingConfig {
 
 private fun DeviceInfo.toOfflineDevice(): Device {
   return when (this) {
-    is PhysicalDeviceInfo -> Device.createPhysical(serialNumber, false, release, sdk, manufacturer, model)
-    is EmulatorDeviceInfo -> Device.createEmulator(serialNumber, false, release, sdk, avdName)
+    is PhysicalDeviceInfo -> Device.createPhysical(serialNumber, false, release, sdk, manufacturer, model, featureLevel)
+    is EmulatorDeviceInfo -> Device.createEmulator(serialNumber, false, release, sdk, avdName, featureLevel)
   }
 }
