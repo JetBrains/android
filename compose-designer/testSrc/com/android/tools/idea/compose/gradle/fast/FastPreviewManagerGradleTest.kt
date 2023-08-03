@@ -189,7 +189,7 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
 
       val stringResourceCallPatter =
         Regex(
-          "LDC (\\d+)\n\\s+ALOAD (\\d+)\n\\s+ICONST_0\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource",
+          "LDC (\\d+)\n\\s+ALOAD (\\d+)\n\\s+(?:ICONST_0|BIPUSH (\\d+))\n\\s+INVOKESTATIC androidx/compose/ui/res/StringResources_androidKt\\.stringResource",
           RegexOption.MULTILINE
         )
       val matches = stringResourceCallPatter.findAll(decompiledOutput)
