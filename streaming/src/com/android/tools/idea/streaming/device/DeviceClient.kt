@@ -88,6 +88,7 @@ internal const val CLASS_NOT_FOUND = 31
 internal const val METHOD_NOT_FOUND = 32
 internal const val CONSTRUCTOR_NOT_FOUND = 33
 internal const val FIELD_NOT_FOUND = 34
+internal const val JAVA_EXCEPTION = 35
 internal const val AGENT_SIGABORT = 134
 internal const val AGENT_SIGKILL = 137
 internal const val AGENT_SIGSEGV = 139

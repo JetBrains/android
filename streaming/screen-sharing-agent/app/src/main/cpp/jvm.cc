@@ -280,6 +280,15 @@ JObject JClass::NewObject(JNIEnv* jni_env, jmethodID constructor, ...) const {
   va_start(args, constructor);
   JObject result(jni_env, jni_env->NewObjectV(ref(), constructor, args));
   va_end(args);
+  if (result.IsNull()) {
+    Jni jni(jni_env);
+    JObject exception = jni.GetAndClearException();
+    if (exception.IsNull()) {
+      Log::Fatal(NULL_POINTER, "%s constructor returned null", GetName(jni).c_str());
+    } else {
+      Log::Fatal(JAVA_EXCEPTION, "%s in %s constructor", exception.GetClass().GetName(jni).c_str(), GetName(jni).c_str());
+    }
+  }
   return result;
 }
 
