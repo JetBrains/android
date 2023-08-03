@@ -773,14 +773,15 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 
   //TODO(b/292231180): This can and should be refactored but for now it is better than nothing reported at all.
-  private fun AndroidSyncException.reportFailureTypeIfNecessary(rootProjectPath: String) = when {
-    message?.startsWith("No variants found for '") == true ->
-      SyncFailureUsageReporter.getInstance().collectFailure(rootProjectPath, GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
-    message?.startsWith("No valid Native abi found to request!") == true ->
-      SyncFailureUsageReporter.getInstance().collectFailure(rootProjectPath, GradleSyncFailure.ANDROID_SYNC_NO_VALID_NATIVE_ABI_FOUND)
-    // Other cases currently should be covered by MultipleAgpVersionsIssueChecker and AgpVersionNotSupportedIssueChecker
-    else -> Unit
-
+  private fun AndroidSyncException.reportFailureTypeIfNecessary(rootProjectPath: String) = message?.let {
+    when {
+      it.startsWith("No variants found for '") ->
+        SyncFailureUsageReporter.getInstance().collectFailure(rootProjectPath, GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
+      it.startsWith("No valid Native abi found to request!") ->
+        SyncFailureUsageReporter.getInstance().collectFailure(rootProjectPath, GradleSyncFailure.ANDROID_SYNC_NO_VALID_NATIVE_ABI_FOUND)
+      // Other cases currently should be covered by MultipleAgpVersionsIssueChecker and AgpVersionNotSupportedIssueChecker
+      else -> Unit
+    }
   }
 
   private fun displayInternalWarningIfForcedUpgradesAreDisabled() {
