@@ -41,7 +41,20 @@ class DeclarativeGotoApiDeclarationHandlerTest : AndroidGradleTestCase() {
       "com.android.build.api.dsl.ApplicationExtension",
       "public interface ApplicationExtension "
     )
+  }
 
+  fun testGoToSetterProperty() {
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+
+    checkUsage(
+      "app/build.gradle.toml",
+      """
+        [android]
+        compil|eSdk = 12
+      """.trimIndent(),
+      "com.android.build.api.dsl.CommonExtension",
+      "public abstract var compileSdk: kotlin.Int?"
+    )
   }
 
   private fun checkUsage(relativePath: String, caretContext: String, expectedClass: String, expected: String) {

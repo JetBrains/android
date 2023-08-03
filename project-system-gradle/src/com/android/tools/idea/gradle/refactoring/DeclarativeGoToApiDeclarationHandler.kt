@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.refactoring
 
-import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.TOML
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile
@@ -26,6 +25,7 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
+import org.apache.commons.lang.StringUtils
 import org.toml.lang.psi.TomlKeySegment
 
 class DeclarativeGoToApiDeclarationHandler: GotoDeclarationHandlerBase() {
@@ -43,9 +43,18 @@ class DeclarativeGoToApiDeclarationHandler: GotoDeclarationHandlerBase() {
 }
 
 private fun findProperty(clazz: PsiClass, propertyName: String): PsiElement? {
-  val methods = clazz.findMethodsByName(propertyName, true)
-  return methods.first { it.containingClass?.isInterface == true &&
-                         it.containingClass?.qualifiedName?.startsWith("com.android.build.api.dsl") == true}
+  // sometimes setter has the same as property
+  var methods = clazz.findMethodsByName(propertyName, true)
+  if (methods.isEmpty()) {
+    // if it does not work - try standard setter name
+    methods = clazz.findMethodsByName("set" +
+                                      StringUtils.capitalize(propertyName),
+                                      true)
+  }
+  return methods.first {
+    it.containingClass?.isInterface == true &&
+    it.containingClass?.qualifiedName?.startsWith("com.android.build.api.dsl") == true
+  }
 }
 
 private fun findDslElementClassName(path: List<String>, propertyName: String): String? {
