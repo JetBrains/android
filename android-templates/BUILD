@@ -51,6 +51,9 @@ iml_module(
             "shard_count": 1,
             "data": [
                 "//tools/adt/idea/android/testData",
+                "//prebuilts/studio/sdk:cmake",  # Needed for the C++ templates
+                "//prebuilts/studio/sdk:ndk",  # Needed for the C++ templates
+                "//tools/data-binding:data_binding_runtime.zip",  # Needed for some templates that use view binding
             ],
             "test_filter": "com.android.tools.idea.templates.diff.TemplateDiffTest",
         },
