@@ -42,11 +42,13 @@ import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBPanelWithEmptyText
-import com.intellij.ui.layout.CCFlags
-import com.intellij.ui.layout.LayoutBuilder
-import com.intellij.ui.layout.applyToComponent
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ui.dsl.builder.RowLayout
+import com.intellij.ui.dsl.builder.bindItem
+import com.intellij.ui.dsl.builder.bindText
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.not
-import com.intellij.ui.layout.panel
 import com.intellij.ui.layout.selectedValueIs
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
@@ -149,20 +151,19 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
       getInstallFlagsTextField()
     }
 
-  protected fun LayoutBuilder.getInstallFlagsTextField() {
+  protected fun Panel.getInstallFlagsTextField() {
     row {
       label("Install Flags:")
-      textField({ installFlags }, { installFlags = it }).constraints(CCFlags.growX, CCFlags.pushX)
-    }
+      textField().bindText(getter = { installFlags }, setter = { installFlags = it })
+        .align(AlignX.FILL)
+    }.layout(RowLayout.LABEL_ALIGNED)
   }
 
-  protected fun LayoutBuilder.getComponentComboBox() {
+  protected fun Panel.getComponentComboBox() {
     row {
       label(configuration.componentLaunchOptions.userVisibleComponentTypeName + ":")
       wearComponentFqNameComboBox = comboBox(
         DefaultComboBoxModel(emptyArray<String>()),
-        { componentName },
-        { componentName = it },
         renderer = object : SimpleListCellRenderer<String>() {
           override fun customize(list: JList<out String>, value: String?, index: Int, selected: Boolean, hasFocus: Boolean) {
             text = when {
@@ -173,8 +174,9 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
             }
           }
         })
-        .enableIf(modulesComboBox.selectedValueIs(null).not())
-        .constraints(CCFlags.growX, CCFlags.pushX)
+        .bindItem(getter = { componentName }, setter = { componentName = it })
+        .enabledIf(modulesComboBox.selectedValueIs(null).not())
+        .align(AlignX.FILL)
         .applyToComponent {
           maximumSize = Dimension(400, maximumSize.height)
           setMinLength(400)
@@ -182,18 +184,18 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
             this.isEnabled = (it.newValue as ComboBoxModel<*>).size > 0
           }
         }.component
-    }
+    }.layout(RowLayout.LABEL_ALIGNED)
   }
 
-  protected fun LayoutBuilder.getModuleChooser() {
+  protected fun Panel.getModuleChooser() {
     row {
       label(AndroidBundle.message("android.run.configuration.module.label"))
-      component(modulesComboBox)
-        .constraints(CCFlags.growX, CCFlags.pushX)
+      cell(modulesComboBox)
+        .align(AlignX.FILL)
         .applyToComponent {
           maximumSize = Dimension(400, maximumSize.height)
         }
-    }
+    }.layout(RowLayout.LABEL_ALIGNED)
   }
 
   private fun findAvailableComponents(module: Module): Set<String> {
