@@ -57,5 +57,7 @@ fun generateExistingPath(psiElement: TomlKeySegment): List<String> {
 }
 
 private fun MutableList<String>.appendReversedSegments(key: TomlKey?, startElement: PsiElement) {
-  key?.segments?.reversed()?.forEach { segment -> if (segment != startElement) this += segment.text }
+  key ?: return
+  // User may point to a middle segment. So we need to omit all segments that are to the right from startElement
+  addAll(key.segments.takeWhile { it != startElement }.mapNotNull { it.name }.reversed())
 }
