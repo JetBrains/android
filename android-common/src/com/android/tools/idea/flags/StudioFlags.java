@@ -586,6 +586,14 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> USE_BITMAP_POPUP_EVALUATOR_V2 = Flag.create(
+    RUNDEBUG,
+    "use.bitmap.popup.evaluator.v2",
+    "Use the new BitmapPopupEvaluatorV2",
+    "BitmapPopupEvaluatorV2 uses Bitmap.getPixels() instead of Bitmap.copyPixelsToBuffer() which it makes platform independent",
+    true
+  );
+
   //endregion
 
   //region Logcat
