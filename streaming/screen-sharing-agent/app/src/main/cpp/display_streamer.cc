@@ -291,6 +291,19 @@ void DisplayStreamer::StopCodecAndWaitForThreadToTerminate() {
   }
 }
 
+void DisplayStreamer::OnDisplayAdded(int32_t display_id) {
+}
+
+void DisplayStreamer::OnDisplayRemoved(int32_t display_id) {
+}
+
+void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
+  if (display_id == display_id_) {
+    Log::D("DisplayStreamer::OnDisplayChanged(%d)", display_id);
+    StopCodec();
+  }
+}
+
 void DisplayStreamer::Run() {
   Jni jni = Jvm::GetJni();
 
@@ -300,7 +313,7 @@ void DisplayStreamer::Run() {
 
   WindowManager::WatchRotation(jni, &display_rotation_watcher_);
   DisplayManager::RegisterDisplayListener(jni, this);
-  VideoPacketHeader packet_header = {.frame_number = 1};
+  VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 1};
 
   bool end_of_stream = false;
   consequent_deque_error_count_ = 0;
@@ -435,7 +448,7 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     if (Log::IsEnabled(Log::Level::VERBOSE)) {
       Log::V("DisplayStreamer::ProcessFramesUntilCodecStopped: writing video packet %s", packet_header->ToDebugString().c_str());
     }
-    iovec buffers[] = { { packet_header, sizeof(*packet_header) }, { codec_buffer.buffer, static_cast<size_t>(codec_buffer.info.size) } };
+    iovec buffers[] = { { packet_header, VideoPacketHeader::SIZE }, { codec_buffer.buffer, static_cast<size_t>(codec_buffer.info.size) } };
     if (writev(socket_fd_, buffers, 2) != buffers[0].iov_len + buffers[1].iov_len) {
       if (errno != EBADF && errno != EPIPE) {
         Log::Fatal(SOCKET_IO_ERROR, "Error writing to video socket - %s", strerror(errno));
@@ -495,19 +508,6 @@ void DisplayStreamer::SetMaxVideoResolution(Size max_video_resolution) {
 DisplayInfo DisplayStreamer::GetDisplayInfo() {
   scoped_lock lock(mutex_);
   return display_info_;
-}
-
-void DisplayStreamer::OnDisplayAdded(int32_t display_id) {
-}
-
-void DisplayStreamer::OnDisplayRemoved(int32_t display_id) {
-}
-
-void DisplayStreamer::OnDisplayChanged(int32_t display_id) {
-  Log::D("DisplayStreamer::OnDisplayChanged(%d)", display_id);
-  if (display_id == DEFAULT_DISPLAY) {
-    StopCodec();
-  }
 }
 
 void DisplayStreamer::StopCodec() {

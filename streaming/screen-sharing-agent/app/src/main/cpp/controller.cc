@@ -156,13 +156,11 @@ void Controller::Initialize() {
     DeviceStateManager::AddDeviceStateListener(&device_state_listener_);
     int32_t device_state = DeviceStateManager::GetDeviceState(jni_);
     Log::D("Controller::Initialize: device_state=%d", device_state);
-    {
-      scoped_lock lock(device_state_mutex_);
-      if (!device_state_changed_) {
-        device_state_ = device_state;
-        device_state_changed_ = true;
-      }
-    }
+    device_state_ = device_state;
+  }
+
+  if (Agent::flags() & MIRROR_ALL_DISPLAYS) {
+    DisplayManager::RegisterDisplayListener(jni_, this);
   }
 
   Agent::InitializeSessionEnvironment();
@@ -175,24 +173,16 @@ void Controller::Run() {
   try {
     for (;;) {
       if (max_synced_clipboard_length_ != 0) {
-        if (clipboard_changed_.exchange(false)) {
-          ProcessClipboardChange();
-        }
+        ProcessClipboardChange();
       }
 
       if (device_supports_multiple_states_) {
-        int32_t device_state = TakeChangedDeviceState();
-        if (device_state >= 0) {
-          Log::D("Controller::Run: device_state=%d", device_state);
-          SendDeviceStateNotification(device_state);
-        }
+        ProcessDeviceStateChange();
       }
 
-      if (max_synced_clipboard_length_ != 0 || device_supports_multiple_states_) {
-        // Set a receive timeout to check for clipboard and device state changes frequently.
-        SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);
-      }
+      ProcessPendingDisplayEvents();
 
+      SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);  // Set a receive timeout to avoid blocking for a long time.
       int32_t message_type;
       try {
         message_type = input_stream_.ReadInt32();
@@ -207,6 +197,14 @@ void Controller::Run() {
     Log::D("Controller::Run: End of command stream");
   } catch (IoException& e) {
     Log::Fatal(SOCKET_IO_ERROR, "%s", e.GetMessage().c_str());
+  }
+}
+
+void Controller::ProcessDeviceStateChange() {
+  int32_t device_state = device_state_.exchange(-1);
+  if (device_state >= 0) {
+    Log::D("Controller::Run: device_state=%d", device_state);
+    SendDeviceStateNotification(device_state);
   }
 }
 
@@ -435,6 +433,9 @@ void Controller::StopClipboardSync() {
 }
 
 void Controller::ProcessClipboardChange() {
+  if (!clipboard_changed_.exchange(false)) {
+    return;
+  }
   Log::D("Controller::ProcessClipboardChange");
   ClipboardManager* clipboard_manager = ClipboardManager::GetInstance(jni_);
   string text = clipboard_manager->GetText();
@@ -456,16 +457,6 @@ void Controller::RequestDeviceState(const RequestDeviceStateMessage& message) {
   DeviceStateManager::RequestState(jni_, message.state(), 0);
 }
 
-int32_t Controller::TakeChangedDeviceState() {
-  scoped_lock lock(device_state_mutex_);
-  if (device_state_changed_) {
-    device_state_changed_ = false;
-    Log::D("Controller::TakeChangedDeviceState: device_state_=%d", device_state_);
-    return device_state_;
-  }
-  return -1;
-}
-
 void Controller::SendDeviceStateNotification(int32_t device_state) {
   Log::D("Controller::SendDeviceStateNotification(%d)", device_state);
   DeviceStateNotification notification(device_state);
@@ -480,22 +471,49 @@ void Controller::OnPrimaryClipChanged() {
 
 void Controller::OnDeviceStateChanged(int32_t device_state) {
   Log::D("Controller::OnDeviceStateChanged(%d)", device_state);
-  bool changed = false;
-  {
-    scoped_lock lock(device_state_mutex_);
-    if (device_state_ != device_state) {
-      changed = true;
-      device_state_ = device_state;
-      device_state_changed_ = true;
-    }
-  }
-  if (changed) {
+  int32_t previous_state = device_state_.exchange(device_state);
+  if (previous_state != device_state) {
     Agent::SetVideoOrientation(DisplayStreamer::CURRENT_DISPLAY_ORIENTATION);
+  }
+}
+
+void Controller::ProcessPendingDisplayEvents() {
+  vector<DisplayEvent> display_events;
+  {
+    scoped_lock lock(display_events_mutex_);
+    swap(display_events, pending_display_events_);
+  }
+
+  for (auto event : display_events) {
+    if (event.type == DisplayEvent::Type::ADDED) {
+      DisplayInfo display_info = DisplayManager::GetDisplayInfo(Jvm::GetJni(), event.display_id);
+      DisplayAddedNotification notification(event.display_id, display_info.logical_size, display_info.rotation);
+      notification.Serialize(output_stream_);
+      output_stream_.Flush();
+    }
+    else if (event.type == DisplayEvent::Type::REMOVED) {
+      DisplayRemovedNotification notification(event.display_id);
+      notification.Serialize(output_stream_);
+      output_stream_.Flush();
+    }
   }
 }
 
 void Controller::WakeUpDevice() {
   ProcessKeyboardEvent(Jvm::GetJni(), KeyEventMessage(KeyEventMessage::ACTION_DOWN_AND_UP, AKEYCODE_WAKEUP, 0));
+}
+
+void Controller::OnDisplayAdded(int32_t display_id) {
+  scoped_lock lock(display_events_mutex_);
+  pending_display_events_.emplace_back(display_id, DisplayEvent::Type::ADDED);
+}
+
+void Controller::OnDisplayRemoved(int32_t display_id) {
+  scoped_lock lock(display_events_mutex_);
+  pending_display_events_.emplace_back(display_id, DisplayEvent::Type::REMOVED);
+}
+
+void Controller::OnDisplayChanged(int32_t display_id) {
 }
 
 Controller::ClipboardListener::~ClipboardListener() = default;

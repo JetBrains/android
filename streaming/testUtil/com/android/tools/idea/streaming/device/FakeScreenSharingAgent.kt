@@ -460,7 +460,7 @@ class FakeScreenSharingAgent(
 
       avcodec_find_encoder(codecId) ?: throw RuntimeException("$codecName encoder not found")
     }
-    private val packetHeader = VideoPacketHeader(displaySize, roundDisplay)
+    private val packetHeader = VideoPacketHeader(displayId, displaySize, roundDisplay)
     private var presentationTimestampOffset = 0L
     private var lastImageFlavor: Int = 0
     @Volatile var stopped = false
@@ -665,28 +665,39 @@ class FakeScreenSharingAgent(
       BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
   }
 
-  private class VideoPacketHeader(val displaySize: Dimension, val roundDisplay: Boolean = false) {
+  private class VideoPacketHeader(val displayId: Int, val displaySize: Dimension, val roundDisplay: Boolean = false) {
     var displayOrientation: Int = 0
     var displayOrientationCorrection: Int = 0
-    var packetSize: Int = 0
     var frameNumber: Long = 0
     var originationTimestampUs: Long = 0
     var presentationTimestampUs: Long = 0
+    var packetSize: Int = 0
 
     fun serialize(buffer: ByteBuffer) {
+      buffer.putInt(displayId)
       buffer.putInt(displaySize.width)
       buffer.putInt(displaySize.height)
       buffer.put(displayOrientation.toByte())
       buffer.put(displayOrientationCorrection.toByte())
       buffer.putShort(if (roundDisplay) 1 else 0)
-      buffer.putInt(packetSize)
       buffer.putLong(frameNumber)
       buffer.putLong(originationTimestampUs)
       buffer.putLong(presentationTimestampUs)
+      buffer.putInt(packetSize)
     }
 
     companion object {
-      const val WIRE_SIZE = 4 + 4 + 1 + 1 + 2 + 4 + 8 + 8 + 8
+      const val WIRE_SIZE =
+          4 + // displayId
+          4 + // width
+          4 + // height
+          1 + // displayOrientation
+          1 + // displayOrientationCorrection
+          2 + // displayRound
+          8 + // frameNumber
+          8 + // originationTimestampUs
+          8 + // presentationTimestampUs
+          4   // packetSize
     }
   }
 

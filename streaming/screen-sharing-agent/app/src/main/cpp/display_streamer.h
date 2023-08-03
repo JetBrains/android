@@ -35,7 +35,7 @@ namespace screensharing {
 struct CodecInfo;
 
 // Processes control socket commands.
-class DisplayStreamer : public DisplayManager::DisplayListener {
+class DisplayStreamer : private DisplayManager::DisplayListener {
 public:
   enum OrientationReset {
     CURRENT_VIDEO_ORIENTATION = -1, CURRENT_DISPLAY_ORIENTATION = -2
@@ -62,10 +62,6 @@ public:
   // Returns the cached version of DisplayInfo.
   DisplayInfo GetDisplayInfo();
 
-  virtual void OnDisplayAdded(int32_t display_id);
-  virtual void OnDisplayRemoved(int32_t display_id);
-  virtual void OnDisplayChanged(int32_t display_id);
-
 private:
   struct DisplayRotationWatcher : public WindowManager::RotationWatcher {
     DisplayRotationWatcher(DisplayStreamer* display_streamer);
@@ -83,6 +79,10 @@ private:
   void StopCodecUnlocked();  // REQUIRES(mutex_)
   bool IsCodecRunning();
   void StopCodecAndWaitForThreadToTerminate();
+
+  virtual void OnDisplayAdded(int32_t display_id);
+  virtual void OnDisplayRemoved(int32_t display_id);
+  virtual void OnDisplayChanged(int32_t display_id);
 
   std::thread thread_;
   DisplayRotationWatcher display_rotation_watcher_;

@@ -200,12 +200,14 @@ private:
 // Sets maximum display streaming resolution.
 class SetMaxVideoResolutionMessage : ControlMessage {
 public:
-  SetMaxVideoResolutionMessage(Size size)
+  SetMaxVideoResolutionMessage(int32_t display_id, Size size)
       : ControlMessage(TYPE),
+        display_id_(display_id),
         size_(size) {
   }
   virtual ~SetMaxVideoResolutionMessage() {};
 
+  int32_t display_id() const { return display_id_; }
   const Size& size() const { return size_; }
 
   static constexpr int TYPE = 5;
@@ -215,6 +217,7 @@ private:
 
   static SetMaxVideoResolutionMessage* Deserialize(Base128InputStream& stream);
 
+  int32_t display_id_;
   Size size_;
 
   DISALLOW_COPY_AND_ASSIGN(SetMaxVideoResolutionMessage);
@@ -223,10 +226,13 @@ private:
 // Starts video stream if it was stopped, otherwise has no effect.
 class StartVideoStreamMessage : ControlMessage {
 public:
-  StartVideoStreamMessage()
-      : ControlMessage(TYPE) {
+  StartVideoStreamMessage(int32_t display_id)
+      : ControlMessage(TYPE),
+        display_id_(display_id) {
   }
   virtual ~StartVideoStreamMessage() {};
+
+  int32_t display_id() const { return display_id_; }
 
   static constexpr int TYPE = 6;
 
@@ -235,16 +241,21 @@ private:
 
   static StartVideoStreamMessage* Deserialize(Base128InputStream& stream);
 
+  int32_t display_id_;
+
   DISALLOW_COPY_AND_ASSIGN(StartVideoStreamMessage);
 };
 
 // Stops video stream if it was started, otherwise has no effect.
 class StopVideoStreamMessage : ControlMessage {
 public:
-  StopVideoStreamMessage()
-      : ControlMessage(TYPE) {
+  StopVideoStreamMessage(int32_t display_id)
+      : ControlMessage(TYPE),
+        display_id_(display_id) {
   }
   virtual ~StopVideoStreamMessage() {};
+
+  int32_t display_id() const { return display_id_; }
 
   static constexpr int TYPE = 7;
 
@@ -252,6 +263,8 @@ private:
   friend class ControlMessage;
 
   static StopVideoStreamMessage* Deserialize(Base128InputStream& stream);
+
+  int32_t display_id_;
 
   DISALLOW_COPY_AND_ASSIGN(StopVideoStreamMessage);
 };
@@ -382,7 +395,7 @@ private:
 };
 
 // Notification of a device state change. One such notification is always sent when the screen
-// sharing agent starts on a foldable device,
+// sharing agent starts on a foldable device.
 class DeviceStateNotification : ControlMessage {
 public:
   DeviceStateNotification(int32_t device_state)
@@ -403,6 +416,58 @@ private:
   int32_t device_state_;
 
   DISALLOW_COPY_AND_ASSIGN(DeviceStateNotification);
+};
+
+// Notification of an added display.
+class DisplayAddedNotification : ControlMessage {
+public:
+  DisplayAddedNotification(int32_t display_id, Size logical_size, int32_t orientation)
+      : ControlMessage(TYPE),
+        display_id_(display_id),
+        logical_size_(logical_size),
+        orientation_(orientation) {
+  }
+  virtual ~DisplayAddedNotification() = default;
+
+  int32_t display_id() const { return display_id_; }
+  const Size& logical_size() const { return logical_size_; }
+  int32_t orientation() const { return orientation_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 14;
+
+private:
+  friend class ControlMessage;
+
+  int32_t display_id_;
+  Size logical_size_;
+  int32_t orientation_;
+
+  DISALLOW_COPY_AND_ASSIGN(DisplayAddedNotification);
+};
+
+// Notification of a removed display.
+class DisplayRemovedNotification : ControlMessage {
+public:
+  DisplayRemovedNotification(int32_t display_id)
+      : ControlMessage(TYPE),
+        display_id_(display_id) {
+  }
+  virtual ~DisplayRemovedNotification() = default;
+
+  int32_t display_id() const { return display_id_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 15;
+
+private:
+  friend class ControlMessage;
+
+  int32_t display_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(DisplayRemovedNotification);
 };
 
 }  // namespace screensharing

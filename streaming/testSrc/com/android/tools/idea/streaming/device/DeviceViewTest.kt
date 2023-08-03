@@ -207,7 +207,8 @@ internal class DeviceViewTest {
 
     // Check resizing.
     fakeUi.resizeRoot(100, 90)
-    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(Dimension(200, 180)))
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        SetMaxVideoResolutionMessage(view.displayId, Dimension(200, 180)))
     assertThat(view.displayRectangle).isEqualTo(Rectangle(58, 0, 83, 180))
 
     // Check mouse input in various orientations.
@@ -506,7 +507,8 @@ internal class DeviceViewTest {
 
     view.zoom(ZoomType.IN)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(Dimension(270, 586)))
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        SetMaxVideoResolutionMessage(view.displayId, Dimension(270, 586)))
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
@@ -514,7 +516,8 @@ internal class DeviceViewTest {
 
     view.zoom(ZoomType.ACTUAL)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(device.displaySize))
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        SetMaxVideoResolutionMessage(view.displayId, device.displaySize))
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isFalse()
@@ -525,7 +528,7 @@ internal class DeviceViewTest {
     view.zoom(ZoomType.OUT)
     fakeUi.layoutAndDispatchEvents()
     assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
-        SetMaxVideoResolutionMessage(Dimension(device.displaySize.width / 2, device.displaySize.height / 2)))
+        SetMaxVideoResolutionMessage(view.displayId, Dimension(device.displaySize.width / 2, device.displaySize.height / 2)))
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isTrue()
     assertThat(view.canZoomToActual()).isTrue()
@@ -533,7 +536,8 @@ internal class DeviceViewTest {
 
     view.zoom(ZoomType.FIT)
     fakeUi.layoutAndDispatchEvents()
-    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(Dimension(200, 400)))
+    assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+        SetMaxVideoResolutionMessage(view.displayId, Dimension(200, 400)))
     assertThat(view.canZoomIn()).isTrue()
     assertThat(view.canZoomOut()).isFalse()
     assertThat(view.canZoomToActual()).isTrue()
@@ -544,9 +548,9 @@ internal class DeviceViewTest {
       view.zoom(ZoomType.IN)
       fakeUi.layoutAndDispatchEvents()
       val expected = when {
-        view.displayOrientationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(Dimension(270, 586))
-        SystemInfo.isMac && !isRunningInBazelTest() -> SetMaxVideoResolutionMessage(Dimension(234, 372))
-        else -> SetMaxVideoResolutionMessage(Dimension(234, 400))
+        view.displayOrientationQuadrants % 2 == 0 -> SetMaxVideoResolutionMessage(view.displayId, Dimension(270, 586))
+        SystemInfo.isMac && !isRunningInBazelTest() -> SetMaxVideoResolutionMessage(view.displayId, Dimension(234, 372))
+        else -> SetMaxVideoResolutionMessage(view.displayId, Dimension(234, 400))
       }
       assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(expected)
       executeStreamingAction("android.device.rotate.right", view, project)
@@ -554,7 +558,8 @@ internal class DeviceViewTest {
       fakeUi.layoutAndDispatchEvents()
       assertThat(view.canZoomOut()).isFalse() // zoom-in mode cancelled by the rotation.
       assertThat(view.canZoomToFit()).isFalse()
-      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(SetMaxVideoResolutionMessage(Dimension(200, 400)))
+      assertThat(getNextControlMessageAndWaitForFrame()).isEqualTo(
+          SetMaxVideoResolutionMessage(view.displayId, Dimension(200, 400)))
     }
   }
 

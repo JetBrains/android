@@ -21,6 +21,7 @@
 
 #include "accessors/clipboard_manager.h"
 #include "accessors/device_state_manager.h"
+#include "accessors/display_manager.h"
 #include "accessors/key_character_map.h"
 #include "accessors/pointer_helper.h"
 #include "base128_input_stream.h"
@@ -32,11 +33,11 @@
 namespace screensharing {
 
 // Processes control socket commands.
-class Controller {
+class Controller : private DisplayManager::DisplayListener {
 public:
   // The controller takes ownership of the socket file descriptor and closes it when destroyed.
   Controller(int socket_fd);
-  ~Controller();
+  virtual ~Controller();
 
   void Run();
   void Shutdown();
@@ -64,6 +65,18 @@ private:
     Controller* controller_;
   };
 
+  struct DisplayEvent {
+    enum Type { ADDED, REMOVED };
+
+    DisplayEvent(int32_t displayId, Type type)
+        : display_id(displayId),
+          type(type) {
+    }
+
+    int32_t display_id;
+    Type type;
+  };
+
   void Initialize();
   void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);
@@ -82,9 +95,13 @@ private:
   void ProcessClipboardChange();
   void RequestDeviceState(const RequestDeviceStateMessage& message);
   void OnDeviceStateChanged(int32_t device_state);
-  int32_t TakeChangedDeviceState();
   void SendDeviceStateNotification(int32_t device_state);
+  void ProcessPendingDisplayEvents();
   static void WakeUpDevice();
+
+  virtual void OnDisplayAdded(int32_t display_id);
+  virtual void OnDisplayRemoved(int32_t display_id);
+  virtual void OnDisplayChanged(int32_t display_id);
 
   Jni jni_ = nullptr;
   int socket_fd_;  // Owned.
@@ -103,11 +120,14 @@ private:
 
   DeviceStateListener device_state_listener_;
   bool device_supports_multiple_states_ = false;
-  std::mutex device_state_mutex_;
-  int32_t device_state_ = -1;  // GUARDED_BY(device_state_mutex_)
-  bool device_state_changed_ = false;  // GUARDED_BY(device_state_mutex_)
+  std::atomic<int32_t> device_state_ = -1;
+
+  std::mutex display_events_mutex_;
+  std::vector<DisplayEvent> pending_display_events_;  // GUARDED_BY(display_events_mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
+
+  void ProcessDeviceStateChange();
 };
 
 }  // namespace screensharing

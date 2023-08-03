@@ -30,6 +30,7 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
 import com.android.tools.idea.diagnostics.report.GenericReport
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
+import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.util.StudioPathManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DeviceInfo
@@ -103,6 +104,7 @@ private const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
 // Flag definitions. Keep in sync with flags.h
 internal const val START_VIDEO_STREAM = 0x01
 internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
+internal const val MIRROR_ALL_DISPLAYS = 0x04
 /** Maximum cumulative length of agent messages to remember. */
 private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
 private const val MAX_ERROR_MESSAGE_AGE_MILLIS = 1000L
@@ -171,7 +173,7 @@ internal class DeviceClient(
     connection.await()
 
     if (startVideoStream && !videoStreamActive.get()) {
-      startVideoStream(maxVideoSize)
+      startVideoStream(PRIMARY_DISPLAY_ID, maxVideoSize)
     }
   }
 
@@ -220,16 +222,16 @@ internal class DeviceClient(
     agentTerminationListeners.remove(listener)
   }
 
-  private fun startVideoStream(maxOutputSize: Dimension) {
+  private fun startVideoStream(displayId: Int, maxOutputSize: Dimension) {
     if (videoStreamActive.compareAndSet(false, true)) {
-      deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(maxOutputSize))
-      deviceController?.sendControlMessage(StartVideoStreamMessage.instance)
+      deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(PRIMARY_DISPLAY_ID, maxOutputSize))
+      deviceController?.sendControlMessage(StartVideoStreamMessage(displayId))
     }
   }
 
-  fun stopVideoStream() {
+  fun stopVideoStream(displayId: Int) {
     if (videoStreamActive.compareAndSet(true, false)) {
-      deviceController?.sendControlMessage(StopVideoStreamMessage.instance)
+      deviceController?.sendControlMessage(StopVideoStreamMessage(displayId))
     }
   }
 
@@ -367,7 +369,8 @@ internal class DeviceClient(
         if (maxVideoSize.width > 0 && maxVideoSize.height > 0) " --max_size=${maxVideoSize.width},${maxVideoSize.height}" else ""
     val orientationArg = if (initialDisplayOrientation == UNKNOWN_ORIENTATION) "" else " --orientation=$initialDisplayOrientation"
     val flags = (if (startVideoStream) START_VIDEO_STREAM else 0) or
-                (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0)
+                (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
+                (if (StudioFlags.DEVICE_MIRRORING_MULTIPLE_DISPLAYS.get()) MIRROR_ALL_DISPLAYS else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
     val maxBitRateArg = when {
       deviceSerialNumber.startsWith("emulator-") || deviceConfig.deviceProperties.isVirtual == true ->

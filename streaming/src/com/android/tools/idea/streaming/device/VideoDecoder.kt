@@ -382,44 +382,48 @@ internal class VideoDecoder(
   }
 
   private class PacketHeader private constructor(
+    val displayId: Int,
     val displaySize: Dimension,
     val displayOrientation: Int,
     /** The difference between [displayOrientation] and the orientation according to the DisplayInfo Android data structure. */
     val displayOrientationCorrection: Int,
     val displayRound: Boolean,
-    val packetSize: Int,
     val frameNumber: Long,
     val originationTimestampUs: Long,
-    val presentationTimestampUs: Long
+    val presentationTimestampUs: Long,
+    val packetSize: Int,
   ) {
 
     companion object {
       fun deserialize(buffer: ByteBuffer): PacketHeader {
+        val displayId = buffer.getInt()
         val width = buffer.getInt()
         val height = buffer.getInt()
         val displayOrientation = buffer.get().toInt()
         val displayOrientationCorrection = buffer.get().toInt()
         val displayRound = buffer.getShort().toInt() != 0
-        val packetSize = buffer.getInt()
         val frameNumber = buffer.getLong()
         val originationTimestampUs = buffer.getLong()
         val presentationTimestampUs = buffer.getLong()
-        return PacketHeader(Dimension(width, height), displayOrientation, displayOrientationCorrection, displayRound, packetSize,
-                            frameNumber, originationTimestampUs, presentationTimestampUs)
+        val packetSize = buffer.getInt()
+        return PacketHeader(displayId, Dimension(width, height), displayOrientation, displayOrientationCorrection, displayRound,
+                            frameNumber, originationTimestampUs, presentationTimestampUs, packetSize)
       }
 
       fun createBuffer(): ByteBuffer =
-        ByteBuffer.allocate(WIRE_SIZE).order(LITTLE_ENDIAN)
+          ByteBuffer.allocate(WIRE_SIZE).order(LITTLE_ENDIAN)
 
-      private const val WIRE_SIZE = 4 + // width
-                                    4 + // height
-                                    1 + // displayOrientation
-                                    1 + // displayOrientationCorrection
-                                    2 + // displayRound
-                                    4 + // packetSize
-                                    8 + // frameNumber
-                                    8 + // originationTimestampUs
-                                    8   // presentationTimestampUs
+      private const val WIRE_SIZE =
+          4 + // displayId
+          4 + // width
+          4 + // height
+          1 + // displayOrientation
+          1 + // displayOrientationCorrection
+          2 + // displayRound
+          8 + // frameNumber
+          8 + // originationTimestampUs
+          8 + // presentationTimestampUs
+          4   // packetSize
     }
   }
 }

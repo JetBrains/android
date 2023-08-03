@@ -267,7 +267,7 @@ internal class DeviceView(
     val maxSize = physicalSize
     if (videoDecoder.maxOutputSize != maxSize) {
       videoDecoder.maxOutputSize = maxSize
-      deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(maxSize))
+      deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(displayId, maxSize))
     }
   }
 
@@ -329,7 +329,7 @@ internal class DeviceView(
   }
 
   override fun dispose() {
-    deviceClient.stopVideoStream()
+    deviceClient.stopVideoStream(PRIMARY_DISPLAY_ID)
     deviceClient.removeAgentTerminationListener(agentTerminationListener)
     disposed = true
   }

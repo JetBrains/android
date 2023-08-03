@@ -115,17 +115,20 @@ SetDeviceOrientationMessage* SetDeviceOrientationMessage::Deserialize(Base128Inp
 }
 
 SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::Deserialize(Base128InputStream& stream) {
+  int32_t display_id = stream.ReadInt32();
   int32_t width = stream.ReadInt32();
   int32_t height = stream.ReadInt32();
-  return new SetMaxVideoResolutionMessage(Size(width, height));
+  return new SetMaxVideoResolutionMessage(display_id, Size(width, height));
 }
 
 StopVideoStreamMessage* StopVideoStreamMessage::Deserialize(Base128InputStream& stream) {
-  return new StopVideoStreamMessage();
+  int32_t display_id = stream.ReadInt32();
+  return new StopVideoStreamMessage(display_id);
 }
 
 StartVideoStreamMessage* StartVideoStreamMessage::Deserialize(Base128InputStream& stream) {
-  return new StartVideoStreamMessage();
+  int32_t display_id = stream.ReadInt32();
+  return new StartVideoStreamMessage(display_id);
 }
 
 StartClipboardSyncMessage* StartClipboardSyncMessage::Deserialize(Base128InputStream& stream) {
@@ -156,6 +159,19 @@ void SupportedDeviceStatesNotification::Serialize(Base128OutputStream& stream) c
 void DeviceStateNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteInt32(device_state_);
+}
+
+void DisplayAddedNotification::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(display_id_);
+  stream.WriteInt32(logical_size_.width);
+  stream.WriteInt32(logical_size_.height);
+  stream.WriteInt32(orientation_);
+}
+
+void DisplayRemovedNotification::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(display_id_);
 }
 
 }  // namespace screensharing

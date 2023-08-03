@@ -65,6 +65,8 @@ sealed class ControlMessage(val type: Int) {
         ClipboardChangedNotification.TYPE -> ClipboardChangedNotification.deserialize(stream)
         SupportedDeviceStatesNotification.TYPE -> SupportedDeviceStatesNotification.deserialize(stream)
         DeviceStateNotification.TYPE -> DeviceStateNotification.deserialize(stream)
+        DisplayAddedNotification.TYPE -> DisplayAddedNotification.deserialize(stream)
+        DisplayRemovedNotification.TYPE -> DisplayRemovedNotification.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
       FlightRecorder.log { "${TraceUtils.currentTime()} deserialize: message = $message" }
@@ -254,50 +256,68 @@ internal data class SetDeviceOrientationMessage(val orientation: Int) : ControlM
 }
 
 /** Sets maximum display streaming resolution. */
-internal data class SetMaxVideoResolutionMessage(val size: Dimension) : ControlMessage(TYPE) {
+internal data class SetMaxVideoResolutionMessage(val displayId: Int, val size: Dimension) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
+    stream.writeInt(displayId)
     stream.writeInt(size.width)
     stream.writeInt(size.height)
   }
 
   override fun toString(): String =
-      "SetMaxVideoResolutionMessage(size=${size.width}x${size.height})"
+      "SetMaxVideoResolutionMessage(displayId=$displayId, size=${size.width}x${size.height})"
 
   companion object : Deserializer {
     const val TYPE = 5
 
     override fun deserialize(stream: Base128InputStream): SetMaxVideoResolutionMessage {
+      val displayId = stream.readInt()
       val width = stream.readInt()
       val height = stream.readInt()
-      return SetMaxVideoResolutionMessage(Dimension(width, height))
+      return SetMaxVideoResolutionMessage(displayId, Dimension(width, height))
     }
   }
 }
 
 /** Starts video stream if it was stopped. */
-internal class StartVideoStreamMessage private constructor() : ControlMessage(TYPE) {
+internal class StartVideoStreamMessage(val displayId: Int) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(displayId)
+  }
+
+  override fun toString(): String =
+      "StartVideoStreamMessage(displayId=$displayId)"
 
   companion object : Deserializer {
     const val TYPE = 6
-    val instance = StartVideoStreamMessage()
 
     override fun deserialize(stream: Base128InputStream): StartVideoStreamMessage {
-      return instance
+      val displayId = stream.readInt()
+      return StartVideoStreamMessage(displayId)
     }
   }
 }
 
 /** Stops video stream. */
-internal class StopVideoStreamMessage private constructor() : ControlMessage(TYPE) {
+internal class StopVideoStreamMessage(val displayId: Int) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(displayId)
+  }
+
+  override fun toString(): String =
+      "StopVideoStreamMessage(displayId=$displayId)"
 
   companion object : Deserializer {
     const val TYPE = 7
-    val instance = StopVideoStreamMessage()
 
     override fun deserialize(stream: Base128InputStream): StopVideoStreamMessage {
-      return instance
+      val displayId = stream.readInt()
+      return StopVideoStreamMessage(displayId)
     }
   }
 }
@@ -438,6 +458,58 @@ internal data class DeviceStateNotification(val deviceState: Int) : ControlMessa
     override fun deserialize(stream: Base128InputStream): DeviceStateNotification {
       val deviceState = stream.readInt()
       return DeviceStateNotification(deviceState)
+    }
+  }
+}
+
+/**
+ * Notification of an added display.
+ */
+internal data class DisplayAddedNotification(val displayId: Int, val logicalSize: Dimension, val orientation: Int) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(displayId)
+    stream.writeInt(logicalSize.width)
+    stream.writeInt(logicalSize.height)
+    stream.writeInt(orientation)
+  }
+
+  override fun toString(): String =
+      "DisplayAddedNotification(displayId=$displayId, logicalSize=${logicalSize.width}x${logicalSize.height}, orientation=$orientation)"
+
+  companion object : Deserializer {
+    const val TYPE = 14
+
+    override fun deserialize(stream: Base128InputStream): DisplayAddedNotification {
+      val displayId = stream.readInt()
+      val width = stream.readInt()
+      val height = stream.readInt()
+      val orientation = stream.readInt() % 4
+      return DisplayAddedNotification(displayId, Dimension(width, height), orientation)
+    }
+  }
+}
+
+/**
+ * Notification of a removed display.
+ */
+internal data class DisplayRemovedNotification(val displayId: Int) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(displayId)
+  }
+
+  override fun toString(): String =
+      "DisplayRemovedNotification(displayId=$displayId)"
+
+  companion object : Deserializer {
+    const val TYPE = 15
+
+    override fun deserialize(stream: Base128InputStream): DisplayRemovedNotification {
+      val displayId = stream.readInt()
+      return DisplayRemovedNotification(displayId)
     }
   }
 }

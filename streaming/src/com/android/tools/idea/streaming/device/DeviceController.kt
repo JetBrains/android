@@ -116,6 +116,8 @@ class DeviceController(
             is ClipboardChangedNotification -> onDeviceClipboardChanged(message)
             is SupportedDeviceStatesNotification -> onSupportedDeviceStatesChanged(message)
             is DeviceStateNotification -> onDeviceStateChanged(message)
+            is DisplayAddedNotification -> onDisplayAdded(message)
+            is DisplayRemovedNotification -> onDisplayRemoved(message)
             else -> thisLogger().error("Unexpected type of a received message: ${message.type}")
           }
         }
@@ -197,6 +199,14 @@ class DeviceController(
     for (listener in deviceStateListeners) {
       listener.onDeviceStateChanged(message.deviceState)
     }
+  }
+
+  private fun onDisplayAdded(message: DisplayAddedNotification) {
+    //TODO
+  }
+
+  private fun onDisplayRemoved(message: DisplayRemovedNotification) {
+    //TODO
   }
 
   internal interface DeviceClipboardListener {
