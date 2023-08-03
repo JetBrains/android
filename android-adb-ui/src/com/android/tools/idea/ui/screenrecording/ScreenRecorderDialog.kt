@@ -21,7 +21,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapperDialog
-import com.intellij.openapi.util.SystemInfoRt
 import com.intellij.ui.PopupBorder
 import com.intellij.ui.TitlePanel
 import com.intellij.ui.WindowMoveListener
@@ -31,7 +30,6 @@ import com.intellij.ui.components.Label
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
 import java.awt.Component
@@ -83,16 +81,7 @@ internal class ScreenRecorderDialog(
     rootPane.windowDecorationStyle = JRootPane.NONE
     rootPane.border = JBUI.Borders.empty()
     panel.border = PopupBorder.Factory.create(true, true)
-
-    if (WindowRoundedCornersManager.isAvailable()) {
-      if (SystemInfoRt.isMac && UIUtil.isUnderDarcula()) {
-        WindowRoundedCornersManager.setRoundedCorners(window, JBUI.CurrentTheme.Popup.borderColor(true))
-        rootPane.border = PopupBorder.Factory.createEmpty()
-      }
-      else {
-        WindowRoundedCornersManager.setRoundedCorners(window)
-      }
-    }
+    WindowRoundedCornersManager.configure(this)
     pack()
   }
 
