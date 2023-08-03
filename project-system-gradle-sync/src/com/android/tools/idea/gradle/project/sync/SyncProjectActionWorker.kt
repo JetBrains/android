@@ -69,7 +69,7 @@ internal class SyncProjectActionWorker(
           // This section is for Single Variant Sync specific models if we have reached here we should have already requested AndroidProjects
           // without any Variant information. Now we need to request that Variant information for the variants that we are interested in.
           // e.g the ones that should be selected by the IDE.
-          variantDiscovery.chooseSelectedVariants()
+          variantDiscovery.discoverVariantsAndSync()
         }
 
         is AllVariantsSyncActionOptions -> {
@@ -125,4 +125,6 @@ internal class SyncProjectActionWorker(
   }
 
 }
+
+
 

@@ -32,6 +32,43 @@ internal class VariantDiscovery(
   private val androidProjectPathResolver: AndroidProjectPathResolver,
 ) {
   private val inputModules = androidModulesById.values
+  
+  fun syncAllVariants() {
+    if (inputModules.isEmpty()) return
+
+    val variants =
+      actionRunner
+        .runActions(inputModules.flatMap { module ->
+          module.allVariantNames.orEmpty().map { variant ->
+            ModuleConfiguration(module.id, variant, abi = null, isRoot = true)
+              .toFetchVariantDependenciesAction()
+          }
+        })
+        .mapNotNull { it.ignoreExceptionsAndGet()?.let { result -> result.module to it } }
+        .groupBy({ it.first }, { it.second })
+
+    actionRunner.runActions(variants.entries.map { (module, result) ->
+      ActionToRun(fun(controller: BuildController) {
+        result.map {
+          it.mapCatching {
+            when (it) {
+              is SyncVariantResultCoreFailure -> Unit
+              is SyncVariantResultCoreSuccess -> {
+                val allKotlinModels = controller.findKotlinModelsForAndroidProject(module.findModelRoot, it.ideVariant.name)
+                module.kotlinGradleModel = allKotlinModels.kotlinModel
+                module.kaptGradleModel = allKotlinModels.kaptModel
+              }
+            }
+          }
+        }
+      }, fetchesKotlinModels = true)
+    })
+
+    variants.entries.forEach { (module, result) ->
+      module.allVariants = result.mapNotNull { (it.ignoreExceptionsAndGet() as? SyncVariantResultCoreSuccess)?.ideVariant }
+      module.recordExceptions(result.flatMap { it.exceptions })
+    }
+  }
 
   /**
    * This method requests all of the required [Variant] models from Gradle via the tooling API.
@@ -45,7 +82,7 @@ internal class VariantDiscovery(
    *     depends on module "lib" - variant "freeDebug", the selected variant in "lib" will be "freeDebug". If a library module is a leaf
    *     (i.e. no other modules depend on it) a variant will be picked as if the module was an app module.
    */
-  fun chooseSelectedVariants() {
+  fun discoverVariantsAndSync() {
     if (inputModules.isEmpty()) return
     val allModulesToSetUp = prepareRequestedOrDefaultModuleConfigurations()
 
@@ -78,16 +115,17 @@ internal class VariantDiscovery(
 
       val moduleDependenciesWithoutKotlin =
         actionRunner.runActions(moduleConfigurationsToRequest.map { moduleConfiguration ->
-          previouslyResolvedVariants[moduleConfiguration].previouslyResolvedModelAction() ?: moduleConfiguration.traverseAction()
+          previouslyResolvedVariants[moduleConfiguration].previouslyResolvedModelAction() ?:
+          moduleConfiguration.toResultWithDependenciesAction()
         })
       val moduleDependencies = actionRunner.runActions(
         moduleDependenciesWithoutKotlin.map {
-          it.fetchKotlinModelsAction()
+          fetchKotlinModelsAction(it)
         }
       )
 
       moduleDependencies.forEach {
-        handleResult(it)
+        updateAndroidModuleWithResult(it)
       }
       propagatedToModules =
         moduleDependencies
@@ -115,56 +153,6 @@ internal class VariantDiscovery(
       }
       .map { it.second }
       .toCollection(LinkedList<ModuleConfiguration>())
-  }
-
-  private fun ModuleConfiguration.fetchModelAction(): ActionToRun<ModelResult<SyncVariantResultCore>> {
-    val module = androidModulesById[id]
-                 ?: return ActionToRun({ ModelResult.create { error("Module with id '${id}' not found") } }, false)
-    val isV2Action =
-      when (module) { // Exhaustive when, do not replace with `is`.
-        is AndroidModule.V1 -> false
-        is AndroidModule.V2 -> true
-      }
-    return ActionToRun(
-      fun(controller: BuildController): ModelResult<SyncVariantResultCore> {
-        return ModelResult.create {
-          val ideVariant: IdeVariantWithPostProcessor =
-            module
-              .variantFetcher(controller, androidProjectPathResolver, module, this@fetchModelAction)
-              .mapNull { error("Resolved variant '${variant}' does not exist.") }
-              .recordAndGet()
-            ?: return@create SyncVariantResultCoreFailure(this@fetchModelAction, module)
-
-          val variantName = ideVariant.name
-          val abiToRequest: String? = chooseAbiToRequest(module, variantName, abi)
-          val nativeVariantAbi: NativeVariantAbiResult = abiToRequest?.let {
-            controller.findNativeVariantAbiModel(
-              modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths),
-              module,
-              variantName,
-              it
-            )
-          } ?: NativeVariantAbiResult.None
-
-          fun getUnresolvedDependencies(): List<IdeUnresolvedDependency> {
-            val unresolvedDependencies = mutableListOf<IdeUnresolvedDependency>()
-            unresolvedDependencies.addAll(ideVariant.mainArtifact.unresolvedDependencies)
-            ideVariant.androidTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
-            ideVariant.testFixturesArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
-            ideVariant.unitTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
-            return unresolvedDependencies
-          }
-
-          SyncVariantResultCoreSuccess(
-            this@fetchModelAction,
-            module,
-            ideVariant,
-            nativeVariantAbi,
-            getUnresolvedDependencies()
-          )
-        }
-      }, fetchesV2Models = isV2Action, fetchesV1Models = !isV2Action
-    )
   }
 
   private fun selectedOrDefaultModuleConfiguration(
@@ -205,48 +193,6 @@ internal class VariantDiscovery(
     }
   }
 
-  /**
-   * Given a [moduleConfiguration] returns an action that fetches variant specific models for the given module+variant and returns the set
-   * of [SyncVariantResult]s containing the fetched models and describing resolved module configurations for the given module.
-   */
-  private fun ModuleConfiguration.traverseAction(): ActionToRun<ModelResult<SyncVariantResult>> {
-    return fetchModelAction().map { syncVariantResultCoreResult ->
-      syncVariantResultCoreResult.mapCatching { syncVariantResultCore ->
-        when (syncVariantResultCore) {
-          is SyncVariantResultCoreFailure -> SyncVariantResultFailure(
-            syncVariantResultCore)
-          is SyncVariantResultCoreSuccess -> SyncVariantResultSuccess(
-            syncVariantResultCore,
-            syncVariantResultCore.getModuleDependencyConfigurations((syncOptions as SingleVariantSyncActionOptions).selectedVariants,
-                                                                    androidModulesById,
-                                                                    internedModels::lookup),
-          )
-        }
-      }
-    }
-  }
-
-  /**
-   * [selectedAbi] if null or the abi doesn't exist a default will be picked. This default will be "x86" if
-   *               it exists in the abi names returned by the [NativeAndroidProject] otherwise the first item of this list will be
-   *               chosen.
-   */
-  private fun chooseAbiToRequest(
-    module: AndroidModule,
-    variantName: String,
-    selectedAbi: String?
-  ): String? {
-    // This module is not a native one, nothing to do
-    if (module.nativeModelVersion == AndroidModule.NativeModelVersion.None) return null
-
-    // Attempt to get the list of supported abiNames for this variant from the NativeAndroidProject
-    // Otherwise return from this method with a null result as abis are not supported.
-    val abiNames = module.getVariantAbiNames(variantName) ?: return null
-
-    return (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
-           ?: throw AndroidSyncException("No valid Native abi found to request!")
-  }
-
   private fun selectVariantForAppOrLeaf(
     androidModule: AndroidModule,
     selectedVariants: SelectedVariants
@@ -259,43 +205,7 @@ internal class VariantDiscovery(
            ?: androidModule.defaultVariantName
   }
 
-  fun syncAllVariants( ) {
-    if (inputModules.isEmpty()) return
-
-    val variants =
-      actionRunner
-        .runActions(inputModules.flatMap { module ->
-          module.allVariantNames.orEmpty().map { variant ->
-            ModuleConfiguration(module.id, variant, abi = null, isRoot = true).fetchModelAction()
-          }
-        })
-        .mapNotNull { it.ignoreExceptionsAndGet()?.let { result -> result.module to it } }
-        .groupBy({ it.first }, { it.second })
-
-    actionRunner.runActions(variants.entries.map { (module, result) ->
-      ActionToRun(fun(controller: BuildController) {
-        result.map {
-          it.mapCatching {
-            when (it) {
-              is SyncVariantResultCoreFailure -> Unit
-              is SyncVariantResultCoreSuccess -> {
-                val allKotlinModels = controller.findKotlinModelsForAndroidProject(module.findModelRoot, it.ideVariant.name)
-                module.kotlinGradleModel = allKotlinModels.kotlinModel
-                module.kaptGradleModel = allKotlinModels.kaptModel
-              }
-            }
-          }
-        }
-      }, fetchesKotlinModels = true)
-    })
-
-    variants.entries.forEach { (module, result) ->
-      module.allVariants = result.mapNotNull { (it.ignoreExceptionsAndGet() as? SyncVariantResultCoreSuccess)?.ideVariant }
-      module.recordExceptions(result.flatMap { it.exceptions })
-    }
-  }
-
-  private fun handleResult(result: ModelResult<SyncVariantResult>) {
+  private fun updateAndroidModuleWithResult(result: ModelResult<SyncVariantResult>) {
     val updatedResult = result.mapCatching { result ->
       when (result) {
         is SyncVariantResultFailure -> result
@@ -331,9 +241,97 @@ internal class VariantDiscovery(
     }
   }
 
-  private fun ModelResult<SyncVariantResult>.fetchKotlinModelsAction() =
+  // When re-syncing a project without changing the selected variants it is likely that the selected variants won't in the end.
+  // However, variant resolution is not perfectly parallelizabe. To overcome this we try to fetch the previously selected variant
+  // models in parallel and discard any that happen to change.
+  private fun getPreviouslyResolvedVariants(allModulesToSetUp: LinkedList<ModuleConfiguration>) = when {
+    !syncOptions.flags.studioFlagParallelSyncEnabled -> emptyMap()
+    !actionRunner.parallelActionsForV2ModelsSupported -> emptyMap()
+    // TODO(b/181028873): Predict changed variants and build models in parallel.
+    (syncOptions as SingleVariantSyncActionOptions).switchVariantRequest != null -> emptyMap()
+    else -> {
+      actionRunner
+        .runActions(allModulesToSetUp.map { it.toResultWithDependenciesAction() })
+        .mapNotNull { it.ignoreExceptionsAndGet()?.let { result -> result.moduleConfiguration to it } }
+        .toMap()
+    }
+  }
+
+  /** Converts a [ModuleConfiguration] to the action that fetches and processes the variant dependencies model for the module. */
+  internal fun ModuleConfiguration.toFetchVariantDependenciesAction(): ActionToRun<ModelResult<SyncVariantResultCore>> {
+    val module = androidModulesById[id]
+                 ?: return ActionToRun({ ModelResult.create { error("Module with id '${id}' not found") } }, false)
+    val isV2Action =
+      when (module) { // Exhaustive when, do not replace with `is`.
+        is AndroidModule.V1 -> false
+        is AndroidModule.V2 -> true
+      }
+    return ActionToRun(
+      fun(controller: BuildController): ModelResult<SyncVariantResultCore> {
+        return ModelResult.create {
+          val ideVariant: IdeVariantWithPostProcessor =
+            module
+              .variantFetcher(controller, androidProjectPathResolver, module, this@toFetchVariantDependenciesAction)
+              .mapNull { error("Resolved variant '${variant}' does not exist.") }
+              .recordAndGet()
+            ?: return@create SyncVariantResultCoreFailure(this@toFetchVariantDependenciesAction, module)
+
+          val variantName = ideVariant.name
+          val abiToRequest: String? = chooseAbiToRequest(module, variantName, abi)
+          val nativeVariantAbi: NativeVariantAbiResult = abiToRequest?.let {
+            controller.findNativeVariantAbiModel(
+              modelCacheV1Impl(internedModels, buildInfo.buildFolderPaths),
+              module,
+              variantName,
+              it
+            )
+          } ?: NativeVariantAbiResult.None
+
+          fun getUnresolvedDependencies(): List<IdeUnresolvedDependency> {
+            val unresolvedDependencies = mutableListOf<IdeUnresolvedDependency>()
+            unresolvedDependencies.addAll(ideVariant.mainArtifact.unresolvedDependencies)
+            ideVariant.androidTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
+            ideVariant.testFixturesArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
+            ideVariant.unitTestArtifact?.let { unresolvedDependencies.addAll(it.unresolvedDependencies) }
+            return unresolvedDependencies
+          }
+
+          SyncVariantResultCoreSuccess(
+            this@toFetchVariantDependenciesAction,
+            module,
+            ideVariant,
+            nativeVariantAbi,
+            getUnresolvedDependencies()
+          )
+        }
+      }, fetchesV2Models = isV2Action, fetchesV1Models = !isV2Action
+    )
+  }
+
+  /**
+   * Given a [moduleConfiguration] returns an action that fetches variant specific models for the given module+variant and returns the set
+   * of [SyncVariantResult]s containing the fetched models and describing resolved module configurations for the given module.
+   */
+  internal fun ModuleConfiguration.toResultWithDependenciesAction(): ActionToRun<ModelResult<SyncVariantResult>> {
+    return toFetchVariantDependenciesAction().map { syncVariantResultCoreResult ->
+      syncVariantResultCoreResult.mapCatching { syncVariantResultCore ->
+        when (syncVariantResultCore) {
+          is SyncVariantResultCoreFailure -> SyncVariantResultFailure(
+            syncVariantResultCore)
+          is SyncVariantResultCoreSuccess -> SyncVariantResultSuccess(
+            syncVariantResultCore,
+            syncVariantResultCore.getModuleDependencyConfigurations((syncOptions as SingleVariantSyncActionOptions).selectedVariants,
+                                                                    androidModulesById,
+                                                                    internedModels::lookup),
+          )
+        }
+      }
+    }
+  }
+
+  internal fun fetchKotlinModelsAction(result: ModelResult<SyncVariantResult>) =
     ActionToRun(fun(controller: BuildController): ModelResult<SyncVariantResult> {
-      return mapCatching { syncResult ->
+      return result.mapCatching { syncResult ->
         when (syncResult) {
           is SyncVariantResultFailure -> syncResult
           is SyncVariantResultSuccess -> {
@@ -348,24 +346,28 @@ internal class VariantDiscovery(
       }
     }, fetchesKotlinModels = true)
 
-  // When re-syncing a project without changing the selected variants it is likely that the selected variants won't in the end.
-  // However, variant resolution is not perfectly parallelizabe. To overcome this we try to fetch the previously selected variant
-  // models in parallel and discard any that happen to change.
-  private fun getPreviouslyResolvedVariants(allModulesToSetUp: LinkedList<ModuleConfiguration>) = when {
-    !syncOptions.flags.studioFlagParallelSyncEnabled -> emptyMap()
-    !actionRunner.parallelActionsForV2ModelsSupported -> emptyMap()
-    // TODO(b/181028873): Predict changed variants and build models in parallel.
-    (syncOptions as SingleVariantSyncActionOptions).switchVariantRequest != null -> emptyMap()
-    else -> {
-      actionRunner
-        .runActions(allModulesToSetUp.map { it.traverseAction() })
-        .mapNotNull { it.ignoreExceptionsAndGet()?.let { result -> result.moduleConfiguration to it } }
-        .toMap()
-    }
-  }
 }
 
+/**
+ * [selectedAbi] if null or the abi doesn't exist a default will be picked. This default will be "x86" if
+ *               it exists in the abi names returned by the [NativeAndroidProject] otherwise the first item of this list will be
+ *               chosen.
+ */
+private fun chooseAbiToRequest(
+  module: AndroidModule,
+  variantName: String,
+  selectedAbi: String?
+): String? {
+  // This module is not a native one, nothing to do
+  if (module.nativeModelVersion == AndroidModule.NativeModelVersion.None) return null
 
+  // Attempt to get the list of supported abiNames for this variant from the NativeAndroidProject
+  // Otherwise return from this method with a null result as abis are not supported.
+  val abiNames = module.getVariantAbiNames(variantName) ?: return null
+
+  return (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
+         ?: throw AndroidSyncException("No valid Native abi found to request!")
+}
 
 private fun ModelResult<SyncVariantResult>?.previouslyResolvedModelAction() =
   if (this == null) {
