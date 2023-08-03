@@ -47,12 +47,12 @@ import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import java.awt.Dimension
 import java.util.Objects
 import kotlin.math.max
 import kotlin.math.min
-import org.jetbrains.android.uipreview.forFile
 import org.jetbrains.annotations.TestOnly
 
 const val UNDEFINED_API_LEVEL = -1
@@ -450,9 +450,10 @@ internal fun ComposePreviewElement.previewProviderClassAndIndex() =
  * Definition of a preview element that can spawn multiple [ComposePreviewElement]s based on
  * parameters.
  */
-class ParametrizedComposePreviewElementTemplate(
+open class ParametrizedComposePreviewElementTemplate(
   private val basePreviewElement: ComposePreviewElement,
-  val parameterProviders: Collection<PreviewParameter>
+  val parameterProviders: Collection<PreviewParameter>,
+  private val renderContextFactory: (PsiFile?) -> ModuleRenderContext,
 ) : ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
   /**
    * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The [ComposePreviewElement]s
@@ -469,7 +470,7 @@ class ParametrizedComposePreviewElementTemplate(
         .warn("Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val moduleRenderContext = renderContext ?: forFile(file)
+    val moduleRenderContext = renderContext ?: renderContextFactory(file)
     ModuleClassLoaderManager.get()
       .getPrivate(
         ParametrizedComposePreviewElementTemplate::class.java.classLoader,

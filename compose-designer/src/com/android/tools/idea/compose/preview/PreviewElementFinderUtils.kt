@@ -400,7 +400,7 @@ private fun previewAnnotationToPreviewElement(
       attributesToConfiguration(previewAnnotation, defaultValues)
     )
   return if (!parameters.isEmpty()) {
-    ParametrizedComposePreviewElementTemplate(basePreviewElement, parameters)
+    StudioParametrizedComposePreviewElementTemplate(basePreviewElement, parameters)
   } else {
     basePreviewElement
   }
