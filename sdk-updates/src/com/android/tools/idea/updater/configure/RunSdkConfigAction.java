@@ -23,6 +23,7 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.options.Configurable;
@@ -42,7 +43,14 @@ import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabl
  */
 public class RunSdkConfigAction extends DumbAwareAction {
   protected RunSdkConfigAction() {
-    super(AndroidBundle.messagePointer("android.run.sdk.manager.action.text"));
+    super(IdeInfo.getInstance().isAndroidStudio()
+          ? AndroidBundle.messagePointer("android.run.sdk.manager.action.text")
+          : AndroidBundle.messagePointer("android.run.sdk.manager.action.android.text"));
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
@@ -50,7 +58,8 @@ public class RunSdkConfigAction extends DumbAwareAction {
     Presentation presentation = e.getPresentation();
     presentation.setEnabledAndVisible(isAndroidSdkManagerEnabled());
 
-    if (ActionPlaces.MAIN_TOOLBAR.equals(e.getPlace()) && !IdeInfo.getInstance().isAndroidStudio()) {
+    if (!IdeInfo.getInstance().isAndroidStudio()
+        && e.getPlace().equals(ActionPlaces.POPUP)) {
       @Nullable Project project = e.getProject();
       boolean hasAndroidFacets = project != null && ProjectFacetManager.getInstance(project).hasFacets(AndroidFacet.ID);
       presentation.setVisible(hasAndroidFacets);
