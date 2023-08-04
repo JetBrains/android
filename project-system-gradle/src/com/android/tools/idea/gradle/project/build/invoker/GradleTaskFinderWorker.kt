@@ -54,9 +54,11 @@ class GradleTaskFinderWorker private constructor(
     )
 
   fun find(): Map<Path, Collection<String>> {
-    val rootedTasks = expandList(requestedModules)
-      .mapNotNull { findTasksForModule(it) }
-      .flatMap { it.rootedTasks() }
+    val moduleTasks = expandList(requestedModules).mapNotNull { findTasksForModule(it) }
+
+    // Ensure clean tasks are always before any other tasks to avoid e.g. ":foo:assemble :foo:clean". Even with correct task ordering,
+    // having e.g. ":a:clean :a:assemble :b:clean :b:assemble" seems to trigger a bug in Gradle (see b/290954881).
+    val rootedTasks = moduleTasks.flatMap { it.rootedTasks { cleanTasks } } + moduleTasks.flatMap { it.rootedTasks { tasks } }
 
     return rootedTasks
       .groupBy(
@@ -274,14 +276,14 @@ private fun getTaskRunningInfo(module: Module): Pair<File, String>? {
   }
 }
 
-private fun ModuleTasks.rootedTasks(): List<RootedTask> {
+private fun ModuleTasks.rootedTasks(taskSelector: ModuleTasks.() -> Set<String>): List<RootedTask> {
   val (taskExecutionDir, projectPath) = getTaskRunningInfo(module)?.let {
     it.first.toPath() to it.second.trimEnd(':')
   } ?: return emptyList()
 
   fun toRooted(taskName: String) = RootedTask(taskExecutionDir, "$projectPath:$taskName")
 
-  return cleanTasks.map { toRooted(it) } + tasks.map { toRooted(it) }
+  return taskSelector(this).map { toRooted(it) }
 }
 
 private data class ModuleAndMode(
