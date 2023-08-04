@@ -268,6 +268,7 @@ class FastPreviewManager private constructor(
    */
   private val requestTracker = CacheBuilder.newBuilder()
     .maximumSize(maxCachedRequests.toLong())
+    .softValues()
     .build<CompileRequestId, CompletableDeferred<Pair<CompilationResult, String>>>()
 
   private val compilingMutex = Mutex(false)
