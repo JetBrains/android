@@ -112,8 +112,11 @@ class RootPanelTest {
     layoutInspectorRule.processes.selectedProcess =
       MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-    waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.START_LOADING }
-    assertThat(rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading).isTrue()
+    waitForCondition(1, TimeUnit.SECONDS) {
+      rootPanel.uiState == RootPanel.UiState.START_LOADING &&
+        rootPanel.components.filterIsInstance<JBLoadingPanel>().firstOrNull() != null &&
+        rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading
+    }
 
     // Release the response from the agent and wait for connection.
     // The loading should stop and the empty text should not be visible, because now we are
@@ -142,8 +145,11 @@ class RootPanelTest {
     layoutInspectorRule.processes.selectedProcess =
       MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST_INSPECTION_STREAM.streamId)
 
-    waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.START_LOADING }
-    assertThat(rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading).isTrue()
+    waitForCondition(1, TimeUnit.SECONDS) {
+      rootPanel.uiState == RootPanel.UiState.START_LOADING &&
+        rootPanel.components.filterIsInstance<JBLoadingPanel>().firstOrNull() != null &&
+        rootPanel.components.filterIsInstance<JBLoadingPanel>().first().isLoading
+    }
 
     // Release the response from the agent and wait for connection.
     // The loading should stop and the empty text should not be visible, because now we are
