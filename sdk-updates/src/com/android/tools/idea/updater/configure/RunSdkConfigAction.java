@@ -45,7 +45,7 @@ public class RunSdkConfigAction extends DumbAwareAction {
   protected RunSdkConfigAction() {
     super(IdeInfo.getInstance().isAndroidStudio()
           ? AndroidBundle.messagePointer("android.run.sdk.manager.action.text")
-          : AndroidBundle.messagePointer("android.run.sdk.manager.action.android.text"));
+          : AndroidBundle.messagePointer("action.Android.RunAndroidSdkManager.text"));
   }
 
   @Override
