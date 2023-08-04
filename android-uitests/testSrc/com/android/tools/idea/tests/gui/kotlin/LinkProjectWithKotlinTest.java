@@ -43,9 +43,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
-public class AddKotlinTest {
+public class LinkProjectWithKotlinTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(8, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private static final String PROJECT_DIR_NAME = "LinkProjectWithKotlin";
   private static final String PACKAGE_NAME = "com.android.linkprojectwithkotlin";

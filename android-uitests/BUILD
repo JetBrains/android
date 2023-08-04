@@ -1149,17 +1149,36 @@ java_test(
 )
 
 java_test(
-    name = "AddKotlinTest",
+    name = "LinkProjectWithKotlinTest",
     size = "large",
     data = COMMON_DATA + glob([
         "testData/LinkProjectWithKotlin/**",
     ]),
     jvm_flags = [
-        "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.AddKotlinTest",
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.LinkProjectWithKotlinTest",
     ],
     tags = COMMON_TAGS + [
         "no_windows",
         "qa_smoke",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [
+        ":intellij.android.guiTests_testlib",
+    ],
+)
+
+java_test(
+    name = "AddKotlinFilesTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/LinkProjectWithKotlin/**",
+    ]),
+    jvm_flags = [
+        "-Dtest.suite.class=com.android.tools.idea.tests.gui.kotlin.AddKotlinFilesTest",
+    ],
+    tags = COMMON_TAGS + [
+        "no_windows",
+        "qa_fast",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [
