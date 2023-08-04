@@ -34,6 +34,12 @@ class Precompiler(private val project: Project, private val inlineCandidateCache
     val output = mutableListOf<ByteArray>()
     ApplicationManager.getApplication().runReadAction {
       val ktFile = PsiManager.getInstance(project).findFile(file) as KtFile? ?: return@runReadAction
+
+      // Don't precompile .kts files.
+      if (ktFile.isScript()) {
+        return@runReadAction
+      }
+
       compileKtFile(ktFile, output)
     }
     return output

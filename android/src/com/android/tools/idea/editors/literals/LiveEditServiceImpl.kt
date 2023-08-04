@@ -135,6 +135,11 @@ class LiveEditServiceImpl(val project: Project,
           return
         }
 
+        // Ignore changes to .kts files.
+        if (psiFile.isScript()) {
+          return
+        }
+
         // Create a "fake" edit event until we refactor away the PSI event detection path.
         val editEvent = EditEvent(psiFile, psiFile)
         executor.execute { deployMonitor.onPsiChanged(editEvent) }
