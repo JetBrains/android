@@ -126,30 +126,16 @@ class ResourceFolderManager(val module: Module) : ModificationTracker {
     // TODO(b/246530964): can we use SourceProviders to get this information?
     val folders = when {
       module.isLinkedAndroidModule() && module.isAndroidTestModule() ->
-        listOf(facet.configuration.state.TEST_RES_FOLDERS_RELATIVE_PATH)
+        facet.configuration.state.TEST_RES_FOLDERS_RELATIVE_PATH
       else ->
-        listOf(facet.mainModule.androidFacet?.configuration?.state?.RES_FOLDERS_RELATIVE_PATH)
-    }.filterNotNull()
+        facet.mainModule.androidFacet?.configuration?.state?.RES_FOLDERS_RELATIVE_PATH
+    } ?: return emptyFolders
 
-    return if (folders.isNotEmpty()) {
-      // We have state saved in the facet.
-      val virtualFileManager = VirtualFileManager.getInstance()
-      folders.flatMap { it.toVirtualFiles(virtualFileManager) }
-    }
-    else {
-      // First time; have not yet computed the res folders, just try the default: src/main/res/ from Gradle templates, res/ from exported
-      // Eclipse projects.
-      listOfNotNull(
-          AndroidRootUtil.getFileByRelativeModulePath(facet.module, "/$FD_SOURCES/$FD_MAIN/$FD_RES", true)
-          ?: AndroidRootUtil.getFileByRelativeModulePath(facet.module, "/$FD_RES", true))
-    }
-  }
-
-  private fun String.toVirtualFiles(manager: VirtualFileManager): List<VirtualFile> {
+    val manager = VirtualFileManager.getInstance()
     return Splitter.on(AndroidFacetProperties.PATH_LIST_SEPARATOR_IN_FACET_CONFIGURATION)
       .omitEmptyStrings()
       .trimResults()
-      .split(this)
+      .split(folders)
       .mapNotNull(manager::findFileByUrl)
   }
 }
