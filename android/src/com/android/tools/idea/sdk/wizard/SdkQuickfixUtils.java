@@ -299,28 +299,23 @@ public final class SdkQuickfixUtils {
    * Checks whether a given package path is available for download.
    *
    * @param path The package path to check, corresponding to {@link RepoPackage#getPath()}.
-   * @param project The {@link Project} used for this operation's progress runner.
    */
   @Slow
-  public static boolean checkPathIsAvailableForDownload(String path, Project project) {
+  public static boolean checkPathIsAvailableForDownload(String path) {
     ApplicationManager.getApplication().assertIsNonDispatchThread();
 
-    AndroidSdkData sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk();
-    if (sdkData == null) return false;
-
-    RepoManager mgr = sdkData.getSdkHandler().getSdkManager(REPO_LOGGER);
+    RepoManager mgr = AndroidSdks.getInstance().tryToChooseSdkHandler().getSdkManager(REPO_LOGGER);
     mgr.loadSynchronously(
       RepoManager.DEFAULT_EXPIRATION_PERIOD_MS,
-      /* onLocalComplete = */ null,
-      /* onSuccess = */ null,
-      /* onError = */ null,
-      new StudioProgressRunner(/* modal = */ false, /* cancellable = */ false, "Finding Available SDK Components", project),
+      null,
+      null,
+      null,
+      new StudioProgressRunner(false, false, "Finding Available SDK Components", null),
       new StudioDownloader(),
       StudioSettingsController.getInstance());
     RepositoryPackages packages = mgr.getPackages();
 
-    UpdatablePackage p = packages.getConsolidatedPkgs().get(path);
-    return p != null && p.hasRemote();
+    return packages.getRemotePackages().containsKey(path);
   }
 
   /**

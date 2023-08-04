@@ -139,16 +139,14 @@ public class SdkQuickfixUtilsTest {
 
   @Test
   public void testCheckPathIsAvailableForDownload() {
-    Project project = androidProjectRule.getProject();
-
     myPackages.setLocalPkgInfos(ImmutableList.of());
     myPackages.setRemotePkgInfos(ImmutableList.of());
     myRepoManager.markInvalid();
 
-    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localonly;package", project)).isFalse();
-    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;remoteonly;package", project)).isFalse();
-    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localandremote;package", project)).isFalse();
-    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;missing;package", project)).isFalse();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localonly;package")).isFalse();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;remoteonly;package")).isFalse();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localandremote;package")).isFalse();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;missing;package")).isFalse();
 
     myPackages.setLocalPkgInfos(ImmutableList.of(
       new FakePackage.FakeLocalPackage("some;localonly;package"),
@@ -160,9 +158,9 @@ public class SdkQuickfixUtilsTest {
     ));
     myRepoManager.markInvalid();
 
-    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localonly;package", project)).isFalse();
-    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;remoteonly;package", project)).isTrue();
-    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localandremote;package", project)).isTrue();
-    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;missing;package", project)).isFalse();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localonly;package")).isFalse();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;remoteonly;package")).isTrue();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;localandremote;package")).isTrue();
+    assertThat(SdkQuickfixUtils.checkPathIsAvailableForDownload("some;missing;package")).isFalse();
   }
 }

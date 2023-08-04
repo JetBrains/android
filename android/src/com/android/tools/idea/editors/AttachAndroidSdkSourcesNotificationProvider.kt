@@ -90,7 +90,7 @@ open class AttachAndroidSdkSourcesNotificationProvider : EditorNotificationProvi
     refreshAfterDownload: Runnable? = null
   ): Function<FileEditor, EditorNotificationPanel?> {
     val sourcesPath = DetailsTypes.getSourcesPath(requestedSourceVersion)
-    val sourcesAvailable = SdkQuickfixUtils.checkPathIsAvailableForDownload(sourcesPath, project)
+    val sourcesAvailable = SdkQuickfixUtils.checkPathIsAvailableForDownload(sourcesPath)
 
     return Function { fileEditor ->
       MyEditorNotificationPanel(fileEditor).apply {
