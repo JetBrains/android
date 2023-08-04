@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.Bridge
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.updateScreenSize
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
@@ -37,7 +38,6 @@ import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
-import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
@@ -402,8 +402,7 @@ class CustomViewPreviewRepresentation(
       withContext(uiThread) {
         persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let {
           previewDimensions ->
-          updateConfigurationScreenSize(
-            configuration,
+          configuration.updateScreenSize(
             previewDimensions[0].toInt(),
             previewDimensions[1].toInt(),
             configuration.device

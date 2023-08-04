@@ -29,6 +29,7 @@ import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.updateScreenSize
 import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
 import com.android.tools.idea.configurations.Wallpaper
@@ -38,7 +39,6 @@ import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.preview.xml.PreviewXmlBuilder
 import com.android.tools.idea.preview.xml.XmlSerializable
-import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.useWithClassLoader
@@ -164,12 +164,7 @@ private fun PreviewConfiguration.applyTo(
       // The PX are converted to DP by multiplying it by the dpiFactor that is the ratio of the
       // current dpi vs the default dpi (160).
       val dpiFactor = renderConfiguration.density.dpiValue / Density.DEFAULT_DENSITY
-      updateConfigurationScreenSize(
-        renderConfiguration,
-        it.width * dpiFactor,
-        it.height * dpiFactor,
-        device
-      )
+      renderConfiguration.updateScreenSize(it.width * dpiFactor, it.height * dpiFactor, device)
     }
   }
   renderConfiguration.finishBulkEditing()

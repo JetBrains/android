@@ -26,6 +26,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.configurations.Configurations;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionEvent;
@@ -36,7 +37,6 @@ import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.configurations.ConfigurationSettings;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
-import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.surface.DeviceSizeList;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
@@ -109,7 +109,7 @@ public class CanvasResizeInteraction extends Interaction {
       int androidX = Coordinates.getAndroidX(myScreenView, myCurrentX);
       int androidY = Coordinates.getAndroidY(myScreenView, myCurrentY);
       if (androidX > 0 && androidY > 0 && androidX < myMaxSize && androidY < myMaxSize) {
-        NlModelHelperKt.updateConfigurationScreenSize(myConfiguration, androidX, androidY);
+        Configurations.updateScreenSize(myConfiguration, androidX, androidY);
       }
     }
   };
@@ -297,7 +297,7 @@ public class CanvasResizeInteraction extends Interaction {
         myConfiguration.setEffectiveDevice(deviceToSnap, deviceState);
       }
       else {
-        NlModelHelperKt.updateConfigurationScreenSize(myConfiguration, androidX, androidY);
+        Configurations.updateScreenSize(myConfiguration, androidX, androidY);
       }
     }
   }
