@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.SdkConstants
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
@@ -310,17 +309,8 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
   var hasAnimations = false
 
   override fun toPreviewXml(): PreviewXmlBuilder {
-    val matchParent = displaySettings.showDecoration
-    val width =
-      dimensionToString(
-        configuration.width,
-        if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT
-      )
-    val height =
-      dimensionToString(
-        configuration.height,
-        if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT
-      )
+    val width = dimensionToString(configuration.width, VALUE_WRAP_CONTENT)
+    val height = dimensionToString(configuration.height, VALUE_WRAP_CONTENT)
     val xmlBuilder =
       PreviewXmlBuilder(COMPOSE_VIEW_ADAPTER_FQN)
         .androidAttribute(ATTR_LAYOUT_WIDTH, width)
