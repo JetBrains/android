@@ -27,9 +27,9 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.Wallpaper
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.configurations.Wallpaper
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.testing.AndroidProjectRule
 import kotlin.math.sqrt

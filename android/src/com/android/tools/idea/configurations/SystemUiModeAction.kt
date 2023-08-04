@@ -19,6 +19,7 @@ import com.android.resources.NightMode
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.selectionBackground
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.Wallpaper
 import com.intellij.ide.ui.laf.darcula.ui.DarculaMenuSeparatorUI
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -257,8 +258,7 @@ private class ItemUI : BasicMenuItemUI() {
 private class SetWallpaperAction(renderContext: ConfigurationHolder, val wallpaper: Wallpaper?) : ConfigurationAction(renderContext) {
 
   override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
-    configuration.wallpaperPath = wallpaper?.resourcePath
-    configuration.useThemedIcon = wallpaper != null
+    configuration.setWallpaper(wallpaper)
   }
 
   @Suppress("UnstableApiUsage")
@@ -278,12 +278,20 @@ private class SetWallpaperAction(renderContext: ConfigurationHolder, val wallpap
   }
 }
 
-enum class Wallpaper(val resourcePath: String, val icon: Icon) {
-  RED("/wallpapers/red.png", getWallpaperIcon("/wallpapers/red_thumbnail.png")),
-  GREEN("/wallpapers/green.png", getWallpaperIcon("/wallpapers/green_thumbnail.png")),
-  BLUE("/wallpapers/blue.png", getWallpaperIcon("/wallpapers/blue_thumbnail.png")),
-  YELLOW("/wallpapers/yellow.png", getWallpaperIcon("/wallpapers/yellow_thumbnail.png")),
+private enum class WallpaperIcon(val icon: Icon) {
+  RED(getWallpaperIcon("/wallpapers/red_thumbnail.png")),
+  GREEN(getWallpaperIcon("/wallpapers/green_thumbnail.png")),
+  BLUE(getWallpaperIcon("/wallpapers/blue_thumbnail.png")),
+  YELLOW(getWallpaperIcon("/wallpapers/yellow_thumbnail.png")),
 }
+
+private val Wallpaper.icon: Icon
+  get() = when(this) {
+    Wallpaper.RED -> WallpaperIcon.RED
+    Wallpaper.GREEN -> WallpaperIcon.GREEN
+    Wallpaper.BLUE -> WallpaperIcon.BLUE
+    Wallpaper.YELLOW -> WallpaperIcon.YELLOW
+  }.icon
 
 private fun wallpaperFromPath(path: String?): Wallpaper? {
   if (path == null) {

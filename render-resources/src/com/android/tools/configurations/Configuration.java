@@ -209,7 +209,7 @@ public class Configuration implements Disposable, ModificationTracker {
   private int myUiModeFlagValue;
   @NotNull private AdaptiveIconShape myAdaptiveShape = AdaptiveIconShape.getDefaultShape();
   private boolean myUseThemedIcon = false;
-  private String myWallpaperPath = null;
+  private Wallpaper myWallpaper = null;
 
   /**
    * Creates a new {@linkplain Configuration}
@@ -261,7 +261,7 @@ public class Configuration implements Disposable, ModificationTracker {
     myUiModeFlagValue = from.myUiModeFlagValue;
     myAdaptiveShape = from.myAdaptiveShape;
     myUseThemedIcon = from.myUseThemedIcon;
-    myWallpaperPath = from.myWallpaperPath;
+    myWallpaper = from.myWallpaper;
   }
 
   @Override
@@ -898,9 +898,10 @@ public class Configuration implements Disposable, ModificationTracker {
     return myAdaptiveShape;
   }
 
-  public void setWallpaperPath(@Nullable String wallpaperPath) {
-    if (!Objects.equal(myWallpaperPath, wallpaperPath)) {
-      myWallpaperPath = wallpaperPath;
+  public void setWallpaper(@Nullable Wallpaper wallpaper) {
+    if (!Objects.equal(myWallpaper, wallpaper)) {
+      myWallpaper = wallpaper;
+      myUseThemedIcon = wallpaper != null;
       updated(CFG_THEME);
     }
   }
@@ -910,14 +911,7 @@ public class Configuration implements Disposable, ModificationTracker {
    */
   @Nullable
   public String getWallpaperPath() {
-    return myWallpaperPath;
-  }
-
-  public void setUseThemedIcon(boolean useThemedIcon) {
-    if (myUseThemedIcon != useThemedIcon) {
-      myUseThemedIcon = useThemedIcon;
-      updated(CFG_THEME);
-    }
+    return myWallpaper != null ? myWallpaper.getResourcePath() : null;
   }
 
   /**

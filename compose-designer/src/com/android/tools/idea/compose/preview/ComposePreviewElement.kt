@@ -28,10 +28,10 @@ import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.configurations.Configuration
+import com.android.tools.configurations.Wallpaper
 import com.android.tools.configurations.updateScreenSize
 import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
-import com.android.tools.idea.configurations.Wallpaper
 import com.android.tools.idea.preview.DisplayPositioning
 import com.android.tools.idea.preview.MethodPreviewElement
 import com.android.tools.idea.preview.PreviewDisplaySettings
@@ -135,9 +135,7 @@ private fun PreviewConfiguration.applyTo(
   renderConfiguration.locale = Locale.create(locale)
   renderConfiguration.uiModeFlagValue = uiMode
   renderConfiguration.fontScale = max(0f, fontScale)
-  renderConfiguration.wallpaperPath =
-    if (wallpaper in Wallpaper.values().indices) Wallpaper.values()[wallpaper].resourcePath
-    else null
+  renderConfiguration.setWallpaper(Wallpaper.values().getOrNull(wallpaper))
 
   val allDevices = devicesProvider(renderConfiguration)
   val device =

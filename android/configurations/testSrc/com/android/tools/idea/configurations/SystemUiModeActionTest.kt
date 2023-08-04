@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations
 
 import com.android.resources.NightMode
+import com.android.tools.configurations.Wallpaper
 import com.intellij.testFramework.TestActionEvent
 import junit.framework.Assert
 import org.jetbrains.android.AndroidTestCase

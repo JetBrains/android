@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.android.tools.idea.projectsystem.ProjectSystemBuildUtil.PROJECT_SYSTEM_BUILD_TOPIC;
 import static com.android.tools.idea.rendering.RenderTestUtil.DEFAULT_DEVICE_ID;
 import static com.android.tools.idea.rendering.RenderTestUtil.createRenderTask;
 import static com.android.tools.idea.rendering.RenderTestUtil.getHighPriorityRenderingTopicForTest;
@@ -39,8 +38,7 @@ import com.android.testutils.ImageDiffUtil;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.configurations.Configuration;
-import com.android.tools.idea.configurations.Wallpaper;
-import com.android.tools.idea.projectsystem.ProjectSystemBuildManager;
+import com.android.tools.configurations.Wallpaper;
 import com.android.tools.rendering.RenderExecutor;
 import com.android.tools.rendering.RenderLogger;
 import com.android.tools.rendering.RenderResult;
@@ -778,7 +776,7 @@ public class RenderTaskTest extends AndroidTestCase {
       }
     });
 
-    configuration.setWallpaperPath(Wallpaper.RED.getResourcePath());
+    configuration.setWallpaper(Wallpaper.RED);
     RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
       task.setDecorations(false);
       try {
@@ -790,7 +788,7 @@ public class RenderTaskTest extends AndroidTestCase {
       }
     });
 
-    configuration.setWallpaperPath(Wallpaper.GREEN.getResourcePath());
+    configuration.setWallpaper(Wallpaper.GREEN);
     RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
       task.setDecorations(false);
       try {
@@ -802,7 +800,7 @@ public class RenderTaskTest extends AndroidTestCase {
       }
     });
 
-    configuration.setWallpaperPath(null);
+    configuration.setWallpaper(null);
     RenderTestUtil.withRenderTask(myFacet, file, configuration, logger, task -> {
       task.setDecorations(false);
       try {
