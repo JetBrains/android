@@ -22,8 +22,6 @@ import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
 import com.android.tools.idea.npw.template.TemplateResolver
-import com.android.tools.idea.templates.ProjectStateCustomizer
-import com.android.tools.idea.templates.TemplateStateCustomizer
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -698,3 +696,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
     checkCreateTemplate("Media Service", withKotlin())
   }
 }
+
+typealias TemplateStateCustomizer = Map<String, String>
+
+typealias ProjectStateCustomizer = (ModuleTemplateDataBuilder, ProjectTemplateDataBuilder) -> Unit

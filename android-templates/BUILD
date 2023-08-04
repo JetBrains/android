@@ -33,20 +33,6 @@ iml_module(
     name = "intellij.android.templates.tests",
     iml_files = ["intellij.android.templates.tests.iml"],
     split_test_targets = {
-        "TemplateTest": {
-            "tags": [
-                "cpu:3",
-                "no_test_mac",
-                "no_test_windows",  # b/199156040, timeouts seen
-            ],
-            "shard_count": 11,
-            "data": [
-                "//prebuilts/studio/sdk:cmake",
-                "//prebuilts/studio/sdk:ndk",
-                "//tools/data-binding:data_binding_runtime.zip",
-            ],
-            "test_filter": "com.android.tools.idea.templates.TemplateTest",
-        },
         "TemplateDiffTest": {
             "shard_count": 1,
             "data": [

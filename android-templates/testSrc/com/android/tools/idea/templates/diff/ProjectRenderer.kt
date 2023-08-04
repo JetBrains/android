@@ -25,7 +25,6 @@ import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
 import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
-import com.android.tools.idea.templates.ProjectStateCustomizer
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getTestDataRoot
 import com.android.tools.idea.templates.getDefaultModuleState
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
