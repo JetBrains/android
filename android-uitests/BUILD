@@ -198,6 +198,7 @@ maven_repository(
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.emoji2.emoji2-views-helper_1.3.0",
         "@maven//:androidx.emoji2.emoji2-views-helper_1.4.0-beta03",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.fragment.fragment-ktx_1.6.0",
         "@maven//:androidx.fragment.fragment_1.3.0",
         "@maven//:androidx.fragment.fragment_1.3.0-rc01",
         "@maven//:androidx.games.games-activity_1.2.2",
@@ -995,6 +996,21 @@ java_test(
         "testData/RoomSampleProject/**",
     ]),
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.jetpack.RoomQueryCodeCompletionTest"],
+    tags = COMMON_TAGS + [
+        "no_windows",
+        "qa_fast",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "ViewModelAndLiveDataTest",
+    size = "large",
+    data = COMMON_DATA + glob([
+        "testData/ViewModelLiveDataSample/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.jetpack.ViewModelAndLiveDataTest"],
     tags = COMMON_TAGS + [
         "no_windows",
         "qa_fast",
