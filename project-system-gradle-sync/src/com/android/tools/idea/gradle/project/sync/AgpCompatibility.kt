@@ -24,7 +24,7 @@ import com.android.tools.idea.gradle.project.upgrade.computeAndroidGradlePluginC
 internal val LATEST_KNOWN_ANDROID_GRADLE_PLUGIN_VERSION = AgpVersion.parse(Version.ANDROID_GRADLE_PLUGIN_VERSION)
 internal val MINIMUM_SUPPORTED_AGP_VERSION = AgpVersion.parse(SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION)
 
-internal val MODEL_CONSUMER_VERSION = ModelConsumerVersion(64, 0, "Android Studio Giraffe")
+internal val MODEL_CONSUMER_VERSION = ModelConsumerVersion(66, 0, "Android Studio I")
 
 
 internal fun checkAgpVersionCompatibility(minimumModelConsumerVersion: ModelConsumerVersion?, agpVersion: AgpVersion, syncOptions: SyncActionOptions) {
