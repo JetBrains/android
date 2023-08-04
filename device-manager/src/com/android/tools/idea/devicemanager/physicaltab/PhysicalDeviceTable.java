@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanager.physicaltab;
 
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.adtui.table.Tables;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellEditor;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.ActivateDeviceFileExplorerWindowValue;
@@ -27,7 +28,6 @@ import com.android.tools.idea.devicemanager.DeviceType;
 import com.android.tools.idea.devicemanager.IconButtonTableCellRenderer;
 import com.android.tools.idea.devicemanager.MergedTableColumn;
 import com.android.tools.idea.devicemanager.PopUpMenuValue;
-import com.android.tools.idea.devicemanager.Tables;
 import com.android.tools.idea.devicemanager.physicaltab.PhysicalDeviceTableModel.RemoveValue;
 import com.android.tools.idea.wearpairing.WearPairingManager;
 import com.google.common.annotations.VisibleForTesting;
