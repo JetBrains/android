@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -257,8 +258,13 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
   private fun deleteEmptyParent(parentPsi: PsiElement?) {
     when (parentPsi) {
       is TomlArrayTable -> if (parentPsi.entries.isEmpty()) parentPsi.delete()
+      // we want to stay with [libraries] section for version catalog so empty table is Ok there
+      // but for declarative we want to clean up empty tables
+      is TomlTable -> if (parentPsi.entries.isEmpty() && !parentPsi.containingFile.isGradleCatalog()) parentPsi.delete()
     }
   }
+
+  private fun PsiFile.isGradleCatalog() = this.name.endsWith("versions.toml")
 
   override fun createDslLiteral(literal: GradleDslLiteral) = createDslElement(literal)
 

@@ -313,10 +313,7 @@ class GradleDeclarativeBuildModelTest : GradleFileModelTestCase() {
      [android]
      compileSdkVersion = 33
      """.trimIndent()
-    val expected = """
-      [android]
-
-      """.trimIndent()
+    val expected = ""
 
     doTest(given, expected) {
       android().compileSdkVersion().delete()
@@ -334,7 +331,6 @@ class GradleDeclarativeBuildModelTest : GradleFileModelTestCase() {
     val expected = """
       [android]
       compileSdkVersion = 33
-      [android.defaultConfig]
 
       """.trimIndent()
 
