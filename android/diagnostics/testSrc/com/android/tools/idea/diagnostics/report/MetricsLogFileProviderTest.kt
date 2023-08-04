@@ -22,10 +22,10 @@ import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.util.io.readText
 import junit.framework.TestCase
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.readText
 
 private const val DIRECTORY_NAME = "diagnostics"
 private const val FILE_NAME = "MetricsInfo.log"

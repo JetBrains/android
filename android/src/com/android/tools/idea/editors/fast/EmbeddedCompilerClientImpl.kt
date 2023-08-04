@@ -32,7 +32,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressWrapper
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.psi.KtFile
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.createFile
 
 private fun Throwable?.isCompilationError(): Boolean =
   this is LiveEditUpdateException
@@ -195,7 +196,7 @@ class EmbeddedCompilerClientImpl private constructor(
   private fun OutputFile.writeTo(outputDirectory: Path) {
     log.debug("output: $relativePath")
     val path = outputDirectory.resolve(relativePath)
-    path.createFile()
+    path.createParentDirectories().createFile()
     Files.write(path, asByteArray())
   }
 

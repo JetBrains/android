@@ -48,7 +48,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.io.isDirectory
 import com.jgoodies.common.base.Strings
 import java.io.File
 import java.nio.file.Path
@@ -60,6 +59,7 @@ import javax.swing.JRadioButton
 import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
 import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
 
 /** @see ExportToFileDialogView */
 class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogParams) :
@@ -432,10 +432,10 @@ private object IOUtils {
    */
   fun isValidDestinationFilePath(path: Path?): Boolean =
     path != null &&
-      !path.isDirectory() &&
-      path.parent != null &&
-      path.parent.isDirectory() &&
-      path.parent.exists()
+    !path.isDirectory() &&
+    path.parent != null &&
+    path.parent.isDirectory() &&
+    path.parent.exists()
 
   fun endsWithSeparatorChar(path: String) = path.trimEnd().endsWith(File.separatorChar)
 

@@ -41,11 +41,6 @@ import com.android.tools.idea.layoutinspector.util.CheckUtil.assertDrawTreesEqua
 import com.android.tools.idea.layoutinspector.view
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
-import com.intellij.util.io.readBytes
-import java.awt.image.BufferedImage
-import java.io.ByteArrayInputStream
-import java.nio.ByteBuffer
-import javax.imageio.ImageIO
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -54,6 +49,11 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.verify
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import java.nio.ByteBuffer
+import javax.imageio.ImageIO
+import kotlin.io.path.readBytes
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 

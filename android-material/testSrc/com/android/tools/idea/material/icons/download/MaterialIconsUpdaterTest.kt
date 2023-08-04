@@ -28,15 +28,16 @@ import com.intellij.util.download.DownloadableFileService
 import com.intellij.util.download.FileDownloader
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl
 import com.intellij.util.io.createDirectories
-import com.intellij.util.io.createFile
-import com.intellij.util.io.readText
+import com.intellij.util.io.createParentDirectories
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import java.io.File
 import java.nio.file.Path
+import kotlin.io.path.createFile
 import kotlin.io.path.createTempDirectory
+import kotlin.io.path.readText
 import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 
@@ -109,7 +110,9 @@ class MaterialIconsUpdaterTest {
   fun setup() {
     testDirectory = createTempDirectory(javaClass.simpleName)
     downloadDir = testDirectory.resolve("downloads")
-    existingMetadataFile = downloadDir.resolve(METADATA_FILE_NAME).createFile().apply { writeText(OLD_METADATA_CONTENT) }.toFile()
+    existingMetadataFile = downloadDir.resolve(METADATA_FILE_NAME).createParentDirectories().createFile().apply {
+      writeText(OLD_METADATA_CONTENT)
+    }.toFile()
     // Setup 'Downloads' directory with the existing XML files of the `old` metadata
     downloadDir.resolve("style1/my_icon_1").apply { createDirectories() }.resolve("my_icon_1.xml").writeText(OLD_VD)
     downloadDir.resolve("style1/my_icon_2").apply { createDirectories() }.resolve("my_icon_2.xml").writeText(OLD_VD)

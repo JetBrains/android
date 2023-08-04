@@ -1,8 +1,8 @@
 package com.android.tools.idea.appinspection.inspector.api.service
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.io.isDirectory
 import org.junit.Test
+import kotlin.io.path.isDirectory
 
 class FileServiceTest {
   private val fileService = TestFileService()

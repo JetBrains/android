@@ -23,10 +23,10 @@ import com.android.tools.inspectors.common.ui.dataviewer.IntellijImageDataViewer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.util.io.readBytes
 import javax.swing.JLabel
 import org.junit.Rule
 import org.junit.Test
+import kotlin.io.path.readBytes
 
 @RunsInEdt
 class UiComponentsProviderTest {

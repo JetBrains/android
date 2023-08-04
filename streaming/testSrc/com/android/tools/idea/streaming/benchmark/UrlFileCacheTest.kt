@@ -17,8 +17,6 @@ package com.android.tools.idea.streaming.benchmark
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.io.HttpRequests.HttpStatusException
-import com.intellij.util.io.isDirectory
-import com.intellij.util.io.isFile
 import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpServer
 import org.junit.After
@@ -31,6 +29,8 @@ import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.nio.file.Path
 import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readBytes
 import kotlin.test.assertFailsWith
@@ -74,7 +74,7 @@ class UrlFileCacheTest {
     val path = urlFileCache.get(url + FILES[0].first)
     assertThat(path).isNotEmpty()
     assertThat(path.exists()).isTrue()
-    assertThat(path.isFile()).isTrue()
+    assertThat(path.isRegularFile()).isTrue()
     assertThat(path.parent.isDirectory()).isTrue()
     assertThat(path.parent.listDirectoryEntries()).containsExactly(path)
     assertThat(String(path.readBytes())).isEqualTo(FILES[0].second)
@@ -89,7 +89,7 @@ class UrlFileCacheTest {
     }
     assertThat(path).isNotEmpty()
     assertThat(path.exists()).isTrue()
-    assertThat(path.isFile()).isTrue()
+    assertThat(path.isRegularFile()).isTrue()
     assertThat(path.parent.isDirectory()).isTrue()
     assertThat(path.parent.listDirectoryEntries()).containsExactly(path)
     assertThat(String(path.readBytes())).isEqualTo(FILES[0].second.reversed())
@@ -121,7 +121,7 @@ class UrlFileCacheTest {
     assertThat(repeatedPath.parent).isEqualTo(initialPath.parent)
     assertThat(initialPath.exists()).isFalse()
     assertThat(repeatedPath.exists()).isTrue()
-    assertThat(repeatedPath.isFile()).isTrue()
+    assertThat(repeatedPath.isRegularFile()).isTrue()
     assertThat(repeatedPath.parent.isDirectory()).isTrue()
     assertThat(repeatedPath.parent.listDirectoryEntries()).containsExactly(repeatedPath)
     assertThat(String(repeatedPath.readBytes())).isEqualTo(FILES[0].second)
@@ -136,7 +136,7 @@ class UrlFileCacheTest {
 
     assertThat(repeatedPath).isEqualTo(initialPath)
     assertThat(initialPath.exists()).isTrue()
-    assertThat(initialPath.isFile()).isTrue()
+    assertThat(initialPath.isRegularFile()).isTrue()
     assertThat(initialPath.parent.isDirectory()).isTrue()
     assertThat(initialPath.parent.listDirectoryEntries()).containsExactly(initialPath)
     assertThat(String(initialPath.readBytes())).isEqualTo(FILES[0].second)
@@ -168,7 +168,7 @@ class UrlFileCacheTest {
 
     assertThat(repeatedPath).isEqualTo(initialPath)
     assertThat(repeatedPath.exists()).isTrue()
-    assertThat(repeatedPath.isFile()).isTrue()
+    assertThat(repeatedPath.isRegularFile()).isTrue()
     assertThat(repeatedPath.parent.isDirectory()).isTrue()
     assertThat(repeatedPath.parent.listDirectoryEntries()).containsExactly(repeatedPath)
     assertThat(String(repeatedPath.readBytes())).isEqualTo(FILES[0].second)
@@ -195,7 +195,7 @@ class UrlFileCacheTest {
 
     assertThat(repeatedPath).isEqualTo(initialPath)
     assertThat(repeatedPath.exists()).isTrue()
-    assertThat(repeatedPath.isFile()).isTrue()
+    assertThat(repeatedPath.isRegularFile()).isTrue()
     assertThat(String(repeatedPath.readBytes())).isEqualTo(FILES[0].second.reversed())
   }
 

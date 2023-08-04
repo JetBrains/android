@@ -90,24 +90,9 @@ import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import com.intellij.util.io.delete
-import com.intellij.util.io.isDirectory
-import com.intellij.util.io.isFile
-import com.intellij.util.io.size
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption.REPLACE_EXISTING
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executor
-import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.TimeUnit.SECONDS
-import java.util.concurrent.atomic.AtomicInteger
 import junit.framework.TestCase.fail
-import kotlin.io.path.exists
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -130,6 +115,18 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.io.path.*
 
 private const val nonAsciiSuffix = " ąę"
 private const val table1 = "t1$nonAsciiSuffix"
@@ -717,8 +714,8 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   private fun requireEmptyFileAtDestination(path: Path, shouldExist: Boolean) {
     // Directory case is unusual, and better to fail than accidentally delete too much data.
     assertWithMessage(
-        "Export target ($path) is an existing directory. Expecting a file or a new path."
-      )
+      "Export target ($path) is an existing directory. Expecting a file or a new path."
+    )
       .that(path.isDirectory())
       .isFalse()
 
@@ -726,18 +723,18 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       path.exists() ->
         when {
           !shouldExist -> path.delete()
-          shouldExist && path.size() > 0 -> {
+          shouldExist && path.fileSize() > 0 -> {
             path.delete()
-            path.createFile()
+            path.createParentDirectories().createFile()
           }
         }
-      shouldExist -> path.createFile()
+      shouldExist -> path.createParentDirectories().createFile()
     }
 
     assertThat(path.exists()).isEqualTo(shouldExist)
     if (shouldExist) {
-      assertThat(path.isFile()).isTrue()
-      assertThat(path.size()).isEqualTo(0)
+      assertThat(path.isRegularFile()).isTrue()
+      assertThat(path.fileSize()).isEqualTo(0)
     }
   }
 
@@ -915,7 +912,7 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
   }
 
   private fun createFile(dbFileName: String): Path =
-    downloadFolder.resolve(dbFileName).also { it.createFile() }
+    downloadFolder.resolve(dbFileName).also { it.createParentDirectories().createFile() }
 
   private fun Path.toVirtualFile(): VirtualFile = VfsUtil.findFile(this, true)!!
 }

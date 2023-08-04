@@ -19,10 +19,11 @@ import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import junit.framework.TestCase
 import java.nio.file.Path
 import kotlin.io.path.createDirectory
+import kotlin.io.path.createFile
 
 class LogFileProviderTest : TestCase() {
   lateinit var testDirectoryPath: Path
@@ -42,21 +43,21 @@ class LogFileProviderTest : TestCase() {
     logDir.createDirectory()
 
     val logFile = logDir.resolve("idea.log")
-    logFile.createFile()
+    logFile.createParentDirectories().createFile()
 
     val vmOptionsFile = testDirectoryPath.resolve("studio.vmoptions")
-    vmOptionsFile.createFile()
+    vmOptionsFile.createParentDirectories().createFile()
 
     val customOptionsDir = testDirectoryPath.resolve("customOptionsDir")
     customOptionsDir.createDirectory()
 
     val customOptionsFile = customOptionsDir.resolve(PathManager.PROPERTIES_FILE_NAME)
-    customOptionsFile.createFile()
+    customOptionsFile.createParentDirectories().createFile()
 
     val homeDir = testDirectoryPath.resolve("homeDir")
     homeDir.createDirectory()
     val jvmCrashFile = homeDir.resolve("java_error_in_STUDIO_123.log")
-    jvmCrashFile.createFile()
+    jvmCrashFile.createParentDirectories().createFile()
 
     val pathProvider = PathProvider(logDir.toString(), vmOptionsFile, customOptionsDir.toString(), homeDir.toString())
     val logFileProvider = LogFileProvider(pathProvider)

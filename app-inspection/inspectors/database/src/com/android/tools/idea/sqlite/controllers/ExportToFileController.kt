@@ -59,7 +59,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.copy
 import com.intellij.util.io.delete
-import com.intellij.util.io.isDirectory
 import com.intellij.util.io.move
 import java.io.Closeable
 import java.io.FileInputStream
@@ -85,6 +84,8 @@ import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.annotations.VisibleForTesting
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
 
 /**
  * @param downloadDatabase allows to download a database from the device (works for file-based
