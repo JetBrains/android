@@ -52,7 +52,7 @@ class TaskOutputProcessorTest {
       There are no UTP test result tag in this test input.
       So the input text should be returned as-is.
       """.trimIndent()
-    val processor = TaskOutputProcessor(mapOf("" to mockListener))
+    val processor = TaskOutputProcessor(mapOf("" to listOf(mockListener)))
 
     val processed = processor.process(input)
 
@@ -70,7 +70,7 @@ class TaskOutputProcessorTest {
       ${testSuiteFinishedEvent()}
       > Task :app:connectedDebugAndroidTest
       """.trimIndent()
-    val processor = TaskOutputProcessor(mapOf("" to mockListener))
+    val processor = TaskOutputProcessor(mapOf("" to listOf(mockListener)))
 
     val processed = processor.process(input)
 
