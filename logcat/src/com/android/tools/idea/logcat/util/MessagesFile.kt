@@ -21,11 +21,11 @@ import com.android.tools.idea.logcat.message.readLogcatMessage
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.trace
-import com.intellij.util.io.inputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
+import kotlin.io.path.inputStream
 import kotlin.io.path.name
 import kotlin.io.path.outputStream
 

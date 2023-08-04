@@ -22,7 +22,6 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.HttpRequests.HttpStatusException
-import com.intellij.util.io.lastModified
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
@@ -30,10 +29,7 @@ import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import kotlin.io.path.createTempDirectory
-import kotlin.io.path.createTempFile
-import kotlin.io.path.deleteIfExists
-import kotlin.io.path.exists
+import kotlin.io.path.*
 
 private const val CONNECT_TIMEOUT_MS = 5_000
 private const val READ_TIMEOUT_MS = 120_000
@@ -64,7 +60,7 @@ class UrlFileCache : Disposable {
     val existing = files[url]
     // Check the cache first
     if (existing != null && existing.exists() &&
-        System.currentTimeMillis() - existing.lastModified().toMillis() < maxFileAgeMs) return existing
+        System.currentTimeMillis() - existing.getLastModifiedTime().toMillis() < maxFileAgeMs) return existing
 
     indicator?.text = "Downloading from ${URL(url).host}"
     val file: Path =

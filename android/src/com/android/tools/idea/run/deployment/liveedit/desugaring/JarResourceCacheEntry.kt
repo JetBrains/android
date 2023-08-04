@@ -23,13 +23,13 @@ import com.android.tools.r8.origin.ArchiveEntryOrigin
 import com.android.tools.r8.origin.PathOrigin
 import com.android.zipflinger.ZipMap
 import com.android.zipflinger.ZipRepo
-import com.intellij.util.io.lastModified
 import java.nio.file.Path
+import kotlin.io.path.getLastModifiedTime
 
 // Ideally we would keep the ZipRepo open as long as the cache entry lives. However that would prevent jars to be
 // updated on Windows since it also locks files and prevent deletion. To solve this issue, we close the zip
 // repo (and re-open without parsing via ZipMap) once desugar ends (signaled by finished()).
-internal class JarResourceCacheEntry(val path : Path, val logger: LiveEditLogger) : ClassFileResourceProvider{
+internal class JarResourceCacheEntry(val path: Path, val logger: LiveEditLogger) : ClassFileResourceProvider {
 
   private val origin = PathOrigin(path)
 
@@ -39,10 +39,10 @@ internal class JarResourceCacheEntry(val path : Path, val logger: LiveEditLogger
   private val descriptorNames = mutableMapOf<String, String>()
   private val zipMap = ZipMap.from(path)
   private var repo = ZipRepo(zipMap)
-  private val lastModified = path.lastModified()
+  private val lastModified = path.getLastModifiedTime()
 
   init {
-    zipMap.entries.forEach{
+    zipMap.entries.forEach {
       val name = it.key!!
       if (!R8Utils.isClassFile(name)) {
         return@forEach // Skip this entry
@@ -51,7 +51,7 @@ internal class JarResourceCacheEntry(val path : Path, val logger: LiveEditLogger
     }
   }
 
-  internal fun isMapValid() = (lastModified == path.lastModified())
+  internal fun isMapValid() = (lastModified == path.getLastModifiedTime())
 
   private fun ensureOpen() {
     if (repo.isOpen) {

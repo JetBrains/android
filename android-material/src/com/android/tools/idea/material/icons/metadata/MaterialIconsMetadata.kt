@@ -25,7 +25,6 @@ import com.google.gson.JsonIOException
 import com.google.gson.JsonSyntaxException
 import com.google.gson.annotations.SerializedName
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.io.isDirectory
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -33,6 +32,7 @@ import java.lang.reflect.Type
 import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.io.path.isDirectory
 
 /**
  * Metadata for the Material design icons, based on the metadata file obtained from http://fonts.google.com/metadata/icons.

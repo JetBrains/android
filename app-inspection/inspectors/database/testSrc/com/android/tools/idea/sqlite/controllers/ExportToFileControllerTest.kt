@@ -92,9 +92,6 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
 import com.intellij.util.io.createFile
 import com.intellij.util.io.delete
-import com.intellij.util.io.isDirectory
-import com.intellij.util.io.isFile
-import com.intellij.util.io.size
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -130,6 +127,9 @@ import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
 import kotlin.io.path.exists
+import kotlin.io.path.fileSize
+import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
 
 private const val nonAsciiSuffix = " ąę"
 private const val table1 = "t1$nonAsciiSuffix"
@@ -726,7 +726,7 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
       path.exists() ->
         when {
           !shouldExist -> path.delete()
-          shouldExist && path.size() > 0 -> {
+          shouldExist && path.fileSize() > 0 -> {
             path.delete()
             path.createFile()
           }
@@ -736,8 +736,8 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
 
     assertThat(path.exists()).isEqualTo(shouldExist)
     if (shouldExist) {
-      assertThat(path.isFile()).isTrue()
-      assertThat(path.size()).isEqualTo(0)
+      assertThat(path.isRegularFile()).isTrue()
+      assertThat(path.fileSize()).isEqualTo(0)
     }
   }
 

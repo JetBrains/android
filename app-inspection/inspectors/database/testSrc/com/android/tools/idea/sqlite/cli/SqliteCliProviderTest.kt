@@ -24,8 +24,8 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
-import com.intellij.util.io.isFile
 import kotlin.io.path.exists
+import kotlin.io.path.isRegularFile
 
 class SqliteCliProviderTest : LightPlatformTestCase() {
   private lateinit var tempDirTestFixture: TempDirTestFixture
@@ -47,7 +47,7 @@ class SqliteCliProviderTest : LightPlatformTestCase() {
   fun testRealSdk() {
     val actual = SqliteCliProviderImpl(project).getSqliteCli()
     assertThat(actual!!.exists()).isTrue()
-    assertThat(actual.isFile()).isTrue()
+    assertThat(actual.isRegularFile()).isTrue()
     assertThat(actual.fileName.toString()).isEqualTo(SdkConstants.FN_SQLITE3)
     assertThat(actual.parent.toFile().name).isEqualTo("platform-tools")
   }
