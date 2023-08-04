@@ -27,7 +27,9 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.AndroidDexer
 import org.jetbrains.kotlin.idea.debugger.evaluate.classLoading.ClassToLoad
 
-
+// Used to compile fragments for evaluate expression from class files to
+// dex files. This only happens on Android O+ devices. Therefore, it is
+// OK to hardcode min-api 26.
 class AndroidDexerImpl(val project: Project) : AndroidDexer {
 
     private class DexConsumer : DexIndexedConsumer {
@@ -43,6 +45,7 @@ class AndroidDexerImpl(val project: Project) : AndroidDexer {
         override fun finished(handler: DiagnosticsHandler) {
         }
     }
+
     override fun dex(classes: Collection<ClassToLoad>): ByteArray? {
         try {
             val builder: D8Command.Builder = D8Command.builder()
@@ -52,8 +55,7 @@ class AndroidDexerImpl(val project: Project) : AndroidDexer {
             }
             builder.mode = CompilationMode.DEBUG
             builder.programConsumer = consumer
-            builder.minApiLevel = 13
-            builder.disableDesugaring = true
+            builder.minApiLevel = 26  // Android O+
             D8.run(builder.build())
             return consumer.bytes
         } catch (e: Exception) {
