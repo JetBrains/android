@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.pickers.preview.utils
 
 import com.android.resources.ScreenOrientation
+import com.android.resources.ScreenRatio
 import com.android.resources.ScreenRound
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
@@ -144,7 +145,7 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
                 else -> 0
               }
             size = ScreenSize.getScreenSize(diagonalLength)
-            ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
+            ratio = ScreenRatio.create(xDimension, yDimension)
           }
       }
   }

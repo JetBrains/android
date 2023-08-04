@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
+import com.android.resources.ScreenRatio
 import com.android.resources.ScreenRound
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
@@ -26,7 +27,6 @@ import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.Wallpaper
@@ -62,7 +62,7 @@ private fun buildState(
             val heightDp = screenHeightPx.toDouble() * 160 / density.dpiValue
             diagonalLength = sqrt(widthDp * widthDp + heightDp * heightDp) / 160
             size = ScreenSize.getScreenSize(diagonalLength)
-            ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
+            ratio = ScreenRatio.create(xDimension, yDimension)
             this.screenRound = screenRound ?: ScreenRound.NOTROUND
             chin = 0
           }

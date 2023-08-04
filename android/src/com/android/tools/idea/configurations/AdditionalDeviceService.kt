@@ -17,6 +17,7 @@ package com.android.tools.idea.configurations
 
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
+import com.android.resources.ScreenRatio
 import com.android.resources.ScreenRound
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
@@ -28,7 +29,6 @@ import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
 import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
-import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAware
@@ -91,7 +91,7 @@ private fun createWindowDevices(): List<Device> =
         val heightDp = windowSizeDef.heightDp
         diagonalLength = sqrt(widthDp * widthDp + heightDp * heightDp) / 160
         size = ScreenSize.getScreenSize(diagonalLength)
-        ratio = AvdScreenData.getScreenRatio(xDimension, yDimension)
+        ratio = ScreenRatio.create(xDimension, yDimension)
         screenRound = ScreenRound.NOTROUND
         chin = 0
       }

@@ -24,7 +24,6 @@ import com.android.sdklib.devices.Multitouch;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.ScreenType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Contains all methods needed to build a {@link Screen} instance.
@@ -49,23 +48,6 @@ public final class AvdScreenData {
     }
     // Calculate dots per inch: DPI = Dp / diagonalInchSize
     return diagonalPixelResolution / diagonalScreenSize;
-  }
-
-  /**
-   * Calculate the screen ratio. Beyond a 5:3 ratio is considered "long"
-   */
-  @NotNull
-  public static ScreenRatio getScreenRatio(int width, int height) {
-    int longSide = Math.max(width, height);
-    int shortSide = Math.min(width, height);
-
-    // Above a 5:3 ratio is "long"
-    if (((double)longSide) / shortSide >= 5.0 / 3) {
-      return ScreenRatio.LONG;
-    }
-    else {
-      return ScreenRatio.NOTLONG;
-    }
   }
 
   /**
@@ -137,7 +119,7 @@ public final class AvdScreenData {
     screen.setFoldedHeight3(myDeviceData.screenFoldedHeight3().get());
 
 
-    screen.setRatio(getScreenRatio(screenWidth, screenHeight));
+    screen.setRatio(ScreenRatio.create(screenWidth, screenHeight));
 
     double dpi = myDeviceData.screenDpi().get();
     if (dpi <= 0) {

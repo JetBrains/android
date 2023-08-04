@@ -368,7 +368,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
     infoSegmentY += stringHeight;
 
     ScreenRatio ratio =
-      AvdScreenData.getScreenRatio(myDeviceData.screenResolutionWidth().get(), myDeviceData.screenResolutionHeight().get());
+      ScreenRatio.create(myDeviceData.screenResolutionWidth().get(), myDeviceData.screenResolutionHeight().get());
     g2d.drawString("Ratio:", infoSegmentX, infoSegmentY);
     g2d.drawString(ratio.getResourceValue(), infoSegmentX + valueOffsetX, infoSegmentY);
     infoSegmentY += stringHeight;
