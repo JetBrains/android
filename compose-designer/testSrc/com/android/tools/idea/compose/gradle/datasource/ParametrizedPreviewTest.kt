@@ -19,19 +19,21 @@ import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.gradle.DEFAULT_KOTLIN_VERSION
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD
 import com.android.tools.idea.compose.preview.ParametrizedComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.PreviewElementTemplateInstanceProvider
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.TestComposePreviewView
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElementForResult
+import com.android.tools.idea.compose.preview.resolve
 import com.android.tools.idea.concurrency.awaitStatus
 import com.android.tools.idea.editors.build.ProjectStatus
+import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.StaticPreviewProvider
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.rendering.StudioRenderService
@@ -118,13 +120,11 @@ class ParametrizedPreviewTest {
 
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestWithProvider" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestWithProvider" }
           )
-          .previewElements()
+          .resolve()
       assertEquals(3, elements.count())
 
       elements.forEach {
@@ -140,13 +140,11 @@ class ParametrizedPreviewTest {
 
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestWithProviderInExpression" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestWithProviderInExpression" }
           )
-          .previewElements()
+          .resolve()
       assertEquals(3, elements.count())
 
       elements.forEach {
@@ -163,13 +161,11 @@ class ParametrizedPreviewTest {
     // Test LoremIpsum default provider
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestLorem" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestLorem" }
           )
-          .previewElements()
+          .resolve()
       assertEquals(1, elements.count())
 
       elements.forEach {
@@ -186,13 +182,11 @@ class ParametrizedPreviewTest {
     // Test handling provider that throws an exception
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestFailingProvider" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestFailingProvider" }
           )
-          .previewElements()
+          .resolve()
       assertEquals(1, elements.count())
 
       elements.forEach {
@@ -211,14 +205,12 @@ class ParametrizedPreviewTest {
     // Test handling provider with 11 values
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestLargeProvider" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestLargeProvider" }
           )
-          .previewElements()
-          .toList()
+          .resolve()
+
       assertEquals(11, elements.count())
 
       assertEquals(
@@ -240,13 +232,11 @@ class ParametrizedPreviewTest {
     // Test handling provider with no values
     run {
       val elements =
-        PreviewElementTemplateInstanceProvider(
-            StaticPreviewProvider(
-              AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-                .filter { it.displaySettings.name == "TestEmptyProvider" }
-            )
+        StaticPreviewProvider(
+            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+              .filter { it.displaySettings.name == "TestEmptyProvider" }
           )
-          .previewElements()
+          .resolve()
           .toList()
 
       // The error preview is shown.
@@ -281,13 +271,11 @@ class ParametrizedPreviewTest {
     val psiFile = runReadAction { PsiManager.getInstance(project).findFile(parametrizedPreviews)!! }
 
     val elements =
-      PreviewElementTemplateInstanceProvider(
-          StaticPreviewProvider(
-            AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
-              .filter { it.displaySettings.name == "TestWithProvider" }
-          )
+      StaticPreviewProvider(
+          AnnotationFilePreviewElementFinder.findPreviewMethods(project, parametrizedPreviews)
+            .filter { it.displaySettings.name == "TestWithProvider" }
         )
-        .previewElements()
+        .resolve()
     assertEquals(3, elements.count())
 
     val navigationHandler = ComposePreviewNavigationHandler()
@@ -337,6 +325,9 @@ class ParametrizedPreviewTest {
           .trimIndent()
     }
   }
+
+  private suspend fun PreviewElementProvider<ComposePreviewElement>.resolve() =
+    this.previewElements().flatMap { it.resolve() }.toList()
 
   private fun getEnumerationNumberFromPreviewName(elements: List<ComposePreviewElementInstance>) =
     elements.map { it.displaySettings.name.removeSuffix(")").substringAfterLast(' ') }

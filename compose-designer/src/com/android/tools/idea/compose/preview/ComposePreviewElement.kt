@@ -36,7 +36,6 @@ import com.android.tools.idea.preview.DisplayPositioning
 import com.android.tools.idea.preview.MethodPreviewElement
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.xml.PreviewXmlBuilder
 import com.android.tools.idea.preview.xml.XmlSerializable
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
@@ -584,14 +583,3 @@ fun ComposePreviewElement.resolve(): Sequence<ComposePreviewElementInstance> =
       emptySequence()
     }
   }
-
-/**
- * A [PreviewElementProvider] that instantiates any [ComposePreviewElementTemplate]s in the
- * [delegate].
- */
-class PreviewElementTemplateInstanceProvider(
-  private val delegate: PreviewElementProvider<ComposePreviewElement>
-) : PreviewElementProvider<ComposePreviewElementInstance> {
-  override suspend fun previewElements(): Sequence<ComposePreviewElementInstance> =
-    delegate.previewElements().flatMap { it.resolve() }
-}
