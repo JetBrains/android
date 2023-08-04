@@ -77,7 +77,7 @@ class TypeDefTest {
     val javaTypeDef = createJavaTypeDef()
     val lookupElement = LookupElementBuilder.create(javaTypeDef.values.last())
 
-    javaTypeDef.decorateAndPrioritize(lookupElement).let {
+    javaTypeDef.maybeDecorateAndPrioritize(lookupElement).let {
       assertThat(it).isNotNull()
       assertThat(it).isInstanceOf(PrioritizedLookupElement::class.java)
       assertThat((it as PrioritizedLookupElement<*>).priority).isEqualTo(TypeDef.HIGH_PRIORITY)
@@ -90,7 +90,7 @@ class TypeDefTest {
     val javaTypeDef = createJavaTypeDef()
     val lookupElement = LookupElementBuilder.create(javaTypeDef.values.last())
 
-    assertThat(javaTypeDef.decorateAndPrioritize(lookupElement)?.allLookupStrings).containsExactly(
+    assertThat(javaTypeDef.maybeDecorateAndPrioritize(lookupElement)?.allLookupStrings).containsExactly(
       "KnocksSongs", "CLASSIC"
     )
   }
@@ -102,7 +102,7 @@ class TypeDefTest {
     val lookupElement = LookupElementBuilder.create(javaTypeDef.values.last())
 
     val presentation = LookupElementPresentation()
-    javaTypeDef.decorateAndPrioritize(lookupElement)?.renderElement(presentation)
+    javaTypeDef.maybeDecorateAndPrioritize(lookupElement)?.renderElement(presentation)
 
     with(presentation) {
       assertThat(icon).isEqualTo(javaTypeDef.values.last().getIcon(0))
@@ -114,11 +114,11 @@ class TypeDefTest {
 
   @Test
   @RunsInEdt
-  fun decorateAndPrioritize_java_returnsNullIfNotAValue() {
+  fun decorateAndPrioritize_java_returnsInputIfNotAValue() {
     val javaTypeDef = createJavaTypeDef()
     val lookupElement = LookupElementBuilder.create(javaTypeDef.annotation)
 
-    assertThat(javaTypeDef.decorateAndPrioritize(lookupElement)).isNull()
+    assertThat(javaTypeDef.maybeDecorateAndPrioritize(lookupElement)).isSameAs(lookupElement)
   }
 
   @Test
@@ -127,7 +127,7 @@ class TypeDefTest {
     val kotlinTypeDef = createKotlinTypeDef()
     val lookupElement = LookupElementBuilder.create(kotlinTypeDef.values.last())
 
-    kotlinTypeDef.decorateAndPrioritize(lookupElement).let {
+    kotlinTypeDef.maybeDecorateAndPrioritize(lookupElement).let {
       assertThat(it).isNotNull()
       assertThat(it).isInstanceOf(PrioritizedLookupElement::class.java)
       assertThat((it as PrioritizedLookupElement<*>).priority).isEqualTo(TypeDef.HIGH_PRIORITY)
@@ -140,7 +140,7 @@ class TypeDefTest {
     val kotlinTypeDef = createKotlinTypeDef()
     val lookupElement = LookupElementBuilder.create(kotlinTypeDef.values.first())
 
-    assertThat(kotlinTypeDef.decorateAndPrioritize(lookupElement)?.allLookupStrings).containsExactly(
+    assertThat(kotlinTypeDef.maybeDecorateAndPrioritize(lookupElement)?.allLookupStrings).containsExactly(
       "RegrettesSong", "Companion", "BARELY_ON_MY_MIND"
     )
   }
@@ -152,7 +152,7 @@ class TypeDefTest {
     val lookupElement = LookupElementBuilder.create(kotlinTypeDef.values.first())
 
     val presentation = LookupElementPresentation()
-    kotlinTypeDef.decorateAndPrioritize(lookupElement)?.renderElement(presentation)
+    kotlinTypeDef.maybeDecorateAndPrioritize(lookupElement)?.renderElement(presentation)
 
     with(presentation) {
       assertThat(icon).isEqualTo(kotlinTypeDef.values.last().getIcon(0))
@@ -164,11 +164,11 @@ class TypeDefTest {
 
   @Test
   @RunsInEdt
-  fun decorateAndPrioritize_kotlin_returnsNullIfNotAValue() {
+  fun decorateAndPrioritize_kotlin_returnsInputIfNotAValue() {
     val kotlinTypeDef = createKotlinTypeDef()
     val lookupElement = LookupElementBuilder.create(kotlinTypeDef.annotation)
 
-    assertThat(kotlinTypeDef.decorateAndPrioritize(lookupElement)).isNull()
+    assertThat(kotlinTypeDef.maybeDecorateAndPrioritize(lookupElement)).isSameAs(lookupElement)
   }
 
   private fun createKotlinTypeDef(): TypeDef {

@@ -53,7 +53,6 @@ const val COMPLETION_PACKAGE = "completion.pkg"
  * Tests both the Java and Kotlin flavors of [TypeDefCompletionContributor] for typedefs, annotations,
  * and usages that are all part of the project source.
  */
-@org.junit.Ignore("b/294309761: fails with IntelliJ 2023.2")
 @RunWith(Parameterized::class)
 class TypeDefCompletionContributorSourceTest(
   private val typeDefLanguage: SourceLanguage,
@@ -61,8 +60,8 @@ class TypeDefCompletionContributorSourceTest(
   private val completionType: CompletionType,
 ) {
   init {
-    if (completionType.isNamedCompletion()) {
-      require(usageLanguage == KOTLIN) { "Cannot use named arguments with non-Kotlin methods." }
+    require(!completionType.isNamedCompletion() || usageLanguage == KOTLIN) {
+      "Cannot use named arguments with non-Kotlin methods."
     }
   }
 
@@ -78,7 +77,7 @@ class TypeDefCompletionContributorSourceTest(
     fun data(): List<Array<Any>> {
       val langPairs = SourceLanguage.values().flatMap { typeDefLang ->
         SourceLanguage.values().map { usageLang -> typeDefLang to usageLang }
-      }
+      }.filter { it.first != KOTLIN }  // TODO(b/294309761): fails with IntelliJ 2023.2, re-enable after test fix
       return langPairs.flatMap {
         CompletionType.values().mapNotNull { completionType ->
           if (completionType.isNamedCompletion() && it.second != KOTLIN) null
@@ -125,10 +124,7 @@ class TypeDefCompletionContributorSourceTest(
       val file = fixture.loadNewFile(it.toCompletionFilename(completionType.language), contents)
 
       with(fixture.completeBasic()) {
-        // TODO(b/274790750): fix ranking so this passes and remove this conditional
-        if (completionType.language != KOTLIN) {
-          checkStartsWith(it.annotationName, it.names)
-        }
+        checkStartsWith(it.annotationName, it.names)
         checkContainsOnce(it.annotationName, it.names)
       }
 
@@ -162,7 +158,6 @@ class TypeDefCompletionContributorSourceTest(
  * Tests both the Java and Kotlin flavors of [TypeDefCompletionContributor] for typedefs, annotations,
  * and usages that are part of the source of a loaded JAR library.
  */
-@org.junit.Ignore("b/294309761: fails with IntelliJ 2023.2")
 @RunWith(Parameterized::class)
 class TypeDefCompletionContributorLibraryTest(private val completionType: CompletionType) {
   @get:Rule
@@ -174,7 +169,9 @@ class TypeDefCompletionContributorLibraryTest(private val completionType: Comple
   companion object {
     @Parameters(name = "libraryCompletion_{0}")
     @JvmStatic
-    fun data(): List<Array<Any>> = CompletionType.values().map { arrayOf(it) }
+    fun data(): List<Array<Any>> = CompletionType.values()
+      .filter { it.language != KOTLIN } // TODO(b/294309761): fails with IntelliJ 2023.2, re-enable after test fix
+      .map { arrayOf(it) }
   }
 
   @Before
@@ -200,10 +197,7 @@ class TypeDefCompletionContributorLibraryTest(private val completionType: Comple
       val file = fixture.loadNewFile(it.toCompletionFilename(completionType.language), contents)
 
       with(fixture.completeBasic()) {
-        // TODO(b/274790750): fix ranking so this passes and remove this conditional
-        if (completionType.language != KOTLIN) {
-          checkStartsWith(it.annotationName, it.names, typeDefUsagePkg)
-        }
+        checkStartsWith(it.annotationName, it.names, typeDefUsagePkg)
         checkContainsOnce(it.annotationName, it.names, typeDefUsagePkg)
       }
 
