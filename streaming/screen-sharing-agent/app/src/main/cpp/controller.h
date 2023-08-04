@@ -89,19 +89,21 @@ private:
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
   static void StopVideoStream();
   static void StartVideoStream();
+  static void WakeUpDevice();
+
   void StartClipboardSync(const StartClipboardSyncMessage& message);
   void StopClipboardSync();
   void OnPrimaryClipChanged();
-  void ProcessClipboardChange();
+  void SendClipboardChangedNotification();
+
   void RequestDeviceState(const RequestDeviceStateMessage& message);
   void OnDeviceStateChanged(int32_t device_state);
-  void SendDeviceStateNotification(int32_t device_state);
-  void ProcessPendingDisplayEvents();
-  static void WakeUpDevice();
+  void SendDeviceStateNotification();
 
   virtual void OnDisplayAdded(int32_t display_id);
   virtual void OnDisplayRemoved(int32_t display_id);
   virtual void OnDisplayChanged(int32_t display_id);
+  void SendPendingDisplayEvents();
 
   Jni jni_ = nullptr;
   int socket_fd_;  // Owned.
@@ -120,14 +122,12 @@ private:
 
   DeviceStateListener device_state_listener_;
   bool device_supports_multiple_states_ = false;
-  std::atomic<int32_t> device_state_ = -1;
+  std::atomic_int32_t device_state_ = -1;
 
   std::mutex display_events_mutex_;
   std::vector<DisplayEvent> pending_display_events_;  // GUARDED_BY(display_events_mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
-
-  void ProcessDeviceStateChange();
 };
 
 }  // namespace screensharing
