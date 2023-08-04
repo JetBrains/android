@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.linear.targets;
 import com.android.tools.idea.common.scene.NonPlaceholderDragTarget;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearPlaceholder;
 import com.android.tools.idea.uibuilder.handlers.linear.draw.DrawLinearSeparator;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.common.scene.SceneComponent;

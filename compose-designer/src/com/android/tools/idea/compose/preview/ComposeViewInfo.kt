@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.sdklib.AndroidCoordinate
 import com.google.common.annotations.VisibleForTesting
 
 /** Information needed for creating custom scene components later. */

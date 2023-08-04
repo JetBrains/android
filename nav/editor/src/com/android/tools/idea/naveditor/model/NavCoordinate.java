@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.naveditor.model;
 
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

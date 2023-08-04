@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.scout;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import org.jetbrains.annotations.NotNull;

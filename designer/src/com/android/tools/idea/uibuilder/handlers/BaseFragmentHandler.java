@@ -30,7 +30,7 @@ import static com.android.SdkConstants.VALUE_TRUE;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.uibuilder.api.ViewEditor;

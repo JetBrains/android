@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.graphics;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.AndroidCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.model.*;

@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.handlers;
 
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.frame.FrameLayoutHandler;

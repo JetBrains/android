@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.preference;
 import android.widget.ListView;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.fixtures.ComponentDescriptor;
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;

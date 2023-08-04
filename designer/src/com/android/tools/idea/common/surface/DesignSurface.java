@@ -33,7 +33,7 @@ import com.android.tools.idea.common.error.IssueModel;
 import com.android.tools.idea.common.error.IssuePanel;
 import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DefaultSelectionModel;
 import com.android.tools.idea.common.model.ItemTransferable;

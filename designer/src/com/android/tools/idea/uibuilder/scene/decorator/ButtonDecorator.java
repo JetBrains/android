@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.scene.decorator;
 
 import com.android.tools.adtui.common.SwingCoordinate;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
@@ -24,7 +24,6 @@ import com.android.tools.idea.common.scene.decorator.SceneDecorator;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawTextRegion;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;

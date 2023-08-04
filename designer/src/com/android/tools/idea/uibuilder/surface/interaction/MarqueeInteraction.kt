@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface.interaction
 
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.draw.ColorSet

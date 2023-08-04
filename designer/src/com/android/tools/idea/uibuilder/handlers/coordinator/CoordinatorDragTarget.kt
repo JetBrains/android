@@ -16,8 +16,8 @@
 package com.android.tools.idea.uibuilder.handlers.coordinator
 
 import com.android.SdkConstants
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.Scene

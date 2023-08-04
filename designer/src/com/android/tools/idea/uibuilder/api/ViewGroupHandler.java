@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.api;
 
 import com.android.SdkConstants;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;

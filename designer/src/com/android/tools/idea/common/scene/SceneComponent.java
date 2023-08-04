@@ -16,7 +16,7 @@
 package com.android.tools.idea.common.scene;
 
 import com.android.annotations.concurrency.GuardedBy;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;

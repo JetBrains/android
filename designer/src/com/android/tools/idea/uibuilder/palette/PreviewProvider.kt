@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.palette
 
 import com.android.ide.common.rendering.api.SessionParams
 import com.android.resources.ResourceFolderType
+import com.android.sdklib.AndroidCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.api.InsertType
-import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView

@@ -24,11 +24,11 @@ import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.ide.common.resources.Locale
 import com.android.resources.Density
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
 import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
 import com.android.tools.idea.configurations.Wallpaper

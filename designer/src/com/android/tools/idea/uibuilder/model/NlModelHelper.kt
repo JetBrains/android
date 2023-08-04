@@ -19,11 +19,11 @@ import com.android.AndroidXConstants.CLASS_APP_COMPAT_ACTIVITY
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenSize
+import com.android.sdklib.AndroidCoordinate
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.util.dependsOnAppCompat

@@ -40,10 +40,10 @@ import com.android.ide.common.rendering.api.ResourceValueImpl
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.resources.ResourceType
+import com.android.sdklib.AndroidCoordinate
 import com.android.support.AndroidxName
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil
-import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.DnDTransferComponent
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlDependencyManager

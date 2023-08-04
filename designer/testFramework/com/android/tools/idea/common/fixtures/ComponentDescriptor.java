@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.utils.XmlUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;

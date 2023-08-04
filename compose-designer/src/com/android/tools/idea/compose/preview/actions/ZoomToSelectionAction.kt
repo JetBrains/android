@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.common.model.AndroidCoordinate
+import com.android.sdklib.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.findDeepestHits

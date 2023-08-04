@@ -20,6 +20,8 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
+import com.android.sdklib.AndroidCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;

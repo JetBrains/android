@@ -17,8 +17,7 @@ package com.android.tools.idea.uibuilder.scene.decorator;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.common.scene.decorator.SceneDecorator;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintUtilities;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;

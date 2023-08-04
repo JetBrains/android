@@ -25,7 +25,7 @@ import com.android.sdklib.devices.Device;
 import com.android.tools.idea.DesignSurfaceTestUtil;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.sdklib.AndroidCoordinate;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneManager;

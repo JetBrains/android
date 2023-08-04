@@ -22,7 +22,7 @@ import static org.fest.swing.awt.AWT.translate;
 import com.android.tools.adtui.workbench.WorkBench;
 import com.android.tools.idea.common.editor.DesignerEditor;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;

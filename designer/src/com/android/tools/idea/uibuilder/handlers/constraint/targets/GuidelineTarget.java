@@ -20,7 +20,7 @@ import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
 import com.android.AndroidXConstants;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
+import com.android.sdklib.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;

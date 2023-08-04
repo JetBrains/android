@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface.layout
 
+import com.android.sdklib.AndroidDpCoordinate
 import com.android.tools.adtui.common.SwingCoordinate
-import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
