@@ -1,0 +1,5 @@
+[android]
+aidlPackagedList = ['src/main/aidl/foo.aidl', 'src/main/aidl/bar.aidl']
+assetPacks = [':a1', ':a2']
+dynamicFeatures = [":f1", ":f2"]
+flavorDimensions = ["abi", "version"]
