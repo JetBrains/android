@@ -36,7 +36,7 @@ import javax.swing.Icon
 /**
  * Controls the device by sending control messages to it.
  */
-class DeviceController(
+internal class DeviceController(
   disposableParent: Disposable,
   controlChannel: SuspendingSocketChannel
 ) : Disposable {

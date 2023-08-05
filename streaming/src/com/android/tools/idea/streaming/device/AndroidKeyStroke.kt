@@ -18,8 +18,8 @@ package com.android.tools.idea.streaming.device
 /** Defines a sequence of [KeyEventMessage]s. */
 data class AndroidKeyStroke(val keyCode: Int, val metaState: Int = 0)
 
-/** Sends the given [keyStroke] to the emulator. */
-fun DeviceController.sendKeyStroke(keyStroke: AndroidKeyStroke) {
+/** Sends the given [keyStroke] to the device. */
+internal fun DeviceController.sendKeyStroke(keyStroke: AndroidKeyStroke) {
   pressMetaKeys(keyStroke.metaState)
   sendControlMessage(KeyEventMessage(AndroidKeyEventActionType.ACTION_DOWN_AND_UP, keyStroke.keyCode, keyStroke.metaState))
   releaseMetaKeys(keyStroke.metaState)

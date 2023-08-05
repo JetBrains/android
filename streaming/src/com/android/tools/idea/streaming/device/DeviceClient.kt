@@ -357,6 +357,8 @@ internal class DeviceClient(
     pushEndTime = System.currentTimeMillis()
   }
 
+  private val isEmulator = deviceSerialNumber.startsWith("emulator-") || deviceConfig.deviceProperties.isVirtual == true
+
   private suspend fun startAgent(
       deviceSelector: DeviceSelector,
       adb: AdbDeviceServices,
@@ -372,12 +374,8 @@ internal class DeviceClient(
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_MULTIPLE_DISPLAYS.get()) MIRROR_ALL_DISPLAYS else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
-    val maxBitRateArg = when {
-      deviceSerialNumber.startsWith("emulator-") || deviceConfig.deviceProperties.isVirtual == true ->
-          " --max_bit_rate=$MAX_BIT_RATE_EMULATOR"
-      StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get() > 0 -> " --max_bit_rate=${StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get()}"
-      else -> ""
-    }
+    val maxBitRate = if (isEmulator) MAX_BIT_RATE_EMULATOR else StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get()
+    val maxBitRateArg = if (maxBitRate > 0) " --max_bit_rate=$maxBitRate" else ""
     val logLevel = StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()
     val logLevelArg = if (logLevel.isNotBlank()) " --log=$logLevel" else ""
     val codecName = StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()

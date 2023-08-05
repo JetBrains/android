@@ -161,7 +161,7 @@ void Agent::SetMaxVideoResolution(Size max_video_resolution) {
 
 DisplayInfo Agent::GetDisplayInfo() {
   if (display_streamer_ == nullptr) {
-    Log::Fatal("Display information has not been obtained yet");
+    Log::Fatal("DisplayStreamer has not been created yet");
   }
   return display_streamer_->GetDisplayInfo();
 }
