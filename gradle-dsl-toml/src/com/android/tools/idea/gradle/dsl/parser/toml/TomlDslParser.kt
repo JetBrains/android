@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.toml
 
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
@@ -120,6 +121,8 @@ class TomlDslParser(
     return when (literal) {
       is String -> TomlPsiFactory(context.dslFile.project, true).createLiteral("\"$literal\"")
       is Int, is Boolean, is BigDecimal -> TomlPsiFactory(context.dslFile.project, true).createLiteral(literal.toString())
+      // sometimes elements refer to other elements with just string - example: productFlavor.initWith = "dependent"
+      is ReferenceTo -> TomlPsiFactory(context.dslFile.project, true).createLiteral("\"${literal.referredElement.name}\"")
       else -> null
     }
   }

@@ -155,12 +155,11 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     {"wearAppUnbundled", exactly(1), WEAR_APP_UNBUNDLED, SET}
   }).collect(toModelMap(AbstractFlavorTypeDslElement.groovyToModelNameMap));
 
-  // TODO need API review
   public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
     {"applicationId", property, APPLICATION_ID, VAR},
+    {"isDefault", property, DEFAULT, VAR},
     {"dimension", property, DIMENSION, VAR},
     {"maxSdk", property, MAX_SDK_VERSION, VAR},
-    {"maxSdkVersion", property, MAX_SDK_VERSION, VAR},
     {"minSdk", property, MIN_SDK_VERSION, VAR},
     {"minSdkPreview", property, MIN_SDK_VERSION, VAR},
     {"missingDimensionStrategy", atLeast(1), MISSING_DIMENSION_STRATEGY, AUGMENT_LIST},
@@ -168,7 +167,7 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
     {"renderscriptSupportModeEnabled", property, RENDER_SCRIPT_SUPPORT_MODE_ENABLED, VAR},
     {"renderscriptSupportModeBlasEnabled", property, RENDER_SCRIPT_SUPPORT_MODE_BLAS_ENABLED, VAR},
     {"renderscriptNdkModeEnabled", property, RENDER_SCRIPT_NDK_MODE_ENABLED, VAR},
-    {"resConfigs", atLeast(0), RES_CONFIGS, AUGMENT_LIST},
+    {"resourceConfigurations", property, RES_CONFIGS, VAL},
     {"targetSdk", property, TARGET_SDK_VERSION, VAR},
     {"targetSdkPreview", property, TARGET_SDK_VERSION, VAR},
     {"testApplicationId", property, TEST_APPLICATION_ID, VAR},
