@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exa
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
@@ -65,6 +66,10 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
     {"root", exactly(1), ROOT, SET}
   }).collect(toModelMap());
 
+  public static final ExternalToModelMap declarativeToModelNameMap = Stream.of(new Object[][]{
+    {"root", property, ROOT, VAR},
+  }).collect(toModelMap());
+
   @Override
   @NotNull
   protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
@@ -73,7 +78,7 @@ public class SourceSetDslElement extends GradleDslBlockElement implements Gradle
 
   @Override
   public @NotNull ExternalToModelMap getExternalToModelMap(@NotNull GradleDslNameConverter converter) {
-    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap);
+    return getExternalToModelMap(converter, groovyToModelNameMap, ktsToModelNameMap, declarativeToModelNameMap);
   }
 
   public SourceSetDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
