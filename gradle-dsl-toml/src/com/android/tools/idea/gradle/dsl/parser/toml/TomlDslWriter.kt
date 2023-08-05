@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementList
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElementMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslInfixExpression
@@ -246,6 +247,9 @@ class TomlDslWriter(private val context: BuildModelContext): GradleDslWriter, To
       is GradleDslExpressionMap -> when (parentPsi) {
         is TomlTable, is TomlArrayTable -> psiElement.findParentOfType<TomlKeyValue>()?.delete()
         is TomlInlineTable -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionMap, TomlKeyValue>(element, psiElement, parent)
+      }
+      is GradleDslElementMap -> when (psiElement) {
+        is TomlTable -> psiElement.delete() // delete table with segmented header
       }
       is GradleDslExpressionList -> when (parentPsi) {
         is TomlArray -> deletePsiParentOfTypeFromDslParent<GradleDslExpressionList, TomlLiteral>(element, psiElement, parent)
