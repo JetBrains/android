@@ -67,3 +67,31 @@ suspend inline fun delayUntilCondition(
     }
   }
 }
+
+/**
+ * Retries the given block until it no longer throws an AssertionError, or the timeout occurs. If timeout
+ * occurs, throws an AssertionError, using the last AssertionError as the cause. If this is run from the EDT,
+ * pumps the EDT in between checks.
+ */
+fun <R> retryUntilPassing(timeout: Duration, block: () -> R): R {
+  var lastError: AssertionError? = null
+  val isEdt = EDT.isCurrentThreadEdt()
+  // TODO: Use kotlin.time.TimeSource.markNow() when it is no longer experimental
+  val startNanos = System.nanoTime()
+  val timeoutNanos = timeout.inWholeNanoseconds
+  do {
+    try {
+      return block()
+    } catch (e: AssertionError) {
+      lastError = e
+    }
+    if (isEdt) {
+      UIUtil.dispatchAllInvocationEvents()
+    }
+    Thread.sleep(20)
+  } while (System.nanoTime() - startNanos < timeoutNanos)
+  when (lastError) {
+    null -> throw TimeoutException()
+    else -> throw AssertionError("Expected state not reached before timeout", lastError)
+  }
+}

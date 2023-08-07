@@ -15,14 +15,18 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
+import com.android.testutils.retryUntilPassing
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 
@@ -70,6 +74,28 @@ class DeviceManagerPanelFakeAdbTest {
 
     assertThat(deviceManager.deviceDetailsPanel).isNull()
     assertThat(scope!!.isActive).isFalse()
+  }
+
+  @Test
+  fun goOffline() {
+    val device = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice()
+    runBlocking { device.activationAction.activate() }
+
+    val deviceManager =
+      DeviceManagerPanel(projectRule.project, deviceProvisionerRule.deviceProvisioner)
+
+    deviceProvisionerRule.deviceProvisionerPlugin.addDevice(device)
+
+    retryUntilPassing(5.seconds) {
+      assertThat(deviceManager.deviceTable.values).isNotEmpty()
+      assertThat(deviceManager.deviceTable.values[0].status).isEqualTo(DeviceRowData.Status.ONLINE)
+    }
+
+    device.fakeAdbDevice?.deviceStatus = DeviceState.DeviceStatus.OFFLINE
+
+    retryUntilPassing(5.seconds) {
+      assertThat(deviceManager.deviceTable.values[0].status).isEqualTo(DeviceRowData.Status.OFFLINE)
+    }
   }
 
   private fun DeviceManagerPanel.invokeViewDetails(row: DeviceRowData) {

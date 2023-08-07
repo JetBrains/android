@@ -22,6 +22,7 @@ import com.android.sdklib.deviceprovisioner.CreateDeviceTemplateAction
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
@@ -67,6 +68,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -246,7 +248,8 @@ constructor(
           // It would be more natural to use combine() here, but we need to get the wearPairingId
           // from state.
           handle.stateFlow
-            .flatMapLatest { state ->
+            .pairWithConnectionState()
+            .flatMapLatest { (state, _) ->
               pairedDevicesFlow
                 .map { allPairedDevices ->
                   allPairedDevices[state.properties.wearPairingId] ?: emptyList()
@@ -377,6 +380,16 @@ internal suspend fun IconButton.trackActionPresentation(action: DeviceAction?) =
         baseIcon = it.icon
       }
   }
+
+/**
+ * Joins the DeviceState with the nested adblib DeviceState, producing a Flow that updates when
+ * either DeviceState changes.
+ */
+private fun Flow<DeviceState>.pairWithConnectionState():
+  Flow<Pair<DeviceState, com.android.adblib.DeviceState?>> = flatMapLatest { state ->
+  state.connectedDevice?.deviceInfoFlow?.map { Pair(state, it.deviceState) }
+    ?: flowOf(Pair(state, null))
+}
 
 private const val TOOLBAR_ID = "DeviceManager2"
 
