@@ -53,6 +53,7 @@ const val COMPLETION_PACKAGE = "completion.pkg"
  * Tests both the Java and Kotlin flavors of [TypeDefCompletionContributor] for typedefs, annotations,
  * and usages that are all part of the project source.
  */
+@org.junit.Ignore("b/294309761: fails with IntelliJ 2023.2")
 @RunWith(Parameterized::class)
 class TypeDefCompletionContributorSourceTest(
   private val typeDefLanguage: SourceLanguage,
@@ -161,6 +162,7 @@ class TypeDefCompletionContributorSourceTest(
  * Tests both the Java and Kotlin flavors of [TypeDefCompletionContributor] for typedefs, annotations,
  * and usages that are part of the source of a loaded JAR library.
  */
+@org.junit.Ignore("b/294309761: fails with IntelliJ 2023.2")
 @RunWith(Parameterized::class)
 class TypeDefCompletionContributorLibraryTest(private val completionType: CompletionType) {
   @get:Rule
