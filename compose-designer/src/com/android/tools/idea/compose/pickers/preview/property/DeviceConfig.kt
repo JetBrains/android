@@ -49,7 +49,6 @@ import com.android.tools.idea.compose.preview.util.device.convertToDeviceSpecDim
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.android.utils.HashCodes
-import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import kotlin.math.roundToInt
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
@@ -546,12 +545,12 @@ internal enum class Shape {
 }
 
 /** Unit for the Device's width and height. */
-internal enum class DimUnit(val trackableValue: PreviewPickerValue) {
-  px(PreviewPickerValue.UNIT_PIXELS),
-  dp(PreviewPickerValue.UNIT_DP)
+internal enum class DimUnit {
+  px,
+  dp
 }
 
-internal enum class Orientation(val trackableValue: PreviewPickerValue) {
-  portrait(PreviewPickerValue.ORIENTATION_PORTRAIT),
-  landscape(PreviewPickerValue.ORIENTATION_LANDSCAPE)
+internal enum class Orientation {
+  portrait,
+  landscape
 }

@@ -223,4 +223,18 @@ internal class DeviceParameterPropertyItem(
         }
       }
   }
+
+  private val DimUnit.trackableValue: PreviewPickerValue
+    get() =
+      when (this) {
+        DimUnit.dp -> PreviewPickerValue.UNIT_DP
+        DimUnit.px -> PreviewPickerValue.UNIT_PIXELS
+      }
+
+  private val Orientation.trackableValue: PreviewPickerValue
+    get() =
+      when (this) {
+        Orientation.portrait -> PreviewPickerValue.ORIENTATION_PORTRAIT
+        Orientation.landscape -> PreviewPickerValue.ORIENTATION_LANDSCAPE
+      }
 }
