@@ -32,11 +32,12 @@
     <projectService serviceInterface="com.android.tools.idea.device.explorer.files.fs.DeviceFileDownloaderService"
                     serviceImplementation="com.android.tools.idea.device.explorer.files.fs.DeviceFileDownloaderServiceImpl" />
 
-    <facet.toolWindow id="Device Explorer"
-                facetIdList="android,apk"
-                anchor="right"
-                secondary="true"
-                icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
-                factoryClass="com.android.tools.idea.device.explorer.DeviceExplorerToolWindowFactory"/>
+    <!--suppress PluginXmlValidity - Plugin XML files are merged into the same plugin.xml -->
+    <library.toolWindow id="Device Explorer"
+                        anchor="right"
+                        secondary="true"
+                        icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
+                        librarySearchClass="com.android.tools.idea.sdk.AndroidEnvironmentChecker"
+                        factoryClass="com.android.tools.idea.device.explorer.DeviceExplorerToolWindowFactory"/>
   </extensions>
 </idea-plugin>

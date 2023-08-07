@@ -54,11 +54,6 @@ public final class DeviceManagerToolWindowFactory implements ToolWindowFactory, 
   }
 
   @Override
-  public boolean isApplicable(@NotNull Project project) {
-    return AndroidEnvironmentUtils.isAndroidEnvironment(project);
-  }
-
-  @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow window) {
     Disposable parent = Disposer.newDisposable("Device Manager parent");
     JComponent pane = newJBTabbedPane(project, parent);

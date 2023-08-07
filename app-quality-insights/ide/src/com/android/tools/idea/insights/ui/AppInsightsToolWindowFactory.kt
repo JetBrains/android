@@ -72,7 +72,7 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   }
 
   override fun isApplicable(project: Project) =
-    StudioFlags.APP_INSIGHTS_ENABLED.get() && IdeInfo.getInstance().isAndroidStudio
+    StudioFlags.APP_INSIGHTS_ENABLED.get()
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     createTabs(project, toolWindow)
