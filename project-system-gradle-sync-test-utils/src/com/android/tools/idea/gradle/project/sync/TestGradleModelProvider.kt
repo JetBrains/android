@@ -106,13 +106,18 @@ class TestModelBuilderService : ModelBuilderService {
   }
 }
 
-class TestParameterizedModelBuilderService : ModelBuilderService.Ex {
+class TestParameterizedModelBuilderService : ModelBuilderService.ParameterizedModelBuilderService {
   override fun canBuild(modelName: String?): Boolean {
     return modelName == TestParameterizedGradleModel::class.java.name
   }
 
-  override fun buildAll(modelName: String?, project: Project?, context: ModelBuilderContext): Any {
-    return TestParameterizedGradleModelImpl("Parameter: ${context.parameter} BuildDir: ${project?.buildDir}")
+  override fun buildAll(
+    modelName: String?,
+    project: Project?,
+    context: ModelBuilderContext,
+    parameter: ModelBuilderService.Parameter?
+  ): Any {
+    return TestParameterizedGradleModelImpl("Parameter: $parameter BuildDir: ${project?.buildDir}")
   }
 
   override fun buildAll(modelName: String?, project: Project?): Any {
