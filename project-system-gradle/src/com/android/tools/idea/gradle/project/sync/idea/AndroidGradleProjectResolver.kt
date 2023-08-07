@@ -45,6 +45,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.model.V2NdkModel
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
 import com.android.tools.idea.gradle.project.sync.GradleSyncEventLogger
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
@@ -734,6 +735,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         msg = rootCause.message
         // Project is using an old version of Gradle (and most likely an old version of the plug-in.)
         if (isUsingUnsupportedGradleVersion(msg)) {
+          //TODO(b/292231180): this will generate an extra failure details event, wont it?
           val event = AndroidStudioEvent.newBuilder()
             .setCategory(EventCategory.GRADLE_SYNC)
             .setKind(EventKind.GRADLE_SYNC_FAILURE_DETAILS)
@@ -749,12 +751,12 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         }
       }
       else if (rootCause is AndroidSyncException) {
-        rootCause.reportFailureTypeIfNecessary(projectPath)
-        val ideSyncIssues = rootCause.mySyncIssues
+        SyncFailureUsageReporter.getInstance().collectFailure(projectPath, rootCause.toGradleSyncFailure())
+        val ideSyncIssues = rootCause.syncIssues
         if (ideSyncIssues?.isNotEmpty() == true) {
           val ideaProject = resolverCtx.models.getModel(IdeaProject::class.java)
           val ideaModule = ideaProject?.modules?.firstOrNull {
-            it.matchesPath(rootCause.myBuildPath, rootCause.myModulePath)
+            it.matchesPath(rootCause.buildPath, rootCause.modulePath)
           }
           ideaModule?.let {
             val maybeModule = project?.findModule(it.getHolderProjectPath())
@@ -772,16 +774,15 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     return super.getUserFriendlyError(buildEnvironment, error, projectPath, buildFilePath)
   }
 
-  //TODO(b/292231180): This can and should be refactored but for now it is better than nothing reported at all.
-  private fun AndroidSyncException.reportFailureTypeIfNecessary(rootProjectPath: String) = message?.let {
-    when {
-      it.startsWith("No variants found for '") ->
-        SyncFailureUsageReporter.getInstance().collectFailure(rootProjectPath, GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND)
-      it.startsWith("No valid Native abi found to request!") ->
-        SyncFailureUsageReporter.getInstance().collectFailure(rootProjectPath, GradleSyncFailure.ANDROID_SYNC_NO_VALID_NATIVE_ABI_FOUND)
-      // Other cases currently should be covered by MultipleAgpVersionsIssueChecker and AgpVersionNotSupportedIssueChecker
-      else -> Unit
-    }
+  private fun AndroidSyncException.toGradleSyncFailure(): GradleSyncFailure = when (type) {
+    AndroidSyncExceptionType.AGP_VERSION_TOO_OLD -> GradleSyncFailure.OLD_ANDROID_PLUGIN
+    AndroidSyncExceptionType.AGP_VERSION_TOO_NEW -> GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW
+    AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE -> GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE
+    AndroidSyncExceptionType.AGP_VERSIONS_MISMATCH -> GradleSyncFailure.MULTIPLE_ANDROID_PLUGIN_VERSIONS
+    AndroidSyncExceptionType.NO_VALID_NATIVE_ABI_FOUND -> GradleSyncFailure.ANDROID_SYNC_NO_VALID_NATIVE_ABI_FOUND
+    AndroidSyncExceptionType.NO_VARIANTS_FOUND -> GradleSyncFailure.ANDROID_SYNC_NO_VARIANTS_FOUND
+    //TODO(b/292231180): at the moment there is no value for this failure generated in JdkImportCheck.validateProjectGradleJdk
+    AndroidSyncExceptionType.JDK_IMPORT_CHECK -> GradleSyncFailure.UNKNOWN_GRADLE_FAILURE
   }
 
   private fun displayInternalWarningIfForcedUpgradesAreDisabled() {

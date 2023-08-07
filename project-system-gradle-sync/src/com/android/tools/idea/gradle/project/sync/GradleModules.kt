@@ -251,6 +251,7 @@ sealed class AndroidModule constructor(
       syncedVariant?.name
         ?: allVariants?.map { it.name }?.getDefaultOrFirstItem("debug")
         ?: throw AndroidSyncException(
+          AndroidSyncExceptionType.NO_VARIANTS_FOUND,
           "No variants found for '${gradleProject.path}'. Check ${findGradleBuildFile(gradleProject.projectDirectory).absolutePath} to ensure at least one variant exists and address any sync warnings and errors.",
           gradleProject.projectIdentifier.buildIdentifier.rootDir.path,
           gradleProject.path,

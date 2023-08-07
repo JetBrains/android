@@ -129,11 +129,12 @@ internal class AndroidExtraModelProviderWorker(
       consumer.consume(
         buildInfo.rootBuild,
         IdeAndroidSyncError(
+          type = e.type,
           message = e.message.orEmpty(),
           stackTrace = e.stackTrace.map { it.toString() },
-          buildPath = e.myBuildPath,
-          modulePath = e.myModulePath,
-          syncIssues = e.mySyncIssues
+          buildPath = e.buildPath,
+          modulePath = e.modulePath,
+          syncIssues = e.syncIssues
         ),
         IdeAndroidSyncError::class.java
       )

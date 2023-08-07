@@ -354,7 +354,7 @@ private fun chooseAbiToRequest(
   val abiNames = module.getVariantAbiNames(variantName) ?: return null
 
   return (if (selectedAbi != null && abiNames.contains(selectedAbi)) selectedAbi else abiNames.getDefaultOrFirstItem("x86"))
-    ?: throw AndroidSyncException("No valid Native abi found to request!")
+    ?: throw AndroidSyncException(AndroidSyncExceptionType.NO_VALID_NATIVE_ABI_FOUND, "No valid Native abi found to request!")
 }
 
 private fun selectVariantForAppOrLeaf(

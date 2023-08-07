@@ -127,10 +127,11 @@ class AgpVersionExceptionsTest : AbstractIssueCheckerIntegrationTest() {
   }
 
   private fun AndroidSyncException.simulatePassingThroughModel(): AndroidSyncException = IdeAndroidSyncError(
+    type  = type,
     message = message.orEmpty(),
     stackTrace = stackTrace.map { it.toString() },
-    buildPath = myBuildPath,
-    modulePath = myModulePath,
-    syncIssues = mySyncIssues
+    buildPath = buildPath,
+    modulePath = modulePath,
+    syncIssues = syncIssues
   ).toException()
 }

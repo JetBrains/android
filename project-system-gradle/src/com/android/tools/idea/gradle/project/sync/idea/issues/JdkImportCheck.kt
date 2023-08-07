@@ -19,6 +19,7 @@ package com.android.tools.idea.gradle.project.sync.idea.issues
 import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.AndroidSyncException
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
@@ -54,7 +55,7 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 
-class JdkImportCheckException(reason: String) : AndroidSyncException(reason)
+class JdkImportCheckException(reason: String) : AndroidSyncException(AndroidSyncExceptionType.JDK_IMPORT_CHECK, reason)
 
 /**
  * Validates the state of the project Gradle JDK.

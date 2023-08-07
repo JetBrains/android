@@ -20,14 +20,14 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.gradle.project.sync.AgpVersionIncompatible
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooNew
 import com.android.tools.idea.gradle.project.sync.AgpVersionTooOld
+import com.android.tools.idea.gradle.project.sync.AndroidSyncException
+import com.android.tools.idea.gradle.project.sync.AndroidSyncExceptionType
 import com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolver
 import com.android.tools.idea.gradle.project.sync.idea.issues.BuildIssueComposer
 import com.android.tools.idea.gradle.project.sync.idea.issues.DescribedBuildIssueQuickFix
 import com.android.tools.idea.gradle.project.sync.idea.issues.fetchIdeaProjectForGradleProject
-import com.android.tools.idea.gradle.project.sync.issues.SyncFailureUsageReporter
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
 import com.android.tools.idea.gradle.project.upgrade.performForcedPluginUpgrade
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.issue.BuildIssue
@@ -47,34 +47,33 @@ class AgpVersionNotSupportedIssueChecker: GradleIssueChecker {
     val rootCause = GradleExecutionErrorHandler.getRootCauseAndLocation(issueData.error).first
     val message = rootCause.message ?: ""
     if (message.isBlank()) return null
+    if (rootCause !is AndroidSyncException) return null
+    // Note: no need to report failure to SyncFailureUsageReporter as for AndroidSyncException
+    // instances it is reported in AndroidGradleProjectResolver.
 
-    val tooOldMatcher = AgpVersionTooOld.PATTERN.matcher(message)
-    val incompatiblePreviewMatcher = AgpVersionIncompatible.PATTERN.matcher(message)
-    val tooNewMatcher = AgpVersionTooNew.PATTERN.matcher(message)
-
-    fun reportFailure(failure: AndroidStudioEvent.GradleSyncFailure) =
-      SyncFailureUsageReporter.getInstance().collectFailure(issueData.projectPath, failure)
-
-    val (matcher, userMessage, url) = when {
-      tooOldMatcher.find() -> {
-        reportFailure(AndroidStudioEvent.GradleSyncFailure.OLD_ANDROID_PLUGIN)
-        Triple(tooOldMatcher, tooOldMatcher.group(0), TOO_OLD_URL)
+    val (agpVersion, userMessage, url) = when(rootCause.type) {
+      AndroidSyncExceptionType.AGP_VERSION_TOO_OLD -> {
+        val tooOldMatcher = AgpVersionTooOld.PATTERN.matcher(message)
+        if (!tooOldMatcher.find()) return null
+        Triple(tooOldMatcher.group(1), tooOldMatcher.group(0), TOO_OLD_URL)
       }
-      incompatiblePreviewMatcher.find() -> {
-        reportFailure(AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_VERSION_INCOMPATIBLE)
-        Triple(incompatiblePreviewMatcher, incompatiblePreviewMatcher.group(0), PREVIEW_URL)
+      AndroidSyncExceptionType.AGP_VERSION_INCOMPATIBLE -> {
+        val incompatiblePreviewMatcher = AgpVersionIncompatible.PATTERN.matcher(message)
+        if (!incompatiblePreviewMatcher.find()) return null
+        Triple(incompatiblePreviewMatcher.group(1), incompatiblePreviewMatcher.group(0), PREVIEW_URL)
       }
-      tooNewMatcher.find() -> {
-        reportFailure(AndroidStudioEvent.GradleSyncFailure.ANDROID_PLUGIN_TOO_NEW)
-        Triple(tooNewMatcher, tooNewMatcher.group(0), TOO_NEW_URL)
+      AndroidSyncExceptionType.AGP_VERSION_TOO_NEW -> {
+        val tooNewMatcher = AgpVersionTooNew.PATTERN.matcher(message)
+        if (!tooNewMatcher.find()) return null
+        Triple(tooNewMatcher.group(1), tooNewMatcher.group(0), TOO_NEW_URL)
       }
       else -> return null
     }
-    val version = AgpVersion.tryParse(matcher.group(1)) ?: return null
+    val version = AgpVersion.tryParse(agpVersion) ?: return null
 
     val buildIssueComposer = BuildIssueComposer(userMessage)
 
-    if (matcher == tooNewMatcher) {
+    if (rootCause.type == AndroidSyncExceptionType.AGP_VERSION_TOO_NEW) {
       return buildIssueComposer.apply {
         addQuickFix(
           "See Android Studio & AGP compatibility options.",
