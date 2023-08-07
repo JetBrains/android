@@ -16,7 +16,9 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.model.AndroidWindow
+import com.android.tools.idea.layoutinspector.model.InspectorModelModificationListener
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -24,7 +26,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  * This class observes [LayoutInspector] and keeps track of when it is in a loading state. It can be
  * used for example to show loading indicators in the UI.
  */
-class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspector) {
+class LayoutInspectorLoadingObserver(
+  parentDisposable: Disposable,
+  private val layoutInspector: LayoutInspector
+) : Disposable {
   interface Listener {
     fun onStartLoading()
     fun onStopLoading()
@@ -37,27 +42,9 @@ class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspecto
 
   private val _isLoading = AtomicBoolean(false)
 
-  init {
-    layoutInspector.stopInspectorListeners.add(this::onStopInspector)
-    layoutInspector.processModel?.addSelectedProcessListeners(
-      Executors.newSingleThreadExecutor(),
-      this::onSelectedProcess
-    )
-    layoutInspector.inspectorModel.modificationListeners.add(this::onInspectorModelChanged)
-  }
+  private val stopInspectorListener: () -> Unit = { setIsLoading(false) }
 
-  fun destroy() {
-    listeners.clear()
-
-    layoutInspector.stopInspectorListeners.remove(this::onStopInspector)
-    layoutInspector.inspectorModel.modificationListeners.remove(this::onInspectorModelChanged)
-  }
-
-  private fun onStopInspector() {
-    setIsLoading(false)
-  }
-
-  private fun onSelectedProcess() {
+  private val selectedProcessListener: () -> Unit = {
     if (layoutInspector.processModel?.selectedProcess?.isRunning == true) {
       setIsLoading(true)
     }
@@ -66,12 +53,26 @@ class LayoutInspectorLoadingObserver(private val layoutInspector: LayoutInspecto
     }
   }
 
-  private fun onInspectorModelChanged(
-    oldWindow: AndroidWindow?,
-    newWindow: AndroidWindow?,
-    isStructuralChange: Boolean
-  ) {
+  private val inspectorModelModificationListener = InspectorModelModificationListener { _, _, _ ->
     setIsLoading(false)
+  }
+
+  init {
+    Disposer.register(parentDisposable, this)
+    layoutInspector.stopInspectorListeners.add(stopInspectorListener)
+    layoutInspector.processModel?.addSelectedProcessListeners(
+      Executors.newSingleThreadExecutor(),
+      selectedProcessListener
+    )
+    layoutInspector.inspectorModel.modificationListeners.add(inspectorModelModificationListener)
+  }
+
+  override fun dispose() {
+    listeners.clear()
+
+    layoutInspector.stopInspectorListeners.remove(stopInspectorListener)
+    layoutInspector.processModel?.removeSelectedProcessListener(selectedProcessListener)
+    layoutInspector.inspectorModel.modificationListeners.remove(inspectorModelModificationListener)
   }
 
   private fun setIsLoading(isLoading: Boolean) {

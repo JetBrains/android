@@ -63,7 +63,10 @@ class ProcessesModel(
 
   private val lock = Any()
 
-  @GuardedBy("lock") private val selectedProcessListeners = mutableMapOf<() -> Unit, Executor>()
+  @GuardedBy("lock") private val _selectedProcessListeners = mutableMapOf<() -> Unit, Executor>()
+
+  val selectedProcessListeners: Map<() -> Unit, Executor>
+    get() = _selectedProcessListeners
 
   @GuardedBy("lock") private val _processes = mutableSetOf<ProcessDescriptor>()
 
@@ -108,18 +111,18 @@ class ProcessesModel(
         _processes.removeAll { it != process && !it.isRunning }
         _selectedProcess = process
         isAutoConnected = autoConnected && (process != null)
-        selectedProcessListeners.forEach { (listener, executor) -> executor.execute(listener) }
+        _selectedProcessListeners.forEach { (listener, executor) -> executor.execute(listener) }
       }
     }
   }
 
   /** Add a listener which will be triggered with the selected process when it changes. */
   fun addSelectedProcessListeners(executor: Executor, listener: () -> Unit) {
-    synchronized(lock) { selectedProcessListeners[listener] = executor }
+    synchronized(lock) { _selectedProcessListeners[listener] = executor }
   }
 
   fun removeSelectedProcessListener(listener: () -> Unit) {
-    synchronized(lock) { selectedProcessListeners.remove(listener) }
+    synchronized(lock) { _selectedProcessListeners.remove(listener) }
   }
 
   @TestOnly

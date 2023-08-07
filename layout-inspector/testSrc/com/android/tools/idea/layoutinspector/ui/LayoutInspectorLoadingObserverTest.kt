@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutI
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import java.util.concurrent.TimeUnit
@@ -72,7 +73,8 @@ class LayoutInspectorLoadingObserverTest {
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
     }
 
-    val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(inspectorRule.inspector)
+    val layoutInspectorLoadingObserver =
+      LayoutInspectorLoadingObserver(inspectorRule.disposable, inspectorRule.inspector)
     val listenerInvocations = mutableListOf<Boolean>()
     layoutInspectorLoadingObserver.listeners.add(
       object : LayoutInspectorLoadingObserver.Listener {
@@ -106,8 +108,9 @@ class LayoutInspectorLoadingObserverTest {
   }
 
   @Test
-  fun testDestroy() {
-    val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(inspectorRule.inspector)
+  fun testDispose() {
+    val layoutInspectorLoadingObserver =
+      LayoutInspectorLoadingObserver(inspectorRule.disposable, inspectorRule.inspector)
     layoutInspectorLoadingObserver.listeners.add(
       object : LayoutInspectorLoadingObserver.Listener {
         override fun onStartLoading() {}
@@ -115,7 +118,18 @@ class LayoutInspectorLoadingObserverTest {
       }
     )
 
-    layoutInspectorLoadingObserver.destroy()
+    var modificationListeners1 = 0
+    inspectorRule.inspectorModel.modificationListeners.forEach { modificationListeners1 += 1 }
+    assertThat(modificationListeners1).isEqualTo(3)
+    assertThat(inspectorRule.processes.selectedProcessListeners).hasSize(3)
+
+    Disposer.dispose(layoutInspectorLoadingObserver)
+
+    var modificationListeners2 = 0
+    inspectorRule.inspectorModel.modificationListeners.forEach { modificationListeners2 += 1 }
+    assertThat(modificationListeners2).isEqualTo(2)
+
+    assertThat(inspectorRule.processes.selectedProcessListeners).hasSize(2)
 
     assertThat(layoutInspectorLoadingObserver.listeners).isEmpty()
     assertThat(inspectorRule.inspector.stopInspectorListeners).isEmpty()

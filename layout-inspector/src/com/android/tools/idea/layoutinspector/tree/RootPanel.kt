@@ -41,7 +41,7 @@ import javax.swing.JPanel
  * @param componentTreePanel The component containing the tree panel.
  */
 class RootPanel(
-  parentDisposable: Disposable,
+  private val parentDisposable: Disposable,
   private val componentTreePanel: JComponent,
 ) : BorderLayoutPanel(), Disposable {
   private val isEmbedded
@@ -62,8 +62,6 @@ class RootPanel(
   var layoutInspector: LayoutInspector? = null
     set(value) {
       // Clean up listeners.
-      layoutInspectorLoadingObserver?.destroy()
-      layoutInspectorLoadingObserver = null
       field?.inspectorModel?.connectionListeners?.remove(connectionListener)
       field?.foregroundProcessDetection?.removeForegroundProcessListener(foregroundProcessListener)
       // Reset UI.
@@ -155,7 +153,8 @@ class RootPanel(
   private fun createLoadingObserver(
     layoutInspector: LayoutInspector
   ): LayoutInspectorLoadingObserver {
-    val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(layoutInspector)
+    val layoutInspectorLoadingObserver =
+      LayoutInspectorLoadingObserver(parentDisposable, layoutInspector)
     layoutInspectorLoadingObserver.listeners.add(
       object : LayoutInspectorLoadingObserver.Listener {
         override fun onStartLoading() {

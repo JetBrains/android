@@ -102,7 +102,8 @@ class DeviceViewPanel(
 
   private val targetSelectedAction = TargetSelectionActionFactory.getAction(layoutInspector)
 
-  private val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(layoutInspector)
+  private val layoutInspectorLoadingObserver =
+    LayoutInspectorLoadingObserver(disposableParent, layoutInspector)
 
   private val contentPanel =
     DeviceViewContentPanel(
