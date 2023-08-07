@@ -351,40 +351,18 @@ class SceneViewPeerPanel(
     modelNameLabel.addMouseListener(hoverTopPanelMouseListener)
   }
 
-  val sceneViewBottomPanel =
-    JPanel(BorderLayout()).apply {
-      border = JBUI.Borders.emptyTop(BOTTOM_BAR_TOP_MARGIN)
-      isOpaque = false
-      isVisible = true
-      if (sceneViewBottomBar != null) {
-        add(sceneViewBottomBar, BorderLayout.CENTER)
-      }
-    }
+  private val sceneViewBottomPanel =
+    wrapPanel(sceneViewBottomBar).apply { border = JBUI.Borders.emptyTop(BOTTOM_BAR_TOP_MARGIN) }
+  val sceneViewLeftPanel = wrapPanel(sceneViewLeftBar)
+  val sceneViewRightPanel = wrapPanel(sceneViewRightBar)
+  val sceneViewCenterPanel = wrapPanel(sceneViewErrorsPanel)
 
-  val sceneViewLeftPanel =
+  private fun wrapPanel(panel: JComponent?) =
     JPanel(BorderLayout()).apply {
       isOpaque = false
       isVisible = true
-      if (sceneViewLeftBar != null) {
-        add(sceneViewLeftBar, BorderLayout.CENTER)
-      }
-    }
-
-  val sceneViewRightPanel =
-    JPanel(BorderLayout()).apply {
-      isOpaque = false
-      isVisible = true
-      if (sceneViewRightBar != null) {
-        add(sceneViewRightBar, BorderLayout.CENTER)
-      }
-    }
-
-  val sceneViewCenterPanel =
-    JPanel(BorderLayout()).apply {
-      isOpaque = false
-      isVisible = true
-      if (sceneViewErrorsPanel != null) {
-        add(sceneViewErrorsPanel, BorderLayout.CENTER)
+      if (panel != null) {
+        add(panel, BorderLayout.CENTER)
       }
     }
 
