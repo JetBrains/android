@@ -17,6 +17,10 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposePreviewElementsModel
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.namedGroup
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.ComposePreviewElementTemplate
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.android.tools.rendering.ModuleRenderContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first

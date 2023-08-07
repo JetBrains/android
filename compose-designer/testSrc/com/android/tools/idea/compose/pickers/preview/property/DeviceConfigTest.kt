@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.compose.pickers.preview.property
 
+import com.android.tools.preview.config.DeviceConfig
+import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.MutableDeviceConfig
+import com.android.tools.preview.config.Orientation
+import com.android.tools.preview.config.Shape
+import com.android.tools.preview.config.toMutableConfig
 import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

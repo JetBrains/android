@@ -17,6 +17,7 @@ package com.android.tools.idea.preview
 
 import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.preview.MethodPreviewElement
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.util.Disposer

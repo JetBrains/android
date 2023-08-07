@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.util.device
+package com.android.tools.preview.config
 
 import kotlin.math.pow
 import kotlin.math.roundToInt

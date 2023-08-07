@@ -23,7 +23,6 @@ import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
@@ -37,6 +36,7 @@ import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzerI
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection
 import com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection
+import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl

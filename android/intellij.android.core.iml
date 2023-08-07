@@ -129,5 +129,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.android.rendering" />
+    <orderEntry type="module" module-name="intellij.android.preview-elements" />
   </component>
 </module>

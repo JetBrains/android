@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.compose.preview.scene
 
-import com.android.tools.idea.compose.preview.PreviewConfiguration
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.TestComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
-import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.preview.PreviewConfiguration
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import org.junit.Assert.assertEquals

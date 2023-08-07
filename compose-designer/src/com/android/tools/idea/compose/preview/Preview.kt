@@ -25,7 +25,6 @@ import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.compose.ComposePreviewElementsModel
-import com.android.tools.idea.compose.pickers.preview.property.referenceDeviceIds
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
 import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
@@ -59,7 +58,6 @@ import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
 import com.android.tools.idea.preview.Colors
 import com.android.tools.idea.preview.DefaultRenderQualityManager
 import com.android.tools.idea.preview.NavigatingInteractionHandler
-import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.RenderQualityManager
 import com.android.tools.idea.preview.SimpleRenderQualityManager
 import com.android.tools.idea.preview.actions.BuildAndRefresh
@@ -85,6 +83,11 @@ import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintMode
 import com.android.tools.idea.util.toDisplayString
+import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.ParametrizedComposePreviewElementInstance
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.android.tools.preview.config.referenceDeviceIds
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposePreviewLiteModeEvent
 import com.intellij.ide.ActivityTracker

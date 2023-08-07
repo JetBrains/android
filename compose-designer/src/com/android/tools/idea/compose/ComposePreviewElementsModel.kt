@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.compose
 
-import com.android.tools.idea.compose.preview.ComposePreviewElement
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.PreviewGroup
-import com.android.tools.idea.compose.preview.resolve
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.resolve
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map

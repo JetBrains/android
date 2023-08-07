@@ -19,6 +19,8 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementModelAdapter
+import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.applyTo
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
 

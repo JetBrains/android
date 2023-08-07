@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
     ],
 )
 
@@ -41,5 +42,6 @@ iml_module(
         "//tools/adt/idea/wear-designer:intellij.android.wear-designer[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
     ],
 )

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.pickers.preview.utils
+package com.android.tools.preview.config
 
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRatio
@@ -26,36 +26,29 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationSettings
-import com.android.tools.idea.avdmanager.Densities
-import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.pickers.preview.property.MutableDeviceConfig
-import com.android.tools.idea.compose.pickers.preview.property.Orientation
-import com.android.tools.idea.compose.pickers.preview.property.Shape
-import com.android.tools.idea.compose.pickers.preview.property.toMutableConfig
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 /** Prefix used by device specs to find devices by id. */
-internal const val DEVICE_BY_ID_PREFIX = "id:"
+const val DEVICE_BY_ID_PREFIX = "id:"
 
 /** Prefix used by device specs to find devices by name. */
-internal const val DEVICE_BY_NAME_PREFIX = "name:"
+const val DEVICE_BY_NAME_PREFIX = "name:"
 
 /** Prefix used by device specs to create devices by hardware specs. */
-internal const val DEVICE_BY_SPEC_PREFIX = "spec:"
+const val DEVICE_BY_SPEC_PREFIX = "spec:"
 
 /** id for the default device when no device is specified by the user. */
-internal const val DEFAULT_DEVICE_ID = "pixel_5"
+const val DEFAULT_DEVICE_ID = "pixel_5"
 
 /** Full declaration for the default device. */
-internal const val DEFAULT_DEVICE_ID_WITH_PREFIX = DEVICE_BY_ID_PREFIX + DEFAULT_DEVICE_ID
+const val DEFAULT_DEVICE_ID_WITH_PREFIX = DEVICE_BY_ID_PREFIX + DEFAULT_DEVICE_ID
 
 /** Used for `Round Chin` devices. Or when DeviceConfig.shape == Shape.Chin */
-internal const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
+const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
 
-internal fun Device.toDeviceConfig(): DeviceConfig {
+fun Device.toDeviceConfig(): DeviceConfig {
   val config = MutableDeviceConfig().apply { dimUnit = DimUnit.px }
   val deviceState = this.defaultState
   val screen = deviceState.hardware.screen
@@ -82,7 +75,7 @@ internal fun Device.toDeviceConfig(): DeviceConfig {
   return config
 }
 
-internal fun DeviceConfig.createDeviceInstance(): Device {
+fun DeviceConfig.createDeviceInstance(): Device {
   val deviceConfig =
     if (this !is MutableDeviceConfig) {
       this.toMutableConfig()
@@ -146,7 +139,7 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
 }
 
 /** Returns the [Device] used when there's no device specified by the user. */
-internal fun ConfigurationSettings.getDefaultPreviewDevice(): Device? =
+fun ConfigurationSettings.getDefaultPreviewDevice(): Device? =
   devices.find { device -> device.id == DEFAULT_DEVICE_ID } ?: defaultDevice
 
 /**
@@ -158,7 +151,7 @@ internal fun ConfigurationSettings.getDefaultPreviewDevice(): Device? =
  *
  * @see createDeviceInstance
  */
-internal fun Collection<Device>.findOrParseFromDefinition(
+fun Collection<Device>.findOrParseFromDefinition(
   deviceDefinition: String,
   logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java)
 ): Device? {
@@ -176,7 +169,7 @@ internal fun Collection<Device>.findOrParseFromDefinition(
   }
 }
 
-internal fun Collection<Device>.findByIdOrName(
+fun Collection<Device>.findByIdOrName(
   deviceDefinition: String,
   logger: Logger = Logger.getInstance(MutableDeviceConfig::class.java)
 ): Device? {

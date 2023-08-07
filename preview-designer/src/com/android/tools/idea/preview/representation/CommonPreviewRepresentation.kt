@@ -31,8 +31,6 @@ import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewBundle.message
-import com.android.tools.idea.preview.PreviewDisplaySettings
-import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.interactive.InteractivePreviewManager
@@ -56,6 +54,8 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewElement
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys

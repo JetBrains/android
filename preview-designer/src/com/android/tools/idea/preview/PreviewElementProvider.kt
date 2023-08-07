@@ -17,6 +17,7 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.Slow
+import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ModificationTracker
 import java.util.concurrent.locks.ReentrantReadWriteLock

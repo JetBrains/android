@@ -20,10 +20,10 @@ import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.annotations.hasAnnotation
 import com.android.tools.idea.annotations.isAnnotatedWith
 import com.android.tools.idea.preview.FilePreviewElementFinder
-import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project

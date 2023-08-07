@@ -17,10 +17,14 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.annotations.TestDumbService
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.preview.DisplayPositioning
-import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.DisplayPositioning
+import com.android.tools.preview.ParametrizedComposePreviewElementTemplate
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.UNDEFINED_API_LEVEL
+import com.android.tools.preview.UNDEFINED_DIMENSION
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.TextRange

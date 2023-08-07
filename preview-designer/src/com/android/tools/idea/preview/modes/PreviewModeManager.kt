@@ -17,7 +17,7 @@ package com.android.tools.idea.preview.modes
 
 import com.android.tools.idea.compose.preview.LayoutMode
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.PreviewElement
+import com.android.tools.preview.PreviewElement
 import com.intellij.openapi.actionSystem.DataKey
 
 /**

@@ -27,6 +27,12 @@ import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.layoutlib.isLayoutLibTarget
+import com.android.tools.preview.MAX_HEIGHT
+import com.android.tools.preview.MAX_WIDTH
+import com.android.tools.preview.config.PARAMETER_API_LEVEL
+import com.android.tools.preview.config.PARAMETER_FONT_SCALE
+import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
+import com.android.tools.preview.config.PARAMETER_WIDTH_DP
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder

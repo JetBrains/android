@@ -33,7 +33,6 @@ import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
 import kotlin.math.hypot
-import kotlin.math.roundToInt
 
 private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
 
@@ -198,17 +197,6 @@ fun isUseWearDeviceAsDefault(configuration: Configuration): Boolean {
   val module = (configuration.configModule as StudioConfigurationModelModule).module
   return isUseWearDeviceAsDefault(module)
 }
-/**
- * Convert dp to px.
- * The formula is "px = dp * (dpi / 160)"
- */
-internal fun Double.toPx(density: Density): Int = (this * (density.dpiValue / 160.0)).roundToInt()
-
-/**
- * Convert dp to px.
- * The formula is "px = dp * (dpi / 160)"
- */
-internal fun Int.toPx(density: Density): Int = this.toDouble().toPx(density)
 
 /**
  * Convert px to dp.

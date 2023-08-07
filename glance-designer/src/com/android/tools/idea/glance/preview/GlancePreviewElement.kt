@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.glance.preview
 
-import com.android.tools.idea.preview.MethodPreviewElement
-import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.preview.MethodPreviewElement
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 

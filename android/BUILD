@@ -130,6 +130,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//prebuilts/r8",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
     ],
 )
 
@@ -289,6 +290,7 @@ iml_module(
         "//tools/adt/idea/analytics[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
     ],
 )
 

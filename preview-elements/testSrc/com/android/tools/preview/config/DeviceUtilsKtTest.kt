@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.pickers.preview.utils
+package com.android.tools.preview.config
 
 import com.android.resources.Density
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRound
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.pickers.preview.property.MutableDeviceConfig
-import com.android.tools.idea.compose.pickers.preview.property.Orientation
-import com.android.tools.idea.compose.pickers.preview.property.Shape
 import kotlin.test.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -97,12 +92,12 @@ internal class DeviceUtilsKtTest {
     // From DeviceConfig
     var screen =
       DeviceConfig(
-          width = 100f,
-          height = 100f,
-          dimUnit = DimUnit.px,
-          shape = Shape.Round,
-          chinSize = 20f
-        )
+        width = 100f,
+        height = 100f,
+        dimUnit = DimUnit.px,
+        shape = Shape.Round,
+        chinSize = 20f
+      )
         .createDeviceInstance()
         .defaultHardware
         .screen
@@ -111,12 +106,12 @@ internal class DeviceUtilsKtTest {
 
     screen =
       DeviceConfig(
-          width = 100f,
-          height = 100f,
-          dimUnit = DimUnit.dp,
-          shape = Shape.Chin,
-          chinSize = 20f
-        )
+        width = 100f,
+        height = 100f,
+        dimUnit = DimUnit.dp,
+        shape = Shape.Chin,
+        chinSize = 20f
+      )
         .createDeviceInstance()
         .defaultHardware
         .screen
@@ -208,35 +203,35 @@ private fun buildMockDevices(): List<Device> {
   // Assign it to name if even, otherwise as an id
   var nameOrIdCount = 0
   return listOf(
-      DeviceConfig(
-        width = 1080f,
-        height = 1920f,
-        dimUnit = DimUnit.px,
-        dpi = 320,
-        shape = Shape.Normal
-      ),
-      DeviceConfig(
-        width = 540f,
-        height = 960f,
-        dimUnit = DimUnit.px,
-        dpi = 640,
-        shape = Shape.Normal
-      ),
-      DeviceConfig(
-        width = 1080f,
-        height = 2280f,
-        dimUnit = DimUnit.px,
-        dpi = 480,
-        shape = Shape.Normal
-      ),
-      DeviceConfig(
-        width = 600f,
-        height = 600f,
-        dimUnit = DimUnit.px,
-        dpi = 480,
-        shape = Shape.Round
-      )
+    DeviceConfig(
+      width = 1080f,
+      height = 1920f,
+      dimUnit = DimUnit.px,
+      dpi = 320,
+      shape = Shape.Normal
+    ),
+    DeviceConfig(
+      width = 540f,
+      height = 960f,
+      dimUnit = DimUnit.px,
+      dpi = 640,
+      shape = Shape.Normal
+    ),
+    DeviceConfig(
+      width = 1080f,
+      height = 2280f,
+      dimUnit = DimUnit.px,
+      dpi = 480,
+      shape = Shape.Normal
+    ),
+    DeviceConfig(
+      width = 600f,
+      height = 600f,
+      dimUnit = DimUnit.px,
+      dpi = 480,
+      shape = Shape.Round
     )
+  )
     .map {
       Device.Builder(it.createDeviceInstance())
         .also { builder ->

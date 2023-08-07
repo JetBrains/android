@@ -19,7 +19,6 @@ import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.fast.OutOfProcessCompilerDaemonClientImpl
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
@@ -36,6 +35,7 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteActionAndWait

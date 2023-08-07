@@ -30,8 +30,11 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.preview.PreviewConfiguration
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.android.tools.preview.applyConfigurationForTest
 import kotlin.math.sqrt
 import org.junit.Assert.assertEquals
 import org.junit.Rule

@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.preview.analytics
 import com.android.tools.idea.common.analytics.DesignerUsageTrackerManager
 import com.android.tools.idea.common.analytics.setApplicationId
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.preview.PreviewNode
+import com.android.tools.preview.PreviewNode
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.hash.Hashing

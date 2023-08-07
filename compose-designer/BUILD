@@ -37,6 +37,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module]",
     ],
 )
 
@@ -159,6 +160,7 @@ iml_module(
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/.idea/libraries:asm-tools[test]",
         "//tools/base/deploy/deployer:studio.android.sdktools.deployer[module, test]",
+        "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
     ],
 )
 

@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.preview.FilteredPreviewElementProvider
 import com.android.tools.idea.preview.StaticPreviewProvider
+import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test

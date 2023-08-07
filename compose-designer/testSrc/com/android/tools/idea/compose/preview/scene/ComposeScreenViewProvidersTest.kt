@@ -17,17 +17,17 @@ package com.android.tools.idea.compose.preview.scene
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
-import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.pickers.preview.property.Shape
-import com.android.tools.idea.compose.pickers.preview.utils.createDeviceInstance
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.NopComposePreviewManager
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.preview.SingleComposePreviewElementInstance
+import com.android.tools.preview.config.DeviceConfig
+import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.Shape
+import com.android.tools.preview.config.createDeviceInstance
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import java.awt.Rectangle

@@ -25,12 +25,6 @@ import com.android.tools.idea.compose.pickers.common.enumsupport.PsiCallEnumSupp
 import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.DeviceEnumValueBuilder
 import com.android.tools.idea.compose.pickers.preview.utils.getSdkDevices
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
-import com.android.tools.idea.compose.preview.PARAMETER_API_LEVEL
-import com.android.tools.idea.compose.preview.PARAMETER_GROUP
-import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
-import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
-import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
-import com.android.tools.idea.compose.preview.PARAMETER_WALLPAPER
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.configurations.CanonicalDeviceType
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -39,6 +33,12 @@ import com.android.tools.idea.configurations.groupDevices
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.layoutlib.isLayoutLibTarget
+import com.android.tools.preview.config.PARAMETER_API_LEVEL
+import com.android.tools.preview.config.PARAMETER_GROUP
+import com.android.tools.preview.config.PARAMETER_HARDWARE_DEVICE
+import com.android.tools.preview.config.PARAMETER_LOCALE
+import com.android.tools.preview.config.PARAMETER_UI_MODE
+import com.android.tools.preview.config.PARAMETER_WALLPAPER
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module

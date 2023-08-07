@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.gallery
 
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
+import com.android.tools.preview.ComposePreviewElementInstance
 
 /** [TitledKey] for [GalleryTabs]. */
 data class PreviewElementKey(val element: ComposePreviewElementInstance) : TitledKey {

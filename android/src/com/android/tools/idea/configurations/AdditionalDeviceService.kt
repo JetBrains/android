@@ -24,6 +24,7 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
+import com.android.tools.preview.config.PREDEFINED_WINDOW_SIZES_DEFINITIONS
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAware
 import kotlin.math.sqrt

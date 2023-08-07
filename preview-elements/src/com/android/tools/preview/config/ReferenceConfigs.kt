@@ -13,43 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.pickers.preview.enumsupport.devices
+package com.android.tools.preview.config
 
 import com.android.resources.ScreenOrientation
 import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
 import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
-import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.pickers.preview.property.Orientation
-import com.android.tools.idea.compose.pickers.preview.property.Shape
-import com.android.tools.idea.configurations.PREDEFINED_WINDOW_SIZES_DEFINITIONS
-import com.android.tools.idea.configurations.WindowSizeData
 
 /** Default device configuration for Phones */
-internal val ReferencePhoneConfig: DeviceConfig by
+val ReferencePhoneConfig: DeviceConfig by
   lazy(LazyThreadSafetyMode.NONE) {
     PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_PHONE_ID }
       .toDeviceConfigWithDpDimensions()
   }
 
 /** Default device configuration for Foldables */
-internal val ReferenceFoldableConfig: DeviceConfig by
+val ReferenceFoldableConfig: DeviceConfig by
   lazy(LazyThreadSafetyMode.NONE) {
     PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_FOLDABLE_ID }
       .toDeviceConfigWithDpDimensions()
   }
 
 /** Default device configuration for Tablets */
-internal val ReferenceTabletConfig: DeviceConfig by
+val ReferenceTabletConfig: DeviceConfig by
   lazy(LazyThreadSafetyMode.NONE) {
     PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_TABLET_ID }
       .toDeviceConfigWithDpDimensions()
   }
 
 /** Default device configuration for Desktops */
-internal val ReferenceDesktopConfig: DeviceConfig by
+val ReferenceDesktopConfig: DeviceConfig by
   lazy(LazyThreadSafetyMode.NONE) {
     PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_DESKTOP_ID }
       .toDeviceConfigWithDpDimensions()

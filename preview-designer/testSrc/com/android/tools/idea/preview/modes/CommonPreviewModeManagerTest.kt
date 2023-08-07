@@ -4,8 +4,8 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils
 import com.android.testutils.delayUntilCondition
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.preview.PreviewElement
 import java.util.concurrent.CountDownLatch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel

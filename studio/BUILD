@@ -215,6 +215,7 @@ studio_plugin(
             "//tools/adt/idea/observable:intellij.android.observable",
             "//tools/adt/idea/android-plugin:intellij.android.plugin",
             "//tools/adt/idea/android-plugin/descriptor:intellij.android.plugin.descriptor",
+            "//tools/adt/idea/preview-elements:intellij.android.preview-elements",
             "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid",
             "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
             "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch",

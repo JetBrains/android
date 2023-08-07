@@ -23,14 +23,14 @@ import com.android.tools.idea.compose.pickers.base.tracking.ComposePickerTracker
 import com.android.tools.idea.compose.pickers.common.tracking.NoOpTracker
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiMode
 import com.android.tools.idea.compose.pickers.preview.enumsupport.UiModeWithNightMaskEnumValue
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.ReferencePhoneConfig
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
 import com.android.tools.idea.compose.preview.COMPOSABLE_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.PREVIEW_TOOLING_PACKAGE
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.Sdks
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.config.ReferencePhoneConfig
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue

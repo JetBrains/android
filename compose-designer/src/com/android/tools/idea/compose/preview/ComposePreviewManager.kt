@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.preview.modes.PreviewModeManager
+import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.MutableStateFlow

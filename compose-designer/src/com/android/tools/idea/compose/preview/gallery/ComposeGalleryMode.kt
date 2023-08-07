@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.gallery
 
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
 import com.android.tools.idea.preview.modes.PreviewMode
+import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataContext
 import java.awt.BorderLayout
 import javax.swing.JComponent

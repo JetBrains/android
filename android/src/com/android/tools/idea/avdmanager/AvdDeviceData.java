@@ -48,6 +48,7 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression;
 import com.android.tools.idea.observable.expressions.double_.DoubleExpression;
+import com.android.tools.preview.config.Densities;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Dimension;

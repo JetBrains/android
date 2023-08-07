@@ -36,12 +36,14 @@ import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
-import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys

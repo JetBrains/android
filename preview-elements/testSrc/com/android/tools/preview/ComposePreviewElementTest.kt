@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.preview
 
-import com.android.tools.idea.preview.PreviewDisplaySettings
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
-import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.fail
@@ -115,64 +112,6 @@ $t
           )
         }
       }
-  }
-
-  @Test
-  fun testAffinity() {
-    val composable0 =
-      SingleComposePreviewElementInstance(
-        "composableMethodName",
-        PreviewDisplaySettings("A name", null, false, false, null),
-        null,
-        null,
-        PreviewConfiguration.cleanAndGet()
-      )
-
-    // The same as composable0, just a different instance
-    val composable0b =
-      SingleComposePreviewElementInstance(
-        "composableMethodName",
-        PreviewDisplaySettings("A name", null, false, false, null),
-        null,
-        null,
-        PreviewConfiguration.cleanAndGet()
-      )
-
-    // Same as composable0 but with different display settings
-    val composable1 =
-      SingleComposePreviewElementInstance(
-        "composableMethodName",
-        PreviewDisplaySettings("Different name", null, false, false, null),
-        null,
-        null,
-        PreviewConfiguration.cleanAndGet()
-      )
-
-    // Same as composable0 but with different display settings
-    val composable2 =
-      SingleComposePreviewElementInstance(
-        "composableMethodName",
-        PreviewDisplaySettings("Different name", null, false, false, null),
-        null,
-        null,
-        PreviewConfiguration.cleanAndGet()
-      )
-
-    val adapter =
-      object : ComposePreviewElementModelAdapter() {
-        override fun toXml(previewElement: ComposePreviewElementInstance) = ""
-        override fun createDataContext(previewElement: ComposePreviewElementInstance) =
-          DataContext {}
-      }
-
-    val result =
-      listOf(composable2, composable1, composable0b)
-        .shuffled()
-        .sortedBy { adapter.calcAffinity(it, composable0) }
-        .toTypedArray()
-
-    // The more similar, the lower result of modelAffinity.
-    assertArrayEquals(arrayOf(composable0b, composable1, composable2), result)
   }
 
   @Test

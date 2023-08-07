@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaretToEnd
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.ui.ApplicationUtils
+import com.android.tools.preview.ComposePreviewElement
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.SmartPointerManager

@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.ParametrizedComposePreviewElementTemplate
+import com.android.tools.preview.PreviewParameter
 import org.jetbrains.android.uipreview.forFile
 
 /**

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.preview
+package com.android.tools.preview
 
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement

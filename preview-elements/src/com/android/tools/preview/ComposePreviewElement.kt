@@ -13,31 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.preview
 
 import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_MIN_HEIGHT
 import com.android.SdkConstants.ATTR_MIN_WIDTH
+import com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.ide.common.resources.Locale
 import com.android.resources.Density
 import com.android.sdklib.AndroidDpCoordinate
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
-import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.Wallpaper
 import com.android.tools.configurations.updateScreenSize
-import com.android.tools.idea.compose.pickers.preview.utils.findOrParseFromDefinition
-import com.android.tools.idea.compose.pickers.preview.utils.getDefaultPreviewDevice
-import com.android.tools.idea.preview.DisplayPositioning
-import com.android.tools.idea.preview.MethodPreviewElement
-import com.android.tools.idea.preview.PreviewDisplaySettings
-import com.android.tools.idea.preview.PreviewElement
-import com.android.tools.idea.preview.xml.PreviewXmlBuilder
-import com.android.tools.idea.preview.xml.XmlSerializable
+import com.android.tools.preview.config.findOrParseFromDefinition
+import com.android.tools.preview.config.getDefaultPreviewDevice
 import com.android.tools.rendering.ModuleRenderContext
 import com.android.tools.rendering.classloading.ModuleClassLoaderManager
 import com.android.tools.rendering.classloading.useWithClassLoader
@@ -310,7 +304,7 @@ abstract class ComposePreviewElementInstance : ComposePreviewElement, XmlSeriali
     val width = dimensionToString(configuration.width, VALUE_WRAP_CONTENT)
     val height = dimensionToString(configuration.height, VALUE_WRAP_CONTENT)
     val xmlBuilder =
-      PreviewXmlBuilder(COMPOSE_VIEW_ADAPTER_FQN)
+      PreviewXmlBuilder(CLASS_COMPOSE_VIEW_ADAPTER)
         .androidAttribute(ATTR_LAYOUT_WIDTH, width)
         .androidAttribute(ATTR_LAYOUT_HEIGHT, height)
         // Compose will fail if the top parent is 0,0 in size so avoid that case by setting a min
@@ -420,13 +414,6 @@ class ParametrizedComposePreviewElementInstance(
       .toolsAttribute("parameterProviderClass", providerClassFqn)
   }
 }
-
-/**
- * If the [ComposePreviewElement] is a [ParametrizedComposePreviewElementInstance], returns the
- * provider class FQN and the target value index.
- */
-internal fun ComposePreviewElement.previewProviderClassAndIndex() =
-  if (this is ParametrizedComposePreviewElementInstance) Pair(providerClassFqn, index) else null
 
 /**
  * Definition of a preview element that can spawn multiple [ComposePreviewElement]s based on

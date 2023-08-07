@@ -20,7 +20,7 @@ import com.android.sdklib.devices.Device
 import com.android.tools.configurations.Configuration
 import com.android.tools.idea.common.model.DataContextHolder
 import com.android.tools.idea.preview.MethodPreviewElementModelAdapter
-import com.android.tools.idea.preview.xml.PreviewXmlBuilder
+import com.android.tools.preview.PreviewXmlBuilder
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile

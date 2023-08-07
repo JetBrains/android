@@ -16,7 +16,7 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.tools.idea.common.model.DataContextHolder
-import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement

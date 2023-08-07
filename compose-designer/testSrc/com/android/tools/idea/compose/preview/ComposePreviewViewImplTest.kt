@@ -30,7 +30,6 @@ import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
-import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.updatePreviewsAndRefresh
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderBuilder
@@ -41,6 +40,9 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.preview.ComposePreviewElementInstance
+import com.android.tools.preview.PreviewDisplaySettings
+import com.android.tools.preview.SingleComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider

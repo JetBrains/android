@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
-import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
 import com.android.tools.idea.kotlin.tryEvaluateConstant
+import com.android.tools.preview.config.PARAMETER_DEVICE
 import com.intellij.lang.injection.MultiHostRegistrar
 import com.intellij.lang.injection.general.Injection
 import com.intellij.lang.injection.general.LanguageInjectionContributor

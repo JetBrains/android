@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.concurrency.disposableCallbackFlow
+import com.android.tools.preview.ComposePreviewElement
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.project.Project

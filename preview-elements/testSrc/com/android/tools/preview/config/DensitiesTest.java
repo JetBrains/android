@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.observable.constraints;
+package com.android.tools.preview.config;
 
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.resources.Density;
-import com.android.tools.idea.avdmanager.Densities;
 import org.junit.Test;
 
 public class DensitiesTest {

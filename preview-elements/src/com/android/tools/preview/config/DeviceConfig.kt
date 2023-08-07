@@ -15,7 +15,7 @@
  */
 @file:Suppress("EnumEntryName")
 
-package com.android.tools.idea.compose.pickers.preview.property
+package com.android.tools.preview.config
 
 import com.android.ide.common.util.enumValueOfOrNull
 import com.android.resources.Density
@@ -24,29 +24,24 @@ import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
 import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
 import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
 import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
-import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_SPEC_PREFIX
-import com.android.tools.idea.compose.pickers.preview.utils.toDeviceConfig
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_CHIN_SIZE_ZERO
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_DPI
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_HEIGHT_DP
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_IS_ROUND
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_ORIENTATION
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_SHAPE
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_UNIT
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_WIDTH_DP
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.OPERATOR
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_CHIN_SIZE
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_DPI
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_HEIGHT
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_ID
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_IS_ROUND
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_ORIENTATION
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_PARENT
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_SHAPE
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_UNIT
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_WIDTH
-import com.android.tools.idea.compose.preview.Preview.DeviceSpec.SEPARATOR
-import com.android.tools.idea.compose.preview.util.device.convertToDeviceSpecDimension
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_CHIN_SIZE_ZERO
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_DPI
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_HEIGHT_DP
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_IS_ROUND
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_ORIENTATION
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_SHAPE
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_UNIT
+import com.android.tools.preview.config.Preview.DeviceSpec.DEFAULT_WIDTH_DP
+import com.android.tools.preview.config.Preview.DeviceSpec.OPERATOR
+import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_CHIN_SIZE
+import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_DPI
+import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_ID
+import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_IS_ROUND
+import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_ORIENTATION
+import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_PARENT
+import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_SHAPE
+import com.android.tools.preview.config.Preview.DeviceSpec.PARAMETER_UNIT
+import com.android.tools.preview.config.Preview.DeviceSpec.SEPARATOR
 import com.android.utils.HashCodes
 import kotlin.math.roundToInt
 import kotlin.properties.ObservableProperty
@@ -91,7 +86,7 @@ private val referenceDeviceRealDensities =
  *   measured from the bottom.
  * @param parentDeviceId ID of the parent device used as template for this configuration.
  */
-internal open class DeviceConfig(
+open class DeviceConfig(
   val deviceId: String? = null,
   open val width: Float = DEFAULT_WIDTH_DP.toFloat(),
   open val height: Float = DEFAULT_HEIGHT_DP.toFloat(),
@@ -395,7 +390,7 @@ internal open class DeviceConfig(
  * Note that modifying [MutableDeviceConfig.dimUnit] or [MutableDeviceConfig.orientation] will also
  * change the width and height values.
  */
-internal class MutableDeviceConfig(
+class MutableDeviceConfig(
   id: String = "",
   initialWidth: Float = DEFAULT_WIDTH_DP.toFloat(),
   initialHeight: Float = DEFAULT_HEIGHT_DP.toFloat(),
@@ -478,7 +473,7 @@ internal fun MutableDeviceConfig.toImmutableConfig(): DeviceConfig =
   )
 
 /** Returns a mutable copy of this [DeviceConfig] instance. */
-internal fun DeviceConfig.toMutableConfig(): MutableDeviceConfig =
+fun DeviceConfig.toMutableConfig(): MutableDeviceConfig =
   MutableDeviceConfig(
     initialShape = this.shape,
     initialWidth = this.width,
@@ -507,7 +502,7 @@ private fun StringBuilder.appendParamValue(parameterName: String, value: String)
 private fun StringBuilder.appendSeparator(): StringBuilder = append(SEPARATOR)
 
 /** The visual shape of the Device, usually applied as cutout. */
-internal enum class Shape {
+enum class Shape {
   Normal,
   @Deprecated("Redundant for DeviceConfig, set 'shape=Normal'") Square,
   Round,
@@ -515,12 +510,12 @@ internal enum class Shape {
 }
 
 /** Unit for the Device's width and height. */
-internal enum class DimUnit {
+enum class DimUnit {
   px,
   dp
 }
 
-internal enum class Orientation {
+enum class Orientation {
   portrait,
   landscape
 }

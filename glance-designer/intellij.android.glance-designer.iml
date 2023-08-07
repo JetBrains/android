@@ -20,5 +20,6 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
+    <orderEntry type="module" module-name="intellij.android.preview-elements" />
   </component>
 </module>

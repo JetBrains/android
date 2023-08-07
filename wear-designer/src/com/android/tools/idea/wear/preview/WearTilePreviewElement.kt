@@ -16,8 +16,8 @@
 package com.android.tools.idea.wear.preview
 
 import com.android.ide.common.resources.Locale
-import com.android.tools.idea.preview.MethodPreviewElement
-import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.preview.MethodPreviewElement
+import com.android.tools.preview.PreviewDisplaySettings
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
 import kotlin.math.max

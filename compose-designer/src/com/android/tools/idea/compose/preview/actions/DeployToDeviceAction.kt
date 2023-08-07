@@ -17,13 +17,13 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.compose.COMPOSE_PREVIEW_ACTIVITY_FQN
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.compose.preview.previewProviderClassAndIndex
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
 import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.projectsystem.isTestFile
+import com.android.tools.preview.ComposePreviewElement
+import com.android.tools.preview.ParametrizedComposePreviewElementInstance
 import com.intellij.execution.ProgramRunnerUtil
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.runConfigurationType
@@ -110,3 +110,10 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
 
   private fun previewElement() = dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
 }
+
+/**
+ * If the [ComposePreviewElement] is a [ParametrizedComposePreviewElementInstance], returns the
+ * provider class FQN and the target value index.
+ */
+private fun ComposePreviewElement.previewProviderClassAndIndex() =
+  if (this is ParametrizedComposePreviewElementInstance) Pair(providerClassFqn, index) else null

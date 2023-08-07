@@ -16,10 +16,10 @@
 package com.android.tools.idea.compose.pickers.preview.tracking
 
 import com.android.resources.Density
-import com.android.tools.idea.avdmanager.Densities
-import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
-import com.android.tools.idea.compose.pickers.preview.property.DimUnit
-import com.android.tools.idea.compose.pickers.preview.property.toMutableConfig
+import com.android.tools.preview.config.Densities
+import com.android.tools.preview.config.DeviceConfig
+import com.android.tools.preview.config.DimUnit
+import com.android.tools.preview.config.toMutableConfig
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.math.roundToInt
