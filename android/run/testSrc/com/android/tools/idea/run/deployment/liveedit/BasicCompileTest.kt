@@ -24,6 +24,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.fail
 
 @RunWith(JUnit4::class)
 class BasicCompileTest {
@@ -157,8 +160,8 @@ class BasicCompileTest {
     """))
 
     val next = projectRule.fixture.configureByText("HasInternalVar.kt", """
-     internal var x = 1
-     fun getNum() = x
+     internal var x = 0
+     fun getNum() = x + 1
     """)
 
     val output = compile(next, cache)
@@ -197,6 +200,52 @@ class BasicCompileTest {
     val output = compile(next, cache)
     Assert.assertNotNull(output.irClasses.singleOrNull { it.name == "CustomJvmName" }) // CustomJvmName.class doesn't change
     Assert.assertTrue(output.classesMap["CustomJvmName__RenamedFileKt"]!!.isNotEmpty())
+  }
+
+  @Test
+  fun modifyConstructor() {
+    val cache = initialCache(mapOf("ModifyConstructor.kt" to """
+      class MyClass() {
+        init {
+          val x = 0
+        }
+      }
+    """.trimIndent()))
+
+    val next = projectRule.fixture.configureByText("ModifyConstructor.kt", """
+      class MyClass() {
+        init {
+          val x = 999
+        }
+      }
+    """.trimIndent())
+
+    try {
+      compile(next, cache)
+      fail("Expected exception due to modified constructor")
+    } catch (e: LiveEditUpdateException) {
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
+      assertContains(e.details, "MyClass()")
+    }
+  }
+
+  @Test
+  fun modifyStaticInit() {
+    val cache = initialCache(mapOf("ModifyStaticInit.kt" to """
+      val x = 1
+    """.trimIndent()))
+
+    val next = projectRule.fixture.configureByText("ModifyStaticInit.kt", """
+      val x = 2
+    """.trimIndent())
+
+    try {
+      compile(next, cache)
+      fail("Expected exception due to modified static initializer")
+    } catch (e: LiveEditUpdateException) {
+      assertEquals(LiveEditUpdateException.Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, e.error)
+      assertContains(e.details, "static initializer")
+    }
   }
 
   private fun initialCache(files: Map<String, String>): MutableIrClassCache {

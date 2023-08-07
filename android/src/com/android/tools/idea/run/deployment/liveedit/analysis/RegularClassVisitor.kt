@@ -75,6 +75,15 @@ class RegularClassVisitor(private val className: String) : ClassVisitor {
     }
 
     for (method in modified) {
+      if (method.name == "<init>") {
+        handleUnsupportedChange("modified constructor $className${method.desc.trimEnd('V')}")
+      }
+
+      if (method.name == "<clinit>") {
+        // We can probably parse the instruction list to get a better error message here, but this is fine for now.
+        handleUnsupportedChange("modified static initializer (did a field's initial value change?)")
+      }
+
       val visitor = RegularMethodVisitor(className, method.name, method.desc)
       method.accept(visitor)
       if (visitor.hasNonSourceInfoChanges) changedMethods.add(method)
