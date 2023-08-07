@@ -178,6 +178,7 @@ private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider = {
   configurationManager
     ?.targets
     ?.filter { it.isLayoutLibTarget && it.version.apiLevel >= minTargetSdk }
+    ?.distinctBy { it.version.apiLevel }
     ?.map { target ->
       EnumValue.item(
         target.version.apiLevel.toString(),
