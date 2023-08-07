@@ -19,17 +19,24 @@ import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryUsageTooltip implements TooltipModel {
-  @NotNull private final BaseStreamingMemoryProfilerStage myStage;
+  @NotNull private final MemoryStageLegends myMemoryStageLegends;
+  @NotNull private final Boolean myIsLiveAllocationTrackingReady;
 
   MemoryUsageTooltip(@NotNull BaseStreamingMemoryProfilerStage stage) {
-    myStage = stage;
+    this(stage.getLegends(), stage.isLiveAllocationTrackingReady());
+  }
+
+  MemoryUsageTooltip(@NotNull MemoryStageLegends memoryStageLegends,
+                     @NotNull Boolean isLiveAllocationTrackingReady) {
+    myMemoryStageLegends = memoryStageLegends;
+    myIsLiveAllocationTrackingReady = isLiveAllocationTrackingReady;
   }
 
   public MemoryStageLegends getLegends() {
-    return myStage.getTooltipLegends();
+    return myMemoryStageLegends;
   }
 
   public boolean useLiveAllocationTracking() {
-    return myStage.isLiveAllocationTrackingReady();
+    return myIsLiveAllocationTrackingReady;
   }
 }

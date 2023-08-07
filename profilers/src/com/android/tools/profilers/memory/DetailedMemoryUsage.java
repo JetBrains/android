@@ -21,6 +21,7 @@ import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class DetailedMemoryUsage extends MemoryUsage {
   private static final String JAVA_MEM = "Java";
@@ -43,7 +44,17 @@ public class DetailedMemoryUsage extends MemoryUsage {
   @NotNull private final DurationDataModel<GcDurationData> myGcDurations;
   @NotNull private final DurationDataModel<AllocationSamplingRateDurationData> myAllocationSamplingRateDurations;
 
-  public DetailedMemoryUsage(@NotNull StudioProfilers profilers, @NotNull BaseStreamingMemoryProfilerStage memoryProfilerStage) {
+  /**
+   * DetailedMemoryUsage overloaded constructor without stage passed in.
+   * So that this constructor can be called in the places which doesn't have access to BaseStreamingMemoryProfilerStage
+   *
+   * @param profilers
+   * @param gcStatsModel
+   * @param allocationSamplingRateDuration
+   */
+  public DetailedMemoryUsage(@NotNull StudioProfilers profilers,
+                             @NotNull DurationDataModel<GcDurationData> gcStatsModel,
+                             @NotNull DurationDataModel<AllocationSamplingRateDurationData> allocationSamplingRateDuration) {
     super(profilers);
 
     myProfilers = profilers;
@@ -78,8 +89,8 @@ public class DetailedMemoryUsage extends MemoryUsage {
                                                            sample -> (long)(sample.getJavaAllocationCount() - sample.getJavaFreeCount()));
     myObjectsSeries = new RangedContinuousSeries(ALLOCATED, profilers.getTimeline().getViewRange(), getObjectsRange(), series);
 
-    myGcDurations = memoryProfilerStage.getGcStatsModel();
-    myAllocationSamplingRateDurations = memoryProfilerStage.getAllocationSamplingRateDurations();
+    myGcDurations = gcStatsModel;
+    myAllocationSamplingRateDurations = allocationSamplingRateDuration;
 
     add(myJavaSeries);
     add(myNativeSeries);
@@ -92,6 +103,11 @@ public class DetailedMemoryUsage extends MemoryUsage {
     // Listen to range changes, because others (e.g. AxisComponentModel) may adjust these
     getMemoryRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> changed(Aspect.LINE_CHART));
     getObjectsRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> changed(Aspect.LINE_CHART));
+  }
+
+  @VisibleForTesting
+  public DetailedMemoryUsage(@NotNull StudioProfilers profilers, @NotNull BaseStreamingMemoryProfilerStage memoryProfilerStage) {
+    this(profilers, memoryProfilerStage.getGcStatsModel(), memoryProfilerStage.getAllocationSamplingRateDurations());
   }
 
   @NotNull
