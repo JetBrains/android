@@ -57,7 +57,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.AppUIUtil
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.uiDesigner.core.GridConstraints
 import com.intellij.uiDesigner.core.GridLayoutManager
 import com.intellij.util.ui.SwingHelper
@@ -192,9 +193,9 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   val myImageLabel = JLabel()
   private val myInnerPanel = panel {
     row {
-      myImageLabel()
-      myInfoText(pushX, growY)
-    }
+      cell(myImageLabel)
+      cell(myInfoText).align(Align.FILL)
+    }.resizableRow()
   }.apply {
     background = UIUtil.getTableBackground()
     border =
@@ -205,15 +206,13 @@ class RetentionView(private val androidSdkHandler: AndroidSdkHandler
   }
   private val myLayoutPanel = panel {
     row {
-      cell {
-        myRetentionDebugLoading()
-        myRetentionDebugButton()
-        myRetentionHelperLabel()
+      panel {
+        row { cell(myRetentionDebugLoading) }
+        row { cell(myRetentionDebugButton) }
+        row { cell(myRetentionHelperLabel) }
       }
     }
-    row {
-      scrollPane(myInnerPanel)
-    }
+    row { scrollCell(myInnerPanel).align(Align.FILL) }.resizableRow()
   }
   private val myRetentionPanel = RetentionPanel().apply {
     addComponentListener(object : ComponentAdapter() {

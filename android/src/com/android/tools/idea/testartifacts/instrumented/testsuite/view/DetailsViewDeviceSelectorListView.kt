@@ -29,7 +29,8 @@ import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBList
-import com.intellij.ui.layout.panel
+import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -45,7 +46,6 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
-import javax.swing.border.EmptyBorder
 
 /**
  * Shows a list of devices. This view is intended to be used in Android test suite details page
@@ -81,7 +81,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
     cellRenderer = myCellRenderer
     fixedCellHeight = 50
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
-    border = EmptyBorder(0,0,0,0)
+    border = JBUI.Borders.empty()
     addListSelectionListener {
       val selectedItem = selectedValue
       if (selectedItem is AndroidDevice) {
@@ -94,9 +94,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
   }
 
   val rootPanel: JPanel = panel {
-    row {
-      scrollPane(deviceList)
-    }
+    row { scrollCell(deviceList).align(Align.FILL) }.resizableRow()
   }
 
   /**
@@ -146,7 +144,7 @@ class DetailsViewDeviceSelectorListView(listener: DetailsViewDeviceSelectorListV
   }
 
   private class AndroidDeviceListCellRenderer : DefaultListCellRenderer() {
-    private val myEmptyBorder: EmptyBorder = JBUI.Borders.empty(5, 10)
+    private val myEmptyBorder = JBUI.Borders.empty(5, 10)
     private val myCellRendererComponent = JPanel(BorderLayout())
     private val myDeviceLabelPanel = JPanel()
     private val myDeviceLabel = JLabel()
