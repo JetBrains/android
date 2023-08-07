@@ -15,12 +15,11 @@
  */
 package com.android.tools.idea.modes.essentials
 
+import com.intellij.ide.actions.ShowSettingsUtilImpl
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.options.newEditor.SettingsDialog
-import com.intellij.openapi.options.newEditor.SettingsDialogFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -55,10 +54,7 @@ class EssentialsModeWidgetFactory : StatusBarWidgetFactory {
 
   internal class EssentialsModeSettingsPageAction : AnAction("Settings Page") {
     override fun actionPerformed(e: AnActionEvent) {
-      SettingsDialogFactory.getInstance()
-        .create(e.project, SettingsDialog.DIMENSION_KEY, EssentialsModeSettingsPage(), false, false).show()
-
+      ShowSettingsUtilImpl.showSettingsDialog(e.project, "essentials.mode.settings", "")
     }
-
   }
 }
