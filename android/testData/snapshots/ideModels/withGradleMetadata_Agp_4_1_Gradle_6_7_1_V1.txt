@@ -23,6 +23,22 @@ MODULE                        : withGradleMetadata
         TEST_COMPILE_MODE             : Unit tests
         TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-android/1.5.2/kotlinx-coroutines-android-1.5.2.jar
         artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
@@ -31,26 +47,10 @@ LIBRARY_TABLE
         artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.5.2/kotlinx-coroutines-core-jvm-1.5.2.jar
         artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
         component                     : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
     - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
         artifactAddress               : org.jetbrains:annotations:13.0@jar
         component                     : org.jetbrains:annotations:13.0
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
     - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :app

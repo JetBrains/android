@@ -369,9 +369,13 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     }
 
     fun dump(libraryTable: IdeResolvedLibraryTable) {
-      libraryTable.libraries.forEach { library ->
-        modelDumper.dumpModel(projectDumper, "library", library)
-      }
+      val libraryComparator = compareBy<IdeLibrary?> { it?.toLibraryType() }.thenBy { it?.toDisplayString() }
+      libraryTable.libraries
+        .map { it.sortedWith (libraryComparator) } // sort each list first
+        .sortedWith(compareBy(libraryComparator) { it.firstOrNull() } ) // then compare the min elements of lists
+        .forEach { library ->
+           modelDumper.dumpModel(projectDumper, "library", library)
+        }
     }
 
     fun dump(compositeBuildMap: IdeCompositeBuildMap) {
@@ -394,18 +398,6 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
     }
 
     private fun dump(property: String, ideDependencies: IdeDependencies) {
-      fun IdeLibrary.toDisplayString(): String = when (this) {
-        is IdeArtifactLibrary -> artifactAddress
-        is IdeModuleLibrary -> "${buildId}-${projectPath}-${sourceSet}"
-        is IdeUnknownLibrary -> key
-      }.replaceKnownPaths()
-
-      fun IdeLibrary.toLibraryType(): String = when (this) {
-        is IdeAndroidLibrary -> "androidLibrary"
-        is IdeJavaLibrary -> "javaLibrary"
-        is IdeModuleLibrary -> "module"
-        is IdeUnknownLibrary -> "unknown"
-      }
 
       head(property)
       nest {
@@ -832,6 +824,19 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
 
     fun dump(externalProject: ExternalProject) {
       modelDumper.dumpModel(this@with, "externalProject", externalProject)
+    }
+
+    fun IdeLibrary.toDisplayString(): String = when (this) {
+      is IdeArtifactLibrary -> artifactAddress
+      is IdeModuleLibrary -> "${buildId}-${projectPath}-${sourceSet}"
+      is IdeUnknownLibrary -> key
+    }.replaceKnownPaths()
+
+    fun IdeLibrary.toLibraryType(): String = when (this) {
+      is IdeAndroidLibrary -> "androidLibrary"
+      is IdeJavaLibrary -> "javaLibrary"
+      is IdeModuleLibrary -> "module"
+      is IdeUnknownLibrary -> "unknown"
     }
   }
 }

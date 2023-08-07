@@ -23,116 +23,6 @@ MODULE                        : project
         TEST_COMPILE_MODE             : Unit tests
         TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
-    - library                     : androidx.appcompat:appcompat:1.4.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/aidl [-]
-        artifact                      : <M2>/androidx/appcompat/appcompat/1.4.1/appcompat-1.4.1.aar
-        artifactAddress               : androidx.appcompat:appcompat:1.4.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/jars/classes.jar
-        component                     : androidx.appcompat:appcompat:1.4.1
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/jars/lint.jar
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/R.txt
-    - library                     : androidx.core:core:1.7.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/aidl
-        artifact                      : <M2>/androidx/core/core/1.7.0/core-1.7.0.aar
-        artifactAddress               : androidx.core:core:1.7.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/jars/classes.jar
-        component                     : androidx.core:core:1.7.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/R.txt
-    - library                     : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/aidl [-]
-        artifact                      : <M2>/androidx/annotation/annotation-experimental/1.1.0/annotation-experimental-1.1.0.aar
-        artifactAddress               : androidx.annotation:annotation-experimental:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/jars/classes.jar
-        component                     : androidx.annotation:annotation-experimental:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/jars/lint.jar
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/R.txt
-    - library                     : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/aidl [-]
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.4.0/lifecycle-runtime-2.4.0.aar
-        artifactAddress               : androidx.lifecycle:lifecycle-runtime:2.4.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/jars/classes.jar
-        component                     : androidx.lifecycle:lifecycle-runtime:2.4.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/R.txt
-    - library                     : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/aidl
-        artifact                      : <M2>/androidx/versionedparcelable/versionedparcelable/1.1.1/versionedparcelable-1.1.1.aar
-        artifactAddress               : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/jars/classes.jar
-        component                     : androidx.versionedparcelable:versionedparcelable:1.1.1
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/R.txt
-    - library                     : androidx.cursoradapter:cursoradapter:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/aidl [-]
-        artifact                      : <M2>/androidx/cursoradapter/cursoradapter/1.0.0/cursoradapter-1.0.0.aar
-        artifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
-        component                     : androidx.cursoradapter:cursoradapter:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
     - library                     : androidx.activity:activity:1.2.4@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4/aidl [-]
         artifact                      : <M2>/androidx/activity/activity/1.2.4/activity-1.2.4.aar
@@ -152,78 +42,208 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.4/R.txt
-    - library                     : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/aidl [-]
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/2.3.1/lifecycle-viewmodel-2.3.1.aar
-        artifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/jars/classes.jar
-        component                     : androidx.lifecycle:lifecycle-viewmodel:2.3.1
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/R.txt
-    - library                     : androidx.savedstate:savedstate:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/aidl [-]
-        artifact                      : <M2>/androidx/savedstate/savedstate/1.1.0/savedstate-1.1.0.aar
-        artifactAddress               : androidx.savedstate:savedstate:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/jars/classes.jar
-        component                     : androidx.savedstate:savedstate:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/R.txt
-    - library                     : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/aidl [-]
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel-savedstate/2.3.1/lifecycle-viewmodel-savedstate-2.3.1.aar
-        artifactAddress               : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/jars/classes.jar
-        component                     : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/R.txt
-    - library                     : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/aidl [-]
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata-core/2.3.1/lifecycle-livedata-core-2.3.1.aar
-        artifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/jars/classes.jar
-        component                     : androidx.lifecycle:lifecycle-livedata-core:2.3.1
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/R.txt
+    - library                     : androidx.annotation:annotation-experimental:1.1.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/aidl [-]
+        artifact                      : <M2>/androidx/annotation/annotation-experimental/1.1.0/annotation-experimental-1.1.0.aar
+        artifactAddress               : androidx.annotation:annotation-experimental:1.1.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/jars/classes.jar
+        component                     : androidx.annotation:annotation-experimental:1.1.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/jni [-]
+        lintJar                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/jars/lint.jar
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.1.0/R.txt
+    - library                     : androidx.appcompat:appcompat-resources:1.4.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/aidl [-]
+        artifact                      : <M2>/androidx/appcompat/appcompat-resources/1.4.1/appcompat-resources-1.4.1.aar
+        artifactAddress               : androidx.appcompat:appcompat-resources:1.4.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/jars/classes.jar
+        component                     : androidx.appcompat:appcompat-resources:1.4.1
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/R.txt
+    - library                     : androidx.appcompat:appcompat:1.4.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/aidl [-]
+        artifact                      : <M2>/androidx/appcompat/appcompat/1.4.1/appcompat-1.4.1.aar
+        artifactAddress               : androidx.appcompat:appcompat:1.4.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/jars/classes.jar
+        component                     : androidx.appcompat:appcompat:1.4.1
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/jni [-]
+        lintJar                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/jars/lint.jar
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.4.1/R.txt
+    - library                     : androidx.arch.core:core-runtime:2.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/aidl [-]
+        artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
+        artifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
+        component                     : androidx.arch.core:core-runtime:2.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
+    - library                     : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/aidl [-]
+        artifact                      : <M2>/androidx/arch/core/core-runtime/2.1.0/core-runtime-2.1.0.aar
+        artifactAddress               : androidx.arch.core:core-runtime:2.1.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
+        component                     : androidx.arch.core:core-runtime:2.1.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/R.txt
+    - library                     : androidx.core:core:1.7.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/aidl
+        artifact                      : <M2>/androidx/core/core/1.7.0/core-1.7.0.aar
+        artifactAddress               : androidx.core:core:1.7.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/jars/classes.jar
+        component                     : androidx.core:core:1.7.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.7.0/R.txt
+    - library                     : androidx.cursoradapter:cursoradapter:1.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/aidl [-]
+        artifact                      : <M2>/androidx/cursoradapter/cursoradapter/1.0.0/cursoradapter-1.0.0.aar
+        artifactAddress               : androidx.cursoradapter:cursoradapter:1.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
+        component                     : androidx.cursoradapter:cursoradapter:1.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/R.txt
+    - library                     : androidx.customview:customview:1.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/aidl [-]
+        artifact                      : <M2>/androidx/customview/customview/1.0.0/customview-1.0.0.aar
+        artifactAddress               : androidx.customview:customview:1.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
+        component                     : androidx.customview:customview:1.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
+    - library                     : androidx.drawerlayout:drawerlayout:1.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/aidl [-]
+        artifact                      : <M2>/androidx/drawerlayout/drawerlayout/1.0.0/drawerlayout-1.0.0.aar
+        artifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
+        component                     : androidx.drawerlayout:drawerlayout:1.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
+    - library                     : androidx.emoji2:emoji2-views-helper:1.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/aidl [-]
+        artifact                      : <M2>/androidx/emoji2/emoji2-views-helper/1.0.0/emoji2-views-helper-1.0.0.aar
+        artifactAddress               : androidx.emoji2:emoji2-views-helper:1.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/jars/classes.jar
+        component                     : androidx.emoji2:emoji2-views-helper:1.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/R.txt
+    - library                     : androidx.emoji2:emoji2:1.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/aidl [-]
+        artifact                      : <M2>/androidx/emoji2/emoji2/1.0.0/emoji2-1.0.0.aar
+        artifactAddress               : androidx.emoji2:emoji2:1.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/jars/classes.jar
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/jars/libs/repackaged.jar
+        component                     : androidx.emoji2:emoji2:1.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/jars/classes.jar
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/jars/libs/repackaged.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/R.txt
     - library                     : androidx.fragment:fragment:1.3.6@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6/aidl [-]
         artifact                      : <M2>/androidx/fragment/fragment/1.3.6/fragment-1.3.6.aar
@@ -243,150 +263,6 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.6/R.txt
-    - library                     : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/aidl [-]
-        artifact                      : <M2>/androidx/viewpager/viewpager/1.0.0/viewpager-1.0.0.aar
-        artifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
-        component                     : androidx.viewpager:viewpager:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
-    - library                     : androidx.customview:customview:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/aidl [-]
-        artifact                      : <M2>/androidx/customview/customview/1.0.0/customview-1.0.0.aar
-        artifactAddress               : androidx.customview:customview:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
-        component                     : androidx.customview:customview:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-1.0.0/R.txt
-    - library                     : androidx.loader:loader:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/aidl [-]
-        artifact                      : <M2>/androidx/loader/loader/1.0.0/loader-1.0.0.aar
-        artifactAddress               : androidx.loader:loader:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
-        component                     : androidx.loader:loader:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
-    - library                     : androidx.lifecycle:lifecycle-livedata:2.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/aidl [-]
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.aar
-        artifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
-        component                     : androidx.lifecycle:lifecycle-livedata:2.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
-    - library                     : androidx.arch.core:core-runtime:2.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/aidl [-]
-        artifact                      : <M2>/androidx/arch/core/core-runtime/2.1.0/core-runtime-2.1.0.aar
-        artifactAddress               : androidx.arch.core:core-runtime:2.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
-        component                     : androidx.arch.core:core-runtime:2.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/R.txt
-    - library                     : androidx.appcompat:appcompat-resources:1.4.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/aidl [-]
-        artifact                      : <M2>/androidx/appcompat/appcompat-resources/1.4.1/appcompat-resources-1.4.1.aar
-        artifactAddress               : androidx.appcompat:appcompat-resources:1.4.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/jars/classes.jar
-        component                     : androidx.appcompat:appcompat-resources:1.4.1
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.4.1/R.txt
-    - library                     : androidx.vectordrawable:vectordrawable:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/aidl [-]
-        artifact                      : <M2>/androidx/vectordrawable/vectordrawable/1.1.0/vectordrawable-1.1.0.aar
-        artifactAddress               : androidx.vectordrawable:vectordrawable:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
-        component                     : androidx.vectordrawable:vectordrawable:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/R.txt
-    - library                     : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/aidl [-]
-        artifact                      : <M2>/androidx/vectordrawable/vectordrawable-animated/1.1.0/vectordrawable-animated-1.1.0.aar
-        artifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
-        component                     : androidx.vectordrawable:vectordrawable-animated:1.1.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/R.txt
     - library                     : androidx.interpolator:interpolator:1.0.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/aidl [-]
         artifact                      : <M2>/androidx/interpolator/interpolator/1.0.0/interpolator-1.0.0.aar
@@ -405,24 +281,223 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/R.txt
-    - library                     : androidx.drawerlayout:drawerlayout:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/aidl [-]
-        artifact                      : <M2>/androidx/drawerlayout/drawerlayout/1.0.0/drawerlayout-1.0.0.aar
-        artifactAddress               : androidx.drawerlayout:drawerlayout:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
-        component                     : androidx.drawerlayout:drawerlayout:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-1.0.0/R.txt
+    - library                     : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/aidl [-]
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata-core/2.3.1/lifecycle-livedata-core-2.3.1.aar
+        artifactAddress               : androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-livedata-core:2.3.1
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/R.txt
+    - library                     : androidx.lifecycle:lifecycle-livedata:2.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/aidl [-]
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-livedata/2.0.0/lifecycle-livedata-2.0.0.aar
+        artifactAddress               : androidx.lifecycle:lifecycle-livedata:2.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-livedata:2.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/R.txt
+    - library                     : androidx.lifecycle:lifecycle-process:2.4.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/aidl [-]
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-process/2.4.0/lifecycle-process-2.4.0.aar
+        artifactAddress               : androidx.lifecycle:lifecycle-process:2.4.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-process:2.4.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/R.txt
+    - library                     : androidx.lifecycle:lifecycle-runtime:2.3.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/aidl [-]
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.3.1/lifecycle-runtime-2.3.1.aar
+        artifactAddress               : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-runtime:2.3.1
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/R.txt
+    - library                     : androidx.lifecycle:lifecycle-runtime:2.4.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/aidl [-]
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.4.0/lifecycle-runtime-2.4.0.aar
+        artifactAddress               : androidx.lifecycle:lifecycle-runtime:2.4.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-runtime:2.4.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.4.0/R.txt
+    - library                     : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/aidl [-]
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel-savedstate/2.3.1/lifecycle-viewmodel-savedstate-2.3.1.aar
+        artifactAddress               : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/R.txt
+    - library                     : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/aidl [-]
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-viewmodel/2.3.1/lifecycle-viewmodel-2.3.1.aar
+        artifactAddress               : androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/jars/classes.jar
+        component                     : androidx.lifecycle:lifecycle-viewmodel:2.3.1
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/R.txt
+    - library                     : androidx.loader:loader:1.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/aidl [-]
+        artifact                      : <M2>/androidx/loader/loader/1.0.0/loader-1.0.0.aar
+        artifactAddress               : androidx.loader:loader:1.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
+        component                     : androidx.loader:loader:1.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/R.txt
+    - library                     : androidx.savedstate:savedstate:1.1.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/aidl [-]
+        artifact                      : <M2>/androidx/savedstate/savedstate/1.1.0/savedstate-1.1.0.aar
+        artifactAddress               : androidx.savedstate:savedstate:1.1.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/jars/classes.jar
+        component                     : androidx.savedstate:savedstate:1.1.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/R.txt
+    - library                     : androidx.startup:startup-runtime:1.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/aidl [-]
+        artifact                      : <M2>/androidx/startup/startup-runtime/1.0.0/startup-runtime-1.0.0.aar
+        artifactAddress               : androidx.startup:startup-runtime:1.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/jars/classes.jar
+        component                     : androidx.startup:startup-runtime:1.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/jni [-]
+        lintJar                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/jars/lint.jar
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/R.txt
+    - library                     : androidx.test.espresso:espresso-core:3.4.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/aidl [-]
+        artifact                      : <M2>/androidx/test/espresso/espresso-core/3.4.0/espresso-core-3.4.0.aar
+        artifactAddress               : androidx.test.espresso:espresso-core:3.4.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/jars/classes.jar
+        component                     : androidx.test.espresso:espresso-core:3.4.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/R.txt
+    - library                     : androidx.test.espresso:espresso-idling-resource:3.4.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/aidl [-]
+        artifact                      : <M2>/androidx/test/espresso/espresso-idling-resource/3.4.0/espresso-idling-resource-3.4.0.aar
+        artifactAddress               : androidx.test.espresso:espresso-idling-resource:3.4.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/jars/classes.jar
+        component                     : androidx.test.espresso:espresso-idling-resource:3.4.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/R.txt
     - library                     : androidx.test.ext:junit:1.1.3@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3/aidl [-]
         artifact                      : <M2>/androidx/test/ext/junit/1.1.3/junit-1.1.3.aar
@@ -441,6 +516,24 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/junit-1.1.3/R.txt
+    - library                     : androidx.test.services:storage:1.4.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/aidl [-]
+        artifact                      : <M2>/androidx/test/services/storage/1.4.0/storage-1.4.0.aar
+        artifactAddress               : androidx.test.services:storage:1.4.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/jars/classes.jar
+        component                     : androidx.test.services:storage:1.4.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/R.txt
     - library                     : androidx.test:core:1.4.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.4.0/aidl [-]
         artifact                      : <M2>/androidx/test/core/1.4.0/core-1.4.0.aar
@@ -477,304 +570,6 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/monitor-1.4.0/R.txt
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
-    - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-        artifactAddress               : org.jetbrains:annotations:13.0@jar
-        component                     : org.jetbrains:annotations:13.0
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
-    - library                     : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl)
-        artifact                      : <ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar [-]
-        artifactAddress               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified@jar
-    - library                     : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
-        artifactAddress               : androidx.annotation:annotation:1.3.0@jar
-        component                     : androidx.annotation:annotation:1.3.0
-    - library                     : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
-        artifactAddress               : androidx.lifecycle:lifecycle-common:2.4.0@jar
-        component                     : androidx.lifecycle:lifecycle-common:2.4.0
-    - library                     : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
-        artifactAddress               : androidx.arch.core:core-common:2.1.0@jar
-        component                     : androidx.arch.core:core-common:2.1.0
-    - library                     : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
-        artifactAddress               : androidx.collection:collection:1.1.0@jar
-        component                     : androidx.collection:collection:1.1.0
-    - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
-        artifactAddress               : junit:junit:4.12@jar
-        component                     : junit:junit:4.12
-    - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-        artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
-        component                     : org.hamcrest:hamcrest-core:1.3
-    - library                     : androidx.tracing:tracing:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/aidl [-]
-        artifact                      : <M2>/androidx/tracing/tracing/1.0.0/tracing-1.0.0.aar
-        artifactAddress               : androidx.tracing:tracing:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
-        component                     : androidx.tracing:tracing:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/R.txt
-    - library                     : androidx.emoji2:emoji2:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/aidl [-]
-        artifact                      : <M2>/androidx/emoji2/emoji2/1.0.0/emoji2-1.0.0.aar
-        artifactAddress               : androidx.emoji2:emoji2:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/jars/classes.jar
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/jars/libs/repackaged.jar
-        component                     : androidx.emoji2:emoji2:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/annotations.zip
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/jars/classes.jar
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/jars/libs/repackaged.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-1.0.0/R.txt
-    - library                     : androidx.lifecycle:lifecycle-process:2.4.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/aidl [-]
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-process/2.4.0/lifecycle-process-2.4.0.aar
-        artifactAddress               : androidx.lifecycle:lifecycle-process:2.4.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/jars/classes.jar
-        component                     : androidx.lifecycle:lifecycle-process:2.4.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-process-2.4.0/R.txt
-    - library                     : androidx.startup:startup-runtime:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/aidl [-]
-        artifact                      : <M2>/androidx/startup/startup-runtime/1.0.0/startup-runtime-1.0.0.aar
-        artifactAddress               : androidx.startup:startup-runtime:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/jars/classes.jar
-        component                     : androidx.startup:startup-runtime:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/jni [-]
-        lintJar                       : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/jars/lint.jar
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/startup-runtime-1.0.0/R.txt
-    - library                     : androidx.emoji2:emoji2-views-helper:1.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/aidl [-]
-        artifact                      : <M2>/androidx/emoji2/emoji2-views-helper/1.0.0/emoji2-views-helper-1.0.0.aar
-        artifactAddress               : androidx.emoji2:emoji2-views-helper:1.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/jars/classes.jar
-        component                     : androidx.emoji2:emoji2-views-helper:1.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/public.txt
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/emoji2-views-helper-1.0.0/R.txt
-    - library                     : androidx.concurrent:concurrent-futures:1.0.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/concurrent/concurrent-futures/1.0.0/concurrent-futures-1.0.0.jar
-        artifactAddress               : androidx.concurrent:concurrent-futures:1.0.0@jar
-        component                     : androidx.concurrent:concurrent-futures:1.0.0
-    - library                     : com.google.guava:listenablefuture:1.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/google/guava/listenablefuture/1.0/listenablefuture-1.0.jar
-        artifactAddress               : com.google.guava:listenablefuture:1.0@jar
-        component                     : com.google.guava:listenablefuture:1.0
-    - library                     : androidx.resourceinspection:resourceinspection-annotation:1.0.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/resourceinspection/resourceinspection-annotation/1.0.0/resourceinspection-annotation-1.0.0.jar
-        artifactAddress               : androidx.resourceinspection:resourceinspection-annotation:1.0.0@jar
-        component                     : androidx.resourceinspection:resourceinspection-annotation:1.0.0
-    - library                     : junit:junit:4.13.2 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
-        artifactAddress               : junit:junit:4.13.2@jar
-        component                     : junit:junit:4.13.2
-    - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        projectPath                   : :app
-        sourceSet                     : MAIN
-        variant                       : debug
-    - library                     : androidx.test.espresso:espresso-core:3.4.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/aidl [-]
-        artifact                      : <M2>/androidx/test/espresso/espresso-core/3.4.0/espresso-core-3.4.0.aar
-        artifactAddress               : androidx.test.espresso:espresso-core:3.4.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/jars/classes.jar
-        component                     : androidx.test.espresso:espresso-core:3.4.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.4.0/R.txt
-    - library                     : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/aidl [-]
-        artifact                      : <M2>/androidx/test/runner/1.4.0/runner-1.4.0.aar
-        artifactAddress               : androidx.test:runner:1.4.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/jars/classes.jar
-        component                     : androidx.test:runner:1.4.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/R.txt
-    - library                     : androidx.test.services:storage:1.4.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/aidl [-]
-        artifact                      : <M2>/androidx/test/services/storage/1.4.0/storage-1.4.0.aar
-        artifactAddress               : androidx.test.services:storage:1.4.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/jars/classes.jar
-        component                     : androidx.test.services:storage:1.4.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/storage-1.4.0/R.txt
-    - library                     : androidx.test.espresso:espresso-idling-resource:3.4.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/aidl [-]
-        artifact                      : <M2>/androidx/test/espresso/espresso-idling-resource/3.4.0/espresso-idling-resource-3.4.0.aar
-        artifactAddress               : androidx.test.espresso:espresso-idling-resource:3.4.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/jars/classes.jar
-        component                     : androidx.test.espresso:espresso-idling-resource:3.4.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-idling-resource-3.4.0/R.txt
-    - library                     : androidx.lifecycle:lifecycle-runtime:2.3.1@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/aidl [-]
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-runtime/2.3.1/lifecycle-runtime-2.3.1.aar
-        artifactAddress               : androidx.lifecycle:lifecycle-runtime:2.3.1@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/jars/classes.jar
-        component                     : androidx.lifecycle:lifecycle-runtime:2.3.1
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/proguard.txt
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/res
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/R.txt
-    - library                     : androidx.arch.core:core-runtime:2.0.0@aar (IdeAndroidLibraryImpl)
-        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/aidl [-]
-        artifact                      : <M2>/androidx/arch/core/core-runtime/2.0.0/core-runtime-2.0.0.aar
-        artifactAddress               : androidx.arch.core:core-runtime:2.0.0@aar
-        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/assets [-]
-        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
-        component                     : androidx.arch.core:core-runtime:2.0.0
-        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/annotations.zip [-]
-        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0
-        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jni [-]
-        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
-        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/proguard.txt [-]
-        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/public.txt [-]
-        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/rs [-]
-        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res [-]
-        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/res.apk [-]
-        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar
-        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/R.txt
-    - library                     : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
-        artifactAddress               : com.google.code.findbugs:jsr305:2.0.1@jar
-        component                     : com.google.code.findbugs:jsr305:2.0.1
-    - library                     : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
-        artifactAddress               : com.squareup:javawriter:2.1.1@jar
-        component                     : com.squareup:javawriter:2.1.1
-    - library                     : javax.inject:javax.inject:1 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
-        artifactAddress               : javax.inject:javax.inject:1@jar
-        component                     : javax.inject:javax.inject:1
-    - library                     : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
-        artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
-        component                     : org.hamcrest:hamcrest-library:1.3
-    - library                     : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
-        artifactAddress               : org.hamcrest:hamcrest-integration:1.3@jar
-        component                     : org.hamcrest:hamcrest-integration:1.3
-    - library                     : androidx.lifecycle:lifecycle-common:2.3.1 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar
-        artifactAddress               : androidx.lifecycle:lifecycle-common:2.3.1@jar
-        component                     : androidx.lifecycle:lifecycle-common:2.3.1
-    - library                     : <ROOT>::app-with-dynamic-feature@debug (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        projectPath                   : :app-with-dynamic-feature
-        sourceSet                     : MAIN
-        variant                       : debug
     - library                     : androidx.test:rules:1.3.0@aar (IdeAndroidLibraryImpl)
         aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/aidl [-]
         artifact                      : <M2>/androidx/test/rules/1.3.0/rules-1.3.0.aar
@@ -793,22 +588,219 @@ LIBRARY_TABLE
         resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/res.apk [-]
         - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/jars/classes.jar
         symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/rules-1.3.0/R.txt
+    - library                     : androidx.test:runner:1.4.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/aidl [-]
+        artifact                      : <M2>/androidx/test/runner/1.4.0/runner-1.4.0.aar
+        artifactAddress               : androidx.test:runner:1.4.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/jars/classes.jar
+        component                     : androidx.test:runner:1.4.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runner-1.4.0/R.txt
+    - library                     : androidx.tracing:tracing:1.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/aidl [-]
+        artifact                      : <M2>/androidx/tracing/tracing/1.0.0/tracing-1.0.0.aar
+        artifactAddress               : androidx.tracing:tracing:1.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+        component                     : androidx.tracing:tracing:1.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/tracing-1.0.0/R.txt
+    - library                     : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/aidl [-]
+        artifact                      : <M2>/androidx/vectordrawable/vectordrawable-animated/1.1.0/vectordrawable-animated-1.1.0.aar
+        artifactAddress               : androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
+        component                     : androidx.vectordrawable:vectordrawable-animated:1.1.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/R.txt
+    - library                     : androidx.vectordrawable:vectordrawable:1.1.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/aidl [-]
+        artifact                      : <M2>/androidx/vectordrawable/vectordrawable/1.1.0/vectordrawable-1.1.0.aar
+        artifactAddress               : androidx.vectordrawable:vectordrawable:1.1.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
+        component                     : androidx.vectordrawable:vectordrawable:1.1.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/R.txt
+    - library                     : androidx.versionedparcelable:versionedparcelable:1.1.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/aidl
+        artifact                      : <M2>/androidx/versionedparcelable/versionedparcelable/1.1.1/versionedparcelable-1.1.1.aar
+        artifactAddress               : androidx.versionedparcelable:versionedparcelable:1.1.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/jars/classes.jar
+        component                     : androidx.versionedparcelable:versionedparcelable:1.1.1
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/R.txt
+    - library                     : androidx.viewpager:viewpager:1.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/aidl [-]
+        artifact                      : <M2>/androidx/viewpager/viewpager/1.0.0/viewpager-1.0.0.aar
+        artifactAddress               : androidx.viewpager:viewpager:1.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
+        component                     : androidx.viewpager:viewpager:1.0.0
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/R.txt
+    - library                     : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified (IdeJavaLibraryImpl)
+        artifact                      : <ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar [-]
+        artifactAddress               : __local_asars__:<ROOT>/ads-sdk/build/intermediates/stub_jar/single/sdk-interface-descriptors.jar:unspecified@jar
+    - library                     : androidx.annotation:annotation:1.3.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/annotation/annotation/1.3.0/annotation-1.3.0.jar
+        artifactAddress               : androidx.annotation:annotation:1.3.0@jar
+        component                     : androidx.annotation:annotation:1.3.0
+    - library                     : androidx.arch.core:core-common:2.1.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/arch/core/core-common/2.1.0/core-common-2.1.0.jar
+        artifactAddress               : androidx.arch.core:core-common:2.1.0@jar
+        component                     : androidx.arch.core:core-common:2.1.0
+    - library                     : androidx.collection:collection:1.1.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar
+        artifactAddress               : androidx.collection:collection:1.1.0@jar
+        component                     : androidx.collection:collection:1.1.0
+    - library                     : androidx.concurrent:concurrent-futures:1.0.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/concurrent/concurrent-futures/1.0.0/concurrent-futures-1.0.0.jar
+        artifactAddress               : androidx.concurrent:concurrent-futures:1.0.0@jar
+        component                     : androidx.concurrent:concurrent-futures:1.0.0
+    - library                     : androidx.lifecycle:lifecycle-common:2.3.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.3.1/lifecycle-common-2.3.1.jar
+        artifactAddress               : androidx.lifecycle:lifecycle-common:2.3.1@jar
+        component                     : androidx.lifecycle:lifecycle-common:2.3.1
+    - library                     : androidx.lifecycle:lifecycle-common:2.4.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/lifecycle/lifecycle-common/2.4.0/lifecycle-common-2.4.0.jar
+        artifactAddress               : androidx.lifecycle:lifecycle-common:2.4.0@jar
+        component                     : androidx.lifecycle:lifecycle-common:2.4.0
+    - library                     : androidx.resourceinspection:resourceinspection-annotation:1.0.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/androidx/resourceinspection/resourceinspection-annotation/1.0.0/resourceinspection-annotation-1.0.0.jar
+        artifactAddress               : androidx.resourceinspection:resourceinspection-annotation:1.0.0@jar
+        component                     : androidx.resourceinspection:resourceinspection-annotation:1.0.0
+    - library                     : com.google.code.findbugs:jsr305:2.0.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar
+        artifactAddress               : com.google.code.findbugs:jsr305:2.0.1@jar
+        component                     : com.google.code.findbugs:jsr305:2.0.1
+    - library                     : com.google.guava:listenablefuture:1.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/guava/listenablefuture/1.0/listenablefuture-1.0.jar
+        artifactAddress               : com.google.guava:listenablefuture:1.0@jar
+        component                     : com.google.guava:listenablefuture:1.0
+    - library                     : com.squareup:javawriter:2.1.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar
+        artifactAddress               : com.squareup:javawriter:2.1.1@jar
+        component                     : com.squareup:javawriter:2.1.1
+    - library                     : javax.inject:javax.inject:1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/javax/inject/javax.inject/1/javax.inject-1.jar
+        artifactAddress               : javax.inject:javax.inject:1@jar
+        component                     : javax.inject:javax.inject:1
+    - library                     : junit:junit:4.12 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/junit/junit/4.12/junit-4.12.jar
+        artifactAddress               : junit:junit:4.12@jar
+        component                     : junit:junit:4.12
+    - library                     : junit:junit:4.13.2 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
+        artifactAddress               : junit:junit:4.13.2@jar
+        component                     : junit:junit:4.13.2
+    - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+        artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
+        component                     : org.hamcrest:hamcrest-core:1.3
+    - library                     : org.hamcrest:hamcrest-integration:1.3 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar
+        artifactAddress               : org.hamcrest:hamcrest-integration:1.3@jar
+        component                     : org.hamcrest:hamcrest-integration:1.3
+    - library                     : org.hamcrest:hamcrest-library:1.3 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar
+        artifactAddress               : org.hamcrest:hamcrest-library:1.3@jar
+        component                     : org.hamcrest:hamcrest-library:1.3
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.6.3/kotlinx-coroutines-core-jvm-1.6.3.jar
         artifactAddress               : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3@jar
         component                     : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.6.3
-    - library                     : IdeUnknownLibraryImpl
-        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.3|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3
-    - library                     : IdeUnknownLibraryImpl
-        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.3|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.3
-    - library                     : IdeUnknownLibraryImpl
-        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.3|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3
-    - library                     : IdeUnknownLibraryImpl
-        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.3|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-runtime|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.3
+    - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+        artifactAddress               : org.jetbrains:annotations:13.0@jar
+        component                     : org.jetbrains:annotations:13.0
     - library                     : <ROOT>::ads-sdk-implementation@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         lintJar                       : <ROOT>/ads-sdk-implementation/build/intermediates/lint_publish_jar/global/lint.jar [-]
         projectPath                   : :ads-sdk-implementation
+        sourceSet                     : MAIN
+        variant                       : debug
+    - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :app
+        sourceSet                     : MAIN
+        variant                       : debug
+    - library                     : <ROOT>::app-with-dynamic-feature@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :app-with-dynamic-feature
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::feature@debug (IdeModuleLibraryImpl)
@@ -816,6 +808,14 @@ LIBRARY_TABLE
         projectPath                   : :feature
         sourceSet                     : MAIN
         variant                       : debug
+    - library                     : IdeUnknownLibraryImpl
+        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.3|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-api|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.3
+    - library                     : IdeUnknownLibraryImpl
+        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-bom|1.6.3|org.gradle.category>platform, org.gradle.status>release, org.gradle.usage>java-runtime|org.jetbrains.kotlinx:kotlinx-coroutines-bom-derived-platform:1.6.3
+    - library                     : IdeUnknownLibraryImpl
+        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.3|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3
+    - library                     : IdeUnknownLibraryImpl
+        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.6.3|org.gradle.category>library, org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3
 MODULE                        : project
     externalProject               : project (DefaultExternalProject)
         path                          : : [-]

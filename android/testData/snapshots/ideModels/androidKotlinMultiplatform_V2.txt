@@ -23,6 +23,66 @@ MODULE                        : Kotlin_Multiplatform
         TEST_COMPILE_MODE             : Unit tests
         TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
+    - library                     : com.google.auto.value:auto-value-annotations:1.6.3 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar
+        artifactAddress               : com.google.auto.value:auto-value-annotations:1.6.3@jar
+        component                     : com.google.auto.value:auto-value-annotations:1.6.3
+    - library                     : com.google.code.findbugs:jsr305:3.0.2 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar
+        artifactAddress               : com.google.code.findbugs:jsr305:3.0.2@jar
+        component                     : com.google.code.findbugs:jsr305:3.0.2
+    - library                     : com.google.errorprone:error_prone_annotations:2.3.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.jar
+        artifactAddress               : com.google.errorprone:error_prone_annotations:2.3.1@jar
+        component                     : com.google.errorprone:error_prone_annotations:2.3.1
+    - library                     : com.google.guava:failureaccess:1.0.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar
+        artifactAddress               : com.google.guava:failureaccess:1.0.1@jar
+        component                     : com.google.guava:failureaccess:1.0.1
+    - library                     : com.google.guava:guava:27.0.1-android (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/guava/guava/27.0.1-android/guava-27.0.1-android.jar
+        artifactAddress               : com.google.guava:guava:27.0.1-android@jar
+        component                     : com.google.guava:guava:27.0.1-android
+    - library                     : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
+        artifactAddress               : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava@jar
+        component                     : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+    - library                     : com.google.j2objc:j2objc-annotations:1.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar
+        artifactAddress               : com.google.j2objc:j2objc-annotations:1.1@jar
+        component                     : com.google.j2objc:j2objc-annotations:1.1
+    - library                     : com.google.truth:truth:0.44 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/google/truth/truth/0.44/truth-0.44.jar
+        artifactAddress               : com.google.truth:truth:0.44@jar
+        component                     : com.google.truth:truth:0.44
+    - library                     : com.googlecode.java-diff-utils:diffutils:1.3.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar
+        artifactAddress               : com.googlecode.java-diff-utils:diffutils:1.3.0@jar
+        component                     : com.googlecode.java-diff-utils:diffutils:1.3.0
+    - library                     : junit:junit:4.13.2 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
+        artifactAddress               : junit:junit:4.13.2@jar
+        component                     : junit:junit:4.13.2
+    - library                     : org.checkerframework:checker-compat-qual:2.5.5 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.jar
+        artifactAddress               : org.checkerframework:checker-compat-qual:2.5.5@jar
+        component                     : org.checkerframework:checker-compat-qual:2.5.5
+    - library                     : org.codehaus.mojo:animal-sniffer-annotations:1.17 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar
+        artifactAddress               : org.codehaus.mojo:animal-sniffer-annotations:1.17@jar
+        component                     : org.codehaus.mojo:animal-sniffer-annotations:1.17
+    - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+        artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
+        component                     : org.hamcrest:hamcrest-core:1.3
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
+    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
     - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
@@ -31,18 +91,21 @@ LIBRARY_TABLE
         artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
         artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
         component                     : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
     - library                     : org.jetbrains:annotations:13.0 (IdeJavaLibraryImpl)
         artifact                      : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
         artifactAddress               : org.jetbrains:annotations:13.0@jar
         component                     : org.jetbrains:annotations:13.0
-    - library                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-        artifactAddress               : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
-        component                     : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+    - library                     : <ROOT>::androidLib@typeoneModetwoDebug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        lintJar                       : <ROOT>/androidLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
+        projectPath                   : :androidLib
+        sourceSet                     : MAIN
+        variant                       : typeoneModetwoDebug
+    - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :app
+        sourceSet                     : MAIN
+        variant                       : debug
     - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
@@ -57,12 +120,20 @@ LIBRARY_TABLE
         sourceSet                     : commonMain (IdeModuleSourceSetImpl)
             canBeConsumed                 : true
         variant                       : androidMain
-    - library                     : <ROOT>::androidLib@typeoneModetwoDebug (IdeModuleLibraryImpl)
+    - library                     : <ROOT>::kmpJvmOnly/commonMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
-        lintJar                       : <ROOT>/androidLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :androidLib
-        sourceSet                     : MAIN
-        variant                       : typeoneModetwoDebug
+        projectPath                   : :kmpJvmOnly
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
+    - library                     : <ROOT>::kmpJvmOnly/commonMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :kmpJvmOnly
+        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
+    - library                     : <ROOT>::kmpJvmOnly/jvmMain (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :kmpJvmOnly
+        sourceSet                     : jvmMain (IdeModuleSourceSetImpl)
+            canBeConsumed                 : true
     - library                     : <ROOT>::kmpSecondLib@androidMain/androidMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         lintJar                       : <ROOT>/kmpSecondLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
@@ -77,77 +148,6 @@ LIBRARY_TABLE
         sourceSet                     : commonMain (IdeModuleSourceSetImpl)
             canBeConsumed                 : true
         variant                       : androidMain
-    - library                     : <ROOT>::kmpJvmOnly/jvmMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        projectPath                   : :kmpJvmOnly
-        sourceSet                     : jvmMain (IdeModuleSourceSetImpl)
-            canBeConsumed                 : true
-    - library                     : <ROOT>::kmpJvmOnly/commonMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        projectPath                   : :kmpJvmOnly
-        sourceSet                     : commonMain (IdeModuleSourceSetImpl)
-            canBeConsumed                 : true
-    - library                     : <ROOT>::kmpJvmOnly/commonMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        projectPath                   : :kmpJvmOnly
-        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
-    - library                     : junit:junit:4.13.2 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/junit/junit/4.13.2/junit-4.13.2.jar
-        artifactAddress               : junit:junit:4.13.2@jar
-        component                     : junit:junit:4.13.2
-    - library                     : org.hamcrest:hamcrest-core:1.3 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
-        artifactAddress               : org.hamcrest:hamcrest-core:1.3@jar
-        component                     : org.hamcrest:hamcrest-core:1.3
-    - library                     : com.google.truth:truth:0.44 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/google/truth/truth/0.44/truth-0.44.jar
-        artifactAddress               : com.google.truth:truth:0.44@jar
-        component                     : com.google.truth:truth:0.44
-    - library                     : com.google.guava:guava:27.0.1-android (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/google/guava/guava/27.0.1-android/guava-27.0.1-android.jar
-        artifactAddress               : com.google.guava:guava:27.0.1-android@jar
-        component                     : com.google.guava:guava:27.0.1-android
-    - library                     : com.google.guava:failureaccess:1.0.1 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar
-        artifactAddress               : com.google.guava:failureaccess:1.0.1@jar
-        component                     : com.google.guava:failureaccess:1.0.1
-    - library                     : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
-        artifactAddress               : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava@jar
-        component                     : com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
-    - library                     : com.google.code.findbugs:jsr305:3.0.2 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar
-        artifactAddress               : com.google.code.findbugs:jsr305:3.0.2@jar
-        component                     : com.google.code.findbugs:jsr305:3.0.2
-    - library                     : org.checkerframework:checker-compat-qual:2.5.5 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.jar
-        artifactAddress               : org.checkerframework:checker-compat-qual:2.5.5@jar
-        component                     : org.checkerframework:checker-compat-qual:2.5.5
-    - library                     : com.google.errorprone:error_prone_annotations:2.3.1 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/google/errorprone/error_prone_annotations/2.3.1/error_prone_annotations-2.3.1.jar
-        artifactAddress               : com.google.errorprone:error_prone_annotations:2.3.1@jar
-        component                     : com.google.errorprone:error_prone_annotations:2.3.1
-    - library                     : com.google.j2objc:j2objc-annotations:1.1 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar
-        artifactAddress               : com.google.j2objc:j2objc-annotations:1.1@jar
-        component                     : com.google.j2objc:j2objc-annotations:1.1
-    - library                     : org.codehaus.mojo:animal-sniffer-annotations:1.17 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar
-        artifactAddress               : org.codehaus.mojo:animal-sniffer-annotations:1.17@jar
-        component                     : org.codehaus.mojo:animal-sniffer-annotations:1.17
-    - library                     : com.googlecode.java-diff-utils:diffutils:1.3.0 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar
-        artifactAddress               : com.googlecode.java-diff-utils:diffutils:1.3.0@jar
-        component                     : com.googlecode.java-diff-utils:diffutils:1.3.0
-    - library                     : com.google.auto.value:auto-value-annotations:1.6.3 (IdeJavaLibraryImpl)
-        artifact                      : <M2>/com/google/auto/value/auto-value-annotations/1.6.3/auto-value-annotations-1.6.3.jar
-        artifactAddress               : com.google.auto.value:auto-value-annotations:1.6.3@jar
-        component                     : com.google.auto.value:auto-value-annotations:1.6.3
-    - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        projectPath                   : :app
-        sourceSet                     : MAIN
-        variant                       : debug
 MODULE                        : Kotlin_Multiplatform
     externalProject               : Kotlin Multiplatform (DefaultExternalProject)
         path                          : : [-]

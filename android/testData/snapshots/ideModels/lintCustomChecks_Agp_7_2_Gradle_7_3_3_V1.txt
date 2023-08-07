@@ -23,15 +23,15 @@ MODULE                        : project
         TEST_COMPILE_MODE             : Unit tests
         TEST_COMPILE_MODE             : None
 LIBRARY_TABLE
+    - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :app
+        sourceSet                     : MAIN
+        variant                       : debug
     - library                     : <ROOT>::library@debug (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         lintJar                       : <ROOT>/library/build/intermediates/lint_publish_jar/global/lint.jar [-]
         projectPath                   : :library
-        sourceSet                     : MAIN
-        variant                       : debug
-    - library                     : <ROOT>::app@debug (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        projectPath                   : :app
         sourceSet                     : MAIN
         variant                       : debug
     - library                     : <ROOT>::library-remote@debug (IdeModuleLibraryImpl)
