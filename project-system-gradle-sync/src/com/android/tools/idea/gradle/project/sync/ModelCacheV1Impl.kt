@@ -320,7 +320,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       lintJar = copyNewProperty(library::getLintJar)?.path?.let(::File),
       sourceSet = IdeModuleWellKnownSourceSet.MAIN
     )
-    return internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(moduleLibrary)) { moduleLibrary }
+    return internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(moduleLibrary)) { moduleLibrary }
   }
 
   fun createIdeModuleLibrary(library: JavaLibrary, projectPath: String): LibraryReference {
@@ -333,7 +333,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       lintJar = null,
       sourceSet = IdeModuleWellKnownSourceSet.MAIN
     )
-    return internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(moduleLibrary)) { moduleLibrary }
+    return internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(moduleLibrary)) { moduleLibrary }
   }
 
   fun mavenCoordinatesFrom(coordinates: MavenCoordinates): IdeMavenCoordinatesImpl {
@@ -482,7 +482,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       )
       val isProvided = copyNewProperty(androidLibrary::isProvided, false)
 
-      makeDependency(internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamedLibrary)) { unnamedLibrary }, isProvided)
+      makeDependency(internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(unnamedLibrary)) { unnamedLibrary }, isProvided)
     }
   }
 
@@ -505,14 +505,14 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       )
       val isProvided = copyNewProperty(javaLibrary::isProvided, false)
 
-      makeDependency(internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(unnamedLibrary)) { unnamedLibrary }, isProvided)
+      makeDependency(internedModels.internJavaLibrary(LibraryIdentity.fromIdeModel(unnamedLibrary)) { unnamedLibrary }, isProvided)
     }
   }
 
   fun libraryFrom(jarFile: File): IdeDependencyCoreAndIsProvided {
     val artifactAddress = "${ModelCache.LOCAL_JARS}:" + jarFile.path + ":unspecified"
     val unnamedLibrary = IdeJavaLibraryImpl(artifactAddress, null, "", jarFile, null, null, null)
-    return makeDependency(internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(unnamedLibrary)) { unnamedLibrary }, false)
+    return makeDependency(internedModels.internJavaLibrary(LibraryIdentity.fromIdeModel(unnamedLibrary)) { unnamedLibrary }, false)
   }
 
   fun libraryFrom(projectPath: String, buildId: String, variantName: String?): IdeDependencyCoreAndIsProvided {
@@ -524,7 +524,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       lintJar = null,
       sourceSet = IdeModuleWellKnownSourceSet.MAIN
     )
-    return makeDependency(internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(core)) {core}, isProvided = false)
+    return makeDependency(internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(core)) {core}, isProvided = false)
   }
 
   fun createFromDependencies(
@@ -662,14 +662,13 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           deduplicate = internedModels::intern
         )
         internedModels.internAndroidLibrary(
-          LibraryIdentity.IdeLibraryModel(library)
+          LibraryIdentity.fromIdeModel(library)
         ) { library }
       } else {
-
         // NOTE: [artifactAddress] needs to be in this form to meet LintModelFactory expectations.
         val library = IdeJavaLibraryImpl("$LOCAL_JARS:" + jarFile.path + ":unspecified", null, "", jarFile, null, null, null)
         internedModels.internJavaLibrary(
-          LibraryIdentity.IdeLibraryModel(library)
+          LibraryIdentity.fromIdeModel(library)
         ) { library }
       }
     }

@@ -807,7 +807,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
   val dependenciesStub = buildDependenciesStub(
     dependencies = androidLibraryDependencies.map {
       IdeDependencyCoreImpl(
-        internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(it.library)) { it.library },
+        internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(it.library)) { it.library },
         dependencies = listOf()
       )
     } + toIdeModuleDependencies(androidModuleDependencies(variant).orEmpty())
@@ -872,7 +872,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
                          variant = variant,
                          lintJar = null,
                          sourceSet = IdeModuleWellKnownSourceSet.MAIN
-                       ).let {internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(it)) {it} },
+                       ).let {internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} },
                        dependencies = listOf()
                      )
                    )
@@ -934,7 +934,7 @@ fun AndroidProjectStubBuilder.buildUnitTestArtifactStub(
                            variant = variant,
                            lintJar = null,
                            sourceSet = IdeModuleWellKnownSourceSet.MAIN
-                         ).let {internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(it)) {it} },
+                         ).let {internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} },
                        dependencies = listOf()
                      )
                    )
@@ -971,7 +971,7 @@ private fun AndroidProjectStubBuilder.toIdeModuleDependencies(androidModuleDepen
           variant = it.variant,
           lintJar = null,
           sourceSet = IdeModuleWellKnownSourceSet.MAIN
-        ).let {internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(it)) {it} }
+        ).let {internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} }
       ,
       dependencies = listOf()
     )
@@ -989,7 +989,7 @@ fun AndroidProjectStubBuilder.buildTestFixturesArtifactStub(
             variant = variant,
             lintJar = null,
             sourceSet = IdeModuleWellKnownSourceSet.MAIN
-          ).let{internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(it)) {it} }
+          ).let{internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(it)) {it} }
         ,
         dependencies = listOf()
       )

@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.builder.model.v2.ide.AndroidLibraryData
+import com.android.builder.model.v2.ide.Library
+import com.android.builder.model.v2.ide.LibraryInfo
+import com.android.builder.model.v2.ide.LibraryType
+import com.android.builder.model.v2.ide.ProjectInfo
 import com.android.ide.common.gradle.Component
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
@@ -52,7 +57,7 @@ class InternedModelsTest {
     val artifact = "$libRoot/artifactFile"
     val unnamed = ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact)
 
-    val named = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamed)) { unnamed }.lookup()
+    val named = internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(unnamed)) { unnamed }.lookup()
 
     assertTrue(named == unnamed.copy(name = "com.example:lib:1.0"))
   }
@@ -64,13 +69,47 @@ class InternedModelsTest {
     val unnamed = ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact)
 
     val unnamedCopy = unnamed.copy()
-    val namedRef = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamed)) { unnamed }
-    val namedCopyRef = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamedCopy)) { unnamedCopy }
+    val namedRef = internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(unnamed)) { unnamed }
+    val namedCopyRef = internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(unnamedCopy)) { unnamedCopy }
 
     assertTrue(unnamed !== unnamedCopy)
     assertTrue(unnamed == unnamedCopy)
     assertTrue(namedRef == namedCopyRef)
     assertTrue(namedRef.lookup() === namedCopyRef.lookup())
+  }
+
+
+  @Test
+  fun `distinct v2 library keys map to same object if the ide models are same`() {
+    val libRoot = "/tmp/libs/lib"
+    val artifact = "$libRoot/artifactFile"
+    val unnamed = ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact)
+
+    val unnamedCopy = unnamed.copy()
+    val namedRef = internedModels.internAndroidLibrary(LibraryIdentity.fromLibrary(FakeLibrary("key1", File("folder1")))) { unnamed }
+    val namedCopyRef = internedModels.internAndroidLibrary(LibraryIdentity.fromLibrary(FakeLibrary("key2", File("folder2")))) { unnamedCopy }
+
+    assertTrue(unnamed !== unnamedCopy)
+    assertTrue(unnamed == unnamedCopy)
+    assertTrue(namedRef == namedCopyRef)
+    assertTrue(namedRef.lookup() === namedCopyRef.lookup())
+  }
+
+  @Test
+  fun `v2 libraries considered different if they have different extracted folders, but same key`() {
+    val libRoot = "/tmp/libs/lib"
+    val artifact = "$libRoot/artifactFile"
+    val folder1 = File("parent1")
+    val folder2 = File("parent2")
+    val unnamed = ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact).copy(folder = folder1)
+    val unnamedCopy = unnamed.copy(folder = folder2)
+    val namedRef = internedModels.internAndroidLibrary(LibraryIdentity.fromLibrary(FakeLibrary("key1", folder1.resolve("resFolder")))) { unnamed }
+    val namedCopyRef = internedModels.internAndroidLibrary(LibraryIdentity.fromLibrary(FakeLibrary("key1", folder2.resolve("resFolder")))) { unnamedCopy }
+
+    assertTrue(unnamed !== unnamedCopy)
+    assertTrue(unnamed != unnamedCopy)
+    assertTrue(namedRef != namedCopyRef)
+    assertTrue(namedRef.lookup() !== namedCopyRef.lookup())
   }
 
   @Test
@@ -86,7 +125,7 @@ class InternedModelsTest {
       samplesJar = null
     )
 
-    val named = internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(unnamed)) { unnamed }.lookup()
+    val named = internedModels.internJavaLibrary(LibraryIdentity.fromIdeModel(unnamed)) { unnamed }.lookup()
 
     assertTrue(named == unnamed.copy(name = "com.example:lib:1.0"))
   }
@@ -105,8 +144,8 @@ class InternedModelsTest {
     )
 
     val unnamedCopy = unnamed.copy()
-    val namedRef = internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(unnamed))  { unnamed }
-    val namedCopyRef = internedModels.internJavaLibrary(LibraryIdentity.IdeLibraryModel(unnamedCopy))  { unnamedCopy }
+    val namedRef = internedModels.internJavaLibrary(LibraryIdentity.fromIdeModel(unnamed))  { unnamed }
+    val namedCopyRef = internedModels.internJavaLibrary(LibraryIdentity.fromIdeModel(unnamedCopy))  { unnamedCopy }
 
     assertTrue(unnamed !== unnamedCopy)
     assertTrue(unnamed == unnamedCopy)
@@ -125,8 +164,8 @@ class InternedModelsTest {
     )
 
     val copy = module.copy()
-    val module1 = internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(module)) { module }
-    val module2 = internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(copy)) { copy }
+    val module1 = internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(module)) { module }
+    val module2 = internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(copy)) { copy }
 
     assertTrue(module !== copy)
     assertTrue(module == copy)
@@ -144,8 +183,8 @@ class InternedModelsTest {
     )
 
     val copy = module.copy()
-    val module1 = internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(module)) { module }
-    val module2 = internedModels.internModuleLibrary(LibraryIdentity.IdeModuleModel(copy)) { copy }
+    val module1 = internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(module)) { module }
+    val module2 = internedModels.internModuleLibrary(LibraryIdentity.fromIdeModel(copy)) { copy }
 
     assertTrue(module !== copy)
     assertTrue(module == copy)
@@ -166,8 +205,8 @@ class InternedModelsTest {
       ideAndroidLibrary(libRoot, "com.example:lib:1.0", artifact)
     }
 
-    val named1 = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamed1)) { unnamed1 }.lookup()
-    val named2 = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamed2)) { unnamed2 }.lookup()
+    val named1 = internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(unnamed1)) { unnamed1 }.lookup()
+    val named2 = internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(unnamed2)) { unnamed2 }.lookup()
 
     assertTrue(unnamed1.artifactAddress == unnamed2.artifactAddress)
     assertTrue(named1.artifactAddress == named2.artifactAddress)
@@ -184,7 +223,7 @@ class InternedModelsTest {
       ideAndroidLibrary(libRoot, "${ModelCache.LOCAL_AARS}:$artifact", artifact, component = null)
     }
 
-    val named = internedModels.internAndroidLibrary(LibraryIdentity.IdeLibraryModel(unnamed)) { unnamed }.lookup()
+    val named = internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(unnamed)) { unnamed }.lookup()
 
     assertTrue(named.artifactAddress == unnamed.artifactAddress)
     assertEquals("./app/libs/artifactFile", named.name)
@@ -220,4 +259,31 @@ class InternedModelsTest {
     symbolFile = "$libRoot/symbolFile",
     deduplicate = internedModels::intern
   )
+
+  class FakeLibrary(override val key: String, val resFolder: File) : Library {
+    override val androidLibraryData = FakeAndroidLibraryData(resFolder)
+    override val type: LibraryType get() = error("unused")
+    override val projectInfo: ProjectInfo get() = error("unused")
+    override val libraryInfo: LibraryInfo get() = error("unused")
+    override val artifact: File get() = error("unused")
+    override val lintJar: File get() = error("unused")
+    override val srcJar: File get() = error("unused")
+    override val docJar: File get() = error("unused")
+    override val samplesJar get() = error("unused")
+
+    class FakeAndroidLibraryData(override val resFolder: File) : AndroidLibraryData {
+      override val manifest: File get() = error("unused")
+      override val compileJarFiles: List<File> get() = error("unused")
+      override val runtimeJarFiles: List<File> get() = error("unused")
+      override val resStaticLibrary: File get() = error("unused")
+      override val assetsFolder: File get() = error("unused")
+      override val jniFolder: File get() = error("unused")
+      override val aidlFolder: File get() = error("unused")
+      override val renderscriptFolder: File get() = error("unused")
+      override val proguardRules: File get() = error("unused")
+      override val externalAnnotations: File get() = error("unused")
+      override val publicResources: File get() = error("unused")
+      override val symbolFile: File get() = error("unused")
+    }
+  }
 }
