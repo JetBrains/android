@@ -335,7 +335,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   @Override
   public ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.EDT;
+    return ActionUpdateThread.BGT;
   }
 
   @Override
@@ -375,10 +375,15 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .build();
 
     updater.update();
-    updateTooltip(project);
-    if (presentation.isVisible()) {
-      setActiveExecutionTarget(project, getSelectedTargets(project, devices));
-    }
+
+    event.getUpdateSession().compute(this, "Set active device", ActionUpdateThread.EDT, () -> {
+      updateTooltip(project);
+
+      if (presentation.isVisible()) {
+        setActiveExecutionTarget(project, getSelectedTargets(project, devices));
+      }
+      return null;
+    });
   }
 
   private void updateTooltip(@NotNull Project project) {
