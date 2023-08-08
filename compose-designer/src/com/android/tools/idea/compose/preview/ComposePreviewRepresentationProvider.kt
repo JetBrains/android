@@ -61,6 +61,8 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
+import org.jetbrains.android.uipreview.AndroidEditorSettings.GlobalState
 import org.jetbrains.annotations.TestOnly
 
 /** [ToolbarActionGroups] that includes the actions that can be applied to Compose Previews. */
@@ -180,7 +182,7 @@ class ComposePreviewRepresentationProvider(
 
     return ComposePreviewRepresentation(
       psiFile,
-      if (isComposableEditor) globalState.preferredComposableEditorVisibility()
+      if (isComposableEditor) globalState.preferredComposableEditorVisibility(hasPreviewMethods)
       else globalState.preferredKotlinEditorVisibility(),
       ::ComposePreviewViewImpl
     )
@@ -236,20 +238,21 @@ internal fun isPreviewFilterEnabled(context: DataContext): Boolean {
 
 // We will default to split mode if there are @Preview annotations in the file or if the file
 // contains @Composable.
-private fun AndroidEditorSettings.GlobalState.preferredComposableEditorVisibility() =
-  when (preferredComposableEditorMode) {
-    AndroidEditorSettings.EditorMode.CODE -> PreferredVisibility.HIDDEN
-    AndroidEditorSettings.EditorMode.SPLIT -> PreferredVisibility.SPLIT
-    AndroidEditorSettings.EditorMode.DESIGN -> PreferredVisibility.FULL
-    else -> PreferredVisibility.SPLIT // default
+private fun GlobalState.preferredComposableEditorVisibility(hasPreviewMethods: Boolean) =
+  when {
+    preferredComposableEditorMode == EditorMode.CODE -> PreferredVisibility.HIDDEN
+    preferredComposableEditorMode == EditorMode.SPLIT -> PreferredVisibility.SPLIT
+    preferredComposableEditorMode == EditorMode.DESIGN -> PreferredVisibility.FULL
+    hasPreviewMethods -> PreferredVisibility.SPLIT
+    else -> PreferredVisibility.HIDDEN
   }
 
 // We will default to code mode for kotlin files not containing any @Composable functions.
-private fun AndroidEditorSettings.GlobalState.preferredKotlinEditorVisibility() =
+private fun GlobalState.preferredKotlinEditorVisibility() =
   when (preferredKotlinEditorMode) {
-    AndroidEditorSettings.EditorMode.CODE -> PreferredVisibility.HIDDEN
-    AndroidEditorSettings.EditorMode.SPLIT -> PreferredVisibility.SPLIT
-    AndroidEditorSettings.EditorMode.DESIGN -> PreferredVisibility.FULL
+    EditorMode.CODE -> PreferredVisibility.HIDDEN
+    EditorMode.SPLIT -> PreferredVisibility.SPLIT
+    EditorMode.DESIGN -> PreferredVisibility.FULL
     else -> PreferredVisibility.HIDDEN // default
   }
 

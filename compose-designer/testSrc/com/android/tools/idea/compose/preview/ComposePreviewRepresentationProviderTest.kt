@@ -123,7 +123,7 @@ class ComposePreviewRepresentationProviderTest {
         .preferredInitialVisibility
     )
     assertEquals(
-      PreferredVisibility.SPLIT,
+      PreferredVisibility.HIDDEN,
       getRepresentationForFile(composableFile, project, fixture, previewProvider)
         .preferredInitialVisibility
     )
