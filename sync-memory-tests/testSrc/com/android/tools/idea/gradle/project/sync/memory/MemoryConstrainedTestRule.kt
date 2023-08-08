@@ -16,15 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.memory
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
-import com.android.tools.idea.gradle.project.sync.SUBSET_1000_NAME
-import com.android.tools.idea.gradle.project.sync.SUBSET_100_NAME
-import com.android.tools.idea.gradle.project.sync.SUBSET_2000_NAME
-import com.android.tools.idea.gradle.project.sync.SUBSET_200_NAME
-import com.android.tools.idea.gradle.project.sync.SUBSET_4200_NAME
-import com.android.tools.idea.gradle.project.sync.SUBSET_500_NAME
-import com.android.tools.idea.gradle.project.sync.SUBSET_50_NAME
 import com.android.tools.idea.gradle.project.sync.cpu.CPU_BENCHMARK
-import com.android.tools.idea.gradle.project.sync.cpu.recordCpuMeasurement
 import com.android.tools.idea.gradle.project.sync.gradle.EventRecorder.GC_COLLECTION_TIME_FILE_NAME_SUFFIX
 import com.android.tools.idea.gradle.project.sync.mutateGradleProperties
 import com.android.tools.perflogger.Analyzer

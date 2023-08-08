@@ -32,6 +32,16 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "tags": ["manual"],
         },
+        # TODO(b/294967976): Remove manual tag
+        "BenchmarkMultiApp100Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp100MemoryTest",
+            "tags": ["manual"],
+        },
+        "BenchmarkMultiApp190Memory": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp190MemoryTest",
+            "exec_properties": LARGE_MACHINE,
+            "tags": ["manual"],
+        },
         "Benchmark200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark200CpuTest",
         },
@@ -49,6 +59,17 @@ iml_module(
         "Benchmark4200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark4200CpuTest",
             "exec_properties": LARGE_MACHINE,
+            "tags": ["manual"],
+        },
+        # TODO(b/294967976): Remove manual tag
+        "BenchmarkMultiApp100Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp100CpuTest",
+            "tags": ["manual"],
+        },
+        "BenchmarkMultiApp190Cpu": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp190CpuTest",
+            "exec_properties": LARGE_MACHINE,
+            "additional_jvm_args": ["-Xmx6g"],
             "tags": ["manual"],
         },
         "Benchmark1000MemoryRuntimeClasspath": {
