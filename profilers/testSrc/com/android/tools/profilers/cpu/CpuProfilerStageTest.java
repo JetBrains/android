@@ -760,6 +760,25 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
+  public void testStartCpuRecording() {
+    assertThat(myStage.getRecordingModel().isRecording()).isFalse();
+    myStage.startCpuRecording();
+    assertThat(myStage.getRecordingModel().isRecording()).isTrue();
+  }
+
+  @Test
+  public void testStopCpuRecording() throws InterruptedException {
+    assertThat(myStage.getRecordingModel().isRecording()).isFalse();
+    // We use the CpuProfilerTestUtils.startCapturing() method because it generates a successful trace start event for us, allowing us
+    // to test the stop of the CPU recording.
+    CpuProfilerTestUtils.startCapturing(myStage, myTransportService, true);
+    assertThat(myStage.getRecordingModel().isRecording()).isTrue();
+    myStage.stopCpuRecording();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getRecordingModel().isRecording()).isFalse();
+  }
+
+  @Test
   @Ignore("b/209673164")
   public void captureParsingFailureShowsErrorBalloon() throws InterruptedException, IOException {
     ProfilingConfiguration config = new ArtSampledConfiguration("My Config");

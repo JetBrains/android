@@ -577,6 +577,22 @@ public class CpuProfilerStage extends StreamingStage {
     startCapturing();
   }
 
+  /**
+   * In the Task-Based UX, the recording config will be set by the respective task handler in the RecordingModel,
+   * allowing us to invoke the start() method of the RecordingModel to start the recording.
+   */
+  public void startCpuRecording() {
+    getRecordingModel().start();
+  }
+
+  /**
+   * In the Task-Based UX, the recording config will be set by the respective task handler in the RecordingModel,
+   * allowing us to invoke the stop() method of the RecordingModel to stop the recording.
+   */
+  public void stopCpuRecording() {
+    getRecordingModel().stop();
+  }
+
   private void setupRecordingOptions() {
     // Add default configs
     for (ProfilingConfiguration configuration : myProfilerConfigModel.getDefaultProfilingConfigurations()) {
