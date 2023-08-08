@@ -52,10 +52,12 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
@@ -108,6 +110,9 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       )
     ) {
+
+    override fun getActionUpdateThread() = ActionUpdateThread.EDT
+
     override fun update(e: AnActionEvent) {
       super.update(e)
       isEssentialsModeSelected = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
@@ -142,7 +147,6 @@ class ComposePreviewRepresentationProvider(
   private val filePreviewElementProvider: () -> FilePreviewElementFinder =
     ::defaultFilePreviewElementFinder
 ) : PreviewRepresentationProvider {
-  private val LOG = Logger.getInstance(ComposePreviewRepresentationProvider::class.java)
 
   private object ComposeEditorFileType :
     CommonRepresentationEditorFileType(
@@ -157,19 +161,17 @@ class ComposePreviewRepresentationProvider(
 
   /**
    * Checks if the input [psiFile] contains compose previews and therefore can be provided with the
-   * [PreviewRepresentation] of them.
+   * `PreviewRepresentation` of them.
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean =
     psiFile.virtualFile.isKotlinFileType() &&
-      (runReadAction { psiFile.getModuleSystem()?.usesCompose ?: false })
+      (runReadAction { psiFile.getModuleSystem()?.usesCompose ?: false && !psiFile.isInLibrary() })
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
     val hasPreviewMethods =
       filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
-    if (LOG.isDebugEnabled) {
-      LOG.debug("${psiFile.virtualFile.path} hasPreviewMethods=${hasPreviewMethods}")
-    }
+    thisLogger().debug { "${psiFile.virtualFile.path} hasPreviewMethods=${hasPreviewMethods}" }
 
     val isComposableEditor =
       hasPreviewMethods ||
@@ -185,6 +187,9 @@ class ComposePreviewRepresentationProvider(
   }
 
   override val displayName = message("representation.name")
+
+  private fun PsiFile.isInLibrary() =
+    ProjectRootManager.getInstance(project).fileIndex.isInLibrary(virtualFile)
 }
 
 private const val PREFIX = "ComposePreview"
@@ -197,7 +202,7 @@ internal val COMPOSE_PREVIEW_ELEMENT_INSTANCE =
 /**
  * Returns a list of all [ComposePreviewManager]s related to the current context (which is implied
  * to be bound to a particular file). The search is done among the open preview parts and
- * [PreviewRepresentation]s (if any) of open file editors.
+ * `PreviewRepresentation`s (if any) of open file editors.
  *
  * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT
  * thread. For actions using it, they should use [ActionUpdateThread.BGT].

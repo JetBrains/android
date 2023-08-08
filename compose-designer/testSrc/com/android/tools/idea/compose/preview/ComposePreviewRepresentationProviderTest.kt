@@ -15,14 +15,23 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.compose.ComposeProjectRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.psi.PsiFile
+import com.intellij.testFramework.LightVirtualFile
+import kotlin.test.assertFalse
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.spy
 
 class ComposePreviewRepresentationProviderTest {
   @get:Rule val projectRule = ComposeProjectRule()
@@ -36,6 +45,7 @@ class ComposePreviewRepresentationProviderTest {
 
   @Test
   fun testDefaultLayout() {
+    @Suppress("TestFunctionName")
     val previewFile =
       fixture.addFileToProjectAndInvalidate(
         "Preview.kt",
@@ -57,6 +67,7 @@ class ComposePreviewRepresentationProviderTest {
       """
           .trimIndent()
       )
+    @Suppress("TestFunctionName")
     val composableFile =
       fixture.addFileToProjectAndInvalidate(
         "Composable.kt",
@@ -126,5 +137,17 @@ class ComposePreviewRepresentationProviderTest {
       getRepresentationForFile(kotlinWithNoComposable, project, fixture, previewProvider)
         .preferredInitialVisibility
     )
+  }
+
+  @Test
+  fun fileInLibrary_notAccepted() = runBlocking {
+    val mockProjectRootManager = spy(ProjectRootManager.getInstance(project))
+    val mockProjectFileIndex = mock<ProjectFileIndex>()
+    val mockPsiFile = mock<PsiFile>()
+    whenever(mockProjectRootManager.fileIndex).thenReturn(mockProjectFileIndex)
+    whenever(mockPsiFile.virtualFile).thenReturn(LightVirtualFile())
+    whenever(mockProjectFileIndex.isInLibrary(any())).thenReturn(true)
+
+    assertFalse(previewProvider.accept(project, mockPsiFile))
   }
 }
