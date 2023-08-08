@@ -179,7 +179,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
       override fun minimumValue(): Int = slider.minimum
     }
 
-  val thumbRect: () -> Rectangle = { thumbRect }
+  val thumbRect: () -> Rectangle = { super.thumbRect }
 
   /** List of elements to display. */
   var elements: MutableList<TimelineElement> = mutableListOf()
@@ -215,10 +215,10 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
 
   final override fun calculateTickRect() {
     // Make the vertical tick lines cover the entire panel.
-    tickRect.x = thumbRect.x
-    tickRect.y = thumbRect.y
-    tickRect.width = thumbRect.width
-    tickRect.height = thumbRect.height + InspectorLayout.timelineHeaderHeightScaled()
+    tickRect.x = thumbRect().x
+    tickRect.y = thumbRect().y
+    tickRect.width = thumbRect().width
+    tickRect.height = thumbRect().height + InspectorLayout.timelineHeaderHeightScaled()
   }
 
   final override fun calculateLabelRect() {
@@ -424,7 +424,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
     }
 
     private fun updateThumbLocationAndSliderValue() {
-      val halfWidth = thumbRect.width / 2
+      val halfWidth = thumbRect().width / 2
       // Make sure the thumb X coordinate is within the slider's min and max. Also, subtract half of
       // the width so the center is aligned.
       val thumbX =
@@ -432,7 +432,7 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
           xPositionForValue(slider.minimum),
           xPositionForValue(slider.maximum)
         ) - halfWidth
-      setThumbLocation(thumbX, thumbRect.y)
+      setThumbLocation(thumbX, thumbRect().y)
       slider.value = valueForXPosition(currentMouseX)
     }
   }
