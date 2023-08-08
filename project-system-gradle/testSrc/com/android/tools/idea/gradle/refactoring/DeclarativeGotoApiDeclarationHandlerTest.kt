@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 
+@org.junit.Ignore("b/294925051: fails with IntelliJ 2023.2")
 class DeclarativeGotoApiDeclarationHandlerTest : AndroidGradleTestCase() {
   fun testGoToAaptOptionsInToml() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
