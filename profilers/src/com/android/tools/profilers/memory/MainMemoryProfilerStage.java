@@ -244,6 +244,10 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     getRecordingOptionsModel().start();
   }
 
+  public void stopMemoryRecording() {
+    getRecordingOptionsModel().stop();
+  }
+
   private void startNativeAllocationTracking() {
     IdeProfilerServices ide = getStudioProfilers().getIdeServices();
     ide.getFeatureTracker().trackRecordAllocations();

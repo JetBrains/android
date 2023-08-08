@@ -916,6 +916,21 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  public void testStopNativeAllocationCapture() {
+    assumeQAndAbove(true);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startNativeAllocationCapture();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(myStage.lazyNativeRecordingOption.getValue());
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    assertThat(myStage.myNativeAllocationTracking).isTrue();
+    myStage.stopMemoryRecording();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.myNativeAllocationTracking).isFalse();
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+  }
+
+  @Test
   public void testStartJavaKotlinAllocationCapturePreO() {
     assumePreO(true);
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
@@ -926,6 +941,28 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   }
 
   @Test
+  public void testStopJavaKotlinAllocationCapturePreO() {
+    assumePreO(true);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startJavaKotlinAllocationCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
+      myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    // Force the tracking allocations boolean flag to be true to simulate successful start.
+    myStage.setTrackingAllocations(true);
+    myStage.stopMemoryRecording();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Because setFinished() (which sets isRecording to false) is only called when the TraceStopStatus event
+    // is received, isRecording should still be true.
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    // The value will eventually be false once a trace stop status even is received. This is verified by
+    // other tests such as MainMemoryProfilerStageTest's testToggleNativeAllocationRecordingChangesIsRecordingState()
+    // and testStartAndStopNativeAllocationCapture tests, as well as CpuProfilerStageTest's
+    // receivingTraceStopStatusEventSetsRecordingToFinished() test.
+  }
+
+  @Test
   public void testStartJavaKotlinAllocationCaptureOAndAbove() {
     assumePreO(false);
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
@@ -933,6 +970,28 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
       myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
     assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+  }
+
+  @Test
+  public void testStopJavaKotlinAllocationCaptureOAndAbove() {
+    assumePreO(false);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isFalse();
+    myStage.startJavaKotlinAllocationCapture();
+    assertThat(myStage.getRecordingOptionsModel().getSelectedOption()).isEqualTo(
+      myStage.lazyJavaKotlinAllocationsRecordingOption.getValue());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    // Force the tracking allocations boolean flag to be true to simulate successful start.
+    myStage.setTrackingAllocations(true);
+    myStage.stopMemoryRecording();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // Because setFinished() (which sets isRecording to false) is only called when the TraceStopStatus event
+    // is received, isRecording should still be true.
+    assertThat(myStage.getRecordingOptionsModel().isRecording()).isTrue();
+    // The value will eventually be false once a trace stop status even is received. This is verified by
+    // other tests such as MainMemoryProfilerStageTest's testToggleNativeAllocationRecordingChangesIsRecordingState()
+    // and testStartAndStopNativeAllocationCapture tests, as well as CpuProfilerStageTest's
+    // receivingTraceStopStatusEventSetsRecordingToFinished() test.
   }
 
   private void assumePreO(boolean assumedPreO) {
