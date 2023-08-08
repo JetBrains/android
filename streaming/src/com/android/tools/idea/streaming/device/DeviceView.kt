@@ -744,7 +744,9 @@ internal class DeviceView(
     }
 
     override fun mouseWheelMoved(event: MouseWheelEvent) {
-      if (!isInsideDisplay(event)) return
+      if (!isInsideDisplay(event)) {
+        return
+      }
       // Java fakes shift being held down for horizontal scrolling.
       val axis = if (event.isShiftDown) MotionEventMessage.AXIS_HSCROLL else MotionEventMessage.AXIS_VSCROLL
       // Android scroll direction is reversed, but only vertically.
@@ -758,13 +760,15 @@ internal class DeviceView(
         val scrollAmount = remainingRotation.coerceAtMost(1.0f) * direction
         val axisValues = Int2FloatOpenHashMap(1)
         axisValues.put(axis, scrollAmount)
-        sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, event.modifiersEx, axisValues=axisValues)
+        sendMotionEvent(event.location, MotionEventMessage.ACTION_SCROLL, event.modifiersEx, axisValues = axisValues)
         remainingRotation -= 1
       }
     }
 
     private fun MouseWheelEvent.getNormalizedScrollAmount(): Float {
-      if (scrollType != MouseWheelEvent.WHEEL_UNIT_SCROLL) return 1.0f
+      if (scrollType != MouseWheelEvent.WHEEL_UNIT_SCROLL) {
+        return 1.0f
+      }
       return (preciseWheelRotation * scrollAmount).absoluteValue.toFloat() * ANDROID_SCROLL_ADJUSTMENT_FACTOR
     }
   }
