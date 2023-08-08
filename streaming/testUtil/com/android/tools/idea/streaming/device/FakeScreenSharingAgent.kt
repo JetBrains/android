@@ -142,17 +142,17 @@ class FakeScreenSharingAgent(
     private set
   val commandLog = LinkedBlockingDeque<ControlMessage>()
   @Volatile
-  var isRunning = false
+  var isRunning: Boolean = false
     private set
   @Volatile
-  var frameNumber: Int = 0
+  var frameNumber: UInt = 0u
     private set
   @Volatile
-  var crashOnStart = false
+  var crashOnStart: Boolean = false
   @Volatile
   var startDelayMillis: Long = 0
   @Volatile
-  var videoStreamActive = false
+  var videoStreamActive: Boolean = false
     private set
 
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)

@@ -243,7 +243,7 @@ internal class DeviceAdapter (
   }
 
   @Synchronized
-  override fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage) {
+  override fun frameRendered(frameNumber: UInt, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage) {
     when (appState) {
       AppState.INITIALIZING -> {
         if (startedGettingReady.elapsedNow() > MAX_BECOME_READY_DURATION) {

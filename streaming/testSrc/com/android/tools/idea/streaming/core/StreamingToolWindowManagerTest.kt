@@ -318,7 +318,7 @@ class StreamingToolWindowManagerTest {
     panel.setSize(250, 500)
     val ui = FakeUi(panel)
     val emulatorView = ui.getComponent<EmulatorView>()
-    waitForCondition(2, SECONDS) { renderAndGetFrameNumber(ui, emulatorView) > 0 }
+    waitForCondition(2, SECONDS) { renderAndGetFrameNumber(ui, emulatorView) > 0u }
 
     // Zoom in.
     emulatorView.zoom(ZoomType.IN)
@@ -518,7 +518,7 @@ class StreamingToolWindowManagerTest {
     panel.setSize(250, 500)
     val ui = FakeUi(panel)
     val displayView = ui.getComponent<AbstractDisplayView>()
-    waitForCondition(2, SECONDS) { renderAndGetFrameNumber(ui, displayView) > 0 }
+    waitForCondition(2, SECONDS) { renderAndGetFrameNumber(ui, displayView) > 0u }
 
     deviceMirroringSettings.deviceMirroringEnabled = false
     waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
@@ -858,7 +858,7 @@ class StreamingToolWindowManagerTest {
     return toolWindow
   }
 
-  private fun renderAndGetFrameNumber(fakeUi: FakeUi, displayView: AbstractDisplayView): Int {
+  private fun renderAndGetFrameNumber(fakeUi: FakeUi, displayView: AbstractDisplayView): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return displayView.frameNumber
   }

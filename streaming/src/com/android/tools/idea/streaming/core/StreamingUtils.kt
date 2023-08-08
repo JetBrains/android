@@ -34,6 +34,7 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
+import java.nio.ByteBuffer
 import javax.swing.Icon
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -66,6 +67,12 @@ suspend fun <T> ListenableFuture<T>.suspendingGet(): T {
     addListener(listener, SameThreadExecutor.INSTANCE)
   }
 }
+
+fun ByteBuffer.getUInt(): UInt =
+  getInt().toUInt()
+
+fun ByteBuffer.putUInt(value: UInt): ByteBuffer =
+  putInt(value.toInt())
 
 /**
  * If this [AnActionEvent] is associated with an [ActionButtonComponent], returns that component.

@@ -274,7 +274,7 @@ class DeviceToolWindowPanelTest {
     }
     assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2208, 1840))
 
-    val nextFrameNumber = panel.frameNumber + 1
+    val nextFrameNumber = panel.frameNumber + 1u
     val closingAction = foldingActions[0]
     closingAction.actionPerformed(event)
     waitForCondition(2, SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
@@ -371,13 +371,13 @@ class DeviceToolWindowPanelTest {
   }
 
   /** Waits for all video frames to be received after the given one. */
-  private fun waitForFrame(minFrameNumber: Int = 1) {
+  private fun waitForFrame(minFrameNumber: UInt = 1u) {
     waitForCondition(2, SECONDS) {
       panel.isConnected && agent.frameNumber >= minFrameNumber && renderAndGetFrameNumber() == agent.frameNumber
     }
   }
 
-  private fun renderAndGetFrameNumber(): Int {
+  private fun renderAndGetFrameNumber(): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return panel.frameNumber
   }

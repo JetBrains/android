@@ -158,7 +158,7 @@ internal class VideoDecoder(
       val orientation: Int,
       val orientationCorrection: Int,
       val round: Boolean,
-      val frameNumber: Int,
+      val frameNumber: UInt,
       val originationTime: Long)
 
   private inner class DecodingContext(codecName: String) : AutoCloseable {
@@ -357,7 +357,7 @@ internal class VideoDecoder(
         }
 
         displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection,
-                                  header.displayRound, header.frameNumber.toInt(), header.originationTimestampUs / 1000)
+                                  header.displayRound, header.frameNumber, header.originationTimestampUs / 1000)
       }
 
       onNewFrameAvailable()
@@ -388,7 +388,7 @@ internal class VideoDecoder(
     /** The difference between [displayOrientation] and the orientation according to the DisplayInfo Android data structure. */
     val displayOrientationCorrection: Int,
     val displayRound: Boolean,
-    val frameNumber: Long,
+    val frameNumber: UInt,
     val originationTimestampUs: Long,
     val presentationTimestampUs: Long,
     val packetSize: Int,
@@ -402,7 +402,7 @@ internal class VideoDecoder(
         val displayOrientation = buffer.get().toInt()
         val displayOrientationCorrection = buffer.get().toInt()
         val displayRound = buffer.getShort().toInt() != 0
-        val frameNumber = buffer.getLong()
+        val frameNumber = buffer.getLong().toUInt()
         val originationTimestampUs = buffer.getLong()
         val presentationTimestampUs = buffer.getLong()
         val packetSize = buffer.getInt()

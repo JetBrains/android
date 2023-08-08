@@ -88,7 +88,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   /** Size of the device's native display. */
   internal abstract val deviceDisplaySize: Dimension
   /** The number of the last rendered display frame. */
-  var frameNumber: Int = 0
+  var frameNumber: UInt = 0u
     protected set
 
   private val disconnectedStatePanel = DisconnectedStatePanel()
@@ -239,7 +239,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   }
 
   internal fun interface FrameListener {
-    fun frameRendered(frameNumber: Int, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
+    fun frameRendered(frameNumber: UInt, displayRectangle: Rectangle, displayOrientationQuadrants: Int, displayImage: BufferedImage)
   }
 
   internal fun toDeviceDisplayCoordinates(p: Point): Point? {

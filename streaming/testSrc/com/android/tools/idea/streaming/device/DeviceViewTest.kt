@@ -175,14 +175,14 @@ internal class DeviceViewTest {
   @Test
   fun testFrameListener() {
     createDeviceView(200, 300, 2.0)
-    var frameListenerCalls = 0
+    var frameListenerCalls = 0u
 
     val frameListener = AbstractDisplayView.FrameListener { _, _, _, _ -> ++frameListenerCalls }
 
     view.addFrameListener(frameListener)
     waitForCondition(2, SECONDS) { fakeUi.render(); view.frameNumber == agent.frameNumber }
 
-    assertThat(frameListenerCalls).isGreaterThan(0)
+    assertThat(frameListenerCalls).isGreaterThan(0u)
     assertThat(frameListenerCalls).isEqualTo(view.frameNumber)
     val framesBeforeRemoving = view.frameNumber
     view.removeFrameListener(frameListener)
@@ -916,10 +916,10 @@ internal class DeviceViewTest {
 
   /** Waits for all video frames to be received. */
   private fun waitForFrame() {
-    waitForCondition(2, SECONDS) { view.isConnected && agent.frameNumber > 0 && renderAndGetFrameNumber() == agent.frameNumber }
+    waitForCondition(2, SECONDS) { view.isConnected && agent.frameNumber > 0u && renderAndGetFrameNumber() == agent.frameNumber }
   }
 
-  private fun renderAndGetFrameNumber(): Int {
+  private fun renderAndGetFrameNumber(): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return view.frameNumber
   }

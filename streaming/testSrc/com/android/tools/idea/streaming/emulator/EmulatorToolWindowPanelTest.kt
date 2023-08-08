@@ -111,6 +111,7 @@ import javax.swing.JViewport
 /**
  * Tests for [EmulatorToolWindowPanel] and some of its toolbar actions.
  */
+@Suppress("OPT_IN_USAGE")
 @RunsInEdt
 class EmulatorToolWindowPanelTest {
 
@@ -158,7 +159,7 @@ class EmulatorToolWindowPanelTest {
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(400, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -266,7 +267,7 @@ class EmulatorToolWindowPanelTest {
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(430, 450)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -407,7 +408,7 @@ class EmulatorToolWindowPanelTest {
     val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(1200, 1200)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -439,7 +440,7 @@ class EmulatorToolWindowPanelTest {
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(200, 400)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -498,7 +499,7 @@ class EmulatorToolWindowPanelTest {
     var emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(400, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -544,7 +545,7 @@ class EmulatorToolWindowPanelTest {
 
     // Check appearance.
     var frameNumber = emulatorView.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     panel.size = Dimension(200, 400)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -635,8 +636,8 @@ class EmulatorToolWindowPanelTest {
     val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
 
     // Check appearance.
-    val frameNumbers = intArrayOf(emulatorView.frameNumber, 0, 0)
-    assertThat(frameNumbers[PRIMARY_DISPLAY_ID]).isEqualTo(0)
+    val frameNumbers = uintArrayOf(emulatorView.frameNumber, 0u, 0u)
+    assertThat(frameNumbers[PRIMARY_DISPLAY_ID]).isEqualTo(0u)
     panel.size = Dimension(400, 600)
     ui.updateToolbars()
     ui.layoutAndDispatchEvents()
@@ -792,7 +793,7 @@ class EmulatorToolWindowPanelTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   }
 
-  private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, panel: EmulatorToolWindowPanel, frameNumber: Int): GrpcCallRecord {
+  private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, panel: EmulatorToolWindowPanel, frameNumber: UInt): GrpcCallRecord {
     val call = emulator.getNextGrpcCall(2, SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
     panel.waitForFrame(fakeUi, frameNumber, 2, SECONDS)
@@ -824,12 +825,12 @@ class EmulatorToolWindowPanelTest {
   }
 
   @Throws(TimeoutException::class)
-  private fun EmulatorToolWindowPanel.waitForFrame(fakeUi: FakeUi, frame: Int, timeout: Long, unit: TimeUnit) {
+  private fun EmulatorToolWindowPanel.waitForFrame(fakeUi: FakeUi, frame: UInt, timeout: Long, unit: TimeUnit) {
     waitForCondition(timeout, unit) { renderAndGetFrameNumber(fakeUi, primaryEmulatorView!!) >= frame }
   }
 
   @Throws(TimeoutException::class)
-  private fun waitForNextFrameInAllDisplays(fakeUi: FakeUi, frameNumbers: IntArray) {
+  private fun waitForNextFrameInAllDisplays(fakeUi: FakeUi, frameNumbers: UIntArray) {
     val displayViews = fakeUi.findAllComponents<EmulatorView>()
     assertThat(displayViews.size).isEqualTo(frameNumbers.size)
     waitForCondition(2, SECONDS) {
@@ -846,7 +847,7 @@ class EmulatorToolWindowPanelTest {
     }
   }
 
-  private fun renderAndGetFrameNumber(fakeUi: FakeUi, emulatorView: EmulatorView): Int {
+  private fun renderAndGetFrameNumber(fakeUi: FakeUi, emulatorView: EmulatorView): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return emulatorView.frameNumber
   }

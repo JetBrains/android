@@ -498,7 +498,7 @@ class EmulatorView(
     super.paintComponent(graphics)
 
     val screenshot = lastScreenshot ?: return
-    if (frameNumber == 0) {
+    if (frameNumber == 0u) {
       hideLongRunningOperationIndicatorInstantly()
     }
     val skin = screenshot.skinLayout
@@ -1217,7 +1217,8 @@ class EmulatorView(
         displayMode != null -> Rectangle(displayMode.displaySize)
         else -> null
       }
-      val displayShape = DisplayShape(imageFormat.width, imageFormat.height, imageRotation, activeDisplayRegion, displayMode, response.seq)
+      val displayShape =
+          DisplayShape(imageFormat.width, imageFormat.height, imageRotation, activeDisplayRegion, displayMode, response.seq.toUInt())
       val screenshot = Screenshot(displayShape, image, frameOriginationTime)
       val skinLayout = skinLayoutCache.getCached(displayShape)
       if (skinLayout == null) {
@@ -1351,7 +1352,7 @@ class EmulatorView(
                                   val orientation: Int,
                                   val activeDisplayRegion: Rectangle? = null,
                                   val displayMode: DisplayMode? = null,
-                                  val frameNumber: Int = 0)
+                                  val frameNumber: UInt = 0u)
 
   private class Stats: Disposable {
     @GuardedBy("this")

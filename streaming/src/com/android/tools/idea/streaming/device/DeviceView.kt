@@ -227,7 +227,7 @@ internal class DeviceView(
 
   /** Starts asynchronous initialization of the Screen Sharing Agent. */
   private fun connectToAgentAsync(initialDisplayOrientation: Int) {
-    frameNumber = 0
+    frameNumber = 0u
     connectionState = ConnectionState.CONNECTING
     val maxOutputSize = physicalSize
     AndroidCoroutineScope(this@DeviceView).launch {
@@ -290,7 +290,7 @@ internal class DeviceView(
       val message: String
       val reconnector: Reconnector
       when (frameNumber) {
-        0 -> {
+        0u -> {
           thisLogger().error("Failed to initialize the screen sharing agent", exception)
           message = getConnectionErrorMessage(exception)
           reconnector = Reconnector("Retry", "Connecting to the device") { connectToAgentAsync(initialDisplayOrientation) }
@@ -357,7 +357,7 @@ internal class DeviceView(
 
     // Draw device display.
     decoder.consumeDisplayFrame { displayFrame ->
-      if (frameNumber == 0) {
+      if (frameNumber == 0u) {
         hideLongRunningOperationIndicatorInstantly()
       }
       if (displayOrientationQuadrants != displayFrame.orientation ||

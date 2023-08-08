@@ -156,7 +156,7 @@ class EmulatorViewTest {
 
     // Check initial appearance.
     var frameNumber = view.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
     var call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
@@ -430,7 +430,7 @@ class EmulatorViewTest {
     val ui = FakeUi(container, 2.0)
 
     var frameNumber = view.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     container.size = Dimension(200, 200)
     ui.layoutAndDispatchEvents()
     getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
@@ -470,7 +470,7 @@ class EmulatorViewTest {
     val ui = FakeUi(container, 1.5)
 
     var frameNumber = view.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
     getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
@@ -499,7 +499,7 @@ class EmulatorViewTest {
     val ui = FakeUi(container, 2.0)
 
     var frameNumber = view.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
     getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
@@ -579,7 +579,7 @@ class EmulatorViewTest {
 
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1u)
     ui.render()
 
     ui.mouse.moveTo(135, 190)
@@ -598,7 +598,7 @@ class EmulatorViewTest {
 
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1u)
     ui.render()
 
     ui.keyboard.setFocus(view)
@@ -625,7 +625,7 @@ class EmulatorViewTest {
     val ui = FakeUi(container.rootPane)
 
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1u)
     ui.render()
 
     // Activate the virtual scene camera
@@ -658,7 +658,7 @@ class EmulatorViewTest {
 
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1u)
     ui.render()
 
     val params = listOf(Pair(FakeMouse.Button.RIGHT, "buttons: 2"), Pair(FakeMouse.Button.MIDDLE, "buttons: 4"))
@@ -688,7 +688,7 @@ class EmulatorViewTest {
 
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1u)
     ui.render()
 
     ui.mouse.press(135, 190, FakeMouse.Button.RIGHT)
@@ -721,7 +721,7 @@ class EmulatorViewTest {
 
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
-    getStreamScreenshotCallAndWaitForFrame(ui, view, 1)
+    getStreamScreenshotCallAndWaitForFrame(ui, view, 1u)
     ui.render()
 
     var call: GrpcCallRecord? = null
@@ -872,7 +872,7 @@ class EmulatorViewTest {
     val ui = FakeUi(container, 2.0)
 
     var frameNumber = view.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
+    assertThat(frameNumber).isEqualTo(0u)
     container.size = Dimension(200, 300)
     ui.layoutAndDispatchEvents()
     getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
@@ -988,7 +988,7 @@ class EmulatorViewTest {
     }
   }
 
-  private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, view: EmulatorView, frameNumber: Int): GrpcCallRecord {
+  private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, view: EmulatorView, frameNumber: UInt): GrpcCallRecord {
     val emulator = emulatorViewRule.getFakeEmulator(view)
     val call = emulator.getNextGrpcCall(2, SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/streamScreenshot")
@@ -997,11 +997,11 @@ class EmulatorViewTest {
   }
 
   @Throws(TimeoutException::class)
-  private fun EmulatorView.waitForFrame(fakeUi: FakeUi, frame: Int, timeout: Long, unit: TimeUnit) {
+  private fun EmulatorView.waitForFrame(fakeUi: FakeUi, frame: UInt, timeout: Long, unit: TimeUnit) {
     waitForCondition(timeout, unit) { renderAndGetFrameNumber(fakeUi) >= frame }
   }
 
-  private fun EmulatorView.renderAndGetFrameNumber(fakeUi: FakeUi): Int {
+  private fun EmulatorView.renderAndGetFrameNumber(fakeUi: FakeUi): UInt {
     fakeUi.render() // The frame number may get updated as a result of rendering.
     return frameNumber
   }
