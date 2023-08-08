@@ -50,6 +50,8 @@ private val any = Dimension(-1, -1)
  * Wizard step with progress bar and "more details" button.
  */
 abstract class ProgressStep(parent: Disposable, name: String) : ModelWizardStep.WithoutModel(name) {
+  private val label = JBLabel("Installing")
+  private val label2 = JBLabel()
   private val highlighter = ConsoleHighlighter().apply {
     setModalityState(ModalityState.stateForComponent(label))
   }
@@ -60,8 +62,6 @@ abstract class ProgressStep(parent: Disposable, name: String) : ModelWizardStep.
     Disposer.register(parent, Disposable { EditorFactory.getInstance().releaseEditor(this) })
     highlighter = this@ProgressStep.highlighter
   }
-  private val label = JBLabel("Installing")
-  private val label2 = JBLabel()
   private val progressBar = JProgressBar().apply {
     isIndeterminate = true
   }
