@@ -18,10 +18,11 @@ package com.android.tools.idea.diagnostics.report
 import com.android.utils.FileUtils
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import junit.framework.TestCase
 import java.nio.file.Path
 import kotlin.io.path.createDirectory
+import kotlin.io.path.createFile
 
 class DirectoryBasedFileProviderTest : TestCase() {
   lateinit var testDirectoryPath: Path
@@ -44,16 +45,16 @@ class DirectoryBasedFileProviderTest : TestCase() {
     matchingDirectory.createDirectory()
 
     val matchingFile = matchingDirectory.resolve("MatchingFile.txt")
-    matchingFile.createFile()
+    matchingFile.createParentDirectories().createFile()
 
     val otherDirectory = logDir.resolve("OtherDirectory")
     otherDirectory.createDirectory()
 
     val otherFile = otherDirectory.resolve("OtherFile.txt")
-    otherFile.createFile()
+    otherFile.createParentDirectories().createFile()
 
     val logFile = logDir.resolve("idea.log")
-    logFile.createFile()
+    logFile.createParentDirectories().createFile()
 
     val pathProvider = PathProvider(logDir.toString(), null, null, null)
     val regex = Regex("^Matching.*")

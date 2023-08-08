@@ -21,8 +21,9 @@ import com.android.tools.idea.serverflags.protos.ServerFlagData
 import com.android.tools.idea.serverflags.protos.ServerFlagList
 import com.android.tools.idea.serverflags.protos.ServerFlagTest
 import com.google.protobuf.Any
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import java.nio.file.Path
+import kotlin.io.path.createFile
 
 private const val FILE_NAME = "serverflaglist.protobuf"
 
@@ -100,6 +101,6 @@ fun loadServerFlagList(path: Path, version: String): ServerFlagList {
 
 fun saveServerFlagList(serverFlagList: ServerFlagList, path: Path, version: String) {
   val filePath = path.resolve("$version/$FILE_NAME")
-  filePath.createFile()
+  filePath.createParentDirectories().createFile()
   filePath.toFile().outputStream().use { serverFlagList.writeTo(it) }
 }

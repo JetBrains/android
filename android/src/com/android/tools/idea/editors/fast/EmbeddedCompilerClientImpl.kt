@@ -32,7 +32,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.ProgressWrapper
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.coroutineScope
@@ -46,6 +46,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
+import kotlin.io.path.createFile
 
 private val defaultRetryTimes = Integer.getInteger("fast.preview.224875189.retries", 3)
 
@@ -240,7 +241,7 @@ class EmbeddedCompilerClientImpl private constructor(
     generationState.factory.asList().forEach {
       log.debug("output: ${it.relativePath}")
       val path = outputDirectory.resolve(it.relativePath)
-      path.createFile()
+      path.createParentDirectories().createFile()
       Files.write(path, it.asByteArray())
     }
   }

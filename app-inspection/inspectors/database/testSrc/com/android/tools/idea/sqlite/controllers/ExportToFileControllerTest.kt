@@ -90,7 +90,7 @@ import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.io.createDirectories
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import com.intellij.util.io.delete
 import java.io.File
 import java.nio.file.Files
@@ -126,10 +126,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.verify
-import kotlin.io.path.exists
-import kotlin.io.path.fileSize
-import kotlin.io.path.isDirectory
-import kotlin.io.path.isRegularFile
+import kotlin.io.path.*
 
 private const val nonAsciiSuffix = " ąę"
 private const val table1 = "t1$nonAsciiSuffix"
@@ -717,8 +714,8 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
   private fun requireEmptyFileAtDestination(path: Path, shouldExist: Boolean) {
     // Directory case is unusual, and better to fail than accidentally delete too much data.
     assertWithMessage(
-        "Export target ($path) is an existing directory. Expecting a file or a new path."
-      )
+      "Export target ($path) is an existing directory. Expecting a file or a new path."
+    )
       .that(path.isDirectory())
       .isFalse()
 
@@ -728,10 +725,10 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
           !shouldExist -> path.delete()
           shouldExist && path.fileSize() > 0 -> {
             path.delete()
-            path.createFile()
+            path.createParentDirectories().createFile()
           }
         }
-      shouldExist -> path.createFile()
+      shouldExist -> path.createParentDirectories().createFile()
     }
 
     assertThat(path.exists()).isEqualTo(shouldExist)
@@ -914,7 +911,7 @@ private class DatabaseDownloadTestFixture(private val tmpDir: Path) : IdeaTestFi
   }
 
   private fun createFile(dbFileName: String): Path =
-    downloadFolder.resolve(dbFileName).also { it.createFile() }
+    downloadFolder.resolve(dbFileName).also { it.createParentDirectories().createFile() }
 
   private fun Path.toVirtualFile(): VirtualFile = VfsUtil.findFile(this, true)!!
 }

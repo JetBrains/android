@@ -22,7 +22,7 @@ import com.android.tools.idea.appinspection.inspector.api.service.TestFileServic
 import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -32,6 +32,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.io.path.createFile
 
 class BlazeArtifactResolverTest {
   @get:Rule val temporaryDirectoryRule = TemporaryDirectoryRule()
@@ -55,7 +56,7 @@ class BlazeArtifactResolverTest {
         ArtifactCoordinate.Type.AAR
       )
     val artifactDir = temporaryDirectoryRule.newPath("test")
-    val inspectorPath = artifactDir.resolve("inspector.jar").createFile()
+    val inspectorPath = artifactDir.resolve("inspector.jar").createParentDirectories().createFile()
 
     val uri = URI.create("jar:${artifactDir.resolve("library.aar").toUri()}")
     FileSystems.newFileSystem(uri, mapOf("create" to "true")).use { zipFs ->

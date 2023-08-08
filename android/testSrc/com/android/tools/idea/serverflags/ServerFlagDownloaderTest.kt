@@ -20,7 +20,7 @@ import com.android.utils.FileUtils
 import com.google.common.base.Charsets
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
@@ -31,6 +31,7 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.nio.file.Path
 import java.util.concurrent.Executors
+import kotlin.io.path.createFile
 
 private const val VERSION = "4.2.0.0"
 private const val TEMP_FILE = "ServerFlagTempFile"
@@ -97,7 +98,7 @@ class ServerFlagDownloaderTest : TestCase() {
   }
 
   private fun createTempFile(): File {
-    tempFilePath.createFile()
+    tempFilePath.createParentDirectories().createFile()
     return tempFilePath.toFile()
   }
 

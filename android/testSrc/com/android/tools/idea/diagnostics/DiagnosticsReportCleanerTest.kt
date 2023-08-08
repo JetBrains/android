@@ -17,12 +17,13 @@ package com.android.tools.idea.diagnostics
 
 import com.google.common.truth.Truth
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import junit.framework.TestCase
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.FileTime
 import kotlin.io.path.createDirectory
+import kotlin.io.path.createFile
 import kotlin.io.path.exists
 
 class DiagnosticsReportCleanerTest : TestCase() {
@@ -43,11 +44,11 @@ class DiagnosticsReportCleanerTest : TestCase() {
     reportDir.createDirectory()
 
     val oldReportFile = reportDir.resolve("oldReport.txt")
-    oldReportFile.createFile()
+    oldReportFile.createParentDirectories().createFile()
     Files.setLastModifiedTime(oldReportFile, FileTime.fromMillis(0))
 
     val newReportFile = reportDir.resolve("newReport.txt")
-    newReportFile.createFile()
+    newReportFile.createParentDirectories().createFile()
 
     DiagnosticsReportCleaner.cleanupFiles(reportDir)
     Truth.assertThat(oldReportFile.exists()).isFalse()
@@ -77,7 +78,7 @@ class DiagnosticsReportCleanerTest : TestCase() {
 
   fun `test DiagnosticsReportCleanerTest handles files instead of directories`() {
     val reportFile = testDirectoryPath.resolve("report.txt")
-    reportFile.createFile()
+    reportFile.createParentDirectories().createFile()
 
     DiagnosticsReportCleaner.cleanupFiles(reportFile)
     DiagnosticsReportCleaner.cleanupDirectories(reportFile, arrayOf(Regex("^reportDir.*")))

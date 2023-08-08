@@ -19,11 +19,12 @@ import com.android.utils.FileUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.util.io.createFile
+import com.intellij.util.io.createParentDirectories
 import junit.framework.TestCase
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.createDirectory
+import kotlin.io.path.createFile
 
 class BuildFileListTest : TestCase() {
   lateinit var testDirectoryPath: Path
@@ -49,10 +50,10 @@ class BuildFileListTest : TestCase() {
     dir3.createDirectory()
 
     val source1 = dir1.resolve("file1.txt")
-    source1.createFile()
+    source1.createParentDirectories().createFile()
 
     val source2 = dir1.resolve("file2.txt")
-    source2.createFile()
+    source2.createParentDirectories().createFile()
 
     val source3 = dir1.resolve("file3.txt")
     // deliberately not create source3 to test missing files
@@ -76,7 +77,9 @@ class BuildFileListTest : TestCase() {
     assertThat(fileList[1].destination).isEqualTo(Paths.get("Provider2").resolve(dest2))
   }
 
-  private class TestFileProvider(override val name: String, private val source: Path, private val destination: Path) : DiagnosticsSummaryFileProvider {
+  private class TestFileProvider(override val name: String,
+                                 private val source: Path,
+                                 private val destination: Path) : DiagnosticsSummaryFileProvider {
     override fun getFiles(project: Project?): List<FileInfo> {
       return listOf(FileInfo(source, destination))
     }
