@@ -136,7 +136,7 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
       // Prepend the selected element which is not in the available qualifiers.
       availableQualifiers = listOf(selectedItem) + availableQualifiers
     }
-    comboBox.model = CollectionComboBoxModel(availableQualifiers, selectedItem)
+    (comboBox as ComboBox<ResourceQualifierWrapper?>).model = CollectionComboBoxModel(availableQualifiers, selectedItem)
   }
 
   /**

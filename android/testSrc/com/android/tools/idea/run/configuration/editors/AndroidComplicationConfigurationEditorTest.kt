@@ -451,7 +451,7 @@ class AndroidComplicationConfigurationEditorTest {
     assertThat(slotTypeComboBox2.items).containsExactly(ComplicationType.LONG_TEXT, ComplicationType.SHORT_TEXT)
 
     // Choose LONG_TEXT for slot with id 2.
-    slotTypeComboBox2.item = ComplicationType.LONG_TEXT
+    (slotTypeComboBox2 as ComboBox<ComplicationType>).item = ComplicationType.LONG_TEXT
 
     assertThat(configurationConfigurable.isModified).isTrue()
 
@@ -463,7 +463,7 @@ class AndroidComplicationConfigurationEditorTest {
     assertThat(runConfiguration.componentLaunchOptions.chosenSlots.find { it.id == 2 }!!.type).isEqualTo(ComplicationType.LONG_TEXT)
 
     //Changing type.
-    slotTypeComboBox2.item = ComplicationType.SHORT_TEXT
+    (slotTypeComboBox2 as ComboBox<ComplicationType>).item = ComplicationType.SHORT_TEXT
     assertThat(configurationConfigurable.isModified).isTrue()
 
     // Saving configuration.
