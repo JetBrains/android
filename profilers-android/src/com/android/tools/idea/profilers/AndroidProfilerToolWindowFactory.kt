@@ -56,14 +56,15 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
         })
 
       // Listen for events requesting that a task tab be opened.
-      project.messageBus.connect(toolWindow.disposable).subscribe(OpenProfilerTaskListener.TOPIC, OpenProfilerTaskListener { _, _ ->
-        AndroidCoroutineScope(toolWindow.disposable).launch {
-          withContext(AndroidDispatchers.uiThread) {
-            profilerToolWindow.openTaskTab()
-            toolWindow.activate(null)
-          }
-        }
-      })
+      project.messageBus.connect(toolWindow.disposable).subscribe(OpenProfilerTaskListener.TOPIC,
+                                                                  OpenProfilerTaskListener { taskType, taskArgs ->
+                                                                    AndroidCoroutineScope(toolWindow.disposable).launch {
+                                                                      withContext(AndroidDispatchers.uiThread) {
+                                                                        profilerToolWindow.openTaskTab(taskType, taskArgs)
+                                                                        toolWindow.activate(null)
+                                                                      }
+                                                                    }
+                                                                  })
 
       // Listen for events requesting that the home tab be opened.
       project.messageBus.connect(toolWindow.disposable).subscribe(OpenHomeTabListener.TOPIC, OpenHomeTabListener {

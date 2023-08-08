@@ -30,6 +30,8 @@ import com.android.tools.profilers.Notification
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.tasks.ProfilerTaskType
+import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -144,7 +146,8 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     createNewTab(homePanel, PROFILER_HOME_TAB_NAME, false)
   }
 
-  fun openTaskTab() {
+  fun openTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs?) {
+    // The taskType and taskArgs will be utilized in the (to-be-added) task handlers.
     val content = findTaskTab()
     if (content != null) {
       window.getContentManager().setSelectedContent(content)
