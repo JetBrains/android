@@ -24,6 +24,8 @@
 
     <projectConfigurable groupId="build.android"
                          instance="com.android.tools.idea.structure.dialog.AndroidProjectStructureConfigurableForIdea"
-                         order="last"/>
+                         order="last"
+                         bundle="messages.AndroidBundle"
+                         key="configurable.AndroidProjectStructureConfigurableForIdea.display.name"/>
   </extensions>
 </idea-plugin>
