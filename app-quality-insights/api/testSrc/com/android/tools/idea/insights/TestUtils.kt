@@ -72,6 +72,9 @@ val NOW = Instant.parse("2022-06-08T10:00:00Z")
 val REPO_INFO =
   RepoInfo(vcsKey = VCS_CATEGORY.TEST_VCS, rootPath = PROJECT_ROOT_PREFIX, revision = "123")
 
+val SAMPLE_KEYS = listOf(CustomKey("CSRF_TOKEN", "screen_view"), CustomKey("RAY_ID", "abcdeefg"))
+val SAMPLE_LOGS = listOf(Log(FAKE_10_HOURS_AGO, "fake_log", mapOf("key" to "value")))
+
 val ISSUE1 =
   AppInsightsIssue(
     IssueDetails(
@@ -146,7 +149,9 @@ val ISSUE1 =
               )
             )
         ),
-      appVcsInfo = AppVcsInfo(listOf(REPO_INFO))
+      appVcsInfo = AppVcsInfo(listOf(REPO_INFO)),
+      customKeys = SAMPLE_KEYS,
+      logs = SAMPLE_LOGS
     )
   )
 val ISSUE1_DETAILS =
