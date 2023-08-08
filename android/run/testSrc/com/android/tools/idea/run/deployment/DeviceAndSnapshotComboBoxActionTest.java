@@ -33,13 +33,12 @@ import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.runners.ExecutionUtil;
-import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.testFramework.TestActionEvent;
 import com.intellij.ui.IconManager;
 import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IconUtil;
@@ -74,7 +73,6 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   private DevicesSelectedService myDevicesSelectedService;
   private RunManager myRunManager;
 
-  private Presentation myPresentation;
   private AnActionEvent myEvent;
 
   @Before
@@ -108,12 +106,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
   @Before
   public void mockEvent() {
-    myPresentation = new Presentation();
-
-    myEvent = Mockito.mock(AnActionEvent.class);
-    Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
-    Mockito.when(myEvent.getPresentation()).thenReturn(myPresentation);
-    Mockito.when(myEvent.getPlace()).thenReturn(ActionPlaces.MAIN_TOOLBAR);
+    myEvent = TestActionEvent.createTestEvent();
   }
 
   @Before
@@ -234,16 +227,16 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction.Builder()
       .build();
 
-    myPresentation.setIcon(DeviceExplorer.VIRTUAL_DEVICE_PHONE);
+    myEvent.getPresentation().setIcon(DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
     // noinspection DialogTitleCapitalization
-    myPresentation.setText(
+    myEvent.getPresentation().setText(
       "Pixel 2 API 29 (Failed to parse properties from /usr/local/google/home/user/.android/avd/Pixel_2_API_29.avd/config.ini)",
       false);
 
     // Act
     UIManager.getDefaults().put("ComboBoxButtonUI", "com.intellij.ide.ui.laf.darcula.ui.ComboBoxButtonUI");
-    Component component = action.createCustomComponent(myPresentation, i -> i);
+    Component component = action.createCustomComponent(myEvent.getPresentation(), i -> i);
 
     // Assert
     assertEquals(253, component.getPreferredSize().width);
@@ -256,7 +249,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .build();
 
     // Act
-    action.createCustomComponent(myPresentation, i -> 4 * i);
+    action.createCustomComponent(myEvent.getPresentation(), i -> 4 * i);
   }
 
   @Test
@@ -270,8 +263,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
 
     // Assert
-    assertFalse(myPresentation.isEnabled());
-    assertEquals("Loading Devices...", myPresentation.getText());
+    assertFalse(myEvent.getPresentation().isEnabled());
+    assertEquals("Loading Devices...", myEvent.getPresentation().getText());
   }
 
   @Test

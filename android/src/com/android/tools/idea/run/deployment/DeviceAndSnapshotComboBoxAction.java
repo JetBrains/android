@@ -333,7 +333,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   @Override
   public ActionUpdateThread getActionUpdateThread() {
-    return ActionUpdateThread.EDT;
+    return ActionUpdateThread.BGT;
   }
 
   @Override
@@ -368,9 +368,12 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     updater.update();
 
-    if (presentation.isVisible()) {
-      setActiveExecutionTarget(project, getSelectedTargets(project, devices));
-    }
+    event.getUpdateSession().compute(this, "Set active device", ActionUpdateThread.EDT, () -> {
+      if (presentation.isVisible()) {
+        setActiveExecutionTarget(project, getSelectedTargets(project, devices));
+      }
+      return null;
+    });
   }
 
   private void setActiveExecutionTarget(@NotNull Project project, @NotNull Set<Target> targets) {
