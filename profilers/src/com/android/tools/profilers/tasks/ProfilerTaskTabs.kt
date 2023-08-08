@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.tasks
 
+import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.openapi.project.Project
 
 /**
@@ -29,7 +30,7 @@ object ProfilerTaskTabs {
    * @param taskType The [ProfilerTaskType] that should be opened.
    * @param args A serialized representation of the arguments needed to open the requested task.
    */
-  fun open(project: Project, taskType: ProfilerTaskType, args: String? = null) {
+  fun open(project: Project, taskType: ProfilerTaskType, args: TaskArgs?) {
     project.messageBus.syncPublisher(OpenProfilerTaskListener.TOPIC).openProfilerTask(taskType, args)
   }
 }

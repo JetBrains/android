@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.tasks
 
+import com.android.tools.profilers.tasks.args.TaskArgs
 import com.intellij.util.messages.Topic
 
 /**
@@ -28,7 +29,7 @@ fun interface OpenProfilerTaskListener {
    * @param taskType The [ProfilerTaskType] that should be opened.
    * @param args A serialized representation of the arguments needed to open the requested task.
    */
-  fun openProfilerTask(taskType: ProfilerTaskType, args: String?)
+  fun openProfilerTask(taskType: ProfilerTaskType, args: TaskArgs?)
 
   companion object {
     @JvmField

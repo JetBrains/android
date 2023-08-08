@@ -52,7 +52,7 @@ class StudioProfilersHomeView(project: Project, profilers: StudioProfilers, ideP
     createTaskTabButton.verticalAlignment = SwingConstants.CENTER
     createTaskTabButton.alignmentX = Component.CENTER_ALIGNMENT
     createTaskTabButton.addActionListener {
-      ProfilerTaskTabs.open(project = project, taskType = ProfilerTaskType.UNSPECIFIED)
+      ProfilerTaskTabs.open(project = project, taskType = ProfilerTaskType.UNSPECIFIED, null)
     }
     panel.add(createTaskTabButton)
 
