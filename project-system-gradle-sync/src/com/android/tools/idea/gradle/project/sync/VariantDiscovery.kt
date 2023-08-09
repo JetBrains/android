@@ -27,10 +27,14 @@ import java.util.LinkedList
 // This is used as a key to track the variant fetch requests
 // It will be expanded with variant itself because it is possible we end up
 // fetching multiple variants for the same module
-private data class FetchedVariant(val moduleId: String)
-private fun ModuleConfiguration.toMapKey() = FetchedVariant(id)
-private fun SyncVariantResult.toMapKey() = this.moduleConfiguration.toMapKey()
+private data class FetchedVariant(val moduleId: String, val variantName: String?)
 
+
+private sealed class FetchedVariantResult {
+  class Finished(val result: ModelResult<SyncVariantResult>) : FetchedVariantResult()
+  object InProgress: FetchedVariantResult()
+}
+private fun ModelResult<SyncVariantResult>.toFinishedResult() = FetchedVariantResult.Finished(this)
 
 internal class VariantDiscovery(
   private val actionRunner: SyncActionRunner,
@@ -40,7 +44,13 @@ internal class VariantDiscovery(
   private val internedModels: InternedModels,
   private val androidProjectPathResolver: AndroidProjectPathResolver,
 ) {
+
+  // In all variant sync we sync all the variants available,
+  // so that's also used in the result map keys which determines which variants are fetched.
+  private fun ModuleConfiguration.toMapKey() = FetchedVariant(id, variant.takeIf { syncOptions is AllVariantsSyncActionOptions })
+
   private val inputModules = androidModulesById.values
+  private val moduleFetchResults = Collections.synchronizedMap(HashMap<FetchedVariant, FetchedVariantResult>())
 
   fun syncAllVariants() {
     if (inputModules.isEmpty()) return
@@ -52,13 +62,14 @@ internal class VariantDiscovery(
             ModuleConfiguration(module.id, variant, abi = null, isRoot = true).toFetchVariantDependenciesAction()
           }
         })
-        .mapNotNull { it.ignoreExceptionsAndGet()?.let { result -> result.module to it } }
+        .filterIsInstance<FetchedVariantResult.Finished>()
+        .mapNotNull { it.result.ignoreExceptionsAndGet()?.let { result -> result.module to it } }
         .groupBy({ it.first }, { it.second })
 
     actionRunner.runActions(variants.entries.map { (module, result) ->
       ActionToRun(fun(controller: BuildController) {
         result.map {
-          it.mapCatching {
+          it.result.mapCatching {
             when (it) {
               is SyncVariantResultFailure -> Unit
               is SyncVariantResultSuccess -> {
@@ -73,8 +84,8 @@ internal class VariantDiscovery(
     })
 
     variants.entries.forEach { (module, result) ->
-      module.allVariants = result.mapNotNull { (it.ignoreExceptionsAndGet() as? SyncVariantResultSuccess)?.ideVariant }
-      module.recordExceptions(result.flatMap { it.exceptions })
+      module.allVariants = result.mapNotNull { (it.result.ignoreExceptionsAndGet() as? SyncVariantResultSuccess)?.ideVariant }
+      module.recordExceptions(result.flatMap { it.result.exceptions })
     }
   }
 
@@ -93,24 +104,27 @@ internal class VariantDiscovery(
   fun discoverVariantsAndSync() {
     if (inputModules.isEmpty()) return
     val modulesToSetUp = prepareRequestedOrDefaultModuleConfigurations()
-    val moduleFetchResults = Collections.synchronizedMap(HashMap<FetchedVariant, ModelResult<SyncVariantResult>>())
 
 
     if (shouldUsePreviouslyResolvedVariants) {
       // If we know which variants to fetch for each module, fetch and populate those without traversing the dependencies
-      populatePreviouslyResolvedVariantResults(modulesToSetUp, moduleFetchResults)
+      populatePreviouslyResolvedVariantResults(modulesToSetUp)
     } else {
       // Otherwise fetch each root module (and its dependencies) one-by-one to figure out the variant for each module
       while (modulesToSetUp.isNotEmpty()) {
         val nextModule = modulesToSetUp.removeFirstOrNull() ?: continue
         if (moduleFetchResults.containsKey(nextModule.toMapKey())) continue
-        actionRunner.runActions(listOf(nextModule.toTraverseAction(moduleFetchResults)))
+        actionRunner.runActions(listOf(nextModule.toTraverseAction()))
       }
     }
 
+    check(moduleFetchResults.values.all { it is FetchedVariantResult.Finished }) { "No work should be in progress at this point!" }
+    val results = moduleFetchResults.values
+      .filterIsInstance<FetchedVariantResult.Finished>()
+      .map { it.result }
     // Fetch the kotlin dependencies for the successfully fetched modules
     actionRunner.runActions(
-      moduleFetchResults.values
+        results
         .filterIsInstance<ModelResult<SyncVariantResultSuccess>>()
         .mapNotNull {
           it.ignoreExceptionsAndGet()?.let { fetchKotlinModelsAction(it) }
@@ -118,7 +132,7 @@ internal class VariantDiscovery(
     )
 
     // Populate the AndroidModule models with the fetched information
-    moduleFetchResults.values.forEach {
+    results.forEach {
       updateAndroidModuleWithResult(it)
     }
   }
@@ -148,23 +162,27 @@ internal class VariantDiscovery(
   }
 
   /** Converts a [ModuleConfiguration] to the action that fetches and processed the variant dependencies model for the module. */
-  private fun ModuleConfiguration.toFetchVariantDependenciesAction(): ActionToRun<ModelResult<SyncVariantResult>> {
+  private fun ModuleConfiguration.toFetchVariantDependenciesAction(): ActionToRun<FetchedVariantResult> {
     val module = androidModulesById[id]
-      ?: return ActionToRun({ ModelResult.create { error("Module with id '${id}' not found") } }, false)
+      ?: return ActionToRun({ ModelResult.create { error("Module with id '${id}' not found") }.toFinishedResult() }, false)
     val isV2Action =
       when (module) { // Exhaustive when, do not replace with `is`.
         is AndroidModule.V1 -> false
         is AndroidModule.V2 -> true
       }
     return ActionToRun(
-      fun(controller: BuildController): ModelResult<SyncVariantResult> {
-        return ModelResult.create {
+      { controller ->
+        // If a result exists, return that, otherwise set in progress and calculate it
+        // Existing value in this case, can be either an in progress marker or an actual finished result,
+        // in either of these cases, we can just return that without calculating anything.
+        val existingValue = moduleFetchResults.putIfAbsent(toMapKey(), FetchedVariantResult.InProgress)
+        existingValue ?: ModelResult.create {
           val ideVariant: IdeVariantWithPostProcessor =
             module
               .variantFetcher(controller, androidProjectPathResolver, module, this@toFetchVariantDependenciesAction)
               .mapNull { error("Resolved variant '${variant}' does not exist.") }
               .recordAndGet()
-              ?: return@create SyncVariantResultFailure(this@toFetchVariantDependenciesAction, module)
+            ?: return@create SyncVariantResultFailure(this@toFetchVariantDependenciesAction, module)
 
           val variantName = ideVariant.name
           val abiToRequest: String? = chooseAbiToRequest(module, variantName, abi)
@@ -193,7 +211,7 @@ internal class VariantDiscovery(
             nativeVariantAbi,
             getUnresolvedDependencies()
           )
-        }
+        }.toFinishedResult()
       }, fetchesV2Models = isV2Action, fetchesV1Models = !isV2Action
     )
   }
@@ -243,21 +261,23 @@ internal class VariantDiscovery(
    * This action doesn't return anything. Results will be stored in [moduleFetchResults]. Make sure it's thread safe as it will be written
    * by multiple actions at the same time to update the results.
    */
-  private fun ModuleConfiguration.toTraverseAction(moduleFetchResults: MutableMap<FetchedVariant, ModelResult<SyncVariantResult>>): ActionToRun<Unit> {
+  private fun ModuleConfiguration.toTraverseAction(): ActionToRun<Unit> {
     return toFetchVariantDependenciesAction().map { wrappedResult ->
-      wrappedResult.mapCatching { result ->
-        moduleFetchResults[result.toMapKey()] = wrappedResult
-        if (result is SyncVariantResultSuccess) {
-          val moduleDependencies = result.getModuleDependencyConfigurations(
-            (syncOptions as SingleVariantSyncActionOptions).selectedVariants,
-            androidModulesById,
-            internedModels::lookup
-          )
-          actionRunner.runActions(
-            moduleDependencies
-              .filter { !moduleFetchResults.containsKey(it.toMapKey()) }
-              .map { it.toTraverseAction(moduleFetchResults) }
-          )
+      if (wrappedResult is FetchedVariantResult.Finished) {
+        wrappedResult.result.mapCatching { result ->
+          moduleFetchResults[toMapKey()] = wrappedResult
+          if (result is SyncVariantResultSuccess) {
+            val moduleDependencies = result.getModuleDependencyConfigurations(
+              (syncOptions as SingleVariantSyncActionOptions).selectedVariants,
+              androidModulesById,
+              internedModels::lookup
+            )
+            actionRunner.runActions(
+              moduleDependencies
+                .filter { !moduleFetchResults.containsKey(it.toMapKey()) }
+                .map { it.toTraverseAction() }
+            )
+          }
         }
       }
     }
@@ -306,13 +326,11 @@ internal class VariantDiscovery(
    * However, variant resolution is not perfectly parallelizable. To overcome this we try to fetch the previously selected variant
    * models in parallel. This is experimental and not yet enabled in production.
    */
-  private fun populatePreviouslyResolvedVariantResults(
-    allModulesToSetUp: LinkedList<ModuleConfiguration>,
-    moduleFetchResults: MutableMap<FetchedVariant, ModelResult<SyncVariantResult>>
-  ) {
+  private fun populatePreviouslyResolvedVariantResults(allModulesToSetUp: LinkedList<ModuleConfiguration>) {
     actionRunner.runActions(allModulesToSetUp.map { it.toFetchVariantDependenciesAction() })
+      .filterIsInstance<FetchedVariantResult.Finished>()
       .forEach {
-        val moduleConfiguration = it.ignoreExceptionsAndGet()?.moduleConfiguration ?: return@forEach
+        val moduleConfiguration = it.result.ignoreExceptionsAndGet()?.moduleConfiguration ?: return@forEach
         moduleFetchResults[moduleConfiguration.toMapKey()] = it
       }
   }
