@@ -20,6 +20,7 @@ import com.google.common.base.Splitter
 import com.intellij.openapi.diagnostic.Logger
 import java.io.IOException
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.ATOMIC_MOVE
 import java.nio.file.StandardCopyOption.REPLACE_EXISTING
@@ -44,6 +45,10 @@ fun readKeyValueFile(file: Path, keysToExtract: Set<String>? = null): Map<String
       }
     }
     result
+  }
+  catch (e: NoSuchFileException) {
+    logError("Could not find $file", null)
+    null
   }
   catch (e: IOException) {
     logError("Error reading $file", e)
@@ -81,8 +86,8 @@ fun updateKeyValueFile(file: Path, updates: Map<String, String?>) {
   }
 }
 
-private fun logError(message: String, e: IOException) {
-  logger().error(e.message?.let { "$message - $it" } ?: message)
+private fun logError(message: String, e: IOException?) {
+  logger().error(e?.message?.let { "$message - $it" } ?: message)
 }
 
 private val KEY_VALUE_SPLITTER = Splitter.on('=').trimResults()
