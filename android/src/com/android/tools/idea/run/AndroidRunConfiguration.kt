@@ -107,6 +107,8 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
 
   @JvmField
   var CLEAR_APP_STORAGE = false
+
+  @JvmField
   var DYNAMIC_FEATURES_DISABLED_LIST = ""
 
   // Launch options
