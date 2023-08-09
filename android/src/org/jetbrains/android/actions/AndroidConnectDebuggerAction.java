@@ -15,6 +15,7 @@ import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -43,6 +44,11 @@ public class AndroidConnectDebuggerAction extends AnAction {
       AppExecutorUtil.getAppExecutorService().execute(
         () -> closeOldSessionAndRun(project, dialog.getSelectedAndroidDebugger(), client, dialog.getRunConfiguration()));
     }
+  }
+
+  @Override
+  public @NotNull ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
   }
 
   @Override
