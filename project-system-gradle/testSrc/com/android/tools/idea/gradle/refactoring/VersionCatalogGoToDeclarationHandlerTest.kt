@@ -15,17 +15,25 @@
  */
 package com.android.tools.idea.gradle.refactoring
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.psi.PsiManager
+import org.junit.Rule
+import org.junit.Test
 
 /** Tests for [VersionCatalogGoToDeclarationHandler]. */
-class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
+class VersionCatalogGoToDeclarationHandlerTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule()
+  private val project get() = projectRule.project
+
+  @Test
   fun testGoToDeclarationInToml() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     // Check Go To Declaration within the TOML file
 
@@ -65,8 +73,9 @@ class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testGotoCatalogDeclarationInKts(){
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
     // Navigate from KTS catalog reference to TOML library
     checkUsage(
       "app/build.gradle.kts",
@@ -125,8 +134,9 @@ class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testGotoCatalogDeclarationInGroovy(){
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
     // Navigate from groovy catalog reference to TOML library
     checkUsage(
       "app/build.gradle",
@@ -194,22 +204,24 @@ class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
   private fun checkUsage(relativePath: String, caretContext: String, expected: String) {
     val root = StandardFileSystems.local().findFileByPath(project.basePath!!)!!
     val source = root.findFileByRelativePath(relativePath)!!
-    val psiFile = PsiManager.getInstance(project).findFile(source)!!
+    runReadAction {
+      val psiFile = PsiManager.getInstance(project).findFile(source)!!
 
-    // Figure out the caret offset in the file given a substring from the source with "|" somewhere in that
-    // substring indicating the exact spot of the caret
-    val text = psiFile.text
-    val caretDelta = caretContext.indexOf('|')
-    assertWithMessage("The caretContext must include | somewhere to point to the caret position").that(caretDelta).isNotEqualTo(-1)
-    val withoutCaret = caretContext.substring(0, caretDelta) + caretContext.substring(caretDelta + 1)
-    val index = text.indexOf(withoutCaret)
-    assertWithMessage("Did not find `$withoutCaret` in $relativePath").that(index).isNotEqualTo(-1)
-    val caret = index + caretDelta
+      // Figure out the caret offset in the file given a substring from the source with "|" somewhere in that
+      // substring indicating the exact spot of the caret
+      val text = runReadAction { psiFile.text }
+      val caretDelta = caretContext.indexOf('|')
+      assertWithMessage("The caretContext must include | somewhere to point to the caret position").that(caretDelta).isNotEqualTo(-1)
+      val withoutCaret = caretContext.substring(0, caretDelta) + caretContext.substring(caretDelta + 1)
+      val index = text.indexOf(withoutCaret)
+      assertWithMessage("Did not find `$withoutCaret` in $relativePath").that(index).isNotEqualTo(-1)
+      val caret = index + caretDelta
 
-    val handler = VersionCatalogGoToDeclarationHandler()
-    val element = psiFile.findElementAt(caret)
-    val target = handler.getGotoDeclarationTarget(element, null)
-    assertWithMessage("Didn't find a go to destination from $caretContext").that(target).isNotNull()
-    assertThat(target?.text?.substringBefore("\n")).isEqualTo(expected)
+      val handler = VersionCatalogGoToDeclarationHandler()
+      val element = psiFile.findElementAt(caret)
+      val target = handler.getGotoDeclarationTarget(element, null)
+      assertWithMessage("Didn't find a go to destination from $caretContext").that(target).isNotNull()
+      assertThat(target?.text?.substringBefore("\n")).isEqualTo(expected)
+    }
   }
 }
