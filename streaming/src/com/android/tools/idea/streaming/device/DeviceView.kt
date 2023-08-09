@@ -308,22 +308,20 @@ internal class DeviceView(
   }
 
   private fun getConnectionErrorMessage(exception: Throwable?): String {
-    return when {
-      (exception as? AgentTerminatedException)?.exitCode == AGENT_WEAK_VIDEO_ENCODER ->
+    return when ((exception as? AgentTerminatedException)?.exitCode) {
+      AGENT_WEAK_VIDEO_ENCODER ->
           "The device may not have sufficient computing power for encoding display contents. See the error log."
-      (exception as? AgentTerminatedException)?.exitCode == AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
-          "Repeated video encoder errors during initialization of the device agent. See the error log."
+      AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors during initialization of the device agent. See the error log."
       else -> (exception as? TimeoutException)?.message ?: "Failed to initialize the device agent. See the error log."
     }
   }
 
   private fun getDisconnectionErrorMessage(exception: Throwable?): String {
-    return when {
-      (exception as? AgentTerminatedException)?.exitCode == AGENT_WEAK_VIDEO_ENCODER ->
+    return when ((exception as? AgentTerminatedException)?.exitCode) {
+      AGENT_WEAK_VIDEO_ENCODER ->
           "Repeated video encoder errors. The device may not have sufficient computing power for encoding display contents." +
           " See the error log."
-      (exception as? AgentTerminatedException)?.exitCode == AGENT_REPEATED_VIDEO_ENCODER_ERRORS ->
-          "Repeated video encoder errors. See the error log."
+      AGENT_REPEATED_VIDEO_ENCODER_ERRORS -> "Repeated video encoder errors. See the error log."
       else -> "Lost connection to the device. See the error log."
     }
   }
