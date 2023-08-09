@@ -16,14 +16,13 @@
 package com.android.tools.idea.project
 
 import com.android.AndroidProjectTypes
-import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.instantapp.InstantApps
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.TargetSelectionMode
@@ -43,12 +42,12 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
-import com.intellij.psi.search.ProjectScope
 import com.intellij.util.PathUtil
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidUtils
 
 private val wearConfigurationProducers = listOf(
   AndroidTileRunConfigurationProducer(),
@@ -119,7 +118,7 @@ class AndroidRunConfigurations {
     }
 
     wearRunConfigurationsToAdd.forEach {
-      RunManager.getInstance(project).addConfiguration(it)
+      runManager.addConfiguration(it)
     }
   }
 
@@ -155,7 +154,7 @@ class AndroidRunConfigurations {
   @Slow
   @WorkerThread
   private fun createWearConfigurations(module: Module): List<RunnerAndConfigurationSettings> {
-    val wearComponents = extractWearComponentsFromManifest(module)
+    val wearComponents = extractWearComponents(module)
     val wearComponentsUsedInRunConfigurations = wearComponentsUsedInRunConfigurations(module.project)
     return wearComponents
       .filter { it.name !in wearComponentsUsedInRunConfigurations }
@@ -179,16 +178,12 @@ class AndroidRunConfigurations {
 
   @Slow
   @WorkerThread
-  private fun extractWearComponentsFromManifest(module: Module): List<WearComponent> {
-    val project = module.project
-    val facade = JavaPsiFacade.getInstance(project)
-    val projectAllScope = ProjectScope.getAllScope(project)
-    val manifest = MergedManifestManager.getMergedManifest(module).get()
-    return DumbService.getInstance(project).runReadActionInSmartMode(Computable {
-      val servicePsiClasses = manifest.services.mapNotNull {
-        val serviceName = it.getAttributeNS(SdkConstants.ANDROID_URI, SdkConstants.ATTR_NAME)
-        facade.findClass(serviceName, projectAllScope)
-      }
+  private fun extractWearComponents(module: Module): List<WearComponent> {
+    return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable {
+      val manifests = module.getModuleSystem()
+          .getMergedManifestContributors().let { listOfNotNull(it.primaryManifest) + it.libraryManifests }
+          .mapNotNull { AndroidUtils.loadDomElement(module, it, Manifest::class.java) }
+      val servicePsiClasses = manifests.flatMap { it.application.services.mapNotNull { service -> service.serviceClass.value } }
       servicePsiClasses.mapNotNull { psiClass ->
         val qualifiedName = psiClass.qualifiedName ?: return@mapNotNull null
         val configurationFactory = wearConfigurationFactory(psiClass) ?: return@mapNotNull null
