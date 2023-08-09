@@ -14,11 +14,21 @@
   ~ limitations under the License.
   -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+  <extensionPoints>
+    <extensionPoint qualifiedName="com.intellij.android.toolWindow"
+                    beanClass="com.android.tools.adtui.AndroidToolWindow"
+                    dynamic="false">
+      <with attribute="factoryClass" implements="com.intellij.openapi.wm.ToolWindowFactory"/>
+    </extensionPoint>
+  </extensionPoints>
+
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceImplementation="com.android.tools.adtui.workbench.WorkBenchManager" />
     <projectService serviceImplementation="com.android.tools.adtui.workbench.DetachedToolWindowManager" />
     <applicationService serviceInterface="com.android.tools.adtui.common.AdtUiCursorsProvider"
                         serviceImplementation="com.android.tools.adtui.common.AdtUiCursorProviderImpl"/>
+
+    <postStartupActivity implementation="com.android.tools.adtui.AndroidToolWindowManager"/>
   </extensions>
 
   <actions>

@@ -15,10 +15,9 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <library.toolWindow id="Device Manager 2"
-                librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
-                anchor="right"
-                icon="StudioIcons.Shell.ToolWindows.DEVICE_MANAGER"
-                factoryClass="com.android.tools.idea.devicemanagerv2.DeviceManager2ToolWindowFactory"/>
+    <android.toolWindow id="Device Manager 2"
+                        anchor="right"
+                        icon="StudioIcons.Shell.ToolWindows.DEVICE_MANAGER"
+                        factoryClass="com.android.tools.idea.devicemanagerv2.DeviceManager2ToolWindowFactory"/>
   </extensions>
 </idea-plugin>

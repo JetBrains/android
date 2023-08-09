@@ -19,12 +19,11 @@
     <applicationService
         serviceInterface="com.android.tools.idea.appinspection.ide.InspectorArtifactService"
         serviceImplementation="com.android.tools.idea.appinspection.ide.InspectorArtifactServiceImpl"/>
-    <library.toolWindow id="App Inspection"
-                      librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
-                      anchor="bottom"
-                      icon="StudioIcons.Shell.ToolWindows.INSPECTION"
-                      factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
-                      doNotActivateOnStart="true"/>
+    <android.toolWindow id="App Inspection"
+                        anchor="bottom"
+                        icon="StudioIcons.Shell.ToolWindows.INSPECTION"
+                        factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
+                        doNotActivateOnStart="true"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.run">

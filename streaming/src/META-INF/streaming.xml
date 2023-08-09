@@ -28,14 +28,13 @@
 
     <customizableActionGroupProvider implementation="com.android.tools.idea.streaming.emulator.actions.EmulatorCustomizableActionGroupProvider"/>
 
-    <library.toolWindow id="Running Devices"
-                librarySearchClass="com.android.tools.idea.sdk.AndroidSdkLibrarySearcher"
-                anchor="right"
-                secondary="true"
-                canCloseContents="true"
-                doNotActivateOnStart="true"
-                icon="StudioIcons.Shell.ToolWindows.EMULATOR"
-                factoryClass="com.android.tools.idea.streaming.StreamingToolWindowFactory"/>
+    <android.toolWindow id="Running Devices"
+                        anchor="right"
+                        secondary="true"
+                        canCloseContents="true"
+                        doNotActivateOnStart="true"
+                        icon="StudioIcons.Shell.ToolWindows.EMULATOR"
+                        factoryClass="com.android.tools.idea.streaming.StreamingToolWindowFactory"/>
     <notificationGroup id="Running Devices Messages"
                        displayType="BALLOON"
                        toolWindowId="Running Devices"
