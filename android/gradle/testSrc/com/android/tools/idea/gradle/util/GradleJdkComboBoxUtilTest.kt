@@ -16,16 +16,13 @@
 package com.android.tools.idea.gradle.util
 
 import com.intellij.openapi.projectRoots.JavaSdk
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.SdkType
-import com.intellij.openapi.projectRoots.impl.MockSdk
 import com.intellij.openapi.projectRoots.impl.UnknownSdkType
-import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.ui.configuration.SdkListItem
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightPlatformTestCase
-import com.intellij.util.containers.MultiMap
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.idea.framework.KotlinSdkType
 import org.jetbrains.kotlin.utils.filterIsInstanceMapNotNull
@@ -66,10 +63,7 @@ class GradleJdkComboBoxUtilTest : LightPlatformTestCase() {
     }
   }
 
-  private fun createSdk(type: SdkType): Sdk {
-    val rootsMap = MultiMap.create<OrderRootType, VirtualFile>()
-    return MockSdk(type.name, "path", "version", rootsMap, type)
-  }
+  private fun createSdk(type: SdkType): Sdk = ProjectJdkTable.getInstance().createSdk(type.name, type)
 
   private fun createJdkComboBoxItems(sdksModel: ProjectSdksModel): Array<Sdk> {
     val modelBuilder = GradleJdkComboBoxUtil.createBoxModel(project, sdksModel).modelBuilder

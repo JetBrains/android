@@ -17,13 +17,12 @@ package com.android.tools.idea.sdk.extensions
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockVirtualFile
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.SimpleJavaSdkType
-import com.intellij.openapi.projectRoots.impl.MockSdk
 import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.RootProvider
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.containers.MultiMap
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertFalse
@@ -107,11 +106,13 @@ class RootProviderExtensionsTest {
   private fun createMockRootProvider(
     vararg roots: Pair<OrderRootType, String>
   ): RootProvider {
-    val rootsMap = MultiMap.create<OrderRootType, VirtualFile>()
-    roots.forEach { (rootType, name) ->
-      rootsMap.putValue(rootType, MockVirtualFile(name))
+    val mockSdk = ProjectJdkTable.getInstance().createSdk("name", SimpleJavaSdkType())
+    val sdkModificator = mockSdk.sdkModificator
+    roots.forEach { (rootType, name) -> sdkModificator.addRoot(MockVirtualFile(name), rootType) }
+    val application = ApplicationManager.getApplication()
+    application.invokeAndWait {
+      application.runWriteAction { sdkModificator.commitChanges() }
     }
-    val mockSdk = MockSdk("name", "path", "version", rootsMap, SimpleJavaSdkType())
     return mockSdk.rootProvider
   }
 }

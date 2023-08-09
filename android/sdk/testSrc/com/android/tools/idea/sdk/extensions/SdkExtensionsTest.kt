@@ -17,13 +17,14 @@ package com.android.tools.idea.sdk.extensions
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.mock.MockVirtualFile
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.projectRoots.SdkTypeId
 import com.intellij.openapi.projectRoots.SimpleJavaSdkType
-import com.intellij.openapi.projectRoots.impl.MockSdk
 import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.OrderRootType
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.containers.MultiMap
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.sdk.AndroidSdkType
 import org.jetbrains.kotlin.idea.framework.KotlinSdkType
 import org.junit.Rule
@@ -114,11 +115,15 @@ class SdkExtensionsTest {
     version: String = "version",
     sdkTpe: SdkTypeId = SimpleJavaSdkType(),
     roots: List<Pair<OrderRootType, String>> = emptyList()
-  ): MockSdk {
-    val rootsMap = MultiMap.create<OrderRootType, VirtualFile>()
+  ): Sdk {
+    val sdk = ProjectJdkTable.getInstance().createSdk(name, sdkTpe)
+    val sdkModificator = sdk.sdkModificator
+    sdkModificator.versionString = version
+    sdkModificator.homePath = path
     roots.forEach { (rootType, name) ->
-      rootsMap.putValue(rootType, MockVirtualFile(name))
+      sdkModificator.addRoot(MockVirtualFile(name), rootType)
     }
-    return MockSdk(name, path, version, rootsMap, sdkTpe)
+    runInEdtAndWait { ApplicationManager.getApplication().runWriteAction { sdkModificator.commitChanges() } }
+    return sdk
   }
 }
