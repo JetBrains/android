@@ -19,14 +19,18 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.testing.ApplicationServiceRule
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.LightVirtualFile
+import com.intellij.testFramework.RuleChain
 import kotlin.test.assertFalse
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.uipreview.AndroidEditorSettings
+import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -34,7 +38,17 @@ import org.junit.Test
 import org.mockito.Mockito.spy
 
 class ComposePreviewRepresentationProviderTest {
-  @get:Rule val projectRule = ComposeProjectRule()
+  private val projectRule = ComposeProjectRule()
+
+  private val androidEditorSettings = AndroidEditorSettings()
+
+  @get:Rule
+  val rule =
+    RuleChain(
+      projectRule,
+      ApplicationServiceRule(AndroidEditorSettings::class.java, androidEditorSettings)
+    )
+
   private val project
     get() = projectRule.project
   private val fixture
@@ -69,10 +83,16 @@ class ComposePreviewRepresentationProviderTest {
       )
 
     assertTrue(previewProvider.accept(project, file))
-    assertEquals(
-      PreferredVisibility.SPLIT,
-      getRepresentationForFile(file, project, fixture, previewProvider).preferredInitialVisibility
-    )
+    assertEquals(PreferredVisibility.SPLIT, file.getPreferredVisibility())
+
+    androidEditorSettings.globalState.preferredPreviewableEditorMode = EditorMode.CODE
+    assertEquals(PreferredVisibility.HIDDEN, file.getPreferredVisibility())
+
+    androidEditorSettings.globalState.preferredPreviewableEditorMode = EditorMode.SPLIT
+    assertEquals(PreferredVisibility.SPLIT, file.getPreferredVisibility())
+
+    androidEditorSettings.globalState.preferredPreviewableEditorMode = EditorMode.DESIGN
+    assertEquals(PreferredVisibility.FULL, file.getPreferredVisibility())
   }
 
   @Test
@@ -99,10 +119,16 @@ class ComposePreviewRepresentationProviderTest {
       )
 
     assertTrue(previewProvider.accept(project, file))
-    assertEquals(
-      PreferredVisibility.HIDDEN,
-      getRepresentationForFile(file, project, fixture, previewProvider).preferredInitialVisibility
-    )
+    assertEquals(PreferredVisibility.HIDDEN, file.getPreferredVisibility())
+
+    androidEditorSettings.globalState.preferredComposableEditorMode = EditorMode.CODE
+    assertEquals(PreferredVisibility.HIDDEN, file.getPreferredVisibility())
+
+    androidEditorSettings.globalState.preferredComposableEditorMode = EditorMode.SPLIT
+    assertEquals(PreferredVisibility.SPLIT, file.getPreferredVisibility())
+
+    androidEditorSettings.globalState.preferredComposableEditorMode = EditorMode.DESIGN
+    assertEquals(PreferredVisibility.FULL, file.getPreferredVisibility())
   }
 
   @Test
@@ -120,10 +146,16 @@ class ComposePreviewRepresentationProviderTest {
       )
 
     assertTrue(previewProvider.accept(project, file))
-    assertEquals(
-      PreferredVisibility.HIDDEN,
-      getRepresentationForFile(file, project, fixture, previewProvider).preferredInitialVisibility
-    )
+    assertEquals(PreferredVisibility.HIDDEN, file.getPreferredVisibility())
+
+    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.CODE
+    assertEquals(PreferredVisibility.HIDDEN, file.getPreferredVisibility())
+
+    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.SPLIT
+    assertEquals(PreferredVisibility.SPLIT, file.getPreferredVisibility())
+
+    androidEditorSettings.globalState.preferredKotlinEditorMode = EditorMode.DESIGN
+    assertEquals(PreferredVisibility.FULL, file.getPreferredVisibility())
   }
 
   @Test
@@ -154,4 +186,7 @@ class ComposePreviewRepresentationProviderTest {
 
     assertFalse(previewProvider.accept(project, mockPsiFile))
   }
+
+  private fun PsiFile.getPreferredVisibility() =
+    getRepresentationForFile(this, project, fixture, previewProvider).preferredInitialVisibility
 }

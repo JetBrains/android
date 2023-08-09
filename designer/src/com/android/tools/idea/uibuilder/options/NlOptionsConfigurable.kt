@@ -100,10 +100,17 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         row("Other Resources (e.g. Layout, Menu, Navigation):") {
           preferredEditorMode = editorModeComboBox().component
         }
-        row("Compose files:") {
+        row("Compose files with previews:") {
           editorModeComboBox()
             .bindItem(
-              { state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
+              { state.preferredPreviewableEditorMode ?: AndroidEditorSettings.EditorMode.SPLIT },
+              state::setPreferredPreviewableEditorMode
+            )
+        }
+        row("Compose files without previews:") {
+          editorModeComboBox()
+            .bindItem(
+              { state.preferredComposableEditorMode ?: AndroidEditorSettings.EditorMode.CODE },
               state::setPreferredComposableEditorMode
             )
         }

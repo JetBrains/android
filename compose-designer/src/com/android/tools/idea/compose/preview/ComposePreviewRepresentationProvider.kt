@@ -40,6 +40,9 @@ import com.android.tools.idea.preview.representation.InMemoryLayoutVirtualFile
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.FULL
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.HIDDEN
+import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility.SPLIT
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
@@ -62,7 +65,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.android.uipreview.AndroidEditorSettings.EditorMode
-import org.jetbrains.android.uipreview.AndroidEditorSettings.GlobalState
 import org.jetbrains.annotations.TestOnly
 
 /** [ToolbarActionGroups] that includes the actions that can be applied to Compose Previews. */
@@ -171,21 +173,21 @@ class ComposePreviewRepresentationProvider(
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
+    val hasComposableMethods =
+      filePreviewElementProvider().hasComposableMethods(psiFile.project, psiFile.virtualFile)
     val hasPreviewMethods =
       filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
     thisLogger().debug { "${psiFile.virtualFile.path} hasPreviewMethods=${hasPreviewMethods}" }
 
-    val isComposableEditor =
-      hasPreviewMethods ||
-        filePreviewElementProvider().hasComposableMethods(psiFile.project, psiFile.virtualFile)
     val globalState = AndroidEditorSettings.getInstance().globalState
+    val preferredVisibility =
+      when {
+        hasPreviewMethods -> globalState.preferredPreviewableEditorMode.getVisibility(SPLIT)
+        hasComposableMethods -> globalState.preferredComposableEditorMode.getVisibility(HIDDEN)
+        else -> globalState.preferredKotlinEditorMode.getVisibility(HIDDEN)
+      }
 
-    return ComposePreviewRepresentation(
-      psiFile,
-      if (isComposableEditor) globalState.preferredComposableEditorVisibility(hasPreviewMethods)
-      else globalState.preferredKotlinEditorVisibility(),
-      ::ComposePreviewViewImpl
-    )
+    return ComposePreviewRepresentation(psiFile, preferredVisibility, ::ComposePreviewViewImpl)
   }
 
   override val displayName = message("representation.name")
@@ -236,24 +238,12 @@ internal fun isPreviewFilterEnabled(context: DataContext): Boolean {
   return COMPOSE_PREVIEW_MANAGER.getData(context)?.isFilterEnabled ?: false
 }
 
-// We will default to split mode if there are @Preview annotations in the file or if the file
-// contains @Composable.
-private fun GlobalState.preferredComposableEditorVisibility(hasPreviewMethods: Boolean) =
-  when {
-    preferredComposableEditorMode == EditorMode.CODE -> PreferredVisibility.HIDDEN
-    preferredComposableEditorMode == EditorMode.SPLIT -> PreferredVisibility.SPLIT
-    preferredComposableEditorMode == EditorMode.DESIGN -> PreferredVisibility.FULL
-    hasPreviewMethods -> PreferredVisibility.SPLIT
-    else -> PreferredVisibility.HIDDEN
-  }
-
-// We will default to code mode for kotlin files not containing any @Composable functions.
-private fun GlobalState.preferredKotlinEditorVisibility() =
-  when (preferredKotlinEditorMode) {
-    EditorMode.CODE -> PreferredVisibility.HIDDEN
-    EditorMode.SPLIT -> PreferredVisibility.SPLIT
-    EditorMode.DESIGN -> PreferredVisibility.FULL
-    else -> PreferredVisibility.HIDDEN // default
+private fun EditorMode?.getVisibility(defaultValue: PreferredVisibility) =
+  when (this) {
+    EditorMode.CODE -> HIDDEN
+    EditorMode.SPLIT -> SPLIT
+    EditorMode.DESIGN -> FULL
+    null -> defaultValue
   }
 
 /** Returns the [ComposePreviewManager] or null if this [FileEditor] is not a Compose preview. */
