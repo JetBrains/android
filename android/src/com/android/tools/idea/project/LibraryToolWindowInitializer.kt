@@ -53,22 +53,24 @@ internal class LibraryToolWindowInitializer : ProjectActivity {
     }
     val toolWindowManager = ToolWindowManagerEx.getInstanceEx(project)
     val checkerName = AndroidEnvironmentChecker::class.qualifiedName
-    LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions
-      .filter { it.librarySearchClass == checkerName && toolWindowManager.getToolWindow(it.id) == null }
-      .forEach { extension ->
-        toolWindowManager.initToolWindow(project, extension)
-        // showOnStripeByDefault is deprecated due to the New UI not supporting it. We still want to use it until old UI is removed.
-        if (!extension.showOnStripeByDefault) {
-          val toolWindow = toolWindowManager.getToolWindow(extension.id)
-          if (toolWindow != null) {
-            @Suppress("UnstableApiUsage") // Internal API
-            val windowInfo = toolWindowManager.getLayout().getInfo(extension.id)
-            if (windowInfo != null && !windowInfo.isFromPersistentSettings) {
-              toolWindow.isShowStripeButton = false
+    withContext(Dispatchers.EDT) {
+      LibraryDependentToolWindow.EXTENSION_POINT_NAME.extensions
+        .filter { it.librarySearchClass == checkerName && toolWindowManager.getToolWindow(it.id) == null }
+        .forEach { extension ->
+          toolWindowManager.initToolWindow(project, extension)
+          // showOnStripeByDefault is deprecated due to the New UI not supporting it. We still want to use it until old UI is removed.
+          if (!extension.showOnStripeByDefault) {
+            val toolWindow = toolWindowManager.getToolWindow(extension.id)
+            if (toolWindow != null) {
+              @Suppress("UnstableApiUsage") // Internal API
+              val windowInfo = toolWindowManager.getLayout().getInfo(extension.id)
+              if (windowInfo != null && !windowInfo.isFromPersistentSettings) {
+                toolWindow.isShowStripeButton = false
+              }
             }
           }
         }
-      }
+    }
   }
 }
 
@@ -80,7 +82,7 @@ internal class LibraryToolWindowInitializer : ProjectActivity {
  *
  * Based on the deprecated implementation.
  */
-private suspend fun ToolWindowManager.initToolWindow(project: Project, bean: ToolWindowEP) {
+private fun ToolWindowManager.initToolWindow(project: Project, bean: ToolWindowEP) {
   val plugin = bean.pluginDescriptor
   val condition = bean.getCondition(plugin)
   if (condition != null && !condition.value(project)) {
@@ -97,20 +99,18 @@ private suspend fun ToolWindowManager.initToolWindow(project: Project, bean: Too
 
   @Suppress("DEPRECATION")
   val sideTool = bean.secondary || bean.side
-  withContext(Dispatchers.EDT) {
-    @Suppress("UnstableApiUsage")
-    registerToolWindow(
-      RegisterToolWindowTask(
-        id = bean.id,
-        icon = findIconFromBean(bean, factory, plugin),
-        anchor = anchor,
-        sideTool = sideTool,
-        canCloseContent = bean.canCloseContents,
-        canWorkInDumbMode = DumbService.isDumbAware(factory),
-        shouldBeAvailable = factory.shouldBeAvailable(project),
-        contentFactory = factory,
-        stripeTitle = getStripeTitleSupplier(bean.id, project, plugin)
-      )
+  @Suppress("UnstableApiUsage")
+  registerToolWindow(
+    RegisterToolWindowTask(
+      id = bean.id,
+      icon = findIconFromBean(bean, factory, plugin),
+      anchor = anchor,
+      sideTool = sideTool,
+      canCloseContent = bean.canCloseContents,
+      canWorkInDumbMode = DumbService.isDumbAware(factory),
+      shouldBeAvailable = factory.shouldBeAvailable(project),
+      contentFactory = factory,
+      stripeTitle = getStripeTitleSupplier(bean.id, project, plugin)
     )
-  }
+  )
 }
