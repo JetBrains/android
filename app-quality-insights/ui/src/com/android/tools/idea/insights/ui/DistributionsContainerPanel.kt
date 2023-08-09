@@ -111,6 +111,10 @@ class DistributionsContainerPanel(scope: CoroutineScope, insightsState: Flow<App
                     }
                   }
                 }
+                is LoadingState.NetworkFailure -> {
+                  isDataAvailable = false
+                  emptyText.text = "Data not available while offline."
+                }
                 is LoadingState.Failure -> {
                   isDataAvailable = false
                   emptyText.text = statsState.message ?: "Unknown failure"
