@@ -32,6 +32,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import kotlinx.coroutines.delay
+import org.jetbrains.android.util.AndroidBundle
 
 
 class EssentialsModeRecommender : ProjectActivity {
@@ -51,8 +52,8 @@ class EssentialsModeRecommender : ProjectActivity {
 
 
     val notification = notificationGroup.createNotification(
-      "Switch to Essentials Mode?",
-      "Improve performance by limiting background functionality until receiving a file saving action.",
+      AndroidBundle.message("essentials.mode.recommendation.title"),
+      AndroidBundle.message("essentials.mode.recommendation.content"),
       com.intellij.notification.NotificationType.INFORMATION
     )
     notification.addAction(EssentialsModeResponseYes())

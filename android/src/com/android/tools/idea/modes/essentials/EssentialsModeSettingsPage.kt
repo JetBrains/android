@@ -34,7 +34,8 @@ class EssentialsModeSettingsPage : BoundConfigurable("Essentials Mode"), Searcha
         row {
           checkBox("Enable Essentials Mode")
             .bindSelected({ EssentialsMode.isEnabled() }, { EssentialsMode.setEnabled(it, null) })
-          rowComment("Essentials mode turns on Essential Highlighting which waits to perform code highlighting " +
+          rowComment("Switching to Essentials Mode may improve IDE performance. " +
+                     "Essentials mode turns on Essential Highlighting which waits to perform code highlighting " +
                      "and analysis until receiving a file saving action. File saving actions can " +
                      "occur explicitly by invoking it via ${KeymapUtil.getShortcutText("SaveAll")} or from the menu by " +
                      "navigating to File \u2192 Save All. " +
