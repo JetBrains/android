@@ -46,6 +46,7 @@ import com.android.tools.idea.testing.CrashReporterRule
 import com.android.tools.idea.testing.executeCapturingLoggedErrors
 import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.mockStatic
+import com.android.tools.idea.testing.override
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION
 import com.intellij.ide.ClipboardSynchronizer
@@ -166,10 +167,15 @@ internal class DeviceViewTest {
 
   @Before
   fun setUp() {
+    BitRateManager.getInstance().clear()
     device = agentRule.connectDevice("Pixel 5", 30, Dimension(1080, 2340))
     StudioFlags.STREAMING_HARDWARE_INPUT_BUTTON.override(true, testRootDisposable)
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider(TestDataProvider(project), testRootDisposable)
     focusManager = FakeKeyboardFocusManager(testRootDisposable)
+  }
+
+  fun tearDown() {
+    BitRateManager.getInstance().clear()
   }
 
   @Test
@@ -578,6 +584,60 @@ internal class DeviceViewTest {
     waitForCondition(2, SECONDS) { ClipboardSynchronizer.getInstance().getData(DataFlavor.stringFlavor) == "device clipboard" }
     settings.synchronizeClipboard = false
     assertThat(agent.getNextControlMessage(2, SECONDS)).isEqualTo(StopClipboardSyncMessage.instance)
+  }
+
+  @Test
+  fun testBitRateReduction() {
+    createDeviceView(500, 1000, screenScale = 1.0)
+    waitForFrame()
+
+    agent.bitRate = 2000000
+    runBlocking { agent.renderDisplay(1) }
+    waitForFrame()
+    assertThat(BitRateManager.getInstance().toXmlString()).isEqualTo(
+        "<BitRateManager>\n" +
+        "  <option name=\"bitRateTrackers\">\n" +
+        "    <map>\n" +
+        "      <entry key=\"Google|Pixel 5|arm64-v8a|30\">\n" +
+        "        <value>\n" +
+        "          <BitRateTracker>\n" +
+        "            <candidates>\n" +
+        "              <CandidateBitRate>\n" +
+        "                <option name=\"bitRate\" value=\"2000000\" />\n" +
+        "                <option name=\"score\" value=\"334\" />\n" +
+        "              </CandidateBitRate>\n" +
+        "            </candidates>\n" +
+        "          </BitRateTracker>\n" +
+        "        </value>\n" +
+        "      </entry>\n" +
+        "    </map>\n" +
+        "  </option>\n" +
+        "</BitRateManager>")
+
+    ::BIT_RATE_STABILITY_FRAME_COUNT.override(3, testRootDisposable) // Replace with a smaller value to speed up test.
+    for (i in 0 until BIT_RATE_STABILITY_FRAME_COUNT) {
+      runBlocking { agent.renderDisplay(1) }
+      waitForFrame()
+    }
+    assertThat(BitRateManager.getInstance().toXmlString()).isEqualTo(
+        "<BitRateManager>\n" +
+        "  <option name=\"bitRateTrackers\">\n" +
+        "    <map>\n" +
+        "      <entry key=\"Google|Pixel 5|arm64-v8a|30\">\n" +
+        "        <value>\n" +
+        "          <BitRateTracker>\n" +
+        "            <candidates>\n" +
+        "              <CandidateBitRate>\n" +
+        "                <option name=\"bitRate\" value=\"2000000\" />\n" +
+        "                <option name=\"score\" value=\"334\" />\n" +
+        "              </CandidateBitRate>\n" +
+        "            </candidates>\n" +
+        "          </BitRateTracker>\n" +
+        "        </value>\n" +
+        "      </entry>\n" +
+        "    </map>\n" +
+        "  </option>\n" +
+        "</BitRateManager>")
   }
 
   @Test

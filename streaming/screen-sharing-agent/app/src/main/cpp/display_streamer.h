@@ -74,11 +74,14 @@ private:
   };
 
   void Run();
+  // Returns true if the streaming should continue, otherwise false.
   bool ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPacketHeader* packet_header, const AMediaFormat* sync_frame_request);
   void StopCodec();
   void StopCodecUnlocked();  // REQUIRES(mutex_)
   bool IsCodecRunning();
   void StopCodecAndWaitForThreadToTerminate();
+  // Returns true if the bit rate was deduced, false if it already reached allowed minimum.
+  bool ReduceBitRate();
 
   virtual void OnDisplayAdded(int32_t display_id);
   virtual void OnDisplayRemoved(int32_t display_id);
@@ -91,7 +94,8 @@ private:
   CodecInfo* codec_info_ = nullptr;
   int socket_fd_;
   int64_t presentation_timestamp_offset_ = 0;
-  int32_t max_bit_rate_;
+  int32_t bit_rate_;
+  bool bit_rate_reduced_ = false;
   int32_t consequent_deque_error_count_ = 0;
   std::atomic_bool streamer_stopped_ = true;
 

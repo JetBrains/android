@@ -24,12 +24,10 @@
 namespace screensharing {
 
 std::string VideoPacketHeader::ToDebugString() const {
-  return StringPrintf("display_id:%d display_width:%d display_height:%d orientation:%d orientation_correction:%d display_round:%d"
-                      " frame_number:%" PRId64 " origination_timestamp_us:%" PRId64 " presentation_timestamp_us:%" PRId64
-                      " packet_size:%d",
-                      display_id, display_width, display_height, display_orientation, display_orientation_correction, display_round,
-                      frame_number, origination_timestamp_us, presentation_timestamp_us,
-                      packet_size);
+  return StringPrintf("display_id:%d display_width:%d display_height:%d orientation:%d orientation_correction:%d flags:%d bit_rate=%d"
+                      " frame_number:%u origination_timestamp_us:%" PRId64 " presentation_timestamp_us:%" PRId64 " packet_size:%d",
+                      display_id, display_width, display_height, display_orientation, display_orientation_correction, flags,
+                      bit_rate, frame_number, origination_timestamp_us, presentation_timestamp_us, packet_size);
 }
 
 size_t VideoPacketHeader::SIZE = offsetof(VideoPacketHeader, packet_size) + sizeof(packet_size);

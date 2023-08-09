@@ -23,6 +23,7 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
+import com.android.tools.idea.streaming.core.putUInt
 import com.android.tools.idea.streaming.core.rotatedByQuadrants
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128OutputStream
@@ -154,6 +155,14 @@ class FakeScreenSharingAgent(
   @Volatile
   var videoStreamActive: Boolean = false
     private set
+  @Volatile
+  var bitRate: Int = DEFAULT_BIT_RATE
+    set(value) {
+      field = value
+      agentsScope.launch {
+        displayStreamer?.bitRate = value
+      }
+    }
 
   private var maxVideoResolution = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
   private var displayOrientation = 0
@@ -186,7 +195,7 @@ class FakeScreenSharingAgent(
       }
       videoChannel.write(ByteBuffer.wrap("V".toByteArray()))
       controlChannel.write(ByteBuffer.wrap("C".toByteArray()))
-      val displayStreamer = DisplayStreamer(videoChannel)
+      val displayStreamer = DisplayStreamer(videoChannel, bitRate)
       this@FakeScreenSharingAgent.displayStreamer = displayStreamer
       val controller = Controller(controlChannel)
       this@FakeScreenSharingAgent.controller = controller
@@ -443,7 +452,7 @@ class FakeScreenSharingAgent(
     controller?.sendNotification(message)
   }
 
-  private inner class DisplayStreamer(private val channel: SuspendingSocketChannel) : Disposable {
+  private inner class DisplayStreamer(private val channel: SuspendingSocketChannel, initialBitRate: Int) : Disposable {
 
     private val codecName = nullize(StudioFlags.DEVICE_MIRRORING_VIDEO_CODEC.get()) ?: "vp8"
     private val encoder: AVCodec by lazy {
@@ -460,7 +469,10 @@ class FakeScreenSharingAgent(
 
       avcodec_find_encoder(codecId) ?: throw RuntimeException("$codecName encoder not found")
     }
-    private val packetHeader = VideoPacketHeader(displayId, displaySize, roundDisplay)
+    private val packetHeader = VideoPacketHeader(displayId, displaySize, initialBitRate, roundDisplay)
+    var bitRate: Int
+      get() = packetHeader.bitRate
+      set(value) { packetHeader.bitRate = value }
     private var presentationTimestampOffset = 0L
     private var lastImageFlavor: Int = 0
     @Volatile var stopped = false
@@ -602,11 +614,11 @@ class FakeScreenSharingAgent(
         packetHeader.displaySize.size = getFoldedDisplaySize()
         packetHeader.displayOrientation = displayOrientation
         packetHeader.displayOrientationCorrection = displayOrientationCorrection
-        packetHeader.frameNumber = (++frameNumber).toLong()
+        packetHeader.frameNumber = ++frameNumber
         val packetSize = packet.size()
         val packetData = packet.data().asByteBufferOfSize(packetSize)
         packetHeader.packetSize = packetSize
-        val buffer = ByteBuffer.allocate(VideoPacketHeader.WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
+        val buffer = VideoPacketHeader.createBuffer(packetSize)
         packetHeader.serialize(buffer)
         buffer.put(packetData)
         buffer.flip()
@@ -665,10 +677,19 @@ class FakeScreenSharingAgent(
       BytePointer(this).apply { capacity(size.toLong()) }.asByteBuffer()
   }
 
-  private class VideoPacketHeader(val displayId: Int, val displaySize: Dimension, val roundDisplay: Boolean = false) {
+  private class VideoPacketHeader(val displayId: Int, val displaySize: Dimension, bitRate: Int, val roundDisplay: Boolean = false) {
+
     var displayOrientation: Int = 0
     var displayOrientationCorrection: Int = 0
-    var frameNumber: Long = 0
+    var bitRateReduced: Boolean = false
+    var bitRate: Int = bitRate
+      set(value) {
+        if (value < field) {
+          bitRateReduced = true
+        }
+        field = value
+      }
+    var frameNumber: UInt = 0u
     var originationTimestampUs: Long = 0
     var presentationTimestampUs: Long = 0
     var packetSize: Int = 0
@@ -679,22 +700,35 @@ class FakeScreenSharingAgent(
       buffer.putInt(displaySize.height)
       buffer.put(displayOrientation.toByte())
       buffer.put(displayOrientationCorrection.toByte())
-      buffer.putShort(if (roundDisplay) 1 else 0)
-      buffer.putLong(frameNumber)
+      buffer.putShort(((if (roundDisplay) FLAG_DISPLAY_ROUND else 0) or (if (bitRateReduced) FLAG_BIT_RATE_REDUCED else 0)).toShort())
+      buffer.putInt(bitRate)
+      buffer.putUInt(frameNumber)
       buffer.putLong(originationTimestampUs)
       buffer.putLong(presentationTimestampUs)
       buffer.putInt(packetSize)
+
+      bitRateReduced = false
     }
 
     companion object {
-      const val WIRE_SIZE =
+      fun createBuffer(packetSize: Int): ByteBuffer =
+          ByteBuffer.allocate(WIRE_SIZE + packetSize).order(LITTLE_ENDIAN)
+
+      // Flag definitions from video_packet_header.h.
+      /** Device display is round. */
+      private const val FLAG_DISPLAY_ROUND = 0x01
+      /** Bit rate reduced compared to the previous frame or, for the very first flame, to the initial value. */
+      private const val FLAG_BIT_RATE_REDUCED = 0x02
+
+      private const val WIRE_SIZE =
           4 + // displayId
           4 + // width
           4 + // height
           1 + // displayOrientation
           1 + // displayOrientationCorrection
-          2 + // displayRound
-          8 + // frameNumber
+          2 + // flags
+          4 + // bitRate
+          4 + // frameNumber
           8 + // originationTimestampUs
           8 + // presentationTimestampUs
           4   // packetSize
@@ -854,6 +888,7 @@ private val COLOR_SCHEMES = listOf(ColorScheme(Color(236, 112, 99), Color(250, 2
                                    ColorScheme(Color(181, 99, 236), Color(236, 216, 250), Color(215, 241, 212), Color(95, 199, 84)))
 
 private const val FRAME_RATE = 60
+private const val DEFAULT_BIT_RATE = 10000000
 private const val CHANNEL_HEADER_LENGTH = 20
 private const val CONTROL_MSG_BUFFER_SIZE = 4096
 private const val MIN_VIDEO_RESOLUTION = 128.0

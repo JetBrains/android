@@ -41,28 +41,33 @@ struct CodecInfo {
   std::string name;
   Size max_resolution;
   Size size_alignment;
+  int32_t max_frame_rate;
 
-  CodecInfo(std::string mime_type, std::string name, Size max_resolution, Size size_alignment)
+  CodecInfo(std::string mime_type, std::string name, Size max_resolution, Size size_alignment, int32_t max_frame_rate)
       : mime_type(std::move(mime_type)),
         name(std::move(name)),
         max_resolution(max_resolution),
-        size_alignment(size_alignment) {
+        size_alignment(size_alignment),
+        max_frame_rate(max_frame_rate) {
   }
 };
 
 namespace {
 
-constexpr int MAX_SUBSEQUENT_ERRORS = 10;
+constexpr int MAX_SUBSEQUENT_ERRORS = 5;
 constexpr int MIN_VIDEO_RESOLUTION = 128;
 constexpr int COLOR_FormatSurface = 0x7F000789;  // See android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface.
-constexpr int BIT_RATE = 8000000;
-constexpr int BIT_RATE_REDUCED = 1000000;
+constexpr int MAX_FRAME_RATE = 60;
+constexpr int DEFAULT_BIT_RATE = 10000000;
+constexpr int MIN_BIT_RATE = 100000;
 constexpr int I_FRAME_INTERVAL_SECONDS = 10;
 constexpr int REPEAT_FRAME_DELAY_MILLIS = 100;
 constexpr int CHANNEL_HEADER_LENGTH = 20;
 constexpr char const* AMEDIACODEC_KEY_REQUEST_SYNC_FRAME = "request-sync";  // Introduced in API 31.
 constexpr char const* AMEDIAFORMAT_KEY_COLOR_STANDARD = "color-standard";  // Introduced in API 28.
 constexpr int COLOR_STANDARD_BT601_NTSC = 4;  // See android.media.MediaFormat.COLOR_STANDARD_BT601_NTSC.
+constexpr double SQRT_2 = 1.41421356237;
+constexpr double SQRT_10 = 3.16227766017;
 
 struct CodecOutputBuffer {
   explicit CodecOutputBuffer(AMediaCodec* codec)
@@ -112,17 +117,27 @@ struct CodecOutputBuffer {
   size_t size;
 };
 
-bool IsUnderpoweredCodec(Size codec_resolution, Size display_resolution) {
-  int32_t resolution = min(codec_resolution.width, codec_resolution.height);
-  return resolution < 1024 || (Agent::api_level() < 32 && resolution < max(display_resolution.width, display_resolution.height));
+// Rounds the given number to the closest on logarithmic scale value of the for n * 10^k,
+// where n is one of 1, 2 or 5 and k is integer number.
+int32_t RoundToOneTwoFiveScale(double x) {
+  double exp = floor(log10(x));
+  double u = pow(10, exp);
+  double f = x / u;
+  int n =
+      f < SQRT_2 ?
+        1 :
+      f < SQRT_10 ?
+        2 :
+      f < 5 * SQRT_2 ?
+        5 :
+        10;
+  return n * round<int32_t>(u);
 }
 
 AMediaFormat* CreateMediaFormat(const string& mime_type) {
   AMediaFormat* media_format = AMediaFormat_new();
   AMediaFormat_setString(media_format, AMEDIAFORMAT_KEY_MIME, mime_type.c_str());
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_COLOR_FORMAT, COLOR_FormatSurface);
-  // Does not affect the actual frame rate, but must be present.
-  AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_FRAME_RATE, 60);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_I_FRAME_INTERVAL, I_FRAME_INTERVAL_SECONDS);
   AMediaFormat_setInt64(media_format, AMEDIAFORMAT_KEY_REPEAT_PREVIOUS_FRAME_AFTER, REPEAT_FRAME_DELAY_MILLIS * 1000);
   if (mime_type == "video/x-vnd.on2.vp8") {
@@ -147,7 +162,8 @@ CodecInfo* SelectVideoEncoder(const string& mime_type) {
   int max_height = codec_info.GetIntField(clazz.GetFieldId("maxHeight", "I"));
   int width_alignment = codec_info.GetIntField(clazz.GetFieldId("widthAlignment", "I"));
   int height_alignment = codec_info.GetIntField(clazz.GetFieldId("heightAlignment", "I"));
-  return new CodecInfo(mime_type, codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment));
+  int max_frame_rate = codec_info.GetIntField(clazz.GetFieldId("maxFrameRate", "I"));
+  return new CodecInfo(mime_type, codec_name, Size(max_width, max_height), Size(width_alignment, height_alignment), max_frame_rate);
 }
 
 string GetVideoEncoderDetails(const CodecInfo& codec_info, int32_t width, int32_t height) {
@@ -163,11 +179,11 @@ string GetVideoEncoderDetails(const CodecInfo& codec_info, int32_t width, int32_
   return details.ToString();
 }
 
-[[noreturn]] void FatalVideoEncoderError(const char* error_message, const CodecInfo& codec_info, int32_t width, int32_t height) {
-  if (codec_info.max_resolution.width <= 640 && codec_info.max_resolution.height <= 640) {
-    Log::Fatal(WEAK_VIDEO_ENCODER, "%s:\n%s", error_message, GetVideoEncoderDetails(codec_info, width, height).c_str());
+[[noreturn]] void FatalVideoEncoderError(const char* error_message, const char* video_encoder_details, int32_t bit_rate) {
+  if (bit_rate <= MIN_BIT_RATE) {
+    Log::Fatal(WEAK_VIDEO_ENCODER, "%s:\n%s", error_message, video_encoder_details);
   }
-  Log::Fatal(REPEATED_VIDEO_ENCODER_ERRORS, "%s:\n%s", error_message, GetVideoEncoderDetails(codec_info, width, height).c_str());
+  Log::Fatal(REPEATED_VIDEO_ENCODER_ERRORS, "%s:\n%s", error_message, video_encoder_details);
 }
 
 void WriteChannelHeader(const string& codec_name, int socket_fd) {
@@ -214,13 +230,13 @@ Size ComputeVideoSize(Size rotated_display_size, const CodecInfo& codec_info, Si
   return Size { width, height };
 }
 
-Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_video_resolution, AMediaFormat* media_format,
-                    const DisplayInfo& display_info) {
+Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_video_resolution, int32_t bit_rate,
+                    AMediaFormat* media_format, const DisplayInfo& display_info) {
   Size video_size = ComputeVideoSize(display_info.logical_size, codec_info, max_video_resolution);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_WIDTH, video_size.width);
   AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_HEIGHT, video_size.height);
-  int32_t bit_rate = 0;
-  AMediaFormat_getInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, &bit_rate);
+  AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_FRAME_RATE, min(codec_info.max_frame_rate, MAX_FRAME_RATE));
+  AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, bit_rate);
   media_status_t status = AMediaCodec_configure(codec, media_format, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
   if (status != AMEDIA_OK) {
     Log::Fatal(VIDEO_ENCODER_CONFIGURATION_ERROR, "AMediaCodec_configure returned %d for video_size=%dx%d bit rate=%d",
@@ -238,7 +254,7 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, string codec_name, Size max
       display_id_(display_id),
       codec_name_(std::move(codec_name)),
       socket_fd_(socket_fd),
-      max_bit_rate_(max_bit_rate),
+      bit_rate_(max_bit_rate > 0 ? max_bit_rate : DEFAULT_BIT_RATE),
       max_video_resolution_(max_video_resolution),
       video_orientation_(initial_video_orientation) {
   assert(socket_fd > 0);
@@ -315,9 +331,9 @@ void DisplayStreamer::Run() {
   DisplayManager::RegisterDisplayListener(jni, this);
   VideoPacketHeader packet_header = { .display_id = display_id_, .frame_number = 1};
 
-  bool end_of_stream = false;
+  bool continue_streaming = true;
   consequent_deque_error_count_ = 0;
-  while (!streamer_stopped_ && !end_of_stream && !Agent::IsShuttingDown()) {
+  while (continue_streaming && !streamer_stopped_ && !Agent::IsShuttingDown()) {
     AMediaCodec* codec = AMediaCodec_createCodecByName(codec_info_->name.c_str());
     if (codec == nullptr) {
       Log::Fatal(VIDEO_ENCODER_INITIALIZATION_ERROR, "Unable to create a %s video encoder", codec_info_->name.c_str());
@@ -336,12 +352,6 @@ void DisplayStreamer::Run() {
         Log::Fatal(VIRTUAL_DISPLAY_CREATION_ERROR, "Unable to create a virtual display");
       }
     }
-    // Use heuristics for determining a bit rate value that doesn't cause SIGABRT in the encoder (b/251659422).
-    int32_t bit_rate = IsUnderpoweredCodec(codec_info_->max_resolution, display_info.logical_size) ? BIT_RATE_REDUCED : BIT_RATE;
-    if (max_bit_rate_ > 0 && bit_rate > max_bit_rate_) {
-      bit_rate = max_bit_rate_;
-    }
-    AMediaFormat_setInt32(media_format, AMEDIAFORMAT_KEY_BIT_RATE, bit_rate);
     ANativeWindow* surface = nullptr;
     {
       scoped_lock lock(mutex_);
@@ -353,7 +363,8 @@ void DisplayStreamer::Run() {
         display_info.rotation = 0;
         rotation_correction = 2;
       }
-      Size video_size = ConfigureCodec(codec, *codec_info_, max_video_resolution_.Rotated(rotation_correction), media_format, display_info);
+      Size video_size =
+          ConfigureCodec(codec, *codec_info_, max_video_resolution_.Rotated(rotation_correction), bit_rate_, media_format, display_info);
       Log::D("rotation=%d rotation_correction = %d video_size = %dx%d",
              display_info.rotation, rotation_correction, video_size.width, video_size.height);
       media_status_t status = AMediaCodec_createInputSurface(codec, &surface);  // Requires API 26.
@@ -375,11 +386,14 @@ void DisplayStreamer::Run() {
       packet_header.display_height = display_size.height;
       packet_header.display_orientation = NormalizeRotation(display_info.rotation + rotation_correction);
       packet_header.display_orientation_correction = NormalizeRotation(rotation_correction);
-      packet_header.display_round = (display_info.flags & DisplayInfo::FLAG_ROUND) ? 1 : 0;
+      packet_header.flags =
+          ((display_info.flags & DisplayInfo::FLAG_ROUND) ? VideoPacketHeader::FLAG_DISPLAY_ROUND : 0) |
+          (bit_rate_reduced_ ? VideoPacketHeader::FLAG_BIT_RATE_REDUCED : 0);
+      packet_header.bit_rate = bit_rate_;
     }
     AMediaFormat* sync_frame_request = AMediaFormat_new();
     AMediaFormat_setInt32(sync_frame_request, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
-    end_of_stream = ProcessFramesUntilCodecStopped(codec, &packet_header, sync_frame_request);
+    continue_streaming = ProcessFramesUntilCodecStopped(codec, &packet_header, sync_frame_request);
     StopCodec();
     AMediaFormat_delete(sync_frame_request);
     if (virtual_display.HasDisplay()) {
@@ -395,33 +409,37 @@ void DisplayStreamer::Run() {
   WindowManager::RemoveRotationWatcher(jni, &display_rotation_watcher_);
   DisplayManager::UnregisterDisplayListener(jni, this);
 
-  if (end_of_stream) {
+  if (!continue_streaming) {
     Agent::Shutdown();
   }
 }
 
 bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPacketHeader* packet_header,
                                                      const AMediaFormat* sync_frame_request) {
-  bool end_of_stream = false;
+  bool continue_streaming = true;
   bool first_frame_after_start = true;
-  while (!end_of_stream && IsCodecRunning()) {
+  while (continue_streaming && IsCodecRunning()) {
     CodecOutputBuffer codec_buffer(codec);
     if (!codec_buffer.Deque(-1)) {
-      if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS) {
-        FatalVideoEncoderError("Too many video encoder errors", *codec_info_, packet_header->display_width, packet_header->display_height);
+      if (++consequent_deque_error_count_ >= MAX_SUBSEQUENT_ERRORS && !ReduceBitRate()) {
+        FatalVideoEncoderError("Too many video encoder errors",
+                               GetVideoEncoderDetails(*codec_info_, packet_header->display_width, packet_header->display_height).c_str(),
+                               bit_rate_);
       }
       continue;
     }
+
     consequent_deque_error_count_ = 0;
-    end_of_stream = codec_buffer.IsEndOfStream();
+    continue_streaming = !codec_buffer.IsEndOfStream();
     if (!IsCodecRunning()) {
-      return false;
+      return true;
     }
     // Skip an AV1-specific data packet that is not a part of AV1 bitstream.
     // See https://aomediacodec.github.io/av1-spec/#obu-header-semantics.
     if (codec_info_->mime_type == "video/av01" && (*codec_buffer.buffer & 0x80) != 0) {
       continue;
     }
+
     if (first_frame_after_start) {
       // Request another sync frame to prevent a green bar that sometimes appears at the bottom
       // of the first frame.
@@ -453,13 +471,14 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
       if (errno != EBADF && errno != EPIPE) {
         Log::Fatal(SOCKET_IO_ERROR, "Error writing to video socket - %s", strerror(errno));
       }
-      end_of_stream = true;
+      continue_streaming = false;
     }
     if (!codec_buffer.IsConfig()) {
       packet_header->frame_number++;
     }
+    bit_rate_reduced_ = false;
   }
-  return end_of_stream;
+  return continue_streaming;
 }
 
 void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
@@ -527,6 +546,17 @@ void DisplayStreamer::StopCodecUnlocked() {
 bool DisplayStreamer::IsCodecRunning() {
   scoped_lock lock(mutex_);
   return running_codec_ != nullptr;
+}
+
+bool DisplayStreamer::ReduceBitRate() {
+  if (bit_rate_ <= MIN_BIT_RATE) {
+    return false;
+  }
+  StopCodec();
+  bit_rate_ = RoundToOneTwoFiveScale(bit_rate_ / 2);
+  bit_rate_reduced_ = true;
+  Log::I("Bit rate reduced to %d", bit_rate_);
+  return true;
 }
 
 DisplayStreamer::DisplayRotationWatcher::DisplayRotationWatcher(DisplayStreamer* display_streamer)

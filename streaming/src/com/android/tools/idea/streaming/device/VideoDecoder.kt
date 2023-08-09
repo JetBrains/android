@@ -17,8 +17,10 @@ package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
+import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ImageUtils.ellipticalClip
+import com.android.tools.idea.streaming.core.getUInt
 import com.android.tools.idea.streaming.core.rotatedByQuadrants
 import com.android.tools.idea.streaming.core.scaled
 import com.intellij.openapi.diagnostic.debug
@@ -65,6 +67,7 @@ import org.bytedeco.javacpp.DoublePointer
 import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer
 import org.bytedeco.javacpp.Pointer.memcpy
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.color.ColorSpace
@@ -86,12 +89,14 @@ internal class VideoDecoder(
   private val videoChannel: SuspendingSocketChannel,
   private val decoderScope: CoroutineScope,
   @Volatile var maxOutputSize: Dimension,
+  private val deviceProperties: DeviceProperties,
 ) {
 
   private val imageLock = Any()
   @GuardedBy("imageLock")
   private var displayFrame: VideoFrame? = null
   private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
+  private var framesAtBitRate: Int = 0
 
   fun addFrameListener(listener: FrameListener) {
     frameListeners.add(listener)
@@ -340,7 +345,7 @@ internal class VideoDecoder(
       synchronized(imageLock) {
         var image = displayFrame?.image
         if (image?.width == frameWidth && image.height == imageHeight &&
-            displayFrame?.orientationCorrection == 0 && header.displayOrientationCorrection == 0 && !header.displayRound) {
+            displayFrame?.orientationCorrection == 0 && header.displayOrientationCorrection == 0 && !header.isDisplayRound) {
           val imagePixels = (image.raster.dataBuffer as DataBufferInt).data
           framePixels.get(imagePixels, 0, imageHeight * frameWidth)
         }
@@ -351,16 +356,29 @@ internal class VideoDecoder(
           val sampleModel = SinglePixelPackedSampleModel(DataBuffer.TYPE_INT, frameWidth, imageHeight, SAMPLE_MODEL_BIT_MASKS)
           val raster = Raster.createWritableRaster(sampleModel, buffer, ZERO_POINT)
           image = ImageUtils.rotateByQuadrants(BufferedImage(COLOR_MODEL, raster, false, null), header.displayOrientationCorrection)
-          if (header.displayRound) {
+          if (header.isDisplayRound) {
             image = ellipticalClip(image, null)
           }
         }
 
         displayFrame = VideoFrame(image, header.displaySize, header.displayOrientation, header.displayOrientationCorrection,
-                                  header.displayRound, header.frameNumber, header.originationTimestampUs / 1000)
+                                  header.isDisplayRound, header.frameNumber, header.originationTimestampUs / 1000)
       }
 
       onNewFrameAvailable()
+
+      if (deviceProperties.isVirtual == false) {
+        if (header.isBitRateReduced) {
+          BitRateManager.getInstance().bitRateReduced(header.bitRate, deviceProperties)
+          framesAtBitRate = 1
+          thisLogger().info("${deviceProperties.title} bit rate: ${header.bitRate}")
+        }
+        else {
+          if (++framesAtBitRate % BIT_RATE_STABILITY_FRAME_COUNT == 0) {
+            BitRateManager.getInstance().bitRateStable(header.bitRate, deviceProperties)
+          }
+        }
+      }
     }
 
     private fun getSwsContext(renderingFrame: AVFrame): SwsContext {
@@ -387,31 +405,25 @@ internal class VideoDecoder(
     val displayOrientation: Int,
     /** The difference between [displayOrientation] and the orientation according to the DisplayInfo Android data structure. */
     val displayOrientationCorrection: Int,
-    val displayRound: Boolean,
+    private val flags: Int,
     val frameNumber: UInt,
     val originationTimestampUs: Long,
     val presentationTimestampUs: Long,
+    val bitRate: Int,
     val packetSize: Int,
   ) {
 
-    companion object {
-      fun deserialize(buffer: ByteBuffer): PacketHeader {
-        val displayId = buffer.getInt()
-        val width = buffer.getInt()
-        val height = buffer.getInt()
-        val displayOrientation = buffer.get().toInt()
-        val displayOrientationCorrection = buffer.get().toInt()
-        val displayRound = buffer.getShort().toInt() != 0
-        val frameNumber = buffer.getLong().toUInt()
-        val originationTimestampUs = buffer.getLong()
-        val presentationTimestampUs = buffer.getLong()
-        val packetSize = buffer.getInt()
-        return PacketHeader(displayId, Dimension(width, height), displayOrientation, displayOrientationCorrection, displayRound,
-                            frameNumber, originationTimestampUs, presentationTimestampUs, packetSize)
-      }
+    val isDisplayRound: Boolean
+      get() = (flags and FLAG_DISPLAY_ROUND) != 0
+    val isBitRateReduced: Boolean
+      get() = (flags and FLAG_BIT_RATE_REDUCED) != 0
 
-      fun createBuffer(): ByteBuffer =
-          ByteBuffer.allocate(WIRE_SIZE).order(LITTLE_ENDIAN)
+    companion object {
+      // Flag definitions from video_packet_header.h.
+      /** Device display is round. */
+      private const val FLAG_DISPLAY_ROUND = 0x01
+      /** Bit rate reduced compared to the previous frame or, for the very first flame, to the initial value. */
+      private const val FLAG_BIT_RATE_REDUCED = 0x02
 
       private const val WIRE_SIZE =
           4 + // displayId
@@ -419,11 +431,31 @@ internal class VideoDecoder(
           4 + // height
           1 + // displayOrientation
           1 + // displayOrientationCorrection
-          2 + // displayRound
-          8 + // frameNumber
+          2 + // flags
+          4 + // bitRate
+          4 + // frameNumber
           8 + // originationTimestampUs
           8 + // presentationTimestampUs
           4   // packetSize
+
+      fun deserialize(buffer: ByteBuffer): PacketHeader {
+        val displayId = buffer.getInt()
+        val width = buffer.getInt()
+        val height = buffer.getInt()
+        val displayOrientation = buffer.get().toInt()
+        val displayOrientationCorrection = buffer.get().toInt()
+        val flags = buffer.getShort().toInt()
+        val bitRate = buffer.getInt()
+        val frameNumber = buffer.getUInt()
+        val originationTimestampUs = buffer.getLong()
+        val presentationTimestampUs = buffer.getLong()
+        val packetSize = buffer.getInt()
+        return PacketHeader(displayId, Dimension(width, height), displayOrientation, displayOrientationCorrection, flags,
+                            frameNumber, originationTimestampUs, presentationTimestampUs, bitRate, packetSize)
+      }
+
+      fun createBuffer(): ByteBuffer =
+          ByteBuffer.allocate(WIRE_SIZE).order(LITTLE_ENDIAN)
     }
   }
 }
@@ -437,6 +469,9 @@ private fun AVPacket.toDebugString(): String =
   "packet size=${size()}, flags=0x${Integer.toHexString(flags())} pts=0x${toHexString(pts())} dts=${toHexString(dts())}"
 
 private const val CHANNEL_HEADER_LENGTH = 20
+/** Number of frames to be received before considering bit rate to be stable. */
+@VisibleForTesting // Visible and mutable for testing.
+internal var BIT_RATE_STABILITY_FRAME_COUNT = 1000
 
 private val ZERO_POINT = Point()
 private const val ALPHA_MASK = 0xFF shl 24

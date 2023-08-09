@@ -70,6 +70,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.min
 
 // Predefined agent's exit codes. Other exit codes are possible.
 internal const val AGENT_GENERIC_FAILURE = 1
@@ -210,7 +211,7 @@ internal class DeviceClient(
     catch (e: IncorrectOperationException) {
       return // Already disposed.
     }
-    videoDecoder = VideoDecoder(videoChannel, clientScope, maxVideoSize).apply { start() }
+    videoDecoder = VideoDecoder(videoChannel, clientScope, maxVideoSize, deviceConfig.deviceProperties).apply { start() }
     videoStreamActive.set(startVideoStream)
   }
 
@@ -374,7 +375,7 @@ internal class DeviceClient(
                 (if (DeviceMirroringSettings.getInstance().turnOffDisplayWhileMirroring) TURN_OFF_DISPLAY_WHILE_MIRRORING else 0) or
                 (if (StudioFlags.DEVICE_MIRRORING_MULTIPLE_DISPLAYS.get()) MIRROR_ALL_DISPLAYS else 0)
     val flagsArg = if (flags != 0) " --flags=$flags" else ""
-    val maxBitRate = if (isEmulator) MAX_BIT_RATE_EMULATOR else StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get()
+    val maxBitRate = calculateMaxBitRate()
     val maxBitRateArg = if (maxBitRate > 0) " --max_bit_rate=$maxBitRate" else ""
     val logLevel = StudioFlags.DEVICE_MIRRORING_AGENT_LOG_LEVEL.get()
     val logLevelArg = if (logLevel.isNotBlank()) " --log=$logLevel" else ""
@@ -424,6 +425,19 @@ internal class DeviceClient(
       catch (e: Throwable) {
         throw adjustException(e)
       }
+    }
+  }
+
+  private fun calculateMaxBitRate(): Int {
+    if (isEmulator) {
+      return MAX_BIT_RATE_EMULATOR
+    }
+    val bitRate1 = BitRateManager.getInstance().getBitRate(deviceConfig.deviceProperties)
+    val bitRate2 = StudioFlags.DEVICE_MIRRORING_MAX_BIT_RATE.get()
+    return when {
+      bitRate1 == 0 -> bitRate2
+      bitRate2 == 0 -> bitRate2
+      else -> min(bitRate1, bitRate2)
     }
   }
 
