@@ -151,7 +151,7 @@ class VitalsTab(
           scope = scope,
           groupNameSupplier = { it.manufacturer },
           nameSupplier = { it.model.substringAfter("/") },
-          secondaryGroupSupplier = { it.deviceType?.let { type -> setOf(type) } ?: emptySet() },
+          secondaryGroupSupplier = { setOf(it.deviceType) },
           onSelected = projectController::selectDevices,
           secondaryTitleSupplier = {
             JLabel().apply {

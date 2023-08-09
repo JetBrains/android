@@ -35,6 +35,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.CheckedTreeNode
+import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout
 import java.util.Enumeration
 import javax.swing.JPanel
@@ -351,6 +352,54 @@ class TreeDropDownActionTest {
       assertThat(lastPopup.root.checkedChildren().map { it.checkedChildren().single().userObject })
         .containsExactly(VALUE4, VALUE2)
         .inOrder()
+    }
+
+  @Test
+  fun `popup shows unavailable message when items exceed limit`(): Unit =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val panel = JPanel(BorderLayout())
+      val items =
+        (1..MAX_DROPDOWN_ITEMS + 1)
+          .asSequence()
+          .map { WithCount(1, SimpleValue("$it", "Title")) }
+          .toList()
+
+      val flow = MutableStateFlow(MultiSelection(items.toSet(), items))
+
+      val dropdown =
+        TreeDropDownAction(
+          "values",
+          flow,
+          scope,
+          groupNameSupplier = SimpleValue::groupingKey,
+          nameSupplier = SimpleValue::title,
+          onSelected = {},
+          getLocationOnScreen = { FakeUi(panel).getPosition(this) }
+        )
+
+      dropdown.selectionState.first { it.items.size == MAX_DROPDOWN_ITEMS + 1 }
+
+      val actionGroups = DefaultActionGroup().apply { add(dropdown) }
+      val toolbar =
+        ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
+          targetComponent = panel
+        }
+      panel.add(toolbar.component, BorderLayout.CENTER)
+      toolbar.updateActionsImmediately()
+
+      val actionButton = toolbar.component.getComponent(0) as ActionButton
+      actionButton.click()
+
+      // Check the error message is displayed.
+      val popup =
+        popupRule.fakePopupFactory
+          .getChildPopups(mock())
+          .filterIsInstance<FakeComponentPopup>()
+          .map { it.contentPanel }
+          .last()
+
+      assertThat((popup.components.single() as JBLabel).text)
+        .isEqualTo("Filter unavailable: too many items.")
     }
 
   private val lastPopup: TreeDropDownPopup<SimpleValue, GroupAware.Empty>
