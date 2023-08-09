@@ -32,6 +32,10 @@ import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironm
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
 import com.android.tools.idea.run.DeploymentApplicationService
+import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.base.Stopwatch
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.DebuggerManagerEx
@@ -39,7 +43,6 @@ import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ExceptionUtil
@@ -58,11 +61,19 @@ import java.util.concurrent.TimeUnit
  * Tests for [AndroidJavaDebugger] code.
  */
 class AndroidJavaDebuggerTest {
-  @get:Rule
-  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule(order = 0)
+  val projectRule = AndroidProjectRule.withAndroidModels(
+    AndroidModuleModelBuilder(
+      ":",
+      "debug",
+      AndroidProjectBuilder(
+        applicationIdFor = { "com.test.integration.ddmlib" }
+      ))
+  )
+
+  @get:Rule(order = 1)
+  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
 
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
@@ -98,6 +109,39 @@ class AndroidJavaDebuggerTest {
   fun tearDown() {
     XDebuggerManager.getInstance(project).debugSessions.forEach {
       it.stop()
+    }
+    stopFakeAdbAndWaitForDebuggerThreadsToTerminate()
+  }
+
+  private fun stopFakeAdbAndWaitForDebuggerThreadsToTerminate() {
+    fakeAdbRule.server.stop()
+    fakeAdbRule.server.awaitServerTermination(1, TimeUnit.SECONDS)
+
+    val rootGroup = generateSequence(Thread.currentThread().threadGroup) { it.parent }.last()
+    val threads = arrayOfNulls<Thread>(rootGroup.activeCount())
+    val n = rootGroup.enumerate(threads)
+    val jdiThreads = threads.take(n).filterNotNull().filter { it.name.startsWith("JDI ") }
+
+    if (jdiThreads.any()) {
+      println("Waiting for JDI threads to terminate...");
+
+      fun anyRunningDebuggerThreads(): Boolean {
+        val activeThreads = jdiThreads.filter { it.isAlive }
+        for (activeThread in activeThreads) {
+          println("Still waiting for ${activeThread.name} thread to terminate...")
+        }
+        return activeThreads.any()
+      }
+
+      val stopwatch = Stopwatch.createStarted()
+      do {
+        Thread.sleep(50)
+      } while (stopwatch.elapsed(TimeUnit.SECONDS) < 2 && anyRunningDebuggerThreads())
+      if (anyRunningDebuggerThreads()) {
+        println("Giving up waiting ...");
+      } else {
+        println("Done waiting for JDI threads to terminate.")
+      }
     }
   }
 
@@ -156,6 +200,7 @@ class AndroidJavaDebuggerTest {
     if (!countDownLatch.await(10, TimeUnit.SECONDS)) {
       fail("Callback wasn't called")
     }
+    stopFakeAdbAndWaitForDebuggerThreadsToTerminate()
   }
 
   @Test

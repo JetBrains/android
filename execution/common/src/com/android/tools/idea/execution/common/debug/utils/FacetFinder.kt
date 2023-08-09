@@ -61,7 +61,7 @@ object FacetFinder {
            ?: throw ExecutionException("Unable to find project context to attach debugger for process ${clientData.clientDescription}")
   }
 
-  private fun findFacetForApplicationId(project: Project, applicationId: String): Result? {
+  fun findFacetForApplicationId(project: Project, applicationId: String): Result? {
     return project.getProjectSystem().findModulesWithApplicationId(applicationId).lastOrNull()?.androidFacet?.let {
       Result(
         facet = it,

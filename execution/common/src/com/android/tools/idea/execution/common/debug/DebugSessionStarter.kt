@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.executeOnPooledThread
 import com.android.tools.idea.execution.common.AndroidSessionInfo
+import com.android.tools.idea.execution.common.debug.utils.FacetFinder
 import com.android.tools.idea.execution.common.debug.utils.showError
 import com.android.tools.idea.execution.common.debug.utils.waitForClientReadyForDebug
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
@@ -71,7 +72,9 @@ object DebugSessionStarter {
     val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
 
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
-      environment.project, client,
+      environment.project,
+      client,
+      appId,
       androidDebuggerState,
       consoleView
     )
@@ -138,7 +141,9 @@ object DebugSessionStarter {
   ): XDebugSessionImpl = RunStats.from(environment).track(START_REATTACHING_DEBUGGER_SESSION) {
     val client = waitForClientReadyForDebug(device, listOf(appId), timeout, indicator)
     val debugProcessStarter = androidDebugger.getDebugProcessStarterForNewProcess(
-      environment.project, client,
+      environment.project,
+      client,
+      appId,
       androidDebuggerState,
       consoleView
     )
@@ -199,7 +204,8 @@ object DebugSessionStarter {
   ): XDebugSession = indicatorRunBlockingCancellable(indicator) {
     val sessionName = "${androidDebugger.displayName} (${client.clientData.pid})"
     try {
-      val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, androidDebuggerState)
+      val applicationId = FacetFinder.findFacetForProcess(project, client.clientData).applicationId
+      val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, applicationId, androidDebuggerState)
 
       val session = withContext(uiThread) {
         XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null, false, starter)
