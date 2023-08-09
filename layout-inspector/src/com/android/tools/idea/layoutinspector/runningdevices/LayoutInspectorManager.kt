@@ -468,6 +468,9 @@ private fun createLayoutInspectorWorkbench(
     listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition())
   workbench.init(centerPanel, layoutInspector, toolsDefinition, false)
   DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
+
+  Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
+
   return workbench
 }
 

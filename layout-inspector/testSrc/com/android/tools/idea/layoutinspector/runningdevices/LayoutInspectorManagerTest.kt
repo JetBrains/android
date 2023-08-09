@@ -223,9 +223,16 @@ class LayoutInspectorManagerTest {
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, true)
 
     val workbench = tab1.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
-    val dataContext = DataManager.getInstance().getDataContext(workbench)
-    val layoutInspector = dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)
-    assertThat(layoutInspector).isEqualTo(layoutInspector)
+    val dataContext1 = DataManager.getInstance().getDataContext(workbench)
+    val layoutInspector1 = dataContext1.getData(LAYOUT_INSPECTOR_DATA_KEY)
+    assertThat(layoutInspector1).isEqualTo(layoutInspector1)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
+
+    val dataContext2 = DataManager.getInstance().getDataContext(workbench)
+    val layoutInspector2 = dataContext2.getData(LAYOUT_INSPECTOR_DATA_KEY)
+
+    assertThat(layoutInspector2).isNull()
   }
 
   @Test
