@@ -1732,7 +1732,7 @@ public final class StudioFlags {
     new FlagGroup(FLAGS, "wear.runconfigs.autocreate", "Autocreate Wear Run Configs");
   public static final Flag<Boolean> WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED =
     Flag.create(WEAR_RUN_CONFIGS_AUTOCREATE, "enabled", "Enable Autocreate Wear Run Configs",
-                "When enabled, Wear run configurations will be automatically created.", false);
+                "When enabled, Wear run configurations will be automatically created.", true);
   public static final Flag<Integer> WEAR_RUN_CONFIGS_AUTOCREATE_MAX_TOTAL_RUN_CONFIGS =
     Flag.create(WEAR_RUN_CONFIGS_AUTOCREATE, "max.total.runconfigs", "Maximum total run configurations",
                 "Maximum total number of all types of run configurations that can be reached after autocreating Wear Run Configs. Wear Run Configurations will not be created if this limit is breached.",
