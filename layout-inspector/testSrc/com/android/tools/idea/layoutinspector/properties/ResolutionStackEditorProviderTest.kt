@@ -32,6 +32,7 @@ import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.android.tools.property.panel.impl.ui.PropertyTextFieldWithLeftButton
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +41,8 @@ class ResolutionStackEditorProviderTest {
   companion object {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
+
+  @get:Rule val disposableRule = DisposableRule()
 
   @get:Rule val cleaner = MockitoCleanerRule()
 
@@ -72,7 +75,7 @@ class ResolutionStackEditorProviderTest {
         2,
         mock()
       )
-    val propertiesModel = InspectorPropertiesModel()
+    val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =
       ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
@@ -92,7 +95,7 @@ class ResolutionStackEditorProviderTest {
         2,
         mock()
       )
-    val propertiesModel = InspectorPropertiesModel()
+    val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =
       ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
@@ -117,7 +120,7 @@ class ResolutionStackEditorProviderTest {
         34,
         mock()
       )
-    val propertiesModel = InspectorPropertiesModel()
+    val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =
       ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)
@@ -152,7 +155,7 @@ class ResolutionStackEditorProviderTest {
         mock(),
         children
       )
-    val propertiesModel = InspectorPropertiesModel()
+    val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val provider =
       ResolutionStackEditorProvider(propertiesModel, enumSupportProvider, controlTypeProvider)
     val (_, editor) = provider.createEditor(property)

@@ -57,9 +57,11 @@ import com.google.common.collect.HashBasedTable
 import com.google.common.collect.Table
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import java.awt.Component
 import javax.swing.JTextArea
 import org.junit.ClassRule
+import org.junit.Rule
 import org.junit.Test
 
 private val EXAMPLE = packageNameHash("com.example.myexampleapp")
@@ -68,6 +70,8 @@ class InspectorPropertiesViewTest {
   companion object {
     @JvmField @ClassRule val rule = ApplicationRule()
   }
+
+  @get:Rule val disposableRule = DisposableRule()
 
   @Test
   fun testResolutionElementEditorFromRendererCache() {
@@ -307,7 +311,7 @@ class InspectorPropertiesViewTest {
   ): InspectorPropertiesView {
     val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
     properties.forEach { table.addProperty(it) }
-    val propertiesModel = InspectorPropertiesModel()
+    val propertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     val propertiesView = InspectorPropertiesView(propertiesModel)
     propertiesModel.properties = PropertiesTable.create(table)
     val settings = FakeTreeSettings()

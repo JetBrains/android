@@ -24,7 +24,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 
 class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
-  private val componentModel = InspectorPropertiesModel()
+  private val componentModel = InspectorPropertiesModel(parentDisposable)
   private val componentView = InspectorPropertiesView(componentModel)
   private val properties = PropertiesPanel<InspectorPropertyItem>(this)
   private val filterKeyListener = createFilterKeyListener()

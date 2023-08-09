@@ -265,7 +265,7 @@ class ResolutionElementEditorTest {
       )
     val editors = JPanel()
     editors.layout = BoxLayout(editors, BoxLayout.PAGE_AXIS)
-    val propertiesModel = InspectorPropertiesModel()
+    val propertiesModel = InspectorPropertiesModel(projectRule.testRootDisposable)
     editors.add(createEditor(property, propertiesModel))
     property.children.forEach { editors.add(createEditor(it, propertiesModel)) }
     editors.add(

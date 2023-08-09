@@ -31,6 +31,7 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.profiler.proto.Common
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import org.assertj.core.api.Assertions.assertThat
@@ -59,16 +60,22 @@ class InspectorPropertiesModelTest {
   fun testListenersAreClearedOnDispose() {
     val layoutInspector = createLayoutInspector()
 
-    val inspectorPropertiesModel = InspectorPropertiesModel()
+    val inspectorPropertiesModel = InspectorPropertiesModel(disposableRule.disposable)
     inspectorPropertiesModel.layoutInspector = layoutInspector
 
     assertThat(layoutInspector.inspectorModel.selectionListeners).hasSize(1)
     assertThat(layoutInspector.inspectorModel.connectionListeners).hasSize(1)
+    var modificationListenerCount1 = 0
+    layoutInspector.inspectorModel.modificationListeners.forEach { modificationListenerCount1++ }
+    assertThat(modificationListenerCount1).isEqualTo(3)
 
-    inspectorPropertiesModel.layoutInspector = null
+    Disposer.dispose(disposableRule.disposable)
 
     assertThat(layoutInspector.inspectorModel.selectionListeners).hasSize(0)
     assertThat(layoutInspector.inspectorModel.connectionListeners).hasSize(0)
+    var modificationListenerCount2 = 0
+    layoutInspector.inspectorModel.modificationListeners.forEach { modificationListenerCount2++ }
+    assertThat(modificationListenerCount2).isEqualTo(2)
   }
 
   private fun createLayoutInspector(): LayoutInspector {
