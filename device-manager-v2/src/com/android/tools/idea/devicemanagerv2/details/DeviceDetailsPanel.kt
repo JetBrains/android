@@ -29,7 +29,6 @@ import javax.swing.JComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
 
 /**
  * A panel within the [DeviceManagerPanel] that shows a [DeviceInfoPanel], and if the device
@@ -73,7 +72,8 @@ private constructor(
       pairedDevicesFlow: Flow<Map<String, List<PairingStatus>>>
     ): DeviceDetailsPanel {
       val deviceInfoPanel = DeviceInfoPanel()
-      scope.launch(uiThread) { populateDeviceInfo(deviceInfoPanel, handle) }
+      deviceInfoPanel.trackDeviceProperties(scope, handle)
+      deviceInfoPanel.trackDevicePowerAndStorage(scope, handle)
 
       val pairedDevicesPanel =
         handle.state.properties.wearPairingId?.let {
