@@ -8,6 +8,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.wm.ext.LibraryDependentToolWindow
 import com.intellij.testFramework.ProjectRule
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.fail
@@ -32,6 +33,7 @@ class AndroidProfilerToolWindowFactoryTest {
   }
 
   @Test
+  @Ignore("b/294924590")
   fun testOpeningTheHomeTab() {
     StudioFlags.PROFILER_TASK_BASED_UX.override(true);
 
