@@ -18,22 +18,32 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.idea.layoutinspector.model.NotificationModel
 import com.android.tools.idea.layoutinspector.model.StatusNotification
 import com.google.common.html.HtmlEscapers
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ui.UIUtil
 import javax.swing.BoxLayout
 import javax.swing.JPanel
 
 /** A banner for showing notifications in the Layout Inspector. */
-class InspectorBanner(private val notificationModel: NotificationModel) : JPanel() {
+class InspectorBanner(
+  parentDisposable: Disposable,
+  private val notificationModel: NotificationModel
+) : JPanel(), Disposable {
   private var notifications: List<StatusNotification> = emptyList()
 
   init {
+    Disposer.register(parentDisposable, this)
     isVisible = false
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
     layout = BoxLayout(this, BoxLayout.Y_AXIS)
     notificationModel.notificationListeners.add(::updateNotifications)
+  }
+
+  override fun dispose() {
+    notificationModel.notificationListeners.remove(::updateNotifications)
   }
 
   private fun updateNotifications() {

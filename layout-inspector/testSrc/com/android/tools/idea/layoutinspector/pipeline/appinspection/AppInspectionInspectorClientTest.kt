@@ -1042,7 +1042,7 @@ class AppInspectionInspectorClientTest {
     setUpRunConfiguration()
     preferredProcess = null
     inspectorRule.attachDevice(MODERN_PROCESS.device)
-    val banner = InspectorBanner(inspectorRule.notificationModel)
+    val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
     PropertiesComponent.getInstance().setValue(KEY_HIDE_ACTIVITY_RESTART_BANNER, true)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
@@ -1070,7 +1070,7 @@ class AppInspectionInspectorClientTest {
   fun testNoActivityRestartBannerShownDuringAutoConnect() {
     setUpRunConfiguration()
     inspectorRule.attachDevice(MODERN_PROCESS.device)
-    val banner = InspectorBanner(inspectorRule.notificationModel)
+    val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
     inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.isVisible).isFalse()
@@ -1083,7 +1083,7 @@ class AppInspectionInspectorClientTest {
       setUpRunConfiguration()
       preferredProcess = null
       inspectorRule.attachDevice(MODERN_PROCESS.device)
-      val banner = InspectorBanner(inspectorRule.notificationModel)
+      val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
       inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
       inspectorRule.processes.selectedProcess = MODERN_PROCESS
       invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
@@ -1249,7 +1249,7 @@ class AppInspectionInspectorClientWithUnsupportedApi29 {
     val avdInfo = setUpAvd(sdkPackage, null, 30)
     val packages = RepositoryPackages(listOf(sdkPackage), listOf())
     val sdkHandler = AndroidSdkHandler(sdkRoot, null, FakeRepoManager(sdkRoot, packages))
-    val banner = InspectorBanner(inspectorRule.notificationModel)
+    val banner = InspectorBanner(projectRule.testRootDisposable, inspectorRule.notificationModel)
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
 
     assertThat(banner.isVisible).isFalse()

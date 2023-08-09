@@ -98,7 +98,7 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) :
     var metadata: SnapshotMetadata? = null
     try {
       val notificationModel = NotificationModel(project)
-      contentPanel.add(InspectorBanner(notificationModel), BorderLayout.NORTH)
+      contentPanel.add(InspectorBanner(this, notificationModel), BorderLayout.NORTH)
       contentPanel.add(workbench, BorderLayout.CENTER)
 
       // TODO: error handling

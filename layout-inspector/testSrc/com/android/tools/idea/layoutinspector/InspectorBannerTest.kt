@@ -20,6 +20,8 @@ import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.EditorNotificationPanel.Status
 import com.intellij.util.ui.UIUtil
@@ -31,17 +33,19 @@ class InspectorBannerTest {
 
   @get:Rule val projectRule = ProjectRule()
 
+  @get:Rule val disposableRule = DisposableRule()
+
   @Test
   fun testInitiallyHidden() {
     val notificationModel = NotificationModel(projectRule.project)
-    val banner = InspectorBanner(notificationModel)
+    val banner = InspectorBanner(disposableRule.disposable, notificationModel)
     assertThat(banner.isVisible).isFalse()
   }
 
   @Test
   fun testVisibleWithStatus() {
     val notificationModel = NotificationModel(projectRule.project)
-    val banner = InspectorBanner(notificationModel)
+    val banner = InspectorBanner(disposableRule.disposable, notificationModel)
     notificationModel.addNotification(
       "key1",
       "There is an error somewhere <a>",
@@ -57,7 +61,7 @@ class InspectorBannerTest {
   @Test
   fun testInvisibleAfterEmptyStatus() {
     val notificationModel = NotificationModel(projectRule.project)
-    val banner = InspectorBanner(notificationModel)
+    val banner = InspectorBanner(disposableRule.disposable, notificationModel)
     notificationModel.addNotification(
       "key1",
       "There is an error somewhere",
@@ -67,5 +71,23 @@ class InspectorBannerTest {
     notificationModel.clear()
     invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
     assertThat(banner.isVisible).isFalse()
+  }
+
+  @Test
+  fun testListenersRemovedOnDispose() {
+    val notificationModel = NotificationModel(projectRule.project)
+    val banner = InspectorBanner(disposableRule.disposable, notificationModel)
+    notificationModel.addNotification(
+      "key1",
+      "There is an error somewhere",
+      Status.Error,
+      emptyList()
+    )
+
+    assertThat(notificationModel.notificationListeners).hasSize(1)
+
+    Disposer.dispose(disposableRule.disposable)
+
+    assertThat(notificationModel.notificationListeners).hasSize(0)
   }
 }
