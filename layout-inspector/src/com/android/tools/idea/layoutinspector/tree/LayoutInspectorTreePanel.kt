@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.IconProvider
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.InspectorModelModificationListener
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.ViewNode.Companion.readAccess
@@ -109,9 +110,23 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
   private val comparator = SpeedSearchComparator(false)
   private var toolWindowCallback: ToolWindowCallback? = null
   private var filter = ""
-  private val modelModifiedListener = ::modelModified
-  private val selectionChangedListener = ::selectionChanged
-  private val connectionListener = ::handleConnectionChange
+  private val modelModifiedListener =
+    InspectorModelModificationListener { oldWindow, newWindow, isStructuralChange ->
+      modelModified(oldWindow, newWindow, isStructuralChange)
+      componentTreePanel.repaint()
+    }
+  private val selectionChangedListener: (ViewNode?, ViewNode?, SelectionOrigin) -> Unit =
+    { oldView, newView, origin ->
+      selectionChanged(oldView, newView, origin)
+    }
+  private val connectionListener: (InspectorClient?) -> Unit = { inspectorClient ->
+    handleConnectionChange(inspectorClient)
+  }
+  private val componentTreeSelectionListener: (List<Any>) -> Unit = {
+    val view = (it.firstOrNull() as? TreeViewNode)?.view
+    inspectorModel?.setSelection(view, SelectionOrigin.COMPONENT_TREE)
+    layoutInspector?.currentClient?.stats?.selectionMadeFromComponentTree(view)
+  }
   private var upAction: Action? = null
   private var downAction: Action? = null
 
@@ -123,6 +138,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
   init {
     Disposer.register(parentDisposable, this)
+
     val gotoDeclarationAction =
       ActionManager.getInstance().getAction(IdeActions.ACTION_GOTO_DECLARATION)
     if (gotoDeclarationAction != null) {
@@ -132,13 +148,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
         parentDisposable
       )
     }
-    componentTreeSelectionModel.addSelectionListener {
-      val view = (it.firstOrNull() as? TreeViewNode)?.view
-      inspectorModel?.setSelection(view, SelectionOrigin.COMPONENT_TREE)
-      layoutInspector?.currentClient?.stats?.selectionMadeFromComponentTree(view)
-    }
-
-    inspectorModel?.modificationListeners?.add { _, _, _ -> componentTreePanel.repaint() }
+    componentTreeSelectionModel.addSelectionListener(componentTreeSelectionListener)
 
     // For UI tests
     focusComponent.name = COMPONENT_TREE_NAME
@@ -314,8 +324,8 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
 
     // register listeners on new layout inspector
     nodeType.model = inspectorModel
-    inspectorModel?.modificationListeners?.add(modelModifiedListener)
     componentTreeModel.treeRoot = root
+    inspectorModel?.modificationListeners?.add(modelModifiedListener)
     inspectorModel?.selectionListeners?.add(selectionChangedListener)
     inspectorModel?.connectionListeners?.add(connectionListener)
     inspectorModel?.windows?.values?.forEach { modelModified(null, it, true) }
@@ -324,6 +334,7 @@ class LayoutInspectorTreePanel(parentDisposable: Disposable) : ToolContent<Layou
     updateRecompositionColumnVisibility()
   }
 
+  /** Remove all listeners registered on Layout Inspector */
   private fun cleanUp() {
     inspectorModel?.modificationListeners?.remove(modelModifiedListener)
     inspectorModel?.selectionListeners?.remove(selectionChangedListener)

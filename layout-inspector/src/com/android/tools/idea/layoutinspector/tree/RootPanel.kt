@@ -56,14 +56,13 @@ class RootPanel(
   }
 
   override fun dispose() {
-    layoutInspector?.inspectorModel?.connectionListeners?.remove(connectionListener)
+    removeListeners()
   }
 
   var layoutInspector: LayoutInspector? = null
     set(value) {
-      // Clean up listeners.
-      field?.inspectorModel?.connectionListeners?.remove(connectionListener)
-      field?.foregroundProcessDetection?.removeForegroundProcessListener(foregroundProcessListener)
+      // Clean up before removing old instance of Layout Inspector.
+      removeListeners()
       // Reset UI.
       updateUiState(UiState.WAITING_TO_CONNECT)
 
@@ -120,6 +119,13 @@ class RootPanel(
   @VisibleForTesting
   var uiState: UiState? = null
     private set
+
+  private fun removeListeners() {
+    layoutInspector?.inspectorModel?.connectionListeners?.remove(connectionListener)
+    layoutInspector
+      ?.foregroundProcessDetection
+      ?.removeForegroundProcessListener(foregroundProcessListener)
+  }
 
   /**
    * Update the state of the UI. Each time this method is called, all components are removed from

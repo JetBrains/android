@@ -21,7 +21,7 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
 
 class FakeForegroundProcessDetection : ForegroundProcessDetection {
-  private val foregroundProcessListeners = mutableListOf<ForegroundProcessListener>()
+  val foregroundProcessListeners = mutableListOf<ForegroundProcessListener>()
 
   override fun addForegroundProcessListener(foregroundProcessListener: ForegroundProcessListener) {
     foregroundProcessListeners.add(foregroundProcessListener)

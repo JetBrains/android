@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspecti
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLoadingPanel
 import java.util.concurrent.TimeUnit
@@ -157,5 +158,22 @@ class RootPanelTest {
     layoutInspectorRule.awaitLaunch()
 
     waitForCondition(1, TimeUnit.SECONDS) { rootPanel.uiState == RootPanel.UiState.SHOW_TREE }
+  }
+
+  @Test
+  fun testListenersRemovedOnDispose() = withEmbeddedLayoutInspector {
+    val rootPanel = RootPanel(androidProjectRule.testRootDisposable, JPanel())
+
+    rootPanel.layoutInspector = layoutInspectorRule.inspector
+
+    assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
+      .hasSize(1)
+    assertThat(layoutInspectorRule.inspectorModel.connectionListeners).hasSize(1)
+
+    Disposer.dispose(androidProjectRule.testRootDisposable)
+
+    assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
+      .hasSize(0)
+    assertThat(layoutInspectorRule.inspectorModel.connectionListeners).hasSize(0)
   }
 }

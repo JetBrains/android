@@ -1033,11 +1033,21 @@ class LayoutInspectorTreePanelTest {
 
     assertThat(inspectorRule.inspector.inspectorModel.selectionListeners).hasSize(1)
     assertThat(inspectorRule.inspector.inspectorModel.connectionListeners).hasSize(2)
+    var modificationListenerCount1 = 0
+    inspectorRule.inspector.inspectorModel.modificationListeners.forEach {
+      modificationListenerCount1++
+    }
+    assertThat(modificationListenerCount1).isEqualTo(4)
 
     Disposer.dispose(disposable)
 
     assertThat(inspectorRule.inspector.inspectorModel.selectionListeners).hasSize(0)
     assertThat(inspectorRule.inspector.inspectorModel.connectionListeners).hasSize(0)
+    var modificationListenerCount2 = 0
+    inspectorRule.inspector.inspectorModel.modificationListeners.forEach {
+      modificationListenerCount2++
+    }
+    assertThat(modificationListenerCount2).isEqualTo(2)
   }
 
   private fun setToolContext(tree: LayoutInspectorTreePanel, inspector: LayoutInspector) {
