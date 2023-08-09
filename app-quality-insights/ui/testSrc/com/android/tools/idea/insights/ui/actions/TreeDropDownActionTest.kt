@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.ThreeStateCheckBox
 import java.awt.BorderLayout
 import java.util.Enumeration
 import javax.swing.JPanel
@@ -59,6 +60,11 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
 
 data class SimpleValue(val groupingKey: String, val title: String)
+
+data class SimpleGroup(val name: String) : GroupAware<SimpleGroup> {
+  override fun compareTo(other: SimpleGroup) = name.compareTo(other.name)
+  override val groupName = name
+}
 
 private val VALUE1 = WithCount(4, SimpleValue("1", "Title1"))
 private val VALUE2 = WithCount(2, SimpleValue("1", "Title2"))
@@ -400,6 +406,65 @@ class TreeDropDownActionTest {
 
       assertThat((popup.components.single() as JBLabel).text)
         .isEqualTo("Filter unavailable: too many items.")
+    }
+
+  @Test
+  fun `secondary group selection causes updates in primary and vice versa`() =
+    runBlocking(AndroidDispatchers.uiThread) {
+      val panel = JPanel(BorderLayout())
+      val flow =
+        MutableStateFlow(
+          MultiSelection(
+            setOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5),
+            listOf(VALUE1, VALUE2, VALUE3, VALUE4, VALUE5)
+          )
+        )
+      val dropdown =
+        TreeDropDownAction(
+          "values",
+          flow,
+          scope,
+          groupNameSupplier = SimpleValue::groupingKey,
+          nameSupplier = SimpleValue::title,
+          secondaryGroupSupplier = {
+            setOf(SimpleGroup(if (it.groupingKey == "1") "ONE" else "OTHER"))
+          },
+          onSelected = {},
+          getLocationOnScreen = { FakeUi(panel).getPosition(this) }
+        )
+
+      waitForCondition(1000) { dropdown.selectionState.value.items.size == 5 }
+
+      val actionGroups = DefaultActionGroup().apply { add(dropdown) }
+      val toolbar =
+        ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
+          targetComponent = panel
+        }
+      panel.add(toolbar.component, BorderLayout.CENTER)
+      toolbar.updateActionsImmediately()
+
+      val actionButton = toolbar.component.getComponent(0) as ActionButton
+      actionButton.click()
+      dropdown.titleState.waitForValue("All values")
+
+      // Check secondary groups are shown.
+      val fakeUi = FakeUi(lastPopup)
+      val secondaryGroups = fakeUi.findAllComponents<ThreeStateCheckBox>()
+      assertThat(secondaryGroups.map { it.text }).containsExactly("ONE", "OTHER").inOrder()
+      assertThat(secondaryGroups.all { it.state == ThreeStateCheckBox.State.SELECTED }).isTrue()
+
+      // Unchecking a secondary group box should uncheck all of its associated options.
+      secondaryGroups[0].doClick()
+      val uncheckedNodes = lastPopup.root.checkedChildren().filterNot { it.isChecked }
+      assertThat(uncheckedNodes.map { it.userObject as String }).containsExactly("1")
+      val uncheckedLeaves =
+        uncheckedNodes.flatMap { it.children().asSequence() }.filterIsInstance<CheckedTreeNode>()
+      assertThat(uncheckedLeaves.filterNot { it.isChecked }.map { it.userObject })
+        .containsExactly(VALUE1, VALUE2)
+
+      // Checking one of the leaves should update its associated secondary group to DONT_CARE state
+      lastPopup.helper.setNodeState(lastPopup.treeTable.tree, uncheckedLeaves[0], true)
+      assertThat(secondaryGroups[0].state).isEqualTo(ThreeStateCheckBox.State.DONT_CARE)
     }
 
   private val lastPopup: TreeDropDownPopup<SimpleValue, GroupAware.Empty>
