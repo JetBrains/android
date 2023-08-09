@@ -55,11 +55,14 @@ class StartReattachingDebuggerTest {
   private val APP_ID = FakeAdbTestRule.CLIENT_PACKAGE_NAME
   private val MASTER_PROCESS_NAME = "com.master.test"
 
-  @get:Rule
-  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
-
-  @get:Rule
+  @get:Rule(order = 0)
   val projectRule = ProjectRule()
+
+  @get:Rule(order = 1)
+  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+
+  @get:Rule(order = 2)
+  val debuggerThreadCleanupRule = DebuggerThreadCleanupRule { fakeAdbRule.server }
 
   @get:Rule
   val usageTrackerRule = UsageTrackerRule()
