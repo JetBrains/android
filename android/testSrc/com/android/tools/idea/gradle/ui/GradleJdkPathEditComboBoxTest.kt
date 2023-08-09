@@ -34,7 +34,7 @@ import kotlin.io.path.Path
 class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
 
   fun `test Given no selection and empty suggested JDKs When create component Then no JDK path is selected and dropdown items are empty`() {
-    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), null, null)
+    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), null, "")
     assertEmpty(jdkComboBox.selectedJdkPath)
     assertEquals(0, jdkComboBox.itemCount)
   }
@@ -42,21 +42,21 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
   fun `test Given no selection and suggested JDKs When create component Then no JDK path is selected and dropdown items are not empty`() {
     val itemValidJdk = LabelAndFileForLocation("valid", EmbeddedDistributionPaths.getInstance().embeddedJdkPath)
     val itemInvalidJdk = LabelAndFileForLocation("invalid", Path("/invalid/jdk/path"))
-    val jdkComboBox = GradleJdkPathEditComboBox(listOf(itemValidJdk, itemInvalidJdk), null, null)
+    val jdkComboBox = GradleJdkPathEditComboBox(listOf(itemValidJdk, itemInvalidJdk), null, "")
     assertEmpty(jdkComboBox.selectedJdkPath)
     assertEquals(2, jdkComboBox.itemCount)
   }
 
   fun `test Given initial selection When create component Then specified JDK path is selected`() {
     val initialSelectionJdkPath = "/jdk/path"
-    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), initialSelectionJdkPath, null)
+    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), initialSelectionJdkPath, "")
     assertEquals(initialSelectionJdkPath, jdkComboBox.selectedJdkPath)
     assertFalse(jdkComboBox.isModified)
   }
 
   fun `test Given comboBox When select JDK path and reset selection Then selected JDK path is consistent`() {
     val initialSelectionJdkPath = "/jdk/path"
-    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), initialSelectionJdkPath, null)
+    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), initialSelectionJdkPath, "")
 
     val differentSelectionJdkPath = "/another/jdk/path"
     jdkComboBox.selectedItem = differentSelectionJdkPath
@@ -71,7 +71,7 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
   fun `test Given comboBox When select valid or invalid JDK path Then foreground change accordingly`() {
     val itemValidJdk = LabelAndFileForLocation("valid", EmbeddedDistributionPaths.getInstance().embeddedJdkPath)
     val itemInvalidJdk = LabelAndFileForLocation("invalid", Path("/invalid/jdk/path"))
-    val jdkComboBox = GradleJdkPathEditComboBox(listOf(itemValidJdk, itemInvalidJdk), null, null)
+    val jdkComboBox = GradleJdkPathEditComboBox(listOf(itemValidJdk, itemInvalidJdk), null, "")
     val jdkEditor = jdkComboBox.editor.editorComponent
     jdkComboBox.selectedItem = null
     assertEquals(JBColor.red, jdkEditor.foreground)
@@ -88,7 +88,7 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
       LabelAndFileForLocation("label3", Path("path3")),
       LabelAndFileForLocation("label4", Path("path4"))
     )
-    val jdkComboBox = GradleJdkPathEditComboBox(items, null, null)
+    val jdkComboBox = GradleJdkPathEditComboBox(items, null, "")
     assertEquals(items.size, jdkComboBox.itemCount)
     items.forEachIndexed { index, labelAndFileForLocation ->
       assertEquals(labelAndFileForLocation, jdkComboBox.getItemAt(index))
@@ -97,7 +97,7 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
 
   fun `test Given comboBox Then was configured with expected settings`() {
     val itemValidJdk = LabelAndFileForLocation("valid", EmbeddedDistributionPaths.getInstance().embeddedJdkPath)
-    val jdkComboBox = GradleJdkPathEditComboBox(listOf(itemValidJdk), null, null)
+    val jdkComboBox = GradleJdkPathEditComboBox(listOf(itemValidJdk), null, "")
     val jdkExtendableText = jdkComboBox.editor.editorComponent as ExtendableTextField
     assertEquals(1, jdkExtendableText.extensions.size)
 
@@ -109,7 +109,7 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
   }
 
   fun `test Given comboBox When select a browsed JDK Then browsed JDK path is selected`() {
-    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), null, null)
+    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), null, "")
     val jdkExtendableText = jdkComboBox.editor.editorComponent as ExtendableTextField
     jdkExtendableText.extensions.first().run {
       val captor: ArgumentCaptor<Consumer<String>> = argumentCaptor()

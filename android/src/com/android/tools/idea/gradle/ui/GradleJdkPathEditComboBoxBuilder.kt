@@ -32,7 +32,7 @@ object GradleJdkPathEditComboBoxBuilder {
     initialSelectionJdkPath: @SystemIndependent String?,
     embeddedJdkPath: Path,
     suggestedJdks: List<Sdk>,
-    hintMessage: String? = null,
+    hintMessage: String,
   ) = GradleJdkPathEditComboBox(
     initialSelectionJdkPath = initialSelectionJdkPath ?: embeddedJdkPath.toString(),
     suggestedJdkPaths = getKnownValidJdks(suggestedJdks, embeddedJdkPath),

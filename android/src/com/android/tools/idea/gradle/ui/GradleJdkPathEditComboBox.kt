@@ -16,19 +16,22 @@
 package com.android.tools.idea.gradle.ui
 
 import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.DocumentAdapter
 import com.intellij.ui.JBColor
-import com.intellij.ui.components.JBLabel
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.fields.ExtendableTextComponent
 import com.intellij.ui.components.fields.ExtendableTextField
 import com.intellij.ui.components.panels.VerticalLayout
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import com.intellij.xml.util.XmlStringUtil
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.annotations.VisibleForTesting
@@ -36,6 +39,7 @@ import java.awt.Dimension
 import java.awt.event.ItemEvent
 import java.awt.event.ItemListener
 import javax.swing.ComboBoxEditor
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.event.DocumentEvent
 import javax.swing.plaf.basic.BasicComboBoxEditor
@@ -48,7 +52,7 @@ private val minimumAndPreferredWidth
 class GradleJdkPathEditComboBox(
   private val suggestedJdkPaths: List<LabelAndFileForLocation>,
   private val initialSelectionJdkPath: @SystemIndependent String?,
-  private val hintMessage: String?,
+  private val hintMessage: String,
 ) : JPanel(VerticalLayout(0)), ItemListener {
 
   val isModified: Boolean
@@ -70,26 +74,32 @@ class GradleJdkPathEditComboBox(
 
   init {
     initJdkComboBox()
-    initJdkHint()
+    createJdkComboBox()
   }
 
   private fun initJdkComboBox() {
     jdkComboBox.apply {
       isEditable = true
       editor = createJdkComboBoxEditor()
+      renderer = JdkComboBoxCellRenderer()
       addItemListener(this@GradleJdkPathEditComboBox)
       suggestedJdkPaths.forEach { jdkComboBox.addItem(it) }
       maximumRowCount = 10
     }
     resetSelection()
-    add(jdkComboBox)
   }
 
-  private fun initJdkHint() {
-    hintMessage?.let {
-      val jdkComboBoxHint = JBLabel(XmlStringUtil.wrapInHtml(it), UIUtil.ComponentStyle.SMALL)
-        .apply { foreground = UIUtil.getLabelFontColor(UIUtil.FontColor.BRIGHTER) }
-      add(jdkComboBoxHint)
+  private fun createJdkComboBox() {
+    panel {
+      row {
+        add(jdkComboBox)
+        comment(comment = hintMessage) { BrowserUtil.browse(it.url) }.applyToComponent {
+          foreground = UIUtil.getLabelFontColor(UIUtil.FontColor.BRIGHTER)
+          font = JBFont.small()
+        }
+      }
+    }.also {
+      add(it)
     }
   }
 
@@ -151,6 +161,21 @@ class GradleJdkPathEditComboBox(
       SdkConfigurationUtil.selectSdkHome(JavaSdk.getInstance()) { jdkPath ->
         jdkComboBox.editor.item = jdkPath
       }
+    }
+  }
+
+  private class JdkComboBoxCellRenderer : ColoredListCellRenderer<LabelAndFileForLocation>() {
+    override fun customizeCellRenderer(
+      list: JList<out LabelAndFileForLocation>,
+      value: LabelAndFileForLocation,
+      index: Int,
+      selected: Boolean,
+      hasFocus: Boolean
+    ) {
+      icon = JavaSdk.getInstance().icon
+      append(value.label)
+      append(" ")
+      append(value.systemDependentPath, SimpleTextAttributes.GRAYED_ATTRIBUTES)
     }
   }
 }
