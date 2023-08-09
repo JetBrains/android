@@ -18,21 +18,20 @@ package com.android.tools.idea.modes.essentials
 import com.android.flags.Flag
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.flags.StudioFlags
-import com.google.protobuf.TextFormat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.EssentialsModeEvent
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.ide.EssentialHighlightingMode
 import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.registry.RegistryManager
 import com.intellij.openapi.wm.impl.status.widget.StatusBarWidgetsManager
-import com.jetbrains.rd.util.string.print
-import com.jetbrains.rd.util.string.printToString
-import com.jetbrains.rd.util.string.println
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
 @Service
 class EssentialsMode {
@@ -64,8 +63,22 @@ class EssentialsMode {
         messenger.sendMessage()
         essentialsModeLogger.info("Essentials mode isEnabled set to $value")
         updateUI(value)
-        project?.service<EssentialsModeNotifier>()?.notifyProject()
+
+        project?.let {
+          doHighlightPass(project)
+          it.service<EssentialsModeNotifier>().notifyProject()
+        }
+
         trackEvent(value)
+      }
+    }
+
+    // Do a single highlight pass to update editor elements (e.g. gutter icons) that depend on Essentials Mode status.
+    private fun doHighlightPass(project: Project) {
+      FileEditorManager.getInstance(project).selectedEditors.forEach {
+        it.file.toPsiFile(project)?.let { file ->
+          DaemonCodeAnalyzer.getInstance(project).restart(file)
+        }
       }
     }
 
