@@ -48,15 +48,15 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
   }
 
   fun `test Given initial selection When create component Then specified JDK path is selected`() {
-    val initialSelectionJdkPath = "/jdk/path"
-    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), initialSelectionJdkPath, "")
-    assertEquals(initialSelectionJdkPath, jdkComboBox.selectedJdkPath)
+    val currentJdkPath = "/jdk/path"
+    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), currentJdkPath, "")
+    assertEquals(currentJdkPath, jdkComboBox.selectedJdkPath)
     assertFalse(jdkComboBox.isModified)
   }
 
   fun `test Given comboBox When select JDK path and reset selection Then selected JDK path is consistent`() {
-    val initialSelectionJdkPath = "/jdk/path"
-    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), initialSelectionJdkPath, "")
+    val currentJdkPath = "/jdk/path"
+    val jdkComboBox = GradleJdkPathEditComboBox(emptyList(), currentJdkPath, "")
 
     val differentSelectionJdkPath = "/another/jdk/path"
     jdkComboBox.selectedItem = differentSelectionJdkPath
@@ -64,7 +64,7 @@ class GradleJdkPathEditComboBoxTest : LightPlatformTestCase() {
     assertTrue(jdkComboBox.isModified)
 
     jdkComboBox.resetSelection()
-    assertEquals(initialSelectionJdkPath, jdkComboBox.selectedJdkPath)
+    assertEquals(currentJdkPath, jdkComboBox.selectedJdkPath)
     assertFalse(jdkComboBox.isModified)
   }
 

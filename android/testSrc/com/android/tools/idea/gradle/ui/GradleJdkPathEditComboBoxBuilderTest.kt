@@ -51,7 +51,7 @@ class GradleJdkPathEditComboBoxBuilderTest: LightPlatformTestCase() {
 
   private fun buildJdkPathEditComboBox(embeddedJdk: String, suggestedJdks: List<String>) =
     GradleJdkPathEditComboBoxBuilder.build(
-      initialSelectionJdkPath = null,
+      currentJdkPath = null,
       embeddedJdkPath = Path(embeddedJdk),
       suggestedJdks = suggestedJdks.map { createMockSdk(it) },
       hintMessage = ""

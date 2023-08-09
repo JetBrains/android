@@ -29,12 +29,12 @@ import java.nio.file.Path
 object GradleJdkPathEditComboBoxBuilder {
 
   fun build(
-    initialSelectionJdkPath: @SystemIndependent String?,
+    currentJdkPath: @SystemIndependent String?,
     embeddedJdkPath: Path,
     suggestedJdks: List<Sdk>,
     hintMessage: String,
   ) = GradleJdkPathEditComboBox(
-    initialSelectionJdkPath = initialSelectionJdkPath ?: embeddedJdkPath.toString(),
+    currentJdkPath = currentJdkPath ?: embeddedJdkPath.toString(),
     suggestedJdkPaths = getKnownValidJdks(suggestedJdks, embeddedJdkPath),
     hintMessage = hintMessage
   )

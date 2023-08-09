@@ -51,12 +51,12 @@ private val minimumAndPreferredWidth
  */
 class GradleJdkPathEditComboBox(
   private val suggestedJdkPaths: List<LabelAndFileForLocation>,
-  private val initialSelectionJdkPath: @SystemIndependent String?,
+  private var currentJdkPath: @SystemIndependent String?,
   private val hintMessage: String,
 ) : JPanel(VerticalLayout(0)), ItemListener {
 
   val isModified: Boolean
-    get() = selectedJdkPath != initialSelectionJdkPath
+    get() = selectedJdkPath != currentJdkPath
   val selectedJdkPath: String
     get() = jdkComboBox.editor.item.toString()
   @get:VisibleForTesting
@@ -103,8 +103,12 @@ class GradleJdkPathEditComboBox(
     }
   }
 
+  fun applySelection() {
+    currentJdkPath = selectedJdkPath
+  }
+
   fun resetSelection() {
-    jdkComboBox.editor.item = initialSelectionJdkPath
+    jdkComboBox.editor.item = currentJdkPath
   }
 
   @VisibleForTesting

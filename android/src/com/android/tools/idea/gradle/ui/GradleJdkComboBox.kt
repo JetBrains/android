@@ -114,9 +114,10 @@ class GradleJdkComboBox(
             ?: sdkLookupProvider.nonblockingResolveSdkBySdkName(selectedGradleJvmReference)
   }
 
-  fun addJdkReferenceItem(name: String, homePath: String, versionString: String, isValid: Boolean) {
-    comboBox.addJdkReferenceItem(name, versionString, isValid)
+  fun addJdkReferenceItem(name: String, homePath: String, isValid: Boolean): SdkListItem {
     sdkReferenceItemsHomePathMap[name] = homePath
+    val versionString = JavaSdk.getInstance().getVersionString(homePath).orEmpty()
+    return comboBox.addJdkReferenceItem(name, versionString, isValid)
   }
 
   fun addJdkReferenceItem(name: String, homePath: String) {
@@ -132,6 +133,15 @@ class GradleJdkComboBox(
     comboBox.whenItemSelected {
       onSelected(it)
     }
+  }
+
+  fun updateJdkReferenceItem(name: String, homePath: String) {
+    val updatedJdkReferenceIdem = addJdkReferenceItem(
+      name = name,
+      homePath = homePath,
+      isValid = true
+    )
+    comboBox.model.selectedItem = updatedJdkReferenceIdem
   }
 
   private fun SdkLookupProvider.nonblockingResolveSdkBySdkName(sdkName: String?): SdkLookupProvider.SdkInfo {

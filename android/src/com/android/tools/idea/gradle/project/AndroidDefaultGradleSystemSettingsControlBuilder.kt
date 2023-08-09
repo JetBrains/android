@@ -86,7 +86,7 @@ class AndroidDefaultGradleSystemSettingsControlBuilder(
 
   private fun createDefaultGradleJdkJdkComboBox(): GradleJdkPathEditComboBox {
     return GradleJdkPathEditComboBoxBuilder.build(
-      initialSelectionJdkPath = GradleDefaultJdkPathStore.jdkPath,
+      currentJdkPath = GradleDefaultJdkPathStore.jdkPath,
       embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath,
       suggestedJdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance()),
       hintMessage = AndroidBundle.message("gradle.settings.jdk.default.override.path.hint")

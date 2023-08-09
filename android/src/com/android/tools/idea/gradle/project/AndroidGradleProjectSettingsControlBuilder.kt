@@ -22,11 +22,11 @@ import com.android.tools.idea.gradle.ui.GradleJdkPathEditComboBox
 import com.android.tools.idea.gradle.ui.GradleJdkPathEditComboBoxBuilder
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.gradle.util.GradleJdkComboBoxUtil
-import com.android.tools.idea.sdk.IdeSdks
-import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.android.tools.idea.sdk.DefaultAndroidGradleJvmNames.ANDROID_STUDIO_DEFAULT_JDK_NAME
 import com.android.tools.idea.sdk.DefaultAndroidGradleJvmNames.ANDROID_STUDIO_JAVA_HOME_NAME
 import com.android.tools.idea.sdk.DefaultAndroidGradleJvmNames.EMBEDDED_JDK_NAME
+import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
@@ -129,10 +129,17 @@ class AndroidGradleProjectSettingsControlBuilder(
       settings!!.gradleJvm = if (StringUtil.isEmpty(gradleJvm)) null else gradleJvm
       IdeSdks.getInstance().setUseEnvVariableJdk(JDK_LOCATION_ENV_VARIABLE_NAME == gradleJvm)
     }
-    gradleLocalJavaHomeComboBox?.let {
-      GradleConfigProperties(initialSettings.externalProjectFile).run {
-        javaHome = File(it.selectedJdkPath)
-        save()
+    gradleLocalJavaHomeComboBox?.run {
+      if (isModified) {
+        applySelection()
+        myGradleJdkComboBox?.updateJdkReferenceItem(
+          name = GRADLE_LOCAL_JAVA_HOME,
+          homePath = selectedJdkPath
+        )
+        GradleConfigProperties(initialSettings.externalProjectFile).run {
+          javaHome = File(selectedJdkPath)
+          save()
+        }
       }
     }
   }
@@ -230,7 +237,7 @@ class AndroidGradleProjectSettingsControlBuilder(
     }
     val gradleRootProjectFile = File(initialSettings.externalProjectPath)
     gradleLocalJavaHomeComboBox = GradleJdkPathEditComboBoxBuilder.build(
-      initialSelectionJdkPath = GradleConfigProperties(gradleRootProjectFile).javaHome?.path,
+      currentJdkPath = GradleConfigProperties(gradleRootProjectFile).javaHome?.path,
       embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath,
       suggestedJdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance()),
       hintMessage = AndroidBundle.message("gradle.settings.jdk.edit.path.hint", GRADLE_LOCAL_JAVA_HOME)
@@ -244,7 +251,6 @@ class AndroidGradleProjectSettingsControlBuilder(
     // Add GRADLE_LOCAL_JAVA_HOME
     myGradleJdkComboBox?.addJdkReferenceItem(
       name = GRADLE_LOCAL_JAVA_HOME,
-      versionString = JavaSdk.getInstance().getVersionString(gradleLocalJavaHomeComboBox?.selectedJdkPath.orEmpty()).orEmpty(),
       homePath = gradleLocalJavaHomeComboBox?.selectedJdkPath.orEmpty(),
       isValid = true
     )
