@@ -31,6 +31,7 @@ import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.VisibleForTesting
 
 class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
 
@@ -110,7 +111,8 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
   companion object {
     const val ID = "Android Profiler"
     private const val PROFILER_TOOL_WINDOW_TITLE = "Profiler"
-    private val PROJECT_PROFILER_MAP: MutableMap<Project, AndroidProfilerToolWindow> = HashMap()
+    @VisibleForTesting
+    val PROJECT_PROFILER_MAP: MutableMap<Project, AndroidProfilerToolWindow> = HashMap()
 
     private fun createContent(project: Project, toolWindow: ToolWindow) {
       val view = createProfilerToolWindow(project, toolWindow)

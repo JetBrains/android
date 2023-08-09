@@ -42,6 +42,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.content.Content
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.io.File
 import java.util.function.Supplier
@@ -106,13 +107,19 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     createNewTab(profilersPanel, "<Task Name>", true)
   }
 
-  private fun createNewTab(component: JComponent, tabName: String, isCloseable: Boolean) {
+  @VisibleForTesting
+  fun createNewTab(component: JComponent, tabName: String, isCloseable: Boolean) {
     val contentManager = window.getContentManager()
     val content = contentManager.factory.createContent(component, tabName, false).also { content ->
       content.isCloseable = isCloseable
     }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
+  }
+
+  private fun findHomeTab(): Content? {
+    val contentManager = window.getContentManager()
+    return if (contentManager.contentCount == 0) null else contentManager.getContent(0)
   }
 
   private fun findTaskTab(): Content? {
@@ -143,7 +150,13 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
   }
 
   fun openHomeTab() {
-    createNewTab(homePanel, PROFILER_HOME_TAB_NAME, false)
+    val homeTab = findHomeTab()
+    if (homeTab != null) {
+      window.getContentManager().setSelectedContent(homeTab)
+    }
+    else {
+      createNewTab(homePanel, PROFILER_HOME_TAB_NAME, false)
+    }
   }
 
   fun openTaskTab(taskType: ProfilerTaskType, taskArgs: TaskArgs?) {
