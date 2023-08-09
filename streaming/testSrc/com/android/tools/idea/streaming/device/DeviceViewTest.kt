@@ -95,7 +95,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito
+import org.mockito.Mockito.atLeast
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.MouseInfo
@@ -492,11 +494,11 @@ internal class DeviceViewTest {
       }
     }
 
-    focusManager = Mockito.spy(focusManager)
+    focusManager = spy(focusManager)
     replaceKeyboardFocusManager(focusManager, testRootDisposable)
     focusManager.focusOwner = view
     focusManager.processKeyEvent(view, KeyEvent(view, KEY_PRESSED, System.currentTimeMillis(), SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
-    Mockito.verify(focusManager, Mockito.atLeast(1)).focusNextComponent(eq(view))
+    verify(focusManager, atLeast(1)).focusNextComponent(eq(view))
   }
 
   @Test
@@ -1007,7 +1009,7 @@ private fun CrashReport.toPartMap(): Map<String, String> {
   serialize(mockBuilder)
   val keyCaptor = ArgumentCaptor.forClass(String::class.java)
   val valueCaptor = ArgumentCaptor.forClass(String::class.java)
-  Mockito.verify(mockBuilder, Mockito.atLeast(1)).addTextBody(keyCaptor.capture(), valueCaptor.capture(), any())
+  verify(mockBuilder, atLeast(1)).addTextBody(keyCaptor.capture(), valueCaptor.capture(), any())
   val keys = keyCaptor.allValues
   val values = valueCaptor.allValues
   for ((i, key) in keys.withIndex()) {
