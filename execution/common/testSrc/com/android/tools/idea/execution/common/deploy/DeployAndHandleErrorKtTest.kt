@@ -113,8 +113,8 @@ class DeployAndHandleErrorKtTest {
       }, automaticallyApplyResolutionAction = true)
       fail()
     }
-    catch (_: CantRunException.CustomProcessedCantRunException) {
-
+    catch (e: AndroidExecutionException) {
+      assertThat(e.errorId).isEqualTo(exception.id)
     }
 
     val notificationInfo = notificationRule.notifications.find {
@@ -138,8 +138,8 @@ class DeployAndHandleErrorKtTest {
       deployAndHandleError(env, { throw exception })
       fail()
     }
-    catch (_: CantRunException.CustomProcessedCantRunException) {
-
+    catch (e: AndroidExecutionException) {
+      assertThat(e.errorId).isEqualTo(exception.id)
     }
 
     val notificationInfo = notificationRule.notifications.find {
@@ -164,14 +164,13 @@ class DeployAndHandleErrorKtTest {
       deployAndHandleError(env, { throw exception }, automaticallyApplyResolutionAction = true)
       fail()
     }
-    catch (_: CantRunException.CustomProcessedCantRunException) {
-
+    catch (e: AndroidExecutionException) {
+      assertThat(e.errorId).isEqualTo(exception.id)
     }
 
     val notificationInfo = notificationRule.notifications.find {
       it.type == NotificationType.ERROR &&
       it.content == "Installation failed\n" +
-      "Apply Changes could not complete because an application process is crashed.\n" +
       "Reinstall and restart app will be done automatically" &&
       it.actions.isEmpty()
     }
@@ -192,8 +191,8 @@ class DeployAndHandleErrorKtTest {
       deployAndHandleError(env, { throw exception })
       fail()
     }
-    catch (_: CantRunException.CustomProcessedCantRunException) {
-
+    catch (e: AndroidExecutionException) {
+      assertThat(e.errorId).isEqualTo(exception.id)
     }
 
     val notificationInfo = notificationRule.notifications.find {
@@ -220,8 +219,8 @@ class DeployAndHandleErrorKtTest {
       deployAndHandleError(env, { throw exception })
       fail()
     }
-    catch (_: CantRunException.CustomProcessedCantRunException) {
-
+    catch (e: AndroidExecutionException) {
+      assertThat(e.errorId).isEqualTo(exception.id)
     }
 
     val notificationInfo = notificationRule.notifications.find {

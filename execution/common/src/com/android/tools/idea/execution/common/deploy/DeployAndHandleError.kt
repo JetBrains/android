@@ -70,8 +70,6 @@ fun deployAndHandleError(
     }
 
     val bubbleError = StringBuilder("Installation failed")
-    bubbleError.append("\n")
-    bubbleError.append(e.message)
     var callToAction = error.callToAction
 
     if (env.executor.id == DefaultDebugExecutor.EXECUTOR_ID && resolutionAction == DeployerException.ResolutionAction.APPLY_CHANGES) {
@@ -95,11 +93,12 @@ fun deployAndHandleError(
       ApplicationManager.getApplication().invokeLater(actionRunnable)
     } else {
       val notificationAction = NotificationAction.createSimpleExpiring(callToAction!!, actionRunnable)
+      bubbleError.append('\n')
+      bubbleError.append("Suggested action:")
       RunConfigurationNotifier.notifyErrorWithAction(env.project, env.runProfile.name, bubbleError.toString(), notificationAction)
     }
 
-    // We used RunConfigurationNotifier to handle exception. CustomProcessedCantRunException is used to avoid duplicates.
-    throw CantRunException.CustomProcessedCantRunException()
+    throw AndroidExecutionException(e.id, e.message)
   }
 }
 
