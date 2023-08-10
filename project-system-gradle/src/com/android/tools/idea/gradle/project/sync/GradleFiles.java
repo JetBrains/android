@@ -160,10 +160,10 @@ public class GradleFiles implements Disposable {
         PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
 
         if (state.isGradleFile) {
-          PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener);
+          PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener, this);
         }
       })
-      .coalesceBy(this, file)
+      .coalesceBy(this)
       .expireWith(this)
       .submit(AppExecutorUtil.getAppExecutorService());
   }
