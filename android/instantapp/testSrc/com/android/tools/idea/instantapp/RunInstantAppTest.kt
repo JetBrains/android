@@ -184,7 +184,7 @@ class RunInstantAppTest {
     configuration.MODE = AndroidRunConfiguration.DO_NOTHING
 
     whenever(applicationDeployer.fullDeploy(eq(device), MockitoKt.any(), MockitoKt.any(), MockitoKt.any()))
-      .thenReturn(Deployer.Result(false, false, false, createApp(device, configuration.appId!!, emptyList(), emptyList())))
+      .thenReturn(Deployer.Result(false, false, false, createApp(device, "google.simpleapplication", emptyList(), emptyList())))
 
     // RUN
     ProgressManager.getInstance()

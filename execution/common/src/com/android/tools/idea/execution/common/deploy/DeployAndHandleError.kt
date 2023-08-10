@@ -91,7 +91,8 @@ fun deployAndHandleError(
       bubbleError.append("$callToAction will be done automatically")
       RunConfigurationNotifier.notifyError(env.project, env.runProfile.name, bubbleError.toString())
       ApplicationManager.getApplication().invokeLater(actionRunnable)
-    } else {
+    }
+    else {
       val notificationAction = NotificationAction.createSimpleExpiring(callToAction!!, actionRunnable)
       bubbleError.append('\n')
       bubbleError.append("Suggested action:")

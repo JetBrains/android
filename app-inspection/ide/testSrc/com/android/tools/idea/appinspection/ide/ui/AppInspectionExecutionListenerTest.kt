@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -37,17 +38,13 @@ class AppInspectionExecutionListenerTest {
   fun testRecentProcess() {
     val project = projectRule.project
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    fun env(appId: String) =
+    val env =
       ExecutionEnvironmentBuilder.create(
           DefaultRunExecutor.getRunExecutorInstance(),
-          object :
-            AndroidRunConfiguration(
-              projectRule.project,
-              AndroidRunConfigurationType.getInstance().factory
-            ) {
-            override val appId: String?
-              get() = appId
-          }
+          AndroidRunConfiguration(
+            projectRule.project,
+            AndroidRunConfigurationType.getInstance().factory
+          )
         )
         .build()
         .apply {
@@ -56,9 +53,8 @@ class AppInspectionExecutionListenerTest {
         }
 
     val handler1 = AndroidProcessHandler("com.example.p1")
-
     run { // Start process "p1"
-      val env = env("com.example.p1")
+      AndroidSessionInfo.create(handler1, listOf(device), "com.example.p1")
 
       project.messageBus
         .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
@@ -71,9 +67,9 @@ class AppInspectionExecutionListenerTest {
 
     // Start process "p2"
     run {
-      val env = env("com.example.p2")
-
       val handler2 = AndroidProcessHandler("com.example.p2")
+      AndroidSessionInfo.create(handler2, listOf(device), "com.example.p2")
+
       project.messageBus
         .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
         .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler2)

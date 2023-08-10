@@ -16,8 +16,7 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
@@ -36,20 +35,10 @@ class AppInspectionExecutionListener : ExecutionListener {
     handler: ProcessHandler
   ) {
     val project = env.project
-    val configuration = env.runProfile as? AndroidRunConfiguration ?: return
+    val info = AndroidSessionInfo.from(handler) ?: return
 
-    val appId =
-      configuration.appId
-        ?: throw RuntimeException(
-          "No packageName for started AndroidRunConfiguration configuration"
-        )
-
-    val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
-    // Devices should be already ready as they were used for launching.
-    val targetDevices = deviceFutures?.ifReady ?: return
-
-    targetDevices.forEach { device ->
-      storeRecentProcess(project, device, appId, handler)
+    info.devices.forEach { device ->
+      storeRecentProcess(project, device, info.applicationId, handler)
       displayStripeButton(project, device)
     }
   }

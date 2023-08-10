@@ -42,7 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * Additionally, restore the connection between Client and DDMLib if we detach from the process".
  * See {@link AndroidRemoteDebugProcessHandler#detachProcessImpl()}
  */
-final public class AndroidRemoteDebugProcessHandler extends ProcessHandler implements DeviceAwareProcessHandler {
+final public class AndroidRemoteDebugProcessHandler extends ProcessHandler {
 
   private final Project myProject;
   private final Client myClient;
@@ -54,8 +54,6 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
     myProject = project;
     myClient = client;
     myDetachIsDefault = detachIsDefault;
-
-    putCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY, this);
   }
 
 
@@ -129,10 +127,5 @@ final public class AndroidRemoteDebugProcessHandler extends ProcessHandler imple
 
   public boolean isPackageRunning(@Nullable IDevice device, @NotNull String packageName) {
     return (device == null || device == myClient.getDevice()) && packageName.equals(myClient.getClientData().getPackageName());
-  }
-
-  @Override
-  public boolean isAssociated(@NotNull IDevice device) {
-    return device == myClient.getDevice();
   }
 }

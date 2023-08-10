@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
-import com.android.tools.idea.execution.common.AppRunConfiguration
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.clearAppStorage
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
@@ -100,6 +100,7 @@ class BlazeAndroidConfigurationExecutor(
       }
     }
 
+    AndroidSessionInfo.create(processHandler, devices, applicationId)
     createRunContentDescriptor(processHandler, console, env)
   }
 
@@ -112,9 +113,6 @@ class BlazeAndroidConfigurationExecutor(
     applicationId: String
   ) = coroutineScope {
     val stat = RunStats.from(env).apply { setPackage(applicationId) }
-    env.putCopyableUserData(AppRunConfiguration.KEY, object : AppRunConfiguration {
-      override val appId = applicationId
-    })
     stat.beginLaunchTasks()
     indicator.text = "Launching on devices"
     try {

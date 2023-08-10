@@ -20,7 +20,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
-import com.android.tools.idea.execution.common.AppRunConfiguration
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
@@ -85,10 +85,7 @@ abstract class AndroidConfigurationExecutorBase(
 
     devices.map { async { onDevice(it) } }.joinAll()
 
-    environment.putCopyableUserData(AppRunConfiguration.KEY, object : AppRunConfiguration {
-      override val appId = applicationId
-    })
-
+    AndroidSessionInfo.create(processHandler, devices, applicationId)
     createRunContentDescriptor(processHandler, console, environment)
   }
 

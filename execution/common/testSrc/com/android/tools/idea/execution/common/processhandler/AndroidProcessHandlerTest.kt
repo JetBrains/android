@@ -109,11 +109,6 @@ class AndroidProcessHandlerTest {
   }
 
   @Test
-  fun handlerIsRegisteredToCopyableUserData() {
-    assertThat(handler.getCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY)).isSameAs(handler)
-  }
-
-  @Test
   fun runProcessOnOneDevice() {
     handler
 

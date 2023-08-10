@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.profilers
 
-import com.android.tools.idea.execution.common.AppRunConfiguration
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.profilers.AndroidProfilerToolWindow.Companion.getDeviceDisplayName
 import com.android.tools.idea.profilers.AndroidProfilerToolWindowFactory.Companion.getProfilerToolWindow
-import com.android.tools.idea.run.DeviceFutures
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
@@ -30,11 +29,11 @@ import com.intellij.openapi.wm.ToolWindowManager
 class ProfilerExecutionListener : ExecutionListener {
 
   override fun processStarted(executorId: String, env: ExecutionEnvironment, handler: ProcessHandler) {
-    val deviceFutures = env.getCopyableUserData(DeviceFutures.KEY)
-    // Devices should be already ready as they were used for launching. Profiling supported only for single device
-    val device = deviceFutures?.ifReady?.singleOrNull() ?: return
+    val info = AndroidSessionInfo.from(handler) ?: return
 
-    val applicationId = env.getCopyableUserData(AppRunConfiguration.KEY)?.appId ?: return
+    if (info.devices.size != 1) {
+      return
+    }
 
     // There are two scenarios here:
     // 1. If the profiler window is opened
@@ -43,8 +42,8 @@ class ProfilerExecutionListener : ExecutionListener {
     runInEdt {
       val window = ToolWindowManager.getInstance(env.project).getToolWindow(AndroidProfilerToolWindowFactory.ID) ?: return@runInEdt
       window.isShowStripeButton = true
-      val deviceName = getDeviceDisplayName(device)
-      val preferredProcessInfo = PreferredProcessInfo(deviceName, applicationId) { true }
+      val deviceName = getDeviceDisplayName(info.devices.first())
+      val preferredProcessInfo = PreferredProcessInfo(deviceName, info.applicationId) { true }
       // If the window is currently not shown, either if the users click on Run/Debug or if they manually collapse/hide the window,
       // then we shouldn't start profiling the launched app.
       var profileStarted = false

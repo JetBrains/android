@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.execution.common.applychanges;
 
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.run.tasks.AbstractDeployTask.MIN_API_VERSION;
 import static com.android.tools.idea.run.util.SwapInfo.SWAP_INFO_KEY;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
-import com.android.tools.idea.execution.common.AppRunConfiguration;
 import com.android.tools.idea.execution.common.UtilsKt;
+import com.android.tools.idea.run.ApkProvisionException;
+import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.run.util.SwapInfo.SwapType;
@@ -200,11 +202,17 @@ public abstract class BaseAction extends AnAction {
                                 "the selected configuration is not supported");
     }
 
-    if (!(selectedRunConfig instanceof AppRunConfiguration) || ((AppRunConfiguration)selectedRunConfig).getAppId() == null) {
-      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "can't detect package name", "can't detect package name");
+    String applicationId;
+    final ApplicationIdProvider applicationIdProvider = getProjectSystem(project).getApplicationIdProvider(selectedRunConfig);
+    if (applicationIdProvider == null) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "can't detect applicationId", "can't detect applicationId");
     }
-
-    String packageName = ((AppRunConfiguration)selectedRunConfig).getAppId();
+    try {
+      applicationId = applicationIdProvider.getPackageName();
+    }
+    catch (ApkProvisionException e) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "can't detect applicationId", "can't detect applicationId");
+    }
 
     ExecutionTarget selectedExecutionTarget = ExecutionTargetManager.getActiveTarget(project);
     if (!(selectedExecutionTarget instanceof AndroidExecutionTarget)) {
@@ -228,7 +236,7 @@ public abstract class BaseAction extends AnAction {
                                 "its API level is lower than 26");
     }
 
-    if (devices.stream().allMatch(d -> DeploymentApplicationService.getInstance().findClient(d, packageName).isEmpty())) {
+    if (devices.stream().allMatch(d -> DeploymentApplicationService.getInstance().findClient(d, applicationId).isEmpty())) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "app not detected",
                                 "the app is not yet running or not debuggable");
     }

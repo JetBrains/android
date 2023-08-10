@@ -535,8 +535,7 @@ class AndroidRunConfigurationExecutorTest {
 
     // New process handler should be created if we restarted Activity
     assertThat(newProcessHandler).isNotEqualTo(runningProcessHandler)
-    assertThat(newProcessHandler).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)
-    assertThat((newProcessHandler as AndroidRemoteDebugProcessHandler).isAssociated(device)).isEqualTo(true)
+    assertThat(newProcessHandler!!).isInstanceOf(AndroidRemoteDebugProcessHandler::class.java)
 
     deviceState.stopClient(1234)
     if (!newProcessHandler.waitFor(5000)) {
@@ -629,6 +628,7 @@ class AndroidRunConfigurationExecutorTest {
       whenever(mockExecutionManager.getRunningDescriptors(any())).thenReturn(listOf(runContentDescriptor!!))
       projectRule.project.replaceService(ExecutionManager::class.java, mockExecutionManager, projectRule.testRootDisposable)
     }
+    AndroidSessionInfo.create(processHandlerForSwap, listOf(device), APPLICATION_ID)
     return runContentDescriptor!!
   }
 }

@@ -59,15 +59,12 @@ class AndroidProcessHandler @JvmOverloads constructor(
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { textEmitter, listener ->
     AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, listener,
                                  finishAndroidProcessCallback)
-  }) : ProcessHandler(), DeviceAwareProcessHandler {
+  }) : ProcessHandler() {
 
   companion object {
     private var LOG = Logger.getInstance(AndroidProcessHandler::class.java)
   }
 
-  init {
-    putCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY, this)
-  }
 
   /**
    * Logcat messages from all target devices are redirected to [notifyTextAvailable]. When all target processes terminate on
@@ -132,7 +129,7 @@ class AndroidProcessHandler @JvmOverloads constructor(
    * Checks if a given device is monitored by this handler. Returns true if it is monitored otherwise false.
    */
   @AnyThread
-  override fun isAssociated(device: IDevice) = myMonitorManager.isAssociated(device)
+  fun isAssociated(device: IDevice) = myMonitorManager.isAssociated(device)
 
   /**
    * Returns jdwp client of a target application running on a given device, or null if the device is not monitored by
