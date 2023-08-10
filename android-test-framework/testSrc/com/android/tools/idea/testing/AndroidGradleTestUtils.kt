@@ -760,7 +760,8 @@ fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContain
     name = "default",
     proguardFiles = emptyList(),
     resValues = emptyMap(),
-    versionNameSuffix = null
+    versionNameSuffix = null,
+    isDefault = null
   ),
   sourceProvider = mainSourceProvider,
   extraSourceProviders = listOfNotNull(androidTestSourceProviderContainer, unitTestSourceProviderContainer)
@@ -783,7 +784,8 @@ fun AndroidProjectStubBuilder.buildDebugBuildTypeStub(): IdeBuildTypeContainerIm
         isRenderscriptDebuggable = true,
         renderscriptOptimLevel = 1,
         isMinifyEnabled = false,
-        isZipAlignEnabled = true
+        isZipAlignEnabled = true,
+        isDefault = null
       ),
       debugSourceProvider,
       listOfNotNull(
@@ -810,7 +812,8 @@ fun AndroidProjectStubBuilder.buildReleaseBuildTypeStub(): IdeBuildTypeContainer
         isRenderscriptDebuggable = false,
         renderscriptOptimLevel = 1,
         isMinifyEnabled = true,
-        isZipAlignEnabled = true
+        isZipAlignEnabled = true,
+        isDefault = null
       ),
       sourceProvider = releaseSourceProvider,
       extraSourceProviders = listOf())

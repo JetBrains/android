@@ -75,4 +75,7 @@ interface IdeProductFlavor : IdeBaseConfig {
   val resourceConfigurations: Collection<String>
 
   val vectorDrawables: IdeVectorDrawablesOptions?
+
+  /** Whether this product flavor is specified as a default by the user*/
+  val isDefault: Boolean?
 }

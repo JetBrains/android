@@ -41,5 +41,6 @@ data class IdeProductFlavorImpl(
   override val testHandleProfiling: Boolean?,
   override val testFunctionalTest: Boolean?,
   override val resourceConfigurations: Collection<String>,
-  override val vectorDrawables: IdeVectorDrawablesOptionsImpl?
+  override val vectorDrawables: IdeVectorDrawablesOptionsImpl?,
+  override val isDefault: Boolean?
 ) : IdeProductFlavor, Serializable

@@ -137,7 +137,6 @@ import java.io.File
 import java.io.FileFilter
 import java.io.PrintWriter
 import java.io.StringWriter
-import java.util.concurrent.locks.ReentrantLock
 
 internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: BuildFolderPaths): ModelCache.V1 {
 
@@ -235,7 +234,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       testApplicationId = flavor.testApplicationId,
       testInstrumentationRunner = flavor.testInstrumentationRunner,
       testFunctionalTest = flavor.testFunctionalTest,
-      testHandleProfiling = flavor.testHandleProfiling
+      testHandleProfiling = flavor.testHandleProfiling,
+      isDefault = null
     )
   }
 
@@ -294,7 +294,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       isRenderscriptDebuggable = buildType.isRenderscriptDebuggable,
       renderscriptOptimLevel = buildType.renderscriptOptimLevel,
       isMinifyEnabled = buildType.isMinifyEnabled,
-      isZipAlignEnabled = buildType.isZipAlignEnabled
+      isZipAlignEnabled = buildType.isZipAlignEnabled,
+      isDefault = null
     )
   }
 

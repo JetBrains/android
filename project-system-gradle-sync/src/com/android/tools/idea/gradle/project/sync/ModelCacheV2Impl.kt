@@ -234,7 +234,8 @@ internal fun modelCacheV2Impl(
       testApplicationId = flavor.testApplicationId?.deduplicate(),
       testInstrumentationRunner = flavor.testInstrumentationRunner?.deduplicate(),
       testFunctionalTest = flavor.testFunctionalTest,
-      testHandleProfiling = flavor.testHandleProfiling
+      testHandleProfiling = flavor.testHandleProfiling,
+      isDefault = flavor.isDefault
     )
   }
 
@@ -321,7 +322,8 @@ internal fun modelCacheV2Impl(
       testApplicationId = testApplicationId,
       testInstrumentationRunner = testInstrumentationRunner,
       testFunctionalTest = testFunctionalTest,
-      testHandleProfiling = testHandleProfiling
+      testHandleProfiling = testHandleProfiling,
+      isDefault = null
     )
   }
 
@@ -391,7 +393,8 @@ internal fun modelCacheV2Impl(
       isRenderscriptDebuggable = buildType.isRenderscriptDebuggable,
       renderscriptOptimLevel = buildType.renderscriptOptimLevel,
       isMinifyEnabled = buildType.isMinifyEnabled,
-      isZipAlignEnabled = buildType.isZipAlignEnabled
+      isZipAlignEnabled = buildType.isZipAlignEnabled,
+      isDefault = buildType.isDefault
     )
   }
 

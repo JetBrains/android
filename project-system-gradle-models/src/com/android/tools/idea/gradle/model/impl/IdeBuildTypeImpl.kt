@@ -33,5 +33,6 @@ data class IdeBuildTypeImpl(
   override val isRenderscriptDebuggable: Boolean,
   override val renderscriptOptimLevel: Int,
   override val isMinifyEnabled: Boolean,
-  override val isZipAlignEnabled: Boolean
+  override val isZipAlignEnabled: Boolean,
+  override val isDefault: Boolean?
 ) : IdeBuildType, Serializable

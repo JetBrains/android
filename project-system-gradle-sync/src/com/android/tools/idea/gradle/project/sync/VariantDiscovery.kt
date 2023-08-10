@@ -22,17 +22,23 @@ import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapCatch
 import com.android.tools.idea.gradle.project.sync.ModelResult.Companion.mapNull
 import org.gradle.tooling.BuildController
 import java.util.Collections
-import java.util.LinkedList
 
 // This is used as a key to track the variant fetch requests
 // It will be expanded with variant itself because it is possible we end up
 // fetching multiple variants for the same module
-private data class FetchedVariant(val moduleId: String, val variantName: String?)
+private data class FetchedVariant(val moduleId: String, val variantName: String?) {
+  var final: Boolean = false
+    private set
 
+  fun finalize() {
+    final = true
+  }
+}
 
 private sealed class FetchedVariantResult {
   class Finished(val result: ModelResult<SyncVariantResult>) : FetchedVariantResult()
   object InProgress: FetchedVariantResult()
+  object Discarded: FetchedVariantResult()
 }
 private fun ModelResult<SyncVariantResult>.toFinishedResult() = FetchedVariantResult.Finished(this)
 
@@ -103,23 +109,27 @@ internal class VariantDiscovery(
    */
   fun discoverVariantsAndSync() {
     if (inputModules.isEmpty()) return
-    val modulesToSetUp = prepareRequestedOrDefaultModuleConfigurations()
-
+    val modulesToSetUpWithPriority = prepareRequestedOrDefaultModuleConfigurations()
 
     if (shouldUsePreviouslyResolvedVariants) {
       // If we know which variants to fetch for each module, fetch and populate those without traversing the dependencies
-      populatePreviouslyResolvedVariantResults(modulesToSetUp)
+      populatePreviouslyResolvedVariantResults(modulesToSetUpWithPriority.values.flatten())
     } else {
-      // Otherwise fetch each root module (and its dependencies) one-by-one to figure out the variant for each module
-      while (modulesToSetUp.isNotEmpty()) {
-        val nextModule = modulesToSetUp.removeFirstOrNull() ?: continue
-        if (moduleFetchResults.containsKey(nextModule.toMapKey())) continue
-        actionRunner.runActions(listOf(nextModule.toTraverseAction()))
+      // Otherwise fetch each module with the same priority in a batch
+      for (nextBatch in modulesToSetUpWithPriority.values) {
+        val modulesToVisit = nextBatch.filter { it.shouldVisit() }
+        if (modulesToVisit.isEmpty()) continue
+
+        // Fetch the dependencies of the next batch recursively
+        actionRunner.runActions(modulesToVisit.map { it.toTraverseAction() })
+        moduleFetchResults.ensureConsistent()
       }
     }
 
     check(moduleFetchResults.values.all { it is FetchedVariantResult.Finished }) { "No work should be in progress at this point!" }
-    val results = moduleFetchResults.values
+    val results = moduleFetchResults.entries
+      .filter { it.key.final }
+      .map { it.value }
       .filterIsInstance<FetchedVariantResult.Finished>()
       .map { it.result }
     // Fetch the kotlin dependencies for the successfully fetched modules
@@ -137,7 +147,7 @@ internal class VariantDiscovery(
     }
   }
 
-  /** Returns the default configuration to be fetched for each module and sorts them according to their priorities.
+  /** Returns the default configuration to be fetched for each module and groups them according to their priorities.
    *
    * The module whose variant was specified explicitly by the user has the highest priority.
    *
@@ -145,20 +155,29 @@ internal class VariantDiscovery(
    * The configurations requested here represent just what we know at this moment. Many of these modules will turn out to be
    * dependencies of others and will be visited sooner and the configurations created below will be discarded as they will have been already
    * fetched
+   *
+   * Returns a map with the highest priority batch first.
    */
-  private fun prepareRequestedOrDefaultModuleConfigurations(): LinkedList<ModuleConfiguration> {
+  private fun prepareRequestedOrDefaultModuleConfigurations(): Map<Int, List<ModuleConfiguration>> {
+    // The module whose variant selection was changed from UI, the dependency modules should be consistent with this module. Achieve this by
+    // adding this module to the head of allModules so that its dependency modules are resolved first.
     return inputModules
       .asSequence()
-      .mapNotNull { module -> userSelectedOrDefaultModuleConfiguration(module)?.let { module to it } }
-      .sortedBy { (module, _) ->
-        when {
+      .mapNotNull { module ->
+        val configuration = userSelectedOrDefaultModuleConfiguration(module) ?: return@mapNotNull null
+        val priority = when {
           module.id == (syncOptions as SingleVariantSyncActionOptions).switchVariantRequest?.moduleId -> 0
+          // All app modules must be requested first since they are used to work out which variants to request for their dependencies.
+          // The configurations requested here represent just what we know at this moment. Many of these modules will turn out to be
+          // dependencies of others and will be visited sooner and the configurations created below will be discarded without being fetched.
           module.projectType == IdeAndroidProjectType.PROJECT_TYPE_APP -> 1
           else -> 2
         }
+        priority to configuration
       }
-      .map { it.second }
-      .toCollection(LinkedList<ModuleConfiguration>())
+      .sortedBy { (priority, _ ) -> priority }
+      .groupBy ({(priority, _ ) -> priority}) { it.second }
+
   }
 
   /** Converts a [ModuleConfiguration] to the action that fetches and processed the variant dependencies model for the module. */
@@ -275,7 +294,7 @@ internal class VariantDiscovery(
             )
             actionRunner.runActions(
               moduleDependencies
-                .filter { !moduleFetchResults.containsKey(it.toMapKey()) }
+                .filter { it.shouldVisit() }
                 .map { it.toTraverseAction() }
             )
           }
@@ -283,6 +302,12 @@ internal class VariantDiscovery(
       }
     }
   }
+
+  private fun ModuleConfiguration.shouldVisit(): Boolean =
+    // candidate is not visited
+    !moduleFetchResults.containsKey(toMapKey())
+    // and not a module with a finalized result
+    && id !in moduleFetchResults.finalizedModuleIds()
 
   /** Populate the AndroidModule models of each fetched module with the result */
   private fun updateAndroidModuleWithResult(result: ModelResult<SyncVariantResult>) {
@@ -327,13 +352,64 @@ internal class VariantDiscovery(
    * However, variant resolution is not perfectly parallelizable. To overcome this we try to fetch the previously selected variant
    * models in parallel. This is experimental and not yet enabled in production.
    */
-  private fun populatePreviouslyResolvedVariantResults(allModulesToSetUp: LinkedList<ModuleConfiguration>) {
+  private fun populatePreviouslyResolvedVariantResults(allModulesToSetUp: List<ModuleConfiguration>) {
     actionRunner.runActions(allModulesToSetUp.map { it.toFetchVariantDependenciesAction() })
       .filterIsInstance<FetchedVariantResult.Finished>()
       .forEach {
         val moduleConfiguration = it.result.ignoreExceptionsAndGet()?.moduleConfiguration ?: return@forEach
         moduleFetchResults[moduleConfiguration.toMapKey()] = it
       }
+  }
+
+  private fun MutableMap<FetchedVariant, FetchedVariantResult>.finalizedModuleIds() = keys.filter { it.final }.map { it.moduleId }
+
+  /**
+   * After each batch with the same priority is processed, there might be multiple variants for the same module.
+   * This is possible because one app might require variant A while the other one requires variant B for a library, and they are fetched in
+   * parallel.
+   *
+   * In this case, variants are sorted according to the comparator below (which takes into account the user preference) and the first in the
+   * order is picked. This makes sure the results are always the same regardless of which app requests a library first. The rest will be
+   * marked as  discarded, ensuring they are not fetched again.
+   *
+   * After the above processing is done, we mark everything as final to prevent re-fetching those variants. This is necessary because, we
+   * now  allow fetching multiple variants for a single module.
+   *
+   * If there is a user requested variant, that will be in a singular batch of its own, so we will end up just marking it as final, so the
+   * subsequent requests will not override it.
+   *
+   * It would be possible to prune the subtrees that will be cut as they are inserted into the results map, instead of doing the processing
+   * at the end of each batch, but that's left as a further optimization for now.
+   */
+  private fun MutableMap<FetchedVariant, FetchedVariantResult>.ensureConsistent(){
+    entries.groupBy { it.key.moduleId }.mapNotNull { (moduleId, list) ->
+      // We shouldn't really hit the error case below, since androidModulesById is not mutated within this class, and it's the source of
+      // truth for these module ids anyway. A check is included just for error clarity in case it happens in an unexpected scenario.
+      val multiVariantData = androidModulesById[moduleId]?.androidProject?.multiVariantData
+                             ?: error("Module with id '${moduleId}' not found")
+      if (list.size <= 1) return@mapNotNull null
+
+      val defaultVariant =
+        list.asSequence()
+          .map { it.value }
+          .filterIsInstance<FetchedVariantResult.Finished>()
+          .map { it.result }
+          .filterIsInstance<ModelResult<SyncVariantResultSuccess>>()
+          .mapNotNull { it.ignoreExceptionsAndGet()?.ideVariant?.variant }
+          .toList()
+          .getDefaultVariantFromIdeModels(multiVariantData.buildTypes, multiVariantData.productFlavors)
+      defaultVariant?.let { moduleId to it }
+    }.forEach { (moduleId, defaultVariant) ->
+      entries
+        .filter { (key, _) ->
+          moduleId == key.moduleId && key.variantName != defaultVariant
+        }.forEach { (key, result) ->
+          put(key, FetchedVariantResult.Discarded)
+        }
+    }
+    keys.forEach {
+      it.finalize()
+    }
   }
 }
 
