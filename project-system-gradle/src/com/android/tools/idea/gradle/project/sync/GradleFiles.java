@@ -28,11 +28,14 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.res.AndroidFileChangeListener;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.ide.impl.ProjectUtilKt;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -58,6 +61,7 @@ import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,7 +79,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.lexer.GroovyTokenTypes;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.blocks.GrCodeBlock;
 
-public class GradleFiles {
+public class GradleFiles implements Disposable {
   @NotNull private final Project myProject;
 
   @NotNull private final Object myLock = new Object();
@@ -97,6 +101,10 @@ public class GradleFiles {
   private final Set<VirtualFile> myExternalBuildFiles = new HashSet<>();
 
   @NotNull private final FileEditorManagerListener myFileEditorListener;
+
+  @Override
+  public void dispose() {
+  }
 
   public static class UpdateHashesStartupActivity implements StartupActivity.DumbAware {
     @Override
@@ -129,21 +137,41 @@ public class GradleFiles {
   }
 
   private void maybeAddOrRemovePsiTreeListener(@Nullable VirtualFile file, @NotNull PsiTreeChangeListener fileChangeListener) {
-    if (file == null || !file.isValid()) {
+    if (file == null) {
       return;
     }
 
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
-    if (psiFile == null) {
-      return;
-    }
+    if (AndroidSdkPathStore.getInstance().getAndroidSdkPath() == null) return;
 
-    // Always remove first before possibly adding to prevent the case that the listener could be added twice.
-    PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
+    ReadAction.nonBlocking(() -> {
+        if (!file.isValid()) return new GradleFileState(false, false);
 
-    if (isGradleFile(psiFile) || isExternalBuildFile(psiFile)) {
-      PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener);
-    }
+        PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+        if (psiFile == null) {
+          return new GradleFileState(false, false);
+        }
+
+        return new GradleFileState(true, isGradleFile(psiFile) || isExternalBuildFile(psiFile));
+      })
+      .finishOnUiThread(ModalityState.nonModal(), state -> {
+        if (!state.isValid) return;
+
+        // Always remove first before possibly adding to prevent the case that the listener could be added twice.
+        PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
+
+        if (state.isGradleFile) {
+          PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener);
+        }
+      })
+      .coalesceBy(this, file)
+      .expireWith(this)
+      .submit(AppExecutorUtil.getAppExecutorService());
+  }
+
+  private record GradleFileState(
+    boolean isValid,
+    boolean isGradleFile
+  ) {
   }
 
   @NotNull
