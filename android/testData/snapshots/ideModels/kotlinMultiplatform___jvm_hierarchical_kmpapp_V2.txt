@@ -2350,7 +2350,42 @@ MODULE                        : kotlinMultiPlatform.app
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
-        dependencies                  : IdeaKotlinDeserializedDependenciesContainer
+        dependencies
+            androidInstrumentedTest
+                - dependency                  : :app/androidDebug
+                - dependency                  : :app/androidMain
+                - dependency                  : :app/commonMain
+            androidMain
+                - dependency                  : :app/commonMain
+            androidUnitTest
+                - dependency                  : :app/androidMain
+                - dependency                  : :app/commonMain
+                - dependency                  : :app/commonTest
+            commonMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
+            commonTest
+                - dependency                  : :app/commonMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
+            jvmMain
+                - dependency                  : :app/commonMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
+            jvmTest
+                - dependency                  : :app/commonMain
+                - dependency                  : :app/commonTest
+                - dependency                  : :app/jvmMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
@@ -2408,24 +2443,31 @@ MODULE                        : kotlinMultiPlatform.app
                     - sourceDirs                  : <ROOT>/app/src/debug/java [-]
                     - sourceDirs                  : <ROOT>/app/src/debug/kotlin [-]
                     platform                      : ANDROID
-                - compilerArguments           : -Xallow-no-source-files
-                - compilerArguments           : -d
-                - compilerArguments           : <ROOT>/app/build/tmp/kotlin-classes/debug
-                - compilerArguments           : -jvm-target
-                - compilerArguments           : 17
-                - compilerArguments           : -module-name
-                - compilerArguments           : app_debug
-                - compilerArguments           : -no-reflect
-                - compilerArguments           : -no-stdlib
-                - compilerArguments           : -Xmulti-platform
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
+                    jvmDefault                    : disable
+                    jvmTarget                     : 17
+                    moduleName                    : app_debug
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    explicitApi                   : disable
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
@@ -2475,24 +2517,31 @@ MODULE                        : kotlinMultiPlatform.app
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : debug
                     targetName                    : android
-                - compilerArguments           : -Xallow-no-source-files
-                - compilerArguments           : -d
-                - compilerArguments           : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
-                - compilerArguments           : -jvm-target
-                - compilerArguments           : 17
-                - compilerArguments           : -module-name
-                - compilerArguments           : app_debugAndroidTest
-                - compilerArguments           : -no-reflect
-                - compilerArguments           : -no-stdlib
-                - compilerArguments           : -Xmulti-platform
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugAndroidTest
+                    jvmDefault                    : disable
+                    jvmTarget                     : 17
+                    moduleName                    : app_debugAndroidTest
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    explicitApi                   : disable
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
                 - declaredSourceSets          : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
                 isTestComponent               : true
@@ -2562,24 +2611,31 @@ MODULE                        : kotlinMultiPlatform.app
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : debug
                     targetName                    : android
-                - compilerArguments           : -Xallow-no-source-files
-                - compilerArguments           : -d
-                - compilerArguments           : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
-                - compilerArguments           : -jvm-target
-                - compilerArguments           : 17
-                - compilerArguments           : -module-name
-                - compilerArguments           : app_debugUnitTest
-                - compilerArguments           : -no-reflect
-                - compilerArguments           : -no-stdlib
-                - compilerArguments           : -Xmulti-platform
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/app/build/tmp/kotlin-classes/debugUnitTest
+                    jvmDefault                    : disable
+                    jvmTarget                     : 17
+                    moduleName                    : app_debugUnitTest
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    explicitApi                   : disable
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
                 - declaredSourceSets          : androidUnitTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
                 isTestComponent               : true
@@ -2622,24 +2678,31 @@ MODULE                        : kotlinMultiPlatform.app
                     - resourceDirs                : <ROOT>/app/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/app/src/jvmMain/kotlin [-]
                     platform                      : JVM
-                - compilerArguments           : -Xallow-no-source-files
-                - compilerArguments           : -d
-                - compilerArguments           : <ROOT>/app/build/classes/kotlin/jvm/main
-                - compilerArguments           : -jvm-target
-                - compilerArguments           : 17
-                - compilerArguments           : -module-name
-                - compilerArguments           : app
-                - compilerArguments           : -no-reflect
-                - compilerArguments           : -no-stdlib
-                - compilerArguments           : -Xmulti-platform
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/app/build/classes/kotlin/jvm/main
+                    jvmDefault                    : disable
+                    jvmTarget                     : 17
+                    moduleName                    : app
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    explicitApi                   : disable
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
                 - declaredSourceSets          : jvmMain (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : jvm
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
@@ -2677,24 +2740,31 @@ MODULE                        : kotlinMultiPlatform.app
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : main
                     targetName                    : jvm
-                - compilerArguments           : -Xallow-no-source-files
-                - compilerArguments           : -d
-                - compilerArguments           : <ROOT>/app/build/classes/kotlin/jvm/test
-                - compilerArguments           : -jvm-target
-                - compilerArguments           : 17
-                - compilerArguments           : -module-name
-                - compilerArguments           : app_test
-                - compilerArguments           : -no-reflect
-                - compilerArguments           : -no-stdlib
-                - compilerArguments           : -Xmulti-platform
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/app/build/classes/kotlin/jvm/test
+                    jvmDefault                    : disable
+                    jvmTarget                     : 17
+                    moduleName                    : app_test
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    explicitApi                   : disable
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
                 - declaredSourceSets          : jvmTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : jvm
                 isTestComponent               : true
@@ -3171,7 +3241,42 @@ MODULE                        : kotlinMultiPlatform.module2
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest, jvmMain=jvmMain, jvmTest=jvmTest} (KotlinMPPGradleModelImpl)
-        dependencies                  : IdeaKotlinDeserializedDependenciesContainer
+        dependencies
+            androidInstrumentedTest
+                - dependency                  : :module2/androidDebug
+                - dependency                  : :module2/androidMain
+                - dependency                  : :module2/commonMain
+            androidMain
+                - dependency                  : :module2/commonMain
+            androidUnitTest
+                - dependency                  : :module2/androidMain
+                - dependency                  : :module2/commonMain
+                - dependency                  : :module2/commonTest
+            commonMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
+            commonTest
+                - dependency                  : :module2/commonMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
+            jvmMain
+                - dependency                  : :module2/commonMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
+            jvmTest
+                - dependency                  : :module2/commonMain
+                - dependency                  : :module2/commonTest
+                - dependency                  : :module2/jvmMain
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
+                - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
             isHMPPEnabled                 : true
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
@@ -3229,24 +3334,31 @@ MODULE                        : kotlinMultiPlatform.module2
                     - sourceDirs                  : <ROOT>/module2/src/debug/java [-]
                     - sourceDirs                  : <ROOT>/module2/src/debug/kotlin [-]
                     platform                      : ANDROID
-                - compilerArguments           : -Xallow-no-source-files
-                - compilerArguments           : -d
-                - compilerArguments           : <ROOT>/module2/build/tmp/kotlin-classes/debug
-                - compilerArguments           : -jvm-target
-                - compilerArguments           : 17
-                - compilerArguments           : -module-name
-                - compilerArguments           : module2_debug
-                - compilerArguments           : -no-reflect
-                - compilerArguments           : -no-stdlib
-                - compilerArguments           : -Xmulti-platform
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
+                    jvmDefault                    : disable
+                    jvmTarget                     : 17
+                    moduleName                    : module2_debug
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    explicitApi                   : disable
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
@@ -3296,24 +3408,31 @@ MODULE                        : kotlinMultiPlatform.module2
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : debug
                     targetName                    : android
-                - compilerArguments           : -Xallow-no-source-files
-                - compilerArguments           : -d
-                - compilerArguments           : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
-                - compilerArguments           : -jvm-target
-                - compilerArguments           : 17
-                - compilerArguments           : -module-name
-                - compilerArguments           : module2_debugAndroidTest
-                - compilerArguments           : -no-reflect
-                - compilerArguments           : -no-stdlib
-                - compilerArguments           : -Xmulti-platform
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugAndroidTest
+                    jvmDefault                    : disable
+                    jvmTarget                     : 17
+                    moduleName                    : module2_debugAndroidTest
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    explicitApi                   : disable
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
                 - declaredSourceSets          : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
                 isTestComponent               : true
@@ -3383,24 +3502,31 @@ MODULE                        : kotlinMultiPlatform.module2
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : debug
                     targetName                    : android
-                - compilerArguments           : -Xallow-no-source-files
-                - compilerArguments           : -d
-                - compilerArguments           : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
-                - compilerArguments           : -jvm-target
-                - compilerArguments           : 17
-                - compilerArguments           : -module-name
-                - compilerArguments           : module2_debugUnitTest
-                - compilerArguments           : -no-reflect
-                - compilerArguments           : -no-stdlib
-                - compilerArguments           : -Xmulti-platform
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debugUnitTest
+                    jvmDefault                    : disable
+                    jvmTarget                     : 17
+                    moduleName                    : module2_debugUnitTest
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    explicitApi                   : disable
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
                 - declaredSourceSets          : androidUnitTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : android
                 isTestComponent               : true
@@ -3443,24 +3569,31 @@ MODULE                        : kotlinMultiPlatform.module2
                     - resourceDirs                : <ROOT>/module2/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/module2/src/jvmMain/kotlin [-]
                     platform                      : JVM
-                - compilerArguments           : -Xallow-no-source-files
-                - compilerArguments           : -d
-                - compilerArguments           : <ROOT>/module2/build/classes/kotlin/jvm/main
-                - compilerArguments           : -jvm-target
-                - compilerArguments           : 17
-                - compilerArguments           : -module-name
-                - compilerArguments           : module2
-                - compilerArguments           : -no-reflect
-                - compilerArguments           : -no-stdlib
-                - compilerArguments           : -Xmulti-platform
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/module2/build/classes/kotlin/jvm/main
+                    jvmDefault                    : disable
+                    jvmTarget                     : 17
+                    moduleName                    : module2
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    explicitApi                   : disable
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
                 - declaredSourceSets          : jvmMain (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : jvm
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
@@ -3498,24 +3631,31 @@ MODULE                        : kotlinMultiPlatform.module2
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
                     compilationName               : main
                     targetName                    : jvm
-                - compilerArguments           : -Xallow-no-source-files
-                - compilerArguments           : -d
-                - compilerArguments           : <ROOT>/module2/build/classes/kotlin/jvm/test
-                - compilerArguments           : -jvm-target
-                - compilerArguments           : 17
-                - compilerArguments           : -module-name
-                - compilerArguments           : module2_test
-                - compilerArguments           : -no-reflect
-                - compilerArguments           : -no-stdlib
-                - compilerArguments           : -Xmulti-platform
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - compilerArguments           : -Xplugin=<M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                compilerArguments             : K2JVMCompilerArguments
+                    allowNoSourceFiles            : true
+                    assertionsMode                : legacy
+                    backendThreads                : 1
+                    destination                   : <ROOT>/module2/build/classes/kotlin/jvm/test
+                    jvmDefault                    : disable
+                    jvmTarget                     : 17
+                    moduleName                    : module2_test
+                    noReflect                     : true
+                    noStdlib                      : true
+                    serializeIr                   : none
+                    autoAdvanceApiVersion         : true
+                    autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
+                    explicitApi                   : disable
+                    multiPlatform                 : true
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    useFirLT                      : true
                 - declaredSourceSets          : jvmTest (KotlinSourceSetImpl) (*seen*)
                 disambiguationClassifier      : jvm
                 isTestComponent               : true
