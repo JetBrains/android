@@ -99,15 +99,14 @@ public class SetAttributeQuickFix extends DefaultLintQuickFix {
       }
     }
 
-    final XmlAttribute attribute = ApplicationManager.getApplication().runWriteAction(
-      (Computable<XmlAttribute>)() -> myNamespace != null
-                                      ? tag.setAttribute(myAttributeName, myNamespace, "")
-                                      : tag.setAttribute(myAttributeName, ""));
+    final XmlAttribute attribute = myNamespace != null
+                                   ? tag.setAttribute(myAttributeName, myNamespace, "")
+                                   : tag.setAttribute(myAttributeName, "");
 
     if (attribute != null) {
       if (value != null && !value.isEmpty()) {
         String finalValue = value;
-        ApplicationManager.getApplication().runWriteAction(() -> attribute.setValue(finalValue));
+        attribute.setValue(finalValue);
       }
       if (context instanceof AndroidQuickfixContexts.EditorContext) {
         final Editor editor = ((AndroidQuickfixContexts.EditorContext)context).getEditor();
