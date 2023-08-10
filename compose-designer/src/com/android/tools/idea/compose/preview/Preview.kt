@@ -440,6 +440,8 @@ class ComposePreviewRepresentation(
   private fun updateGalleryMode(
     sourceEventType: ComposePreviewLiteModeEvent.ComposePreviewLiteModeEventType? = null
   ) {
+    // If Preview is inactive - don't update Gallery.
+    if (!lifecycleManager.isActive()) return
     val essentialsModeIsEnabled = ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
     val galleryModeIsSet = composeWorkBench.galleryMode != null
     // Only update gallery mode if needed
@@ -1011,6 +1013,10 @@ class ComposePreviewRepresentation(
 
   override fun onActivate() {
     lifecycleManager.activate()
+    // Gallery mode should be updated only if Preview is active / in foreground.
+    // It will help to avoid enabling gallery mode while Preview is inactive, as it will also save
+    // this state for later to restore.
+    updateGalleryMode()
   }
 
   private fun CoroutineScope.activate(resume: Boolean) {
