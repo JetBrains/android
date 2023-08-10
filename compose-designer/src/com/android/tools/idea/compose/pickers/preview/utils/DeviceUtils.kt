@@ -20,7 +20,6 @@ import com.android.resources.ScreenRatio
 import com.android.resources.ScreenRound
 import com.android.resources.ScreenSize
 import com.android.sdklib.devices.Device
-import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
@@ -37,11 +36,8 @@ import com.android.tools.idea.compose.pickers.preview.property.Shape
 import com.android.tools.idea.compose.pickers.preview.property.toMutableConfig
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.module.Module
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.StudioAndroidSdkData
 
 /** Prefix used by device specs to find devices by id. */
 internal const val DEVICE_BY_ID_PREFIX = "id:"
@@ -211,19 +207,4 @@ internal fun Collection<Device>.findByIdOrName(
       null
     }
   }
-}
-
-/**
- * Returns the [Device]s present in the Sdk.
- *
- * @see DeviceManager
- */
-internal fun getSdkDevices(module: Module): List<Device> {
-  return AndroidFacet.getInstance(module)?.let { facet ->
-    StudioAndroidSdkData.getSdkData(facet)
-      ?.deviceManager
-      ?.getDevices(DeviceManager.ALL_DEVICES)
-      ?.toList()
-  }
-    ?: emptyList()
 }
