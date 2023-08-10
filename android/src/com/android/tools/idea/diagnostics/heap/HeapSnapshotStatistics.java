@@ -264,6 +264,8 @@ public final class HeapSnapshotStatistics {
         StringBuilder disposerTreeInfoBuilder = new StringBuilder();
         extendedReportStatistics.logDisposerTreeReport((String s) -> disposerTreeInfoBuilder.append(s).append("\n"));
         GoogleCrashReporter.addBodyToBuilder(builder, "Disposer tree information", disposerTreeInfoBuilder.toString());
+        GoogleCrashReporter.addBodyToBuilder(builder, "Number of nodes in GC root paths trees",
+                                             String.valueOf(extendedReportStatistics.rootPathTree.getNumberOfRootPathTreeNodes()));
       }
     };
   }
