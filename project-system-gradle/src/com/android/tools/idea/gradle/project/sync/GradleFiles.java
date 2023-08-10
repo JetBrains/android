@@ -29,12 +29,15 @@ import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.res.AndroidFileChangeListener;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.impl.ProjectUtilKt;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -60,6 +63,7 @@ import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,6 +72,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -129,30 +134,61 @@ public class GradleFiles implements Disposable.Default {
 
     Application application = ApplicationManager.getApplication();
     for (FileEditor editor : FileEditorManager.getInstance(project).getSelectedEditors()) {
-      application.runReadAction(() -> maybeAddOrRemovePsiTreeListener(editor.getFile(), fileChangeListener));
+      maybeAddOrRemovePsiTreeListener(editor.getFile(), fileChangeListener);
     }
 
     // Add a listener to see when gradle files are being edited.
     myProject.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, myFileEditorListener);
   }
 
-  // requires read action because of findFile
   private void maybeAddOrRemovePsiTreeListener(@Nullable VirtualFile file, @NotNull PsiTreeChangeListener fileChangeListener) {
-    if (file == null || !file.isValid()) {
+    if (file == null) {
       return;
     }
 
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
-    if (psiFile == null) {
-      return;
-    }
+    if (!CommonAndroidUtil.getInstance().isAndroidProject(myProject)) return;
 
-    // Always remove first before possibly adding to prevent the case that the listener could be added twice.
-    PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
+    Callable<GradleFileState> fileStateCallable = () -> {
+      if (!file.isValid()) return new GradleFileState(false, false);
 
-    if (isGradleFile(psiFile) || isExternalBuildFile(psiFile)) {
-      PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener, this);
+      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+      if (psiFile == null) {
+        return new GradleFileState(false, false);
+      }
+
+      return new GradleFileState(true, isGradleFile(psiFile) || isExternalBuildFile(psiFile));
+    };
+    Consumer<GradleFileState> listenerUpdater = state -> {
+      if (!state.isValid) return;
+
+      // Always remove first before possibly adding to prevent the case that the listener could be added twice.
+      PsiManager.getInstance(myProject).removePsiTreeChangeListener(fileChangeListener);
+
+      if (state.isGradleFile) {
+        PsiManager.getInstance(myProject).addPsiTreeChangeListener(fileChangeListener, this);
+      }
+    };
+
+    Application application = ApplicationManager.getApplication();
+    if (application.isUnitTestMode() && application.isDispatchThread()) {
+      try {
+        listenerUpdater.accept(fileStateCallable.call());
+      }
+      catch (Exception ignored) { }
     }
+    else {
+      ReadAction.nonBlocking(fileStateCallable)
+        .finishOnUiThread(ModalityState.nonModal(), listenerUpdater)
+        .coalesceBy(this)
+        .expireWith(this)
+        .submit(AppExecutorUtil.getAppExecutorService());
+    }
+  }
+
+  private record GradleFileState(
+    boolean isValid,
+    boolean isGradleFile
+  ) {
   }
 
   @NotNull
