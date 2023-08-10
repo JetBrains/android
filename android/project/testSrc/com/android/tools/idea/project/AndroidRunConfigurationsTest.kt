@@ -20,6 +20,7 @@ import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.projectsystem.getAndroidFacets
 import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -34,6 +35,12 @@ import com.android.tools.idea.testing.writeChild
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.ConfigurationType
+import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.dom.manifest.UsesFeature
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -233,6 +240,33 @@ class AndroidRunConfigurationsTest {
       project.requestSyncAndWait()
 
       assertThat(RunManager.getInstance(project).allConfigurationsList.filterIsInstance<AndroidWearConfiguration>()).isEmpty()
+    }
+  }
+
+  @Test
+  fun `wear configurations do not get added if there is no required watch feature`() {
+    StudioFlags.WEAR_RUN_CONFIGS_AUTOCREATE_ENABLED.override(true)
+    val preparedProject = projectRule.prepareTestProject(testProject = AndroidCoreTestProject.WEAR_WITH_TILE_COMPLICATION_AND_WATCHFACE)
+    preparedProject.open { project ->
+      val runManager = RunManager.getInstance(project)
+
+      removeWatchFeatureRequirement(project)
+      runManager.removeExistingRunConfigurations()
+      project.requestSyncAndWait()
+
+      assertThat(runManager.allConfigurationsList.filterIsInstance<AndroidWearConfiguration>()).isEmpty()
+    }
+  }
+
+  private fun removeWatchFeatureRequirement(project: Project) {
+    runWriteCommandAction(project) {
+      project.getAndroidFacets().forEach { facet ->
+        val watchFeature = Manifest.getMainManifest(facet)?.usesFeatures?.find { it.name.value == UsesFeature.HARDWARE_TYPE_WATCH }
+        watchFeature?.required?.stringValue = "false"
+      }
+    }
+    runInEdtAndWait {
+      FileDocumentManager.getInstance().saveAllDocuments()
     }
   }
 

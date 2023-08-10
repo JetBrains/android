@@ -16,6 +16,7 @@
 package com.android.tools.idea.project
 
 import com.android.AndroidProjectTypes
+import com.android.SdkConstants.VALUE_TRUE
 import com.android.annotations.concurrency.Slow
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
@@ -46,6 +47,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.util.PathUtil
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.dom.manifest.UsesFeature
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
@@ -181,8 +183,22 @@ class AndroidRunConfigurations {
   private fun extractWearComponents(module: Module): List<WearComponent> {
     return DumbService.getInstance(module.project).runReadActionInSmartMode(Computable {
       val manifests = module.getModuleSystem()
-          .getMergedManifestContributors().let { listOfNotNull(it.primaryManifest) + it.libraryManifests }
-          .mapNotNull { AndroidUtils.loadDomElement(module, it, Manifest::class.java) }
+        .getMergedManifestContributors().let {
+          val primaryManifest = it.primaryManifest
+            ?.let { file -> AndroidUtils.loadDomElement(module, file, Manifest::class.java) }
+            ?: return@Computable emptyList()
+
+          if (!isWatchFeatureRequired(primaryManifest)) {
+            return@Computable emptyList()
+          }
+
+          val libraryManifests = it.libraryManifests.mapNotNull { file ->
+            AndroidUtils.loadDomElement(module, file, Manifest::class.java)
+          }
+
+          listOf(primaryManifest) + libraryManifests
+        }
+
       val servicePsiClasses = manifests.flatMap { it.application.services.mapNotNull { service -> service.serviceClass.value } }
       servicePsiClasses.mapNotNull { psiClass ->
         val qualifiedName = psiClass.qualifiedName ?: return@mapNotNull null
@@ -202,6 +218,14 @@ class AndroidRunConfigurations {
       .filterIsInstance<AndroidWearConfiguration>()
       .mapNotNull { it.componentLaunchOptions.componentName }
       .toSet()
+  }
+
+  private fun isWatchFeatureRequired(manifest: Manifest): Boolean {
+    return manifest.usesFeatures.any { feature ->
+      val isWearFeature = feature.name.value == UsesFeature.HARDWARE_TYPE_WATCH
+      val isRequired = feature.required.stringValue == null || feature.required.stringValue == VALUE_TRUE
+      isWearFeature && isRequired
+    }
   }
 
   private data class WearComponent(val name: String, val configurationFactory: ConfigurationFactory)
