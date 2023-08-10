@@ -27,6 +27,7 @@ import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.cpu.adapters.CpuDataProvider;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -40,7 +41,7 @@ public class CpuTraceDataSeriesTest {
   @Rule
   public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuTraceDataSeriesTest", myTransportService);
 
-  private CpuProfilerStage.CpuTraceDataSeries mySeries;
+  private CpuDataProvider.CpuTraceDataSeries mySeries;
 
   @Before
   public void setUp() {

@@ -46,6 +46,7 @@ import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.TaskStage;
+import com.android.tools.profilers.cpu.adapters.CpuDataProvider;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -82,18 +83,6 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
   @VisibleForTesting static final ProfilingConfiguration API_INITIATED_TRACING_PROFILING_CONFIG =
     new ArtInstrumentedConfiguration("API tracing");
 
-  private final CpuThreadsModel myThreadsStates;
-  private final ClampedAxisComponentModel myCpuUsageAxis;
-  private final ClampedAxisComponentModel myThreadCountAxis;
-  private final ResizingAxisComponentModel myTimeAxisGuide;
-  private final DetailedCpuUsage myCpuUsage;
-  private final CpuStageLegends myLegends;
-  private final DurationDataModel<CpuTraceInfo> myTraceDurations;
-  private final EventMonitor myEventMonitor;
-  private final RangeSelectionModel myRangeSelectionModel;
-  private final EaseOutModel myInstructionsEaseOutModel;
-  private final CpuProfilerConfigModel myProfilerConfigModel;
-
   public enum CaptureState {
     // Waiting for a capture to start (displaying the current capture or not)
     IDLE,
@@ -104,11 +93,9 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
     // Waiting for the service to respond a stop capturing call
     STOPPING,
   }
+  private final CpuDataProvider myCpuDataProvider;
 
-  @NotNull
-  private final CpuTraceDataSeries myCpuTraceDataSeries;
-
-  private final AspectModel<CpuProfilerAspect> myAspect = new AspectModel<>();
+  private final CpuProfilerConfigModel myProfilerConfigModel;
 
   @NotNull
   private final RecordingOptionsModel myRecordingOptionsModel;
@@ -131,9 +118,6 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
 
   private final InProgressTraceHandler myInProgressTraceHandler;
   @NotNull private Trace.TraceInfo myInProgressTraceInfo = Trace.TraceInfo.getDefaultInstance();
-
-  @NotNull
-  private final UpdatableManager myUpdatableManager;
 
   /**
    * Responsible for parsing trace files into {@link CpuCapture}.
@@ -197,38 +181,11 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
                            @NotNull Runnable stopTaskAction) {
     super(profilers);
     mySession = profilers.getSession();
-
-    myCpuTraceDataSeries = new CpuTraceDataSeries();
+    myCpuDataProvider = new CpuDataProvider(profilers, getTimeline());
     myProfilerConfigModel = new CpuProfilerConfigModel(profilers, this);
     myRecordingOptionsModel = new RecordingOptionsModel();
 
-    Range viewRange = getTimeline().getViewRange();
-    Range dataRange = getTimeline().getDataRange();
-    Range selectionRange = getTimeline().getSelectionRange();
-
-    myCpuUsage = new DetailedCpuUsage(profilers);
-
-    myCpuUsageAxis = new ClampedAxisComponentModel.Builder(myCpuUsage.getCpuRange(), CPU_USAGE_FORMATTER).build();
-    myThreadCountAxis = new ClampedAxisComponentModel.Builder(myCpuUsage.getThreadRange(), NUM_THREADS_AXIS).build();
-    myTimeAxisGuide =
-      new ResizingAxisComponentModel.Builder(viewRange, TimeAxisFormatter.DEFAULT_WITHOUT_MINOR_TICKS).setGlobalRange(dataRange).build();
-
-    myLegends = new CpuStageLegends(myCpuUsage, dataRange);
-
-    // Create an event representing the traces within the view range.
-    myTraceDurations = new DurationDataModel<>(new RangedSeries<>(viewRange, getCpuTraceDataSeries()));
-
-    myThreadsStates = new CpuThreadsModel(viewRange, profilers, mySession);
-
-    myEventMonitor = new EventMonitor(profilers);
-
-    myRangeSelectionModel = buildRangeSelectionModel(selectionRange, viewRange);
-
-    myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
-
     myCaptureState = CaptureState.IDLE;
-
-    myUpdatableManager = new UpdatableManager(getStudioProfilers().getUpdater());
     myCaptureParser = captureParser;
 
     // Store and track how the user entered the CpuProfilerStage to take a cpu trace.
@@ -249,51 +206,42 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
     return Logger.getInstance(CpuProfilerStage.class);
   }
 
-  /**
-   * Creates and returns a {@link RangeSelectionModel} given a {@link Range} representing the selection.
-   */
-  private RangeSelectionModel buildRangeSelectionModel(@NotNull Range selectionRange, @NotNull Range viewRange) {
-    RangeSelectionModel rangeSelectionModel = new RangeSelectionModel(selectionRange, viewRange);
-    rangeSelectionModel.addConstraint(myTraceDurations);
-    return rangeSelectionModel;
-  }
-
   public boolean hasUserUsedCpuCapture() {
     return getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().getBoolean(HAS_USED_CPU_CAPTURE, false);
   }
 
   @NotNull
   public RangeSelectionModel getRangeSelectionModel() {
-    return myRangeSelectionModel;
+    return myCpuDataProvider.getRangeSelectionModel();
   }
 
   @NotNull
   public EaseOutModel getInstructionsEaseOutModel() {
-    return myInstructionsEaseOutModel;
+    return myCpuDataProvider.getInstructionsEaseOutModel();
   }
 
   public AxisComponentModel getCpuUsageAxis() {
-    return myCpuUsageAxis;
+    return myCpuDataProvider.getCpuUsageAxis();
   }
 
   public AxisComponentModel getThreadCountAxis() {
-    return myThreadCountAxis;
+    return myCpuDataProvider.getThreadCountAxis();
   }
 
   public AxisComponentModel getTimeAxisGuide() {
-    return myTimeAxisGuide;
+    return myCpuDataProvider.getTimeAxisGuide();
   }
 
   public DetailedCpuUsage getCpuUsage() {
-    return myCpuUsage;
+    return myCpuDataProvider.getCpuUsage();
   }
 
   public CpuStageLegends getLegends() {
-    return myLegends;
+    return myCpuDataProvider.getLegends();
   }
 
   public DurationDataModel<CpuTraceInfo> getTraceDurations() {
-    return myTraceDurations;
+    return myCpuDataProvider.getTraceDurations();
   }
 
   public String getName() {
@@ -301,7 +249,7 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
   }
 
   public EventMonitor getEventMonitor() {
-    return myEventMonitor;
+    return myCpuDataProvider.getEventMonitor();
   }
 
   public RecordingOptionsModel getRecordingModel() {
@@ -324,12 +272,12 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
   @Override
   public void enter() {
     logEnterStage();
-    myEventMonitor.enter();
-    getStudioProfilers().getUpdater().register(myCpuUsage);
-    getStudioProfilers().getUpdater().register(myTraceDurations);
+    getEventMonitor().enter();
+    getStudioProfilers().getUpdater().register(getCpuUsage());
+    getStudioProfilers().getUpdater().register(getTraceDurations());
     getStudioProfilers().getUpdater().register(myInProgressTraceHandler);
-    getStudioProfilers().getUpdater().register(myCpuUsageAxis);
-    getStudioProfilers().getUpdater().register(myThreadCountAxis);
+    getStudioProfilers().getUpdater().register((ClampedAxisComponentModel)getCpuUsageAxis());
+    getStudioProfilers().getUpdater().register((ClampedAxisComponentModel)getThreadCountAxis());
 
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
 
@@ -341,17 +289,17 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
 
   @Override
   public void exit() {
-    myEventMonitor.exit();
-    getStudioProfilers().getUpdater().unregister(myCpuUsage);
-    getStudioProfilers().getUpdater().unregister(myTraceDurations);
+    getEventMonitor().exit();
+    getStudioProfilers().getUpdater().unregister(getCpuUsage());
+    getStudioProfilers().getUpdater().unregister(getTraceDurations());
     getStudioProfilers().getUpdater().unregister(myInProgressTraceHandler);
-    getStudioProfilers().getUpdater().unregister(myCpuUsageAxis);
-    getStudioProfilers().getUpdater().unregister(myThreadCountAxis);
+    getStudioProfilers().getUpdater().unregister((ClampedAxisComponentModel)getCpuUsageAxis());
+    getStudioProfilers().getUpdater().unregister((ClampedAxisComponentModel)getThreadCountAxis());
 
     // Asks the parser to interrupt any parsing in progress.
     myCaptureParser.abortParsing();
-    myRangeSelectionModel.clearListeners();
-    myUpdatableManager.releaseAll();
+    getRangeSelectionModel().clearListeners();
+    getUpdatableManager().releaseAll();
   }
 
   @Override
@@ -361,11 +309,11 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
 
   @NotNull
   public UpdatableManager getUpdatableManager() {
-    return myUpdatableManager;
+    return myCpuDataProvider.getUpdatableManager();
   }
 
   public AspectModel<CpuProfilerAspect> getAspect() {
-    return myAspect;
+    return myCpuDataProvider.getAspect();
   }
 
   public void toggleCapturing() {
@@ -400,7 +348,7 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
     CpuProfiler.startTracing(getStudioProfilers(), mySession, configuration, this::startCapturingCallback, null);
 
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
-    myInstructionsEaseOutModel.setCurrentPercentage(1);
+    getInstructionsEaseOutModel().setCurrentPercentage(1);
   }
 
   private void startCapturingCallback(@NotNull Trace.TraceStartStatus status) {
@@ -520,14 +468,14 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
   }
 
   public int getSelectedThread() {
-    return myThreadsStates.getThread();
+    return getThreadStates().getThread();
   }
 
   public void setSelectedThread(int id) {
-    myThreadsStates.setThread(id);
+    getThreadStates().setThread(id);
     Range range = getTimeline().getSelectionRange();
     if (range.isEmpty()) {
-      myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
+      getAspect().changed(CpuProfilerAspect.SELECTED_THREADS);
     }
   }
 
@@ -549,7 +497,7 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
   public void setCaptureState(@NotNull CaptureState captureState) {
     if (!myCaptureState.equals(captureState)) {
       myCaptureState = captureState;
-      myAspect.changed(CpuProfilerAspect.CAPTURE_STATE);
+      getAspect().changed(CpuProfilerAspect.CAPTURE_STATE);
 
       if (captureState == CaptureState.CAPTURING) {
         // When going to CAPTURING state need to keep the recording options model in sync.
@@ -575,13 +523,13 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
   }
 
   @NotNull
-  public CpuTraceDataSeries getCpuTraceDataSeries() {
-    return myCpuTraceDataSeries;
+  public CpuDataProvider.CpuTraceDataSeries getCpuTraceDataSeries() {
+    return myCpuDataProvider.getCpuTraceDataSeries();
   }
 
   @NotNull
   public CpuThreadsModel getThreadStates() {
-    return myThreadsStates;
+    return myCpuDataProvider.getThreadStates();
   }
 
   /**
@@ -642,7 +590,7 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
     public void update(long elapsedNs) {
       // If we are parsing a trace we also trigger the aspect to update the UI.
       if (getCaptureParser().isParsing()) {
-        myAspect.changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
+        getAspect().changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
         return;
       }
       Trace.TraceInfo finishedTraceToSelect = null;
@@ -713,7 +661,7 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
 
         // When API-initiated tracing ends, we want to update the config combo box back to the entry before API tracing.
         // This is done by fire aspect PROFILING_CONFIGURATION.
-        myAspect.changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
+        getAspect().changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
       }
     }
 
@@ -725,7 +673,7 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
      */
     private void handleInProgressTrace(@NotNull Trace.TraceInfo traceInfo) {
       if (traceInfo.equals(myInProgressTraceInfo)) {
-        myAspect.changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
+        getAspect().changed(CpuProfilerAspect.CAPTURE_ELAPSED_TIME);
         return;
       }
 
@@ -747,7 +695,7 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
         // CpuProfilerStage may indicate a longer life span. Second, it is not a real configuration. For example, each
         // configuration's name should be unique, but all API-initiated captures should show the same text even if they
         // are different such as in sample interval.
-        myAspect.changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
+        getAspect().changed(CpuProfilerAspect.PROFILING_CONFIGURATION);
       }
       else {
         // Updates myProfilerConfigModel to the ongoing profiler configuration.
@@ -755,20 +703,6 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
       }
       setCaptureState(state);
       getTimeline().setStreaming(true);
-    }
-  }
-
-  @VisibleForTesting
-  class CpuTraceDataSeries implements DataSeries<CpuTraceInfo> {
-    @Override
-    public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
-      List<Trace.TraceInfo> traceInfos = CpuProfiler.getTraceInfoFromRange(getStudioProfilers().getClient(), mySession, range);
-      List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
-      for (Trace.TraceInfo protoTraceInfo : traceInfos) {
-        CpuTraceInfo info = new CpuTraceInfo(protoTraceInfo);
-        seriesData.add(new SeriesData<>((long)info.getRange().getMin(), info));
-      }
-      return seriesData;
     }
   }
 

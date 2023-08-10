@@ -31,9 +31,17 @@ public class CpuProfilerStageCpuUsageTooltip implements TooltipModel {
   @NotNull private final DurationDataModel<CpuTraceInfo> myTraceDurations;
 
   public CpuProfilerStageCpuUsageTooltip(@NotNull CpuProfilerStage stage) {
-    myLegends = new CpuProfilerStage.CpuStageLegends(stage.getCpuUsage(), stage.getStudioProfilers().getTimeline().getTooltipRange());
-    myRangeSelectionModel = stage.getRangeSelectionModel();
-    myTraceDurations = stage.getTraceDurations();
+    this(new CpuProfilerStage.CpuStageLegends(stage.getCpuUsage(), stage.getStudioProfilers().getTimeline().getTooltipRange()),
+         stage.getRangeSelectionModel(), stage.getTraceDurations());
+  }
+
+  // Overloaded constructor that doesn't take in stage for usage in live view
+  public CpuProfilerStageCpuUsageTooltip(@NotNull CpuProfilerStage.CpuStageLegends cpuStageLegends,
+                                         @NotNull RangeSelectionModel rangeSelectionModel,
+                                         @NotNull DurationDataModel<CpuTraceInfo> traceDurations) {
+    myLegends = cpuStageLegends;
+    myRangeSelectionModel = rangeSelectionModel;
+    myTraceDurations = traceDurations;
   }
 
   @NotNull
