@@ -24,6 +24,7 @@ import com.android.tools.idea.deploy.DeploymentConfiguration
 import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
 import com.android.tools.idea.execution.common.AndroidExecutionException
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.DeployOptions
@@ -149,7 +150,7 @@ class AndroidRunConfigurationExecutor(
         project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationId)
       }
     }
-
+    AndroidSessionInfo.create(processHandler, devices, applicationId)
     createRunContentDescriptor(processHandler, console, env)
   }
 
@@ -323,6 +324,7 @@ class AndroidRunConfigurationExecutor(
     if (needsNewRunContentDescriptor || existingRunContentDescriptor?.processHandler == null || existingRunContentDescriptor.processHandler?.isProcessTerminated == true) {
       existingRunContentDescriptor?.processHandler?.detachProcess()
       val processHandler = AndroidProcessHandler(applicationId).apply { devices.forEach { addTargetDevice(it) } }
+      AndroidSessionInfo.create(processHandler, devices, applicationId)
       withContext(uiThread) { createRunContentDescriptor(processHandler, createConsole(), env) }
     } else {
       HiddenRunContentDescriptor(existingRunContentDescriptor)
@@ -395,6 +397,7 @@ class AndroidRunConfigurationExecutor(
         startDebugSession(devices.single(), applicationId, indicator, createConsole()).runContentDescriptor
       } else {
         val processHandler = AndroidProcessHandler(applicationId).apply { devices.forEach { addTargetDevice(it) } }
+        AndroidSessionInfo.create(processHandler, devices, applicationId)
         withContext(uiThread) { createRunContentDescriptor(processHandler, createConsole(), env) }
       }
     } else {

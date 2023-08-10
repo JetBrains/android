@@ -27,7 +27,6 @@ import com.android.tools.idea.editors.literals.LiteralUsageReference;
 import com.android.tools.idea.editors.literals.LiveLiteralsMonitorHandler;
 import com.android.tools.idea.editors.literals.LiveLiteralsService;
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration;
-import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.execution.common.AndroidSessionInfo;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.util.StudioPathManager;
@@ -35,7 +34,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.intellij.execution.ExecutionTarget;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
@@ -50,10 +48,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import kotlin.Unit;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Helper to set up Live Literal deployment monitoring.
@@ -153,8 +149,8 @@ public class AndroidLiveLiteralDeployMonitor {
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       synchronized (ACTIVE_PROJECTS) {
         List<AndroidSessionInfo> sessions = AndroidSessionInfo.findActiveSession(project);
-        if (sessions == null) {
-          LOGGER.info("No running session found for %s", packageName);
+        if (sessions.isEmpty()) {
+          LOGGER.info("No running sessions found for %s", packageName);
           return;
         }
 
@@ -165,11 +161,7 @@ public class AndroidLiveLiteralDeployMonitor {
         HashSet<String> missingClients = Sets.newHashSet(ACTIVE_DEVICES.get(project));
 
         for (AndroidSessionInfo session : sessions) {
-          @NotNull ExecutionTarget target = session.getExecutionTarget();
-          if (!(target instanceof AndroidExecutionTarget)) {
-            continue;
-          }
-          for (IDevice iDevice : ((AndroidExecutionTarget)target).getRunningDevices()) {
+          for (IDevice iDevice : session.getDevices()) {
             // We need to do this check once more. The reason is that we have one listener per project.
             // That means a listener is in charge of multiple devices. If we are here this only means,
             // at least one active device support live literals.

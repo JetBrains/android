@@ -29,8 +29,6 @@ import com.android.tools.idea.execution.common.processhandler.AndroidProcessHand
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.track
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.ExecutionTargetManager
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
 import com.intellij.execution.process.ProcessHandler
@@ -91,12 +89,7 @@ object DebugSessionStarter {
         super.processTerminated(event)
       }
     })
-    val executor = environment.executor
-    AndroidSessionInfo.create(
-      debugProcessHandler,
-      environment.runProfile as? RunConfiguration,
-      environment.executionTarget
-    )
+    AndroidSessionInfo.create(debugProcessHandler, listOf(device), appId)
     session
   }
 
@@ -179,12 +172,7 @@ object DebugSessionStarter {
       reattachingProcessHandler.subscribeOnDebugProcess(debugProcessHandler)
       session.runContentDescriptor.processHandler = reattachingProcessHandler
 
-      val executor = environment.executor
-      AndroidSessionInfo.create(
-        masterProcessHandler,
-        environment.runProfile as? RunConfiguration,
-        environment.executionTarget
-      )
+      AndroidSessionInfo.create(debugProcessHandler, listOf(device), appId)
       session as XDebugSessionImpl
     }
   }
@@ -211,11 +199,7 @@ object DebugSessionStarter {
         XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null, false, starter)
       }
       val debugProcessHandler = session.debugProcess.processHandler
-      AndroidSessionInfo.create(
-        debugProcessHandler,
-        null,
-        ExecutionTargetManager.getActiveTarget(project)
-      )
+      AndroidSessionInfo.create(debugProcessHandler, listOf(client.device), applicationId)
       session
     } catch (e: Exception) {
       if (e is ExecutionException) {

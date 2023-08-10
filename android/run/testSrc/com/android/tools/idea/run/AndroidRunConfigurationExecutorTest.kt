@@ -30,6 +30,7 @@ import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.literals.LiveEditServiceImpl
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
+import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
@@ -151,6 +152,7 @@ class AndroidRunConfigurationExecutorTest {
     assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(APPLICATION_ID)
     assertThat(processHandler.autoTerminate).isEqualTo(true)
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
+    assertThat(AndroidSessionInfo.from(processHandler)).isNotNull()
 
     if (!latch.await(10, TimeUnit.SECONDS)) {
       fail("Activity is not started")
