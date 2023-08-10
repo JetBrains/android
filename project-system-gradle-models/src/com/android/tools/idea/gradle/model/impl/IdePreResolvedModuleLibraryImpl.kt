@@ -47,7 +47,7 @@ data class IdePreResolvedModuleLibraryImpl constructor(
   val displayName: String get() = moduleLibraryDisplayName(buildId, projectPath, variant, sourceSet)
 }
 
-class IdeUnresolvedKmpAndroidModuleLibraryImpl(
+data class IdeUnresolvedKmpAndroidModuleLibraryImpl(
   override val buildId: String,
   override val projectPath: String,
   override val lintJar: File?,

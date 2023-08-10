@@ -63,19 +63,6 @@ LIBRARY_TABLE
         projectPath                   : :androidLib
         sourceSet                     : MAIN
         variant                       : typeoneModetwoDebug
-    - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :kmpFirstLib
-        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
-            canBeConsumed                 : true
-        variant                       : androidMain
-    - library                     : <ROOT>::kmpFirstLib@androidMain/commonMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :kmpFirstLib
-        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
-        variant                       : androidMain
     - library                     : <ROOT>::kmpSecondLib@androidMain/androidMain (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         lintJar                       : <ROOT>/kmpSecondLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
@@ -161,58 +148,6 @@ LIBRARY_TABLE
         projectPath                   : :app
         sourceSet                     : MAIN
         variant                       : debug
-    - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :kmpFirstLib
-        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
-            canBeConsumed                 : true
-        variant                       : androidMain
-    - library                     : <ROOT>::kmpFirstLib@androidMain/commonMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :kmpFirstLib
-        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
-        variant                       : androidMain
-    - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :kmpFirstLib
-        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
-            canBeConsumed                 : true
-        variant                       : androidMain
-    - library                     : <ROOT>::kmpFirstLib@androidMain/commonMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :kmpFirstLib
-        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
-        variant                       : androidMain
-    - library                     : <ROOT>::kmpSecondLib@androidMain/androidMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpSecondLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :kmpSecondLib
-        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
-            canBeConsumed                 : true
-        variant                       : androidMain
-    - library                     : <ROOT>::kmpSecondLib@androidMain/commonMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpSecondLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :kmpSecondLib
-        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
-        variant                       : androidMain
-    - library                     : <ROOT>::kmpFirstLib@androidMain/androidMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :kmpFirstLib
-        sourceSet                     : androidMain (IdeModuleSourceSetImpl)
-            canBeConsumed                 : true
-        variant                       : androidMain
-    - library                     : <ROOT>::kmpFirstLib@androidMain/commonMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/kmpFirstLib/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :kmpFirstLib
-        sourceSet                     : commonMain (IdeModuleSourceSetImpl) (*seen*)
-        variant                       : androidMain
 MODULE                        : Kotlin_Multiplatform
     externalProject               : Kotlin Multiplatform (DefaultExternalProject)
         path                          : : [-]
