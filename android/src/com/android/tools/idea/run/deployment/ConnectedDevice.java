@@ -25,44 +25,21 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ConnectedDevice implements Device {
-  @NotNull
-  private final Key myKey;
-
-  @NotNull
-  private final Icon myIcon;
-
-  @NotNull
-  private final Type myType;
-
-  @NotNull
-  private final LaunchCompatibility myLaunchCompatibility;
-
-  @Nullable
-  private final Instant myConnectionTime;
-
-  @NotNull
-  private final String myName;
-
-  @NotNull
-  private final AndroidDevice myAndroidDevice;
-
+record ConnectedDevice(@NotNull Key key,
+                       @NotNull Icon icon,
+                       @NotNull Type type,
+                       @NotNull LaunchCompatibility launchCompatibility,
+                       @Nullable Instant connectionTime,
+                       @NotNull String name,
+                       @NotNull AndroidDevice androidDevice) implements Device {
   private ConnectedDevice(@NotNull Builder builder) {
-    assert builder.myKey != null;
-    myKey = builder.myKey;
-
-    assert builder.myIcon != null;
-    myIcon = builder.myIcon;
-
-    myType = builder.myType;
-    myLaunchCompatibility = builder.myLaunchCompatibility;
-    myConnectionTime = builder.myConnectionTime;
-
-    assert builder.myName != null;
-    myName = builder.myName;
-
-    assert builder.myAndroidDevice != null;
-    myAndroidDevice = builder.myAndroidDevice;
+    this(Objects.requireNonNull(builder.myKey),
+         Objects.requireNonNull(builder.myIcon),
+         builder.myType,
+         builder.myLaunchCompatibility,
+         builder.myConnectionTime,
+         Objects.requireNonNull(builder.myName),
+         Objects.requireNonNull(builder.myAndroidDevice));
   }
 
   static final class Builder extends Device.Builder {
@@ -114,52 +91,16 @@ final class ConnectedDevice implements Device {
   }
 
   boolean isVirtualDevice() {
-    return myAndroidDevice.isVirtual();
+    return androidDevice.isVirtual();
   }
 
   boolean isPhysicalDevice() {
-    return !myAndroidDevice.isVirtual();
-  }
-
-  @NotNull
-  @Override
-  public Key key() {
-    return myKey;
-  }
-
-  @NotNull
-  @Override
-  public Icon icon() {
-    return myIcon;
-  }
-
-  @NotNull
-  @Override
-  public Type type() {
-    return myType;
-  }
-
-  @NotNull
-  @Override
-  public LaunchCompatibility launchCompatibility() {
-    return myLaunchCompatibility;
+    return !androidDevice.isVirtual();
   }
 
   @Override
   public boolean connected() {
     throw new UnsupportedOperationException();
-  }
-
-  @Nullable
-  @Override
-  public Instant connectionTime() {
-    return myConnectionTime;
-  }
-
-  @NotNull
-  @Override
-  public String name() {
-    return myName;
   }
 
   @NotNull
@@ -182,33 +123,7 @@ final class ConnectedDevice implements Device {
 
   @NotNull
   @Override
-  public AndroidDevice androidDevice() {
-    return myAndroidDevice;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(myKey, myIcon, myType, myLaunchCompatibility, myConnectionTime, myName, myAndroidDevice);
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof ConnectedDevice device)) {
-      return false;
-    }
-
-    return myKey.equals(device.myKey) &&
-           myIcon.equals(device.myIcon) &&
-           myType.equals(device.myType) &&
-           myLaunchCompatibility.equals(device.myLaunchCompatibility) &&
-           Objects.equals(myConnectionTime, device.myConnectionTime) &&
-           myName.equals(device.myName) &&
-           myAndroidDevice.equals(device.myAndroidDevice);
-  }
-
-  @NotNull
-  @Override
   public String toString() {
-    return myName;
+    return name;
   }
 }
