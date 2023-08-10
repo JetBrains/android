@@ -82,7 +82,7 @@ class GradleVersionCatalogTest {
     val ideFrame: IdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish(projectName,
                                                                                        null,
                                                                                        "7.4.1",
-                                                                                       "1.8.10",
+                                                                                       "1.9.0",
                                                                                        null,
                                                                                        GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
@@ -174,7 +174,7 @@ class GradleVersionCatalogTest {
     val ideFrame: IdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish(projectName,
                                                                                        null,
                                                                                        "7.4.1",
-                                                                                       "1.8.10",
+                                                                                       "1.9.0",
                                                                                        null,
                                                                                        GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
 
@@ -201,7 +201,7 @@ class GradleVersionCatalogTest {
         enter()
         Truth.assertThat(contents()).containsAllIn(listOf(
           "agp" to "7.4.1",
-          "kotlin" to "1.8.10",
+          "kotlin" to "1.9.0",
           "material" to "1.5.0",
           "appcompat" to "1.3.0",
           "constraintlayout" to "2.1.3",
@@ -224,7 +224,7 @@ class GradleVersionCatalogTest {
         enter()
         Truth.assertThat(contents()).containsAllIn(listOf(
           "agp" to "7.4.1",
-          "kotlin" to "1.8.10",
+          "kotlin" to "1.9.0",
           "material" to "1.8.0",
           "appcompat" to "1.3.0",
           "constraintlayout" to "2.1.3",
@@ -250,7 +250,7 @@ class GradleVersionCatalogTest {
 
       Truth.assertThat(versionMap.toList()).containsExactly(
       "agp" to "7.4.1",
-      "kotlin" to "1.8.10",
+      "kotlin" to "1.9.0",
       "material" to "1.8.0",
       "appcompat" to "1.3.0",
       "constraintlayout" to "2.1.3",

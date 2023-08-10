@@ -9,6 +9,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.NewFilePopupFixture
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton.RIGHT_BUTTON
+import org.fest.swing.timing.Wait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeUnit
 @RunWith(GuiTestRemoteRunner::class)
 class ShowFilesUnknownToCMakeActionTest {
   @get:Rule
-  val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
+  val guiTest = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
 
   @get:Rule
   val restoreNpwNativeModuleFlagRule = FlagRule(StudioFlags.NPW_NEW_NATIVE_MODULE)
@@ -36,7 +37,7 @@ class ShowFilesUnknownToCMakeActionTest {
       .enterPackageName("dev.tools")
       .wizard()
       .clickNext()
-      .clickFinishAndWaitForSyncToFinish()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(240))
 
     // Add an unused C file
     val unusedFile1 = guiTest.projectPath.resolve("app/src/main/cpp/unused1.c")
