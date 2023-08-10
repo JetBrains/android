@@ -1950,11 +1950,11 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/zoneinfo/_common.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/zoneinfo/_tzpath.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/zoneinfo/_zoneinfo.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libc++.1.dylib
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libc++abi.1.dylib
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libc++.dylib
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libc++abi.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libedit.0.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libform.6.dylib
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/liblldb.17.0.0.dylib
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/liblldb.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libncurses.6.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libpanel.6.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libpython3.10.dylib

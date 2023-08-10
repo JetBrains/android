@@ -699,6 +699,7 @@ android-studio/plugins/android-ndk/resources/lldb/android/x86_64/lldb-server
 android-studio/plugins/android-ndk/resources/lldb/bin/LLDBFrontend
 android-studio/plugins/android-ndk/resources/lldb/bin/llvm-symbolizer
 android-studio/plugins/android-ndk/resources/lldb/bin/minidump_stackwalk
+android-studio/plugins/android-ndk/resources/lldb/lib/libc++.so
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/__init__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/embedded_interpreter.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/Logger.py
@@ -1962,11 +1963,11 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/zoneinfo/__init
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/zoneinfo/_common.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/zoneinfo/_tzpath.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/zoneinfo/_zoneinfo.py
-android-studio/plugins/android-ndk/resources/lldb/lib64/libc++.so.1
+android-studio/plugins/android-ndk/resources/lldb/lib64/libc++.so
 android-studio/plugins/android-ndk/resources/lldb/lib64/libc++abi.so.1
 android-studio/plugins/android-ndk/resources/lldb/lib64/libedit.so.0
 android-studio/plugins/android-ndk/resources/lldb/lib64/libform.so.6
-android-studio/plugins/android-ndk/resources/lldb/lib64/liblldb.so.17
+android-studio/plugins/android-ndk/resources/lldb/lib64/liblldb.so
 android-studio/plugins/android-ndk/resources/lldb/lib64/libncurses.so.6
 android-studio/plugins/android-ndk/resources/lldb/lib64/libpanel.so.6
 android-studio/plugins/android-ndk/resources/lldb/lib64/libpython3.10.so.1.0
