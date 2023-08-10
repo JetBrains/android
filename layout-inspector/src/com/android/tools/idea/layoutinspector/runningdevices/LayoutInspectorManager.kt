@@ -140,6 +140,10 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         previousTab.disableLayoutInspector()
         previousTab.layoutInspector.stopInspector()
       }
+      if (previousTab != null) {
+        // Layout Inspector UI has been removed, dispose to trigger clean up.
+        Disposer.dispose(previousTab.tabComponents)
+      }
 
       field = value
 
@@ -294,7 +298,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
    *   device display is rendered.
    */
   class TabComponents(
-    val disposable: Disposable,
+    disposable: Disposable,
     val tabContentPanel: JComponent,
     val tabContentPanelContainer: Container,
     val displayView: AbstractDisplayView
@@ -322,7 +326,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       WrapLogic(tabComponents.tabContentPanel, tabComponents.tabContentPanelContainer),
     val layoutInspectorRenderer: LayoutInspectorRenderer =
       LayoutInspectorRenderer(
-        tabComponents.disposable,
+        tabComponents,
         layoutInspector.coroutineScope,
         layoutInspector.renderLogic,
         layoutInspector.renderModel,
@@ -351,7 +355,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     fun enableLayoutInspector() {
       ApplicationManager.getApplication().assertIsDispatchThread()
 
-      val disposable = Disposer.newDisposable(tabComponents.disposable)
+      val disposable = Disposer.newDisposable(tabComponents)
       uiDisposable = disposable
 
       wrapLogic.wrapComponent { centerPanel ->

@@ -485,10 +485,15 @@ class LayoutInspectorManagerTest {
     var isWorkbenchDisposed = false
     val workBench = tab1.content.allParents().filterIsInstance<WorkBench<LayoutInspector>>().first()
     Disposer.register(workBench) { isWorkbenchDisposed = true }
+    var isRendererDisposed = false
+    val renderer =
+      tab1.displayView.allChildren().filterIsInstance<LayoutInspectorRenderer>().first()
+    Disposer.register(renderer) { isRendererDisposed = true }
 
     layoutInspectorManager.enableLayoutInspector(tab1.deviceId, false)
 
     assertThat(isWorkbenchDisposed).isTrue()
+    assertThat(isRendererDisposed).isTrue()
   }
 
   private fun assertHasWorkbench(tabInfo: TabInfo) {
