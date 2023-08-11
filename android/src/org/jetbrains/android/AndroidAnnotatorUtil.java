@@ -320,6 +320,7 @@ public class AndroidAnnotatorUtil {
     private final boolean myIncludeClickAction;
     private final boolean myHasCustomColor;
     private final AndroidFacet myFacet;
+    private final Icon myIcon;
 
     public ColorRenderer(@NotNull PsiElement element,
                          @Nullable Color color,
@@ -336,11 +337,17 @@ public class AndroidAnnotatorUtil {
       myIncludeClickAction = true;
       myHasCustomColor = hasCustomColor;
       mySetColorTask = new SetAttributeConsumer(element, ResourceType.COLOR);
+      // compute icon when renderer created on background thread
+      myIcon = buildIcon();
     }
 
     @NotNull
     @Override
     public Icon getIcon() {
+      return myIcon;
+    }
+
+    private @NotNull Icon buildIcon() {
       if (myResourceValue != null && myElement.isValid()) {
         List<Color> colors = IdeResourcesUtil.resolveMultipleColors(myResolver, myResourceValue, myFacet.getModule().getProject());
         if (!colors.isEmpty()) {

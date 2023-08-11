@@ -29,6 +29,7 @@ import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -42,6 +43,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.jetbrains.android.AndroidAnnotatorUtil.ColorRenderer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,14 +112,22 @@ public abstract class AndroidResourceExternalAnnotatorBase
         // Inline color
         assert (element.getColor() != null);
         Color color = element.getColor();
-        gutterIconRenderer =
-          new AndroidAnnotatorUtil.ColorRenderer(element.getPsiElement(), color, resolver, null, true, facet);
+        gutterIconRenderer = ReadAction
+          .nonBlocking(() -> buildInlineColorRenderer(element, color, resolver, facet))
+          .executeSynchronously();
       }
       if (gutterIconRenderer != null) {
         rendererMap.put(element.getPsiElement(), gutterIconRenderer);
       }
     }
     return rendererMap;
+  }
+
+  private static @NotNull ColorRenderer buildInlineColorRenderer(FileAnnotationInfo.AnnotatableElement element,
+                                                                 Color color,
+                                                                 ResourceResolver resolver,
+                                                                 AndroidFacet facet) {
+    return new ColorRenderer(element.getPsiElement(), color, resolver, null, true, facet);
   }
 
   @Nullable
@@ -158,7 +169,10 @@ public abstract class AndroidResourceExternalAnnotatorBase
     if (renderableValueResourceType == ResourceType.COLOR ||
         renderableValueResourceType == ResourceType.STYLE_ITEM ||
         renderableValueResourceType == ResourceType.MACRO) {
-      return getColorGutterIconRenderer(resolver, renderableValue, facet, element);
+
+      return ReadAction
+        .nonBlocking(() -> getColorGutterIconRenderer(resolver, renderableValue, facet, element))
+        .executeSynchronously();
     }
     else if (renderableValueResourceType == ResourceType.DRAWABLE || renderableValueResourceType == ResourceType.MIPMAP) {
       return getDrawableGutterIconRenderer(element, resolver, renderableValue, facet, configuration);
@@ -195,7 +209,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     // For java and kotlin files, it opens color resource picker only and set R.color.[resource_name] or android.R.color.[resource_name].
     // For xml files, it opens custom color palette and color resource picker. (which shows as 2 tabs)
     boolean withCustomColorPalette = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
-    return new AndroidAnnotatorUtil.ColorRenderer(element, color, resourceResolver, resourceValue, withCustomColorPalette, facet);
+    return new ColorRenderer(element, color, resourceResolver, resourceValue, withCustomColorPalette, facet);
   }
 
   @Override
