@@ -27,7 +27,12 @@ class ToggleDeepInspectAction(
   private val isSelected: () -> Boolean,
   private val setSelected: (Boolean) -> Unit,
   private val connectedClientProvider: () -> InspectorClient
-) : ToggleAction({ "" }, StudioIcons.Compose.Toolbar.INSPECT_PREVIEW), TooltipDescriptionProvider {
+) :
+  ToggleAction(
+    { LayoutInspectorBundle.message("toggle.deep.inspect") },
+    StudioIcons.Compose.Toolbar.INSPECT_PREVIEW
+  ),
+  TooltipDescriptionProvider {
   override fun isSelected(e: AnActionEvent) = isSelected()
   override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected(state)
 

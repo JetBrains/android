@@ -59,9 +59,11 @@ class ToggleDeepInspectActionTest {
 
     val event = createTestActionEvent(toggleDeepInspectAction)
     toggleDeepInspectAction.update(event)
-    assertThat(event.presentation.text).isEqualTo("")
+    assertThat(event.presentation.text).isEqualTo("Toggle Deep Inspect")
     assertThat(event.presentation.description)
-      .isEqualTo("Select a component in the device to view inspection information.")
+      .isEqualTo(
+        "Select components by clicking on the device. Enabling Deep Inspect will intercept clicks from the device."
+      )
   }
 
   @Test
