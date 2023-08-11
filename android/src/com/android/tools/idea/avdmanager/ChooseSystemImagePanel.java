@@ -207,16 +207,33 @@ public class ChooseSystemImagePanel extends JPanel
     if (apiLevel < MIN_RECOMMENDED_API) {
       return SystemImageClassification.PERFORMANT;
     }
-    if (SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(tag) &&
-        (isArm64HostOs ||
-         (SystemImageDescription.TV_TAGS.contains(tag) && // Android TV does not ship x86_64 images at any API level.
-          apiLevel != TIRAMISU) || // Tiramisu is an unsupported Android TV version.
-         (apiLevel <= MAX_32_BIT_API && abi == Abi.X86) ||
-         (apiLevel > MAX_32_BIT_API && abi == Abi.X86_64))
-    ) {
-      // Only recommend ARM images on ARM hosts, 32-bit x86 system images where api-level <= 30, and 64-bit images where api-level > 30.
+
+    if (!SystemImageDescription.TAGS_WITH_GOOGLE_API.contains(tag)) {
+      return SystemImageClassification.PERFORMANT;
+    }
+
+    // Android TV does not ship x86_64 images at any API level, so we recommend
+    // almost all images on the same OS.
+    if (SystemImageDescription.TV_TAGS.contains(tag)) {
+      if (apiLevel == TIRAMISU) { // Tiramisu is an unsupported Android TV version.
+        return SystemImageClassification.PERFORMANT;
+      } else {
+        return SystemImageClassification.RECOMMENDED;
+      }
+    }
+
+    // Recommend ARM images on ARM hosts.
+    if (isArm64HostOs) {
       return SystemImageClassification.RECOMMENDED;
     }
+
+    // Only recommend 32-bit x86 images when API level < 31, or 64-bit x86 images when API level >= 31.
+    if (apiLevel <= MAX_32_BIT_API && abi == Abi.X86) {
+      return SystemImageClassification.RECOMMENDED;
+    } else if (apiLevel > MAX_32_BIT_API && abi == Abi.X86_64) {
+      return SystemImageClassification.RECOMMENDED;
+    }
+
     return SystemImageClassification.PERFORMANT;
   }
 

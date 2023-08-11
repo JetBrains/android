@@ -373,6 +373,14 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                    getClassificationFromParts(Abi.X86, new AndroidVersion(33), ANDROID_TV_TAG, isArmHostOs));
       assertEquals(isArmHostOs ? OTHER : PERFORMANT,
                    getClassificationFromParts(Abi.X86, new AndroidVersion(33), GOOGLE_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(31), ANDROID_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? RECOMMENDED : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(31), GOOGLE_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? PERFORMANT : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(33), ANDROID_TV_TAG, isArmHostOs));
+      assertEquals(isArmHostOs ? PERFORMANT : OTHER,
+                   getClassificationFromParts(Abi.ARM64_V8A, new AndroidVersion(33), GOOGLE_TV_TAG, isArmHostOs));
     }
   }
 
