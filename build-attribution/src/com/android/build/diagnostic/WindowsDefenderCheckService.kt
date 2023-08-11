@@ -37,6 +37,7 @@ import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.util.NlsContexts
+import org.jetbrains.android.util.AndroidBundle
 import java.nio.file.Path
 
 private val LOG = Logger.getInstance(WindowsDefenderCheckService::class.java)
@@ -183,17 +184,18 @@ class WindowsDefenderCheckService(
       BrowserUtil.browse(manualInstructionsLink)
       trackShowingManualInstructions(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION)
     }
+    val ignoreForProject = DiagnosticBundle.message("defender.config.suppress1")
     val notification = if (canRunExclusionScript) {
       val auto = DiagnosticBundle.message("defender.config.auto")
       val manual = DiagnosticBundle.message("defender.config.manual")
-      notification(DiagnosticBundle.message("defender.config.prompt", pathList, auto, manual), NotificationType.INFORMATION)
+      notification(AndroidBundle.message("android.defender.config.prompt", pathList, auto, ignoreForProject), NotificationType.INFORMATION)
         .addAction(NotificationAction.createSimpleExpiring(auto) {
           runAutoExclusionScript(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, ::showResultNotification)
         })
         .addAction(NotificationAction.createSimple(manual, showManualInstructions))
     }
     else {
-      notification(DiagnosticBundle.message("defender.config.prompt.no.script", pathList), NotificationType.INFORMATION)
+      notification(AndroidBundle.message("android.defender.config.prompt.no.script", pathList), NotificationType.INFORMATION)
         .addAction(
           NotificationAction.createSimple(DiagnosticBundle.message("defender.config.instructions"), showManualInstructions))
     }
@@ -207,7 +209,7 @@ class WindowsDefenderCheckService(
         it.isImportant = true
         it.collapseDirection = Notification.CollapseActionsDirection.KEEP_LEFTMOST
       }
-      .addAction(NotificationAction.createSimpleExpiring(DiagnosticBundle.message("defender.config.suppress1")) {
+      .addAction(NotificationAction.createSimpleExpiring(ignoreForProject) {
         ignoreCheckForProject(BuildAttributionUiEvent.Page.PageType.WINDOWS_DEFENDER_NOTIFICATION, onIgnoreCallback)
       })
       .addAction(NotificationAction.createSimpleExpiring(DiagnosticBundle.message("defender.config.suppress2")) {

@@ -94,9 +94,9 @@ class WindowsDefenderWarningUITest {
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
 
-    assertThat(page.autoExcludeLink.isVisible).isTrue()
+    assertThat(page.autoExclusionLine.isVisible).isTrue()
     assertThat(page.autoExcludeStatus.isVisible).isFalse()
-    assertThat(page.suppressWarningLink.isVisible).isTrue()
+    assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isFalse()
     listOfPaths.forEach { assertThat(page.contentHtml).contains(it.toString()) }
   }
@@ -110,9 +110,9 @@ class WindowsDefenderWarningUITest {
     val ui = FakeUi(page)
     ui.layoutAndDispatchEvents()
 
-    assertThat(page.autoExcludeLink.isVisible).isFalse()
+    assertThat(page.autoExclusionLine.isVisible).isFalse()
     assertThat(page.autoExcludeStatus.isVisible).isFalse()
-    assertThat(page.suppressWarningLink.isVisible).isTrue()
+    assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isFalse()
   }
 
@@ -126,9 +126,9 @@ class WindowsDefenderWarningUITest {
     ui.clickOn(page.suppressWarningLink)
     ui.layoutAndDispatchEvents()
 
-    assertThat(page.autoExcludeLink.isVisible).isTrue()
+    assertThat(page.autoExclusionLine.isVisible).isTrue()
     assertThat(page.autoExcludeStatus.isVisible).isFalse()
-    assertThat(page.suppressWarningLink.isVisible).isTrue()
+    assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isTrue()
     Mockito.verify(checkerWrapperMock, Mockito.times(1)).ignoreStatusCheck(MockitoKt.any(), MockitoKt.eq(true))
   }
@@ -149,10 +149,10 @@ class WindowsDefenderWarningUITest {
     ui.clickOn(page.autoExcludeLink)
     ui.layoutAndDispatchEvents()
 
-    assertThat(page.autoExcludeLink.isVisible).isTrue()
+    assertThat(page.autoExclusionLine.isVisible).isTrue()
     assertThat(page.autoExcludeStatus.isVisible).isTrue()
     assertThat(page.autoExcludeStatus.text).isEqualTo("Project paths were successfully added to the Microsoft Defender exclusion list")
-    assertThat(page.suppressWarningLink.isVisible).isTrue()
+    assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isFalse()
     Mockito.verify(checkerWrapperMock, Mockito.times(1)).ignoreStatusCheck(MockitoKt.any(), MockitoKt.eq(true))
   }
@@ -173,10 +173,10 @@ class WindowsDefenderWarningUITest {
     ui.clickOn(page.autoExcludeLink)
     ui.layoutAndDispatchEvents()
 
-    assertThat(page.autoExcludeLink.isVisible).isTrue()
+    assertThat(page.autoExclusionLine.isVisible).isTrue()
     assertThat(page.autoExcludeStatus.isVisible).isTrue()
     assertThat(page.autoExcludeStatus.text).isEqualTo("Microsoft Defender configuration script failed. Please look for \"WindowsDefenderChecker\" records in the log.")
-    assertThat(page.suppressWarningLink.isVisible).isTrue()
+    assertThat(page.suppressLine.isVisible).isTrue()
     assertThat(page.warningSuppressedMessage.isVisible).isFalse()
     Mockito.verify(checkerWrapperMock, Mockito.never()).ignoreStatusCheck(MockitoKt.any(), MockitoKt.eq(true))
   }

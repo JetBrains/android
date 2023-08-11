@@ -45,10 +45,11 @@ class WindowsDefenderWarningPage(
   val contentHtml = """
           <b>Anti-virus</b><br/>
           <br/>
+          The IDE has detected Microsoft Defender with Real-Time Protection enabled.<br/>
           Antivirus software may be impacting your build performance by doing<br/>
           real-time scanning of directories used by Gradle. $learnMoreLink.<br/>
           <br/>
-          It is recommended to add the following paths to the Defender folder exclusion list:<br/>
+          It is recommended to make sure the following paths are added to the Defender folder exclusion list:<br/>
           <br/>
           ${data.interestingPaths.joinToString(separator = "<br/>\n")}
         """.trimIndent()
@@ -57,60 +58,64 @@ class WindowsDefenderWarningPage(
     isVisible = false
     horizontalAlignment = SwingConstants.LEFT
   }
-  val autoExcludeLink = ActionLink("Exclude above directories from active-scanning") {
-    autoExcludeStatus.isVisible = true
-    autoExcludeStatus.icon = AnimatedIcon.Default()
-    autoExcludeStatus.text = "Running..."
-    pageHandler.runAutoExclusionScript { success -> invokeLater {
-      if (success) {
-        autoExcludeStatus.icon = StudioIcons.Common.SUCCESS_INLINE
-        autoExcludeStatus.text = DiagnosticBundle.message("defender.config.success")
-      }
-      else {
-        autoExcludeStatus.icon = StudioIcons.Common.WARNING_INLINE
-        autoExcludeStatus.text = DiagnosticBundle.message("defender.config.failed")
-      }
+
+  val autoExcludeLink: ActionLink
+  val autoExclusionLine = JPanel(HorizontalLayout(0)).apply {
+    isVisible = data.canRunExclusionScript
+    val (preLink, link, postLink) =
+      Triple("You can ", "automatically check and exclude missing paths", " (note: Windows will ask for administrative privileges).")
+    autoExcludeLink = ActionLink(link) {
+      autoExcludeStatus.isVisible = true
+      autoExcludeStatus.icon = AnimatedIcon.Default()
+      autoExcludeStatus.text = "Running..."
+      pageHandler.runAutoExclusionScript { success -> invokeLater {
+        if (success) {
+          autoExcludeStatus.icon = StudioIcons.Common.SUCCESS_INLINE
+          autoExcludeStatus.text = DiagnosticBundle.message("defender.config.success")
+        }
+        else {
+          autoExcludeStatus.icon = StudioIcons.Common.WARNING_INLINE
+          autoExcludeStatus.text = DiagnosticBundle.message("defender.config.failed")
+        }
+      }}
     }
-    }
+    add(JLabel(preLink), HorizontalLayout.LEFT)
+    add(autoExcludeLink, HorizontalLayout.LEFT)
+    add(JLabel(postLink), HorizontalLayout.LEFT)
   }
 
   val warningSuppressedMessage = JLabel(
     DiagnosticBundle.message("defender.config.restore",ActionsBundle.message("action.ResetWindowsDefenderNotification.text"))
   )
-  val suppressWarningLink = ActionLink("ignore this warning for this project") {
-    pageHandler.ignoreCheckForProject()
-    warningSuppressedMessage.isVisible = true
+  val suppressWarningLink: ActionLink
+  val suppressLine = JPanel(HorizontalLayout(0)).apply {
+    val (preLink, link, postLink) =
+      Triple("Once configured manually, you can ", "ignore this warning for this project", " to no longer see it.")
+    suppressWarningLink = ActionLink(link) {
+      pageHandler.ignoreCheckForProject()
+      warningSuppressedMessage.isVisible = true
+    }
+    add(JLabel(preLink), HorizontalLayout.LEFT)
+    add(suppressWarningLink, HorizontalLayout.LEFT)
+    add(JLabel(postLink), HorizontalLayout.LEFT)
   }
 
-  val manualInstructionsLink = BrowserLink(
-    "these instructions",
-    WindowsDefenderCheckService.manualInstructionsLink
-  ).apply {
-    addActionListener { pageHandler.trackShowingManualInstructions() }
+  private val manualInstructionsLine = JPanel(HorizontalLayout(0)).apply {
+    val (preLink, link) = Pair("You can configure active scanning manually following ", "these instructions")
+    val manualInstructionsLink = BrowserLink(link, WindowsDefenderCheckService.manualInstructionsLink).apply {
+      addActionListener { pageHandler.trackShowingManualInstructions() }
+    }
+    add(JLabel(preLink), HorizontalLayout.LEFT)
+    add(manualInstructionsLink, HorizontalLayout.LEFT)
   }
 
   init {
-    autoExcludeLink.isVisible = data.canRunExclusionScript
     warningSuppressedMessage.isVisible = false
-
-    val manualInstructionsLine = JPanel(HorizontalLayout(0)).apply {
-      // Required to compensate 2px left insets in 'autoExcludeLink'
-      border = JBUI.Borders.emptyLeft(2)
-      add(JLabel("You can configure active scanning manually following "), HorizontalLayout.LEFT)
-      add(manualInstructionsLink, HorizontalLayout.LEFT)
-    }
-    val suppressLine = JPanel(HorizontalLayout(0)).apply {
-      // Required to compensate 2px left insets in 'autoExcludeLink'
-      border = JBUI.Borders.emptyLeft(2)
-      add(JLabel("Once configured manually, you can "), HorizontalLayout.LEFT)
-      add(suppressWarningLink, HorizontalLayout.LEFT)
-      add(JLabel(" to no longer see it."), HorizontalLayout.LEFT)
-    }
 
     layout = VerticalLayout(0, SwingConstants.LEFT)
     add(htmlTextLabelWithFixedLines(contentHtml, linksHandler).apply { border = JBUI.Borders.emptyLeft(2) })
     add(JLabel(" ")) // Add an empty line spacing before controls.
-    add(autoExcludeLink)
+    add(autoExclusionLine)
     add(autoExcludeStatus)
     add(manualInstructionsLine)
     add(suppressLine)
