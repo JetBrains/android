@@ -40,6 +40,7 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 import com.android.tools.idea.gradle.structure.quickfix.SdkIndexLinkQuickFix
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndex
+import com.android.tools.lint.checks.GooglePlaySdkIndex
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -246,8 +247,10 @@ class PsAnalyzerDaemon(
  *
  * @return The issue with the higher severity from the SDK index, or null if there are no issues
  */
-fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec, libraryPath: PsPath, parentModuleRootDir: File?): PsGeneralIssue? {
-  val sdkIndex = IdeGooglePlaySdkIndex
+fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec,
+                        libraryPath: PsPath,
+                        parentModuleRootDir: File?,
+                        sdkIndex: GooglePlaySdkIndex = IdeGooglePlaySdkIndex): PsGeneralIssue? {
   val groupId = dependencySpec.group ?: return null
   val versionString = dependencySpec.version ?: return null
   val artifactId = dependencySpec.name
@@ -255,7 +258,7 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec, libraryPath: P
   val isNonCompliant = sdkIndex.isLibraryNonCompliant(groupId, artifactId, versionString, parentModuleRootDir)
   val isCritical = sdkIndex.hasLibraryCriticalIssues(groupId, artifactId, versionString, parentModuleRootDir)
   val isOutdated = sdkIndex.isLibraryOutdated(groupId, artifactId, versionString, parentModuleRootDir)
-  val numberOfTypes = setOf(isNonCompliant, isCritical, isOutdated).count { it }
+  val numberOfTypes = listOf(isNonCompliant, isCritical, isOutdated).count { it }
 
   if (numberOfTypes == 0) {
     return null
@@ -307,7 +310,7 @@ fun getSdkIndexIssueFor(dependencySpec: PsArtifactDependencySpec, libraryPath: P
       severity = WARNING
     }
   }
-  return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, severity)
+  return createIndexIssue(message, groupId, artifactId, versionString, libraryPath, severity, sdkIndex)
 }
 
 private fun createIndexIssue(
@@ -316,9 +319,9 @@ private fun createIndexIssue(
   artifactId: String,
   versionString: String,
   mainPath: PsPath,
-  severity: PsIssue.Severity
+  severity: PsIssue.Severity,
+  sdkIndex: GooglePlaySdkIndex
 ): PsGeneralIssue {
-  val sdkIndex = IdeGooglePlaySdkIndex
   val url = sdkIndex.getSdkUrl(groupId, artifactId)
   val fixes = if (url != null) {
     listOf(SdkIndexLinkQuickFix("View details on Google Play SDK Index", url, groupId, artifactId, versionString))
