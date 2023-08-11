@@ -229,9 +229,9 @@ class AndroidGradleProjectSettingsControlBuilder(
     )
     myGradleJdkComboBox?.addItemSelectedLister {
       if ((it as?  SdkListItem.SdkReferenceItem)?.name == GRADLE_LOCAL_JAVA_HOME) {
-        gradleLocalJavaHomeComboBox?.isEnabled = true
+        gradleLocalJavaHomeComboBox?.isVisible = true
       } else {
-        gradleLocalJavaHomeComboBox?.isEnabled = false
+        gradleLocalJavaHomeComboBox?.isVisible = false
         gradleLocalJavaHomeComboBox?.resetSelection()
       }
     }
@@ -240,7 +240,7 @@ class AndroidGradleProjectSettingsControlBuilder(
       currentJdkPath = GradleConfigProperties(gradleRootProjectFile).javaHome?.path,
       embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath,
       suggestedJdks = ProjectJdkTable.getInstance().getSdksOfType(JavaSdk.getInstance()),
-      hintMessage = AndroidBundle.message("gradle.settings.jdk.edit.path.hint", GRADLE_LOCAL_JAVA_HOME)
+      hintMessage = AndroidBundle.message("gradle.settings.jdk.edit.path.hint")
     )
 
     // Add JAVA_HOME
