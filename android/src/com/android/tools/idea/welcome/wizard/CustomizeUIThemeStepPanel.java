@@ -1,9 +1,7 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.welcome.wizard;
 
-import com.intellij.ide.IdeBundle;
 import com.intellij.ide.cloudConfig.CloudConfigProvider;
-import com.intellij.ide.customize.AbstractCustomizeWizardStep;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.laf.IntelliJLaf;
 import com.intellij.ide.ui.laf.LafManagerImpl;
@@ -13,21 +11,42 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.AppUIUtil;
+import com.intellij.ui.ClickListener;
+import com.intellij.ui.ColorUtil;
 import com.intellij.util.IconUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.LayoutManager;
+import java.awt.Window;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JToggleButton;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 
 @Deprecated
-public class CustomizeUIThemeStepPanel extends AbstractCustomizeWizardStep {
+public class CustomizeUIThemeStepPanel extends JPanel {
   public static class ThemeInfo {
     public final @NonNls String name;
     public final @NonNls String previewFileName;
@@ -64,6 +83,54 @@ public class CustomizeUIThemeStepPanel extends AbstractCustomizeWizardStep {
 
   protected static final ThemeInfo DARCULA = new ThemeInfo("Darcula", "Darcula", DarculaLaf.class.getName());
   protected static final ThemeInfo INTELLIJ = new ThemeInfo("Light", "IntelliJ", IntelliJLaf.class.getName());
+
+  private static final int SMALL_GAP = 10;
+  private static Border createSmallEmptyBorder() {
+    return BorderFactory.createEmptyBorder(SMALL_GAP, SMALL_GAP, SMALL_GAP, SMALL_GAP);
+  }
+  private static BorderLayout createSmallBorderLayout() {
+    return new BorderLayout(SMALL_GAP, SMALL_GAP);
+  }
+  @NotNull
+  private static Color getSelectionBackground() {
+    return ColorUtil.mix(UIUtil.getListSelectionBackground(true), UIUtil.getLabelBackground(), StartupUiUtil.isUnderDarcula() ? .5 : .75);
+  }
+  private static JPanel createBigButtonPanel(LayoutManager layout, final JToggleButton anchorButton, final Runnable action) {
+    final JPanel panel = new JPanel(layout) {
+      @Override
+      public Color getBackground() {
+        return anchorButton.isSelected() ? getSelectionBackground() : super.getBackground();
+      }
+    };
+    panel.setOpaque(anchorButton.isSelected());
+    new ClickListener() {
+      @Override
+      public boolean onClick(@NotNull MouseEvent event, int clickCount) {
+        anchorButton.setSelected(true);
+        return true;
+      }
+    }.installOn(panel);
+    anchorButton.addItemListener(new ItemListener() {
+      boolean curState = anchorButton.isSelected();
+      @Override
+      public void itemStateChanged(ItemEvent e) {
+        if (e.getStateChange() == ItemEvent.SELECTED && curState != anchorButton.isSelected()) {
+          action.run();
+        }
+        curState = anchorButton.isSelected();
+        panel.setOpaque(curState);
+        panel.repaint();
+      }
+    });
+    return panel;
+  }
+
+  public Component getDefaultFocusedComponent() {
+    return null;
+  }
+
+  public void beforeShown(boolean forward) {
+  }
 
   private final boolean myColumnMode;
   private final JLabel myPreviewLabel;
@@ -161,21 +228,6 @@ public class CustomizeUIThemeStepPanel extends AbstractCustomizeWizardStep {
     Dimension size = super.getPreferredSize();
     size.width += 30;
     return size;
-  }
-
-  @Override
-  public String getTitle() {
-    return "";
-  }
-
-  @Override
-  public String getHTMLHeader() {
-    return "";
-  }
-
-  @Override
-  public String getHTMLFooter() {
-    return "";
   }
 
   private void applyLaf(ThemeInfo theme, Component component) {
