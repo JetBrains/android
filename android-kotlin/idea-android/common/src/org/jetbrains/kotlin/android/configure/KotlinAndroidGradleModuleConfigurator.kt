@@ -229,8 +229,9 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
 
         dialog.show()
         if (!dialog.isOK) return
+        val kotlinVersion = dialog.kotlinVersion ?: return
 
-        val collector = doConfigure(project, dialog.modulesToConfigure, IdeKotlinVersion.get(dialog.kotlinVersion))
+        val collector = doConfigure(project, dialog.modulesToConfigure, IdeKotlinVersion.get(kotlinVersion))
         collector.showNotification()
     }
 
