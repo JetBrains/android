@@ -18,8 +18,7 @@ package com.android.tools.idea.welcome.wizard
 import com.android.tools.idea.sdk.install.VmType
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
-import com.intellij.ui.layout.panel
-import com.intellij.uiDesigner.core.Spacer
+import com.intellij.ui.dsl.builder.panel
 
 /**
  * This is to be shown as the first HAXM Wizard step just to inform the user that HAXM uninstallation is about to start.
@@ -29,19 +28,18 @@ import com.intellij.uiDesigner.core.Spacer
 class VmUninstallInfoStep(
   type: VmType = VmType.HAXM
 ) : ModelWizardStep.WithoutModel("Uninstalling $type") {
-  private val panel = panel {
-    row {
-      label("This wizard will execute $type stand-alone uninstaller. This is an additional step required to remove this package.")
-    }
-    row {
-      Spacer()()
-    }
-    row {
-      label("Click 'Next' to proceed")
-    }
+
+  private val infoText = """
+This wizard will execute $type stand-alone uninstaller. This is an additional step required to remove this package<br><br>
+Click 'Next' to proceed
+"""
+
+  private val myPanel = panel {
+    row { text(infoText) }
   }
-  private val root = wrapWithVScroll(panel)
+
+  private val root = wrapWithVScroll(myPanel)
 
   override fun getComponent() = root
-  override fun getPreferredFocusComponent() = panel
+  override fun getPreferredFocusComponent() = myPanel
 }
