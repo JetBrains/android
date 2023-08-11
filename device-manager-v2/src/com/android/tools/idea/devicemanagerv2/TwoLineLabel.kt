@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.tools.adtui.categorytable.TableComponent
 import com.android.tools.adtui.categorytable.TablePresentation
 import com.android.tools.adtui.categorytable.TablePresentationManager
+import com.android.tools.adtui.categorytable.applyColors
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
@@ -54,6 +55,7 @@ class TwoLineLabel : JBPanel<TwoLineLabel>(null), TableComponent {
     manager: TablePresentationManager,
     presentation: TablePresentation
   ) {
+    presentation.applyColors(this)
     manager.applyPresentation(line1Label, presentation)
     manager.applyPresentation(
       line2Label,

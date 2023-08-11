@@ -52,6 +52,7 @@ class TwoLineLabelTest {
     assertThat(panel.line1Label.foreground.rgb and 0xFFFFFF).isEqualTo(0)
     assertThat(panel.line2Label.foreground).isEqualTo(TwoLineLabel.LINE2_COLOR)
     assertThat(panel.line2Label.foreground.rgb and 0xFFFFFF).isEqualTo(0x818594)
+    assertThat(panel.background).isEqualTo(JBColor.WHITE)
 
     themeManagerRule.setDarkTheme(true)
 
@@ -60,6 +61,7 @@ class TwoLineLabelTest {
     assertThat(panel.line1Label.foreground.rgb and 0xFFFFFF).isEqualTo(0xBBBBBB)
     assertThat(panel.line2Label.foreground).isEqualTo(TwoLineLabel.LINE2_COLOR)
     assertThat(panel.line2Label.foreground.rgb and 0xFFFFFF).isEqualTo(0x6F737A)
+    assertThat(panel.background).isEqualTo(JBColor.WHITE)
   }
 }
 
