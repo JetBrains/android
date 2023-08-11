@@ -17,64 +17,41 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
-import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.components.JBLabel
-import com.intellij.ui.layout.panel
-import com.intellij.uiDesigner.core.Spacer
+import com.intellij.openapi.application.ApplicationNamesInfo
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.BottomGap
+import com.intellij.ui.dsl.builder.TopGap
+import com.intellij.ui.dsl.builder.panel
 import javax.swing.JComponent
 
 /**
  * Welcome page for the first run wizard
  */
 class FirstRunWelcomeStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model, "Welcome") {
-  private val newSdkMessage: DialogPanel = panel {
-    row {
-      label("""Welcome! This wizard will set up your development environment for Android Studio.
-Additionally, the wizard will help port existing Android apps into Android Studio
+  private val ideName = ApplicationNamesInfo.getInstance().fullProductName
+
+  private val newSdkMessage = """Welcome! This wizard will set up your development environment for $ideName.<br>
+Additionally, the wizard will help port existing Android apps into $ideName<br>
 or create a new Android application project.
-""")
-    }
-  }
+"""
 
-  private val existingSdkMessage: DialogPanel = panel {
-    row {
-      label("""Welcome back! This setup wizard will validate your current Android SDK and
-development environment setup. You will have the option to download a new Android
-SDK or use an existing installation. Once the setup wizard completes, you can
-import an existing Android app into Android Studio or start a new Android project.
-""")
-    }
-  }
+  private val existingSdkMessage = """Welcome back! This setup wizard will validate your current Android SDK and<br>
+development environment setup. You will have the option to download a new Android<br>
+SDK or use an existing installation. Once the setup wizard completes, you can<br>
+import an existing Android app into $ideName or start a new Android project.
+"""
 
-  private val icons = JBLabel("").apply {
-    icon = getFormFactorsImage(this, false)
-  }
+  private val myPanel = panel {
+    row {
+      text("<center>${if (model.sdkExists) existingSdkMessage else newSdkMessage}</center>")
+    }.bottomGap(BottomGap.MEDIUM).topGap(TopGap.MEDIUM)
 
-  private val panel = panel {
     row {
-      Spacer()()
+      icon(getFormFactorsImage(requireEmulator = false)).align(AlignX.CENTER)
     }
-    row {
-      if (model.sdkExists) {
-        existingSdkMessage()
-      } else {
-        newSdkMessage()
-      }
-    }
-    row {
-      Spacer()()
-    }
-    row {
-      icons()
-    }
-    row {
-      Spacer()()
-    }
-  }
+  }.let { wrapWithVScroll(it) }
 
-  private val root  = wrapWithVScroll(panel)
-
-  override fun getComponent() = root
+  override fun getComponent() = myPanel
   override fun getPreferredFocusComponent(): JComponent? = null
 }
 
