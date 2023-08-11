@@ -38,7 +38,6 @@ import static com.intellij.openapi.util.io.FileUtil.loadFile;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtil.saveText;
-import static com.intellij.openapi.vfs.VfsUtilCore.loadText;
 import static org.junit.Assume.assumeTrue;
 import static org.junit.runners.Parameterized.Parameter;
 import static org.junit.runners.Parameterized.Parameters;
@@ -73,6 +72,7 @@ import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.project.ProjectKt;
 import com.intellij.testFramework.PlatformTestCase;
@@ -296,7 +296,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     final File testFile = testFileName.toFile(myTestDataResolvedPath, myTestDataExtension);
     VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
 
-    saveFileUnderWrite(destination, loadText(virtualTestFile));
+    saveFileUnderWrite(destination, VfsUtilCore.loadText(virtualTestFile));
     injectTestInformation(destination);
   }
 
@@ -328,7 +328,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     final File testFile = filename.toFile(myTestDataResolvedPath, "");
     VirtualFile virtualTestFile = findFileByIoFile(testFile, true);
 
-    saveFileUnderWrite(myVersionCatalogFile, loadText(virtualTestFile));
+    saveFileUnderWrite(myVersionCatalogFile, VfsUtilCore.loadText(virtualTestFile));
   }
 
   protected void writeToVersionCatalogFile(@NotNull String text) throws IOException {
@@ -395,7 +395,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   @NotNull
   protected String loadBuildFile() throws IOException {
-    return loadText(myBuildFile);
+    return VfsUtilCore.loadText(myBuildFile);
   }
 
   protected void writeToPropertiesFile(@NotNull String text) throws IOException {
@@ -411,7 +411,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   private static void injectTestInformation(@NotNull VirtualFile file) throws IOException {
-    String content = loadText(file);
+    String content = VfsUtilCore.loadText(file);
     content = content.replace("<SUB_MODULE_NAME>", SUB_MODULE_NAME);
     saveFileUnderWrite(file, content);
   }
@@ -482,7 +482,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   }
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull String contents) throws IOException {
-    assertEquals(contents.replaceAll("[ \\r\\t]+", "").trim(), loadText(file).replaceAll("[ \\r\\t]+", "").trim());
+    assertEquals(contents.replaceAll("[ \\r\\t]+", "").trim(), VfsUtilCore.loadText(file).replaceAll("[ \\r\\t]+", "").trim());
   }
 
   protected void verifyFileContents(@NotNull VirtualFile file, @NotNull TestFileName expected) throws IOException {
