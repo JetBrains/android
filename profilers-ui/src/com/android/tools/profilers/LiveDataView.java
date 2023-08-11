@@ -57,6 +57,13 @@ public abstract class LiveDataView<T extends LiveDataModel> extends AspectObserv
     focusChanged();
   }
 
+  /**
+   * @return the vertical weight this live data view should have in a layout.
+   */
+  public float getVerticalWeight() {
+    return 1f;
+  }
+
   @NotNull
   public JComponent getComponent() {
     return myContainer;
