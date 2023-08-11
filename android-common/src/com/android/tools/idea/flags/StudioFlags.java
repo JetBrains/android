@@ -1445,8 +1445,8 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> WEAR_TILE_PREVIEW = Flag.create(
     WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
-    "If enabled, a preview for classes extending androidx.wear.tiles.TileService is displayed",
-    false);
+    "If enabled, a preview for functions annotated with @TilePreview and returning TilePreviewData is displayed",
+    true);
   // endregion
 
   // region App Inspection

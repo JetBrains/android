@@ -69,7 +69,7 @@ class WearTilePreviewRepresentationProvider(
     DesignerTypeRegistrar.register(WearTileEditorFileType)
   }
   /**
-   * Checks if the input [psiFile] contains wear tile services and therefore can be provided with
+   * Checks if the input [psiFile] contains wear tile previews and therefore can be provided with
    * the [PreviewRepresentation] of them.
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean {
