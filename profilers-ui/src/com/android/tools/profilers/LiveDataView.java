@@ -29,12 +29,12 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class LiveAllocationView<T extends LiveAllocationModel> extends AspectObserver {
-  @NotNull private final T myALiveAllocationModel;
+public abstract class LiveDataView<T extends LiveDataModel> extends AspectObserver {
+  @NotNull private final T myLiveDataModel;
   private final JPanel myContainer;
 
-  public LiveAllocationView(@NotNull T liveAllocationModel) {
-    myALiveAllocationModel = liveAllocationModel;
+  public LiveDataView(@NotNull T liveDataModel) {
+    myLiveDataModel = liveDataModel;
     myContainer = new JBPanel();
     myContainer.setOpaque(true);
     myContainer.setBorder(ProfilerLayout.MONITOR_BORDER);
@@ -45,15 +45,15 @@ public abstract class LiveAllocationView<T extends LiveAllocationModel> extends 
     myContainer.addFocusListener(new FocusListener() {
       @Override
       public void focusGained(FocusEvent e) {
-        myALiveAllocationModel.setFocus(true);
+        myLiveDataModel.setFocus(true);
       }
 
       @Override
       public void focusLost(FocusEvent e) {
-        myALiveAllocationModel.setFocus(false);
+        myLiveDataModel.setFocus(false);
       }
     });
-    myALiveAllocationModel.addDependency(this).onChange(LiveAllocationModel.Aspect.FOCUS, this::focusChanged);
+    myLiveDataModel.addDependency(this).onChange(LiveDataModel.Aspect.FOCUS, this::focusChanged);
     focusChanged();
   }
 
@@ -63,7 +63,7 @@ public abstract class LiveAllocationView<T extends LiveAllocationModel> extends 
   }
 
   protected void focusChanged() {
-    boolean highlight = myALiveAllocationModel.isFocused();
+    boolean highlight = myLiveDataModel.isFocused();
     myContainer.setBackground(highlight ? ProfilerColors.MONITOR_FOCUSED : ProfilerColors.DEFAULT_BACKGROUND);
   }
 

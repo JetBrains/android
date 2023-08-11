@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.updater.Updatable;
-import com.android.tools.profilers.LiveAllocationModel;
+import com.android.tools.profilers.LiveDataModel;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.MemoryDataProvider;
 import com.google.common.collect.ImmutableList;
@@ -27,8 +27,8 @@ import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
-public class LiveMemoryAllocationModel extends LiveAllocationModel {
-  private final List<Updatable> updatables;
+public class LiveMemoryAllocationModel extends LiveDataModel {
+  private final List<Updatable> myUpdatables;
   private final StudioProfilers myProfilers;
   private final MemoryUsageTooltip myMemoryUsageTooltip;
   private final MemoryDataProvider myMemoryDataProvider;
@@ -37,7 +37,7 @@ public class LiveMemoryAllocationModel extends LiveAllocationModel {
     super(profilers);
     myProfilers = profilers;
     myMemoryDataProvider = new MemoryDataProvider(profilers, profilers.getTimeline());
-    updatables = ImmutableList.of(myMemoryDataProvider.getDetailedMemoryUsage());
+    myUpdatables = ImmutableList.of(myMemoryDataProvider.getDetailedMemoryUsage());
     myMemoryUsageTooltip = new MemoryUsageTooltip(getLegends(),
                                                   isLiveAllocationTrackingReady());
   }
@@ -48,7 +48,7 @@ public class LiveMemoryAllocationModel extends LiveAllocationModel {
     super(profilers);
     myProfilers = profilers;
     myMemoryDataProvider = memoryDataProvider;
-    updatables = ImmutableList.of(myMemoryDataProvider.getDetailedMemoryUsage());
+    myUpdatables = ImmutableList.of(myMemoryDataProvider.getDetailedMemoryUsage());
     myMemoryUsageTooltip = new MemoryUsageTooltip(getLegends(),
                                                   isLiveAllocationTrackingReady());
   }
@@ -79,7 +79,7 @@ public class LiveMemoryAllocationModel extends LiveAllocationModel {
   }
 
   public void enter() {
-    updatables.forEach(updatable -> myProfilers.getUpdater().register(updatable));
+    myUpdatables.forEach(updatable -> myProfilers.getUpdater().register(updatable));
   }
 
   @Override
@@ -93,6 +93,6 @@ public class LiveMemoryAllocationModel extends LiveAllocationModel {
   }
 
   public void exit() {
-    updatables.forEach(updatable -> myProfilers.getUpdater().unregister(updatable));
+    myUpdatables.forEach(updatable -> myProfilers.getUpdater().unregister(updatable));
   }
 }

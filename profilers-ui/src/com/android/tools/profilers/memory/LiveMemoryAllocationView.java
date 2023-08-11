@@ -20,7 +20,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipView;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.ViewBinder;
-import com.android.tools.profilers.LiveAllocationView;
+import com.android.tools.profilers.LiveDataView;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.Stage;
@@ -30,7 +30,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
-public class LiveMemoryAllocationView extends LiveAllocationView<LiveMemoryAllocationModel> {
+public class LiveMemoryAllocationView extends LiveDataView<LiveMemoryAllocationModel> {
   public final DetailedMemoryChart myDetailedMemoryChart;
   public final JComponent myComponent;
   private final TooltipModel myMemoryUsageTooltip;

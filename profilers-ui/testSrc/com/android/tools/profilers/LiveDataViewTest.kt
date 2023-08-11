@@ -19,8 +19,8 @@ import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TooltipView
 import com.android.tools.adtui.model.TooltipModel
 import com.android.tools.adtui.model.ViewBinder
-import com.android.tools.profilers.LiveAllocationModel
-import com.android.tools.profilers.LiveAllocationView
+import com.android.tools.profilers.LiveDataModel
+import com.android.tools.profilers.LiveDataView
 import com.android.tools.profilers.Stage
 import com.android.tools.profilers.StageView
 import com.google.common.truth.Truth.assertThat
@@ -28,33 +28,33 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito
 
-class LiveAllocationViewTest {
-  private lateinit var myModel: LiveAllocationModel
+class LiveDataViewTest {
+  private lateinit var myModel: LiveDataModel
 
   @Before
   fun setUp() {
-    myModel = Mockito.mock(LiveAllocationModel::class.java, Mockito.RETURNS_DEEP_STUBS)
+    myModel = Mockito.mock(LiveDataModel::class.java, Mockito.RETURNS_DEEP_STUBS)
   }
 
   @Test
-  fun testLiveAllocationInstanceCreation() {
-    val allocationView: LiveAllocationView<LiveAllocationModel>
-    allocationView = FakeAllocationView(myModel)
-    assertThat(allocationView).isNotNull()
+  fun testLiveDataViewInstanceCreation() {
+    val liveDataView: LiveDataView<LiveDataModel>
+    liveDataView = FakeAllocationView(myModel)
+    assertThat(liveDataView).isNotNull()
   }
 
   @Test
   fun testGetComponentReturnsAComponent() {
-    val allocationView: LiveAllocationView<LiveAllocationModel>
-    allocationView = FakeAllocationView(myModel)
-    assertThat(allocationView).isNotNull()
-    assertThat(allocationView.component).isNotNull()
+    val liveDataView: LiveDataView<LiveDataModel>
+    liveDataView = FakeAllocationView(myModel)
+    assertThat(liveDataView).isNotNull()
+    assertThat(liveDataView.component).isNotNull()
   }
 }
 
-class FakeAllocationView(model: LiveAllocationModel) : LiveAllocationView<LiveAllocationModel>(model) {
+class FakeAllocationView(model: LiveDataModel) : LiveDataView<LiveDataModel>(model) {
   /**
-   * Helper function to register LiveAllocation components on tooltips. This function is responsible for setting the
+   * Helper function to register LiveData components on tooltips. This function is responsible for setting the
    * active tooltip on the stage when a mouse enters the desired component.
    */
   override fun registerTooltip(binder: ViewBinder<StageView<Stage<*>>, TooltipModel, TooltipView>?,

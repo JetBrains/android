@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * This abstract class provides the shared behavior of the components displaying live data.
  */
-public abstract class LiveAllocationModel extends AspectModel<LiveAllocationModel.Aspect> {
+public abstract class LiveDataModel extends AspectModel<LiveDataModel.Aspect> {
   public enum Aspect {
     FOCUS,
     ENABLE
@@ -33,7 +33,7 @@ public abstract class LiveAllocationModel extends AspectModel<LiveAllocationMode
   protected final StudioProfilers myProfilers;
   private boolean myFocus;
 
-  public LiveAllocationModel(@NotNull StudioProfilers profilers) {
+  public LiveDataModel(@NotNull StudioProfilers profilers) {
     myProfilers = profilers;
   }
 
