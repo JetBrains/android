@@ -117,7 +117,7 @@ class TestParameterizedModelBuilderService : ModelBuilderService.ParameterizedMo
     context: ModelBuilderContext,
     parameter: ModelBuilderService.Parameter?
   ): Any {
-    return TestParameterizedGradleModelImpl("Parameter: $parameter BuildDir: ${project?.buildDir}")
+    return TestParameterizedGradleModelImpl("Parameter: ${parameter?.value} BuildDir: ${project?.buildDir}")
   }
 
   override fun buildAll(modelName: String?, project: Project?): Any {
