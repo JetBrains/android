@@ -52,7 +52,6 @@ import com.android.utils.HashCodes
 import kotlin.math.roundToInt
 import kotlin.properties.ObservableProperty
 import kotlin.reflect.KProperty
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 
 /**
  * List of the definitions of reference devices in `Device.kt` in the `ui-tooling` library. The
@@ -280,9 +279,7 @@ internal open class DeviceConfig(
       val width = paramsMap.getOrDefault(PARAMETER_WIDTH, "").toIntOrNull() ?: return null
       val height = paramsMap.getOrDefault(PARAMETER_HEIGHT, "").toIntOrNull() ?: return null
       val dimUnit =
-        enumValueOfOrNull<DimUnit>(
-          paramsMap.getOrDefault(PARAMETER_UNIT, "").toLowerCaseAsciiOnly()
-        )
+        enumValueOfOrNull<DimUnit>(paramsMap.getOrDefault(PARAMETER_UNIT, "").lowercase())
           ?: return null
       val dpi =
         if (StudioFlags.NELE_DP_SIZED_PREVIEW.get() && referenceDeviceId != null) {
