@@ -23,6 +23,7 @@ import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.ImageIcon
 import javax.swing.JComponent
+import javax.swing.JPanel
 
 /**
  * Create an image showing icons for each of the available form factors.
@@ -32,13 +33,13 @@ import javax.swing.JComponent
  * @param requireEmulator If true, only include icons for form factors that have an emulator available.
  * @return `null` if it can't create a graphics Object to render the image (for example not enough memory)
  */
-fun getFormFactorsImage(component: JComponent, requireEmulator: Boolean): Icon? {
+fun getFormFactorsImage(component: JComponent = JPanel(), requireEmulator: Boolean): Icon {
   val filteredFormFactors = FormFactor.values().filter {
     it.hasEmulator() || !requireEmulator
   }
 
-  val width = filteredFormFactors.map { it.largeIcon.iconWidth }.sum()
-  val height = filteredFormFactors.map { it.largeIcon.iconHeight }.maxOrNull() ?: 0
+  val width = filteredFormFactors.sumOf { it.largeIcon.iconWidth }
+  val height = filteredFormFactors.maxOfOrNull { it.largeIcon.iconHeight } ?: 0
 
   @Suppress("UndesirableClassUsage")
   val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)

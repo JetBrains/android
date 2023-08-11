@@ -20,8 +20,9 @@ import com.android.tools.idea.welcome.isWritable
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.utils.HtmlBuilder
 import com.intellij.ide.BrowserUtil
-import com.intellij.ui.layout.panel
-import com.intellij.uiDesigner.core.Spacer
+import com.intellij.ui.dsl.builder.BottomGap
+import com.intellij.ui.dsl.builder.LabelPosition
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
@@ -51,18 +52,12 @@ class InstallSummaryStep(
     // TODO(qumeric) set "label for"?
   }
 
-  private val panel = panel {
+  private val myPanel = panel {
     row {
       label("If you want to review or change any of your installation settings, click Previous.")
-    }
+    }.bottomGap(BottomGap.SMALL)
     row {
-      Spacer()()
-    }
-    row {
-      label("Current Settings:")
-    }
-    row {
-      summaryText()
+      cell(summaryText).label("Current Settings:", LabelPosition.TOP)
     }
   }
 
@@ -81,9 +76,9 @@ class InstallSummaryStep(
       return Section("Setup Type", setupType)
     }
 
-  override fun getComponent(): JComponent = panel
+  override fun getComponent(): JComponent = myPanel
 
-  override fun getPreferredFocusComponent(): JComponent? = summaryText
+  override fun getPreferredFocusComponent(): JComponent = summaryText
 
   override fun onEntering() {
     val packages = packagesProvider.get()
