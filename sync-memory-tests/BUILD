@@ -32,10 +32,8 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "tags": ["manual"],
         },
-        # TODO(b/294967976): Remove manual tag
         "BenchmarkMultiApp100Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp100MemoryTest",
-            "tags": ["manual"],
         },
         "BenchmarkMultiApp190Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp190MemoryTest",
@@ -61,10 +59,8 @@ iml_module(
             "exec_properties": LARGE_MACHINE,
             "tags": ["manual"],
         },
-        # TODO(b/294967976): Remove manual tag
         "BenchmarkMultiApp100Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp100CpuTest",
-            "tags": ["manual"],
         },
         "BenchmarkMultiApp190Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp190CpuTest",

@@ -77,15 +77,15 @@ class Benchmark4200CpuTest {
 
 class BenchmarkMultiApp100CpuTest {
   @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(MULTI_APP_100_NAME, MULTI_APP_100)
-  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 15)
-  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(6.minutes)
+  @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(15.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 
 class BenchmarkMultiApp190CpuTest {
   @get:Rule val benchmarkProjectSetupRule = createBenchmarkTestRule(MULTI_APP_190_NAME, MULTI_APP_190)
   @get:Rule val measureSyncExecutionTimeRule = MeasureSyncExecutionTimeRule(syncCount = 5)
-  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(7.minutes)
+  @get:Rule val daemonIdleTimeoutRule = DaemonIdleTimeoutRule(15.minutes)
   @Test fun testCpu() = runTest(benchmarkProjectSetupRule, measureSyncExecutionTimeRule)
 }
 

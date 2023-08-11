@@ -70,7 +70,7 @@ enum class BenchmarkProject(val projectPath: String, val maxHeapMB: Int, val dif
   // x1.55 - 17000 mb -> ~13,000 ms -> GOOD
   STANDARD_2000(STANDARD_PATH, maxHeapMB = 15300, listOf("diff-2200")),
   STANDARD_4200(STANDARD_PATH, maxHeapMB = 30000, emptyList()),
-  MULTI_APP_100(STANDARD_PATH, maxHeapMB = 15300, listOf("diff-100-apps-1300-modules")),
+  MULTI_APP_100(STANDARD_PATH, maxHeapMB = 6000, listOf("diff-100-apps-1300-modules")),
   MULTI_APP_190(STANDARD_PATH, maxHeapMB = 15300, listOf("diff-190-apps-2200-modules"));
 }
 
