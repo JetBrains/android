@@ -601,7 +601,9 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       setAutoProfilingEnabled(false);
     }
 
-    if (!Objects.equals(process, myProcess)) {
+    // If the process changes OR the process was set in via Task initiation in the Task-Based UX, we end the current session and begin
+    // a new one.
+    if (!Objects.equals(process, myProcess) || getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
       // First make sure to end the previous session.
       mySessionsManager.endCurrentSession();
 

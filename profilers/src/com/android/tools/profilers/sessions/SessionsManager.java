@@ -93,7 +93,8 @@ public class SessionsManager extends AspectModel<SessionAspect> {
   /**
    * A map of Session's Id -> {@link SessionItem}
    */
-  @NotNull private Map<Long, SessionItem> mySessionItems;
+  @VisibleForTesting
+  @NotNull public Map<Long, SessionItem> mySessionItems;
 
   /**
    * A map of Session's Id -> {@link Common.SessionMetaData}
