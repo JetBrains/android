@@ -17,7 +17,6 @@ package com.android.tools.idea.compose.preview.util.device
 
 import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.isPreviewAnnotation
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.tryEvaluateConstant
 import com.intellij.lang.injection.MultiHostRegistrar
 import com.intellij.lang.injection.general.Injection
@@ -48,8 +47,7 @@ import org.jetbrains.uast.toUElement
 class DeviceSpecInjectionContributor : LanguageInjectionContributor {
   override fun getInjection(context: PsiElement): Injection? {
     if (
-      !StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get() ||
-        context.containingFile.fileType != KotlinFileType.INSTANCE ||
+      context.containingFile.fileType != KotlinFileType.INSTANCE ||
         context !is KtStringTemplateExpression ||
         !context.isInPreviewAnnotation()
     ) {

@@ -34,7 +34,6 @@ import com.android.tools.idea.compose.pickers.preview.property.MutableDeviceConf
 import com.android.tools.idea.compose.pickers.preview.property.Orientation
 import com.android.tools.idea.compose.pickers.preview.property.Shape
 import com.android.tools.idea.compose.pickers.preview.property.toMutableConfig
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -67,12 +66,8 @@ internal fun Device.toDeviceConfig(): DeviceConfig {
       else -> Orientation.portrait
     }
   if (screen.screenRound == ScreenRound.ROUND) {
-    if (StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()) {
-      config.shape = Shape.Round
-      config.chinSize = screen.chin.toFloat()
-    } else {
-      config.shape = if (screen.chin != 0) Shape.Chin else Shape.Round
-    }
+    config.shape = Shape.Round
+    config.chinSize = screen.chin.toFloat()
   } else {
     config.shape = Shape.Normal
   }

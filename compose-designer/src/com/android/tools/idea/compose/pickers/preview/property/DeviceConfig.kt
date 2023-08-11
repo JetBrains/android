@@ -133,56 +133,33 @@ internal open class DeviceConfig(
   /** Returns a string that defines the Device in the current state of [DeviceConfig] */
   fun deviceSpec(): String {
     val builder = StringBuilder(DEVICE_BY_SPEC_PREFIX)
-    if (!StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()) {
-      var resolvedWidth = width
-      var resolvedHeight = height
-      // The original syntax does not support explicit orientation, so we have to swap the
-      // width/height for the same effect
-      if (
-        orientation == Orientation.portrait && width > height ||
-          orientation == Orientation.landscape && height > width
-      ) {
-        resolvedWidth = height
-        resolvedHeight = width
-      }
-      builder.appendParamValue(PARAMETER_SHAPE, shape.name)
-      builder.appendSeparator()
-      builder.appendParamValue(PARAMETER_WIDTH, resolvedWidth.roundToInt().toString())
-      builder.appendSeparator()
-      builder.appendParamValue(PARAMETER_HEIGHT, resolvedHeight.roundToInt().toString())
-      builder.appendSeparator()
-      builder.appendParamValue(PARAMETER_UNIT, dimUnit.name)
-      builder.appendSeparator()
-      builder.appendParamValue(PARAMETER_DPI, dpi.toString())
-      return builder.toString()
-    } else {
-      if (parentDeviceId != null) {
-        // When there's a backing Device ID, only print the parameters that are not inherent to a
-        // device, e.g: orientation
-        builder.appendParamValue(PARAMETER_PARENT, parentDeviceId.toString())
-        builder.addOrientationIfNeeded()
-        return builder.toString()
-      }
-      builder.appendParamValue(PARAMETER_WIDTH, widthString + dimUnit.name)
-      builder.appendSeparator()
-      builder.appendParamValue(PARAMETER_HEIGHT, heightString + dimUnit.name)
-      if (dpi != DEFAULT_DPI) {
-        builder.appendSeparator()
-        builder.appendParamValue(PARAMETER_DPI, dpi.toString())
-      }
-      if (isRound) {
-        builder.appendSeparator()
-        builder.appendParamValue(PARAMETER_IS_ROUND, isRound.toString())
-        if (chinSize.roundToInt() != DEFAULT_CHIN_SIZE_ZERO) {
-          // ChinSize is only applicable to round devices, see
-          // com.android.sdklib.devices.Screen#getChin
-          builder.appendSeparator()
-          builder.appendParamValue(PARAMETER_CHIN_SIZE, chinSizeString + dimUnit.name)
-        }
-      }
+
+    if (parentDeviceId != null) {
+      // When there's a backing Device ID, only print the parameters that are not inherent to a
+      // device, e.g: orientation
+      builder.appendParamValue(PARAMETER_PARENT, parentDeviceId.toString())
       builder.addOrientationIfNeeded()
       return builder.toString()
     }
+    builder.appendParamValue(PARAMETER_WIDTH, widthString + dimUnit.name)
+    builder.appendSeparator()
+    builder.appendParamValue(PARAMETER_HEIGHT, heightString + dimUnit.name)
+    if (dpi != DEFAULT_DPI) {
+      builder.appendSeparator()
+      builder.appendParamValue(PARAMETER_DPI, dpi.toString())
+    }
+    if (isRound) {
+      builder.appendSeparator()
+      builder.appendParamValue(PARAMETER_IS_ROUND, isRound.toString())
+      if (chinSize.roundToInt() != DEFAULT_CHIN_SIZE_ZERO) {
+        // ChinSize is only applicable to round devices, see
+        // com.android.sdklib.devices.Screen#getChin
+        builder.appendSeparator()
+        builder.appendParamValue(PARAMETER_CHIN_SIZE, chinSizeString + dimUnit.name)
+      }
+    }
+    builder.addOrientationIfNeeded()
+    return builder.toString()
   }
 
   /**
@@ -263,10 +240,7 @@ internal open class DeviceConfig(
               )
             }
 
-      if (
-        !paramsMap.containsKey(PARAMETER_SHAPE) &&
-          StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()
-      ) {
+      if (!paramsMap.containsKey(PARAMETER_SHAPE)) {
         return parseDeviceSpecLanguage(paramsMap, availableDevices)
       }
 

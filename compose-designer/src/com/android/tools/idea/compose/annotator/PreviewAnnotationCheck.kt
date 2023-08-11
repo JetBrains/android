@@ -39,7 +39,6 @@ import com.android.tools.idea.compose.preview.PARAMETER_DEVICE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec
 import com.android.tools.idea.compose.preview.getContainingComposableUMethod
 import com.android.tools.idea.compose.preview.message
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -140,7 +139,6 @@ internal object PreviewAnnotationCheck {
 
         val rule =
           when {
-            !StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get() -> DeviceSpecRule.Legacy
             deviceParameterValue.contains(DeviceSpec.PARAMETER_SHAPE) -> {
               // The Legacy format is the only one with a `shape` parameter
               DeviceSpecRule.Legacy

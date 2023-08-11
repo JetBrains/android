@@ -24,7 +24,6 @@ import com.intellij.codeInsight.completion.CompletionContributorEP
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -38,7 +37,6 @@ internal class DeviceSpecCompletionContributorTest {
 
   @Before
   fun setup() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     val ep =
       ApplicationManager.getApplication()
         .extensionArea
@@ -55,11 +53,6 @@ internal class DeviceSpecCompletionContributorTest {
       // Sdk needed for Devices
       Sdks.addLatestAndroidSdk(fixture.testRootDisposable, rule.module)
     }
-  }
-
-  @After
-  fun teardown() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test

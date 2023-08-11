@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.compose.pickers.preview.property
 
-import com.android.tools.idea.flags.StudioFlags
 import kotlin.test.assertNotNull
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -25,13 +23,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 internal class DeviceConfigTest {
-
-  @After
-  fun teardown() {
-    // Flag might not get cleared if a test that overrides it fails
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
-  }
-
   @Test
   fun parseTest() {
     var config = parseDeviceSpec(null)
@@ -66,7 +57,6 @@ internal class DeviceConfigTest {
 
   @Test
   fun parseTestDeviceSpecLanguage() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     var config =
       parseDeviceSpec(
         "spec:width=1080.1px,height=1920.2px,dpi=320,isRound=true,chinSize=50.3px,orientation=landscape"
@@ -113,7 +103,6 @@ internal class DeviceConfigTest {
 
     // Old syntax has no effect, these types of issues should be highlighted by Inspections
     assertEquals(DimUnit.px, parseDeviceSpec("spec:width=1080px,height=1920px,unit=dp")!!.dimUnit)
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test
@@ -151,37 +140,7 @@ internal class DeviceConfigTest {
   }
 
   @Test
-  fun deviceSpecStringInLegacyFormat() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
-
-    // Example of DeviceSpec string when new DeviceSpec Language is NOT in use, chinSize ignored
-    var config =
-      DeviceConfig(
-        width = 100f,
-        height = 200f,
-        dimUnit = DimUnit.dp,
-        dpi = 300,
-        shape = Shape.Round,
-        chinSize = 40f
-      )
-    assertEquals("spec:shape=Round,width=100,height=200,unit=dp,dpi=300", config.deviceSpec())
-
-    // For old DeviceSpec format, width and height are swapped based on orientation.
-    config = DeviceConfig(width = 200f, height = 100f, orientation = Orientation.portrait)
-    assertEquals("spec:shape=Normal,width=100,height=200,unit=dp,dpi=420", config.deviceSpec())
-    config = DeviceConfig(width = 200f, height = 100f, orientation = Orientation.landscape)
-    assertEquals("spec:shape=Normal,width=200,height=100,unit=dp,dpi=420", config.deviceSpec())
-
-    // For legacy DeviceSpec format, no floating point supported, rounded numbers
-    assertEquals(
-      "spec:shape=Normal,width=123,height=568,unit=dp,dpi=420",
-      DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec()
-    )
-  }
-
-  @Test
   fun deviceSpecLanguageString() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     // For usage with DeviceSpec Language
     var config =
       DeviceConfig(
@@ -251,7 +210,6 @@ internal class DeviceConfigTest {
       "spec:width=123.5dp,height=567.9dp",
       DeviceConfig(width = 123.45f, height = 567.89f).deviceSpec()
     )
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test

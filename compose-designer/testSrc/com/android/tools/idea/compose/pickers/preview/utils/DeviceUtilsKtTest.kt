@@ -24,25 +24,15 @@ import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.pickers.preview.property.MutableDeviceConfig
 import com.android.tools.idea.compose.pickers.preview.property.Orientation
 import com.android.tools.idea.compose.pickers.preview.property.Shape
-import com.android.tools.idea.flags.StudioFlags
 import kotlin.test.assertNotNull
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 internal class DeviceUtilsKtTest {
 
-  @After
-  fun teardown() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
-  }
-
   @Test
   fun deviceToDeviceConfig() {
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
-
     val device = MutableDeviceConfig().createDeviceInstance()
     val screen = device.defaultHardware.screen
 
@@ -50,32 +40,13 @@ internal class DeviceUtilsKtTest {
     screen.yDimension = 2280
     screen.pixelDensity = Density.HIGH
 
-    val modifiedConfig = device.toDeviceConfig()
-    assertEquals(DimUnit.px, modifiedConfig.dimUnit)
-    assertEquals(Orientation.portrait, modifiedConfig.orientation)
-    assertEquals(1080f, modifiedConfig.width)
-    assertEquals(2280f, modifiedConfig.height)
-    assertEquals(240, modifiedConfig.dpi)
-    assertEquals(Shape.Normal, modifiedConfig.shape)
-
     // Make it Round
     screen.screenRound = ScreenRound.ROUND
-    val roundConfig = device.toDeviceConfig()
-    assertEquals(Shape.Round, roundConfig.shape)
 
     // Give it a chin
     screen.chin = 10
 
-    // Old, non-language DeviceSpec
-    var roundChinConfig = device.toDeviceConfig()
-    assertTrue(roundChinConfig.isRound)
-    assertEquals(Shape.Chin, roundChinConfig.shape)
-    assertEquals(0f, roundChinConfig.chinSize)
-
-    // When using DeviceSpec Language
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-
-    roundChinConfig = device.toDeviceConfig()
+    val roundChinConfig = device.toDeviceConfig()
     assertTrue(roundChinConfig.isRound)
     assertEquals(Shape.Round, roundChinConfig.shape) // Not using Shape.Chin anymore
     assertEquals(10f, roundChinConfig.chinSize) // ChinSize is reflected properly
@@ -94,8 +65,6 @@ internal class DeviceUtilsKtTest {
       "spec:width=2300px,height=2280px,dpi=240,isRound=true,chinSize=10px",
       landscapeConfig.deviceSpec()
     )
-
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test
@@ -104,22 +73,6 @@ internal class DeviceUtilsKtTest {
     val screenProvider = { device!!.defaultHardware.screen }
     val orientationProvider = { device!!.defaultState.orientation }
 
-    // From legacy DeviceSpec
-    device = deviceFromDeviceSpec("spec:shape=Normal,width=100,height=200,unit=px,dpi=480")
-    assertEquals(100, screenProvider().xDimension)
-    assertEquals(200, screenProvider().yDimension)
-    assertEquals(ScreenOrientation.PORTRAIT, orientationProvider())
-
-    device = deviceFromDeviceSpec("spec:shape=Normal,width=300,height=200,unit=px,dpi=480")
-    assertEquals(300, screenProvider().xDimension)
-    assertEquals(200, screenProvider().yDimension)
-    assertEquals(
-      ScreenOrientation.LANDSCAPE,
-      orientationProvider()
-    ) // Orientation implied from dimensions
-
-    // From DeviceSpec Language
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     device = deviceFromDeviceSpec("spec:width=100px,height=200px")
     assertEquals(100, screenProvider().xDimension)
     assertEquals(200, screenProvider().yDimension)
@@ -137,8 +90,6 @@ internal class DeviceUtilsKtTest {
     assertEquals(100, screenProvider().xDimension)
     assertEquals(200, screenProvider().yDimension)
     assertEquals(ScreenOrientation.PORTRAIT, orientationProvider())
-
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test
@@ -188,16 +139,12 @@ internal class DeviceUtilsKtTest {
     assertEquals(30, screen.chin)
 
     // From DeviceSpec Language
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
-
     screen =
       deviceFromDeviceSpec("spec:width=100px,height=200px,isRound=true,chinSize=50px")!!
         .defaultHardware
         .screen
     assertEquals(ScreenRound.ROUND, screen.screenRound)
     assertEquals(50, screen.chin)
-
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
   @Test
@@ -241,11 +188,6 @@ internal class DeviceUtilsKtTest {
     assertEquals(640, screen1.pixelDensity.dpiValue)
     assertEquals(ScreenOrientation.PORTRAIT, deviceById.defaultState.orientation)
 
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(false)
-    // Not supported with flag disabled
-    assertNull(existingDevices.findOrParseFromDefinition("spec:parent=id1,orientation=landscape"))
-
-    StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.override(true)
     // Device parameters should be the same as 'id1' with a different orientation
     val deviceByParentId =
       existingDevices.findOrParseFromDefinition("spec:parent=id1,orientation=landscape")
