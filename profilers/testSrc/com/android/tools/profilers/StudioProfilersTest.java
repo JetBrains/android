@@ -1223,6 +1223,65 @@ public final class StudioProfilersTest {
   }
 
   @Test
+  public void testSessionDoesNotAutoStartOnProcessChangeWithTaskBasedUxEnabled() {
+    myIdeProfilerServices.enableTaskBasedUx(true);
+    myProfilers.setPreferredProcess(null, FAKE_PROCESS.getName(), null);
+
+    Common.Device device = FAKE_DEVICE;
+    myTransportService.addDevice(device);
+
+    Common.Process debuggableEvent = FAKE_PROCESS.toBuilder()
+      .setStartTimestampNs(5)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+      .build();
+    myTransportService.addProcess(device, debuggableEvent);
+
+    Common.Process profileableEvent = debuggableEvent.toBuilder()
+      .setStartTimestampNs(10)
+      .setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE)
+      .build();
+    myTransportService.addProcess(device, profileableEvent);
+
+    myTimer.setCurrentTimeNs(20);
+    // Will attempt to start a new session on the preferred process, but fail because Task-Based UX is enabled.
+    myProfilers.setProcess(device, null);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Check that setProcess was not called on process change and thus the session id is the default of 0.
+    assertThat(myProfilers.getSession().getPid()).isNotEqualTo(FAKE_PROCESS.getPid());
+    assertThat(myProfilers.getSession().getPid()).isEqualTo(0);
+  }
+
+  @Test
+  public void testSessionDoesAutoStartOnProcessChangeWithTaskBasedUxDisabled() {
+    myIdeProfilerServices.enableTaskBasedUx(false);
+    myProfilers.setPreferredProcess(null, FAKE_PROCESS.getName(), null);
+
+    Common.Device device = FAKE_DEVICE;
+    myTransportService.addDevice(device);
+
+    Common.Process debuggableEvent = FAKE_PROCESS.toBuilder()
+      .setStartTimestampNs(5)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+      .build();
+    myTransportService.addProcess(device, debuggableEvent);
+
+    Common.Process profileableEvent = debuggableEvent.toBuilder()
+      .setStartTimestampNs(10)
+      .setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE)
+      .build();
+    myTransportService.addProcess(device, profileableEvent);
+
+    myTimer.setCurrentTimeNs(20);
+    // Will attempt to start a new session on the preferred process and succeed because Task-Based UX is disabled.
+    myProfilers.setProcess(device, null);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    // Check that setProcess was called on process change and thus the session id is of the selected process.
+    assertThat(myProfilers.getSession().getPid()).isEqualTo(FAKE_PROCESS.getPid());
+  }
+
+  @Test
   public void testNewSessionResetsStage() {
     assertThat(myProfilers.getSession()).isEqualTo(Common.Session.getDefaultInstance());
 

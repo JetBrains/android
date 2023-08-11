@@ -466,7 +466,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       if (!newProcesses.equals(myProcesses)) {
         myProcesses = newProcesses;
-        setProcess(findPreferredDevice(), null);
+        // The following call to setProcess will start a session on profiler start and on process selection change, but Task-Based UX does
+        // not auto start a session on profiler start or on process change. Thus, we disable the call to setProcess if the Task-Based UX
+        // is enabled.
+        if (!getIdeServices().getFeatureConfig().isTaskBasedUxEnabled()) {
+          setProcess(findPreferredDevice(), null);
+        }
 
         // These need to be fired every time the process list changes so that the device/process dropdown always reflects the latest.
         changed(ProfilerAspect.PROCESSES);
