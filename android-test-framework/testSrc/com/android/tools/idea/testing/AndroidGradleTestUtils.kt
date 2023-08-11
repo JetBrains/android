@@ -49,6 +49,7 @@ import com.android.tools.idea.gradle.model.impl.IdeCompositeBuildMapImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
@@ -59,7 +60,6 @@ import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
-import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
@@ -174,12 +174,10 @@ import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
-import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.projectRoots.Sdk
-import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
@@ -204,8 +202,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
-import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndex
-import com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndexContributor
 import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
@@ -220,7 +216,6 @@ import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import org.jetbrains.plugins.gradle.model.ExternalSourceSet
 import org.jetbrains.plugins.gradle.model.ExternalTask
-import org.jetbrains.plugins.gradle.model.GradleExtensions
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
@@ -235,8 +230,6 @@ import java.nio.file.Paths
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
 
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
@@ -1424,6 +1417,7 @@ private fun setupTestProjectFromAndroidModelCore(
         override fun getSourceSets(): Map<String, ExternalSourceSet> = mapOf()
         override fun getArtifacts(): List<File> = listOf()
         override fun getArtifactsByConfiguration(): Map<String, MutableSet<File>> = mapOf()
+        override fun getAdditionalArtifacts(): List<File> = listOf()
       },
       null
     )
