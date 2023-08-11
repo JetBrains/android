@@ -81,7 +81,6 @@ import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.psi.KtExpression;
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression;
 import org.jetbrains.kotlin.psi.KtPsiFactory;
-import org.jetbrains.kotlin.psi.KtPsiFactoryKt;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
@@ -300,6 +299,7 @@ public class AndroidAnnotatorUtil {
     private final boolean myHasCustomColor;
     // TODO(b/188937633): We should fix the root caused of memory leakage instead of using weak references.
     @Nullable private final WeakReference<Configuration> myConfigurationRef;
+    private final Icon myIcon;
 
     public ColorRenderer(@NotNull PsiElement element,
                          @Nullable Color color,
@@ -316,11 +316,18 @@ public class AndroidAnnotatorUtil {
       myHasCustomColor = hasCustomColor;
       mySetColorTask = new SetAttributeConsumer(element, ResourceType.COLOR);
       myConfigurationRef = new WeakReference<>(configuration);
+
+      // compute icon when renderer created on background thread
+      myIcon = buildIcon();
     }
 
     @NotNull
     @Override
     public Icon getIcon() {
+      return myIcon;
+    }
+
+    private @NotNull Icon buildIcon() {
       if (myResourceValue != null && myElement.isValid()) {
         AndroidFacet facet = AndroidFacet.getInstance(myElement);
         if (facet != null) {
