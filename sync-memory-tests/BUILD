@@ -38,7 +38,6 @@ iml_module(
         "BenchmarkMultiApp190Memory": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkMultiApp190MemoryTest",
             "exec_properties": LARGE_MACHINE,
-            "tags": ["manual"],
         },
         "Benchmark200Cpu": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.Benchmark200CpuTest",
@@ -66,7 +65,6 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.cpu.BenchmarkMultiApp190CpuTest",
             "exec_properties": LARGE_MACHINE,
             "additional_jvm_args": ["-Xmx6g"],
-            "tags": ["manual"],
         },
         "Benchmark1000MemoryRuntimeClasspath": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryRuntimeClasspath",
