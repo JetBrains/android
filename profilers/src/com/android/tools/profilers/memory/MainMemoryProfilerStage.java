@@ -37,6 +37,7 @@ import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.SupportLevel;
+import com.android.tools.profilers.TaskStage;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject;
@@ -56,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import perfetto.protos.PerfettoConfig;
 
-public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
+public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage implements TaskStage {
   private static final String HEAP_DUMP_TOOLTIP = "View objects in your app that are using memory at a specific point in time";
   private static final String CAPTURE_HEAP_DUMP_TEXT = "Capture heap dump";
   private static final String RECORD_JAVA_TEXT = "Record Java / Kotlin allocations";
@@ -83,6 +84,9 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   @VisibleForTesting boolean myNativeAllocationTracking = false;
 
   private final RecordingOptionsModel myRecordingOptionsModel;
+
+  @NotNull
+  private Runnable myStopTaskAction;
 
   @VisibleForTesting
   public Lazy<RecordingOption> lazyHeapDumpRecordingOption =
@@ -116,10 +120,26 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
     ));
 
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers) {
-    this(profilers, new CaptureObjectLoader());
+    this(profilers, new CaptureObjectLoader(), () -> {});
   }
 
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull CaptureObjectLoader loader) {
+    this(profilers, loader, () -> {});
+  }
+
+  /**
+   * This constructor is used for creating MainMemoryProfilerStage instances that are owned by a task handler.
+   * These task handlers can pass in a runnable, stopTaskAction, so that the MainMemoryProfilerStage can invoke
+   * the task handlers custom behavior on task end (e.g. when the user click a button to end a recording, the
+   * stopTaskAction can stop the capture).
+   */
+  public MainMemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull Runnable stopTaskAction) {
+    this(profilers, new CaptureObjectLoader(), stopTaskAction);
+  }
+
+  public MainMemoryProfilerStage(@NotNull StudioProfilers profilers,
+                                 @NotNull CaptureObjectLoader loader,
+                                 @NotNull Runnable stopTaskAction) {
     super(profilers, loader);
     myIsMemoryCaptureOnly =
       profilers.getSessionsManager().getSelectedSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
@@ -142,6 +162,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
       .onChange(SessionAspect.SELECTED_SESSION, this::stopRecordingOnSessionStop);
 
     myRecordingOptionsModel = new RecordingOptionsModel();
+    myStopTaskAction = stopTaskAction;
   }
 
   public RecordingOptionsModel getRecordingOptionsModel() {
@@ -225,6 +246,11 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   public void setPendingCaptureStartTimeGuarded(long pendingCaptureStartTime) {
     assert myIsMemoryCaptureOnly;
     super.setPendingCaptureStartTime(pendingCaptureStartTime);
+  }
+
+  @Override
+  public void setStopTaskAction(@NotNull Runnable stopTaskAction) {
+    myStopTaskAction = stopTaskAction;
   }
 
   public void startHeapDumpCapture() {
@@ -544,6 +570,12 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
   @NotNull
   public DurationDataModel<CaptureDurationData<? extends CaptureObject>> getNativeAllocationInfosDurations() {
     return myNativeAllocationDurations;
+  }
+
+  @Override
+  @NotNull
+  public Runnable getStopTaskAction() {
+    return myStopTaskAction;
   }
 
   @VisibleForTesting
