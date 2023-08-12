@@ -28,13 +28,14 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.ui.LayeredIcon
+import javax.swing.Icon
 import javax.swing.JComponent
 
 @VisibleForTesting
-val ICON_LEGACY_PHONE = LayeredIcon(ICON_PHONE, AllIcons.General.WarningDecorator)
+val ICON_LEGACY_PHONE: Icon = LayeredIcon.layeredIcon { arrayOf(ICON_PHONE, AllIcons.General.WarningDecorator) }
 
 @VisibleForTesting
-val ICON_LEGACY_EMULATOR = LayeredIcon(ICON_EMULATOR, AllIcons.General.WarningDecorator)
+val ICON_LEGACY_EMULATOR: Icon = LayeredIcon.layeredIcon { arrayOf(ICON_EMULATOR, AllIcons.General.WarningDecorator) }
 
 // TODO this class can be removed once the flag
 // DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED is removed
