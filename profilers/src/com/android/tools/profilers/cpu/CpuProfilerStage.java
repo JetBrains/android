@@ -45,6 +45,7 @@ import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.TaskStage;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration;
@@ -63,7 +64,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CpuProfilerStage extends StreamingStage {
+public class CpuProfilerStage extends StreamingStage implements TaskStage {
   private static final String HAS_USED_CPU_CAPTURE = "cpu.used.capture";
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
@@ -159,14 +160,27 @@ public class CpuProfilerStage extends StreamingStage {
 
   private final boolean isTraceboxEnabled;
 
+  @NotNull
+  private Runnable myStopTaskAction;
+
   @VisibleForTesting
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
-    this(profilers, new CpuCaptureParser(profilers.getIdeServices()), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN);
+    this(profilers, new CpuCaptureParser(profilers.getIdeServices()), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, () -> {});
   }
 
   @VisibleForTesting
   public CpuProfilerStage(@NotNull StudioProfilers profilers, @NotNull CpuCaptureParser captureParser) {
-    this(profilers, captureParser, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN);
+    this(profilers, captureParser, CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, () -> {});
+  }
+
+  /**
+   * This constructor is used for creating CpuProfilerStage instances that are owned by a task handler.
+   * These task handlers can pass in a runnable, stopTaskAction, so that the CpuProfilerStageView can
+   * invoke the task handlers custom behavior on task end (e.g. when the user click a button to end a
+   * recording, the stopTaskAction can stop the capture).
+   */
+  public CpuProfilerStage(@NotNull StudioProfilers profilers, @NotNull Runnable stopTaskAction) {
+    this(profilers, new CpuCaptureParser(profilers.getIdeServices()), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, stopTaskAction);
   }
 
   /**
@@ -174,12 +188,13 @@ public class CpuProfilerStage extends StreamingStage {
    * Hence, the entry point is taken as a parameter to be tracked for when the user takes said capture.
    */
   public CpuProfilerStage(@NotNull StudioProfilers profilers, CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint) {
-    this(profilers, new CpuCaptureParser(profilers.getIdeServices()), entryPoint);
+    this(profilers, new CpuCaptureParser(profilers.getIdeServices()), entryPoint, () -> {});
   }
 
   private CpuProfilerStage(@NotNull StudioProfilers profilers,
                            @NotNull CpuCaptureParser captureParser,
-                           CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint) {
+                           CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
+                           @NotNull Runnable stopTaskAction) {
     super(profilers);
     mySession = profilers.getSession();
 
@@ -218,6 +233,8 @@ public class CpuProfilerStage extends StreamingStage {
 
     // Store and track how the user entered the CpuProfilerStage to take a cpu trace.
     myEntryPoint = entryPoint;
+
+    myStopTaskAction = stopTaskAction;
 
     List<Trace.TraceInfo> existingCompletedTraceInfoList =
       CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession).stream()
@@ -297,6 +314,12 @@ public class CpuProfilerStage extends StreamingStage {
   }
 
   public CpuCaptureMetadata.CpuProfilerEntryPoint getEntryPoint() { return myEntryPoint; }
+
+  @NotNull
+  @Override
+  public Runnable getStopTaskAction() {
+    return myStopTaskAction;
+  }
 
   @Override
   public void enter() {
@@ -506,6 +529,11 @@ public class CpuProfilerStage extends StreamingStage {
     if (range.isEmpty()) {
       myAspect.changed(CpuProfilerAspect.SELECTED_THREADS);
     }
+  }
+
+  @Override
+  public void setStopTaskAction(@NotNull Runnable stopTaskAction) {
+    myStopTaskAction = stopTaskAction;
   }
 
   @NotNull
