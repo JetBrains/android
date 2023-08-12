@@ -85,7 +85,7 @@ open class AnimationToolbar protected constructor(parentDisposable: Disposable,
    */
   private val myFrameControl: JSlider
   private var myTimeSliderModel: DefaultBoundedRangeModel? = null
-  protected val speedControlButton: ActionButton
+  private val speedControlButton: ActionButton
 
   /**
    * The progress bar to indicate the current progress of animation. User can also click/drag the indicator to set the progress.

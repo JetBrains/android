@@ -44,7 +44,7 @@ class NewAndroidFragmentAction
              AndroidBundle.message("android.wizard.new.fragment.title"),
              null) {
 
-  var shouldOpenFiles = true
+  private var shouldOpenFiles = true
 
   init {
     templatePresentation.icon = StudioIcons.Shell.Filetree.ANDROID_FILE

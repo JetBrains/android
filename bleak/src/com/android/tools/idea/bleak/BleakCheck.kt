@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.bleak
 
-abstract class BleakCheck<OptionsType, ResultType>(val options: OptionsType, val ignoreList: IgnoreList<ResultType>, val knownIssues: IgnoreList<ResultType>) {
+abstract class BleakCheck<OptionsType, ResultType>(val options: OptionsType, private val ignoreList: IgnoreList<ResultType>, private val knownIssues: IgnoreList<ResultType>) {
   // callbacks from BLeak
   abstract fun firstIterationFinished()
   abstract fun middleIterationFinished()

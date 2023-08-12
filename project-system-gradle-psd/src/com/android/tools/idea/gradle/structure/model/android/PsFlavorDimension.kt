@@ -24,7 +24,7 @@ class PsFlavorDimension(
   override val parent: PsAndroidModule,
   val isInvalid: Boolean = false
 ) : PsChildModel() {
-  var parsedName: String? = null
+  private var parsedName: String? = null
 
   internal fun init(parsedName: String) {
     this.parsedName = parsedName

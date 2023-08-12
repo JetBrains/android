@@ -59,15 +59,15 @@ private const val DOWNLOAD_INFO_VIEW_SURVEY_NAME = "DOWNLOAD_INFO_VIEW_SURVEY"
  * [DownloadsInfoUIModel] contains the logic of how this page is populated and reacts on user interactions.
  */
 class DownloadsInfoExecutionConsole(
-  val buildId: ExternalSystemTaskId,
-  val buildFinishedDisposable: CheckedDisposable,
-  val buildStartTimestampMs: Long,
+  private val buildId: ExternalSystemTaskId,
+  private val buildFinishedDisposable: CheckedDisposable,
+  private val buildStartTimestampMs: Long,
   val gradleVersion: GradleVersion?,
-  val featureSurveys: FeatureSurveys = FeatureSurveys
+  private val featureSurveys: FeatureSurveys = FeatureSurveys
 ) : ExecutionConsole {
   val uiModel = DownloadsInfoUIModel()
 
-  val requestsTable = object : TableView<DownloadRequestItem>(uiModel.requestsTableModel) {
+  private val requestsTable = object : TableView<DownloadRequestItem>(uiModel.requestsTableModel) {
     override fun createRowSorter(model: TableModel?): TableRowSorter<TableModel?> {
       return object : DefaultColumnInfoBasedRowSorter(model) {
         override fun toggleSortOrder(column: Int) {
@@ -96,7 +96,7 @@ class DownloadsInfoExecutionConsole(
     speedSearch.setFilteringMode(true)
   }
 
-  val reposTable = TableView(uiModel.repositoriesTableModel).apply {
+  private val reposTable = TableView(uiModel.repositoriesTableModel).apply {
     name = "repositories table"
     resetDefaultFocusTraversalKeys()
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)

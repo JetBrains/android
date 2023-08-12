@@ -1,4 +1,4 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.editors.literals
 
 import com.android.annotations.concurrency.GuardedBy
@@ -133,7 +133,7 @@ interface LiveLiteralsMonitorHandler {
 @Service
 class LiveLiteralsService private constructor(private val project: Project,
                                               listenerExecutor: Executor,
-                                              val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
+                                              private val deploymentReportService: LiveLiteralsDeploymentReportService) : LiveLiteralsMonitorHandler, Disposable {
   init {
     deploymentReportService.subscribe(this@LiveLiteralsService, object : LiveLiteralsDeploymentReportService.Listener {
       override fun onMonitorStarted(deviceId: String) {

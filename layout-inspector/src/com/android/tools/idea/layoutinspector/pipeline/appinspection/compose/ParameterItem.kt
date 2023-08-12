@@ -89,7 +89,7 @@ class ParameterGroupItem(
   /**
    * Return the last index into children that is not a ShowMoreElementsItem
    */
-  val lastRealChildElementIndex: Int
+  private val lastRealChildElementIndex: Int
     get() = children.lastIndex - (if (children.lastOrNull() is ShowMoreElementsItem) 1 else 0)
 
   /**

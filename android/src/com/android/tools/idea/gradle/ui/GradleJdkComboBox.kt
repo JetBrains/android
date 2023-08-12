@@ -72,7 +72,7 @@ class GradleJdkComboBox(
 
   fun isModelModified() = comboBox.model.sdksModel.isModified
 
-  fun getProjectSdk(): Sdk? = comboBox.model.sdksModel.projectSdk
+  private fun getProjectSdk(): Sdk? = comboBox.model.sdksModel.projectSdk
 
   fun getSelectedGradleJvmInfo() = when (selectedGradleJvmReference) {
     USE_JAVA_HOME -> createJdkInfo(

@@ -59,7 +59,7 @@ private val LOG = Logger.getInstance(LOG_CATEGORY)
 class RecommendedUpgradeReminder(
   project: Project
 ) : TimeBasedReminder(project, "recommended.upgrade", TimeUnit.DAYS.toMillis(1)) {
-  var doNotAskForVersion: String?
+  private var doNotAskForVersion: String?
     get() =  PropertiesComponent.getInstance(project).getValue("$settingsPropertyRoot.do.not.ask.for.version")
     set(value) = PropertiesComponent.getInstance(project).setValue("$settingsPropertyRoot.do.not.ask.for.version", value)
 

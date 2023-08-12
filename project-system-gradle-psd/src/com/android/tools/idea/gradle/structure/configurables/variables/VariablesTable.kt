@@ -868,7 +868,7 @@ internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {
     listOf(RootModuleShadowNode(project.variables)) +
     project.modules.filter { it.isDeclared }.sortedBy { it.gradlePath }.map { ModuleShadowNode(it) }
 
-  fun getVersionCatalogNodes(): List<VersionCatalogShadowNode> =
+  private fun getVersionCatalogNodes(): List<VersionCatalogShadowNode> =
     project.versionCatalogs.sortedBy { it.name }.map { VersionCatalogShadowNode(it) }
 
   override fun createNode(): VariablesBaseNode = VariablesBaseNode(this, null)

@@ -110,7 +110,7 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
     }
   }
 
-  val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
+  private val upgradeLabel = JBLabel(model.current.upgradeLabelText()).also { it.border = JBUI.Borders.empty(0, 6) }
 
   val versionTextField = CommonComboBox<AgpVersion, CommonComboBoxModel<AgpVersion>>(
     // TODO this model needs to be enhanced to know when to commit value, instead of doing it in document listener below.
@@ -202,13 +202,13 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
       isEnabled = uiState.showPreviewEnabled
     }
   }
-  val messageLabel = JBLabel().apply {
+  private val messageLabel = JBLabel().apply {
     myListeners.listenAndFire(this@UpgradeAssistantView.model.uiState) { uiState ->
       icon = uiState.statusMessage?.severity?.icon
       text = uiState.statusMessage?.text
     }
   }
-  val hyperlinkLabel = object : ActionLink("Read more") {
+  private val hyperlinkLabel = object : ActionLink("Read more") {
     var url: String? = null
   }
     .apply {

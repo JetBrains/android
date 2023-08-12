@@ -455,7 +455,7 @@ abstract class AbstractComposeLowering(
         body: IrBlockBodyBuilder.(IrFunction) -> Unit
     ) = irLambdaExpression(this.startOffset, this.endOffset, descriptor, type, body)
 
-    protected fun IrBuilderWithScope.irLambdaExpression(
+    private fun IrBuilderWithScope.irLambdaExpression(
         startOffset: Int,
         endOffset: Int,
         descriptor: FunctionDescriptor,
@@ -629,7 +629,7 @@ abstract class AbstractComposeLowering(
     protected fun IrType.binaryOperator(name: Name, paramType: IrType): IrFunctionSymbol =
         context.symbols.getBinaryOperator(name, this, paramType)
 
-    protected fun IrType.unaryOperator(name: Name): IrFunctionSymbol =
+    private fun IrType.unaryOperator(name: Name): IrFunctionSymbol =
         context.symbols.getUnaryOperator(name, this)
 
     protected fun irAnd(lhs: IrExpression, rhs: IrExpression): IrCallImpl {

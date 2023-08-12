@@ -211,7 +211,7 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
     private val sideMarginPx = (sizePx * 0.16).toInt()
     private val topMarginPx = (sizePx * 0.2).toInt()
     private lateinit var currentModel: ComplicationsModel
-    val watchFacePicture = ImageIO.read(SlotsPanel::class.java.classLoader.getResource("images/watchface/watchface.png"))
+    private val watchFacePicture = ImageIO.read(SlotsPanel::class.java.classLoader.getResource("images/watchface/watchface.png"))
     private val typeToIcon = mapOf(ComplicationType.SHORT_TEXT to ImageIO.read(
       SlotsPanel::class.java.classLoader.getResource("images/watchface/short_text.png")),
                                    ComplicationType.LONG_TEXT to ImageIO.read(

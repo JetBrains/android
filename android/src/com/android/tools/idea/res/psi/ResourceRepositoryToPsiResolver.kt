@@ -91,7 +91,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     return resolveReference(resourceValue, element, facet, true)
   }
 
-  fun resolveReference(
+  private fun resolveReference(
     resourceValue: ResourceValue,
     context: XmlElement,
     facet: AndroidFacet,

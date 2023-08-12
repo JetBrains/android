@@ -88,7 +88,7 @@ class TreeTableModelImpl(
     hierarchyChanged(changedNode, false)
   }
 
-  fun hierarchyChanged(changedNode: Any?, rootChanged: Boolean) {
+  private fun hierarchyChanged(changedNode: Any?, rootChanged: Boolean) {
     invokeLater.invoke(Runnable { fireTreeChange(changedNode, rootChanged) })
   }
 

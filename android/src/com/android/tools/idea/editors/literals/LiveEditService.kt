@@ -166,7 +166,7 @@ class LiveEditService constructor(val project: Project,
       LE_TRIGGER_AUTOMATIC,
     }
 
-    fun isLeTriggerManual(mode : LiveEditTriggerMode) : Boolean {
+    private fun isLeTriggerManual(mode : LiveEditTriggerMode) : Boolean {
       return mode == LiveEditTriggerMode.LE_TRIGGER_MANUAL
     }
 

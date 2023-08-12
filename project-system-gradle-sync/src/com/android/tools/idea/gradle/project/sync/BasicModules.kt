@@ -159,7 +159,7 @@ internal class BasicV2AndroidModuleGradleProject(
   gradleProject: BasicGradleProject,
   buildName: String,
   val versions: Versions,
-  val syncActionOptions: SyncActionOptions,
+  private val syncActionOptions: SyncActionOptions,
 ) : BasicIncompleteAndroidModule(gradleProject, buildName) {
   override val agpVersion: AgpVersion = AgpVersion.tryParse(versions.agp) ?: error("AGP returned incorrect version: ${versions.agp}")
   override val minimumModelConsumerVersion: ModelConsumerVersion? =

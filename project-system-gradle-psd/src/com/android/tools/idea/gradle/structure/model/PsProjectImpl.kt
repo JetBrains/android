@@ -47,7 +47,7 @@ class PsProjectImpl(
   override val pomDependencyCache: PsPomDependencyCache = PsPomDependencies(ideProject)
   private var internalResolvedModuleModels: Map<String, PsResolvedModuleModel>? = null
   private val moduleCollection: PsModuleCollection
-  val buildScript : PsBuildScript = PsBuildScript(this)
+  private val buildScript : PsBuildScript = PsBuildScript(this)
   private val versionCatalogCollection : PsVersionCatalogCollection
   override val name: String get() = ideProject.name  // Supposedly there is no way to rename the project from within the PSD.
 

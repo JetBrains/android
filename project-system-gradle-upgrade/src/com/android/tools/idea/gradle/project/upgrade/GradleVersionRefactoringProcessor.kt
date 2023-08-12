@@ -124,5 +124,5 @@ class GradleVersionUsageInfo(
     }
   }
 
-  fun String.escapeColons() = this.replace(":", "\\:")
+  private fun String.escapeColons() = this.replace(":", "\\:")
 }

@@ -139,7 +139,7 @@ class LibraryResourceClassLoader(
   module: Module,
   private val childLoader: DelegatingClassLoader.Loader
 ) : ClassLoader(parent) {
-  val moduleRef = WeakReference(module)
+  private val moduleRef = WeakReference(module)
 
   init {
     registerResources(module)

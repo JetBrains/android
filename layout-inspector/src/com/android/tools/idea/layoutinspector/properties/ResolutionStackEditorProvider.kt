@@ -30,7 +30,7 @@ import javax.swing.JComponent
 class ResolutionStackEditorProvider(
   model: InspectorPropertiesModel,
   enumSupportProvider: EnumSupportProvider<InspectorPropertyItem>,
-  val controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>
+  private val controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>
 ) : EditorProvider<InspectorPropertyItem> {
   private val baseTypeProvider = BaseTypeProvider(controlTypeProvider)
   private val editorProvider = EditorProvider.create(enumSupportProvider, baseTypeProvider)

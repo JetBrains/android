@@ -45,7 +45,7 @@ data class LiveEditCompilerOutput internal constructor (val classes: List<LiveEd
 
   internal class Builder(
     var classes: MutableList<LiveEditCompiledClass> = ArrayList(),
-    var groupIds: ArrayList<Int> = ArrayList(),
+    private var groupIds: ArrayList<Int> = ArrayList(),
     var resetState: Boolean = false) {
 
     fun addClass(clazz: LiveEditCompiledClass) : Builder {

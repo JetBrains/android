@@ -81,7 +81,7 @@ sealed class ProjectStatus {
    * @param areResourcesOutOfDate true if resources might be out of date.
    */
   sealed class OutOfDate
-  private constructor(val isCodeOutOfDate: Boolean, val areResourcesOutOfDate: Boolean) :
+  private constructor(private val isCodeOutOfDate: Boolean, val areResourcesOutOfDate: Boolean) :
     ProjectStatus() {
     object Code : OutOfDate(true, false)
     object Resources : OutOfDate(false, true)

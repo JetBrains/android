@@ -98,7 +98,7 @@ class UpgradeAssistantWindowModel(
   val selectedVersion: AgpVersion?
     get() = _selectedVersion
   var processor: AgpUpgradeRefactoringProcessor? = null
-  var beforeUpgradeFilesStateLabel: Label? = null
+  private var beforeUpgradeFilesStateLabel: Label? = null
 
   val uiState = ObjectValueProperty<UIState>(UIState.Loading)
   val uiRefreshNotificationTimestamp = ObjectValueProperty<Long>(0L)

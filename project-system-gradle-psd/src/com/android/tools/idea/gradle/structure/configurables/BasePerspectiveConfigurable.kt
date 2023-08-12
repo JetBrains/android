@@ -84,7 +84,7 @@ abstract class BasePerspectiveConfigurable protected constructor(
   private var treeInitiated: Boolean = false
   private var currentModuleSelectorStyle: ModuleSelectorStyle? = null
 
-  val navigationPathName: String = BASE_PERSPECTIVE_MODULE_PLACE_NAME
+  private val navigationPathName: String = BASE_PERSPECTIVE_MODULE_PLACE_NAME
   val selectedModule: PsModule? get() = myCurrentConfigurable?.editableObject as? PsModule
 
   init {

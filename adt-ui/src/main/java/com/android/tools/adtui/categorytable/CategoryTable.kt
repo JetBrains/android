@@ -18,6 +18,13 @@ package com.android.tools.adtui.categorytable
 import com.android.annotations.concurrency.UiThread
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Rectangle
@@ -38,13 +45,6 @@ import javax.swing.event.ChangeEvent
 import javax.swing.event.ListSelectionEvent
 import javax.swing.event.TableColumnModelEvent
 import javax.swing.event.TableColumnModelListener
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 
 /**
  * A JTable-like UI component that displays tabular data, but also allows grouping rows into
@@ -109,7 +109,7 @@ class CategoryTable<T : Any>(
   val selection = CategoryTableSingleSelection(this)
 
   /** The number of pixels to indent the rows following each category header. */
-  var categoryIndent = 24
+  private var categoryIndent = 24
 
   private val scaledCategoryIndent
     get() = JBUI.scale(categoryIndent)

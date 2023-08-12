@@ -128,7 +128,7 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
    * - GrArgumentList for 'api libs.my.lib'
    * - GrCommandArgumentList 'alias(libs.plugins.myplugin)'
    */
-  fun getWholeKey(sourceElement: PsiElement): String? {
+  private fun getWholeKey(sourceElement: PsiElement): String? {
     var currElement = sourceElement
     while (currElement.parent != null) {
       if (currElement.parent is GrArgumentList || currElement.parent is GrCommandArgumentList) {

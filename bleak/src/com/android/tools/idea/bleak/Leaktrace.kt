@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.bleak
 
-class Leaktrace(val elements: List<LeaktraceElement>) {
+class Leaktrace(private val elements: List<LeaktraceElement>) {
   override fun toString() = elements.joinToString(separator = "\n")
 
   val size: Int
     get() = elements.size
 
   // negative indices count backwards from the end (-1 is the last element)
-  fun element(index: Int): LeaktraceElement? {
+  private fun element(index: Int): LeaktraceElement? {
     val realIndex = if (index < 0) elements.size + index else index
     return if (realIndex >= 0 && realIndex < elements.size) elements[realIndex] else null
   }
@@ -30,8 +30,8 @@ class Leaktrace(val elements: List<LeaktraceElement>) {
   fun signatureAt(index: Int): String = element(index)?.signature() ?: ""
 }
 
-class LeaktraceElement(val type: String, val referenceLabel: String, obj: Any?) {
-  val description = try {
+class LeaktraceElement(private val type: String, private val referenceLabel: String, obj: Any?) {
+  private val description = try {
     obj?.toString()?.take(100)
   } catch (t: Throwable) {
     "[EXCEPTION in toString]"

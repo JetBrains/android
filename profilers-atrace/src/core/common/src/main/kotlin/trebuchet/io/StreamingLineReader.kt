@@ -16,7 +16,7 @@
 
 package trebuchet.io
 
-class StreamingLineReader(val maxLineLength: Int, val stream: StreamingReader) {
+class StreamingLineReader(private val maxLineLength: Int, val stream: StreamingReader) {
     init {
         if (maxLineLength > stream.keepLoadedSize) {
             throw IllegalArgumentException("Cannot have a maxLineLength ($maxLineLength) that's bigger than "
@@ -24,9 +24,9 @@ class StreamingLineReader(val maxLineLength: Int, val stream: StreamingReader) {
         }
     }
 
-    val tmpBuffer = ByteArray(maxLineLength)
-    val tmpBufferSlice = tmpBuffer.asSlice()
-    val tmpSlice = DataSlice()
+    private val tmpBuffer = ByteArray(maxLineLength)
+    private val tmpBufferSlice = tmpBuffer.asSlice()
+    private val tmpSlice = DataSlice()
 
     fun forEachLine(lineCallback: (DataSlice) -> Unit) {
         var lineStartIndex = stream.startIndex
@@ -70,7 +70,7 @@ class StreamingLineReader(val maxLineLength: Int, val stream: StreamingReader) {
         }
     }
 
-    fun findNewlineInWindow(window: StreamingReader.Window, startIndex: Int): Int {
+    private fun findNewlineInWindow(window: StreamingReader.Window, startIndex: Int): Int {
         for (i in startIndex..window.globalEndIndex) {
             if (window[i] == '\n'.code.toByte()) return i
         }

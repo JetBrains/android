@@ -22,7 +22,7 @@ import org.jetbrains.ide.PooledThreadExecutor
 import java.time.Duration
 import java.util.concurrent.Callable
 
-abstract class ArtifactRepository(val repoForStats: PSDEvent.PSDRepositoryUsage.PSDRepository) : ArtifactRepositorySearchService {
+abstract class ArtifactRepository(private val repoForStats: PSDEvent.PSDRepositoryUsage.PSDRepository) : ArtifactRepositorySearchService {
   private val executor = MoreExecutors.listeningDecorator(PooledThreadExecutor.INSTANCE)
 
   abstract val name: String

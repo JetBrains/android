@@ -125,7 +125,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     /**
      * Gets the display name of a device with the given manufacturer, model, and serial string.
      */
-    fun getDeviceDisplayName(manufacturer: String, model: String, serial: String): String {
+    private fun getDeviceDisplayName(manufacturer: String, model: String, serial: String): String {
       var deviceModel = model
       val deviceNameBuilder = StringBuilder()
       val suffix = String.format("-%s", serial)

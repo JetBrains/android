@@ -135,7 +135,7 @@ internal object DeviceTableColumns {
       IconLabel(null).apply { size = JBDimension(24, 24) }
   }
 
-  class Actions(private val project: Project, val coroutineScope: CoroutineScope) :
+  class Actions(private val project: Project, private val coroutineScope: CoroutineScope) :
     Column<DeviceRowData, Unit, ActionButtonsPanel> {
     override val name = DeviceManagerBundle.message("column.title.actions")
     override val attribute = Attribute.Unit

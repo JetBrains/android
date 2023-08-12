@@ -31,7 +31,7 @@ import javax.swing.tree.TreePath
 
 val LINES = LinePainter(Control.Painter.DEFAULT)
 
-class LinePainter(val basePainter: Control.Painter) : Control.Painter by basePainter {
+class LinePainter(private val basePainter: Control.Painter) : Control.Painter by basePainter {
 
   override fun paint(
     c: Component,

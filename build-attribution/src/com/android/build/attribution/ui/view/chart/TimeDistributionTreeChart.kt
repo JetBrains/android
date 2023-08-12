@@ -196,7 +196,7 @@ class TimeDistributionTreeChartCalculationModel(
   var stackLeftBorderScaledPx: Int = 0
   var stackWidthScaledPx: Int = 0
   var selectionRightPointScaledPx: Int = 0
-  var stackBottomMarginScaledPx: Int = 0
+  private var stackBottomMarginScaledPx: Int = 0
   var stackBarsSpacingScaledPx: Int = 0
   var minStackBarSizeScaledPx: Int = 0
 
@@ -308,14 +308,14 @@ class TimeDistributionTreeChartCalculationModel(
     val selected: Boolean
       get() = selectionArea.selectedChartRowItem == this
 
-    val hovered: Boolean
+    private val hovered: Boolean
       get() = hoveredItem == this
 
     var treeRowY: Int = 0
     var treeRowHeight: Int = 0
     var stackBarY: Int = 0
     var stackBarHeight: Int = 0
-    var clickHandlingArea: Polygon? = null
+    private var clickHandlingArea: Polygon? = null
 
     /**
      * [curY] start position on the stack chart for this element.

@@ -102,7 +102,7 @@ class SessionsView(val profilers: StudioProfilers, val ideProfilerComponents: Id
     isOpaque = false
   }
 
-  val scrollPane = JBScrollPane(sessionsPanel).apply {
+  private val scrollPane = JBScrollPane(sessionsPanel).apply {
     viewport.isOpaque = false
     isOpaque = false
     border = BorderFactory.createEmptyBorder()

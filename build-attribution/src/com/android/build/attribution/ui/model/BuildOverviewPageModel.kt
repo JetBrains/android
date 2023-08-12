@@ -22,7 +22,7 @@ import com.android.build.attribution.ui.data.DownloadsSummaryUIData
 
 class BuildOverviewPageModel(
   val reportUiData: BuildAttributionReportUiData,
-  val warningSuppressions: BuildAttributionWarningsFilter
+  private val warningSuppressions: BuildAttributionWarningsFilter
 ) {
   val shouldWarnAboutGC: Boolean
     get() = reportUiData.buildSummary.garbageCollectionTime.percentage > 10.0

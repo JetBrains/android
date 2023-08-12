@@ -311,7 +311,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
       }
     }
 
-  fun createRefreshJob(invalidate: Boolean): Job? {
+  private fun createRefreshJob(invalidate: Boolean): Job? {
     val startTime = System.nanoTime()
     val refreshProgressIndicator =
       BackgroundableProcessIndicator(

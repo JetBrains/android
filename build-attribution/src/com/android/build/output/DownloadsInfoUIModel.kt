@@ -18,9 +18,6 @@ package com.android.build.output
 import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.ui.formatAvgDownloadSpeed
-import com.intellij.icons.AllIcons
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.Formats
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
@@ -44,7 +41,7 @@ import javax.swing.table.TableCellRenderer
 class DownloadsInfoUIModel : DownloadInfoDataModel.Listener {
   val repositoriesTableModel = RepositoriesTableModel()
   val requestsTableModel = RequestsTableModel()
-  var selectedRepoItem = repositoriesTableModel.summaryItem
+  private var selectedRepoItem = repositoriesTableModel.summaryItem
 
   /**
    * Listener that will be notified that model has changed.
@@ -123,7 +120,7 @@ class RepositoryTableItem(
 
 class RepositoriesTableModel : ListTableModel<RepositoryTableItem>() {
   val summaryItem = RepositoryTableItem(null)
-  val reposData = mutableMapOf<DownloadsAnalyzer.Repository, RepositoryTableItem>()
+  private val reposData = mutableMapOf<DownloadsAnalyzer.Repository, RepositoryTableItem>()
 
   init {
     // Cell renderer that will highlight first summary line
@@ -194,26 +191,26 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
     }
   }
 
-  val fileNameColumn = object : ColumnInfo<DownloadRequestItem, String>("File") {
+  private val fileNameColumn = object : ColumnInfo<DownloadRequestItem, String>("File") {
     override fun valueOf(item: DownloadRequestItem): String = item.requestKey.url
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = cellRenderer
     override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { it.requestKey.url }
   }
-  val timeColumn = object : ColumnInfo<DownloadRequestItem, String>("Time") {
+  private val timeColumn = object : ColumnInfo<DownloadRequestItem, String>("Time") {
     override fun valueOf(item: DownloadRequestItem): String = StringUtil.formatDuration(item.duration)
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = cellRenderer
     override fun getPreferredStringValue() = "12 s 123 ms"
     override fun getMaxStringValue(): String = preferredStringValue
     override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { it.duration }
   }
-  val sizeColumn = object : ColumnInfo<DownloadRequestItem, String>("Size") {
+  private val sizeColumn = object : ColumnInfo<DownloadRequestItem, String>("Size") {
     override fun valueOf(item: DownloadRequestItem): String = StringUtil.formatFileSize(item.receivedBytes)
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = cellRenderer
     override fun getPreferredStringValue() = "123.45 MB"
     override fun getMaxStringValue(): String = preferredStringValue
     override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { it.receivedBytes }
   }
-  val speedColumn = object : ColumnInfo<DownloadRequestItem, String>("Avg Speed") {
+  private val speedColumn = object : ColumnInfo<DownloadRequestItem, String>("Avg Speed") {
     override fun valueOf(item: DownloadRequestItem): String = formatAvgDownloadSpeed(item.receivedBytes, item.duration)
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = cellRenderer
     override fun getPreferredStringValue() = "123.45 MB/s"
@@ -228,7 +225,7 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
     override fun toString(): String = text
   }
 
-  val statusColumn = object : ColumnInfo<DownloadRequestItem, Status>("Status") {
+  private val statusColumn = object : ColumnInfo<DownloadRequestItem, Status>("Status") {
     val columnCellRenderer = object : ColoredTableCellRenderer() {
       override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
         if (value is Status) {

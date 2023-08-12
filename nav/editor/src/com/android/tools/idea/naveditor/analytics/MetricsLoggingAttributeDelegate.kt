@@ -33,8 +33,8 @@ import kotlin.reflect.KProperty1
  * the wrapped property relies on that being set correctly.
  */
 class MetricsLoggingAttributeDelegate<T> private constructor(
-  val attrName: String,
-  val delegate: ReadWriteProperty<NlComponent, T>,
+  private val attrName: String,
+  private val delegate: ReadWriteProperty<NlComponent, T>,
   val property: KProperty1<NlComponent, T>) : ReadWriteProperty<NlComponent, T> by delegate
 {
   constructor(delegateConstructor: (String) -> ReadWriteProperty<NlComponent, T>, attrName: String, p: KProperty1<NlComponent, T>)

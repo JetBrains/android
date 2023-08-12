@@ -32,7 +32,7 @@ import kotlin.math.roundToInt
  * A [JBPanel] that shows an [Image] as background, scaled to fit preserving the aspect ratio.
  * Quality of scaling is controlled by the [highFidelityScaling] parameter.
  */
-class ImagePanel(val highFidelityScaling: Boolean = false) : JBPanel<ImagePanel>(true) {
+class ImagePanel(private val highFidelityScaling: Boolean = false) : JBPanel<ImagePanel>(true) {
   var image: Image? = null
     set(value) {
       field = value

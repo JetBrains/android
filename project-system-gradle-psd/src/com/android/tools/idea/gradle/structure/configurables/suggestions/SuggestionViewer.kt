@@ -33,7 +33,7 @@ class SuggestionViewer(
 ) : SuggestionViewerUi(isLast) {
 
   val component: Component get() = myPanel
-  val hyperlinkListener = NavigationHyperlinkListener(context)
+  private val hyperlinkListener = NavigationHyperlinkListener(context)
 
   init {
     renderIssue(issue, scope)

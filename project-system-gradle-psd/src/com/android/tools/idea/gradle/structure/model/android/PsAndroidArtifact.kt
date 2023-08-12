@@ -85,7 +85,7 @@ class PsAndroidArtifact(override val parent: PsVariant, val resolvedName: IdeArt
   val dependencies: PsAndroidArtifactDependencyCollection
     get() = myDependencies ?: PsAndroidArtifactDependencyCollection(this).also { myDependencies = it }
 
-  val possibleConfigurationNames: List<String>
+  private val possibleConfigurationNames: List<String>
     get() {
       val variant = parent
       val buildTypeName = variant.buildType.name

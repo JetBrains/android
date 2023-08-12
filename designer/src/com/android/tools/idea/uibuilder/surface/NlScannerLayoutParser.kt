@@ -36,7 +36,7 @@ class NlScannerLayoutParser {
   val idToComponent: BiMap<Int, NlComponent> = HashBiMap.create()
   @VisibleForTesting
   val viewToComponent: BiMap<View, NlComponent> = HashBiMap.create()
-  val nodeIdToComponent: BiMap<Long, NlComponent> = HashBiMap.create()
+  private val nodeIdToComponent: BiMap<Long, NlComponent> = HashBiMap.create()
 
   /** Returns the list of [NlComponent] that is <[SdkConstants.VIEW_INCLUDE]> */
   val includeComponents: List<NlComponent>

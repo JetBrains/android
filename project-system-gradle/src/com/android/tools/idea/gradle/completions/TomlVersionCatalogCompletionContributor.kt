@@ -155,7 +155,7 @@ class TomlVersionCatalogCompletionContributor  : CompletionContributor() {
     extend(CompletionType.BASIC, TOML_BUNDLE_SYNTAX_PATTERN, createLibrariesSuggestionCompletionProvider())
   }
 
-  fun createLibrariesSuggestionCompletionProvider(): CompletionProvider<CompletionParameters> {
+  private fun createLibrariesSuggestionCompletionProvider(): CompletionProvider<CompletionParameters> {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val originalFile = parameters.originalFile as? TomlFile ?: return
@@ -199,7 +199,7 @@ class TomlVersionCatalogCompletionContributor  : CompletionContributor() {
     return result
   }
 
-  fun createTableSuggestionCompletionProvider(list:List<String>): CompletionProvider<CompletionParameters> {
+  private fun createTableSuggestionCompletionProvider(list:List<String>): CompletionProvider<CompletionParameters> {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val originalFile = parameters.originalFile as? TomlFile ?: return
@@ -222,7 +222,7 @@ class TomlVersionCatalogCompletionContributor  : CompletionContributor() {
     return result
   }
 
-  fun createKeySuggestionCompletionProvider(list:List<String>): CompletionProvider<CompletionParameters> {
+  private fun createKeySuggestionCompletionProvider(list:List<String>): CompletionProvider<CompletionParameters> {
     return object : CompletionProvider<CompletionParameters>() {
       override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         var parent: PsiElement? = parameters.position

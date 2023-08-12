@@ -1,7 +1,4 @@
-/*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
- * that can be found in the license/LICENSE.txt file.
- */
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 
 package org.jetbrains.kotlin.android.configure
 
@@ -250,7 +247,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
         collector.showNotification()
     }
 
-    fun doConfigure(project: Project, modules: List<Module>, version: IdeKotlinVersion): NotificationMessageCollector {
+    private fun doConfigure(project: Project, modules: List<Module>, version: IdeKotlinVersion): NotificationMessageCollector {
         return project.executeCommand(KotlinIdeaGradleBundle.message("command.name.configure.kotlin")) {
             val collector = NotificationMessageCollector.create(project)
             val changedFiles = configureWithVersion(project, modules, version, collector, kotlinVersionsAndModules = emptyMap())

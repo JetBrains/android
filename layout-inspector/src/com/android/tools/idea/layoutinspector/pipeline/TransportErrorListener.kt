@@ -38,7 +38,7 @@ class TransportErrorListener(
   private val layoutInspectorMetrics: LayoutInspectorMetrics,
   private val disposable: Disposable
   ) : TransportDeviceManager.TransportDeviceManagerListener {
-  val errorMessage = LayoutInspectorBundle.message("two.versions.of.studio.running")
+  private val errorMessage = LayoutInspectorBundle.message("two.versions.of.studio.running")
 
   private var hasStartServerFailed = false
     set(value) {

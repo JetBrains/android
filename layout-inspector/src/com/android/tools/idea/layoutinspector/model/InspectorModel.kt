@@ -52,8 +52,8 @@ class InspectorModel(val project: Project, private val scheduler: ScheduledExecu
   val modificationListeners = ListenerCollection.createWithDirectExecutor<InspectorModelModificationListener>()
 
   val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
-  var lastGeneration = 0
-  var updating = false
+  private var lastGeneration = 0
+  private var updating = false
 
   /** After an [update] this will hold the max value for counts, skips, and highlightCount */
   val maxRecomposition = RecompositionData(0, 0)

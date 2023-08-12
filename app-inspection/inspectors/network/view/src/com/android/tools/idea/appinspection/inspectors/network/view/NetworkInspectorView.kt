@@ -80,6 +80,8 @@ import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtilities
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Component
@@ -95,8 +97,6 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.annotations.VisibleForTesting
 
 private const val CARD_CONNECTIONS = "Connections"
 private const val CARD_INFO = "Info"
@@ -118,7 +118,7 @@ class NetworkInspectorView(
   private val tooltipPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
 
   /** View of the active tooltip for stages that contain more than one tooltips. */
-  var activeTooltipView: TooltipView? = null
+  private var activeTooltipView: TooltipView? = null
 
   /** A common component for showing the current selection range. */
   private val selectionTimeLabel = createSelectionTimeLabel()

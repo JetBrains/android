@@ -31,7 +31,7 @@ enum class TestGradleModelProviderMode {
   TEST_EXCEPTION_MODELS
 }
 
-class TestGradleModelProvider(private val paramValue: String, val mode: TestGradleModelProviderMode) : ProjectImportModelProvider {
+class TestGradleModelProvider(private val paramValue: String, private val mode: TestGradleModelProviderMode) : ProjectImportModelProvider {
   override fun populateBuildModels(
     controller: BuildController,
     buildModel: GradleBuild,

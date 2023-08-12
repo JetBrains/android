@@ -21,7 +21,7 @@ import trebuchet.io.DataSlice
 class StringCache {
     // we're gonna have a lot of strings probably
     private val cache: MutableMap<DataSlice, String> = HashMap(1_000)
-    var cacheHits: Int = 0
+    private var cacheHits: Int = 0
         get private set
 
     fun stringFor(slice: DataSlice): String {

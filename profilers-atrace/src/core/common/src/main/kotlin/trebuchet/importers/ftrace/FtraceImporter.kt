@@ -27,8 +27,8 @@ import trebuchet.model.fragments.ModelFragment
 import trebuchet.util.contains
 import java.util.regex.Pattern
 
-class FtraceImporter(val feedback: ImportFeedback) : Importer {
-    var foundHeader = false
+class FtraceImporter(private val feedback: ImportFeedback) : Importer {
+    private var foundHeader = false
     var state = FtraceImporterState(feedback)
     val parser = FtraceLine.Parser(state.stringCache)
 
@@ -44,7 +44,7 @@ class FtraceImporter(val feedback: ImportFeedback) : Importer {
         return state.finish()
     }
 
-    fun handleLine(line: DataSlice) {
+    private fun handleLine(line: DataSlice) {
         // This should never happen. However due to the dereference below we guard against it so we don't throw out of bounds exceptions.
         if (line.buffer.size < 2) {
             return

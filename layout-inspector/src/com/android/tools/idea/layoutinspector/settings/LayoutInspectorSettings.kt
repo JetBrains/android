@@ -51,7 +51,7 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
  * A setting that is also controlled by the state of a flag.
  * The setting is enabled only if it is both enabled in settings and in the flag.
  */
-class FlagControlledSetting(val defaultValue: Boolean, val getFlagValue: () -> Boolean) {
+class FlagControlledSetting(private val defaultValue: Boolean, val getFlagValue: () -> Boolean) {
   private var isEnabled = defaultValue
 
   fun set(value: Boolean) {

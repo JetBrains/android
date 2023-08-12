@@ -43,9 +43,9 @@ internal open class ActionButtonsPanel : JBPanel<ActionButtonsPanel>() {
 internal class DeviceHandleButtonsPanel(val project: Project, handle: DeviceHandle) :
   ActionButtonsPanel() {
 
-  val startStopButton = StartStopButton(handle)
-  val openDeviceExplorer = OpenDeviceExplorerButton(project, handle)
-  val overflowButton = OverflowButton()
+  private val startStopButton = StartStopButton(handle)
+  private val openDeviceExplorer = OpenDeviceExplorerButton(project, handle)
+  private val overflowButton = OverflowButton()
 
   init {
     setUp(startStopButton, openDeviceExplorer, overflowButton)
@@ -60,7 +60,7 @@ internal class DeviceTemplateButtonsPanel(
   coroutineScope: CoroutineScope,
   deviceTemplate: DeviceTemplate
 ) : ActionButtonsPanel() {
-  val activateTemplateButton = ActivateTemplateButton(coroutineScope, deviceTemplate)
+  private val activateTemplateButton = ActivateTemplateButton(coroutineScope, deviceTemplate)
 
   init {
     setUp(activateTemplateButton)

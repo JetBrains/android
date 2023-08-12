@@ -38,8 +38,8 @@ abstract class AbstractViewAction
  * @param myIcon  the icon to be shown if in the toolbar
  * @param myLabel the menu label (if in a context menu) or the tooltip (if in a toolbar)
  */
-constructor(protected val myIcon: Icon?,
-            protected val myLabel: String) : ViewAction {
+constructor(private val myIcon: Icon?,
+            private val myLabel: String) : ViewAction {
 
   override fun getLabel(): String = myLabel
   override fun getIcon(): Icon? = myIcon

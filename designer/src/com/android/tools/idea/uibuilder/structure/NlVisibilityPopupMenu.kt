@@ -42,7 +42,7 @@ class NlVisibilityPopupMenu(
   onClick: (visibility: Visibility, uri: String) -> Unit,
   onClose: (() -> Unit)) {
   val content = VisibilityPopupContent(onClick)
-  val popupMenu = LightCalloutPopup(content, onClose)
+  private val popupMenu = LightCalloutPopup(content, onClose)
 
   fun show(model: NlVisibilityModel, invoker: JComponent, p: Point) {
     val application = ApplicationManager.getApplication()

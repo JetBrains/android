@@ -65,19 +65,19 @@ class ModuleTemplateDataBuilder(
   val isNewModule: Boolean,
   private val viewBindingSupport: ViewBindingSupport
 ) {
-  var srcDir: File? = null
-  var resDir: File? = null
-  var manifestDir: File? = null
-  var testDir: File? = null
-  var unitTestDir: File? = null
-  var aidlDir: File? = null
+  private var srcDir: File? = null
+  private var resDir: File? = null
+  private var manifestDir: File? = null
+  private var testDir: File? = null
+  private var unitTestDir: File? = null
+  private var aidlDir: File? = null
   var rootDir: File? = null
   var name: String? = null
   var isLibrary: Boolean? = null
   var packageName: PackageName? = null
   var formFactor: FormFactor? = null
   var themesData: ThemesData? = null
-  var baseFeature: BaseFeature? = null
+  private var baseFeature: BaseFeature? = null
   var apis: ApiTemplateData? = null
   var category: Category? = null
   var isMaterial3: Boolean = false

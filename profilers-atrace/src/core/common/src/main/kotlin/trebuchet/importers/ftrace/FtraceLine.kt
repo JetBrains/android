@@ -61,7 +61,7 @@ class FtraceLine private constructor() {
         _functionDetails = funcDetails
     }
 
-    class Parser(val stringCache: StringCache) {
+    class Parser(private val stringCache: StringCache) {
         private val NullTaskName = stringCache.stringFor("<...>".asSlice())
         private val ftraceLine = FtraceLine()
         private val _reader = BufferReader()

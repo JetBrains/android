@@ -60,7 +60,7 @@ class SparseArray<E> constructor(initialCapacity: Int = 10) {
     /**
      * Removes the mapping from the specified key, if there was any.
      */
-    fun delete(key: Int) {
+    private fun delete(key: Int) {
         val i = binarySearch(mKeys, mSize, key)
 
         if (i >= 0) {
@@ -81,7 +81,7 @@ class SparseArray<E> constructor(initialCapacity: Int = 10) {
     /**
      * Removes the mapping at the specified index.
      */
-    fun removeAt(index: Int) {
+    private fun removeAt(index: Int) {
         if (mValues[index] !== DELETED) {
             mValues[index] = DELETED
             mGarbage = true
@@ -193,7 +193,7 @@ class SparseArray<E> constructor(initialCapacity: Int = 10) {
      * the key from the `index`th key-value mapping that this
      * SparseArray stores.
      */
-    fun keyAt(index: Int): Int {
+    private fun keyAt(index: Int): Int {
         if (mGarbage) {
             gc()
         }
@@ -206,7 +206,7 @@ class SparseArray<E> constructor(initialCapacity: Int = 10) {
      * the value from the `index`th key-value mapping that this
      * SparseArray stores.
      */
-    fun valueAt(index: Int): E {
+    private fun valueAt(index: Int): E {
         if (mGarbage) {
             gc()
         }
@@ -355,7 +355,7 @@ class SparseArray<E> constructor(initialCapacity: Int = 10) {
             return idealByteArraySize(need * 4) / 4
         }
 
-        fun idealByteArraySize(need: Int): Int {
+        private fun idealByteArraySize(need: Int): Int {
             for (i in 4..31)
                 if (need <= (1 shl i) - 12)
                     return (1 shl i) - 12

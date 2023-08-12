@@ -89,7 +89,7 @@ internal class ReattachingDebuggerListener<S : AndroidDebuggerState>(
   private val masterProcessHandler: ProcessHandler,
   private val applicationId: String,
   private val androidDebugger: AndroidDebugger<S>,
-  val androidDebuggerState: S,
+  private val androidDebuggerState: S,
   private val consoleViewToReuse: ConsoleView?,
   val environment: ExecutionEnvironment,
   private var processHandlerForOpenedTab: ReattachingProcessHandler

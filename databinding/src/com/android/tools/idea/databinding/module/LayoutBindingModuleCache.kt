@@ -75,7 +75,7 @@ class LayoutBindingModuleCache(private val module: Module) {
 
   @GuardedBy("lock")
   private var _viewBindingEnabled = false
-  var viewBindingEnabled: Boolean
+  private var viewBindingEnabled: Boolean
     get() = synchronized(lock) {
       return _viewBindingEnabled
     }

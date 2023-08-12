@@ -38,7 +38,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.awt.Color
-import java.lang.IllegalArgumentException
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -372,7 +371,7 @@ class EntryDetailsNodeDescriptor(
   val filteredTaskNodes: List<TaskUiData>,
   timeDistributionBuilder: TimeDistributionBuilder
 ) : TasksTreePresentableNodeDescriptor() {
-  val filteredWarningCount = filteredTaskNodes.count { it.hasWarning }
+  private val filteredWarningCount = filteredTaskNodes.count { it.hasWarning }
   val filteredEntryTime = timeDistributionBuilder.registerTimeEntry(filteredTaskNodes.sumByLong { it.executionTime.timeMs })
   override val pageId = when (entryData) {
     is CriticalPathPluginUiData -> TasksPageId.plugin(entryData)

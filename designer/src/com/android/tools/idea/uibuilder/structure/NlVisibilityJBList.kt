@@ -26,7 +26,7 @@ import java.awt.event.MouseEvent
 class NlVisibilityJBList : JBList<ButtonPresentation>(), Disposable {
   var currHovered = -1
   var currClicked = -1
-  var currModel: NlVisibilityModel? = null
+  private var currModel: NlVisibilityModel? = null
 
   private var popupMenu: NlVisibilityPopupMenu? = null
 

@@ -76,7 +76,7 @@ interface ConfigurationSet {
  * The custom category which is created by user. The user-made custom category is removable, which means user can delete the custom category
  * if they choose.
  */
-class UserDefinedCustom(override val id: String, val customConfigurationSet: CustomConfigurationSet) : ConfigurationSet {
+class UserDefinedCustom(override val id: String, private val customConfigurationSet: CustomConfigurationSet) : ConfigurationSet {
   override val name: String = customConfigurationSet.title
   override fun createModelsProvider(listener: ConfigurationSetListener) = CustomModelsProvider(id, customConfigurationSet, listener)
   fun setCustomName(customName: String) {

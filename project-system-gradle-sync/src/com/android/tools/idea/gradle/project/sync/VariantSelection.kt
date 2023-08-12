@@ -46,7 +46,7 @@ internal sealed class SyncVariantResult(
 }
 
 internal class SyncVariantResultSuccess(
-  val coreSuccess: SyncVariantResultCoreSuccess,
+  private val coreSuccess: SyncVariantResultCoreSuccess,
   val moduleDependencies: List<ModuleConfiguration>
 ) : SyncVariantResult(coreSuccess) {
   val ideVariant: IdeVariantWithPostProcessor get() = coreSuccess.ideVariant

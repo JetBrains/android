@@ -19,9 +19,9 @@ package trebuchet.importers.ftrace
 import trebuchet.util.BufferReader
 
 object TracingMarkerWrite : FunctionHandlerRegistry() {
-    const val Begin = 'B'.code.toByte()
-    const val End = 'E'.code.toByte()
-    const val Counter = 'C'.code.toByte()
+    private const val Begin = 'B'.code.toByte()
+    private const val End = 'E'.code.toByte()
+    private const val Counter = 'C'.code.toByte()
 
     init {
         "tracing_mark_write" handleWith this::handle
@@ -38,16 +38,16 @@ object TracingMarkerWrite : FunctionHandlerRegistry() {
 
 
     // tracing_mark_write: trace_event_clock_sync: parent_ts=23816.083984
-    val parentTsMatcher = matcher(
+    private val parentTsMatcher = matcher(
             "trace_event_clock_sync: parent_ts=(.*)")
 
 
     // tracing_mark_write: trace_event_clock_sync: realtime_ts=1491850748338
-    val realtimeTsMatcher = matcher(
+    private val realtimeTsMatcher = matcher(
             "trace_event_clock_sync: realtime_ts=(.*)")
 
 
-    fun BufferReader.handleClockSyncMarker(data: ImportData) {
+    private fun BufferReader.handleClockSyncMarker(data: ImportData) {
         // First check if the line we are importing is the parent timestamp line.
         tryMatch(parentTsMatcher) {
             val timestamp = double(1)
@@ -62,7 +62,7 @@ object TracingMarkerWrite : FunctionHandlerRegistry() {
         }
     }
 
-    fun BufferReader.handleBegin(data: ImportData) {
+    private fun BufferReader.handleBegin(data: ImportData) {
         // Begin format: B|<tgid>|<title>
         skipCount(2)
         data.line.tgid = readInt()
@@ -75,7 +75,7 @@ object TracingMarkerWrite : FunctionHandlerRegistry() {
         }
     }
 
-    fun handleEnd(data: ImportData) {
+    private fun handleEnd(data: ImportData) {
         // End format: E
         val slices = data.thread.slicesBuilder
         slices.endSlice {
@@ -84,7 +84,7 @@ object TracingMarkerWrite : FunctionHandlerRegistry() {
         }
     }
 
-    fun BufferReader.handleCounter(data: ImportData) {
+    private fun BufferReader.handleCounter(data: ImportData) {
         // Counter format: C|<tgid>|<name>|<value>
         skipCount(2)
         val tgid = readInt()

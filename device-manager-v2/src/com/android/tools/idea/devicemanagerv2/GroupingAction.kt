@@ -40,7 +40,7 @@ internal class GroupingAction(
   }
 }
 
-internal class GroupByNoneAction(val table: CategoryTable<DeviceRowData>) : ToggleAction("None") {
+internal class GroupByNoneAction(private val table: CategoryTable<DeviceRowData>) : ToggleAction("None") {
   override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun isSelected(e: AnActionEvent) = table.groupByAttributes.isEmpty()

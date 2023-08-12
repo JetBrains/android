@@ -50,7 +50,7 @@ class PsiModelMethod(override val containingClass: PsiModelClass, val psiMethod:
   /**
    * Returns true if the final parameter is a varargs parameter.
    */
-  val isVarArgs = psiMethod.isVarArgs
+  private val isVarArgs = psiMethod.isVarArgs
 
   /**
    * @param args The arguments to the method

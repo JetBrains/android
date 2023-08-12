@@ -53,7 +53,7 @@ class TablePresentationManager {
     applyPresentationToChildren(c, presentation)
   }
 
-  fun applyPresentationToChildren(c: JComponent, presentation: TablePresentation) {
+  private fun applyPresentationToChildren(c: JComponent, presentation: TablePresentation) {
     c.componentList.filterIsInstance<JComponent>().forEach { applyPresentation(it, presentation) }
   }
 }

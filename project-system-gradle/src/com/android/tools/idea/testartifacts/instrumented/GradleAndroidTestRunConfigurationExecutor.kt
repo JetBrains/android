@@ -168,7 +168,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
     consoleView.println("$date: Launching ${configuration.name} on '${env.executionTarget.displayName}.")
   }
 
-  fun doRunGradleTask(devices: List<IDevice>, androidTestSuiteView: AndroidTestSuiteView, isDebug: Boolean) {
+  private fun doRunGradleTask(devices: List<IDevice>, androidTestSuiteView: AndroidTestSuiteView, isDebug: Boolean) {
     val androidModuleModel = requireNotNull(GradleAndroidModel.get(facet))
     val retentionConfiguration = RetentionConfiguration(
       configuration.RETENTION_ENABLED,

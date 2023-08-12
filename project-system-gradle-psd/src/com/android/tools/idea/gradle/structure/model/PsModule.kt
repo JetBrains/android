@@ -243,7 +243,7 @@ abstract class PsModule protected constructor(
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(DependencyModifiedEvent(dependency))
   }
 
-  fun fireDependencyRemovedEvent(dependency: PsDeclaredDependency) {
+  private fun fireDependencyRemovedEvent(dependency: PsDeclaredDependency) {
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(DependencyRemovedEvent(dependency))
   }
 

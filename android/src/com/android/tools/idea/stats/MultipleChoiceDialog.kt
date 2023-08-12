@@ -41,7 +41,7 @@ private const val NEXT_BUTTON_TEXT = "Next"
  */
 class MultipleChoiceDialog(private val survey: Survey, private val choiceLogger: ChoiceLogger, hasFollowup: Boolean)
   : DialogWrapper(null), ActionListener, ItemListener {
-  val checkBoxes = mutableListOf<JCheckBox>()
+  private val checkBoxes = mutableListOf<JCheckBox>()
 
   val content: JComponent = Box.createVerticalBox().apply {
     border = JBUI.Borders.empty(0, 0, 10, 50)

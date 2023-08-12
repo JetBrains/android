@@ -190,7 +190,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
     @JvmStatic
     fun getInstance(): GradleProjectImporter = ApplicationManager.getApplication().getService(GradleProjectImporter::class.java)
 
-    internal fun beforeOpen(project: Project) {
+    private fun beforeOpen(project: Project) {
       ApplicationManager.getApplication().getUserData(AFTER_CREATE)?.invoke(project)
     }
 

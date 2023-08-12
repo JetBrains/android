@@ -39,8 +39,8 @@ private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 sealed class ProjectUpgradeNotification(title: String, content: String, type: NotificationType)
   : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, type) {
-  var callToActionDismissed = false
-  var studioEventSent = false
+  private var callToActionDismissed = false
+  private var studioEventSent = false
   abstract val project: Project
   abstract val currentAgpVersion: AgpVersion
 

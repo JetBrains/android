@@ -22,7 +22,7 @@ import java.io.Closeable
  *
  * @param lineProcessor an interface that determines how lines are processed
  */
-class TaskOutputLineProcessor(var lineProcessor: LineProcessor): Closeable {
+class TaskOutputLineProcessor(private var lineProcessor: LineProcessor): Closeable {
 
   private val stringBuffer = StringBuffer()
 

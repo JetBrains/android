@@ -44,7 +44,7 @@ class ToggleLiveLiteralsHighlightAction : AnAction(message("live.literals.highli
   }
 
   companion object {
-    fun getShortcutLabel(): String {
+    private fun getShortcutLabel(): String {
       val highlightAction = ActionManager.getInstance().getAction("Compose.Live.Literals.ToggleHighlight")
       return highlightAction.shortcutSet.shortcuts.firstOrNull()?.let {
         " (${KeymapUtil.getShortcutText(it)})"

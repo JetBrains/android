@@ -159,7 +159,7 @@ interface GradleBuildInvoker {
         gradleTasks: List<String>
       ) : this(project, RequestData(null, rootProjectPath, gradleTasks))
 
-      fun updateData(update: (RequestData) -> RequestData): Builder {
+      private fun updateData(update: (RequestData) -> RequestData): Builder {
         request = request.copy(data = update(request.data))
         return this
       }

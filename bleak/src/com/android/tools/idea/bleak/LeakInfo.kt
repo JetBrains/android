@@ -17,12 +17,12 @@ package com.android.tools.idea.bleak
 
 import java.util.IdentityHashMap
 
-class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
-  val leaktrace: Leaktrace = leakRoot.getLeaktrace()
-  val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
-  val prevChildren = prevLeakRoot.children
-  val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
-  val addedChildrenObjects = childrenObjects.filter { c -> prevChildrenObjects.all { it !== c } }
+class LeakInfo(val g: HeapGraph, val leakRoot: Node, private val prevLeakRoot: Node) {
+  private val leaktrace: Leaktrace = leakRoot.getLeaktrace()
+  private val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
+  private val prevChildren = prevLeakRoot.children
+  private val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
+  private val addedChildrenObjects = childrenObjects.filter { c -> prevChildrenObjects.all { it !== c } }
   val addedChildren = leakRoot.children.filter { c -> prevChildren.all { it.obj !== c.obj }}
   val retainedByNewChildren = mutableListOf<Node>()
   val retainedByAllChildren = mutableListOf<Node>()

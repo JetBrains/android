@@ -39,7 +39,7 @@ class VisualLintAtfAnalysis(
   private val layoutParser = NlScannerLayoutParser()
 
   /** Render specific metrics data */
-  var renderMetric = RenderResultMetricData()
+  private var renderMetric = RenderResultMetricData()
 
   init {
     Disposer.register(model, this)

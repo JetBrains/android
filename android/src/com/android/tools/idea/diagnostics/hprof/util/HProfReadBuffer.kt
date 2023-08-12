@@ -52,7 +52,7 @@ abstract class HProfReadBuffer : AutoCloseable {
     }
   }
 
-  fun getUnsignedByte(): Int = java.lang.Byte.toUnsignedInt(get())
+  private fun getUnsignedByte(): Int = java.lang.Byte.toUnsignedInt(get())
   fun getUnsignedShort(): Int = java.lang.Short.toUnsignedInt(getShort())
   fun getUnsignedInt(): Long = java.lang.Integer.toUnsignedLong(getInt())
 

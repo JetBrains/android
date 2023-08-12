@@ -33,7 +33,7 @@ class TrackGroupModel private constructor(builder: Builder) : DragAndDropListMod
   private val selector: Selector? = builder.selector
   val boxSelectionModel: BoxSelectionModel? = builder.boxSelectionModel
   val allDisplayToggles: List<String> = builder.toggles.keys.toList()
-  val displayToggleChangeListeners: Map<String, Runnable> = builder.toggles.mapValues { (_, rec) -> rec.second }
+  private val displayToggleChangeListeners: Map<String, Runnable> = builder.toggles.mapValues { (_, rec) -> rec.second }
   var activeDisplayToggles: Set<String> = builder.toggles.filterValues { it.first }.keys.toSet()
 
   private val observer = AspectObserver()
