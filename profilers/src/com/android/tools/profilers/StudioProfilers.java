@@ -552,14 +552,19 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     setStage(new StudioMonitorStage(this));
   }
 
+  public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process) {
+    setProcess(device, process, Common.ProfilerTaskType.UNSPECIFIED_TASK);
+  }
+
   /**
    * Chooses a device+process combination, and starts profiling it if not already (and stops profiling the previous one).
    *
-   * @param device  the device that will be selected. If it is null, no device and process will be selected for profiling.
-   * @param process the process that will be selected. Note that the process is expected to be spawned from the specified device.
-   *                If it is null, a process will be determined automatically by heuristics.
+   * @param device    the device that will be selected. If it is null, no device and process will be selected for profiling.
+   * @param process   the process that will be selected. Note that the process is expected to be spawned from the specified device.
+   *                  If it is null, a process will be determined automatically by heuristics.
+   * @param taskType  the type of task to pass into beginSession so that the created session has a respective task type.
    */
-  public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process) {
+  public void setProcess(@Nullable Common.Device device, @Nullable Common.Process process, @NotNull Common.ProfilerTaskType taskType) {
     if (device != null) {
       // Device can be not null in the following scenarios:
       // 1. User explicitly sets a device from the dropdown.
@@ -606,7 +611,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       // Only start a new session if the process is valid.
       if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
-        mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess);
+        mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess, taskType);
       }
     }
   }
