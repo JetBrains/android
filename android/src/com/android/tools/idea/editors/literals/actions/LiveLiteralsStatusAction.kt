@@ -44,7 +44,7 @@ import javax.swing.JComponent
 
 private val AVAILABLE_ICON = StudioIcons.Shell.StatusBar.LIVE_LITERALS
 private val NOT_AVAILABLE_ICON = IconUtil.desaturate(AVAILABLE_ICON)
-private val ERROR_ICON = LayeredIcon(StudioIcons.Shell.StatusBar.LIVE_LITERALS, AllIcons.Nodes.ErrorMark)
+private val ERROR_ICON = LayeredIcon.layeredIcon { arrayOf(StudioIcons.Shell.StatusBar.LIVE_LITERALS, AllIcons.Nodes.ErrorMark) }
 
 private fun Project.isCompose() = cacheInvalidatingOnSyncModifications {
   allModules().any { it.getModuleSystem().usesCompose }
