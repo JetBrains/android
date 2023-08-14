@@ -249,7 +249,9 @@
     <postStartupActivity implementation="com.android.tools.idea.modes.essentials.EssentialsModeRecommender"/>
     <postStartupActivity implementation="com.android.tools.idea.modes.essentials.EssentialsModeNotifierOnStartup"/>
     <applicationConfigurable groupId="appearance" groupWeight="140" id="essentials.mode.settings"
-                             instance="com.android.tools.idea.modes.essentials.EssentialsModeSettingsPage"/>
+                             instance="com.android.tools.idea.modes.essentials.EssentialsModeSettingsPage"
+                             bundle="messages.AndroidBundle"
+                             key="configurable.EssentialsModeSettingsPage.displayName"/>
     <statusBarWidgetFactory id="Essentials Mode Widget" implementation="com.android.tools.idea.modes.essentials.EssentialsModeWidgetFactory"/>
     <postStartupActivity implementation="com.intellij.ide.actions.EssentialHighlightingNotifier"/>
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
@@ -294,7 +296,9 @@
     <applicationService serviceImplementation="com.android.tools.idea.diagnostics.heap.HeapSnapshotTraverseService"/>
 
     <applicationConfigurable groupId="build" id="instant.run"
-                             provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"/>
+                             provider="com.android.tools.idea.deploy.DeploymentConfigurableProvider"
+                             bundle="messages.AndroidBundle"
+                             key="configurable.DeploymentConfigurable.displayName"/>
 
     <projectTypesProvider implementation="com.android.tools.idea.project.AndroidProjectTypesProvider"/>
 

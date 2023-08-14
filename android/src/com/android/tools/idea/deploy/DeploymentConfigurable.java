@@ -20,6 +20,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.ui.components.JBCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +37,7 @@ public class DeploymentConfigurable implements Configurable, Configurable.NoScro
   @Nls(capitalization = Nls.Capitalization.Title)
   @Override
   public String getDisplayName() {
-    return "Deployment";
+    return AndroidBundle.message("configurable.DeploymentConfigurable.displayName");
   }
 
   @Nullable

@@ -25,12 +25,14 @@ import com.intellij.openapi.options.ex.Settings
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
+import org.jetbrains.android.util.AndroidBundle
 
-class EssentialsModeSettingsPage : BoundConfigurable("Essentials Mode"), SearchableConfigurable {
+class EssentialsModeSettingsPage : BoundConfigurable(
+  AndroidBundle.message("configurable.EssentialsModeSettingsPage.displayName")), SearchableConfigurable {
   override fun createPanel(): DialogPanel {
     return panel {
       enabled(StudioFlags.ESSENTIALS_MODE_VISIBLE.get())
-      group("Essentials Mode") {
+      group(AndroidBundle.message("configurable.EssentialsModeSettingsPage.displayName")) {
         row {
           checkBox("Enable Essentials Mode")
             .bindSelected({ EssentialsMode.isEnabled() }, { EssentialsMode.setEnabled(it, null) })
@@ -45,7 +47,7 @@ class EssentialsModeSettingsPage : BoundConfigurable("Essentials Mode"), Searcha
       group("Related Features") {
         row {
           text("In addition to Essential Highlighting, enabling Essentials Mode also enables a number of related features.  " +
-                     "Their state can be controlled using the links below.")
+               "Their state can be controlled using the links below.")
         }
         row {
           text("<a>Compose Preview resource usage</a>") {
