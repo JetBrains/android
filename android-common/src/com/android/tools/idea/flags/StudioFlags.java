@@ -746,7 +746,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> GRADLE_SYNC_FETCH_KOTLIN_MODELS_IN_PARALLEL = Flag.create(
     GRADLE_IDE, "gradle.sync.fetch.kotlin.models.in.parallel", "Enables parallel fetching of Kotlin models",
-    "This allows the IDE to fetch Kotlin models in parallel", false);
+    "This allows the IDE to fetch Kotlin models in parallel", true);
 
 
   public static final Flag<String> SYNC_STATS_OUTPUT_DIRECTORY = Flag.create(
