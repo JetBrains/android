@@ -248,11 +248,6 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
     super.setPendingCaptureStartTime(pendingCaptureStartTime);
   }
 
-  @Override
-  public void setStopTaskAction(@NotNull Runnable stopTaskAction) {
-    myStopTaskAction = stopTaskAction;
-  }
-
   public void startHeapDumpCapture() {
     startMemoryRecording(lazyHeapDumpRecordingOption.getValue());
   }

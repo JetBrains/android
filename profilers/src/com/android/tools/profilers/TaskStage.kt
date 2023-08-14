@@ -25,7 +25,7 @@ interface TaskStage {
     get() = Logger.getInstance(TaskStage::class.java)
 
   // To be passed in from the respective task handler, customizing the behavior on task stop.
-  var stopTaskAction: Runnable
+  val stopTaskAction: Runnable
 
   /**
    * Method used to safely invoke the "stopTaskAction".

@@ -479,11 +479,6 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
     }
   }
 
-  @Override
-  public void setStopTaskAction(@NotNull Runnable stopTaskAction) {
-    myStopTaskAction = stopTaskAction;
-  }
-
   @NotNull
   public CaptureState getCaptureState() {
     return myCaptureState;
