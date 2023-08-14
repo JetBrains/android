@@ -42,7 +42,7 @@ class GradleSyncInvokerImpl : GradleSyncInvoker {
   @Suppress("UnstableApiUsage")
   override fun requestProjectSync(project: Project, request: GradleSyncInvoker.Request, listener: GradleSyncListener?) {
     if (!project.isTrusted()) {
-      LOG.debug("Skip ${project.name} import, because project is not trusted", Throwable())
+      LOG.info("Skip ${project.name} import, because project is not trusted", Throwable())
       listener?.syncSkipped(project)
       return
     }
