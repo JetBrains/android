@@ -66,7 +66,7 @@ class ProcessesModel(
   @GuardedBy("lock") private val _selectedProcessListeners = mutableMapOf<() -> Unit, Executor>()
 
   val selectedProcessListeners: Map<() -> Unit, Executor>
-    get() = synchronized(lock) { _selectedProcessListeners }
+    get() = synchronized(lock) { _selectedProcessListeners.toMap() }
 
   @GuardedBy("lock") private val _processes = mutableSetOf<ProcessDescriptor>()
 
