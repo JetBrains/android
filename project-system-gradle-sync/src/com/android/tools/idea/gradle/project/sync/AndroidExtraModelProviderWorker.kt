@@ -143,7 +143,9 @@ internal class AndroidExtraModelProviderWorker(
   private fun getBasicIncompleteGradleModules(): List<BasicIncompleteGradleModule> {
     return safeActionRunner.runActions(
       buildInfo.projects.map { gradleProject ->
-        val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
+        // org.gradle.tooling.model.BuildIdentifier.getRootDir does not return canonical path, so we need to convert it to one
+        // as other Gradle APIs e.g. Project.projectDir does return canonical paths.
+        val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir.canonicalFile)
         val buildPath = buildInfo.buildIdMap[buildId] ?: error("Build not found: $buildId \n" +
                                                                "available builds ${buildInfo.buildIdMap}")
         ActionToRun(
