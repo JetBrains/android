@@ -15,12 +15,7 @@
  */
 package com.android.tools.idea.compose.pickers.preview.enumsupport.devices
 
-import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
-import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
-import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
-import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
-import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.pickers.base.enumsupport.PsiEnumValue
 import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
@@ -32,8 +27,6 @@ import com.android.tools.idea.configurations.DEVICE_CLASS_DESKTOP_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_PHONE_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_TABLET_TOOLTIP
-import com.android.tools.idea.configurations.PREDEFINED_WINDOW_SIZES_DEFINITIONS
-import com.android.tools.idea.configurations.WindowSizeData
 import com.android.tools.property.panel.api.EnumValue
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import icons.StudioIcons
@@ -43,34 +36,6 @@ import kotlin.math.sqrt
 
 /** Used for `Round Chin` devices. Or when DeviceConfig.shape == Shape.Chin */
 internal const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
-
-/** Default device configuration for Phones */
-internal val ReferencePhoneConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_PHONE_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
-
-/** Default device configuration for Foldables */
-internal val ReferenceFoldableConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_FOLDABLE_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
-
-/** Default device configuration for Tablets */
-internal val ReferenceTabletConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_TABLET_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
-
-/** Default device configuration for Desktops */
-internal val ReferenceDesktopConfig: DeviceConfig by
-  lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_DESKTOP_ID }
-      .toDeviceConfigWithDpDimensions()
-  }
 
 /** The different types of devices that'll be available on the picker 'Device' DropDown. */
 internal enum class DeviceClass(val display: String, val icon: Icon? = null) {
@@ -313,17 +278,3 @@ internal class DeviceEnumValueBuilder {
     }
   }
 }
-
-private fun WindowSizeData.toDeviceConfigWithDpDimensions() =
-  DeviceConfig(
-    width = widthDp.toFloat(),
-    height = heightDp.toFloat(),
-    dimUnit = DimUnit.dp,
-    dpi = density.dpiValue,
-    shape = Shape.Normal,
-    orientation =
-      when (defaultOrientation) {
-        ScreenOrientation.LANDSCAPE -> Orientation.landscape
-        else -> Orientation.portrait
-      }
-  )
