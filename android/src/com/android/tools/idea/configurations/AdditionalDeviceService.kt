@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.configurations
 
-import com.android.resources.Density
 import com.android.resources.ScreenOrientation
 import com.android.resources.ScreenRatio
 import com.android.resources.ScreenRound
@@ -25,11 +24,6 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
-import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
-import com.android.tools.configurations.DEVICE_CLASS_FOLDABLE_ID
-import com.android.tools.configurations.DEVICE_CLASS_PHONE_ID
-import com.android.tools.configurations.DEVICE_CLASS_TABLET_ID
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAware
 import kotlin.math.sqrt
@@ -51,23 +45,6 @@ class AdditionalDeviceService: DumbAware {
 
   fun getWindowSizeDevices(): List<Device> = windowDevices
 }
-
-
-data class WindowSizeData(val id: String, val name: String, val widthDp: Double, val heightDp: Double, val density: Density,
-                          val defaultOrientation: ScreenOrientation) {
-  val widthPx: Int = widthDp.toPx(density)
-  val heightPx: Int = heightDp.toPx(density)
-}
-
-/**
- * The device definitions used by Android Studio only
- */
-val PREDEFINED_WINDOW_SIZES_DEFINITIONS: List<WindowSizeData> = listOf(
-  WindowSizeData(DEVICE_CLASS_PHONE_ID, "Medium Phone", 411.0, 891.0, Density.create(420), ScreenOrientation.PORTRAIT),
-  WindowSizeData(DEVICE_CLASS_FOLDABLE_ID, "Foldable", 673.0, 841.0, Density.create(420), ScreenOrientation.PORTRAIT),
-  WindowSizeData(DEVICE_CLASS_TABLET_ID, "Medium Tablet", 1280.0, 800.0, Density.HIGH, ScreenOrientation.LANDSCAPE),
-  WindowSizeData(DEVICE_CLASS_DESKTOP_ID, "Desktop", 1920.0, 1080.0, Density.MEDIUM, ScreenOrientation.LANDSCAPE)
-)
 
 private fun createWindowDevices(): List<Device> =
   PREDEFINED_WINDOW_SIZES_DEFINITIONS.map { windowSizeDef ->
