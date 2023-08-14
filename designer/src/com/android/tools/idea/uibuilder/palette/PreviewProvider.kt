@@ -24,7 +24,6 @@ import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
@@ -200,12 +199,8 @@ class PreviewProvider(
   private val currentScale: Double?
     get() =
       myDesignSurfaceSupplier.get()?.let {
-        if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-          val sceneScale = it.focusedSceneView?.sceneManager?.sceneScalingFactor ?: 1.0f
-          return it.scale * it.screenScalingFactor / sceneScale
-        } else {
-          return it.scale * it.screenScalingFactor
-        }
+        val sceneScale = it.focusedSceneView?.sceneManager?.sceneScalingFactor ?: 1.0f
+        return it.scale * it.screenScalingFactor / sceneScale
       }
 
   private val sceneView: SceneView?

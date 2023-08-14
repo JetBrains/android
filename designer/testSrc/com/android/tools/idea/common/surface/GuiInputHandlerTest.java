@@ -120,12 +120,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
                          "     android:text=\"Hello World\"\n" +
                          "/>";
     Transferable transferable = createTransferable(DataFlavor.stringFlavor, xmlFragment);
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      dragDrop(manager, 0, 0, 50, 50, transferable);
-    }
-    else {
-      dragDrop(manager, 0, 0, 100, 100, transferable);
-    }
+    dragDrop(manager, 0, 0, 50, 50, transferable);
     Disposer.dispose(model);
 
     String expected = "NlComponent{tag=<LinearLayout>, instance=0}\n" +
@@ -155,12 +150,7 @@ public class GuiInputHandlerTest extends LayoutTestCase {
                          "     android:layout_height=\"wrap_content\"\n" +
                          "/>";
     Transferable transferable = createTransferable(DataFlavor.stringFlavor, xmlFragment);
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      dragDrop(manager, 0, 0, 50, 50, transferable);
-    }
-    else {
-      dragDrop(manager, 0, 0, 100, 100, transferable);
-    }
+    dragDrop(manager, 0, 0, 50, 50, transferable);
     Disposer.dispose(model);
 
     String expected = "NlComponent{tag=<LinearLayout>, instance=0}\n" +

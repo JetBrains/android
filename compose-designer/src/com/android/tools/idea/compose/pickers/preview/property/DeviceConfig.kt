@@ -46,7 +46,6 @@ import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_UNIT
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.SEPARATOR
 import com.android.tools.idea.compose.preview.util.device.convertToDeviceSpecDimension
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.android.utils.HashCodes
 import kotlin.math.roundToInt
@@ -256,7 +255,7 @@ internal open class DeviceConfig(
         enumValueOfOrNull<DimUnit>(paramsMap.getOrDefault(PARAMETER_UNIT, "").lowercase())
           ?: return null
       val dpi =
-        if (StudioFlags.NELE_DP_SIZED_PREVIEW.get() && referenceDeviceId != null) {
+        if (referenceDeviceId != null) {
           referenceDeviceRealDensities[referenceDeviceId]!!
         } else {
           paramsMap.getOrDefault(PARAMETER_DPI, "").toIntOrNull() ?: return null

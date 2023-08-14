@@ -20,12 +20,9 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import java.awt.Point
 import javax.swing.JPanel
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers.anyInt
@@ -34,16 +31,6 @@ import org.mockito.Mockito
 class ComposePreviewInspectorTest {
 
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
-
-  @Before
-  fun setup() {
-    StudioFlags.NELE_DP_SIZED_PREVIEW.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_DP_SIZED_PREVIEW.clearOverride()
-  }
 
   @Test
   fun testFindHoveredComposeViewInfo() {

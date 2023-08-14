@@ -23,14 +23,12 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.configurations.Configuration
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.createRenderTaskErrorResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
 import com.android.tools.rendering.RenderLogger
 import java.awt.Dimension
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Rule
@@ -39,11 +37,6 @@ import org.mockito.Mockito.mock
 
 class ScreenViewTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_DP_SIZED_PREVIEW.clearOverride()
-  }
 
   private fun buildState(): State {
     val screen =
@@ -152,7 +145,6 @@ class ScreenViewTest {
 
   @Test
   fun `device content size policy based on dp screen size`() {
-    StudioFlags.NELE_DP_SIZED_PREVIEW.override(true)
     val screenView = mock(ScreenView::class.java)
     val configuration = mock(Configuration::class.java)
     val lowDensityScreen =

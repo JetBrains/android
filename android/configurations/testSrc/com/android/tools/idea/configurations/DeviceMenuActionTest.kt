@@ -58,24 +58,13 @@ class DeviceMenuActionTest {
   }
 
   private fun getReferenceDevicesExpected(): String {
-    return if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      """
+    return """
     Reference Devices
     Medium Phone (411 × 891 dp, 420dpi)
     Foldable (673 × 841 dp, 420dpi)
     Medium Tablet (1280 × 800 dp, hdpi)
     Desktop (1920 × 1080 dp, mdpi)
     """
-    }
-    else {
-      """
-    Reference Devices
-    Medium Phone (411 × 891 dp, xxhdpi)
-    Foldable (674 × 841 dp, xxhdpi)
-    Medium Tablet (1280 × 800 dp, xxhdpi)
-    Desktop (1920 × 1080 dp, xxhdpi)
-    """
-    }
   }
 
   @Test

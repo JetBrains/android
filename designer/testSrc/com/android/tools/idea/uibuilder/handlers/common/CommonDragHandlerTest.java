@@ -71,12 +71,7 @@ public class CommonDragHandlerTest extends LayoutTestCase {
     Transferable transferable = surface.getSelectionAsTransferable();
     GuiInputHandler manager = surface.getGuiInputHandler();
     manager.startListening();
-    if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-      LayoutTestUtilities.dragDrop(manager, 0, 0, 20, 0, transferable, DnDConstants.ACTION_MOVE);
-    }
-    else {
-      LayoutTestUtilities.dragDrop(manager, 0, 0, 40, 0, transferable, DnDConstants.ACTION_MOVE);
-    }
+    LayoutTestUtilities.dragDrop(manager, 0, 0, 20, 0, transferable, DnDConstants.ACTION_MOVE);
     assertEquals(3, model.find("inner").getChildCount());
     assertEquals("button", model.find("inner").getChild(2).getId());
     assertEquals(1, model.find("outer").getChildCount());

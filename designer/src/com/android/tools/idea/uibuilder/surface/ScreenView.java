@@ -87,15 +87,10 @@ public class ScreenView extends ScreenViewBase {
         HardwareConfig config =
           new HardwareConfigHelper(device).setOrientation(state.getOrientation()).getConfig();
 
-        if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-          float densityRatio = Density.DEFAULT_DENSITY * 1.0f / config.getDensity().getDpiValue();
-          int dpWidth = Math.round(config.getScreenWidth() * densityRatio);
-          int dpHeight = Math.round(config.getScreenHeight() * densityRatio);
-          outDimension.setSize(dpWidth, dpHeight);
-        }
-        else {
-          outDimension.setSize(config.getScreenWidth(), config.getScreenHeight());
-        }
+        float densityRatio = Density.DEFAULT_DENSITY * 1.0f / config.getDensity().getDpiValue();
+        int dpWidth = Math.round(config.getScreenWidth() * densityRatio);
+        int dpHeight = Math.round(config.getScreenHeight() * densityRatio);
+        outDimension.setSize(dpWidth, dpHeight);
       }
     }
   };
@@ -119,11 +114,7 @@ public class ScreenView extends ScreenViewBase {
         ViewInfo viewInfo = result.getSystemRootViews().get(0);
 
         try {
-          if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
-            outDimension.setSize(Coordinates.pxToDp(screenView, viewInfo.getRight()), Coordinates.pxToDp(screenView, viewInfo.getBottom()));
-          } else {
-            outDimension.setSize(viewInfo.getRight(), viewInfo.getBottom());
-          }
+          outDimension.setSize(Coordinates.pxToDp(screenView, viewInfo.getRight()), Coordinates.pxToDp(screenView, viewInfo.getBottom()));
           // Save in case a future render fails. This way we can keep a constant size for failed
           // renders.
           if (cachedDimension == null) {
