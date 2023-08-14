@@ -21,8 +21,10 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectService
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.util.messages.Topic
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -31,9 +33,16 @@ import java.util.concurrent.atomic.AtomicReference
  * See also: [SafeArgsModeTrackerProjectService]
  * See also: [safeArgsMode]
  */
-class SafeArgsModeModuleService(val module: Module) {
+class SafeArgsModeModuleService(val module: Module) : Disposable.Default {
+  fun interface SafeArgsModeChangedListener {
+    fun onSafeArgsModeChanged(module: Module, mode: SafeArgsMode)
+  }
+
   companion object {
     fun getInstance(module: Module): SafeArgsModeModuleService = module.getService(SafeArgsModeModuleService::class.java)
+
+    val MODE_CHANGED: Topic<SafeArgsModeChangedListener> =
+      Topic(SafeArgsModeChangedListener::class.java, Topic.BroadcastDirection.TO_CHILDREN, true)
   }
 
   private val atomicSafeArgsMode = AtomicReference(SafeArgsMode.NONE)
@@ -42,7 +51,7 @@ class SafeArgsModeModuleService(val module: Module) {
     get() = atomicSafeArgsMode.get()
     set(value) {
       if (atomicSafeArgsMode.getAndSet(value) != value) {
-        SafeArgsModeTrackerProjectService.getInstance(module.project).tracker.incModificationCount()
+        module.project.messageBus.syncPublisher(MODE_CHANGED).onSafeArgsModeChanged(module, value)
       }
     }
 
@@ -63,7 +72,7 @@ class SafeArgsModeModuleService(val module: Module) {
       override fun syncSkipped(project: Project) {
         updateSafeArgsMode()
       }
-    }, module)
+    }, this)
   }
 
   private fun updateSafeArgsMode() {

@@ -15,18 +15,21 @@
  */
 package com.android.tools.idea.nav.safeargs.project
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithSaving
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
 import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
-import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.verifyNoMoreInteractions
 
 class NavigationResourcesModificationListenerTest {
   @get:Rule
@@ -34,25 +37,29 @@ class NavigationResourcesModificationListenerTest {
 
   private lateinit var myModuleNavResourcesTracker: ModuleNavigationResourcesModificationTracker
   private lateinit var myProjectNavResourcesTracker: ProjectNavigationResourceModificationTracker
-  private lateinit var project: Project
+  private val project: Project
+    get() = safeArgsRule.project
+  private val listener = mock<NavigationResourcesChangeListener>()
+
+  private var lastModificationCount = 0L
 
   @Before
   fun setUp() {
-    project = safeArgsRule.project
-
     // Ensure that the resource repository is initialized before we start testing, since NavigationResourcesModificationListener will only
     // used an already-cached version of the repository and won't trigger creation if it doesn't already exist.
     safeArgsRule.fixture.addFileToProject("res/values/strings.xml", "")
     safeArgsRule.waitForResourceRepositoryUpdates()
 
+    project.messageBus.connect().subscribe(NAVIGATION_RESOURCES_CHANGED, listener)
     NavigationResourcesModificationListener.ensureSubscribed(project)
     myModuleNavResourcesTracker = ModuleNavigationResourcesModificationTracker.getInstance(safeArgsRule.module)
     myProjectNavResourcesTracker = ProjectNavigationResourceModificationTracker.getInstance(project)
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(0L)
+    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(0L)
   }
 
   @Test
   fun addFilesToNavigationResourcesFolder() {
-    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(0L)
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -75,7 +82,7 @@ class NavigationResourcesModificationListenerTest {
 
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 document change and 1 vfs change
-    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(2L)
+    verifyModuleChangeEventsFired(2)
 
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/other.xml",
@@ -99,13 +106,11 @@ class NavigationResourcesModificationListenerTest {
 
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 document change and 1 vfs change
-    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(4L)
-    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(4L)
+    verifyModuleChangeEventsFired(2)
   }
 
   @Test
   fun deleteNavigationResourceFolder() {
-    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(0L)
     val navFile = safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -128,20 +133,18 @@ class NavigationResourcesModificationListenerTest {
 
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 document change and 1 vfs change
-    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(2L)
-    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(2L)
+    verifyModuleChangeEventsFired(2)
+
     WriteCommandAction.runWriteCommandAction(project) {
       navFile.virtualFile.parent.delete(this)
     }
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 vfs change
-    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(3L)
-    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(3L)
+    verifyModuleChangeEventsFired(1)
   }
 
   @Test
   fun modifyNavResourceFile() {
-    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(0L)
     val navFile = safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -163,8 +166,7 @@ class NavigationResourcesModificationListenerTest {
       """.trimIndent())
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 document change and 1 vfs change
-    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(2L)
-    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(2L)
+    verifyModuleChangeEventsFired(2)
 
     // modify without saving
     WriteCommandAction.runWriteCommandAction(project) {
@@ -172,16 +174,23 @@ class NavigationResourcesModificationListenerTest {
     }
     safeArgsRule.waitForResourceRepositoryUpdates()
     // picked up 1 document change
-    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(3L)
-    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(3L)
+    verifyModuleChangeEventsFired(1)
 
     // modify and save afterwards
     WriteCommandAction.runWriteCommandAction(project) {
       navFile.virtualFile.replaceWithSaving("fragment2", "fragment3", project)
     }
     safeArgsRule.waitForResourceRepositoryUpdates()
-    // picked up 1 document change and 1 vfs change
-    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(4L)
-    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(4L)
+    // picked up 1 vfs change
+    verifyModuleChangeEventsFired(1)
+  }
+
+  private fun verifyModuleChangeEventsFired(count: Int) {
+    verify(listener, times(count)).onNavigationResourcesChanged(safeArgsRule.module)
+    verifyNoMoreInteractions(listener)
+    reset(listener)
+    lastModificationCount += count
+    assertThat(myModuleNavResourcesTracker.modificationCount).isEqualTo(lastModificationCount)
+    assertThat(myProjectNavResourcesTracker.modificationCount).isEqualTo(lastModificationCount)
   }
 }

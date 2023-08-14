@@ -17,8 +17,10 @@ package com.android.tools.idea.nav.safeargs.project
 
 import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 import net.jcip.annotations.ThreadSafe
 
@@ -30,14 +32,25 @@ import net.jcip.annotations.ThreadSafe
  * See also: [safeArgsModeTracker]
  */
 @ThreadSafe
-@Service
-class SafeArgsModeTrackerProjectService() {
+@Service(Service.Level.PROJECT)
+class SafeArgsModeTrackerProjectService(project: Project) : ModificationTracker, Disposable.Default {
   companion object {
     fun getInstance(project: Project) = project.getService(SafeArgsModeTrackerProjectService::class.java)!!
+  }
+
+  init {
+    project.messageBus.connect(this).subscribe(
+      SafeArgsModeModuleService.MODE_CHANGED,
+      SafeArgsModeModuleService.SafeArgsModeChangedListener { _, _ ->
+        tracker.incModificationCount()
+      }
+    )
   }
 
   /**
    * A thread-safe modification tracker that should get updated
    */
-  internal val tracker = SimpleModificationTracker()
+  private val tracker = SimpleModificationTracker()
+
+  override fun getModificationCount(): Long = tracker.modificationCount
 }

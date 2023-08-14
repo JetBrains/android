@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.nav.safeargs.project.gradle
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.extensions.replaceWithoutSaving
+import com.android.tools.idea.nav.safeargs.project.NAVIGATION_RESOURCES_CHANGED
+import com.android.tools.idea.nav.safeargs.project.NavigationResourcesChangeListener
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.nav.safeargs.project.ProjectNavigationResourceModificationTracker
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -25,10 +28,12 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.jetbrains.kotlin.idea.util.projectStructure.getModule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.mockito.Mockito.verify
 
 /**
  * Test that our project-wide modification tracker works across multiple modules.
@@ -52,20 +57,24 @@ class ProjectNavigationResourceModificationTrackerTest {
     NavigationResourcesModificationListener.ensureSubscribed(fixture.project)
   }
 
-/**
- *  Project structure:
- *  base app module --> lib1 dep module(safe arg mode is off) --> lib2 dep module(safe arg mode is on)
- */
+  /**
+   *  Project structure:
+   *  base app module --> lib1 dep module(safe arg mode is off) --> lib2 dep module(safe arg mode is on)
+   */
   @Test
   fun multiModuleModificationTrackerTest() {
     projectRule.requestSyncAndWait()
     val baseLineNumber = ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount
+    val listener = mock<NavigationResourcesChangeListener>()
+    projectRule.project.messageBus.connect().subscribe(NAVIGATION_RESOURCES_CHANGED, listener)
 
     val navFileInBaseAppModule = projectRule.project.baseDir.findFileByRelativePath(
       "app/src/main/res/navigation/nav_graph.xml")!!
+    val appModule = navFileInBaseAppModule.getModule(projectRule.project)!!
 
     val navFileInDepModule = projectRule.project.baseDir.findFileByRelativePath(
       "mylibrary2/src/main/res/navigation/libnav_graph.xml")!!
+    val depModule = navFileInDepModule.getModule(projectRule.project)!!
 
     // modify a nav file in base-app module without saving
     WriteCommandAction.runWriteCommandAction(fixture.project) {
@@ -73,6 +82,7 @@ class ProjectNavigationResourceModificationTrackerTest {
     }
     // picked up 1 document change
     assertThat(ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount).isEqualTo(baseLineNumber + 1)
+    verify(listener).onNavigationResourcesChanged(appModule)
 
     // modify a nav file in dep module without saving
     WriteCommandAction.runWriteCommandAction(fixture.project) {
@@ -80,5 +90,6 @@ class ProjectNavigationResourceModificationTrackerTest {
     }
     // picked up 1 document change
     assertThat(ProjectNavigationResourceModificationTracker.getInstance(fixture.project).modificationCount).isEqualTo(baseLineNumber + 2)
+    verify(listener).onNavigationResourcesChanged(depModule)
   }
 }

@@ -23,18 +23,21 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.LazyFileListenerSubscriber
 import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
 import com.intellij.AppTopics
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.startup.StartupActivity
@@ -43,13 +46,14 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileEvent
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.util.messages.Topic
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.TestOnly
 
 /**
  * A project-wide listener that determines which modules' navigation files are affected by VFS changes or Document
- * changes and tell the corresponding [ModuleNavigationResourcesModificationTracker]s and
- * [ProjectNavigationResourceModificationTracker]s to increment counter.
+ * changes and sends a [NAVIGATION_RESOURCES_CHANGED] event to tell the corresponding
+ * [ModuleNavigationResourcesModificationTracker]s and [ProjectNavigationResourceModificationTracker]s to increment counter.
  *
  * [NavigationResourcesModificationListener] registers itself to start actively listening for VFS changes and Document
  * changes after the project opening.
@@ -93,8 +97,7 @@ class NavigationResourcesModificationListener(
   }
 
   override fun fileChanged(path: PathString, facet: AndroidFacet) {
-    ModuleNavigationResourcesModificationTracker.getInstance(facet.module).navigationChanged()
-    ProjectNavigationResourceModificationTracker.getInstance(facet.module.project).navigationChanged()
+    dispatchResourcesChanged(facet.module)
   }
 
   override fun contentsChanged(event: VirtualFileEvent) {
@@ -121,8 +124,16 @@ class NavigationResourcesModificationListener(
    */
   class SubscriptionStartupActivity : ProjectActivity {
     override suspend fun execute(project: Project) {
-      val resourceListener = NavigationResourcesModificationListener(project)
-      val subscriber = object : LazyFileListenerSubscriber<NavigationResourcesModificationListener>(resourceListener, project) {
+      project.getService(Subscriber::class.java).onProjectOpened()
+    }
+  }
+
+  @Service(Service.Level.PROJECT)
+  private class Subscriber(private val project: Project) : Disposable.Default {
+    private val subscriber =
+      object : LazyFileListenerSubscriber<NavigationResourcesModificationListener>(
+        NavigationResourcesModificationListener(project), this
+      ) {
         override fun subscribe() {
           // To receive all changes happening in the VFS. File modifications may
           // not be picked up immediately if such changes are not saved on the disk yet
@@ -132,13 +143,22 @@ class NavigationResourcesModificationListener(
           EditorFactory.getInstance().eventMulticaster.addDocumentListener(listener, parent)
 
           // To receive notifications when any Documents are saved or reloaded from disk
-          project.messageBus.connect().subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
+          project.messageBus.connect(parent).subscribe(AppTopics.FILE_DOCUMENT_SYNC, listener)
         }
       }
-      project.listenUntilNextSync(listener = object : SyncResultListener {
-        override fun syncEnded(result: SyncResult) = subscriber.ensureSubscribed()
-      })
+
+    fun onProjectOpened() {
+      project.listenUntilNextSync(this) { subscriber.ensureSubscribed() }
+      // Send a project-wide resource-change event once indexes are ready, to ensure that all
+      // modification trackers are updated and all old cached data is cleared.
+      DumbService.getInstance(project).runWhenSmart {
+        subscriber.listener.dispatchResourcesChanged(null)
+      }
     }
+  }
+
+  private fun dispatchResourcesChanged(module: Module?) {
+    project.messageBus.syncPublisher(NAVIGATION_RESOURCES_CHANGED).onNavigationResourcesChanged(module)
   }
 
   companion object {
@@ -152,5 +172,17 @@ class NavigationResourcesModificationListener(
       project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(SyncResult.SUCCESS)
     }
   }
-
 }
+
+fun interface NavigationResourcesChangeListener {
+  /**
+   * Called when the navigation resources for a given module have changed.
+   *
+   * If [module] is `null`, this is the result of a project-wide change, and all modules should be considered changed.
+   */
+  fun onNavigationResourcesChanged(module: Module?)
+}
+
+/** An event fired on the project message bus when navigation resources are updated. */
+val NAVIGATION_RESOURCES_CHANGED: Topic<NavigationResourcesChangeListener> =
+  Topic(NavigationResourcesChangeListener::class.java, Topic.BroadcastDirection.TO_CHILDREN, true)

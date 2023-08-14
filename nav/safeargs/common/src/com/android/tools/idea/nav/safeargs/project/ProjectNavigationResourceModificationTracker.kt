@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.project
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
@@ -25,20 +26,16 @@ import com.intellij.openapi.util.SimpleModificationTracker
  * A project-wide modification tracker whose modification count is a value incremented by any modifications of
  * corresponding navigation resource files.
  */
-class ProjectNavigationResourceModificationTracker(val project: Project) : ModificationTracker {
+class ProjectNavigationResourceModificationTracker(project: Project) : ModificationTracker, Disposable.Default {
   private val navigationModificationTracker = SimpleModificationTracker()
 
   init {
-    if (!project.isDefault) {
-      val startupManager = StartupManager.getInstance(project)
-      if (!startupManager.postStartupActivityPassed()) {
-        // If query happens before indexing when project just starts up, invalid queried results are cached.
-        // So we need to explicitly update tracker to ensure another index query, instead of providing stale cached results.
-        startupManager.runAfterOpened {
-          DumbService.getInstance(project).runWhenSmart(::navigationChanged)
-        }
+    project.messageBus.connect(this).subscribe(
+      NAVIGATION_RESOURCES_CHANGED,
+      NavigationResourcesChangeListener {
+        navigationChanged()
       }
-    }
+    )
   }
 
   companion object {
@@ -51,7 +48,7 @@ class ProjectNavigationResourceModificationTracker(val project: Project) : Modif
   /**
    * This is invoked when NavigationModificationListener detects a navigation file has been changed or added or deleted for this project
    */
-  internal fun navigationChanged() {
+  private fun navigationChanged() {
     navigationModificationTracker.incModificationCount()
   }
 }

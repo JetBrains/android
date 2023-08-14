@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.nav.safeargs.gradle
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.TestDataPaths
+import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.nav.safeargs.safeArgsModeTracker
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -30,6 +32,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import org.mockito.Mockito.verify
 
 /**
  * Verify that we can sync a Gradle project that applies the safe args plugin.
@@ -63,15 +66,23 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
     modificationCountBaseline = projectRule.project.safeArgsModeTracker.modificationCount
 
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
-    projectRule.load(params.project)
   }
 
   @Test
   fun verifyExpectedSafeMode() {
+    val listener = mock<SafeArgsModeModuleService.SafeArgsModeChangedListener>()
+    projectRule.project.messageBus.connect(fixture.projectDisposable).subscribe(
+      SafeArgsModeModuleService.MODE_CHANGED,
+      SafeArgsModeModuleService.SafeArgsModeChangedListener { module, mode ->
+        listener.onSafeArgsModeChanged(module, mode)
+      })
+
+    projectRule.load(params.project)
     projectRule.requestSyncAndWait()
 
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.safeArgsMode).isEqualTo(params.mode)
     assertThat(projectRule.project.safeArgsModeTracker.modificationCount).isGreaterThan(modificationCountBaseline)
+    verify(listener).onSafeArgsModeChanged(facet.module, params.mode)
   }
 }

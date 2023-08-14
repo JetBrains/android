@@ -57,6 +57,6 @@ var AndroidFacet.safeArgsMode: SafeArgsMode
  * modules.
  */
 val Project.safeArgsModeTracker: ModificationTracker
-  get() = SafeArgsModeTrackerProjectService.getInstance(this).tracker
+  get() = SafeArgsModeTrackerProjectService.getInstance(this)
 
 fun AndroidFacet.isSafeArgsEnabled() = safeArgsMode != SafeArgsMode.NONE
