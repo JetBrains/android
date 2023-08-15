@@ -215,7 +215,7 @@ public class ExternalAnnotationsSupport {
   public static void addAnnotations(@NotNull Sdk sdk) {
     SdkModificator modifier = sdk.getSdkModificator();
     attachJdkAnnotations(modifier);
-    modifier.commitChanges();
+    ApplicationManager.getApplication().runWriteAction(() -> modifier.commitChanges());
   }
 
   public static void addAnnotationsIfNecessary(@NotNull Sdk sdk) {

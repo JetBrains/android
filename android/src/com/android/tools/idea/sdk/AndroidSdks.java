@@ -285,7 +285,7 @@ public class AndroidSdks {
       // TODO move this method to Jdks.
       attachJdkAnnotations(sdkModificator);
     }
-    sdkModificator.commitChanges();
+    ApplicationManager.getApplication().runWriteAction(() -> sdkModificator.commitChanges());
   }
 
   public void findAndSetPlatformSources(@NotNull IAndroidTarget target, @NotNull SdkModificator sdkModificator) {
@@ -503,7 +503,7 @@ public class AndroidSdks {
     for (VirtualFile library : libraries) {
       sdkModificator.addRoot(library, CLASSES);
     }
-    sdkModificator.commitChanges();
+    ApplicationManager.getApplication().runWriteAction(() -> sdkModificator.commitChanges());
   }
 
   public boolean isInAndroidSdk(@NonNull PsiElement element) {
