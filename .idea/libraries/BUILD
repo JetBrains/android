@@ -309,3 +309,10 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:tomlj_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "google-api-services-sourcerepo",
+    jars = ["//prebuilts/tools/common/m2:google-api-services-sourcerepo_files"],
+    visibility = ["//visibility:public"],
+)

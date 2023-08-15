@@ -2742,7 +2742,7 @@ Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-clo
 Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-cloudresourcemanager-v3-rev20230416-2.0.0.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-source.jar
+Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-sourcerepo-v1-rev20230123-2.0.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar

@@ -555,9 +555,9 @@ studio_plugin(
     libs = [
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:gradle-appengine-builder-model-0.1.0",
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-appengine-v1-rev9-1.22.0",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-source",
         "//tools/studio/google/cloud/tools/core-plugin/third_party/gradle-appengine-builder-model:gradle-appengine-builder-model-0.1.0",
         "//tools/adt/idea/.idea/libraries:cloudresourcemanager",
+        "//tools/adt/idea/.idea/libraries:google-api-services-sourcerepo",
     ],
     licenses = [
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
