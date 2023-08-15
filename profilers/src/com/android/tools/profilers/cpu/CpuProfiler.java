@@ -15,8 +15,9 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.ImportedSessionUtils.importFile;
+
 import com.android.tools.adtui.model.Range;
-import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
@@ -32,7 +33,6 @@ import com.android.tools.profilers.cpu.systemtrace.AtraceExporter;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.android.tools.profilers.transporteventutils.TransportUtils;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.ByteArrayInputStream;
@@ -40,14 +40,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -106,35 +102,7 @@ public class CpuProfiler implements StudioProfiler {
   }
 
   private void loadCapture(File file) {
-    SessionsManager sessionsManager = profilers.getSessionsManager();
-    // The time when the session is created. Will determine the order in sessions panel.
-    long startTimestampEpochMs = System.currentTimeMillis();
-    Pair<Long, Long> timestampsNs = StudioProfilers.computeImportedFileStartEndTimestampsNs(file);
-    long startTimestampNs = timestampsNs.first;
-
-    // Select the session if it is already imported. Do not re-import.
-    if (sessionsManager.setSessionById(startTimestampNs)) {
-      return;
-    }
-
-    long endTimestampNs = timestampsNs.second;
-    try {
-      // Use the shared byte cache instead of storing the file locally, as this CpuProfiler instance does not persist across projects.
-      byte[] fileBytes = Files.readAllBytes(Paths.get(file.getPath()));
-      Map<String, ByteString> byteCacheMap = Collections.singletonMap(String.valueOf(startTimestampNs), ByteString.copyFrom(fileBytes));
-      sessionsManager.createImportedSession(file.getName(),
-                                            Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
-                                            startTimestampNs,
-                                            endTimestampNs,
-                                            startTimestampEpochMs,
-                                            byteCacheMap);
-      // NOTE - New imported session will be auto selected by SessionsManager once it is queried
-    }
-    catch (IOException ex) {
-      getLogger().warn("Importing Session Failed: cannot read from " + file.getPath());
-      return;
-    }
-
+    importFile(profilers.getSessionsManager(), file, Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE);
     profilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
                                                                       SessionsManager.SessionCreationSource.MANUAL);
   }
