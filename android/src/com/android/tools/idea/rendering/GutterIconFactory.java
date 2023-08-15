@@ -130,12 +130,14 @@ public class GutterIconFactory {
         Dimension size = new Dimension(maxWidth * RENDERING_SCALING_FACTOR, maxHeight * RENDERING_SCALING_FACTOR);
         try {
           CompletableFuture<BufferedImage> imageFuture = renderer.renderDrawable(xml, size);
-          // TODO(http://b/143455172): Remove the timeout by removing usages of this method on the UI thread. For now we just ensure
-          //  we do not block indefinitely on the UI thread. We also do not use the timeout in unit test to avoid non deterministic tests.
-          //  On production, if the request times out, it will cause the icon on the gutter not to show which is an acceptable fallback
-          //  until this is correctly fixed.
+          // TODO(http://b/143455172, http://b/295049594): We add a timeout to ensure this will cause a deadlock. This is used for rendering
+          //  icons for the gutter or for the autocompletion, both cases having sometimes resulted in the UI thread being stuck. This
+          //  timeout should be removed once a proper fix has been implemented.
+          //  We do not use the timeout in unit test to avoid non deterministic tests.
+          //  On production, if the request times out, it will cause the icon on the gutter or the autocomplete popup not to show
+          //  which is an acceptable fallback until this is correctly fixed.
           //  250ms should be enough time for inflating and rendering and is used a upper boundary.
-          image = ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode() ?
+          image = !ApplicationManager.getApplication().isUnitTestMode() ?
                   imageFuture.get(250, TimeUnit.MILLISECONDS) :
                   imageFuture.get();
         } catch (Throwable e) {
