@@ -1,7 +1,6 @@
 // Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package com.android.tools.idea.gradle.navigation
 
-import com.android.tools.idea.gradle.refactoring.VersionCatalogGoToDeclarationHandler
 import com.intellij.lang.java.beans.PropertyKind
 import com.intellij.openapi.application.QueryExecutorBase
 import com.intellij.openapi.application.runReadAction
@@ -13,17 +12,12 @@ import com.intellij.psi.search.RequestResultProcessor
 import com.intellij.psi.search.UsageSearchContext
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.psi.util.PropertyUtilBase
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.Processor
-import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptSearchScope
-import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForReceiver
-import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlKeyValue
 

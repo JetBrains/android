@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.refactoring
+package com.android.tools.idea.gradle.navigation
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter.Kind.TOML
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElementSchema
