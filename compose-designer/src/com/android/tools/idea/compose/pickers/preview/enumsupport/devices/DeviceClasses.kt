@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.pickers.preview.enumsupport.devices
 
 import com.android.sdklib.devices.Device
-import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.idea.avdmanager.Densities
 import com.android.tools.idea.compose.pickers.base.enumsupport.PsiEnumValue
 import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
 import com.android.tools.idea.compose.pickers.preview.property.DimUnit
@@ -96,7 +96,7 @@ internal class DeviceEnumValueBuilder {
         val dpiCalc = sqrt((1.0 * widthPx * widthPx) + (1.0 * heightPx * heightPx)) / diagonalIn
         round(dpiCalc * 100) / 100.0
       }
-    val density = AvdScreenData.getCommonScreenDensity(true, dpi, heightPx)
+    val density = Densities.getCommonScreenDensity(true, dpi, heightPx)
     val deviceSpec =
       DeviceConfig(
           width = widthPx.toFloat(),
@@ -117,7 +117,7 @@ internal class DeviceEnumValueBuilder {
     chinSizePx: Int,
     displayName: String
   ): DeviceEnumValueBuilder = apply {
-    val density = AvdScreenData.getCommonScreenDensity(false, 224.0, 300)
+    val density = Densities.getCommonScreenDensity(false, 224.0, 300)
     val shape = if (isRound) Shape.Round else Shape.Normal
     val deviceSpec =
       DeviceConfig(

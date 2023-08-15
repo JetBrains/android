@@ -26,7 +26,7 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationSettings
-import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.idea.avdmanager.Densities
 import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
 import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.pickers.preview.property.MutableDeviceConfig
@@ -121,7 +121,7 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
             // the unit), since this change in density
             // may introduce an error when calculating the Screen dimensions
             val resolvedDensity =
-              AvdScreenData.getCommonScreenDensity(false, deviceConfig.dpi.toDouble(), 0)
+              Densities.getCommonScreenDensity(false, deviceConfig.dpi.toDouble(), 0)
             deviceConfig.dpi = resolvedDensity.dpiValue
             deviceConfig.dimUnit = DimUnit.px // Transforms dimension to Pixels
             xDimension = deviceConfig.width.roundToInt()

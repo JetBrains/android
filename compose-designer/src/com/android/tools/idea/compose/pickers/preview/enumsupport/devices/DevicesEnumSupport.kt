@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.pickers.preview.enumsupport.devices
 
 import com.android.resources.Density
-import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.idea.avdmanager.Densities
 import com.android.tools.idea.compose.pickers.base.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.idea.compose.pickers.common.enumsupport.EnumSupportWithConstantData
@@ -86,7 +86,7 @@ internal object DensityEnumSupport : EnumSupport {
       .map { it.toEnumValue() }
 
   override fun createValue(stringValue: String): EnumValue =
-    AvdScreenData.getCommonScreenDensity(
+    Densities.getCommonScreenDensity(
         false,
         stringValue.toDoubleOrNull() ?: Density.XXHIGH.dpiValue.toDouble(),
         0

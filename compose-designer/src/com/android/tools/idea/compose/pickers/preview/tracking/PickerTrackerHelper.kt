@@ -16,7 +16,7 @@
 package com.android.tools.idea.compose.pickers.preview.tracking
 
 import com.android.resources.Density
-import com.android.tools.idea.avdmanager.AvdScreenData
+import com.android.tools.idea.avdmanager.Densities
 import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
 import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.pickers.preview.property.toMutableConfig
@@ -36,11 +36,7 @@ internal object PickerTrackerHelper {
         dimUnit = DimUnit.px
       } // We need pixel dimensions to calculate density
     val density =
-      AvdScreenData.getScreenDensity(
-        false,
-        configCopy.dpi.toDouble(),
-        configCopy.height.roundToInt()
-      )
+      Densities.getScreenDensity(false, configCopy.dpi.toDouble(), configCopy.height.roundToInt())
     return when (density) {
       Density.LOW -> PreviewPickerValue.DENSITY_LOW
       Density.MEDIUM -> PreviewPickerValue.DENSITY_MEDIUM
