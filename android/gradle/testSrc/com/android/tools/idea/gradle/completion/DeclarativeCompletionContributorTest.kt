@@ -16,34 +16,32 @@
 package com.android.tools.idea.gradle.completion
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.android.AndroidTestCase
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class DeclarativeCompletionContributorTest : AndroidTestCase() {
+class DeclarativeCompletionContributorTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  private val fixture by lazy { projectRule.fixture }
+
   @Before
-  public override fun setUp() {
-    super.setUp()
+  fun setUp() {
     StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.override(true)
   }
 
   @After
-  public override fun tearDown() {
-    try {
-      StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
-    }
-    catch (e: Throwable) {
-      addSuppressedException(e)
-    }
-    finally {
-      super.tearDown()
-    }
+  fun tearDown() {
+    StudioFlags.DECLARATIVE_PLUGIN_STUDIO_SUPPORT.clearOverride()
   }
 
   @Test
@@ -276,6 +274,7 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
       "$caret"
      )
 
+  @Test
   fun testSuggestionsWithinArrayTable() =
     doTest("""
       [[plugins]]
@@ -289,11 +288,11 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
     }
 
   private fun doTest(declarativeFile: String, check: (Map<String, String>) -> Unit) {
-    val buildFile = myFixture.addFileToProject(
+    val buildFile = fixture.addFileToProject(
       "build.gradle.toml", declarativeFile)
-    myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
-    myFixture.completeBasic()
-    val map: Map<String, String> = myFixture.lookupElements!!.associate {
+    fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    fixture.completeBasic()
+    val map: Map<String, String> = fixture.lookupElements!!.associate {
       val presentation = LookupElementPresentation()
       it.renderElement(presentation)
       it.lookupString to (presentation.typeText ?: "")
@@ -303,16 +302,16 @@ class DeclarativeCompletionContributorTest : AndroidTestCase() {
   }
 
   private fun doCompletionTest(declarativeFile: String, fileAfter: String) {
-    val buildFile = myFixture.addFileToProject(
+    val buildFile = fixture.addFileToProject(
       "build.gradle.toml", declarativeFile)
-    myFixture.configureFromExistingVirtualFile(buildFile.virtualFile)
-    myFixture.completeBasic()
+    fixture.configureFromExistingVirtualFile(buildFile.virtualFile)
+    fixture.completeBasic()
 
     val caretOffset = fileAfter.indexOf(caret)
     val cleanFileAfter = fileAfter.replace(caret, "")
 
     Truth.assertThat(buildFile.text).isEqualTo(cleanFileAfter)
-    Truth.assertThat(myFixture.editor.caretModel.offset).isEqualTo(caretOffset)
+    Truth.assertThat(fixture.editor.caretModel.offset).isEqualTo(caretOffset)
   }
 
 }
