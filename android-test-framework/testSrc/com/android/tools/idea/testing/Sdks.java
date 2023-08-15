@@ -46,6 +46,7 @@ import com.intellij.util.ArrayUtil;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -76,7 +77,10 @@ public final class Sdks {
 
   @NotNull
   public static Sdk addAndroidSdk(@NotNull Disposable parentDisposable, @NotNull Module module, @NotNull AndroidVersion androidPlatformVersion) {
-    Sdk androidSdk = createAndroidSdk(parentDisposable, "SDK", true, androidPlatformVersion);
+    String sdkName = "SDK";
+    List<Sdk> androidSdks = ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance());
+    Sdk androidSdk = androidSdks.stream().filter(sdk -> sdk.getName().equals(sdkName)).findFirst()
+      .orElseGet(() -> createAndroidSdk(parentDisposable, sdkName, true, androidPlatformVersion));
     ModuleRootModificationUtil.setModuleSdk(module, androidSdk);
     return androidSdk;
   }
