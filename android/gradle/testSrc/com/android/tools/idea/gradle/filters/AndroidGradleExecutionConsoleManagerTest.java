@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
+import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.runners.ExecutionEnvironment;
@@ -46,6 +47,7 @@ import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.execution.filters.ReRunSyncFilter;
+import org.jetbrains.plugins.gradle.service.execution.GradleExternalTaskConfigurationType;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
@@ -138,10 +140,11 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
         return GradleConstants.SYSTEM_ID;
       }
     };
+    ConfigurationFactory gradleConfigFactory = GradleExternalTaskConfigurationType.getInstance().getFactory();
     return new ExternalSystemExecuteTaskTask(
       getProject(),
       settings,
       null,
-      new ExternalSystemRunConfiguration(GradleConstants.SYSTEM_ID, getProject(), null, "TestConfigurationName"));
+      new ExternalSystemRunConfiguration(GradleConstants.SYSTEM_ID, getProject(), gradleConfigFactory, "TestConfigurationName"));
   }
 }
