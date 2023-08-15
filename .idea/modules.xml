@@ -376,6 +376,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-android/ml.sml-android-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-android/ml.sml-android-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core-tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/hallucination-detector/ml.hallucination-detector.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/hallucination-detector/ml.hallucination-detector.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/observable-demo/observable-demo.iml" filepath="$PROJECT_DIR$/observable-demo/observable-demo.iml" />

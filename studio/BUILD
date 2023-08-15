@@ -921,6 +921,7 @@ iml_module(
         "//tools/vendor/google/targetsdkversion-upgrade-assistant[module]",
         "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
         "//tools/vendor/google/ml/sml-android:ml.sml-android[module]",
+        "//tools/vendor/google/ml/hallucination-detector:ml.hallucination-detector[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangd-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-clangdBridge-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-c-plugin",

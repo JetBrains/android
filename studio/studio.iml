@@ -28,6 +28,7 @@
     <orderEntry type="module" module-name="targetsdkversion-upgrade-assistant" />
     <orderEntry type="module" module-name="intellij.android.gmd-code-completion" />
     <orderEntry type="module" module-name="ml.sml-android" />
+    <orderEntry type="module" module-name="ml.hallucination-detector" />
     <orderEntry type="library" name="studio-plugin-c-clangd-plugin" level="project" />
     <orderEntry type="library" name="studio-plugin-c-clangdBridge-plugin" level="project" />
     <orderEntry type="library" name="studio-plugin-c-plugin" level="project" />
