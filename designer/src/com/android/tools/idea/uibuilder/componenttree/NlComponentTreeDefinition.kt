@@ -203,6 +203,7 @@ private class ComponentTreePanel(
     surface?.selectionModel?.removeListener(modelSelectionListener)
     surface = context as? NlDesignSurface
     surface?.selectionModel?.addListener(modelSelectionListener)
+    surface?.actionManager?.registerActionsShortcuts(focusedComponent)
     backNavigation.designSurface = surface
     model?.removeListener(modelChangeListener)
     model = surface?.model

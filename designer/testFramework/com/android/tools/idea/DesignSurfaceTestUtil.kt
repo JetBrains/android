@@ -27,6 +27,7 @@ import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.TestInteractable
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager
+import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.google.common.collect.ImmutableList
@@ -57,13 +58,15 @@ object DesignSurfaceTestUtil {
     whenever(surface.size).thenReturn(Dimension(1000, 1000))
     whenever(surface.scale).thenReturn(0.5)
     whenever(surface.selectionAsTransferable).thenCallRealMethod()
-    whenever(surface.actionManager)
-      .thenReturn(TestActionManager(surface as DesignSurface<SceneManager>))
     val interactable = TestInteractable(surface, JPanel(), surface)
     whenever(surface.guiInputHandler)
       .thenReturn(GuiInputHandler(surface, interactable, interactionHandlerCreator(surface)))
     if (surface is NlDesignSurface) {
       whenever(surface.analyticsManager).thenReturn(NlAnalyticsManager(surface))
+      whenever(surface.actionManager).thenReturn(NlActionManager(surface))
+    } else {
+      whenever(surface.actionManager)
+        .thenReturn(TestActionManager(surface as DesignSurface<SceneManager>))
     }
     Mockito.doAnswer { listeners.add(it.getArgument(0)) }
       .whenever(surface)

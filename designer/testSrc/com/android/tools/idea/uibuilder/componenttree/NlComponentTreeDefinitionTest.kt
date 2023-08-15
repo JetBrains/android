@@ -24,6 +24,8 @@ import com.android.flags.junit.FlagRule
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.swing.FakeKeyboard
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
@@ -50,6 +52,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
@@ -59,10 +62,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.XmlElementFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.Rectangle
+import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.nio.file.Path
@@ -86,6 +91,7 @@ class NlComponentTreeDefinitionTest {
   private val treeRule = FlagRule(StudioFlags.NELE_NEW_COMPONENT_TREE, true)
   private val projectRule = AndroidProjectRule.withSdk()
   private val popupRule = JBPopupRule()
+  private val fileOpenRule = FileOpenCaptureRule(projectRule)
   private var testDataPath: Path = Path.of("")
 
   @get:Rule
@@ -94,6 +100,7 @@ class NlComponentTreeDefinitionTest {
       .around(projectRule)
       .around(treeRule)
       .around(popupRule)
+      .around(fileOpenRule)
       .around(EdtRule())!!
 
   @Before
@@ -229,6 +236,25 @@ class NlComponentTreeDefinitionTest {
     val selection = model.surface.selectionModel.selection
     assertThat(selection).hasSize(1)
     assertThat(selection.first().tagName).isEqualTo(SdkConstants.BUTTON)
+  }
+
+  @Test
+  fun testGotoDeclarationFromKeyboard() {
+    runInEdtAndWait {
+      val content = createToolContent()
+      val model = createFlowModel()
+      val table = attach(content, model)
+      val textView = model.find("a")!!
+      model.surface.selectionModel.setSelection(listOf(textView))
+      val ui = FakeUi(table)
+      val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
+      focusManager.focusOwner = table
+
+      ui.keyboard.press(FakeKeyboard.MENU_KEY_CODE)
+      ui.keyboard.pressAndRelease(KeyEvent.VK_B)
+      ui.keyboard.release(FakeKeyboard.MENU_KEY_CODE)
+    }
+    fileOpenRule.checkEditor("some_layout.xml", 6, "<TextView")
   }
 
   @RunsInEdt
