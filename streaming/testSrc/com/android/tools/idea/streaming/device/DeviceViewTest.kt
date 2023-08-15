@@ -617,6 +617,7 @@ internal class DeviceViewTest {
         "</BitRateManager>")
 
     ::BIT_RATE_STABILITY_FRAME_COUNT.override(3, testRootDisposable) // Replace with a smaller value to speed up test.
+    agent.bitRate = 5000000
     for (i in 0 until BIT_RATE_STABILITY_FRAME_COUNT) {
       runBlocking { agent.renderDisplay(1) }
       waitForFrame()
@@ -631,7 +632,7 @@ internal class DeviceViewTest {
         "            <candidates>\n" +
         "              <CandidateBitRate>\n" +
         "                <option name=\"bitRate\" value=\"2000000\" />\n" +
-        "                <option name=\"score\" value=\"334\" />\n" +
+        "                <option name=\"score\" value=\"318\" />\n" +
         "              </CandidateBitRate>\n" +
         "            </candidates>\n" +
         "          </BitRateTracker>\n" +
