@@ -88,7 +88,6 @@ class DeviceMenuActionTest {
         Pixel 2 XL (411 × 823 dp, 560dpi)
         Pixel (411 × 731 dp, 420dpi)
         Pixel XL (411 × 731 dp, 560dpi)
-        Pixel Fold (841 × 701 dp, 420dpi)
         Nexus 6 (411 × 731 dp, 560dpi)
         Nexus 6P (411 × 731 dp, 560dpi)
         Nexus 5X (411 × 731 dp, 420dpi)

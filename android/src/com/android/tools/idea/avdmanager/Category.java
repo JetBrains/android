@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 enum Category {
-  PHONE("Phone", "pixel_fold", definition ->
+  PHONE("Phone", "medium_phone", definition ->
     !definition.getIsDeprecated() && definition.getTagId() == null && !hasTabletScreen(definition)),
 
   TABLET("Tablet", "pixel_tablet", definition ->
