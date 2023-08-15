@@ -98,9 +98,11 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       homePanel.revalidate()
       homePanel.repaint()
     }
-    else {
-      initializeTaskTabContent()
-    }
+    // The Profiler tab is initialized here with the home tab so that the view bindings will be ready in the case the user imports a file
+    // from a fresh/un-opened Profiler tool window state. While entering a stage from an uninitialized Profiler state after importing is
+    // not a possible flow in the Task-Based UX, the initialization of the Profiler tab logic is used for both the Sessions-based Profiler
+    // tab and the Task-Based UX Profiler tab, so it must be called in a place that accommodates both tabs.
+    initializeProfilerTab()
   }
 
   private fun createTaskTab() {
@@ -132,7 +134,7 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
     }
   }
 
-  private fun initializeTaskTabContent() {
+  private fun initializeProfilerTab() {
     profilersTab = if (ideProfilerServices.featureConfig.isTaskBasedUxEnabled) StudioProfilersTaskTab(profilers, ideProfilerComponents)
     else StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
     Disposer.register(this, profilersTab)
@@ -166,7 +168,6 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       window.getContentManager().setSelectedContent(content)
     }
     else {
-      initializeTaskTabContent()
       createTaskTab()
     }
   }
