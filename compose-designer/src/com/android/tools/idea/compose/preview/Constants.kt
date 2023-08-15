@@ -49,15 +49,6 @@ internal const val PARAMETER_HARDWARE_CHIN_SIZE = "ChinSize"
 internal const val PARAMETER_HARDWARE_IS_ROUND = "IsRound"
 internal const val PARAMETER_WALLPAPER = "wallpaper"
 // endregion
-// region SpringSpec
-internal const val DECLARATION_SPRING_SPEC = "SpringSpec"
-internal const val DECLARATION_FLOAT_SPEC = "FloatSpringSpec"
-internal const val DECLARATION_SPRING = "spring"
-
-internal const val PARAMETER_RATIO = "dampingRatio"
-internal const val PARAMETER_STIFFNESS = "stiffness"
-internal const val PARAMETER_THRESHOLD = "visibilityThreshold"
-// endregion
 
 object Preview {
   object DeviceSpec {

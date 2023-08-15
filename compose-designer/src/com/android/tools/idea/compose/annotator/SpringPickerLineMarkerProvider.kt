@@ -21,9 +21,6 @@ import com.android.tools.idea.compose.pickers.preview.utils.containingPackage
 import com.android.tools.idea.compose.pickers.spring.model.SpringPickerPropertiesModel
 import com.android.tools.idea.compose.pickers.spring.model.SpringPropertiesProvider
 import com.android.tools.idea.compose.pickers.spring.model.SpringPropertiesProviderK2
-import com.android.tools.idea.compose.preview.DECLARATION_FLOAT_SPEC
-import com.android.tools.idea.compose.preview.DECLARATION_SPRING
-import com.android.tools.idea.compose.preview.DECLARATION_SPRING_SPEC
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.daemon.LineMarkerInfo
@@ -56,6 +53,10 @@ import org.jetbrains.kotlin.resolve.calls.util.getResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.uast.UCallExpression
 import org.jetbrains.uast.toUElementOfType
+
+private const val DECLARATION_SPRING_SPEC = "SpringSpec"
+private const val DECLARATION_FLOAT_SPEC = "FloatSpringSpec"
+private const val DECLARATION_SPRING = "spring"
 
 private val SpringTypesFqNames =
   setOf(
