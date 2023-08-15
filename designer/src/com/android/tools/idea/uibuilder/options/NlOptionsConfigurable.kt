@@ -4,9 +4,13 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.editors.fast.FastPreviewConfiguration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.modes.essentials.EssentialsMode
+import com.android.tools.idea.modes.essentials.EssentialsModeMessenger
 import com.intellij.ide.ui.search.SearchableOptionContributor
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.service
+import com.intellij.openapi.observable.properties.AtomicBooleanProperty
+import com.intellij.openapi.observable.util.not
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
@@ -152,17 +156,17 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         }
       }
 
+      val essentialsModeObservable = createEssentialsModeObservable()
       group("Compose Preview") {
         if (StudioFlags.COMPOSE_PREVIEW_ESSENTIALS_MODE.get()) {
           buttonsGroup("Resource Usage:") {
-            if (EssentialsMode.isEnabled()) {
-              row {
+            row {
                 comment(
                   "Note: Resource usage cannot be changed when Android Studio Essentials Mode is enabled. In this case, Compose Preview " +
                     "resource usage will be overridden to Essentials."
                 )
               }
-            }
+              .visibleIf(essentialsModeObservable)
 
             lateinit var defaultModeRadioButton: Cell<JBRadioButton>
             row {
@@ -173,7 +177,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                     state.isComposePreviewEssentialsModeEnabled = !it
                   }
               }
-              .enabled(!EssentialsMode.isEnabled())
+              .enabledIf(essentialsModeObservable.not())
             indent {
                 row {
                   checkBox("Enable live updates")
@@ -181,7 +185,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                     .enabledIf(defaultModeRadioButton.selected)
                 }
               }
-              .enabled(!EssentialsMode.isEnabled())
+              .enabledIf(essentialsModeObservable.not())
             row {
                 val essentialsModeHint =
                   "Preview will preserve resources by inflating previews on demand, and disabling live updates and preview modes. " +
@@ -193,7 +197,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                   state.isComposePreviewEssentialsModeEnabled = it
                 }
               }
-              .enabled(!EssentialsMode.isEnabled())
+              .enabledIf(essentialsModeObservable.not())
           }
         } else {
           row {
@@ -204,6 +208,19 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
         }
       }
     }
+  }
+
+  private fun createEssentialsModeObservable(): AtomicBooleanProperty {
+    val essentialsModeEnabled = AtomicBooleanProperty(EssentialsMode.isEnabled())
+    val essentialsModeMessagingService = service<EssentialsModeMessenger>()
+    ApplicationManager.getApplication()
+      .messageBus
+      .connect(disposable!!)
+      .subscribe(
+        essentialsModeMessagingService.TOPIC,
+        EssentialsModeMessenger.Listener { essentialsModeEnabled.set(EssentialsMode.isEnabled()) }
+      )
+    return essentialsModeEnabled
   }
 
   override fun isModified(): Boolean {
