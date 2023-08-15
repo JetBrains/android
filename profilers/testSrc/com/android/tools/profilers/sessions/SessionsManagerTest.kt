@@ -18,6 +18,7 @@ package com.android.tools.profilers.sessions
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -32,6 +33,8 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilers.buildSessionName
 import com.android.tools.profilers.Utils.debuggableProcess
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
+import com.android.tools.profilers.cpu.CpuCaptureStage
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.AllocationSessionArtifact
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
@@ -43,6 +46,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
+import java.io.FileInputStream
 
 class SessionsManagerTest {
   private val myTimer = FakeTimer()
@@ -750,6 +754,60 @@ class SessionsManagerTest {
     assertThat(myProfilers.process).isEqualTo(process2)
     assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
     assertThat(myManager.sessionArtifacts[0].session).isEqualTo(session2)
+  }
+
+  @Test
+  fun `imported cpu session does trigger session change listener with task based ux disabled`() {
+    ideProfilerServices.enableTaskBasedUx(false)
+
+    val trace = CpuProfilerTestUtils.getTraceFile("art_streaming.trace")
+    val traceBytes = ByteString.readFrom(FileInputStream(trace))
+    myTransportService.addFile("1", traceBytes)
+
+    val sessionTimestamp = 1L
+    val sessionStartedEvent = ProfilersTestData.generateSessionStartEvent(1, 1, sessionTimestamp,
+                                                                          Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
+                                                                          1).build()
+    myTransportService.addEventToStream(1, sessionStartedEvent)
+    val sessionEndedEvent = ProfilersTestData.generateSessionEndEvent(1, 1, sessionTimestamp).build()
+    myTransportService.addEventToStream(1, sessionEndedEvent)
+
+    myManager.update()
+
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
+    val cpuTraceSessionItem = myManager.sessionArtifacts[0] as SessionItem
+    assertThat(cpuTraceSessionItem.sessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.CPU_CAPTURE)
+
+    // The CPU_CAPTURE session change listener triggers a setting of the CpuCaptureStage. Thus, we test to make sure it did enter
+    // that stage.
+    assertThat(myProfilers.stage).isInstanceOf(CpuCaptureStage::class.java)
+  }
+
+  @Test
+  fun `imported cpu session does not trigger session change listener with task based ux enabled`() {
+    ideProfilerServices.enableTaskBasedUx(true)
+
+    val trace = CpuProfilerTestUtils.getTraceFile("art_streaming.trace")
+    val traceBytes = ByteString.readFrom(FileInputStream(trace))
+    myTransportService.addFile("1", traceBytes)
+
+    val sessionTimestamp = 1L
+    val sessionStartedEvent = ProfilersTestData.generateSessionStartEvent(1, 1, sessionTimestamp,
+                                                                          Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
+                                                                          1).build()
+    myTransportService.addEventToStream(1, sessionStartedEvent)
+    val sessionEndedEvent = ProfilersTestData.generateSessionEndEvent(1, 1, sessionTimestamp).build()
+    myTransportService.addEventToStream(1, sessionEndedEvent)
+
+    myManager.update()
+
+    assertThat(myManager.sessionArtifacts.size).isEqualTo(1)
+    val cpuTraceSessionItem = myManager.sessionArtifacts[0] as SessionItem
+    assertThat(cpuTraceSessionItem.sessionMetaData.type).isEqualTo(Common.SessionMetaData.SessionType.CPU_CAPTURE)
+
+    // The CPU_CAPTURE session change listener triggers a setting of the CpuCaptureStage. Thus, we test to make sure it did not enter
+    // that stage.
+    assertThat(myProfilers.stage).isNotInstanceOf(CpuCaptureStage::class.java)
   }
 
   private fun beginSessionHelper(device: Common.Device, process: Common.Process) {

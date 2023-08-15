@@ -16,6 +16,9 @@
 package com.android.tools.profilers.cpu;
 
 import static com.android.tools.profilers.ImportedSessionUtils.importFile;
+import static com.android.tools.profilers.ImportedSessionUtils.importFileWithArtifactEvent;
+import static com.android.tools.profilers.ImportedSessionUtils.makeEndedEvent;
+import static com.android.tools.profilers.cpu.CpuCaptureParserUtil.getFileTraceType;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Commands;
@@ -27,6 +30,7 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMonitor;
 import com.android.tools.profilers.StudioProfiler;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.TraceConfigOptionsUtils;
 import com.android.tools.profilers.cpu.config.ImportedConfiguration;
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType;
 import com.android.tools.profilers.cpu.systemtrace.AtraceExporter;
@@ -49,6 +53,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,8 +108,41 @@ public class CpuProfiler implements StudioProfiler {
     sessionsManager.registerImportHandler("perfetto-trace", this::loadCapture);
   }
 
-  private void loadCapture(File file) {
-    importFile(profilers.getSessionsManager(), file, Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE);
+  private void loadCapture(File file) throws IllegalStateException {
+    boolean isTaskBasedUxEnabled = profilers.getIdeServices().getFeatureConfig().isTaskBasedUxEnabled();
+
+    TraceType traceType = getFileTraceType(file, TraceType.UNSPECIFIED);
+    if (isTaskBasedUxEnabled) {
+      if (traceType == null || traceType == TraceType.UNSPECIFIED) {
+        throw new IllegalStateException("Cannot import trace with type:\n" + traceType);
+      }
+    }
+
+    if (isTaskBasedUxEnabled) {
+      Function2<Long, Long, Common.Event> makeEvent = (start, end) -> {
+        Trace.TraceInfo.Builder importedTraceInfo = Trace.TraceInfo.newBuilder()
+          .setTraceId(start)
+          .setFromTimestamp(start)
+          .setToTimestamp(end);
+
+        Trace.TraceConfiguration.Builder config = Trace.TraceConfiguration.newBuilder();
+        TraceConfigOptionsUtils.addDefaultTraceOptions(config, traceType);
+        importedTraceInfo.setConfiguration(config);
+
+        return makeEndedEvent(start, end, Common.Event.Kind.CPU_TRACE, builder -> {
+          builder.setTraceData(
+            Trace.TraceData.newBuilder().setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(importedTraceInfo)));
+          return Unit.INSTANCE;
+        });
+      };
+
+      importFileWithArtifactEvent(profilers.getSessionsManager(), file, Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE,
+                          makeEvent);
+    }
+    else {
+      importFile(profilers.getSessionsManager(), file, Common.SessionData.SessionStarted.SessionType.CPU_CAPTURE);
+    }
+
     profilers.getIdeServices().getFeatureTracker().trackCreateSession(Common.SessionMetaData.SessionType.CPU_CAPTURE,
                                                                       SessionsManager.SessionCreationSource.MANUAL);
   }

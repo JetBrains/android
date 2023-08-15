@@ -638,7 +638,13 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     if (myImportHandlers.get(extension) == null) {
       return false;
     }
-    myImportHandlers.get(extension).accept(file);
+    try {
+      myImportHandlers.get(extension).accept(file);
+    }
+    catch (IllegalStateException exception) {
+      getLogger().info("There was an error handling the imported file.");
+      return false;
+    }
     return true;
   }
 

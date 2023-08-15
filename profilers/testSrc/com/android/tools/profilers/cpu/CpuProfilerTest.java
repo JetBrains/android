@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu;
 
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS;
+import static com.android.tools.profilers.cpu.CpuProfilerTestUtils.importSessionFromFile;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.model.FakeTimer;
@@ -107,18 +108,13 @@ public final class CpuProfilerTest {
   }
 
   @Test
-  public void testInsertCpuTraceEventEventEnabledWithTaskBasedDisabled() {
+  public void testImportCpuFileWithTaskBasedDisabled() {
     ((FakeIdeProfilerServices)myProfilers.getIdeServices()).enableTaskBasedUx(false);
 
-    myCpuProfiler = new CpuProfiler(myProfilers);
-    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
-
-    // Importing a session from a trace file should select a Common.SessionMetaData.SessionType.CPU_CAPTURE session
-    assertThat(sessionsManager.importSessionFromFile(trace)).isTrue();
-
-    // Verify that CpuProfilerStage is open in Import trace mode
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    // valid_trace.trace is an ART-backed CPU trace file.
+    importSessionFromFile(myProfilers, myTimer, "valid_trace.trace");
+    // With Task-Based UX disabled, the CPU_CAPTURE session change handler is disabled, resulting in prevention of automatically entering
+    // the CpuCaptureStage post-import.
     assertThat(myProfilers.getStage()).isInstanceOf(CpuCaptureStage.class);
     List<SessionArtifact> sessionArtifacts = myProfilers.getSessionsManager().getSessionArtifacts();
     assertThat(sessionArtifacts).hasSize(1);
@@ -130,26 +126,98 @@ public final class CpuProfilerTest {
   }
 
   @Test
-  public void testInsertCpuTraceEventEventDisabledWithTaskBasedEnabled() {
+  public void testImportSimpleperfFileWithTaskBasedUxEnabled() {
+    // Enabling the Task-Based UX flag here will disable the CPU_CAPTURE session change listener, and will also insert a CPU_TRACE
+    // event at import-time now, unlike before.
     ((FakeIdeProfilerServices)myProfilers.getIdeServices()).enableTaskBasedUx(true);
 
-    myCpuProfiler = new CpuProfiler(myProfilers);
-    File trace = CpuProfilerTestUtils.getTraceFile("valid_trace.trace");
-    SessionsManager sessionsManager = myProfilers.getSessionsManager();
-
-    // Importing a session from a trace file should select a Common.SessionMetaData.SessionType.CPU_CAPTURE session
-    assertThat(sessionsManager.importSessionFromFile(trace)).isTrue();
-
-    // Verify that CpuProfilerStage is open in Import trace mode
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    assertThat(myProfilers.getStage()).isInstanceOf(CpuCaptureStage.class);
+    importSessionFromFile(myProfilers, myTimer, "simpleperf.trace");
+    // Disable of session change listener should prevent entering the CpuCaptureStage which also triggers parsing.
+    assertThat(myProfilers.getStage()).isNotInstanceOf(CpuCaptureStage.class);
     List<SessionArtifact> sessionArtifacts = myProfilers.getSessionsManager().getSessionArtifacts();
     assertThat(sessionArtifacts).hasSize(1);
     SessionArtifact sessionArtifact = sessionArtifacts.get(0);
     assertThat(sessionArtifact).isInstanceOf(SessionItem.class);
-    // Child artifacts should be empty because insertion of CPU_TRACE event and thus creation of the child artifact was prevented due to
-    // Task Based UX being enabled.
-    assertThat(((SessionItem)sessionArtifact).getChildArtifacts()).isEmpty();
+    assertThat(((SessionItem)sessionArtifact).getChildArtifacts()).hasSize(1);
+    SessionArtifact childArtifact = ((SessionItem)sessionArtifact).getChildArtifacts().get(0);
+    assertThat(childArtifact).isInstanceOf(CpuCaptureSessionArtifact.class);
+    // Check that the imported event respective artifact has a Simpleperf configuration.
+    assertThat(((CpuCaptureSessionArtifact)(childArtifact)).getArtifactProto().getConfiguration().hasSimpleperfOptions()).isTrue();
+  }
+
+  @Test
+  public void testImportArtFileWithTaskBasedUxEnabled() {
+    // Enabling the Task-Based UX flag here will disable the CPU_CAPTURE session change listener, and will also insert a CPU_TRACE
+    // event at import-time now, unlike before.
+    ((FakeIdeProfilerServices)myProfilers.getIdeServices()).enableTaskBasedUx(true);
+
+    importSessionFromFile(myProfilers, myTimer, "art_streaming.trace");
+    // Disable of import register listener should prevent entering the CpuCaptureStage which also triggers parsing.
+    assertThat(myProfilers.getStage()).isNotInstanceOf(CpuCaptureStage.class);
+    List<SessionArtifact> sessionArtifacts = myProfilers.getSessionsManager().getSessionArtifacts();
+    assertThat(sessionArtifacts).hasSize(1);
+    SessionArtifact sessionArtifact = sessionArtifacts.get(0);
+    assertThat(sessionArtifact).isInstanceOf(SessionItem.class);
+    assertThat(((SessionItem)sessionArtifact).getChildArtifacts()).hasSize(1);
+    SessionArtifact childArtifact = ((SessionItem)sessionArtifact).getChildArtifacts().get(0);
+    assertThat(childArtifact).isInstanceOf(CpuCaptureSessionArtifact.class);
+    // Check that the imported event respective artifact has a ART configuration.
+    assertThat(((CpuCaptureSessionArtifact)(childArtifact)).getArtifactProto().getConfiguration().hasArtOptions()).isTrue();
+  }
+
+  @Test
+  public void testImportPerfettoFileWithTaskBasedUxEnabled() {
+    // Enabling the Task-Based UX flag here will disable the CPU_CAPTURE session change listener, and will also insert a CPU_TRACE
+    // event at import-time now, unlike before.
+    ((FakeIdeProfilerServices)myProfilers.getIdeServices()).enableTaskBasedUx(true);
+
+    importSessionFromFile(myProfilers, myTimer, "perfetto.trace");
+    // Disable of import register listener should prevent entering the CpuCaptureStage which also triggers parsing.
+    assertThat(myProfilers.getStage()).isNotInstanceOf(CpuCaptureStage.class);
+    List<SessionArtifact> sessionArtifacts = myProfilers.getSessionsManager().getSessionArtifacts();
+    assertThat(sessionArtifacts).hasSize(1);
+    SessionArtifact sessionArtifact = sessionArtifacts.get(0);
+    assertThat(sessionArtifact).isInstanceOf(SessionItem.class);
+    assertThat(((SessionItem)sessionArtifact).getChildArtifacts()).hasSize(1);
+    SessionArtifact childArtifact = ((SessionItem)sessionArtifact).getChildArtifacts().get(0);
+    assertThat(childArtifact).isInstanceOf(CpuCaptureSessionArtifact.class);
+    // Check that the imported event respective artifact has a Perfetto configuration.
+    assertThat(((CpuCaptureSessionArtifact)(childArtifact)).getArtifactProto().getConfiguration().hasPerfettoOptions()).isTrue();
+  }
+
+  @Test
+  public void testImportATraceFileWithTaskBasedUxEnabled() {
+    // Enabling the Task-Based UX flag here will disable the CPU_CAPTURE session change listener, and will also insert a CPU_TRACE
+    // event at import-time now, unlike before.
+    ((FakeIdeProfilerServices)myProfilers.getIdeServices()).enableTaskBasedUx(true);
+
+    importSessionFromFile(myProfilers, myTimer, "atrace.trace");
+    // Disable of import register listener should prevent entering the CpuCaptureStage which also triggers parsing.
+    assertThat(myProfilers.getStage()).isNotInstanceOf(CpuCaptureStage.class);
+    List<SessionArtifact> sessionArtifacts = myProfilers.getSessionsManager().getSessionArtifacts();
+    assertThat(sessionArtifacts).hasSize(1);
+    SessionArtifact sessionArtifact = sessionArtifacts.get(0);
+    assertThat(sessionArtifact).isInstanceOf(SessionItem.class);
+    assertThat(((SessionItem)sessionArtifact).getChildArtifacts()).hasSize(1);
+    SessionArtifact childArtifact = ((SessionItem)sessionArtifact).getChildArtifacts().get(0);
+    assertThat(childArtifact).isInstanceOf(CpuCaptureSessionArtifact.class);
+    // Check that the imported event respective artifact has a ATrace configuration.
+    assertThat(((CpuCaptureSessionArtifact)(childArtifact)).getArtifactProto().getConfiguration().hasAtraceOptions()).isTrue();
+  }
+
+  @Test
+  public void testImportEmptyFileWithTaskBasedUxEnabled() {
+    ((FakeIdeProfilerServices)myProfilers.getIdeServices()).enableTaskBasedUx(true);
+
+    myCpuProfiler = new CpuProfiler(myProfilers);
+    File trace = CpuProfilerTestUtils.getTraceFile("empty_trace.trace");
+    SessionsManager sessionsManager = myProfilers.getSessionsManager();
+
+    // In the Task-Based UX, the insertion of a CPU_TRACE event is done at import-time rather than after entering the CpuCaptureStage.
+    // This means it will call to determine the trace type at import-time as well. If the result of the call to getTraceType is null or
+    // UNSPECIFIED, it will throw an IllegalStateException. The error is caught and handled by returning false from importSessionFromFile
+    // indicating failure to import the session.
+    assertThat(sessionsManager.importSessionFromFile(trace)).isFalse();
   }
 
   @Test
