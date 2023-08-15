@@ -64,13 +64,13 @@ import com.android.tools.idea.layoutinspector.tree.TreeSettings
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.DropDownActionWithButton
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_ORANGE
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
-import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.runDispatching
+import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.android.tools.layoutinspector.BitmapType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.BrowserUtil

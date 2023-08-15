@@ -69,12 +69,12 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.dsl.ViewStr
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.inspectors.sendEvent
 import com.android.tools.idea.layoutinspector.util.DECOR_VIEW
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
-import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.runDispatching
+import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorSession

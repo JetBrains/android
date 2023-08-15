@@ -74,13 +74,13 @@ import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_S
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SelectDeviceAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.Toggle3dAction
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
-import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.runDispatching
+import com.android.tools.idea.testing.ui.FileOpenCaptureRule
 import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
