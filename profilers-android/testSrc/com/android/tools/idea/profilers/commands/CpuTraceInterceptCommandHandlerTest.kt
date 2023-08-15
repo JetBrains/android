@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.profilers.commands
 
-import androidx.tracing.perfetto.PerfettoHandshake
+import androidx.tracing.perfetto.handshake.protocol.ResponseResultCodes
 import com.android.ddmlib.IShellOutputReceiver
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.whenever
@@ -26,7 +26,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profiler.proto.TransportServiceGrpc
 import com.android.tools.profilers.TraceConfigOptionsUtils
@@ -113,7 +112,7 @@ class CpuTraceInterceptCommandHandlerTest {
     val captor = ArgumentCaptor.forClass(String::class.java)
     verify(commandHandler.device, times(1)).executeShellCommand(captor.capture(), MockitoKt.any())
     Truth.assertThat(captor.value).contains("broadcast")
-    Truth.assertThat(commandHandler.lastResponseCode).isEqualTo(PerfettoHandshake.ResponseExitCodes.RESULT_CODE_ALREADY_ENABLED)
+    Truth.assertThat(commandHandler.lastResponseCode).isEqualTo(ResponseResultCodes.RESULT_CODE_ALREADY_ENABLED)
     with(commandHandler.lastMetricsEvent!!) {
       Truth.assertThat(hasAndroidProfilerEvent()).isTrue()
       Truth.assertThat(androidProfilerEvent.hasPerfettoSdkHandshakeMetadata()).isTrue()
