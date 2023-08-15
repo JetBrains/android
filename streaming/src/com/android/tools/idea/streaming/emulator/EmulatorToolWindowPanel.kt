@@ -109,8 +109,8 @@ internal class EmulatorToolWindowPanel(
   private val emulatorId
     get() = emulator.emulatorId
 
-  override val title
-    get() = emulatorId.avdName
+  override val title: String
+    get() = shortenTitleText(emulatorId.avdName)
 
   override val icon: Icon
     get() {

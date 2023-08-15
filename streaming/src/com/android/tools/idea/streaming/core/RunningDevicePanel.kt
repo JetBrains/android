@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -160,6 +161,9 @@ abstract class RunningDevicePanel(
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
     return toolbar
   }
+
+  protected fun shortenTitleText(title: String): String =
+      StringUtil.shortenTextWithEllipsis(title, 30, 6)
 
   private fun findNotificationHolderPanel() =
       primaryDisplayView?.findContainingComponent<NotificationHolderPanel>()

@@ -49,7 +49,7 @@ internal class DeviceToolWindowPanel(
     get() = deviceClient.deviceSerialNumber
 
   override val title: String
-    get() = deviceClient.deviceName
+    get() = shortenTitleText(deviceClient.deviceName)
 
   override val icon: Icon
     get() = ExecutionUtil.getLiveIndicator(deviceClient.deviceHandle.state.properties.icon)
