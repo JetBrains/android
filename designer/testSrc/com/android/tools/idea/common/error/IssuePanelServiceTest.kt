@@ -305,7 +305,7 @@ class IssuePanelServiceTest {
     val window = toolWindow as TestToolWindow
     val contentManager = window.contentManager
     val additionalContent =
-      contentManager.factory.createContent(null, "Additional Content", false).apply {
+      contentManager.factory.createContent(mock(), "Additional Content", false).apply {
         tabName = "Additional Content"
         isCloseable = false
       }

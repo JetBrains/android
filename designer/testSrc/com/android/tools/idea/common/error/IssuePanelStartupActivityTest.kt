@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.error
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
@@ -45,7 +46,7 @@ class IssuePanelStartupActivityTest {
     toolWindow = manager.registerToolWindow(RegisterToolWindowTask(ProblemsView.ID))
     val contentManager = toolWindow.contentManager
     val content =
-      contentManager.factory.createContent(null, "Current File", true).apply { isCloseable = false }
+      contentManager.factory.createContent(mock(), "Current File", true).apply { isCloseable = false }
     contentManager.addContent(content)
     contentManager.setSelectedContent(content)
   }
