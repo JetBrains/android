@@ -76,7 +76,6 @@ class StudioDefaultJDKTest {
     } else {
       ide.invokeMenuPath("File", "Settings...")
     }
-    ide.takeScreenshot() // Remove the line once the test is stable.
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val settings = IdeSettingsDialogFixture.find(ide.robot())
@@ -85,16 +84,19 @@ class StudioDefaultJDKTest {
 
     val gradleSettings =  GradleSettingsDialogFixture(settings)
     val gradleJDK = gradleSettings.gradleJDKComboBox()
-    val jdkPath = gradleSettings.gradleJDKPathComboBox()
+    val gradleJdkPathEditComboBox = gradleSettings.gradleJDKPathComboBox()
 
     Truth.assertThat(gradleJDK.selectedItem()).contains("GRADLE_LOCAL_JAVA_HOME")
     Truth.assertThat(gradleJDK.isEnabled).isTrue()
-    Truth.assertThat(jdkPath.isEnabled).isTrue()
+    // GradleJdkPathEditComboBox will be visible only when gradleJDK is selected to GRADLE_LOCAL_JAVA_HOME.
+    Truth.assertThat(gradleJdkPathEditComboBox.target().parent.isVisible).isTrue()
 
     //Change the GRADLE_LOCAL_JAVA_HOME -> any other JDK
     gradleJDK.selectItem("jbr-17")
     Truth.assertThat(gradleJDK.isEnabled).isTrue()
-    Truth.assertThat(jdkPath.isEnabled).isFalse()
+    // If any other JDK other "GRADLE_LOCAL_JAVA_HOME" is selected,
+    // the combo box (GradleJdkPathEditComboBox) should not be visible
+    Truth.assertThat(gradleJdkPathEditComboBox.target().parent.isVisible).isFalse()
 
     settings.clickButton("Cancel")
 
