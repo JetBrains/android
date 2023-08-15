@@ -38,6 +38,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -56,7 +57,11 @@ public final class MemoryReportCollector implements Disposable {
     // By the moment of starting DFS from them all the class objects are already processed, but fields of
     // ClassLoaders other than ClassLoader#classes still need to be processed.
     roots.addAll(
-      Arrays.stream(classes).filter(c -> c instanceof Class<?>).map(c -> ((Class<?>)c).getClassLoader()).collect(Collectors.toSet()));
+      Arrays.stream(classes)
+        .filter(c -> c instanceof Class<?>)
+        .map(c -> ((Class<?>)c).getClassLoader())
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet()));
     return roots;
   };
 
