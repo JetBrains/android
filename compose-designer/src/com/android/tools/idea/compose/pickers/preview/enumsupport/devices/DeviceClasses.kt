@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
 import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.pickers.preview.property.Orientation
 import com.android.tools.idea.compose.pickers.preview.property.Shape
+import com.android.tools.idea.compose.pickers.preview.utils.CHIN_SIZE_PX_FOR_ROUND_CHIN
 import com.android.tools.idea.compose.pickers.preview.utils.DEVICE_BY_ID_PREFIX
 import com.android.tools.idea.configurations.DEVICE_CLASS_DESKTOP_TOOLTIP
 import com.android.tools.idea.configurations.DEVICE_CLASS_FOLDABLE_TOOLTIP
@@ -33,9 +34,6 @@ import icons.StudioIcons
 import javax.swing.Icon
 import kotlin.math.round
 import kotlin.math.sqrt
-
-/** Used for `Round Chin` devices. Or when DeviceConfig.shape == Shape.Chin */
-internal const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
 
 /** The different types of devices that'll be available on the picker 'Device' DropDown. */
 internal enum class DeviceClass(val display: String, val icon: Icon? = null) {

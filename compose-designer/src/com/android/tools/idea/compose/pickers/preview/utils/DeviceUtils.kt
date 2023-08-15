@@ -27,7 +27,6 @@ import com.android.sdklib.devices.State
 import com.android.tools.configurations.Configuration
 import com.android.tools.configurations.ConfigurationSettings
 import com.android.tools.idea.avdmanager.AvdScreenData
-import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.CHIN_SIZE_PX_FOR_ROUND_CHIN
 import com.android.tools.idea.compose.pickers.preview.property.DeviceConfig
 import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.pickers.preview.property.MutableDeviceConfig
@@ -52,6 +51,9 @@ internal const val DEFAULT_DEVICE_ID = "pixel_5"
 
 /** Full declaration for the default device. */
 internal const val DEFAULT_DEVICE_ID_WITH_PREFIX = DEVICE_BY_ID_PREFIX + DEFAULT_DEVICE_ID
+
+/** Used for `Round Chin` devices. Or when DeviceConfig.shape == Shape.Chin */
+internal const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
 
 internal fun Device.toDeviceConfig(): DeviceConfig {
   val config = MutableDeviceConfig().apply { dimUnit = DimUnit.px }
