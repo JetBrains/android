@@ -36,7 +36,6 @@ import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.DeviceMirroringSettings
-import com.android.tools.idea.streaming.DeviceMirroringSettingsListener
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.MirroringHandle
 import com.android.tools.idea.streaming.MirroringManager
@@ -136,7 +135,7 @@ private val PANEL_COMPARATOR = compareBy<RunningDevicePanel, Any?>(COLLATOR) { i
 @UiThread
 internal class StreamingToolWindowManager @AnyThread constructor(
   private val toolWindow: ToolWindow,
-) : RunningEmulatorCatalog.Listener, DeviceMirroringSettingsListener, DumbAware, Disposable {
+) : RunningEmulatorCatalog.Listener, DumbAware, Disposable {
 
   private val project
     @AnyThread get() = toolWindow.project
@@ -148,7 +147,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   private var initialized = false
   private var contentCreated = false
   private var mirroringConfirmationDialogShowing = false
-  private var physicalDeviceWatcher: PhysicalDeviceWatcher? = null
+  private var physicalDeviceWatcher: PhysicalDeviceWatcher
   private val panels = arrayListOf<RunningDevicePanel>()
   private var selectedPanel: RunningDevicePanel? = null
 
@@ -272,11 +271,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     messageBusConnection.subscribe(DeviceHeadsUpListener.TOPIC, MyDeviceHeadsUpListener())
 
-    messageBusConnection.subscribe(DeviceMirroringSettingsListener.TOPIC, this)
-
-    if (deviceMirroringSettings.deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get()) {
-      physicalDeviceWatcher = PhysicalDeviceWatcher(this)
-    }
+    physicalDeviceWatcher = PhysicalDeviceWatcher(this)
   }
 
   override fun dispose() {
@@ -321,11 +316,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
     else {
-      if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-        recentAttentionRequests.put(serialNumber, activationLevel)
-      } else {
-        lastSelectedDeviceId = DeviceId.ofPhysicalDevice(serialNumber)
-      }
+      recentAttentionRequests.put(serialNumber, activationLevel)
       toolWindow.activate(activationLevel)
     }
   }
@@ -364,11 +355,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     if (!initialized) {
       initialized = true
 
-      if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-        val newTabAction = NewTabAction()
-        newTabAction.registerCustomShortcutSet(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, toolWindow.component)
-        (toolWindow as ToolWindowEx).setTabActions(newTabAction)
-      }
+      val newTabAction = NewTabAction()
+      newTabAction.registerCustomShortcutSet(KeyEvent.VK_T, KeyEvent.CTRL_DOWN_MASK, toolWindow.component)
+      (toolWindow as ToolWindowEx).setTabActions(newTabAction)
 
       toolWindow.contentManager.addDataProvider { dataId -> getDataFromSelectedPanel(dataId) }
       val actionGroup = DefaultActionGroup()
@@ -480,7 +469,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     val contentFactory = ContentFactory.getInstance()
     val content = contentFactory.createContent(panel, panel.title, false).apply {
       putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
-      isCloseable = panel.isClosable
       tabName = panel.title
       icon = panel.icon
       popupIcon = panel.icon
@@ -644,18 +632,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
-  override fun settingsChanged(settings: DeviceMirroringSettings) {
-    if (settings.deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get()) {
-      if (physicalDeviceWatcher == null) {
-        physicalDeviceWatcher = PhysicalDeviceWatcher(this)
-      }
-    }
-    else {
-      physicalDeviceWatcher?.let { Disposer.dispose(it) }
-      physicalDeviceWatcher = null
-    }
-  }
-
   private fun panelClosed(panel: DeviceToolWindowPanel) {
     val deviceHandle = panel.deviceClient.deviceHandle
     if (deviceHandle.state.isOnline()) {
@@ -703,7 +679,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun activateMirroring(deviceDescription: DeviceDescription) {
     val serialNumber = deviceDescription.serialNumber
-    val deviceClient = getOrCreateDeviceClient(serialNumber, deviceDescription.handle, deviceDescription.config) ?: return
+    val deviceClient = getOrCreateDeviceClient(serialNumber, deviceDescription.handle, deviceDescription.config)
     if (serialNumber !in mirroredDevices) {
       startMirroringIfConfirmed(serialNumber, deviceClient, ActivationLevel.ACTIVATE_TAB)
     }
@@ -711,7 +687,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun activateMirroring(serialNumber: String, device: DeviceHandle, config: DeviceConfiguration, activationLevel: ActivationLevel) {
     recentAttentionRequests.invalidate(serialNumber)
-    val deviceClient = getOrCreateDeviceClient(serialNumber, device, config) ?: return
+    val deviceClient = getOrCreateDeviceClient(serialNumber, device, config)
     if (contentCreated) {
       activateMirroring(serialNumber, deviceClient, activationLevel)
       if (activationLevel >= ActivationLevel.SELECT_TAB) {
@@ -719,11 +695,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
     else if (activationLevel >= ActivationLevel.SHOW_TOOL_WINDOW) {
-      if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-        recentAttentionRequests.put(serialNumber, activationLevel)
-      } else {
-        lastSelectedDeviceId = DeviceId.ofPhysicalDevice(serialNumber)
-      }
+      recentAttentionRequests.put(serialNumber, activationLevel)
       toolWindow.activate(activationLevel)
     }
   }
@@ -749,14 +721,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
           deviceMirroringSettings.confirmationDialogShown = true
           startMirroring(serialNumber, deviceClient, activationLevel)
         }
-        MirroringConfirmationDialog.REJECT_EXIT_CODE -> {
-          if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-            stopMirroring(serialNumber)
-          }
-          else {
-            deviceMirroringSettings.deviceMirroringEnabled = false
-          }
-        }
+        MirroringConfirmationDialog.REJECT_EXIT_CODE -> stopMirroring(serialNumber)
         else -> return
       }
     }
@@ -778,11 +743,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         }
       }
       else if (activationLevel >= ActivationLevel.SHOW_TOOL_WINDOW) {
-        if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-          recentAttentionRequests.put(serialNumber, activationLevel)
-        } else {
-          lastSelectedDeviceId = DeviceId.ofPhysicalDevice(serialNumber)
-        }
+        recentAttentionRequests.put(serialNumber, activationLevel)
         toolWindow.activate(activationLevel)
       }
     }
@@ -822,13 +783,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
   private fun deviceConnected(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration) {
     if (serialNumber in onlineDevices && serialNumber !in mirroredDevices) {
-      val startMirroring = deviceMirroringSettings.activateOnConnection || recentAttentionRequests.getIfPresent(serialNumber) != null
-      if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get() || startMirroring) {
-        val activationLevel = when {
-          recentAttentionRequests.getIfPresent(serialNumber) != null -> ActivationLevel.SELECT_TAB
-          startMirroring -> ActivationLevel.SHOW_TOOL_WINDOW
-          else -> ActivationLevel.CREATE_TAB
-        }
+      if (deviceMirroringSettings.activateOnConnection || recentAttentionRequests.getIfPresent(serialNumber) != null) {
+        val activationLevel = if (recentAttentionRequests.getIfPresent(serialNumber) != null) ActivationLevel.SELECT_TAB
+                              else ActivationLevel.SHOW_TOOL_WINDOW
         activateMirroring(serialNumber, deviceHandle, config, activationLevel)
       }
       else {
@@ -842,8 +799,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
   }
 
-  private fun getOrCreateDeviceClient(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration): DeviceClient? {
-    val disposable = physicalDeviceWatcher ?: return null
+  private fun getOrCreateDeviceClient(serialNumber: String, deviceHandle: DeviceHandle, config: DeviceConfiguration): DeviceClient {
+    val disposable = physicalDeviceWatcher
     var deviceClient = deviceClients[serialNumber]
     if (deviceClient == null) {
       deviceClient = DeviceClient(disposable, serialNumber, deviceHandle, config, config.deviceProperties.abi.toString(), project)
@@ -1171,11 +1128,6 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
     }
     properties.isVirtual == true -> { // Remote virtual device.
       if (!StudioFlags.DEVICE_MIRRORING_REMOTE_EMULATORS.get()) {
-        return false
-      }
-    }
-    reservation == null -> { // Local physical device.
-      if (!DeviceMirroringSettings.getInstance().deviceMirroringEnabled) {
         return false
       }
     }

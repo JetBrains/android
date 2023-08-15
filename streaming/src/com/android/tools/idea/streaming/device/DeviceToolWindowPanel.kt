@@ -17,7 +17,6 @@ package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.RunningDevicePanel
@@ -55,7 +54,7 @@ internal class DeviceToolWindowPanel(
   override val icon: Icon
     get() = ExecutionUtil.getLiveIndicator(deviceClient.deviceHandle.state.properties.icon)
 
-  override val isClosable: Boolean = StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()
+  override val isClosable: Boolean = true
 
   val component: JComponent
     get() = this

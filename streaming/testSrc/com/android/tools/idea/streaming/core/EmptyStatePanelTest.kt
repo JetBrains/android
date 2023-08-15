@@ -26,13 +26,11 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.concurrency.AndroidExecutors
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.disposable
-import com.android.tools.idea.testing.flags.override
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -96,50 +94,7 @@ class EmptyStatePanelTest {
   }
 
   @Test
-  fun testMirroringEnabledNoTabControl() {
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
-    DeviceMirroringSettings.getInstance().deviceMirroringEnabled = true
-    val htmlComponent = ui.getComponent<JEditorPane>()
-    assertThat(htmlComponent.normalizedText).contains("To mirror a physical device, connect it via USB cable or over WiFi.")
-  }
-
-  @Test
-  fun testMirroringDisabledNoTabControl() {
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
-    DeviceMirroringSettings.getInstance().deviceMirroringEnabled = false
-    val htmlComponent = ui.getComponent<JEditorPane>()
-    assertThat(htmlComponent.normalizedText).contains(
-        "To mirror physical devices, select the <i>Enable mirroring of physical Android devices</i> option" +
-        " in the <font color=\"589df6\"><a href=\"DeviceMirroringSettings\">Device Mirroring settings</a></font>.")
-  }
-
-  @Test
-  fun testLaunchInToolWindowEnabledNoTabControl() {
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
-    EmulatorSettings.getInstance().launchInToolWindow = true
-    val htmlComponent = ui.getComponent<JEditorPane>()
-    assertThat(htmlComponent.normalizedText).contains(
-        "To launch a virtual device, use the" +
-        " <font color=\"589df6\"><a href=\"DeviceManager\">Device Manager</a></font>" +
-        " or run your app while targeting a virtual device.")
-    htmlComponent.clickOnHyperlink("DeviceManager")
-    assertThat(executedActions).containsAnyOf("Android.DeviceManager", "Android.DeviceManager2")
-    assertThat(executedActions).hasSize(1)
-  }
-
-  @Test
-  fun testLaunchInToolWindowDisabledNoTabControl() {
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(false, testRootDisposable)
-    EmulatorSettings.getInstance().launchInToolWindow = false
-    val htmlComponent = ui.getComponent<JEditorPane>()
-    assertThat(htmlComponent.normalizedText).contains(
-        "To launch virtual devices in this window, select the <i>Launch in the Running Devices tool window</i> option" +
-        " in the <font color=\"589df6\"><a href=\"EmulatorSettings\">Emulator settings</a></font>.")
-  }
-
-  @Test
   fun testActivateOnConnectionEnabled() {
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     DeviceMirroringSettings.getInstance().activateOnConnection = true
     val htmlComponent = ui.getComponent<JEditorPane>()
     assertThat(htmlComponent.normalizedText).contains("To mirror a physical device, connect it via USB cable or over WiFi.")
@@ -147,7 +102,6 @@ class EmptyStatePanelTest {
 
   @Test
   fun testActivateOnConnectionDisabled() {
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     DeviceMirroringSettings.getInstance().activateOnConnection = false
     val htmlComponent = ui.getComponent<JEditorPane>()
     assertThat(htmlComponent.normalizedText).contains(
@@ -172,7 +126,6 @@ class EmptyStatePanelTest {
 
   @Test
   fun testLaunchInToolWindowEnabled() {
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     EmulatorSettings.getInstance().launchInToolWindow = true
     val htmlComponent = ui.getComponent<JEditorPane>()
     assertThat(htmlComponent.normalizedText).contains(
@@ -185,7 +138,6 @@ class EmptyStatePanelTest {
 
   @Test
   fun testLaunchInToolWindowDisabled() {
-    StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.override(true, testRootDisposable)
     EmulatorSettings.getInstance().launchInToolWindow = false
     val htmlComponent = ui.getComponent<JEditorPane>()
     assertThat(htmlComponent.normalizedText).contains(

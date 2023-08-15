@@ -956,10 +956,6 @@ public final class StudioFlags {
 
   //region Device Mirroring
   private static final FlagGroup DEVICE_MIRRORING = new FlagGroup(FLAGS, "device.mirroring", "Device Mirroring");
-  public static final Flag<Boolean> DEVICE_MIRRORING_ENABLED_BY_DEFAULT = Flag.create(
-    DEVICE_MIRRORING, "enabled", "Enable Mirroring of Physical Devices by Default",
-    "Mirrors displays of connected physical devices",
-    false);
   public static final Flag<Boolean> DEVICE_MIRRORING_STANDALONE_EMULATORS = Flag.create(
     DEVICE_MIRRORING, "allow.standalone.emulators", "Allow Mirroring of Standalone Emulators",
     "Treats standalone emulators the same as physical devices for the purpose of display mirroring;" +
@@ -969,10 +965,6 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "allow.remote.emulators", "Allow Mirroring of Remote Emulators",
     "Treats remote emulators the same as physical devices for the purpose of display mirroring",
     false);
-  public static final Flag<Boolean> DEVICE_MIRRORING_ADVANCED_TAB_CONTROL = Flag.create(
-    DEVICE_MIRRORING, "advanced.tab.control", "Enable closing/opening of Running Devices tabs",
-    "Support closing/opening of Running Devices tabs",
-    true);
   public static final Flag<Boolean> DEVICE_MIRRORING_MULTIPLE_DISPLAYS = Flag.create(
     DEVICE_MIRRORING, "multiple.displays", "Mirror All Displays",
     "Mirror all device displays",

@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.streaming.core
 
-import com.android.tools.idea.avdmanager.HardwareAccelerationCheck.isChromeOSAndIsNotHWAccelerated
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToolWindowWindowAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -36,22 +33,11 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     toolWindow.setTitleActions(listOf(MoveToWindowAction(toolWindow)))
     toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
-
-    if (!StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-      toolWindow.hide()
-    }
   }
 
   override fun init(toolWindow: ToolWindow) {
     StreamingToolWindowManager(toolWindow)
   }
-
-  override fun isApplicable(project: Project): Boolean {
-    return (canLaunchEmulator() || DeviceMirroringSettings.getInstance().deviceMirroringEnabled || StudioFlags.DIRECT_ACCESS.get())
-  }
-
-  private fun canLaunchEmulator(): Boolean =
-      !isChromeOSAndIsNotHWAccelerated()
 
   private class MoveToWindowAction(private val toolWindow: ToolWindow) : ToolWindowWindowAction() {
     override fun update(event: AnActionEvent) {

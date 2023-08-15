@@ -26,7 +26,6 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
@@ -119,12 +118,6 @@ class DeviceToolWindowPanelTest {
     waitForFrame()
     assertAppearance("AppearanceAndToolbarActions1", maxPercentDifferentMac = 0.06, maxPercentDifferentWindows = 0.06)
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.deviceView)
-    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-      assertThat(panel.isClosable).isTrue()
-    }
-    else {
-      assertThat(panel.isClosable).isFalse()
-    }
     assertThat(panel.icon).isNotNull()
 
     // Check push button actions.
@@ -184,12 +177,6 @@ class DeviceToolWindowPanelTest {
     fakeUi.layoutAndDispatchEvents()
     waitForFrame()
     assertThat(panel.preferredFocusableComponent).isEqualTo(panel.deviceView)
-    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-      assertThat(panel.isClosable).isTrue()
-    }
-    else {
-      assertThat(panel.isClosable).isFalse()
-    }
     assertThat((panel.icon as LayeredIcon).getIcon(0)).isEqualTo(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR)
 
     // Check push button actions.

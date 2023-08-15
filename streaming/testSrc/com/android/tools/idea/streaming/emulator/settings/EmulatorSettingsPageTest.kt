@@ -16,7 +16,6 @@
 package com.android.tools.idea.streaming.emulator.settings
 
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettings.CameraVelocityControls
 import com.android.tools.idea.streaming.EmulatorSettings.SnapshotAutoDeletionPolicy
@@ -118,22 +117,12 @@ class EmulatorSettingsPageTest {
     assertThat(settingsUi.isModified).isFalse()
 
     launchInToolWindowCheckBox.isSelected = false
-    if (StudioFlags.DEVICE_MIRRORING_ADVANCED_TAB_CONTROL.get()) {
-      assertThat(activateOnAppLaunchCheckBox.isEnabled).isTrue()
-      assertThat(activateOnTestLaunchCheckBox.isEnabled).isTrue()
-      assertThat(synchronizeClipboardCheckBox.isEnabled).isTrue()
-      assertThat(showCameraControlPromptsCheckBox.isEnabled).isTrue()
-      assertThat(cameraVelocityControlComboBox.isEnabled).isTrue()
-      assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isTrue()
-    }
-    else {
-      assertThat(activateOnAppLaunchCheckBox.isEnabled).isFalse()
-      assertThat(activateOnTestLaunchCheckBox.isEnabled).isFalse()
-      assertThat(synchronizeClipboardCheckBox.isEnabled).isFalse()
-      assertThat(showCameraControlPromptsCheckBox.isEnabled).isFalse()
-      assertThat(cameraVelocityControlComboBox.isEnabled).isFalse()
-      assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isFalse()
-    }
+    assertThat(activateOnAppLaunchCheckBox.isEnabled).isTrue()
+    assertThat(activateOnTestLaunchCheckBox.isEnabled).isTrue()
+    assertThat(synchronizeClipboardCheckBox.isEnabled).isTrue()
+    assertThat(showCameraControlPromptsCheckBox.isEnabled).isTrue()
+    assertThat(cameraVelocityControlComboBox.isEnabled).isTrue()
+    assertThat(snapshotAutoDeletionPolicyComboBox.isEnabled).isTrue()
     assertThat(settingsUi.isModified).isTrue()
     settingsUi.apply()
     assertThat(settings.launchInToolWindow).isFalse()
