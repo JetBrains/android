@@ -15,15 +15,42 @@
  */
 package com.android.tools.idea.gradle.refactoring
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ExtensionTestUtil
+import com.intellij.testFramework.RunsInEdt
+import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 
-@org.junit.Ignore("b/294925051: fails with IntelliJ 2023.2")
-class DeclarativeGotoApiDeclarationHandlerTest : AndroidGradleTestCase() {
+@RunsInEdt
+class DeclarativeGotoApiDeclarationHandlerTest {
+  @get:Rule
+  val projectRule = AndroidGradleProjectRule().onEdt()
+
+  private val myFixture by lazy { projectRule.fixture }
+
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  @Before
+  fun before(){
+    // make sure we have Kt index extension
+    ExtensionTestUtil.maskExtensions(
+      ExtensionPointName("com.intellij.workspaceModel.fileIndexContributor"),
+      listOf(KotlinScriptWorkspaceFileIndexContributor()),
+      disposableRule.disposable)
+  }
+
+  @Test
   fun testGoToAaptOptionsInToml() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     checkUsage(
       "app/build.gradle.toml",
@@ -33,8 +60,9 @@ class DeclarativeGotoApiDeclarationHandlerTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testGoToAndroidInToml() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     checkUsage(
       "app/build.gradle.toml",
@@ -44,8 +72,9 @@ class DeclarativeGotoApiDeclarationHandlerTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testGoToSetterProperty() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     checkUsage(
       "app/build.gradle.toml",
@@ -58,8 +87,9 @@ class DeclarativeGotoApiDeclarationHandlerTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testGoToPropertyInTheMiddle() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     checkUsage(
       "app/build.gradle.toml",
@@ -71,8 +101,9 @@ class DeclarativeGotoApiDeclarationHandlerTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testGoToFromPropertyInComplexContext() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     checkUsage(
       "app/build.gradle.toml",
@@ -88,8 +119,9 @@ class DeclarativeGotoApiDeclarationHandlerTest : AndroidGradleTestCase() {
     )
   }
 
+  @Test
   fun testGoToFromBuildType() {
-    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
+    projectRule.loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     checkUsage(
       "app/build.gradle.toml",

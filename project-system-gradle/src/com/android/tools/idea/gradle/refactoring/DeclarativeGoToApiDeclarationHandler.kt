@@ -26,6 +26,10 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import org.apache.commons.lang.StringUtils
+import org.jetbrains.kotlin.asJava.elements.KtLightElementBase
+import org.jetbrains.kotlin.asJava.unwrapped
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.psiUtil.findPropertyByName
 import org.toml.lang.psi.TomlKeySegment
 
 class DeclarativeGoToApiDeclarationHandler: GotoDeclarationHandlerBase() {
@@ -51,10 +55,16 @@ private fun findProperty(clazz: PsiClass, propertyName: String): PsiElement? {
                                       StringUtils.capitalize(propertyName),
                                       true)
   }
-  return methods.first {
+  val method = methods.firstOrNull {
     it.containingClass?.isInterface == true &&
     it.containingClass?.qualifiedName?.startsWith("com.android.build.api.dsl") == true
-  }
+  } ?: return null
+  return if (method.textOffset == 0) {
+    // if we have Kotlin property - need to find it in kotlinOrigin
+    val ktOrigin = method.containingClass?.unwrapped
+    val ktClass = (ktOrigin as? KtClass)
+    ktClass?.findPropertyByName(propertyName)
+  } else method
 }
 
 private fun findDslElementClassName(path: List<String>, propertyName: String): String? {
