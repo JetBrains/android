@@ -33,10 +33,12 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.toFor
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ui.ColoredTreeCellRenderer
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.MouseAdapter
@@ -52,8 +54,6 @@ import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 
 @VisibleForTesting
 val CLASS_NAME_COMPARATOR =
@@ -267,7 +267,7 @@ class BackgroundTaskTreeTableView(
                   append(data.status.capitalizedName())
                   val stateIcon = data.icon()
                   icon =
-                    if (selected && !isNewUI() && stateIcon != null)
+                    if (selected && !ExperimentalUI.isNewUI() && stateIcon != null)
                       ColoredIconGenerator.generateWhiteIcon(stateIcon)
                     else stateIcon
                 }

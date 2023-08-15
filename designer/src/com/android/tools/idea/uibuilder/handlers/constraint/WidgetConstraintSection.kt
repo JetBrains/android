@@ -25,7 +25,7 @@ import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.components.JBList
 import com.intellij.ui.paint.EffectPainter2D
 import com.intellij.util.ui.JBDimension
@@ -424,7 +424,7 @@ private data class ConstraintCellData(val namespace: String,
                                       val fadingValue: String?)
 
 private val constraintIcon = StudioIcons.LayoutEditor.Palette.CONSTRAINT_LAYOUT
-private val highlightConstraintIcon = if (isNewUI()) constraintIcon else ColoredIconGenerator.generateWhiteIcon(constraintIcon)
+private val highlightConstraintIcon = if (ExperimentalUI.isNewUI()) constraintIcon else ColoredIconGenerator.generateWhiteIcon(constraintIcon)
 
 private val FADING_LABEL_COLOR = Color(0x999999)
 

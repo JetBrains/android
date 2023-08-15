@@ -23,7 +23,7 @@ import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableSupport
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.NewUiValue
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -83,7 +83,7 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
   override var isUsedInRendererWithSelection: Boolean by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
 
   fun displayedIcon(icon: Icon?): Icon? =
-    if (icon != null && icon !is ColorIcon && isUsedInRendererWithSelection && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(icon)
+    if (icon != null && icon !is ColorIcon && isUsedInRendererWithSelection && !NewUiValue.isEnabled()) ColoredIconGenerator.generateWhiteIcon(icon)
     else icon
 
   fun displayedForeground(foreground: Color): Color =

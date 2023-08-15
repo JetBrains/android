@@ -25,11 +25,10 @@ import com.intellij.icons.AllIcons.Debugger.Db_array
 import com.intellij.icons.AllIcons.Debugger.Db_primitive
 import com.intellij.icons.AllIcons.Hierarchy.Subtypes
 import com.intellij.ui.ColoredTreeCellRenderer
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.IconManager
 import com.intellij.ui.PlatformIcons
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.util.PlatformIcons.FIELD_ICON
 import com.intellij.util.PlatformIcons.INTERFACE_ICON
 import icons.StudioIcons.Profiler.Overlays.ARRAY_STACK
 import icons.StudioIcons.Profiler.Overlays.FIELD_STACK
@@ -73,11 +72,12 @@ open class ValueColumnRenderer : ColoredTreeCellRenderer() {
     }
   }
 
-  private fun setIconColorized(icon: Icon) =
-    setIcon(if (mySelected && isFocused && !isNewUI()) generateWhiteIcon(icon) else icon)
+  private fun setIconColorized(icon: Icon) {
+    setIcon(if (mySelected && isFocused && !ExperimentalUI.isNewUI()) generateWhiteIcon(icon) else icon)
+  }
 
   companion object {
-    val STRING_ATTRIBUTES = SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, Color(0, 0x80, 0))
+    val STRING_ATTRIBUTES: SimpleTextAttributes = SimpleTextAttributes(SimpleTextAttributes.STYLE_BOLD, Color(0, 0x80, 0))
 
     @JvmStatic
     fun ValueObject.getValueObjectIcon() = when (this) {

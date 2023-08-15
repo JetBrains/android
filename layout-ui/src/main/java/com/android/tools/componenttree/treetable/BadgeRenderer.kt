@@ -17,7 +17,7 @@ package com.android.tools.componenttree.treetable
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.componenttree.api.BadgeItem
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.NewUiValue
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import java.awt.Component
@@ -53,6 +53,7 @@ class BadgeRenderer(val badge: BadgeItem, private val emptyIcon: Icon) : TableCe
     return this
   }
 
-  private fun Icon.white(focused: Boolean): Icon =
-    if (focused && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(this) else this
+  private fun Icon.white(focused: Boolean): Icon {
+    return if (focused && !NewUiValue.isEnabled()) ColoredIconGenerator.generateWhiteIcon(this) else this
+  }
 }

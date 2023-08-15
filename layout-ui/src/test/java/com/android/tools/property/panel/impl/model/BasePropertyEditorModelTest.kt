@@ -22,7 +22,7 @@ import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.testing.IconTester
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.UIUtil
@@ -112,7 +112,7 @@ class BasePropertyEditorModelTest {
     assertThat(model.displayedIcon(StudioIcons.Common.ERROR)).isSameAs(StudioIcons.Common.ERROR)
 
     model.isUsedInRendererWithSelection = true
-    assertThat(IconTester.hasOnlyWhiteColors(model.displayedIcon(StudioIcons.Common.ERROR)!!)).isEqualTo(!isNewUI())
+    assertThat(IconTester.hasOnlyWhiteColors(model.displayedIcon(StudioIcons.Common.ERROR)!!)).isEqualTo(!ExperimentalUI.isNewUI())
   }
 
   @Test

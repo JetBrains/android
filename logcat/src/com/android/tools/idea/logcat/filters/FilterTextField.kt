@@ -51,7 +51,7 @@ import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.EditorTextField
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.GotItTooltip
 import com.intellij.ui.GotItTooltip.Companion.BOTTOM_LEFT
 import com.intellij.ui.SimpleColoredComponent
@@ -687,8 +687,9 @@ internal class FilterTextField(
         return component
       }
 
-      private fun whiteIconForOldUI(icon: Icon): Icon =
-        if (isNewUI()) icon else ColoredIconGenerator.generateWhiteIcon(icon)
+      private fun whiteIconForOldUI(icon: Icon): Icon {
+        return if (ExperimentalUI.isNewUI()) icon else ColoredIconGenerator.generateWhiteIcon(icon)
+      }
 
       // Items have unique text, so we only need to check the "filter" field. We MUST ignore the "count" field because we do not yet know
       // the count when we set the selected item.

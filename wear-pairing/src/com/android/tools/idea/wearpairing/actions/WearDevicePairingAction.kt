@@ -21,7 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.wearpairing.WearDevicePairingWizard
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.ExperimentalUI
 import icons.StudioIcons
 
 /**
@@ -33,7 +33,7 @@ class WearDevicePairingAction : AnAction() {
     super.update(e)
     e.presentation.apply {
       isEnabledAndVisible = e.project != null && !StudioFlags.PAIRED_DEVICES_TAB_ENABLED.get()
-      if (isEnabled && selectedIcon == null && !isNewUI()) {
+      if (isEnabled && selectedIcon == null && !ExperimentalUI.isNewUI()) {
         selectedIcon = generateWhiteIcon(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN)
       }
     }

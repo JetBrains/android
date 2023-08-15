@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.wearpairing
 
-import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.computeFullApiName
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.adtui.common.AdtUiUtils.allComponents
@@ -41,7 +40,7 @@ import com.intellij.openapi.ui.JBPopupMenu
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.Splitter
 import com.intellij.ui.CollectionListModel
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SideBorder
@@ -55,7 +54,6 @@ import com.intellij.util.ui.JBUI.Borders.empty
 import com.intellij.util.ui.JBUI.Borders.emptyLeft
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
-import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -363,7 +361,7 @@ class DeviceListStep(model: WearDevicePairingModel, private val project: Project
   // Cache generated white icons, so we don't keep creating new ones
   private val whiteIconsCache = hashMapOf<Icon, Icon>()
   private fun getIcon(icon: Icon, isSelected: Boolean): Icon = when {
-    isSelected && !isNewUI() -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
+    isSelected && !ExperimentalUI.isNewUI() -> whiteIconsCache.getOrPut(icon) { generateWhiteIcon(icon) }
     else -> icon
   }
 

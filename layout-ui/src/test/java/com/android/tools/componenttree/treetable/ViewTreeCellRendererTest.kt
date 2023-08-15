@@ -28,7 +28,7 @@ import com.android.tools.componenttree.util.fragments
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.ui.ExperimentalUI.isNewUI
+import com.intellij.ui.NewUiValue
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons.LayoutEditor.Palette
@@ -203,7 +203,7 @@ class ViewTreeCellRendererTest {
     val faint = ColoredIconGenerator.generateDeEmphasizedIcon(Palette.TEXT_VIEW)
     assertThat(hasNonWhiteColors(white)).isFalse()
     IconLoader.activate()
-    val selectedWithFocus = if (isNewUI()) normal else white
+    val selectedWithFocus = if (NewUiValue.isEnabled()) normal else white
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     assertThat(getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = false)).isSameAs(normal)
     assertThat(getIcon(item, selected = false, hasFocus = true, enabled = true, deEmphasized = false)).isSameAs(normal)
