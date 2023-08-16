@@ -277,33 +277,30 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
       CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContext(this))
 
   protected fun isHardwareInputEnabled(): Boolean =
-    getProject()?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(deviceId) ?: false
+      getProject()?.service<HardwareInputStateStorage>()?.isHardwareInputEnabled(deviceId) ?: false
 
   final override fun skipKeyEventDispatcher(event: KeyEvent): Boolean {
-    if (!isHardwareInputEnabled()) return false
+    if (!isHardwareInputEnabled()) {
+      return false
+    }
     val stroke = KeyStroke.getKeyStrokeForEvent(event)
-    for (keyStroke in KeymapUtil.getKeyStrokes(
-        KeymapUtil.getActiveKeymapShortcuts(StreamingHardwareInputAction.ACTION_ID))) {
-      if (stroke == keyStroke) return false
+    for (keyStroke in KeymapUtil.getKeyStrokes(KeymapUtil.getActiveKeymapShortcuts(StreamingHardwareInputAction.ACTION_ID))) {
+      if (stroke == keyStroke) {
+        return false
+      }
     }
     return true
   }
 
   internal open fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {
-    if (!enabled) hardwareInput.resetMetaKeys()
+    if (!enabled) {
+      hardwareInput.resetMetaKeys()
+    }
   }
 
   protected open class HardwareInput {
+
     private var pressedModifierKeys = 0
-    companion object {
-      private val vkToMask = mapOf(
-        KeyEvent.VK_SHIFT to InputEvent.SHIFT_DOWN_MASK,
-        KeyEvent.VK_CONTROL to InputEvent.CTRL_DOWN_MASK,
-        KeyEvent.VK_ALT to InputEvent.ALT_DOWN_MASK,
-        KeyEvent.VK_META to InputEvent.META_DOWN_MASK,
-        KeyEvent.VK_ALT_GRAPH to InputEvent.ALT_GRAPH_DOWN_MASK,
-      )
-    }
 
     fun forwardEvent(event: KeyEvent) {
       event.consume()
@@ -328,6 +325,16 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     }
 
     open fun sendToDevice(id: Int, keyCode: Int, modifiersEx: Int) {}
+
+    companion object {
+      private val vkToMask = mapOf(
+        KeyEvent.VK_SHIFT to InputEvent.SHIFT_DOWN_MASK,
+        KeyEvent.VK_CONTROL to InputEvent.CTRL_DOWN_MASK,
+        KeyEvent.VK_ALT to InputEvent.ALT_DOWN_MASK,
+        KeyEvent.VK_META to InputEvent.META_DOWN_MASK,
+        KeyEvent.VK_ALT_GRAPH to InputEvent.ALT_GRAPH_DOWN_MASK,
+      )
+    }
   }
 
  /** Attempts to restore a lost device connection. */
