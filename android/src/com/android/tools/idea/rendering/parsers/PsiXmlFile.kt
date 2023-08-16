@@ -22,12 +22,12 @@ import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.rendering.parsers.RenderXmlFile
 import com.android.tools.rendering.parsers.RenderXmlTag
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
-import org.assertj.core.util.VisibleForTesting
 
 /** Studio-specific [XmlFile]-based implementation of [RenderXmlFile]. */
 class PsiXmlFile(@VisibleForTesting val xmlFile: XmlFile) : RenderXmlFile {

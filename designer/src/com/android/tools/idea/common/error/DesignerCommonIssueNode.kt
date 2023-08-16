@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.visual.ConfigurationSet
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintRenderIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.isVisualLintErrorSuppressed
+import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.UniversalProblemsPanelEvent
 import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.designer.model.EmptyXmlTag
@@ -45,7 +46,6 @@ import com.intellij.ui.tree.LeafState
 import com.intellij.util.ui.EmptyIcon
 import java.util.Objects
 import javax.swing.Icon
-import org.assertj.core.util.VisibleForTesting
 
 /**
  * The issue node in [DesignerCommonIssuePanel]. The Tree architecture will be:

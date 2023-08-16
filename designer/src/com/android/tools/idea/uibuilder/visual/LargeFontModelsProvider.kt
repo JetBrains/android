@@ -22,9 +22,9 @@ import com.android.tools.idea.configurations.ConfigurationForFile
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
-import org.assertj.core.util.VisibleForTesting
 import org.jetbrains.android.facet.AndroidFacet
 
 private const val EFFECTIVE_FLAGS =

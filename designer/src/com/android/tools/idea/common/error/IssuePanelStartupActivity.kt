@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.common.error
 
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
-import org.assertj.core.util.VisibleForTesting
 import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 
 /**

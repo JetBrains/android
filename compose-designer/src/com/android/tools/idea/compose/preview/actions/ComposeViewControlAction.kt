@@ -28,14 +28,13 @@ import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.icons.copyIcon
-import org.assertj.core.util.VisibleForTesting
 
 // When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a
 // multi-choice group, even
