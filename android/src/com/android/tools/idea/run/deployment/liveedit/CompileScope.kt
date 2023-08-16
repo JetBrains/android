@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
@@ -213,6 +212,15 @@ private object CompileScopeImpl : CompileScope {
     // We don't support INVOKE_DYNAMIC in the interpreter at the moment.
     compilerConfiguration.put(JVMConfigurationKeys.SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
     compilerConfiguration.put(JVMConfigurationKeys.LAMBDAS, JvmClosureGenerationScheme.CLASS)
+
+    // Link via signatures and not descriptors.
+    //
+    // This ensures that even if the project has descriptors for basic types from multiple stdlib
+    // versions, they all end up mapping to the basic types from the stdlib used for the current
+    // compilation.
+    //
+    // See b/256957527 for details.
+    compilerConfiguration.put(JVMConfigurationKeys.LINK_VIA_SIGNATURES, true)
 
     val generationStateBuilder = GenerationState.Builder(project,
                                                          ClassBuilderFactories.BINARIES,
