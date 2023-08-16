@@ -28,6 +28,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.execution.common.AndroidSessionInfo
 import com.android.tools.idea.execution.common.assertTaskPresentedInStats
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.debug.DebuggerThreadCleanupRule
 import com.android.tools.idea.execution.common.debug.createFakeExecutionEnvironment
@@ -37,7 +38,6 @@ import com.android.tools.idea.run.DeploymentApplicationService
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.google.common.base.Stopwatch
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.DebuggerManager
 import com.intellij.debugger.DebuggerManagerEx
@@ -92,7 +92,7 @@ class AndroidJavaDebuggerTest {
   private lateinit var javaDebugger: AndroidJavaDebugger
 
   @Before
-  fun setUp() {
+  fun setUp() = runTest {
     // Connect a test device.
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
 
@@ -111,7 +111,7 @@ class AndroidJavaDebuggerTest {
   }
 
   @After
-  fun tearDown() {
+  fun tearDown() = runTest {
     XDebuggerManager.getInstance(project).debugSessions.forEach {
       it.stop()
     }
@@ -133,7 +133,7 @@ class AndroidJavaDebuggerTest {
       EmptyProgressIndicator()
     )
 
-    val processHandler = session!!.debugProcess.processHandler
+    val processHandler = session.debugProcess.processHandler
     // For AndroidPositionManager.
     assertThat(processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(26))
   }
@@ -176,22 +176,22 @@ class AndroidJavaDebuggerTest {
   }
 
   @Test
-  fun testSessionName() {
-    val session = AndroidJavaDebugger().attachToClient(project, client, null)
+  fun testSessionName() = runTest {
+    val session = DebugSessionStarter.attachDebuggerToClientAndShowTab(project, client, AndroidJavaDebugger(), AndroidDebuggerState())
     assertThat(session).isNotNull()
     assertThat(client.clientData.pid).isAtLeast(0)
     assertThat(session!!.sessionName).isEqualTo("Java Only (${client.clientData.pid})")
   }
 
   @Test
-  fun testCatchError() {
+  fun testCatchError() = runTest {
     val debuggerManagerExMock = Mockito.mock(DebuggerManagerEx::class.java)
     project.registerServiceInstance(DebuggerManager::class.java, debuggerManagerExMock)
     whenever(debuggerManagerExMock.attachVirtualMachine(any())).thenThrow(
       ExecutionException("Test execution exception in test testCatchError"))
 
     try {
-      AndroidJavaDebugger().attachToClient(project, client, null)
+      DebugSessionStarter.attachDebuggerToClientAndShowTab(project, client, AndroidJavaDebugger(), AndroidDebuggerState())
       fail()
     }
     catch (e: Throwable) {

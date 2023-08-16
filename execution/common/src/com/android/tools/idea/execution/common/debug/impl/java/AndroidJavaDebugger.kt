@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.execution.common.debug.impl.java
 
-import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerConfigurable
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
-import com.android.tools.idea.execution.common.debug.DebugSessionStarter.attachDebuggerToClientAndShowTab
 import com.android.tools.idea.execution.common.debug.impl.AndroidDebuggerImplBase
 import com.intellij.debugger.engine.JavaDebugProcess
 import com.intellij.execution.ExecutionException
@@ -51,20 +49,6 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
 
   override fun supportsProject(project: Project): Boolean {
     return true
-  }
-
-  @WorkerThread
-  override fun attachToClient(project: Project, client: Client, debugState: AndroidDebuggerState?): XDebugSession {
-    val debugPort = getClientDebugPort(client)
-
-    // Try to find existing debug session
-    val existingDebugSession = getExistingDebugSession(debugPort)
-    if (existingDebugSession != null) {
-      activateDebugSessionWindow(project, existingDebugSession.runContentDescriptor)
-      return existingDebugSession
-    }
-
-    return attachDebuggerToClientAndShowTab(project, client, this, createState())
   }
 
 
@@ -109,21 +93,20 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
     }
   }
 
+  override fun getExistingDebugSession(project: Project, client: Client): XDebugSession? {
+    val openProjects = ProjectManager.getInstance().openProjects
+
+    // Scan through open project to find if this port has been opened in any session.
+    for (openProject in openProjects) {
+      val debuggerSession = findJdwpDebuggerSession(openProject, client)
+      if (debuggerSession != null) {
+        return debuggerSession
+      }
+    }
+    return null
+  }
+
   companion object {
     const val ID = "Java"
-
-    private fun getExistingDebugSession(debugPort: String): XDebugSession? {
-      val sessions: MutableList<XDebugSession> = ArrayList()
-      val openProjects = ProjectManager.getInstance().openProjects
-
-      // Scan through open project to find if this port has been opened in any session.
-      for (openProject in openProjects) {
-        val debuggerSession = findJdwpDebuggerSession(openProject, debugPort)
-        if (debuggerSession != null) {
-          debuggerSession.xDebugSession?.let { sessions.add(it) }
-        }
-      }
-      return sessions.firstOrNull()
-    }
   }
 }
