@@ -164,12 +164,6 @@
     <option name="configure" path="ActionManager" hit="Configure project structure" />
     <option name="project" path="ActionManager" hit="Configure project structure" />
     <option name="structure" path="ActionManager" hit="Configure project structure" />
-    <option name="control" path="ActionManager" hit="Control folding posture of the device" />
-    <option name="device" path="ActionManager" hit="Control folding posture of the device" />
-    <option name="folding" path="ActionManager" hit="Control folding posture of the device" />
-    <option name="of" path="ActionManager" hit="Control folding posture of the device" />
-    <option name="posture" path="ActionManager" hit="Control folding posture of the device" />
-    <option name="the" path="ActionManager" hit="Control folding posture of the device" />
     <option name="convert" path="ActionManager" hit="Convert to PNG..." />
     <option name="png" path="ActionManager" hit="Convert to PNG..." />
     <option name="to" path="ActionManager" hit="Convert to PNG..." />
@@ -273,6 +267,18 @@
     <option name="only" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
     <option name="that" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
     <option name="those" path="ActionManager" hit="Enable buildConfig for those modules that need it only" />
+    <option name="and" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="connected" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="device" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="enable" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="events" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="forwarding" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="keyboard" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="mouse" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="of" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="the" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="to" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
+    <option name="transparent" path="ActionManager" hit="Enable transparent forwarding of keyboard and mouse events to the connected device" />
     <option name="a" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="apps" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="enables" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
@@ -280,23 +286,6 @@
     <option name="instant" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="module" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
     <option name="support" path="ActionManager" hit="Enables Instant Apps Support for a Module" />
-    <option name="a" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="and" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="as" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="connected" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="device" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="devices" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="enables" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="forwarding" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="hardware" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="input" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="keyboard" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="mouse" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="of" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="such" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="the" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="to" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
-    <option name="transparent" path="ActionManager" hit="Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device" />
     <option name="and" path="ActionManager" hit="End reservation and return device" />
     <option name="device" path="ActionManager" hit="End reservation and return device" />
     <option name="end" path="ActionManager" hit="End reservation and return device" />
@@ -764,6 +753,20 @@
     <option name="display" path="ActionManager" hit="Select display mode" />
     <option name="mode" path="ActionManager" hit="Select display mode" />
     <option name="select" path="ActionManager" hit="Select display mode" />
+    <option name="app" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="by" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="defined" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="device" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="from" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="how" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="responds" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="select" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="states" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="test" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="the" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="them" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="to" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
+    <option name="your" path="ActionManager" hit="Select from the states defined by the device to test how your app responds to them" />
     <option name="android" path="ActionManager" hit="Set up Android Test Retention" />
     <option name="retention" path="ActionManager" hit="Set up Android Test Retention" />
     <option name="set" path="ActionManager" hit="Set up Android Test Retention" />

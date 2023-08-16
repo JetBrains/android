@@ -133,7 +133,7 @@ class StreamingHardwareInputActionTest {
 
     assertThat(labels).comparingElementsUsing(LabelCorrespondence()).apply {
       contains("Hardware Input")
-      contains("Enables transparent forwarding of hardware input devices, such as a keyboard and mouse, to the connected device")
+      contains("Enable transparent forwarding of keyboard and mouse events to the connected device")
     }
   }
 

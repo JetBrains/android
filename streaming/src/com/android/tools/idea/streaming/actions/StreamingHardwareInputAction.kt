@@ -20,14 +20,11 @@ import com.android.tools.idea.streaming.core.AbstractDisplayView
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
-import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.DumbAware
 
 /**
@@ -57,15 +54,7 @@ internal class StreamingHardwareInputAction : ToggleAction(), DumbAware {
       return
     }
     super.update(event)
-    presentation.putClientProperty(ActionButton.CUSTOM_HELP_TOOLTIP, HelpTooltip().apply {
-      @Suppress("DialogTitleCapitalization")
-      setTitle(presentation.text)
-      setDescription(presentation.description)
-      val shortcut = KeymapUtil.getFirstKeyboardShortcutText(ACTION_ID)
-      if (shortcut.isNotEmpty()) {
-        setShortcut(shortcut)
-      }
-    })
+    enableRichTooltip(presentation)
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT

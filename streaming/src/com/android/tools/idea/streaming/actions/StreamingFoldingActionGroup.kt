@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.actions
 
 import com.android.tools.idea.streaming.device.actions.DeviceFoldingActionGroup
 import com.android.tools.idea.streaming.emulator.actions.EmulatorFoldingActionGroup
+import com.intellij.openapi.actionSystem.AnActionEvent
 
 /**
  * Displays a popup menu of available folding postures of a foldable or a rollable device.
@@ -25,5 +26,10 @@ internal class StreamingFoldingActionGroup : StreamingActionGroup(EmulatorFoldin
 
   init {
     templatePresentation.isPerformGroup = true
+  }
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    enableRichTooltip(event.presentation)
   }
 }
