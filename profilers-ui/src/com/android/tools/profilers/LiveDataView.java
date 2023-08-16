@@ -83,4 +83,12 @@ public abstract class LiveDataView<T extends LiveDataModel> extends AspectObserv
                                           Stage stage);
 
   abstract protected void populateUi(RangeTooltipComponent tooltipComponent);
+
+  /**
+   * To get toolbar icons specific to live data view.
+   * @return JComponent
+   */
+  public JComponent getToolbar() {
+    return null;
+  }
 }

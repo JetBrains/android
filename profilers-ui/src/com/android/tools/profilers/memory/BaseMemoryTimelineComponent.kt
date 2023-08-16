@@ -49,6 +49,7 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
   private val overlay: OverlayComponent
   private val detailedMemoryChart: DetailedMemoryChart
   val rangeSelectionComponent: RangeSelectionComponent
+  private val garbageCollectionComponent: GarbageCollectionComponent
 
   init {
     detailedMemoryChart = DetailedMemoryChart(stage.detailedMemoryUsage,
@@ -61,6 +62,7 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
                                               stageView.profilersView.component,
                                               stage.isLiveAllocationTrackingReady,
                                               ::shouldShowTooltip)
+    garbageCollectionComponent = GarbageCollectionComponent()
     lineChart = detailedMemoryChart.lineChart
     rangeSelectionComponent = detailedMemoryChart.rangeSelectionComponent
     overlay = detailedMemoryChart.overlay
@@ -89,24 +91,12 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
   protected open fun makeScrollbar(): JComponent? =
     StreamingScrollbar(stage.timeline, this)
 
-  protected fun registerRenderer(renderer: AbstractDurationDataRenderer) {
-    lineChart.addCustomRenderer(renderer)
-    overlay.addDurationDataRenderer(renderer)
-  }
+  protected fun registerRenderer(renderer: AbstractDurationDataRenderer) = detailedMemoryChart.registerRenderer(renderer)
 
-  open protected fun makeMonitorPanel(overlayPanel: JBPanel<*>) = detailedMemoryChart.makeMonitorPanel(overlayPanel)
+  protected open fun makeMonitorPanel(overlayPanel: JBPanel<*>) = detailedMemoryChart.makeMonitorPanel(overlayPanel)
 
-  protected fun makeGcDurationDataRenderer() =
-    DurationDataRenderer.Builder(stage.detailedMemoryUsage.gcDurations, JBColor.BLACK)
-      .setIcon(StudioIcons.Profiler.Events.GARBAGE_EVENT)
-      // Need to offset the GcDurationData by the margin difference between the overlay component and the
-      // line chart. This ensures we are able to render the Gc events in the proper locations on the line.
-      .setLabelOffsets(-StudioIcons.Profiler.Events.GARBAGE_EVENT.iconWidth / 2f,
-                       StudioIcons.Profiler.Events.GARBAGE_EVENT.iconHeight / 2f)
-      .setHostInsets(JBUI.insets(Y_AXIS_TOP_MARGIN, 0, 0, 0))
-      .setHoverHandler { stage.tooltipLegends.gcDurationLegend.setPickData(it) }
-      .setClickRegionPadding(0, 0)
-      .build()
+  protected fun makeGcDurationDataRenderer() = garbageCollectionComponent.makeGcDurationDataRenderer(stage.detailedMemoryUsage,
+                                                                                                     stage.tooltipLegends)
 
   protected fun makeAllocationSamplingRateRenderer() =
     DurationDataRenderer.Builder(stage.allocationSamplingRateDurations, JBColor.BLACK)
@@ -132,9 +122,8 @@ abstract class BaseMemoryTimelineComponent<T: BaseStreamingMemoryProfilerStage>(
 
   private fun makeRangeSelectionComponent() = detailedMemoryChart.makeRangeSelectionComponent()
 
-  protected open fun makeLineChart(): LineChart {
-    return detailedMemoryChart.makeLineChart(stage.detailedMemoryUsage, stage.isLiveAllocationTrackingReady)
-  }
+  protected open fun makeLineChart(): LineChart = detailedMemoryChart.makeLineChart(stage.detailedMemoryUsage,
+                                                                                    stage.isLiveAllocationTrackingReady)
 
   companion object {
     // TODO(b/116430034): use real icons when they're done.

@@ -52,6 +52,8 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
                                           stage.timeline,
                                           false)
 
+  private val garbageCollectionComponent = GarbageCollectionComponent()
+
   @VisibleForTesting
   val timelineComponent = AllocationTimelineComponent(this, buildTimeAxis(profilersView.studioProfilers))
 
@@ -74,14 +76,8 @@ class AllocationStageView(profilersView: StudioProfilersView, stage: AllocationS
   }
 
   @VisibleForTesting
-  val forceGcButton = CommonButton(StudioIcons.Profiler.Toolbar.FORCE_GARBAGE_COLLECTION).apply {
-    disabledIcon = IconLoader.getDisabledIcon(icon)
-    toolTipText = "Force the JVM garbage collector to release unused memory"
-    addActionListener {
-      stage.forceGarbageCollection()
-      stage.studioProfilers.ideServices.featureTracker.trackForceGc()
-    }
-  }
+  val forceGcButton = garbageCollectionComponent.makeGarbageCollectionButton(
+    stage.memoryDataProvider, profilersView.studioProfilers)
 
   @VisibleForTesting
   val samplingMenu = AllocationSamplingMenu(stage)

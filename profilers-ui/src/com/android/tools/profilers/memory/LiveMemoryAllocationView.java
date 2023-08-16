@@ -15,20 +15,32 @@
  */
 package com.android.tools.profilers.memory;
 
+import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
+
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.TooltipView;
+import com.android.tools.adtui.chart.linechart.DurationDataRenderer;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.ViewBinder;
+import com.android.tools.adtui.stdui.ContextMenuItem;
+import com.android.tools.adtui.stdui.DefaultContextMenuItem;
+import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
+import com.android.tools.profilers.IdeProfilerComponents;
 import com.android.tools.profilers.LiveDataView;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.sessions.SessionAspect;
+import java.awt.BorderLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 public class LiveMemoryAllocationView extends LiveDataView<LiveMemoryAllocationModel> {
   public final DetailedMemoryChart myDetailedMemoryChart;
@@ -36,6 +48,10 @@ public class LiveMemoryAllocationView extends LiveDataView<LiveMemoryAllocationM
   private final TooltipModel myMemoryUsageTooltip;
   private final LiveMemoryAllocationModel myAllocationModel;
   private final StudioProfilersView myProfilersView;
+  private final JButton myForceGarbageCollectionButton;
+  private final DefaultContextMenuItem myForceGarbageCollectionAction;
+  private final DurationDataRenderer<GcDurationData> gcDurationDataRenderer;
+  private final GarbageCollectionComponent myGarbageCollectionComponent;
 
   public LiveMemoryAllocationView(@NotNull StudioProfilersView profilersView,
                                   @NotNull LiveMemoryAllocationModel allocationModel) {
@@ -53,10 +69,40 @@ public class LiveMemoryAllocationView extends LiveDataView<LiveMemoryAllocationM
                                                     profilersView.getComponent(),
                                                     myAllocationModel.isLiveAllocationTrackingReady(),
                                                     this::shouldShowTooltip);
+    myGarbageCollectionComponent = new GarbageCollectionComponent();
     TabularLayout topPanelLayout = new TabularLayout("*", "*,Fit-");
     myComponent = new JPanel(topPanelLayout);
     myComponent.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
     myMemoryUsageTooltip = myAllocationModel.getTooltip();
+
+    myForceGarbageCollectionButton = myGarbageCollectionComponent.makeGarbageCollectionButton(
+      allocationModel.getMemoryDataProvider(), profilersView.getStudioProfilers());
+
+    myForceGarbageCollectionAction = myGarbageCollectionComponent.makeGarbageCollectionAction(
+      myAllocationModel.getStudioProfilers(), myForceGarbageCollectionButton, getComponent());
+    myForceGarbageCollectionButton.setToolTipText(myForceGarbageCollectionAction.getDefaultToolTipText());
+
+    gcDurationDataRenderer = myGarbageCollectionComponent.makeGcDurationDataRenderer(
+      allocationModel.getDetailedMemoryUsage(), allocationModel.getTooltipLegends());
+
+    // Register the render, so that when the garbage collection icon is clicked,
+    // the icon get displayed in overlay panel above timeline
+    myDetailedMemoryChart.registerRenderer(getGcDurationDataRenderer());
+  }
+
+  @VisibleForTesting
+  DurationDataRenderer<GcDurationData> getGcDurationDataRenderer() {
+    return gcDurationDataRenderer;
+  }
+
+  @VisibleForTesting
+  public JButton getGarbageCollectionButton() {
+      return myForceGarbageCollectionButton;
+  }
+
+  @VisibleForTesting
+  private DefaultContextMenuItem getGarbageCollectionAction() {
+    return myForceGarbageCollectionAction;
   }
 
   public Boolean shouldShowTooltip() {
@@ -66,6 +112,10 @@ public class LiveMemoryAllocationView extends LiveDataView<LiveMemoryAllocationM
   @NotNull
   public JComponent getComponent() {
     return myComponent;
+  }
+
+  private RangeSelectionComponent getRangeSelectionComponent() {
+    return this.myDetailedMemoryChart.getRangeSelectionComponent();
   }
 
   /**
@@ -93,7 +143,37 @@ public class LiveMemoryAllocationView extends LiveDataView<LiveMemoryAllocationM
                     new TabularLayout.Constraint(0, 0, 2, 1));
     myComponent.add(this.myDetailedMemoryChart.makeMonitorPanel(this.myDetailedMemoryChart.getOverlayPanel()),
                     new TabularLayout.Constraint(0, 0));
-    myProfilersView.installCommonMenuItems(this.myDetailedMemoryChart.getRangeSelectionComponent());
+    buildContextMenu();
+
+    Runnable onSessionChanged = () -> myGarbageCollectionComponent.updateGcButton(myAllocationModel.getStudioProfilers(),
+                                                                                  myForceGarbageCollectionButton);
+    // On session change, update gc button
+    myAllocationModel.getStudioProfilers().getSessionsManager().addDependency(this)
+      .onChange(SessionAspect.SELECTED_SESSION, onSessionChanged);
+  }
+
+  private void buildContextMenu() {
+    IdeProfilerComponents ideProfilerComponents = myProfilersView.getIdeProfilerComponents();
+    ContextMenuInstaller contextMenuInstaller = ideProfilerComponents.createContextMenuInstaller();
+    contextMenuInstaller.installGenericContextMenu(getRangeSelectionComponent(), ContextMenuItem.SEPARATOR);
+    contextMenuInstaller.installGenericContextMenu(getRangeSelectionComponent(), getGarbageCollectionAction());
+    contextMenuInstaller.installGenericContextMenu(getRangeSelectionComponent(), ContextMenuItem.SEPARATOR);
+    myProfilersView.installCommonMenuItems(getRangeSelectionComponent());
+  }
+
+  /**
+   * To get toolbar icons specific to the data view.
+   * @return JComponent
+   */
+  public JComponent getToolbar() {
+    JPanel panel = new JPanel(new BorderLayout());
+    JPanel toolbar = new JPanel(createToolbarLayout());
+    panel.add(toolbar, BorderLayout.WEST);
+    toolbar.removeAll();
+    toolbar.add(myForceGarbageCollectionButton);
+    myGarbageCollectionComponent.updateGcButton(myAllocationModel.getStudioProfilers(),
+                                                myForceGarbageCollectionButton);
+    return panel;
   }
 
   public JComponent getTooltipComponent() {

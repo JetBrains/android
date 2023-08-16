@@ -16,7 +16,7 @@
 package com.android.tools.profilers;
 
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.Timeline;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +38,7 @@ public abstract class LiveDataModel extends AspectModel<LiveDataModel.Aspect> {
   }
 
   @NotNull
-  public final Timeline getTimeline() {
+  public final StreamingTimeline getTimeline() {
     return myProfilers.getTimeline();
   }
 

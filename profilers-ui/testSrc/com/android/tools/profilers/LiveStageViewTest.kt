@@ -16,11 +16,12 @@
 package com.android.tools.profilers.com.android.tools.profilers
 
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.stdui.ContextMenuItem
+import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -31,9 +32,9 @@ import com.android.tools.profilers.LiveStageView
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.SessionProfilersView
-import com.android.tools.profilers.StageWithToolbarView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.SupportLevel
 import com.android.tools.profilers.cpu.CpuUsageView
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FlexibleLegendPanel
@@ -41,9 +42,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.ui.components.JBLabel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 class LiveStageViewTest {
@@ -70,8 +74,9 @@ class LiveStageViewTest {
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer)
+    val profilers = Mockito.spy(StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer))
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
+    Mockito.doReturn(SupportLevel.PROFILEABLE).whenever(profilers).selectedSessionSupportLevel
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     myStage = LiveStage(profilers)
@@ -143,9 +148,9 @@ class LiveStageViewTest {
   fun testLiveStageViewPanel() {
     val topPanelComponents = getTreeWalkerTopPanel(getJPanels()).descendants().filterIsInstance(JPanel::class.java)
     // Top panel has many child JPanel
-    assertThat(topPanelComponents.size).isGreaterThan(1)
+    assertThat(topPanelComponents.size).isGreaterThan(2)
 
-    val viewPanel = topPanelComponents[1]
+    val viewPanel = topPanelComponents[2]
     assertThat(viewPanel.background).isEqualTo(ProfilerColors.DEFAULT_BACKGROUND)
 
     val treeWalkerViewPanel = TreeWalker(viewPanel)
@@ -161,7 +166,7 @@ class LiveStageViewTest {
     // Top panel has many child JPanel
     assertThat(topPanelComponents.size).isGreaterThan(1)
 
-    val viewPanel = topPanelComponents[1]
+    val viewPanel = topPanelComponents[2]
     assertThat(viewPanel.background).isEqualTo(ProfilerColors.DEFAULT_BACKGROUND)
 
     val treeWalkerViewPanel = TreeWalker(viewPanel)
@@ -175,14 +180,14 @@ class LiveStageViewTest {
     assertThat(cpuUsageViewComponents.size).isEqualTo(1)
   }
 
-  /** testing View Panel has Memory Live view **/
+  /** Testing View Panel has Memory Live view **/
   @Test
   fun testLiveStageMemoryLiveView() {
     val topPanelComponents = getTreeWalkerTopPanel(getJPanels()).descendants().filterIsInstance(JPanel::class.java)
     // Top panel has many child JPanel
-    assertThat(topPanelComponents.size).isGreaterThan(1)
+    assertThat(topPanelComponents.size).isGreaterThan(2)
 
-    val viewPanel = topPanelComponents[1]
+    val viewPanel = topPanelComponents[2]
     assertThat(viewPanel.background).isEqualTo(ProfilerColors.DEFAULT_BACKGROUND)
 
     val treeWalkerViewPanel = TreeWalker(viewPanel)
@@ -197,24 +202,47 @@ class LiveStageViewTest {
     LiveStageView(myProfilersView, myStage)
     val items = myComponents.allContextMenuItems
     // 3 section of context menu
-    // 5 for cpu usage, 5 for cpu threads, 5 for memory
-    assertThat(items.size).isEqualTo(15)
-    assertThat(items[0].text).isEqualTo(StageWithToolbarView.ATTACH_LIVE)
-    assertThat(items[1].text).isEqualTo(StageWithToolbarView.DETACH_LIVE)
-    assertThat(items[2]).isEqualTo(ContextMenuItem.SEPARATOR)
-    assertThat(items[3].text).isEqualTo(StageWithToolbarView.ZOOM_IN)
-    assertThat(items[4].text).isEqualTo(StageWithToolbarView.ZOOM_OUT)
+    // 5 for cpu usage, 5 for cpu threads, 8 for memory
+    assertThat(items.size).isEqualTo(18)
+  }
 
-    assertThat(items[5].text).isEqualTo(StageWithToolbarView.ATTACH_LIVE)
-    assertThat(items[6].text).isEqualTo(StageWithToolbarView.DETACH_LIVE)
-    assertThat(items[7]).isEqualTo(ContextMenuItem.SEPARATOR)
-    assertThat(items[8].text).isEqualTo(StageWithToolbarView.ZOOM_IN)
-    assertThat(items[9].text).isEqualTo(StageWithToolbarView.ZOOM_OUT)
+  @Test
+  fun testToolbar() {
+    val stageView = LiveStageView(myProfilersView, myStage)
+    val result = stageView.toolbar
+    val topLevelToolBar = TreeWalker(result.components[0])
+    val componentsInToolbar = topLevelToolBar.descendants().filterIsInstance(JComponent::class.java)
+    // Toolbar should have elements
+    assertThat(componentsInToolbar.size).isGreaterThan(0)
 
-    assertThat(items[10].text).isEqualTo(StageWithToolbarView.ATTACH_LIVE)
-    assertThat(items[11].text).isEqualTo(StageWithToolbarView.DETACH_LIVE)
-    assertThat(items[12]).isEqualTo(ContextMenuItem.SEPARATOR)
-    assertThat(items[13].text).isEqualTo(StageWithToolbarView.ZOOM_IN)
-    assertThat(items[14].text).isEqualTo(StageWithToolbarView.ZOOM_OUT)
+    var toolbar = result.getComponent(0) as JPanel
+    // 1 item which is the garbage collection
+    assertThat(toolbar.components).asList().hasSize(1)
+
+    val firstElementInToolbar = toolbar.components[0]
+
+    // Verify garbage collection button is there in toolbar
+    val garbageCollectionButtonInToolbar = TreeWalker(firstElementInToolbar).descendants().filterIsInstance(CommonButton::class.java)
+    assertThat(garbageCollectionButtonInToolbar.size).isEqualTo(1)
+  }
+
+  @Test
+  fun testDefaultMessage() {
+    val topPanelComponents = getTreeWalkerTopPanel(getJPanels()).descendants().filterIsInstance(JPanel::class.java)
+    // Top panel has many child JPanel
+    assertThat(topPanelComponents.size).isGreaterThan(2)
+
+    val viewPanel = topPanelComponents[1]
+    val treeWalkerViewPanel = TreeWalker(viewPanel)
+    val viewPanelComponents = treeWalkerViewPanel.descendants().filterIsInstance(JPanel::class.java)
+    val secondElementInToolbar = viewPanelComponents[0]
+
+    val messageSectionComponentsLabel = TreeWalker(secondElementInToolbar).descendants().filterIsInstance(JBLabel::class.java)
+
+    //Default mode is PROFILEABLE, so check for that message
+    assertThat(messageSectionComponentsLabel[0].text).isEqualTo("Profiling with low overhead. " +
+                                                                "Certain profiler features will be unavailable in this mode.")
+    assertThat(messageSectionComponentsLabel[1].text).isEqualTo("Dismiss")
+    assertThat(messageSectionComponentsLabel[2].text).isEqualTo("Learn more")
   }
 }

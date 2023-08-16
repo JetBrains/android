@@ -73,10 +73,13 @@ open class LiveMemoryAllocationViewTest {
 
   private lateinit var myProfilersView: StudioProfilersView
   private lateinit var myModel: LiveMemoryAllocationModel
+  private lateinit var profilers: StudioProfilers
 
   @Before
   fun setUp() {
-    val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer)
+    profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer)
+    // Advance the clock to make sure StudioProfilers has a chance to select device + process.
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
@@ -138,14 +141,26 @@ open class LiveMemoryAllocationViewTest {
     val tooltipComponent = RangeTooltipComponent(myTimeline, myContent)
     memoryProfilerLiveView.populateUi(tooltipComponent);
     val items = myComponents.allContextMenuItems
-    // 4 items and 1 separator
+    // 4 items and 1 separator, garbage collection and seperator
     // Attach, Detach, Separator, Zoom in, Zoom out
-    assertThat(items.size).isEqualTo(5)
-    assertThat(items[0].text).isEqualTo(StageWithToolbarView.ATTACH_LIVE)
-    assertThat(items[1].text).isEqualTo(StageWithToolbarView.DETACH_LIVE)
-    assertThat(items[2]).isEqualTo(ContextMenuItem.SEPARATOR)
-    assertThat(items[3].text).isEqualTo(StageWithToolbarView.ZOOM_IN)
-    assertThat(items[4].text).isEqualTo(StageWithToolbarView.ZOOM_OUT)
+    assertThat(items.size).isEqualTo(8)
+    assertThat(items[0].text).isEqualTo(ContextMenuItem.SEPARATOR.text)
+    assertThat(items[1].text).isEqualTo("Force garbage collection")
+    assertThat(items[2].text).isEqualTo(ContextMenuItem.SEPARATOR.text)
+    assertThat(items[3].text).isEqualTo(StageWithToolbarView.ATTACH_LIVE)
+    assertThat(items[4].text).isEqualTo(StageWithToolbarView.DETACH_LIVE)
+    assertThat(items[5].text).isEqualTo(ContextMenuItem.SEPARATOR.text)
+    assertThat(items[6].text).isEqualTo(StageWithToolbarView.ZOOM_IN)
+    assertThat(items[7].text).isEqualTo(StageWithToolbarView.ZOOM_OUT)
+  }
+
+  @Test
+  fun testToolbarHasGcButton() {
+    val liveMemoryView = LiveMemoryAllocationView(myProfilersView, myModel)
+    val toolbar = liveMemoryView.toolbar.getComponent(0) as JPanel
+    assertThat(toolbar.components).asList().containsExactly(
+      liveMemoryView.garbageCollectionButton,
+    )
   }
 
   @Test

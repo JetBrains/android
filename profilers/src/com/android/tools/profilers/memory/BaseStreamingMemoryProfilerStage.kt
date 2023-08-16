@@ -63,16 +63,16 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
     protected set
   val aspect = AspectModel<MemoryProfilerAspect>()
 
-  private val myMemoryDataProvider = MemoryDataProvider(profilers, timeline)
-  private val allocationSamplingRateDataSeries = myMemoryDataProvider.allocationSamplingRateDataSeries
+  val memoryDataProvider = MemoryDataProvider(profilers, timeline)
+  private val allocationSamplingRateDataSeries = memoryDataProvider.allocationSamplingRateDataSeries
 
-  val gcStatsModel = myMemoryDataProvider.gcStatsModel
-  val allocationSamplingRateDurations = myMemoryDataProvider.allocationSamplingRateDurations
-  val detailedMemoryUsage = myMemoryDataProvider.detailedMemoryUsage
-  val memoryAxis = myMemoryDataProvider.memoryAxis
-  val objectsAxis = myMemoryDataProvider.objectsAxis
-  val legends = myMemoryDataProvider.legends
-  val tooltipLegends = myMemoryDataProvider.tooltipLegends
+  val gcStatsModel = memoryDataProvider.gcStatsModel
+  val allocationSamplingRateDurations = memoryDataProvider.allocationSamplingRateDurations
+  val detailedMemoryUsage = memoryDataProvider.detailedMemoryUsage
+  val memoryAxis = memoryDataProvider.memoryAxis
+  val objectsAxis = memoryDataProvider.objectsAxis
+  val legends = memoryDataProvider.legends
+  val tooltipLegends = memoryDataProvider.tooltipLegends
   val eventMonitor = EventMonitor(profilers)
 
   private val allocationSamplingRateUpdatable = object : Updatable {
@@ -122,7 +122,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
 
   val isLiveAllocationTrackingReady get() = MemoryProfiler.isUsingLiveAllocation(studioProfilers, sessionData)
   val isLiveAllocationTrackingSupported
-    get() = myMemoryDataProvider.isLiveAllocationTrackingSupported
+    get() = memoryDataProvider.isLiveAllocationTrackingSupported
 
   init {
     gcStatsModel.apply {
@@ -184,13 +184,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   }
 
   fun forceGarbageCollection() {
-    studioProfilers.client.transportClient.execute(
-      Transport.ExecuteRequest.newBuilder()
-        .setCommand(Commands.Command.newBuilder()
-                      .setStreamId(sessionData.streamId)
-                      .setPid(sessionData.pid)
-                      .setType(Commands.Command.CommandType.GC))
-        .build())
+    memoryDataProvider.forceGarbageCollection()
   }
 
   /**
@@ -273,7 +267,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   protected inline fun <T : DurationData> applyDataSeriesConstructor(f: DataSeriesConstructor<T>) =
     f(studioProfilers.client, sessionData, studioProfilers.ideServices.featureTracker, this)
 
-  protected fun getDeviceForSelectedSession() = myMemoryDataProvider.getDeviceForSelectedSession()
+  protected fun getDeviceForSelectedSession() = memoryDataProvider.getDeviceForSelectedSession()
 
 
   // This method is factored out just for testing the allocation sampling mode after the stage has exited,

@@ -26,7 +26,9 @@ import com.android.tools.adtui.model.axis.ClampedAxisComponentModel
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter
 import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
+import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profiler.proto.Transport
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.UnifiedEventDataSeries
 import com.android.tools.profilers.memory.AllocationSamplingRateDataSeries
@@ -59,6 +61,16 @@ open class MemoryDataProvider(val profilers: StudioProfilers,
   fun getDeviceForSelectedSession() = profilers.getStream(profilers.session.streamId).let { stream ->
     if (stream.type === Common.Stream.Type.DEVICE) stream.device
     else null
+  }
+
+  fun forceGarbageCollection() {
+    profilers.client.transportClient.execute(
+      Transport.ExecuteRequest.newBuilder()
+        .setCommand(Commands.Command.newBuilder()
+                      .setStreamId(sessionData.streamId)
+                      .setPid(sessionData.pid)
+                      .setType(Commands.Command.CommandType.GC))
+        .build())
   }
 
   private fun <T : DurationData> makeModel(series: DataSeries<T>) = DurationDataModel(RangedSeries(timeline.viewRange, series))

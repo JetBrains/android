@@ -21,6 +21,7 @@ import com.android.tools.adtui.LegendConfig
 import com.android.tools.adtui.RangeSelectionComponent
 import com.android.tools.adtui.RangeTooltipComponent
 import com.android.tools.adtui.TabularLayout
+import com.android.tools.adtui.chart.linechart.AbstractDurationDataRenderer
 import com.android.tools.adtui.chart.linechart.LineChart
 import com.android.tools.adtui.chart.linechart.LineConfig
 import com.android.tools.adtui.chart.linechart.OverlayComponent
@@ -151,6 +152,11 @@ class DetailedMemoryChart {
         setFillEndGap(true)
       }
     }
+  }
+
+  fun registerRenderer(renderer: AbstractDurationDataRenderer) {
+    lineChart.addCustomRenderer(renderer)
+    overlay.addDurationDataRenderer(renderer)
   }
 }
 

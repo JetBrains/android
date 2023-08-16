@@ -29,17 +29,19 @@ import com.android.tools.profilers.memory.LiveMemoryAllocationModel
 import com.android.tools.profilers.memory.LiveMemoryAllocationView
 import java.awt.BorderLayout
 import java.awt.FlowLayout
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
   StageView<LiveStage>(profilersView, liveStage) {
 
+
+  val binder: ViewBinder<StudioProfilersView, LiveDataModel, LiveDataView<out LiveDataModel>> = ViewBinder()
+
   init {
-    val binder: ViewBinder<StudioProfilersView, LiveDataModel, LiveDataView<out LiveDataModel>> = ViewBinder()
     binder.bind(LiveMemoryAllocationModel::class.java) { view: StudioProfilersView, model
       -> LiveMemoryAllocationView(view, model)
     }
-
     binder.bind(LiveCpuUsageModel::class.java) { view: StudioProfilersView, model
       -> LiveCpuUsageView(view, model)
     }
@@ -51,7 +53,6 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     tooltipBinder.bind(LifecycleTooltip::class.java) { stageView: LiveStageView, tooltip
       -> LifecycleTooltipView(stageView.component, tooltip)
     }
-
     tooltipBinder.bind(UserEventTooltip::class.java) { stageView: LiveStageView, tooltip
       -> UserEventTooltipView(stageView.component, tooltip)
     }
@@ -68,13 +69,20 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     val topPanel = JPanel(topPanelLayout)
     topPanel.background = ProfilerColors.DEFAULT_STAGE_BACKGROUND
 
+    val messagePanel = JPanel(TabularLayout("*"))
+    val messageBasedOnSupportLevel = getMessageBasedOnSupportLevel()
+    messagePanel.add(messageBasedOnSupportLevel, TabularLayout.Constraint(0, 0))
+
+    topPanelLayout.setRowSizing(0, "Fit-")
+    topPanel.add(messagePanel, TabularLayout.Constraint(0, 0))
+
     if (liveStage.eventMonitor.isPresent) {
       liveStage.eventMonitor.let { eventMonitor ->
         val eventsView = EventMonitorView(profilersView, eventMonitor.get())
         val eventComponent = eventsView.component
         eventsView.registerTooltip(myTooltipComponent, stage)
-        topPanelLayout.setRowSizing(0, "Fit-")
-        topPanel.add(eventComponent, TabularLayout.Constraint(0, 0))
+        topPanelLayout.setRowSizing(1, "Fit-")
+        topPanel.add(eventComponent, TabularLayout.Constraint(1, 0))
       }
     }
 
@@ -88,12 +96,12 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
       liveViewLayout.setRowSizing(rowIndex, rowSizeString(view))
     }
 
-    topPanelLayout.setRowSizing(1, "*")
-    topPanel.add(liveViews, TabularLayout.Constraint(1, 0))
+    topPanelLayout.setRowSizing(2, "*")
+    topPanel.add(liveViews, TabularLayout.Constraint(2, 0))
 
     val profilers = liveStage.studioProfilers
     val timeAxis = buildTimeAxis(profilers)
-    topPanel.add(timeAxis, TabularLayout.Constraint(2, 0))
+    topPanel.add(timeAxis, TabularLayout.Constraint(3, 0))
 
     component.add(topPanel, BorderLayout.CENTER)
   }
@@ -103,7 +111,44 @@ class LiveStageView(profilersView: StudioProfilersView, liveStage: LiveStage) :
     return if (weight > 0) "$weight*" else "Fit-"
   }
 
-  override fun getToolbar() = null
+  override fun getToolbar(): JComponent {
+    val liveDataViewsToolBar: MutableList<JComponent> = ArrayList()
+    for (liveDataModel in stage.liveModels) {
+      val view: LiveDataView<out LiveDataModel> = binder.build(profilersView, liveDataModel)
+      view.toolbar?.let {liveDataViewsToolBar.add(it)}
+    }
+    val panel = JPanel(BorderLayout())
+    val toolbar = JPanel(ProfilerLayout.createToolbarLayout())
+    toolbar.removeAll()
+    liveDataViewsToolBar.forEach{toolbar.add(it)}
+    panel.add(toolbar, BorderLayout.WEST)
+    return panel
+  }
+
+  private fun getMessageBasedOnSupportLevel() = getMessage(stage.studioProfilers)
+
+  companion object {
+    private const val showDebuggableMessage = "debuggable.monitor.message"
+    private const val showProfileableMessage = "profileable.monitor.message"
+    fun getMessage(studioProfiler: StudioProfilers): JComponent {
+      return when (studioProfiler.selectedSessionSupportLevel) {
+        SupportLevel.DEBUGGABLE -> DismissibleMessage.of(studioProfiler,
+                                                         showDebuggableMessage,
+                                                         "Profiling with complete data. This does not represent app performance in production." +
+                                                         " Consider profiling with low overhead.",
+                                                         SupportLevel.DOC_LINK)
+
+        SupportLevel.PROFILEABLE -> DismissibleMessage.of(studioProfiler,
+                                                          showProfileableMessage,
+                                                          "Profiling with low overhead. Certain profiler features will be unavailable in this mode.",
+                                                          SupportLevel.DOC_LINK)
+
+        else -> {
+          JPanel()
+        }
+      }
+    }
+  }
 
   private fun shouldShowTooltipSeekComponent() = true
 }

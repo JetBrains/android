@@ -64,8 +64,6 @@ import org.jetbrains.annotations.NotNull;
  * Bird eye view displaying high-level information across all profilers.
  */
 public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
-  private static final String SHOW_DEBUGGABLE_MESSAGE = "debuggable.monitor.message";
-  private static final String SHOW_PROFILEABLE_MESSAGE = "profileable.monitor.message";
   @NotNull
   @SuppressWarnings("FieldCanBeLocal") // We need to keep a reference to the sub-views. If they got collected, they'd stop updating the UI.
   private final List<ProfilerMonitorView> myViews;
@@ -214,20 +212,7 @@ public class StudioMonitorStageView extends StageView<StudioMonitorStage> {
 
   @Override
   public JComponent getToolbar() {
-    switch (getStage().getStudioProfilers().getSelectedSessionSupportLevel()) {
-      case DEBUGGABLE:
-        return DismissibleMessage.of(getStage().getStudioProfilers(),
-                                     SHOW_DEBUGGABLE_MESSAGE,
-                                     "Profiling with complete data. This does not represent app performance in production." +
-                                     " Consider profiling with low overhead.",
-                                     SupportLevel.DOC_LINK);
-      case PROFILEABLE:
-        return DismissibleMessage.of(getStage().getStudioProfilers(),
-                                     SHOW_PROFILEABLE_MESSAGE,
-                                     "Profiling with low overhead. Certain profiler features will be unavailable in this mode.",
-                                     SupportLevel.DOC_LINK);
-    }
-    return new JPanel();
+    return LiveStageView.Companion.getMessage(getStage().getStudioProfilers());
   }
 
   @Override

@@ -53,6 +53,14 @@ public class LiveMemoryAllocationModel extends LiveDataModel {
                                                   isLiveAllocationTrackingReady());
   }
 
+  public MemoryDataProvider getMemoryDataProvider() {
+    return myMemoryDataProvider;
+  }
+
+  public StudioProfilers getStudioProfilers() {
+    return myProfilers;
+  }
+
   public DetailedMemoryUsage getDetailedMemoryUsage() {
     return myMemoryDataProvider.getDetailedMemoryUsage();
   }
@@ -71,6 +79,10 @@ public class LiveMemoryAllocationModel extends LiveDataModel {
 
   public Boolean isLiveAllocationTrackingReady() {
     return myMemoryDataProvider.isLiveAllocationTrackingReady();
+  }
+
+  public MemoryStageLegends getTooltipLegends() {
+    return myMemoryDataProvider.getTooltipLegends();
   }
 
   public RangeSelectionModel getRangeSelectionModel() {
