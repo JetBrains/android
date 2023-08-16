@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
-import com.android.tools.adtui.common.canvasTooltipBackground
+import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.common.usageInstructionsText
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBUI
@@ -26,7 +26,7 @@ import javax.swing.JPanel
 class UsageInstructionsView: JPanel(BorderLayout()) {
 
   init {
-      background = canvasTooltipBackground
+      background = primaryContentBackground
       border = JBUI.Borders.empty(8)
       val usageInstructionsLabel = JLabel().apply {
         foreground = usageInstructionsText

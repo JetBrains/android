@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis
 
+import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.formatter.TimeFormatter
 import com.android.tools.adtui.ui.HideablePanel
@@ -58,7 +59,7 @@ class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
     }
     // Add a collapsible Usage Instructions section containing Navigation and Analysis instructions (initially collapsed)
     addSection(HideablePanel.Builder(UsageInstructionsView.USAGE_INSTRUCTIONS_TITLE, UsageInstructionsView()).setInitiallyExpanded(false).setPanelBorder(
-      JBUI.Borders.empty()).build())
+      JBUI.Borders.empty()).build().apply { background = primaryContentBackground })
 
     tabModel.selectionRange.addDependency(observer).onChange(Range.Aspect.RANGE) { updateRangeLabels() }
     updateRangeLabels()
