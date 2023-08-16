@@ -211,9 +211,6 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservableP
   @Synchronized
   override fun addDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
     pairingStatusListeners.addIfAbsent(listener)
-    if (pairingStatusListeners.size > 2) { // We should have no more than two pairing details panels listening
-      LOG.error("Memory leak adding listeners")
-    }
 
     pairedDevicesList.forEach(listener::pairingStatusChanged)
   }
