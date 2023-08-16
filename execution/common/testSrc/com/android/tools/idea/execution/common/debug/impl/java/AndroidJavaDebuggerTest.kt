@@ -159,8 +159,6 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testOnDebugProcessDestroyCallback() = runTest {
-    // b/295172527 flaky test on windows.
-    AssumeUtil.assumeNotWindows();
     val countDownLatch = CountDownLatch(1)
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
@@ -169,6 +167,7 @@ class AndroidJavaDebuggerTest {
       javaDebugger,
       javaDebugger.createState(), destroyRunningProcess = { countDownLatch.countDown() }, EmptyProgressIndicator())
 
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
     session.debugProcess.processHandler.destroyProcess()
     session.debugProcess.processHandler.waitFor()
     if (!countDownLatch.await(10, TimeUnit.SECONDS)) {
@@ -226,7 +225,7 @@ class AndroidJavaDebuggerTest {
       }
     })
 
-    Thread.sleep(50); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
+    Thread.sleep(250); // Let the virtual machine initialize. Otherwise, JDI Internal Event Handler thread is leaked.
     session.debugProcess.processHandler.destroyProcess()
     session.debugProcess.processHandler.waitFor()
     if (!countDownLatch.await(20, TimeUnit.SECONDS)) {
