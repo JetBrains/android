@@ -22,15 +22,19 @@ import com.android.adblib.selector
 import com.android.adblib.shellAsLines
 import com.android.adblib.shellAsText
 import com.android.annotations.concurrency.UiThread
+import com.android.repository.io.recursiveSize
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.LocalEmulatorProperties
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.tools.adtui.device.ScreenDiagram
+import com.android.tools.adtui.util.getHumanizedSize
+import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.ibm.icu.number.NumberFormatter
 import com.ibm.icu.util.MeasureUnit
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
@@ -38,6 +42,7 @@ import java.awt.Cursor
 import java.awt.Font
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
+import java.io.IOException
 import java.text.Collator
 import java.time.Duration
 import java.util.Formatter
@@ -75,6 +80,9 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
   val availableStorageLabel = LabeledValue("Available storage")
   var availableStorage by availableStorageLabel
 
+  val sizeOnDiskLabel = LabeledValue("Size on disk").also { it.isVisible = false }
+  var sizeOnDisk by sizeOnDiskLabel
+
   val summarySection =
     InfoSection(
       "Summary",
@@ -84,7 +92,8 @@ internal class DeviceInfoPanel : JBPanel<DeviceInfoPanel>() {
         resolutionLabel,
         resolutionDpLabel,
         abiListLabel,
-        availableStorageLabel
+        availableStorageLabel,
+        sizeOnDiskLabel,
       )
     )
 
@@ -231,6 +240,18 @@ internal fun DeviceInfoPanel.populateDeviceInfo(properties: DeviceProperties) {
   }
 }
 
+internal suspend fun DeviceInfoPanel.populateSizeOnDiskLabel(properties: DeviceProperties) {
+  if (properties is LocalEmulatorProperties) {
+    try {
+      sizeOnDisk =
+        withContext(diskIoThread) { getHumanizedSize(properties.avdPath.recursiveSize()) }
+    } catch (e: IOException) {
+      logger<DeviceInfoPanel>().warn("Unable to compute size of device ${properties.avdName}")
+    }
+    sizeOnDiskLabel.isVisible = true
+  }
+}
+
 private fun createCopyPropertiesButton(infoSection: InfoSection) =
   JButton("Copy properties to clipboard", AllIcons.Actions.Copy).apply {
     border = null
@@ -269,6 +290,7 @@ internal suspend fun populateDeviceInfo(deviceInfoPanel: DeviceInfoPanel, handle
     val device = state.connectedDevice?.takeIf { it.isOnline }
 
     deviceInfoPanel.populateDeviceInfo(properties)
+    launch { deviceInfoPanel.populateSizeOnDiskLabel(properties) }
 
     launch {
       if (device != null && properties.isVirtual == false) {
