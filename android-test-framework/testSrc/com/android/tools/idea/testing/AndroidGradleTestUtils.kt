@@ -836,7 +836,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     dependencies =
       androidLibraryDependencies(variant).orEmpty().map {
         IdeDependencyCoreImpl(
-          internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(it.library)) { it.library },
+          internedModels.internAndroidLibrary(it.library) { it.library },
           dependencies = listOf()
         )
       } +

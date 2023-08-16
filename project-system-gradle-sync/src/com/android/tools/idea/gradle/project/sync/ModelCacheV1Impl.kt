@@ -76,7 +76,6 @@ import com.android.tools.idea.gradle.model.IdeMavenCoordinates
 import com.android.tools.idea.gradle.model.IdeModuleWellKnownSourceSet
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
-import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.BuildFolderPaths
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
@@ -113,7 +112,6 @@ import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestedTargetVariantImpl
-import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantBuildInformationImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeVectorDrawablesOptionsImpl
@@ -482,7 +480,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       )
       val isProvided = copyNewProperty(androidLibrary::isProvided, false)
 
-      makeDependency(internedModels.internAndroidLibrary(LibraryIdentity.fromIdeModel(unnamedLibrary)) { unnamedLibrary }, isProvided)
+      makeDependency(internedModels.internAndroidLibrary(unnamedLibrary) { unnamedLibrary }, isProvided)
     }
   }
 
@@ -662,7 +660,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           deduplicate = internedModels::intern
         )
         internedModels.internAndroidLibrary(
-          LibraryIdentity.fromIdeModel(library)
+          library,
         ) { library }
       } else {
         // NOTE: [artifactAddress] needs to be in this form to meet LintModelFactory expectations.
@@ -1376,7 +1374,6 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   }
 
   return object : ModelCache.V1 {
-    override fun createLibraryTable(): IdeUnresolvedLibraryTableImpl = internedModels.createLibraryTable()
 
     override fun variantFrom(
       androidProject: IdeAndroidProjectImpl,

@@ -1658,59 +1658,59 @@ PROJECT                       : BuildSrcWithComposite
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.2.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.core:core:1.5.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.fragment:fragment:1.3.4@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.fragment:fragment:1.3.4@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.3.1 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.3.1@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.3.1@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.1.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.1.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -1868,33 +1868,33 @@ PROJECT                       : BuildSrcWithComposite
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.2.0 [=]
-        LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar [=]
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar [=]
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar [=]
         LIBRARY                       : Gradle: androidx.core:core:1.5.0@aar [=]
-        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
-        LIBRARY                       : Gradle: androidx.fragment:fragment:1.3.4@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.fragment:fragment:1.3.4@aar [=]
+        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.3.1 [=]
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.3.1@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.1.0@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1@aar (1) [=]
-        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.3.1@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar [=]
+        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
+        LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar [=]
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1@aar [=]
+        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
@@ -2041,59 +2041,59 @@ PROJECT                       : BuildSrcWithComposite
             SdkType                       : Android SDK
             HomePath                      : <ANDROID_SDK>
         ORDER_ENTRY                   : <Module source>
-        LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.annotation:annotation:1.2.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.arch.core:core-common:2.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.core:core:1.5.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.fragment:fragment:1.3.4@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.fragment:fragment:1.3.4@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-common:2.3.1 [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.3.1@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.3.1@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.1.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.1.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1@aar [=]
             Scope                         : Test
-        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar (1) [=]
+        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             Scope                         : Test
@@ -2778,10 +2778,6 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/jars/classes.jar!/
             *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/annotations.zip!/
-        LIBRARY                       : Gradle: androidx.activity:activity:1.2.3@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/activity-1.2.3/annotations.zip!/
         LIBRARY                       : Gradle: androidx.annotation:annotation-experimental:1.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/annotation-experimental-1.0.0/jars/classes.jar!/
@@ -2795,16 +2791,7 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/res
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.appcompat:appcompat-resources:1.3.0@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-resources-1.3.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/annotations.zip!/
-        LIBRARY                       : Gradle: androidx.appcompat:appcompat:1.3.0@aar (1)
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/res
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/appcompat-1.3.0/jars/classes.jar!/
@@ -2814,13 +2801,7 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.0.0@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.arch.core:core-runtime:2.1.0@aar (1)
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-runtime-2.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.cardview:cardview:1.0.0@aar
@@ -2832,10 +2813,6 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.collection:collection:1.1.0
             *CLASSES                      : jar://<M2>/androidx/collection/collection/1.1.0/collection-1.1.0.jar!/
         LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-2.1.3/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-2.1.3/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-2.1.3/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.constraintlayout:constraintlayout:2.1.3@aar (1)
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-2.1.3/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-2.1.3/res
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/constraintlayout-2.1.3/jars/classes.jar!/
@@ -2859,9 +2836,6 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.6.0/jars/classes.jar!/
             *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/core-1.6.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar (1)
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.customview:customview:1.0.0@aar
@@ -2893,15 +2867,7 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.4/res
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.4/jars/classes.jar!/
             *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.4/annotations.zip!/
-        LIBRARY                       : Gradle: androidx.fragment:fragment:1.3.4@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.4/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.4/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.4/jars/classes.jar!/
-            *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/fragment-1.3.4/annotations.zip!/
         LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.interpolator:interpolator:1.0.0@aar (1)
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar
@@ -2915,13 +2881,7 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.3.1@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-core-2.3.1/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar (1)
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-livedata-2.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime-ktx:2.2.0@aar
@@ -2931,31 +2891,17 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/res
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-runtime:2.3.1@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-runtime-2.3.1/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-ktx-2.2.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-ktx-2.2.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel-savedstate:2.3.1@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-savedstate-2.3.1/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/res
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.3.1@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/lifecycle-viewmodel-2.3.1/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.loader:loader:1.0.0@aar (1)
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
@@ -3002,10 +2948,6 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/AndroidManifest.xml
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/res
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.savedstate:savedstate:1.1.0@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/AndroidManifest.xml
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/res
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/savedstate-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/espresso-core-3.2.0/jars/classes.jar!/
@@ -3037,19 +2979,10 @@ PROJECT                       : BuildSrcWithComposite
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable-animated:1.1.0@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-animated-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.vectordrawable:vectordrawable:1.1.0@aar (1)
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/vectordrawable-1.1.0/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.versionedparcelable:versionedparcelable:1.1.1@aar (1)
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-1.1.1/jars/classes.jar!/
         LIBRARY                       : Gradle: androidx.viewpager2:viewpager2:1.0.0@aar
@@ -3058,9 +2991,6 @@ PROJECT                       : BuildSrcWithComposite
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager2-1.0.0/jars/classes.jar!/
             *ANNOTATIONS                  : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager2-1.0.0/annotations.zip!/
         LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar
-            *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
-            *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar!/
-        LIBRARY                       : Gradle: androidx.viewpager:viewpager:1.0.0@aar (1)
             *CLASSES                      : file://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/AndroidManifest.xml
             *CLASSES                      : jar://<GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-1.0.0/jars/classes.jar!/
         LIBRARY                       : Gradle: com.google.android.material:material:1.4.0@aar

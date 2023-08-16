@@ -57,7 +57,6 @@ import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 
 interface ModelCache {
-  fun createLibraryTable(): IdeUnresolvedLibraryTableImpl
 
   interface V1 : ModelCache {
     fun variantFrom(

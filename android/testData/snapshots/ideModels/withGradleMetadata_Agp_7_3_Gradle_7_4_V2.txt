@@ -62,8 +62,6 @@ LIBRARY_TABLE
         variant                       : debug
     - library                     : IdeUnknownLibraryImpl
         key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
-    - library                     : IdeUnknownLibraryImpl
-        key                           : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
 MODULE                        : withGradleMetadata
     externalProject               : withGradleMetadata (DefaultExternalProject)
         path                          : : [-]
@@ -484,7 +482,7 @@ MODULE                        : withGradleMetadata.app
                             javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                     runtimeClasspath
                         javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
-                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
@@ -500,7 +498,7 @@ MODULE                        : withGradleMetadata.app
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.gradle.sample:library:1.1@jar
-                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
                             javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                 ApplicationId                 : come.example.with.gradle.metadata
                 SigningConfigName             : debug
@@ -607,7 +605,7 @@ MODULE                        : withGradleMetadata.app
                             javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                     runtimeClasspath
                         javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
-                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                            unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
                         javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib-jdk8:<KOTLIN_VERSION>@jar
@@ -626,7 +624,7 @@ MODULE                        : withGradleMetadata.app
                         module                        : <ROOT>-:app-MAIN
                             javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2@jar
                             javaLibrary                   : org.gradle.sample:library:1.1@jar
-                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-runtime, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
+                        unknown                       : org.jetbrains.kotlinx|kotlinx-coroutines-core|1.5.2|org.gradle.libraryelements>jar, org.gradle.status>release, org.gradle.usage>java-api, org.jetbrains.kotlin.platform.type>jvm|org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2
                             javaLibrary                   : org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.5.2@jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     externalProject               : :app (DefaultExternalProject) (*seen*)
