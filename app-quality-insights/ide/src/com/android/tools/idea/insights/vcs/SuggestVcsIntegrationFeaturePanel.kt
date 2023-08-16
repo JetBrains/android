@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.vcs
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.hasRequiredAgpVersion
 import com.android.tools.idea.insights.persistence.AppInsightsSettings
 import com.android.tools.idea.projectsystem.cacheInvalidatingOnSyncModifications
@@ -50,6 +51,7 @@ class SuggestVcsIntegrationFeaturePanel(val project: Project) :
     const val MIN_SUPPORTED_AGP_VERSION = "8.2.0-alpha06"
 
     fun canShow(project: Project): Boolean {
+      if (!StudioFlags.APP_INSIGHTS_VCS_SUPPORT.get()) return false
       if (project.service<AppInsightsSettings>().isSuggestVcsIntegrationDismissed) return false
       if (project.isVcsInfoEnabledInAgp()) return false
 
