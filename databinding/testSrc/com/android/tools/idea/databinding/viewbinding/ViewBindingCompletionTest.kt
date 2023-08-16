@@ -16,7 +16,6 @@
 package com.android.tools.idea.databinding.viewbinding
 
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
-import com.android.tools.idea.databinding.finders.BindingKotlinScopeEnlarger
 import com.android.tools.idea.databinding.finders.BindingScopeEnlarger
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.testing.AndroidProjectBuilder
@@ -150,7 +149,7 @@ class ViewBindingCompletionTest {
   }
 
   /**
-   * Note: The Java version of this test indirectly verifies [BindingScopeEnlarger].
+   * Note: This test indirectly verifies [BindingScopeEnlarger].
    */
   @Test
   fun completeViewBindingField_JavaContext() {
@@ -196,44 +195,5 @@ class ViewBindingCompletionTest {
             }
         }
       """.trimIndent())
-  }
-
-  /**
-   * Note: The Kotlin version of this test indirectly verifies [BindingKotlinScopeEnlarger].
-   */
-  @Test
-  fun completeViewBindingField_KotlinContext() {
-    val testUtilFile = fixture.addFileToProject(
-      "src/main/java/test/vb/TestUtil.kt",
-      // language=kotlin
-      """
-          package test.vb
-
-          import test.vb.databinding.ActivityMainBinding
-
-          fun sample() {
-            lateinit var binding: ActivityMainBinding
-            binding.test${caret}
-          }
-        """.trimIndent())
-
-    fixture.configureFromExistingVirtualFile(testUtilFile.virtualFile)
-
-    fixture.completeBasic()
-
-/* b/165051684
-    fixture.checkResult(
-      // language=kotlin
-      """
-          package test.vb
-
-          import test.vb.databinding.ActivityMainBinding
-
-          fun sample() {
-            lateinit var binding: ActivityMainBinding
-            binding.testId
-          }
-      """.trimIndent())
-b/165051684 */
   }
 }
