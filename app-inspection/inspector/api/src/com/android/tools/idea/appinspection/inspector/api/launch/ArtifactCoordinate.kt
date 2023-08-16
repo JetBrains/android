@@ -52,6 +52,4 @@ data class ArtifactCoordinate(
       .setArtifactId(artifactId)
       .setVersion(version)
       .build()
-
-  fun matchesAnyVersion() = version == "+"
 }

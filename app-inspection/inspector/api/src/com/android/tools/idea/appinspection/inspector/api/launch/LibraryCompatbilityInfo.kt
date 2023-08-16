@@ -50,16 +50,4 @@ data class LibraryCompatbilityInfo(
     /** An error was encountered in finding and reading the version of the library. */
     ERROR
   }
-
-  /**
-   * Gets the target library coordinate with the version set to the version of the library in the
-   * app.
-   */
-  fun getTargetLibraryCoordinate() =
-    ArtifactCoordinate(
-      libraryCoordinate.groupId,
-      libraryCoordinate.artifactId,
-      version,
-      libraryCoordinate.type
-    )
 }
