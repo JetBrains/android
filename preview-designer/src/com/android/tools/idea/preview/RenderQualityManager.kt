@@ -17,6 +17,9 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.editor.PanZoomListener
+import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.disposableCallbackFlow
@@ -88,7 +91,7 @@ class DefaultRenderQualityManager(
           logger = null,
           parentDisposable = mySurface
         ) {
-          val listener =
+          val panZoomListener =
             object : PanZoomListener {
               override fun zoomChanged(previousScale: Double, newScale: Double) {
                 trySend(Unit)
@@ -97,8 +100,18 @@ class DefaultRenderQualityManager(
                 trySend(Unit)
               }
             }
-          mySurface.addPanZoomListener(listener)
-          Disposer.register(disposable) { mySurface.removePanZoomListener(listener) }
+          val designSurfaceListener =
+            object : DesignSurfaceListener {
+              override fun modelChanged(surface: DesignSurface<*>, model: NlModel?) {
+                trySend(Unit)
+              }
+            }
+          mySurface.addPanZoomListener(panZoomListener)
+          mySurface.addListener(designSurfaceListener)
+          Disposer.register(disposable) {
+            mySurface.removePanZoomListener(panZoomListener)
+            mySurface.removeListener(designSurfaceListener)
+          }
         }
         .debounce(myPolicy.debounceTimeMillis)
         .collect {
