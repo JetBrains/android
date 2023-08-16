@@ -43,13 +43,7 @@ class BlazeArtifactResolverTest {
 
   @Test
   fun resolveInspectorJarWithBlazeResolver() = runBlocking {
-    val artifactCoordinate =
-      ArtifactCoordinate(
-        "androidx.work",
-        "work-runtime",
-        "2.5.0-beta01",
-        ArtifactCoordinate.Type.AAR
-      )
+    val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01")
     val artifactDir = temporaryDirectoryRule.newPath("test")
     artifactDir.resolve("inspector.jar").createFile()
     val moduleSystemArtifactFinder = ModuleSystemArtifactFinder(projectRule.project) { artifactDir }
@@ -61,13 +55,7 @@ class BlazeArtifactResolverTest {
   @Test
   fun failToResolveInspector() =
     runBlocking<Unit> {
-      val artifactCoordinate =
-        ArtifactCoordinate(
-          "androidx.work",
-          "work-runtime",
-          "2.5.0-beta01",
-          ArtifactCoordinate.Type.AAR
-        )
+      val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01")
       val resolver =
         BlazeArtifactResolver(
           testFileService,

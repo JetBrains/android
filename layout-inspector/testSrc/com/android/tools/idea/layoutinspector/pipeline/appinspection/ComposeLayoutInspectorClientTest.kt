@@ -152,7 +152,7 @@ class ComposeLayoutInspectorClientTest {
         ): Path {
           throw AppInspectionArtifactNotFoundException(
             "not found",
-            ArtifactCoordinate("group", "id", "1.3.0-SNAPSHOT", ArtifactCoordinate.Type.AAR)
+            ArtifactCoordinate("group", "id", "1.3.0-SNAPSHOT")
           )
         }
       }
@@ -182,7 +182,7 @@ class ComposeLayoutInspectorClientTest {
         ): Path {
           throw AppInspectionArtifactNotFoundException(
             "not found",
-            ArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0", ArtifactCoordinate.Type.AAR)
+            ArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0")
           )
         }
       }
@@ -254,8 +254,7 @@ class ComposeLayoutInspectorClientTest {
 
   @Test
   fun inspectorCouldNotDownloadArtifact_showBanner() = runBlocking {
-    val artifact =
-      ArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0", ArtifactCoordinate.Type.AAR)
+    val artifact = ArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0")
     val artifactService =
       object : InspectorArtifactService {
         override suspend fun getOrResolveInspectorArtifact(

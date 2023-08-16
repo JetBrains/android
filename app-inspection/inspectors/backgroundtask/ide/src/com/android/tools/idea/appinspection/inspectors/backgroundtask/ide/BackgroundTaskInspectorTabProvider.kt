@@ -58,12 +58,7 @@ class BackgroundTaskInspectorTabProvider : AppInspectorTabProvider {
             "workmanager-inspection.jar",
             developmentDirectory = "prebuilts/tools/common/app-inspection/androidx/work/"
           ),
-          ArtifactCoordinate(
-            "androidx.work",
-            "work-runtime",
-            MINIMUM_WORKMANAGER_VERSION,
-            ArtifactCoordinate.Type.AAR
-          )
+          ArtifactCoordinate("androidx.work", "work-runtime", MINIMUM_WORKMANAGER_VERSION)
         )
       )
     )

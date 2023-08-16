@@ -55,12 +55,7 @@ class InspectorArtifactServiceTest {
 
       val resolvedArtifactPath =
         artifactService.getOrResolveInspectorArtifact(
-          ArtifactCoordinate(
-            "androidx.work",
-            "work-runtime",
-            "2.5.0-beta01",
-            ArtifactCoordinate.Type.AAR
-          ),
+          ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01"),
           androidProjectRule.project
         )
 

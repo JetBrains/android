@@ -70,8 +70,7 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateS
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 
-val MINIMUM_COMPOSE_COORDINATE =
-  ArtifactCoordinate("androidx.compose.ui", "ui", "1.0.0-beta02", ArtifactCoordinate.Type.AAR)
+val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate("androidx.compose.ui", "ui", "1.0.0-beta02")
 @VisibleForTesting const val INCOMPATIBLE_LIBRARY_MESSAGE_KEY = "incompatible.library.message"
 
 @VisibleForTesting const val PROGUARDED_LIBRARY_MESSAGE_KEY = "proguarded.library.message"

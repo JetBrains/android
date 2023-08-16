@@ -70,13 +70,7 @@ class HttpArtifactResolverTest {
 
       val resolver =
         HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService), fakeDownloader)
-      val request =
-        ArtifactCoordinate(
-          "androidx.work",
-          "work-runtime",
-          "2.5.0-beta01",
-          ArtifactCoordinate.Type.AAR
-        )
+      val request = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01")
       val jar = resolver.resolveArtifact(request)
 
       assertThat(jar).isNotNull()

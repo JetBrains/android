@@ -25,20 +25,7 @@ import com.android.tools.app.inspection.AppInspection
  * [version] can optionally be '+' to match any version of the artifact, when used in the context of
  * compatibility checks.
  */
-data class ArtifactCoordinate(
-  val groupId: String,
-  val artifactId: String,
-  val version: String,
-  val type: Type
-) {
-  enum class Type {
-    JAR {
-      override fun toString() = "jar"
-    },
-    AAR {
-      override fun toString() = "aar"
-    }
-  }
+data class ArtifactCoordinate(val groupId: String, val artifactId: String, val version: String) {
   /** The coordinate for this library, i.e. how it would appear in a Gradle dependencies block. */
   override fun toString() = "${groupId}:${artifactId}:${version}"
 

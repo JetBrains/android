@@ -85,10 +85,7 @@ class TestAppInspectorTabProvider1 :
 class TestAppInspectorTabProvider2 :
   AppInspectorTabProvider by StubTestAppInspectorTabProvider(
     INSPECTOR_ID_2,
-    LibraryInspectorLaunchParams(
-      TEST_JAR,
-      ArtifactCoordinate("groupId", "artifactId", "0.0.0", ArtifactCoordinate.Type.JAR)
-    )
+    LibraryInspectorLaunchParams(TEST_JAR, ArtifactCoordinate("groupId", "artifactId", "0.0.0"))
   )
 
 @ExperimentalCoroutinesApi
@@ -1092,15 +1089,13 @@ class AppInspectionViewTest {
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID) {
           override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR, TEST_ARTIFACT)
         }
-      val unresolvableLibrary =
-        ArtifactCoordinate("unresolvable", "artifact", "1.0.0", ArtifactCoordinate.Type.JAR)
+      val unresolvableLibrary = ArtifactCoordinate("unresolvable", "artifact", "1.0.0")
       val unresolvableInspector =
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
           override val inspectorLaunchParams =
             LibraryInspectorLaunchParams(TEST_JAR, unresolvableLibrary)
         }
-      val incompatibleLibrary =
-        ArtifactCoordinate("incompatible", "artifact", "INCOMPATIBLE", ArtifactCoordinate.Type.JAR)
+      val incompatibleLibrary = ArtifactCoordinate("incompatible", "artifact", "INCOMPATIBLE")
       val incompatibleInspector =
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
           override val inspectorLaunchParams =

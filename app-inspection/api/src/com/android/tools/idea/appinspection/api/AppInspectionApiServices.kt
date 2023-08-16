@@ -103,8 +103,7 @@ suspend fun AppInspectionApiServices.checkVersion(
   artifactId: String,
   expectedClassNames: List<String> = emptyList()
 ): LibraryCompatbilityInfo? {
-  val coordinateAnyVersion =
-    ArtifactCoordinate(groupId, artifactId, "0.0.0", ArtifactCoordinate.Type.AAR)
+  val coordinateAnyVersion = ArtifactCoordinate(groupId, artifactId, "0.0.0")
   return attachToProcess(process, project)
     .getLibraryVersions(listOf(LibraryCompatibility(coordinateAnyVersion, expectedClassNames)))
     .singleOrNull()

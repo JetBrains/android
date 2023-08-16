@@ -93,6 +93,9 @@ class HttpArtifactResolver(
       )
   }
 
+  private val ArtifactCoordinate.type
+    get() = "aar"
+
   /** The file name of the artifact in question. */
   private val ArtifactCoordinate.fileName
     get() = "${artifactId}-${version}.${type}"

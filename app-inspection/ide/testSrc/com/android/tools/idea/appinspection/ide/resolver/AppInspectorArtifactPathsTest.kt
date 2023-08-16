@@ -35,21 +35,14 @@ class AppInspectorArtifactPathsTest {
     val jarPaths = AppInspectorArtifactPaths(fileService)
     val basePath = fileService.getOrCreateCacheDir(INSPECTOR_JARS_DIR)
 
-    val artifact1 =
-      ArtifactCoordinate(
-        "androidx.work",
-        "work-runtime",
-        "2.5.0-alpha01",
-        ArtifactCoordinate.Type.JAR
-      )
+    val artifact1 = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-alpha01")
     val artifact1Path =
       basePath
         .resolve("androidx.work")
         .resolve("work-runtime")
         .resolve("2.5.0-alpha01")
         .resolve("androidx.work-work-runtime-2.5.0-alpha01-inspector.jar")
-    val artifact2 =
-      ArtifactCoordinate("androidx.sqlite", "sqlite", "2.1.0", ArtifactCoordinate.Type.JAR)
+    val artifact2 = ArtifactCoordinate("androidx.sqlite", "sqlite", "2.1.0")
     val artifact2Path =
       basePath
         .resolve("androidx.sqlite")
@@ -60,11 +53,6 @@ class AppInspectorArtifactPathsTest {
     assertThat(jarPaths.getInspectorArchive(artifact1)).isEqualTo(artifact1Path)
     assertThat(jarPaths.getInspectorArchive(artifact2)).isEqualTo(artifact2Path)
 
-    assertThat(
-        jarPaths.getInspectorArchive(
-          ArtifactCoordinate("a", "b", "1.0.0", ArtifactCoordinate.Type.JAR)
-        )
-      )
-      .isNull()
+    assertThat(jarPaths.getInspectorArchive(ArtifactCoordinate("a", "b", "1.0.0"))).isNull()
   }
 }
