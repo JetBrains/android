@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.persistence
 
+import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.idea.insights.AppInsightsState
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.Device
@@ -29,7 +30,6 @@ import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.VisibilityType
 import com.android.tools.idea.insights.WithCount
-import com.android.tools.idea.kotlin.enumValueOfOrNull
 import kotlin.IllegalArgumentException
 
 /** Persistent filter settings of a single tab. */

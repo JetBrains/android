@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.compose.pickers.preview.property
 
+import com.android.ide.common.util.enumValueOfOrNull
 import com.android.resources.Density
 import com.android.sdklib.devices.Device
 import com.android.tools.configurations.DEVICE_CLASS_DESKTOP_ID
@@ -46,7 +47,6 @@ import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_UNIT
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.SEPARATOR
 import com.android.tools.idea.compose.preview.util.device.convertToDeviceSpecDimension
-import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.android.utils.HashCodes
 import kotlin.math.roundToInt
 import kotlin.properties.ObservableProperty

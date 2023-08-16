@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.pickers.preview.property
 
+import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.compose.pickers.base.model.PsiCallPropertiesModel
@@ -42,7 +43,6 @@ import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_SHAPE
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_UNIT
 import com.android.tools.idea.compose.preview.Preview.DeviceSpec.DEFAULT_WIDTH_DP
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.google.wireless.android.sdk.stats.EditorPickerEvent.EditorPickerAction.PreviewPickerModification.PreviewPickerValue
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger

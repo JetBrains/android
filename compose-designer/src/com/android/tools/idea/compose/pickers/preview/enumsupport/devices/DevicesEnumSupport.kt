@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.pickers.preview.enumsupport.devices
 
+import com.android.ide.common.util.enumValueOfOrDefault
 import com.android.resources.Density
 import com.android.tools.idea.avdmanager.Densities
 import com.android.tools.idea.compose.pickers.base.enumsupport.EnumSupportValuesProvider
@@ -24,7 +25,6 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.Device
 import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.pickers.preview.property.Orientation
 import com.android.tools.idea.compose.preview.PARAMETER_HARDWARE_DEVICE
-import com.android.tools.idea.kotlin.enumValueOfOrDefault
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.intellij.util.text.nullize

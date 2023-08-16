@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.util.device
 
+import com.android.ide.common.util.enumValueOfOrNull
 import com.android.tools.compose.completion.addLookupElement
 import com.android.tools.compose.completion.inserthandler.InsertionFormat
 import com.android.tools.compose.completion.inserthandler.LiveTemplateFormat
@@ -35,7 +36,6 @@ import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecPsiFi
 import com.android.tools.idea.compose.preview.util.device.parser.DeviceSpecTypes
 import com.android.tools.idea.compose.preview.util.device.parser.impl.DeviceSpecSpecImpl
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.kotlin.enumValueOfOrNull
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
