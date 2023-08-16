@@ -118,6 +118,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private static final String DISPLAY_HELP_LINK = "https://d.android.com/r/studio-ui/profiler/display-tracks";
 
+  private static final String POWER_RAILS_HELP_LINK = "https://developer.android.com/studio/profile/power-profiler";
+
   public enum Aspect {
     /**
      * Triggered when the stage changes state from parsing to analyzing. This can also be viewed as capture parsing completed.
@@ -839,6 +841,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
       .setTitle("Power Rails " + "(" + displayModeTitleCase + ")")
       .setTitleHelpText("This section shows the device's power consumption per hardware component.<br/>" +
                         "<b>Power Rails</b> are wires in your device that connect the battery to hardware modules.")
+      .setTitleHelpLink("Learn more", POWER_RAILS_HELP_LINK)
       .setCollapsedInitially(false)
       .build();
 
