@@ -268,9 +268,8 @@ class AndroidModularizeHandler : RefactoringActionHandler {
         for (item in resourceReferences) {
           val ref = item.referenceToSelf
           if (seenResources.add(ref)) {
-            val fields: Array<PsiField>
             val elm = getResourceDefinition(item)
-            fields = when (elm) {
+            val fields: Array<PsiField> = when (elm) {
               is PsiFile -> findResourceFieldsForFileResource(elm, true)
               is XmlTag -> findResourceFieldsForValueResource(elm, true)
               else -> continue

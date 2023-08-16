@@ -340,9 +340,8 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
           }
           buildState.buildFinished(BuildStatus.SUCCESS)
           taskListener.onSuccess(id)
-          val buildInfo: BasicBuildAttributionInfo?
-          buildInfo = buildAttributionManager?.onBuildSuccess(myRequest)
-          if (buildInfo != null && buildInfo.agpVersion != null) {
+          val buildInfo: BasicBuildAttributionInfo? = buildAttributionManager?.onBuildSuccess(myRequest)
+          if (buildInfo?.agpVersion != null) {
             reportAgpVersionMismatch(project, buildInfo)
           }
         } catch (e: BuildException) {

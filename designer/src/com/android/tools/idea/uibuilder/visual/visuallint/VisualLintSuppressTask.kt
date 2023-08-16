@@ -30,9 +30,8 @@ class VisualLintSuppressTask(private val typeToSuppress: VisualLintErrorType, pr
     val attributeToAdd = typeToSuppress.ignoredAttributeValue
     val transactions = components.mapNotNull { component ->
       // First we check if tools:ignored="" attribute already exists.
-      val newIgnoreAttribute: String
       val existIgnored = component.getAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_IGNORE)
-      newIgnoreAttribute = if (existIgnored != null) {
+      val newIgnoreAttribute = if (existIgnored != null) {
         // It may ignore multiple things by using comma as separator already.
         val ignores = existIgnored.split(",")
         if (ignores.contains(attributeToAdd)) {

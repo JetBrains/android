@@ -110,9 +110,8 @@ class ExportAndroidTestResultsAction :
   private fun getOutputFile(exportConfig: ExportTestResultsConfiguration,
                             project: Project,
                             filename: String): File {
-    val outputFolder: File
     val outputFolderPath = exportConfig.outputFolder
-    outputFolder = if (!StringUtil.isEmptyOrSpaces(outputFolderPath)) {
+    val outputFolder = if (!outputFolderPath.isNullOrBlank()) {
       if (FileUtil.isAbsolute(outputFolderPath)) {
         File(outputFolderPath)
       } else {

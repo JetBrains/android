@@ -20,11 +20,7 @@ import com.android.tools.adtui.model.formatter.MemoryAxisFormatter
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 
 class MemoryVisualizationModel {
-  var axisFilter: XAxisFilter
-
-  init {
-    axisFilter = XAxisFilter.ALLOC_SIZE
-  }
+  var axisFilter: XAxisFilter = XAxisFilter.ALLOC_SIZE
 
   fun isSizeAxis(): Boolean {
     return axisFilter == XAxisFilter.ALLOC_SIZE || axisFilter == XAxisFilter.TOTAL_SIZE

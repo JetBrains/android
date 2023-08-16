@@ -39,10 +39,9 @@ private val REFRESH_INTERVAL: Duration = Duration.ofDays(1)
  * class registry. [getMavenClassRegistry] returns the the best effort of Maven class registry when asked.
  */
 class MavenClassRegistryManager : Disposable {
-  private val gMavenIndexRepository: GMavenIndexRepository
+  private val gMavenIndexRepository = GMavenIndexRepository(BASE_URL, getCacheDir(), REFRESH_INTERVAL)
 
   init {
-    gMavenIndexRepository = GMavenIndexRepository(BASE_URL, getCacheDir(), REFRESH_INTERVAL)
     Disposer.register(this, gMavenIndexRepository)
   }
 

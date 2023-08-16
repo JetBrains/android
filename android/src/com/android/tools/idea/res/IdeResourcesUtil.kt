@@ -504,9 +504,8 @@ private fun RenderResources.resolveMultipleColors(value: ResourceValue?, project
   val stateList = resolveStateList(resolvedValue, project)
   if (stateList != null) {
     for (state in stateList.states) {
-      val stateColors: List<Color>
       val resolvedStateResource = findResValue(state.value, false)
-      stateColors = if (resolvedStateResource != null) {
+      val stateColors = if (resolvedStateResource != null) {
         resolveMultipleColors(resolvedStateResource, project, depth + 1)
       }
       else {

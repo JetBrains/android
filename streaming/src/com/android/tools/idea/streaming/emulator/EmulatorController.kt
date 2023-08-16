@@ -201,7 +201,6 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
    */
   @Slow
   fun connect() {
-    val maxInboundMessageSize: Int
     val config = EmulatorConfiguration.readAvdDefinition(emulatorId.avdId, emulatorId.avdFolder)
     if (config == null) {
       // The error has already been logged.
@@ -213,7 +212,7 @@ class EmulatorController(val emulatorId: EmulatorId, parentDisposable: Disposabl
 
     val maxPixels =
         config.displayModes.maxOfOrNull { it.displaySize.width * it.displaySize.height } ?: (config.displayWidth * config.displayHeight)
-    maxInboundMessageSize = maxPixels * 3 + 100 // Three bytes per pixel.
+    val maxInboundMessageSize = maxPixels * 3 + 100 // Three bytes per pixel.
 
     connectGrpc(maxInboundMessageSize)
     sendKeepAlive()
