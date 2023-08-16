@@ -117,6 +117,7 @@ internal class LogcatFormatDialog(
   private val showTag = observableProperty(initialFormatting.formattingOptions.tagFormat.enabled)
   private var tagWidth = observableProperty(initialFormatting.formattingOptions.tagFormat.maxLength)
   private var tagShowDuplicates = observableProperty(!initialFormatting.formattingOptions.tagFormat.hideDuplicates)
+  private var tagColorize = observableProperty(initialFormatting.formattingOptions.tagFormat.colorize)
 
   // Level
   private var showLevel = observableProperty(initialFormatting.formattingOptions.levelFormat.enabled)
@@ -257,6 +258,11 @@ internal class LogcatFormatDialog(
             .bindSelected(tagShowDuplicates)
             .named("showRepeatedTags")
         }
+        row {
+          checkBox(LogcatBundle.message("logcat.header.options.tag.colorize"))
+            .bindSelected(tagColorize)
+            .named("colorizeTags")
+        }
       }.enabledIf(showTag)
     }
   }
@@ -299,7 +305,7 @@ internal class LogcatFormatDialog(
     options.apply {
       timestampFormat = TimestampFormat(timestampStyle.get(), showTimestamp.get())
       processThreadFormat = ProcessThreadFormat(if (showTid.get()) BOTH else PID, showPid.get())
-      tagFormat = TagFormat(tagWidth.get(), !tagShowDuplicates.get(), showTag.get())
+      tagFormat = TagFormat(tagWidth.get(), !tagShowDuplicates.get(), showTag.get(), tagColorize.get())
       appNameFormat = AppNameFormat(packageWidth.get(), !packageShowDuplicates.get(), showPackage.get())
       levelFormat = LevelFormat(showLevel.get())
     }
@@ -318,6 +324,7 @@ internal class LogcatFormatDialog(
       showTag.set(it.enabled)
       tagWidth.set(it.maxLength)
       tagShowDuplicates.set(!it.hideDuplicates)
+      tagColorize.set(it.colorize)
     }
     options.appNameFormat.let {
       showPackage.set(it.enabled)
@@ -359,6 +366,7 @@ internal class LogcatFormatDialog(
           .setIsShowTags(showTag.get())
           .setIsShowRepeatedTags(tagShowDuplicates.get())
           .setTagWidth(tagWidth.get())
+          // TODO(aalbert): Add usage for Tag Colorize
           .setIsShowPackages(showPackage.get())
           .setIsShowRepeatedPackages(packageShowDuplicates.get())
           .setPackageWidth(packageWidth.get())

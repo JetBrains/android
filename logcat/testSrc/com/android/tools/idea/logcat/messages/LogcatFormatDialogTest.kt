@@ -235,13 +235,15 @@ class LogcatFormatDialogTest {
 
   @Test
   fun initialState_tagDisabled() {
-    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 10, hideDuplicates = false, enabled = false)
+    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(it.showTag().isSelected).isFalse()
       assertThat(it.showRepeatedTags().isEnabled).isFalse()
       assertThat(it.showRepeatedTags().isSelected).isTrue()
+      assertThat(it.colorize().isEnabled).isFalse()
+      assertThat(it.colorize().isSelected).isFalse()
       assertThat(it.tagWidthLabel().isEnabled).isFalse()
       assertThat(it.tagWidth().isEnabled).isFalse()
       assertThat(it.tagWidth().value).isEqualTo(10)
@@ -250,13 +252,15 @@ class LogcatFormatDialogTest {
 
   @Test
   fun initialState_tagEnabled() {
-    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 20, hideDuplicates = true, enabled = true)
+    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 20, hideDuplicates = true, enabled = true, colorize = true)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
       assertThat(it.showTag().isSelected).isTrue()
       assertThat(it.showRepeatedTags().isEnabled).isTrue()
       assertThat(it.showRepeatedTags().isSelected).isFalse()
+      assertThat(it.colorize().isEnabled).isTrue()
+      assertThat(it.colorize().isSelected).isTrue()
       assertThat(it.tagWidthLabel().isEnabled).isTrue()
       assertThat(it.tagWidth().isEnabled).isTrue()
       assertThat(it.tagWidth().value).isEqualTo(20)
@@ -265,7 +269,7 @@ class LogcatFormatDialogTest {
 
   @Test
   fun toggle_tag() {
-    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 10, hideDuplicates = false, enabled = false)
+    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false)
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD)
 
     createModalDialogAndInteractWithIt(dialog.dialogWrapper::show) {
@@ -273,17 +277,19 @@ class LogcatFormatDialogTest {
       assertThat(it.tagWidth().isEnabled).isTrue()
       assertThat(it.tagWidthLabel().isEnabled).isTrue()
       assertThat(it.showRepeatedTags().isEnabled).isTrue()
+      assertThat(it.colorize().isEnabled).isTrue()
 
       it.showTag().isSelected = false
       assertThat(it.tagWidth().isEnabled).isFalse()
       assertThat(it.tagWidthLabel().isEnabled).isFalse()
       assertThat(it.showRepeatedTags().isEnabled).isFalse()
+      assertThat(it.colorize().isEnabled).isFalse()
     }
   }
 
   @Test
   fun apply_tag() {
-    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 10, hideDuplicates = false, enabled = false)
+    STANDARD.formattingOptions.tagFormat = TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false)
     val options = FormattingOptions()
     val dialog = logcatFormatDialogNew(initialFormatting = STANDARD, applyAction = { standardOptions, _, _ ->
       options.tagFormat = standardOptions.tagFormat
@@ -294,15 +300,17 @@ class LogcatFormatDialogTest {
 
       it.showTag().isSelected = true
       it.showRepeatedTags().isSelected = false
+      it.colorize().isSelected = true
       it.tagWidth().value = 20
       ui.clickApply()
-      assertThat(options.tagFormat).isEqualTo(TagFormat(maxLength = 20, hideDuplicates = true, enabled = true))
+      assertThat(options.tagFormat).isEqualTo(TagFormat(maxLength = 20, hideDuplicates = true, enabled = true, colorize = true))
 
       it.showTag().isSelected = false
       it.showRepeatedTags().isSelected = true
+      it.colorize().isSelected = false
       it.tagWidth().value = 10
       ui.clickApply()
-      assertThat(options.tagFormat).isEqualTo(TagFormat(maxLength = 10, hideDuplicates = false, enabled = false))
+      assertThat(options.tagFormat).isEqualTo(TagFormat(maxLength = 10, hideDuplicates = false, enabled = false, colorize = false))
 
     }
   }
@@ -818,6 +826,7 @@ class LogcatFormatDialogTest {
   private fun DialogWrapper.tagWidth() = findComponent<JSpinner>("tagWidth")
   private fun DialogWrapper.tagWidthLabel() = findComponent<JLabel>("tagWidthLabel")
   private fun DialogWrapper.showRepeatedTags() = findComponent<JCheckBox>("showRepeatedTags")
+  private fun DialogWrapper.colorize() = findComponent<JCheckBox>("colorizeTags")
 
   private fun DialogWrapper.showPackage() = findComponent<JCheckBox>("showPackage")
   private fun DialogWrapper.packageWidth() = findComponent<JSpinner>("packageWidth")
