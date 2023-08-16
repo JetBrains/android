@@ -28,7 +28,7 @@ final class Definitions {
 
   @NotNull
   static Device mockPhone() {
-    return mockDefinition(null, mockHardware(0), "Medium Phone", "medium_phone");
+    return mockDefinition(null, mockHardware(0), "Pixel Fold", "pixel_fold");
   }
 
   @NotNull
