@@ -16,29 +16,29 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.common.canvasTooltipBackground
-import com.android.tools.adtui.common.helpText
+import com.android.tools.adtui.common.usageInstructionsText
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import javax.swing.JLabel
 import javax.swing.JPanel
 
-class HelpTextView: JPanel(BorderLayout()) {
+class UsageInstructionsView: JPanel(BorderLayout()) {
 
   init {
       background = canvasTooltipBackground
       border = JBUI.Borders.empty(8)
-      val helpLabel = JLabel().apply {
-        foreground = helpText
-        text = HELP_TEXT
+      val usageInstructionsLabel = JLabel().apply {
+        foreground = usageInstructionsText
+        text = USAGE_INSTRUCTIONS_TEXT
       }
-      add(helpLabel)
+      add(usageInstructionsLabel)
   }
 
   companion object {
-    const val HELP_TEXT_TITLE = "<b>Help Text</b>"
+    const val USAGE_INSTRUCTIONS_TITLE = "<b>Usage Instructions</b>"
     private val CONTROL_KEY_TEXT = if (SystemInfo.isMac) "Command &#8984" else "Ctrl &#8963"
-    private val HELP_TEXT = """
+    private val USAGE_INSTRUCTIONS_TEXT = """
       <html>
         <h3>Navigation</h3>
         <p>You can use the mini-map at the top left of recordings to navigate to a section of the recording.</p>

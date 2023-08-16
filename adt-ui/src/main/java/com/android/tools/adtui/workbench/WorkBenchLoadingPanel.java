@@ -45,7 +45,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class WorkBenchLoadingPanel extends JPanel {
   private final JBLoadingPanel myLoadingPanel;
-  private Color myMessagePanelTextColor = StudioColorsKt.getHelpText();
+  private Color myMessagePanelTextColor = StudioColorsKt.getUsageInstructionsText();
   @Nullable private EmptyStatePanel myMessagePanel = null;
 
   public WorkBenchLoadingPanel(@Nullable LayoutManager manager, @NotNull Disposable parent,

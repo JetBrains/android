@@ -121,7 +121,7 @@ class FullTraceSummaryDetailsViewTest {
 
     // Four components expected, as there are two rows of common data (Time Range and Duration), each with a key and value component.
     assertThat(view.commonSection.componentCount).isEqualTo(4)
-    // Two components expected: the common section and the help text section.
+    // Two components expected: the common section and the usage instructions section.
     assertThat(view.components.size).isEqualTo(2)
   }
 
@@ -151,7 +151,7 @@ class FullTraceSummaryDetailsViewTest {
 
     // Six components expected, as there are three rows of common data (Time Range, Duration, and Total Power), each with a key and value component.
     assertThat(view.commonSection.componentCount).isEqualTo(6)
-    // Three components expected: the common section, the power table section, and the help text section.
+    // Three components expected: the common section, the power table section, and the usage instructions section.
     assertThat(view.components.size).isEqualTo(3)
 
     // Assert that the power rail table section is a {@link HideablePanel}

@@ -79,7 +79,7 @@ class SystemTraceTest : ProfilersTestBase() {
         verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+parse\\s+succeeded\$", 300)
         verifyIdeaLog(".*PROFILER\\:\\s+CPU\\s+capture\\s+contains\\s+system\\s+trace\\s+data\$", 300)
 
-        studio.waitForComponentByClass("TooltipLayeredPane", "CpuAnalysisSummaryTab", "HelpTextView")
+        studio.waitForComponentByClass("TooltipLayeredPane", "CpuAnalysisSummaryTab", "UsageInstructionsView")
 
         stopProfilingSession(studio)
       }

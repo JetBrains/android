@@ -56,8 +56,8 @@ class FullTraceSummaryDetailsView(profilersView: StudioProfilersView,
         addSection(powerRailTable!!.component)
       }
     }
-    // Add a collapsible Help Text section containing Navigation and Analysis instructions (initially collapsed)
-    addSection(HideablePanel.Builder(HelpTextView.HELP_TEXT_TITLE, HelpTextView()).setInitiallyExpanded(false).setPanelBorder(
+    // Add a collapsible Usage Instructions section containing Navigation and Analysis instructions (initially collapsed)
+    addSection(HideablePanel.Builder(UsageInstructionsView.USAGE_INSTRUCTIONS_TITLE, UsageInstructionsView()).setInitiallyExpanded(false).setPanelBorder(
       JBUI.Borders.empty()).build())
 
     tabModel.selectionRange.addDependency(observer).onChange(Range.Aspect.RANGE) { updateRangeLabels() }
