@@ -20,6 +20,7 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.sdklib.AndroidVersion
+import com.android.testutils.AssumeUtil
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
@@ -158,6 +159,8 @@ class AndroidJavaDebuggerTest {
 
   @Test
   fun testOnDebugProcessDestroyCallback() = runTest {
+    // b/295172527 flaky test on windows.
+    AssumeUtil.assumeNotWindows();
     val countDownLatch = CountDownLatch(1)
     val session = DebugSessionStarter.attachDebuggerToStartedProcess(
       device,
