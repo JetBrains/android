@@ -2,5 +2,5 @@
 package com.android.tools.idea.gradle.plugin
 
 object AndroidGradlePluginVersion {
-  const val LATEST_STABLE_VERSION = "8.0.0"
+  const val LATEST_STABLE_VERSION = "8.1.0"
 }
