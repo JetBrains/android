@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.build.compiler;
 import static com.google.common.base.Strings.nullToEmpty;
 
 import com.android.tools.idea.AndroidGradleBundle;
+import com.android.tools.idea.IdeInfo;
 import com.google.common.base.Objects;
 import com.intellij.compiler.CompilerConfiguration;
 import com.intellij.openapi.options.Configurable;
@@ -28,6 +29,7 @@ import com.intellij.ui.RawCommandLineEditor;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import com.intellij.ui.components.JBLabel;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,9 +53,15 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   private HyperlinkLabel myCommandLineOptionsDocHyperlinkLabel;
   private JCheckBox myContinueBuildWithErrors;
 
+  private JCheckBox myEnableSyncWithFutureAGPVersion;
+  private JBLabel myEnableSyncWithFutureAGPVersionLabel;
+
   public GradleCompilerSettingsConfigurable(@NotNull Project project) {
     myCompilerConfiguration = CompilerConfiguration.getInstance(project);
     myBuildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
+
+    myEnableSyncWithFutureAGPVersion.setVisible(!IdeInfo.getInstance().isAndroidStudio());
+    myEnableSyncWithFutureAGPVersionLabel.setVisible(!IdeInfo.getInstance().isAndroidStudio());
   }
 
   @Override
@@ -84,6 +92,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
   public boolean isModified() {
     return myCompilerConfiguration.isParallelCompilationEnabled() != isParallelBuildsEnabled() ||
            myBuildConfiguration.CONTINUE_FAILED_BUILD != isContinueWithFailuresEnabled() ||
+           myBuildConfiguration.isSyncWithFutureAgpVersionEnabled() != isSyncWithFutureAGPVersionEnabled() ||
            !Objects.equal(getCommandLineOptions(), myBuildConfiguration.COMMAND_LINE_OPTIONS);
   }
 
@@ -92,6 +101,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     if (myCompilerConfiguration.isParallelCompilationEnabled() != isParallelBuildsEnabled()) {
       myCompilerConfiguration.setParallelCompilationEnabled(isParallelBuildsEnabled());
     }
+    myBuildConfiguration.setSyncWithFutureAgpVersionIsEnabled(isSyncWithFutureAGPVersionEnabled());
     myBuildConfiguration.COMMAND_LINE_OPTIONS = getCommandLineOptions();
     myBuildConfiguration.CONTINUE_FAILED_BUILD = isContinueWithFailuresEnabled();
   }
@@ -102,6 +112,10 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
 
   private boolean isContinueWithFailuresEnabled() {
     return myContinueBuildWithErrors.isSelected();
+  }
+
+  private boolean isSyncWithFutureAGPVersionEnabled() {
+    return myEnableSyncWithFutureAGPVersion.isSelected();
   }
 
   @NotNull
@@ -115,6 +129,7 @@ public class GradleCompilerSettingsConfigurable implements SearchableConfigurabl
     String commandLineOptions = nullToEmpty(myBuildConfiguration.COMMAND_LINE_OPTIONS);
     myContinueBuildWithErrors.setSelected(myBuildConfiguration.CONTINUE_FAILED_BUILD);
     myCommandLineOptionsEditor.setText(commandLineOptions);
+    myEnableSyncWithFutureAGPVersion.setSelected(myBuildConfiguration.isSyncWithFutureAgpVersionEnabled());
   }
 
   @Override

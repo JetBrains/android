@@ -48,10 +48,12 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.containers.ContainerUtil
 import org.gradle.util.GradleVersion
@@ -123,7 +125,7 @@ class FixAndroidGradlePluginVersionQuickFix(givenPluginVersion: AgpVersion?, giv
 
 class InstallBuildToolsQuickFix(private val version: String,
                                 private val buildFiles: List<VirtualFile>,
-                                private val removeBuildTools: Boolean): BuildIssueQuickFix {
+                                private val removeBuildTools: Boolean) : BuildIssueQuickFix {
   override val id = "install.build.tools"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
@@ -256,6 +258,15 @@ class OpenLinkQuickFix(val link: String) : BuildIssueQuickFix {
       future.complete(null)
     }
     return future
+  }
+}
+
+class OpenSettingsQuickFix(@NlsContexts.ConfigurableName val settingsName: String) : BuildIssueQuickFix {
+  override val id: String = "open.enable.sync.with.future.agp.settings"
+
+  override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
+    val result = ShowSettingsUtil.getInstance().showSettingsDialog(project, settingsName)
+    return CompletableFuture.completedFuture(result)
   }
 }
 

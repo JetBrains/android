@@ -73,5 +73,6 @@ data class GradleSyncStudioFlags(
   val studioDebugMode: Boolean = false, // Emit extra logs or populate debug models during sync
   val studioFlagSkipRuntimeClasspathForLibraries: Boolean,
   val studioFlagSupportFutureAgpVersions: Boolean,
-  ) : Serializable
+  val ideaFlagSupportFutureAgpVersions: Boolean
+) : Serializable
 

@@ -18,8 +18,11 @@ package com.android.tools.idea.gradle.project.sync.errors
 import com.android.SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION
 import com.android.Version
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.AndroidGradleBundle
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.project.build.output.TestMessageEventConsumer
 import com.android.tools.idea.gradle.project.sync.quickFixes.OpenLinkQuickFix
+import com.android.tools.idea.gradle.project.sync.quickFixes.OpenSettingsQuickFix
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
@@ -62,11 +65,18 @@ class AgpVersionNotSupportedIssueCheckerTest {
     val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
+    // In IDEA we have additional OpenSettingsQuickFix quick fix
+    val expectedQuickFixCount = if (IdeInfo.getInstance().isAndroidStudio) 1 else 2
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(expectedQuickFixCount)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
     assertThat((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
       .isEqualTo("https://developer.android.com/studio/releases#android_gradle_plugin_and_android_studio_compatibility")
+    if (!IdeInfo.getInstance().isAndroidStudio) {
+      assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenSettingsQuickFix::class.java)
+      assertThat((buildIssue.quickFixes[1] as OpenSettingsQuickFix).settingsName)
+        .isEqualTo(AndroidGradleBundle.message("android.configurable.GradleCompilerConfigurable.displayName"))
+    }
   }
 
   @Test
@@ -97,11 +107,18 @@ class AgpVersionNotSupportedIssueCheckerTest {
     val buildIssue = agpVersionNotSupportedIssueChecker.check(issueData)
 
     assertThat(buildIssue).isNotNull()
-    assertThat(buildIssue!!.quickFixes.size).isEqualTo(1)
+    // In IDEA we have additional OpenSettingsQuickFix quick fix
+    val expectedQuickFixCount = if (IdeInfo.getInstance().isAndroidStudio) 1 else 2
+    assertThat(buildIssue!!.quickFixes.size).isEqualTo(expectedQuickFixCount)
     assertThat(buildIssue.description).contains(expectedNotificationMessage)
     assertThat(buildIssue.quickFixes[0]).isInstanceOf(OpenLinkQuickFix::class.java)
     assertThat((buildIssue.quickFixes[0] as OpenLinkQuickFix).link)
       .isEqualTo("https://developer.android.com/studio/preview/features#agp-previews")
+    if (!IdeInfo.getInstance().isAndroidStudio) {
+      assertThat(buildIssue.quickFixes[1]).isInstanceOf(OpenSettingsQuickFix::class.java)
+      assertThat((buildIssue.quickFixes[1] as OpenSettingsQuickFix).settingsName)
+        .isEqualTo(AndroidGradleBundle.message("android.configurable.GradleCompilerConfigurable.displayName"))
+    }
   }
 
   @Test

@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.idea
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.LibraryFilePaths
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
+import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration
 import com.android.tools.idea.gradle.project.sync.AdditionalClassifierArtifactsActionOptions
 import com.android.tools.idea.gradle.project.sync.AllVariantsSyncActionOptions
 import com.android.tools.idea.gradle.project.sync.AndroidExtraModelProvider
@@ -48,6 +49,12 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
                      GradleExperimentalSettings.getInstance().ENABLE_PARALLEL_SYNC
   val parallelSyncPrefetchVariants = StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_PREFETCH_VARIANTS.get()
 
+  // This will be true only in Android projects openned in IntelliJ IDEA,
+  // because in Android Studio sync with future AGP versions is prohibited.
+  val ideaFlagSupportFutureAgpVersions = AndroidGradleBuildConfiguration
+    .getInstance(project)
+    .isSyncWithFutureAgpVersionEnabled
+
   val studioFlags = GradleSyncStudioFlags(
     studioFlagParallelSyncEnabled = parallelSync,
     studioFlagParallelSyncPrefetchVariantsEnabled = parallelSyncPrefetchVariants,
@@ -61,6 +68,7 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     studioDebugMode =  studioProjectSyncDebugModeEnabled(),
     studioFlagSkipRuntimeClasspathForLibraries = StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get(),
     studioFlagSupportFutureAgpVersions = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
+    ideaFlagSupportFutureAgpVersions = ideaFlagSupportFutureAgpVersions,
   )
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(
