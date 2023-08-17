@@ -114,14 +114,18 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
 
     // Add the special events. They will not trigger a compilation. Instead they will put Live Edit in various error states.
     if (isImportChanges(psiEvent.parent)) {
-      val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.IMPORT_DIRECTIVES)
-      event.unsupportedPsiEvents.add(UnsupportedPsiEvent.IMPORT_DIRECTIVES)
-      handleEvent(event)
+      if (psiEvent.parent is KtElement) { // If that's not the case, the parent is most likely a place holder syntax error node
+        val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.IMPORT_DIRECTIVES)
+        event.unsupportedPsiEvents.add(UnsupportedPsiEvent.IMPORT_DIRECTIVES)
+        handleEvent(event)
+      }
     }
 
     if (isClassFieldChanges(psiEvent.parent)) {
-      val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.FIELD_CHANGES)
-      handleEvent(event)
+      if (psiEvent.parent is KtElement) { // If that's not the case, the parent is most likely a place holder syntax error node
+        val event = EditEvent(file, psiEvent.parent as KtElement, unsupportedPsiEvent = UnsupportedPsiEvent.FIELD_CHANGES)
+        handleEvent(event)
+      }
     }
   }
 
