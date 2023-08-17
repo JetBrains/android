@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <customUsageSearcher implementation="com.android.tools.idea.dagger.DaggerCustomUsageSearcherV2"/>
+    <customUsageSearcher implementation="com.android.tools.idea.dagger.DaggerCustomUsageSearcher"/>
     <codeInsight.lineMarkerProvider language="JAVA"
                                     implementationClass="com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider"
                                     order="last"

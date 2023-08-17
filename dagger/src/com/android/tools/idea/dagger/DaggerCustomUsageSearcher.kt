@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.system.measureTimeMillis
 
 /** Adds custom usages for Dagger-related classes to a find usages window. */
-class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
+class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   @WorkerThread
   override fun processElementUsages(
     element: PsiElement,
