@@ -323,18 +323,6 @@ def transfer_user_files(src_project: Path, dst_project: Path):
         elif src.is_dir():
             shutil.copytree(src, dst)
 
-    workspace_xml = dst_project.joinpath(".idea/workspace.xml")
-    if not workspace_xml.exists():
-        # Init with sensible defaults to avoid very slow builds.
-        print("Seeding .idea/workspace.xml")
-        with open(workspace_xml, 'w', encoding="UTF-8") as f:
-            f.write('<project version="4">\n')
-            f.write('  <component name="CompilerWorkspaceConfiguration">\n')
-            f.write('    <option name="PARALLEL_COMPILATION" value="true" />\n')
-            f.write('    <option name="COMPILER_PROCESS_HEAP_SIZE" value="3072" />\n')
-            f.write('  </component>\n')
-            f.write('</project>')
-
 
 # Runs AndroidStudioSourceMapBuildTarget from platform/tools/idea to generate a
 # JSON map from IDE distribution JARs to their corresponding source modules/libraries.
