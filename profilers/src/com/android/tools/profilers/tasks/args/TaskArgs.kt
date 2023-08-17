@@ -15,4 +15,9 @@
  */
 package com.android.tools.profilers.tasks.args
 
+/**
+ * TaskArgs serves as a container for all the essential arguments and data required to be delivered to a task handler.
+ * These encompass configuration details for tailoring the initiation/launch of the task, and/or provisioning the data
+ * required to reload a previous task.
+ */
 interface TaskArgs {}
