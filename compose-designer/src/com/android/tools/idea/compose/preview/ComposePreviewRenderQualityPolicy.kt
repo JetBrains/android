@@ -23,8 +23,8 @@ object ComposePreviewRenderQualityPolicy : RenderQualityPolicy {
   override val debounceTimeMillis = 100L
 
   /** When the scale is lower than this value, then all previews are treated as not visible. */
-  val scaleVisibilityThreshold: Float = 0.2f
-  val lowestQuality: Float = 0.001f
+  const val scaleVisibilityThreshold: Float = 0.2f
+  const val lowestQuality: Float = 0.001f
 
   override fun getTargetQuality(scale: Double, isVisible: Boolean): Float {
     if (!isVisible || scale < scaleVisibilityThreshold) {
