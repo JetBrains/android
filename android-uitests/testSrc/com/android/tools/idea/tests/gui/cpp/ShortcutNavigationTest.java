@@ -64,7 +64,7 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
 
     Wait.seconds(10).expecting("Native file is opened for navigating to definition")
       .until(() -> "hello-jni.c".equals(ideFrame.getEditor().getCurrentFileName()));
-
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
     String currentLine = ideFrame.getEditor().getCurrentLine();
     assertThat(currentLine).isEqualTo("Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,\n");
   }
