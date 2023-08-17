@@ -1134,7 +1134,7 @@ public final class StudioFlags {
     EDITOR, "render.drawables.in.autocomplete.enabled",
     "Enable rendering of drawable resources in autocomplete popup UI",
     "If enabled, renders drawable resources in the autocomplete popup UI.",
-    true
+    false
   );
 
   public static final FlagGroup ESSENTIALS_MODE = new FlagGroup(FLAGS, "essentialsmode", "Essentials Mode");

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.completion
 
+import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
@@ -43,6 +44,9 @@ private val COLORS = mapOf("red" to JBColor.RED, "green" to JBColor.GREEN, "blue
 class ResourceCompletionContributorTest {
   @get:Rule
   val projectRule = AndroidProjectRule.withSdk().onEdt()
+
+  @get:Rule
+  val restoreFlagRule = FlagRule(StudioFlags.RENDER_DRAWABLES_IN_AUTOCOMPLETE_ENABLED)
 
   private val fixture: CodeInsightTestFixture by lazy { projectRule.fixture }
 
