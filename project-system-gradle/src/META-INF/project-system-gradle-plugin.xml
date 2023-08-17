@@ -128,6 +128,7 @@
                            implementationClass="com.android.tools.idea.gradle.completions.EnableAutoPopupInDeclarativeBuildCompletion" />
     <indexedRootsProvider implementation="com.android.tools.idea.gradle.index.VersionCatalogFileIndexContributor"/>
     <useScopeEnlarger implementation="com.android.tools.idea.gradle.navigation.GradleTomlUseScopeEnlarger"/>
+    <elementDescriptionProvider implementation="com.android.tools.idea.gradle.refactoring.VersionCatalogDescriptionProvider" order="first"/>
     <gotoDeclarationHandler implementation="com.android.tools.idea.gradle.navigation.VersionCatalogGoToDeclarationHandler"/>
     <gotoDeclarationHandler implementation="com.android.tools.idea.gradle.navigation.DeclarativeGoToApiDeclarationHandler"/>
     <renameHandler implementation="com.android.tools.idea.gradle.refactoring.GradleRenameModuleHandler" order="last"/>
