@@ -225,12 +225,12 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       ProcessSetMaxVideoResolution((const SetMaxVideoResolutionMessage&) message);
       break;
 
-    case StopVideoStreamMessage::TYPE:
-      StopVideoStream();
+    case StartVideoStreamMessage::TYPE:
+      StartVideoStream((const StartVideoStreamMessage&) message);
       break;
 
-    case StartVideoStreamMessage::TYPE:
-      StartVideoStream();
+    case StopVideoStreamMessage::TYPE:
+      StopVideoStream((const StopVideoStreamMessage&) message);
       break;
 
     case StartClipboardSyncMessage::TYPE:
@@ -394,20 +394,15 @@ void Controller::ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& 
 }
 
 void Controller::ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message) {
-  const Size& size = message.size();
-  if (size.width <= 0 || size.height <= 0) {
-    Log::E("An attempt to set an invalid video resolution: %dx%d", size.width, size.height);
-    return;
-  }
-  Agent::SetMaxVideoResolution(size);
+  Agent::SetMaxVideoResolution(message.max_video_size());
 }
 
-void Controller::StopVideoStream() {
-  Agent::StopVideoStream();
+void Controller::StopVideoStream(const StopVideoStreamMessage& message) {
+  Agent::StopVideoStream(message.display_id());
 }
 
-void Controller::StartVideoStream() {
-  Agent::StartVideoStream();
+void Controller::StartVideoStream(const StartVideoStreamMessage& message) {
+  Agent::StartVideoStream(message.display_id(), message.max_video_size());
   WakeUpDevice();
 }
 

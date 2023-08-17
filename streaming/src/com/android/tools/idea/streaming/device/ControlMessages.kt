@@ -256,17 +256,17 @@ internal data class SetDeviceOrientationMessage(val orientation: Int) : ControlM
 }
 
 /** Sets maximum display streaming resolution. */
-internal data class SetMaxVideoResolutionMessage(val displayId: Int, val size: Dimension) : ControlMessage(TYPE) {
+internal data class SetMaxVideoResolutionMessage(val displayId: Int, val maxVideoSize: Dimension) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeInt(displayId)
-    stream.writeInt(size.width)
-    stream.writeInt(size.height)
+    stream.writeInt(maxVideoSize.width)
+    stream.writeInt(maxVideoSize.height)
   }
 
   override fun toString(): String =
-      "SetMaxVideoResolutionMessage(displayId=$displayId, size=${size.width}x${size.height})"
+      "SetMaxVideoResolutionMessage(displayId=$displayId, maxVideoSize=${maxVideoSize.width}x${maxVideoSize.height})"
 
   companion object : Deserializer {
     const val TYPE = 5
@@ -281,22 +281,26 @@ internal data class SetMaxVideoResolutionMessage(val displayId: Int, val size: D
 }
 
 /** Starts video stream if it was stopped. */
-internal class StartVideoStreamMessage(val displayId: Int) : ControlMessage(TYPE) {
+internal class StartVideoStreamMessage(val displayId: Int, val maxVideoSize: Dimension) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeInt(displayId)
+    stream.writeInt(maxVideoSize.width)
+    stream.writeInt(maxVideoSize.height)
   }
 
   override fun toString(): String =
-      "StartVideoStreamMessage(displayId=$displayId)"
+      "StartVideoStreamMessage(displayId=$displayId, maxVideoSize=${maxVideoSize.width}x${maxVideoSize.height})"
 
   companion object : Deserializer {
     const val TYPE = 6
 
     override fun deserialize(stream: Base128InputStream): StartVideoStreamMessage {
       val displayId = stream.readInt()
-      return StartVideoStreamMessage(displayId)
+      val width = stream.readInt()
+      val height = stream.readInt()
+      return StartVideoStreamMessage(displayId, Dimension(width, height))
     }
   }
 }

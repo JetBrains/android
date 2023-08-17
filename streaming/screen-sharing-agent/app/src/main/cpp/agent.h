@@ -25,16 +25,19 @@
 
 namespace screensharing {
 
+constexpr int32_t PRIMARY_DISPLAY_ID = 0;
+
 // The main class of the screen sharing agent.
 class Agent {
 public:
   Agent() = delete;
   static void Run(const std::vector<std::string>& args);
 
-  static void StartVideoStream() {
+  static void StartVideoStream(int32_t display_id, Size max_video_resolution) {
+    SetMaxVideoResolution(max_video_resolution);
     display_streamer_->Start();
   }
-  static void StopVideoStream() {
+  static void StopVideoStream(int32_t display_id) {
     display_streamer_->Stop();
   }
 

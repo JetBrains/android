@@ -413,16 +413,17 @@ class FakeScreenSharingAgent(
   }
 
   private suspend fun setMaxVideoResolutionMessage(message: SetMaxVideoResolutionMessage) {
-    maxVideoResolution = message.size
+    maxVideoResolution = message.maxVideoSize
     displayStreamer?.renderDisplay()
   }
 
-  private suspend fun startVideoStream() {
+  private suspend fun startVideoStream(message: StartVideoStreamMessage) {
+    maxVideoResolution = message.maxVideoSize
     videoStreamActive = true
     displayStreamer?.renderDisplay()
   }
 
-  private fun stopVideoStream() {
+  private fun stopVideoStream(message: StopVideoStreamMessage) {
     videoStreamActive = false
   }
 
@@ -806,8 +807,8 @@ class FakeScreenSharingAgent(
       when (message) {
         is SetDeviceOrientationMessage -> setDeviceOrientation(message)
         is SetMaxVideoResolutionMessage -> setMaxVideoResolutionMessage(message)
-        is StartVideoStreamMessage -> startVideoStream()
-        is StopVideoStreamMessage -> stopVideoStream()
+        is StartVideoStreamMessage -> startVideoStream(message)
+        is StopVideoStreamMessage -> stopVideoStream(message)
         is StartClipboardSyncMessage -> startClipboardSync(message)
         is StopClipboardSyncMessage -> stopClipboardSync()
         is RequestDeviceStateMessage -> requestDeviceState(message)

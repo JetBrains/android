@@ -225,8 +225,7 @@ internal class DeviceClient(
 
   private fun startVideoStream(displayId: Int, maxOutputSize: Dimension) {
     if (videoStreamActive.compareAndSet(false, true)) {
-      deviceController?.sendControlMessage(SetMaxVideoResolutionMessage(PRIMARY_DISPLAY_ID, maxOutputSize))
-      deviceController?.sendControlMessage(StartVideoStreamMessage(displayId))
+      deviceController?.sendControlMessage(StartVideoStreamMessage(displayId, maxOutputSize))
     }
   }
 

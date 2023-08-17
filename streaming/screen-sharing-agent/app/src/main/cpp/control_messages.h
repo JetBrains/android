@@ -200,15 +200,15 @@ private:
 // Sets maximum display streaming resolution.
 class SetMaxVideoResolutionMessage : ControlMessage {
 public:
-  SetMaxVideoResolutionMessage(int32_t display_id, Size size)
+  SetMaxVideoResolutionMessage(int32_t display_id, Size max_video_size)
       : ControlMessage(TYPE),
         display_id_(display_id),
-        size_(size) {
+        max_video_size_(max_video_size) {
   }
   virtual ~SetMaxVideoResolutionMessage() {};
 
   int32_t display_id() const { return display_id_; }
-  const Size& size() const { return size_; }
+  const Size& max_video_size() const { return max_video_size_; }
 
   static constexpr int TYPE = 5;
 
@@ -218,7 +218,7 @@ private:
   static SetMaxVideoResolutionMessage* Deserialize(Base128InputStream& stream);
 
   int32_t display_id_;
-  Size size_;
+  Size max_video_size_;
 
   DISALLOW_COPY_AND_ASSIGN(SetMaxVideoResolutionMessage);
 };
@@ -226,13 +226,15 @@ private:
 // Starts video stream if it was stopped, otherwise has no effect.
 class StartVideoStreamMessage : ControlMessage {
 public:
-  StartVideoStreamMessage(int32_t display_id)
+  StartVideoStreamMessage(int32_t display_id, Size max_video_size)
       : ControlMessage(TYPE),
-        display_id_(display_id) {
+        display_id_(display_id),
+        max_video_size_(max_video_size) {
   }
   virtual ~StartVideoStreamMessage() {};
 
   int32_t display_id() const { return display_id_; }
+  const Size& max_video_size() const { return max_video_size_; }
 
   static constexpr int TYPE = 6;
 
@@ -242,6 +244,7 @@ private:
   static StartVideoStreamMessage* Deserialize(Base128InputStream& stream);
 
   int32_t display_id_;
+  Size max_video_size_;
 
   DISALLOW_COPY_AND_ASSIGN(StartVideoStreamMessage);
 };

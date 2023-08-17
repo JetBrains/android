@@ -121,14 +121,16 @@ SetMaxVideoResolutionMessage* SetMaxVideoResolutionMessage::Deserialize(Base128I
   return new SetMaxVideoResolutionMessage(display_id, Size(width, height));
 }
 
+StartVideoStreamMessage* StartVideoStreamMessage::Deserialize(Base128InputStream& stream) {
+  int32_t display_id = stream.ReadInt32();
+  int32_t width = stream.ReadInt32();
+  int32_t height = stream.ReadInt32();
+  return new StartVideoStreamMessage(display_id, Size(width, height));
+}
+
 StopVideoStreamMessage* StopVideoStreamMessage::Deserialize(Base128InputStream& stream) {
   int32_t display_id = stream.ReadInt32();
   return new StopVideoStreamMessage(display_id);
-}
-
-StartVideoStreamMessage* StartVideoStreamMessage::Deserialize(Base128InputStream& stream) {
-  int32_t display_id = stream.ReadInt32();
-  return new StartVideoStreamMessage(display_id);
 }
 
 StartClipboardSyncMessage* StartClipboardSyncMessage::Deserialize(Base128InputStream& stream) {

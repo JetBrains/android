@@ -87,8 +87,8 @@ private:
   void ProcessTextInput(const TextInputMessage& message);
   static void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
-  static void StopVideoStream();
-  static void StartVideoStream();
+  static void StartVideoStream(const StartVideoStreamMessage& message);
+  static void StopVideoStream(const StopVideoStreamMessage& message);
   static void WakeUpDevice();
 
   void StartClipboardSync(const StartClipboardSyncMessage& message);

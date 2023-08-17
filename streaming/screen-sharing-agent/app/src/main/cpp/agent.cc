@@ -140,7 +140,7 @@ void Agent::Run(const vector<string>& args) {
   controller_ = new Controller(CreateAndConnectSocket(socket_name_));
   Log::D("Created video and control sockets");
   if ((flags_ & START_VIDEO_STREAM) != 0) {
-    StartVideoStream();
+    StartVideoStream(PRIMARY_DISPLAY_ID, max_video_resolution_);
   }
   controller_->Run();
   Shutdown();
@@ -153,6 +153,10 @@ void Agent::SetVideoOrientation(int32_t orientation) {
 }
 
 void Agent::SetMaxVideoResolution(Size max_video_resolution) {
+  if (max_video_resolution.width <= 0 || max_video_resolution.height <= 0) {
+    Log::E("An attempt to set an invalid video resolution: %dx%d", max_video_resolution.width, max_video_resolution.height);
+    return;
+  }
   max_video_resolution_ = max_video_resolution;
   if (display_streamer_ != nullptr) {
     display_streamer_->SetMaxVideoResolution(max_video_resolution);
