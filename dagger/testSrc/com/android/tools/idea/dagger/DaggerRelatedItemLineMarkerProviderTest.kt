@@ -79,19 +79,19 @@ class DaggerRelatedItemLineMarkerProviderTest() : DaggerTestCase() {
   }
 
   fun testGetName() {
-    val provider = DaggerRelatedItemLineMarkerProvider()
+    val provider = DaggerRelatedItemLineMarkerProviderV2()
     assertThat(provider.name).isEqualTo("Dagger related items")
   }
 
   fun testGetId() {
     // The value of the id doesn't really matter, but it needs to be present in order for the icons
     // available for disabling in settings.
-    val provider = DaggerRelatedItemLineMarkerProvider()
+    val provider = DaggerRelatedItemLineMarkerProviderV2()
     assertThat(provider.id).isNotEmpty()
   }
 
   fun testIsEnabledByDefault() {
-    val provider = DaggerRelatedItemLineMarkerProvider()
+    val provider = DaggerRelatedItemLineMarkerProviderV2()
 
     // This system property used to indicate whether the provider was on by default, but should no
     // longer have any effect.
