@@ -18,8 +18,8 @@
 package com.android.tools.idea.dagger
 
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProviderV2.Companion.canReceiveLineMarker
-import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProviderV2.Companion.getGotoItems
+import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider.Companion.canReceiveLineMarker
+import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider.Companion.getGotoItems
 import com.android.tools.idea.dagger.concepts.DaggerElement
 import com.android.tools.idea.dagger.concepts.DaggerRelatedElement
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -94,19 +94,19 @@ class DaggerRelatedItemLineMarkerProviderDaggerTest : DaggerTestCase() {
   }
 
   fun testGetName() {
-    val provider = DaggerRelatedItemLineMarkerProviderV2()
+    val provider = DaggerRelatedItemLineMarkerProvider()
     assertThat(provider.name).isEqualTo("Dagger related items")
   }
 
   fun testGetId() {
     // The value of the id doesn't really matter, but it needs to be present in order for the icons
     // available for disabling in settings.
-    val provider = DaggerRelatedItemLineMarkerProviderV2()
+    val provider = DaggerRelatedItemLineMarkerProvider()
     assertThat(provider.id).isNotEmpty()
   }
 
   fun testIsEnabledByDefault() {
-    val provider = DaggerRelatedItemLineMarkerProviderV2()
+    val provider = DaggerRelatedItemLineMarkerProvider()
 
     // This system property used to indicate whether the provider was on by default, but should no
     // longer have any effect.

@@ -48,7 +48,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
  *
  * Adds gutter icon that allows to navigate between Dagger elements.
  */
-class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
+class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
   override fun getName(): String = DaggerBundle.message("dagger.related.items")
 
