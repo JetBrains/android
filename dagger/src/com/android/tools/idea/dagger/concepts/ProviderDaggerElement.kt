@@ -16,7 +16,6 @@
 package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.getQualifierInfo
-import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.psi.PsiClass

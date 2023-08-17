@@ -19,7 +19,6 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.dagger.index.DaggerIndex
 import com.android.tools.idea.dagger.index.getIndexKeys
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent

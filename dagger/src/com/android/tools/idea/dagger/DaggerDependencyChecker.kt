@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.dagger
 
+import com.android.tools.idea.dagger.concepts.DaggerAnnotations
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootModificationTracker
@@ -37,6 +38,6 @@ class DaggerDependencyChecker(private val project: Project) {
 
   private fun calculateIsDaggerPresent(): Boolean {
     return JavaPsiFacade.getInstance(project)
-      .findClass(DAGGER_MODULE_ANNOTATION, GlobalSearchScope.allScope(project)) != null
+      .findClass(DaggerAnnotations.MODULE, GlobalSearchScope.allScope(project)) != null
   }
 }
