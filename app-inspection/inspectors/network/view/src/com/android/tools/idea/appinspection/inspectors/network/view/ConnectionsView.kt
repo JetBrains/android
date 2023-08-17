@@ -108,14 +108,13 @@ class ConnectionsView(
   }
 
   private val tableModel = ConnectionsTableModel(model.selectionRangeDataFetcher)
-  private val connectionsTable: JTable
+  private val connectionsTable: JTable = TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.toDisplayString(), true)
   private var columnWidthsInitialized = false
+
   val component: JComponent
     get() = connectionsTable
 
   init {
-    connectionsTable =
-      TimelineTable.create(tableModel, model.timeline, Column.TIMELINE.toDisplayString(), true)
     customizeConnectionsTable()
     createTooltip()
     model.aspect.addDependency(this).onChange(NetworkInspectorAspect.SELECTED_CONNECTION) {

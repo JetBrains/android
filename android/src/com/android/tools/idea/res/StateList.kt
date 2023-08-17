@@ -30,7 +30,7 @@ internal const val STATE_NAME_PREFIX = "state_"
  * Stores the information contained in a resource state list.
  */
 class StateList(val fileName: String, val dirName: String) {
-  private val myStates: MutableList<StateListState>
+  private val myStates: MutableList<StateListState> = ArrayList()
 
   val folderType: ResourceFolderType get() = ResourceFolderType.getFolderType(dirName)!!
   val states: List<StateListState> get() = myStates
@@ -83,10 +83,6 @@ class StateList(val fileName: String, val dirName: String) {
       }
       return disabledStatesBuilder.build()
     }
-
-  init {
-    myStates = ArrayList()
-  }
 
   fun addState(state: StateListState) {
     myStates.add(state)
