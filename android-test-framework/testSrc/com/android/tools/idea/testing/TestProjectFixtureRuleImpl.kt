@@ -21,6 +21,8 @@ import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition
 import com.android.tools.idea.sdk.AndroidSdkPathStore
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.tests.AdtTestProjectDescriptor
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
@@ -50,6 +52,9 @@ internal class TestProjectFixtureRuleImpl(
     }
 
   override var fixtureName: String? = null
+  override var projectDescriptor: AdtTestProjectDescriptor
+    get() = AdtTestProjectDescriptors.default()
+    set(_) { error("Not supported") }
 
   override val testRootDisposable: Disposable = projectBuilder.fixture.testRootDisposable
 

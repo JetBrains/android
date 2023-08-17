@@ -1,12 +1,10 @@
 package org.jetbrains.android;
 
-import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.pom.java.LanguageLevel;
-import com.intellij.testFramework.IdeaTestUtil;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import java.util.List;
@@ -22,18 +20,7 @@ public abstract class LightJavaCodeInsightFixtureAdtTestCase extends LightJavaCo
   @Override
   @NotNull
   protected LightProjectDescriptor getProjectDescriptor() {
-    return getAdtProjectDescriptor();
-  }
-
-  @NotNull
-  public static LightProjectDescriptor getAdtProjectDescriptor() {
-    return new ProjectDescriptor(LanguageLevel.HIGHEST) {
-      @Override
-      public Sdk getSdk() {
-        String path = TestUtils.getMockJdk().toString();
-        return IdeaTestUtil.createMockJdk("java 1.7", path);
-      }
-    };
+    return AdtTestProjectDescriptors.defaultDescriptor();
   }
 
   @Override

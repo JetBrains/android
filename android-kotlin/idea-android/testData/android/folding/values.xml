@@ -5,7 +5,7 @@
     <string name="format_string">Hello %s!</string>
     <string name="empty_string" />
     <string name="compex_format_string" formatted="false">Third: %3$s Repeated: %3$s First: %1$s Second: %2$d</string>
-    <string name="invalid_format" formatted="false">Escaped: \%s First: %1$s Invalid: %20$s</string>
+    <string name="invalid_format" formatted="false">Escaped: \\%s %%s First: %1$s Invalid: %20$s</string>
 
     <string name="plural_one">Reference One</string>
     <string name="plural_few">Reference Few</string>

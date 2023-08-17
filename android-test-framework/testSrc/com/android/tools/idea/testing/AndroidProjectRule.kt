@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.testing
 
-import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoThreadLocalsCleaner
 import com.android.testutils.TestUtils
@@ -24,6 +23,9 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.flags.override
+import com.android.tools.tests.AdtTestProjectDescriptor
+import com.android.tools.tests.KotlinAdtTestProjectDescriptor
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.android.utils.FileUtils
 import com.intellij.application.options.CodeStyle
 import com.intellij.facet.Facet
@@ -60,7 +62,6 @@ import org.jetbrains.android.AndroidTempDirTestFixture
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
-import org.jetbrains.android.LightJavaCodeInsightFixtureAdtTestCase
 import org.jetbrains.android.UndisposedAndroidObjectsCheckerRule.Companion.checkUndisposedAndroidRelatedObjects
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.rules.RuleChain
@@ -89,6 +90,7 @@ interface AndroidProjectRule : TestRule {
     override val fixture: T
     override fun initAndroid(shouldInit: Boolean): Typed<T, H>
     override fun named(projectName: String?): Typed<T, H>
+    override fun withKotlin(descriptor: KotlinAdtTestProjectDescriptor?): Typed<T, H>
     val testHelpers: H
   }
 
@@ -108,6 +110,12 @@ interface AndroidProjectRule : TestRule {
    * Note: this property applies to some [AndroidProjectRule] builders only.
    */
   fun named(projectName: String?): AndroidProjectRule
+
+  /**
+   * Enables Kotlin and the Kotlin standard library for this project, using the
+   * given Kotlin project descriptor. Passing `null` disables Kotlin.
+   */
+  fun withKotlin(descriptor: KotlinAdtTestProjectDescriptor? = AdtTestProjectDescriptors.kotlin()): AndroidProjectRule
 
   val testRootDisposable: Disposable get() = fixture.testRootDisposable
   val project: Project get() = fixture.project
@@ -203,7 +211,7 @@ interface AndroidProjectRule : TestRule {
       prepareProjectSources: ((dir: File) -> Unit)? = null,
       vararg projectModuleBuilders: ModuleModelBuilder
     ): Typed<JavaCodeInsightTestFixture, Nothing> {
-      fun createFixture(projectName: String): JavaCodeInsightTestFixture {
+      fun createFixture(projectName: String, unusedProjectDescriptor: AdtTestProjectDescriptor): JavaCodeInsightTestFixture {
         return createJavaCodeInsightTestFixtureAndModels(
           projectName,
           projectModuleBuilders = projectModuleBuilders.toList(),
@@ -318,6 +326,7 @@ internal interface TestEnvironmentRule : TestRule
 internal interface FixtureRule<T: CodeInsightTestFixture> : TestRule {
   var initAndroid: Boolean
   var fixtureName: String?
+  var projectDescriptor: AdtTestProjectDescriptor
 
   val testRootDisposable: Disposable
   val fixture: T
@@ -362,6 +371,11 @@ private fun <T : CodeInsightTestFixture, H> chain(
 
     override fun named(projectName: String?): AndroidProjectRule.Typed<T, H> {
       fixtureRule.fixtureName = projectName
+      return this
+    }
+
+    override fun withKotlin(descriptor: KotlinAdtTestProjectDescriptor?): AndroidProjectRule.Typed<T, H> {
+      fixtureRule.projectDescriptor = descriptor ?: AdtTestProjectDescriptors.java()
       return this
     }
 
@@ -418,7 +432,7 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
   /**
    * A method to create [CodeInsightTestFixture] instance.
    */
-  private val fixtureFactory: (projectName: String) -> T,
+  private val fixtureFactory: (projectName: String, projectDescriptor: AdtTestProjectDescriptor) -> T,
 
   /**
    * True if this rule should include an Android SDK.
@@ -443,7 +457,12 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
    *
    * Default is the test class' short name.
    */
-  override var fixtureName: String? = null
+  override var fixtureName: String? = null,
+
+  /**
+   * The project descriptor to use to set up language features and standard libraries.
+   */
+  override var projectDescriptor: AdtTestProjectDescriptor = AdtTestProjectDescriptors.default(),
 ) : NamedExternalResource(), FixtureRule<T> {
 
   override val testRootDisposable: Disposable
@@ -486,7 +505,7 @@ class FixtureRuleImpl<T: CodeInsightTestFixture>(
 
   private fun doBeforeActions(description: Description) {
     val projectName = fixtureName ?: description.shortDisplayName
-    _fixture = fixtureFactory(projectName)
+    _fixture = fixtureFactory(projectName, projectDescriptor)
 
     fixture.setUp()
     // Initialize an Android manifest
@@ -540,11 +559,10 @@ class ProjectEnvironmentRuleImpl(
 }
 
 
-private fun createLightFixture(projectName: String): CodeInsightTestFixture {
+private fun createLightFixture(projectName: String, projectDescriptor: AdtTestProjectDescriptor): CodeInsightTestFixture {
   // This is a very abstract way to initialize a new Project and a single Module.
   val factory = IdeaTestFixtureFactory.getFixtureFactory()
-  val projectBuilder =
-    factory.createLightFixtureBuilder(LightJavaCodeInsightFixtureAdtTestCase.getAdtProjectDescriptor(), projectName)
+  val projectBuilder = factory.createLightFixtureBuilder(projectDescriptor, projectName)
   return factory.createCodeInsightFixture(projectBuilder.fixture, LightTempDirTestFixtureImpl(true))
 }
 
@@ -589,7 +607,8 @@ internal class AndroidProjectRuleTempDirectoryFixture(name: String) : AndroidTem
  * The project is created on disk under the /tmp folder
  */
 private fun createJavaCodeInsightTestFixtureAndAddModules(
-  projectName: String
+  projectName: String,
+  projectDescriptor: AdtTestProjectDescriptor,
 ): JavaCodeInsightTestFixture {
   IdeaTestFixtureFactory.getFixtureFactory().registerFixtureBuilder(
     AndroidTestCase.AndroidModuleFixtureBuilder::class.java,
@@ -599,6 +618,7 @@ private fun createJavaCodeInsightTestFixtureAndAddModules(
   val (projectBuilder, javaCodeInsightTestFixture) = createJavaCodeInsightTestFixture(projectName)
 
   val moduleFixtureBuilder = projectBuilder.addModule(AndroidTestCase.AndroidModuleFixtureBuilder::class.java)
+  moduleFixtureBuilder.setProjectDescriptor(projectDescriptor)
   initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, javaCodeInsightTestFixture.tempDirPath)
   return javaCodeInsightTestFixture
 }

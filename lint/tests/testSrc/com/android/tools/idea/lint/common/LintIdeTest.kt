@@ -19,6 +19,7 @@ import com.android.testutils.TestUtils.getWorkspaceRoot
 import com.android.tools.idea.util.StudioPathManager
 import com.android.tools.lint.checks.CommentDetector
 import com.android.tools.lint.client.api.LintClient
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.google.common.base.Verify
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
@@ -59,7 +60,6 @@ import com.intellij.util.ThrowableRunnable
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
-import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
 class LintIdeTest : UsefulTestCase() {
   init {
@@ -505,7 +505,7 @@ class LintIdeTest : UsefulTestCase() {
     LintModuleFixtureBuilder<ModuleFixtureImpl> {
 
     init {
-      JavaCodeInsightFixtureAdtTestCase.addJdk(this)
+      AdtTestProjectDescriptors.default().configureFixture(this)
     }
 
     private var myModuleRoot: File? = null

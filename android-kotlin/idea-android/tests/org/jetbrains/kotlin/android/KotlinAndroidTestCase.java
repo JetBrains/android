@@ -22,18 +22,17 @@ import static org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuild
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSchemes;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.UsefulTestCase;
-import com.intellij.testFramework.VfsTestUtil;
 import com.intellij.testFramework.common.ThreadLeakTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -82,6 +81,7 @@ public abstract class KotlinAndroidTestCase extends UsefulTestCase {
     TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
     myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
     AndroidModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(AndroidModuleFixtureBuilder.class);
+    moduleFixtureBuilder.setProjectDescriptor(AdtTestProjectDescriptors.kotlin());
     initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
 
     myFixture.setUp();

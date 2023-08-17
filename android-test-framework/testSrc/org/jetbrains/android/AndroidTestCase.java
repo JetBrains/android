@@ -17,6 +17,8 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.android.tools.idea.testing.ThreadingCheckerHookTestImpl;
 import com.android.tools.instrumentation.threading.agent.callback.ThreadingCheckerTrampoline;
+import com.android.tools.tests.AdtTestProjectDescriptor;
+import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.intellij.facet.Facet;
@@ -35,10 +37,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectType;
 import com.intellij.openapi.project.ProjectTypeService;
 import com.intellij.openapi.project.ex.ProjectEx;
-import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.util.Disposer;
@@ -94,6 +94,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
   protected AndroidFacet myFacet;
   protected CodeStyleSettings mySettings;
 
+  protected AdtTestProjectDescriptor myProjectDescriptor;
+
   private List<String> myAllowedRoots = new ArrayList<>();
   private boolean myUseCustomSettings;
   private ComponentStack myApplicationComponentStack;
@@ -116,6 +118,21 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
     setUpThreadingChecks();
 
+    AdtTestProjectDescriptor descriptor;
+    if (myProjectDescriptor == null) {
+      LanguageLevel languageLevel = getLanguageLevel();
+      if (languageLevel == null) languageLevel = LanguageLevel.JDK_1_8;
+
+      descriptor = AdtTestProjectDescriptors.defaultDescriptor()
+        .withJavaVersion(languageLevel)
+        .withJdkPath(EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath());
+    } else {
+      descriptor = myProjectDescriptor;
+    }
+
+    WriteAction.runAndWait(this::cleanJdkTable);
+    moduleFixtureBuilder.setProjectDescriptor(descriptor);
+
     ArrayList<MyAdditionalModuleData> modules = new ArrayList<>();
     configureAdditionalModules(projectBuilder, modules);
 
@@ -127,22 +144,9 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     // its own custom manifest file. However, in that case, we will delete it shortly below.
     createManifest();
 
-    Path jdkPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath();
-    WriteAction.runAndWait(() -> {
-      cleanJdkTable();
-      setupJdk(jdkPath);
-    });
     myFacet = addAndroidFacetAndSdk(myModule);
 
     removeFacetOn(myFixture.getProjectDisposable(), myFacet);
-
-    LanguageLevel languageLevel = getLanguageLevel();
-    if (languageLevel != null) {
-      LanguageLevelProjectExtension extension = LanguageLevelProjectExtension.getInstance(myModule.getProject());
-      if (extension != null) {
-        extension.setLanguageLevel(languageLevel);
-      }
-    }
 
     myFixture.copyDirectoryToProject(getResDir(), "res");
 
@@ -531,6 +535,8 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     void setModuleRoot(@NotNull String moduleRoot);
 
     void setModuleName(@NotNull String moduleName);
+
+    void setProjectDescriptor(@NotNull AdtTestProjectDescriptor projectDescriptor);
   }
 
   public static class AndroidModuleFixtureBuilderImpl extends JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>
@@ -538,10 +544,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     private File myModuleRoot;
     private String myModuleName;
+    private AdtTestProjectDescriptor myProjectDescriptor = AdtTestProjectDescriptors.defaultDescriptor();
 
     public AndroidModuleFixtureBuilderImpl(TestFixtureBuilder<? extends IdeaProjectTestFixture> fixtureBuilder) {
       super(fixtureBuilder);
-      JavaCodeInsightFixtureAdtTestCase.addJdk(this);
     }
 
     @Override
@@ -556,6 +562,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     public void setModuleName(@NotNull String moduleName) {
       Preconditions.checkArgument(!"app".equals(moduleName), "'app' is reserved for main module");
       myModuleName = moduleName;
+    }
+
+    @Override
+    public void setProjectDescriptor(@NotNull AdtTestProjectDescriptor projectDescriptor) {
+      myProjectDescriptor = projectDescriptor;
     }
 
     @NotNull
@@ -574,6 +585,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     @NotNull
     @Override
     protected ModuleFixtureImpl instantiateFixture() {
+      myProjectDescriptor.configureFixture(this);
       return new ModuleFixtureImpl(this);
     }
   }

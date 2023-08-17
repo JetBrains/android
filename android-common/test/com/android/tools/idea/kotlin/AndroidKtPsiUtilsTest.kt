@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.kotlin
 
+import com.android.tools.tests.AdtTestProjectDescriptors
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -30,6 +32,8 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Test
 
 class AndroidKtPsiUtilsTest : LightJavaCodeInsightFixtureTestCase() {
+
+  override fun getProjectDescriptor(): LightProjectDescriptor = AdtTestProjectDescriptors.kotlin()
 
   @Test
   fun testKtClass_insideBody() {

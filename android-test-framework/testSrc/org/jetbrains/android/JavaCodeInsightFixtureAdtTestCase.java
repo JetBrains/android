@@ -15,7 +15,8 @@
  */
 package org.jetbrains.android;
 
-import com.android.testutils.TestUtils;
+import com.android.tools.tests.AdtTestProjectDescriptor;
+import com.android.tools.tests.AdtTestProjectDescriptors;
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
 
@@ -24,14 +25,13 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase;
  * java SDJ. Use this class instead if your test needs a java SDK setup.
  */
 public abstract class JavaCodeInsightFixtureAdtTestCase extends JavaCodeInsightFixtureTestCase {
-
-  @Override
-  protected void tuneFixture(JavaModuleFixtureBuilder builder) throws Exception {
-    super.tuneFixture(builder);
-    addJdk(builder);
+  protected AdtTestProjectDescriptor getProjectDescriptor() {
+    return AdtTestProjectDescriptors.defaultDescriptor();
   }
 
-  public static void addJdk(JavaModuleFixtureBuilder<?> builder) {
-    builder.addJdk(TestUtils.getMockJdk().toString());
+  @Override
+  protected void tuneFixture(JavaModuleFixtureBuilder<?> builder) throws Exception {
+    super.tuneFixture(builder);
+    getProjectDescriptor().configureFixture(builder);
   }
 }

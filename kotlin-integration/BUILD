@@ -49,6 +49,7 @@ alias(
 # managed by go/iml_to_build
 iml_module(
     name = "kotlin-integration-tests",
+    generate_k2_tests = True,
     iml_files = ["kotlin-integration-tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.KotlinIntegrationTestSuite",
