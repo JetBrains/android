@@ -28,6 +28,7 @@ import com.intellij.util.concurrency.SameThreadExecutor
 import icons.StudioIcons
 import kotlinx.coroutines.cancelFutureOnCancellation
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.awt.Color
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
@@ -283,3 +284,8 @@ internal val Rectangle.bottom: Int
 
 internal val MouseEvent.location: Point
   get() = Point(x, y)
+
+/** Wraps the string with &lt;font color=...>, &lt;/font> tags. */
+internal fun String.htmlColored(color: Color): String {
+  return "<font color=${(color.rgb and 0xFFFFFF).toString(16)}>}$this</font>"
+}

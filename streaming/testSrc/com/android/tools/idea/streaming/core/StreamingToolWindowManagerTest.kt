@@ -189,6 +189,8 @@ class StreamingToolWindowManagerTest {
     emulator1.getNextGrpcCall(2, SECONDS) { true } // Wait for the initial "getVmState" call.
     waitForCondition(2, SECONDS) { contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator1.avdName)
+    assertThat(contentManager.contents[0].description).isEqualTo(
+        "${emulator1.avdName} <font color=808080>}(${emulator1.serialNumber})</font>")
 
     // Start the third emulator.
     emulator3.start(standalone = false)
@@ -197,11 +199,15 @@ class StreamingToolWindowManagerTest {
 
     // The second emulator panel is added but the first one is still selected.
     assertThat(contentManager.contents[0].displayName).isEqualTo(emulator3.avdName)
+    assertThat(contentManager.contents[0].description).isEqualTo(
+        "${emulator3.avdName} <font color=808080>}(${emulator3.serialNumber})</font>")
     assertThat(contentManager.contents[1].displayName).isEqualTo(emulator1.avdName)
+    assertThat(contentManager.contents[1].description).isEqualTo(
+        "${emulator1.avdName} <font color=808080>}(${emulator1.serialNumber})</font>")
     assertThat(contentManager.contents[1].isSelected).isTrue()
 
     for (emulator in listOf(emulator2, emulator3)) {
-      project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired("emulator-${emulator.serialPort}", project)
+      project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(emulator.serialNumber, project)
     }
 
     // Deploying an app activates the corresponding emulator panel.
@@ -347,6 +353,8 @@ class StreamingToolWindowManagerTest {
 
     waitForCondition(15, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    assertThat(contentManager.contents[0].description).isEqualTo(
+        "Google Pixel 4 API 30 <font color=808080>}(${device.serialNumber})</font>")
     assertThat(contentManager.contents[0].isCloseable).isTrue()
 
     agentRule.disconnectDevice(device)

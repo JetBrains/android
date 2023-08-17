@@ -21,6 +21,7 @@ import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
 import com.android.tools.idea.streaming.core.RunningDevicePanel
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionState
 import com.android.tools.idea.streaming.device.DeviceView.ConnectionStateListener
@@ -33,6 +34,7 @@ import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.JBColor
 import java.awt.EventQueue
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -49,7 +51,14 @@ internal class DeviceToolWindowPanel(
     get() = deviceClient.deviceSerialNumber
 
   override val title: String
-    get() = shortenTitleText(deviceClient.deviceName)
+    get() = deviceClient.deviceName
+
+  override val description: String
+    get() {
+      val properties = deviceClient.deviceHandle.state.properties
+      val api = properties.androidVersion?.apiStringWithoutExtension ?: "${deviceClient.deviceConfig.apiLevel}"
+      return "${properties.title} API $api ${"($deviceSerialNumber)".htmlColored(JBColor.GRAY)}"
+    }
 
   override val icon: Icon
     get() = ExecutionUtil.getLiveIndicator(deviceClient.deviceHandle.state.properties.icon)

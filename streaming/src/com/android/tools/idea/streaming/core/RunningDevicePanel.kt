@@ -29,7 +29,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
@@ -48,10 +47,13 @@ private const val IS_TOOLBAR_HORIZONTAL = true
 abstract class RunningDevicePanel(
   val id: DeviceId,
   mainToolbarId: String,
-  secondaryToolbarId: String
+  secondaryToolbarId: String,
 ) : BorderLayoutPanel(), DataProvider {
 
+  /** Plain text name of the device. */
   internal abstract val title: String
+  /** An HTML string containing detailed information about the device. */
+  internal abstract val description: String
   internal abstract val icon: Icon
   internal abstract val isClosable: Boolean
   internal abstract val preferredFocusableComponent: JComponent
@@ -161,9 +163,6 @@ abstract class RunningDevicePanel(
     ActionToolbarUtil.makeToolbarNavigable(toolbar)
     return toolbar
   }
-
-  protected fun shortenTitleText(title: String): String =
-      StringUtil.shortenTextWithEllipsis(title, 30, 6)
 
   private fun findNotificationHolderPanel() =
       primaryDisplayView?.findContainingComponent<NotificationHolderPanel>()

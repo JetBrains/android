@@ -83,6 +83,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupFactory.ActionSelectionAid
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowEx
@@ -467,9 +468,10 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     val contentFactory = ContentFactory.getInstance()
-    val content = contentFactory.createContent(panel, panel.title, false).apply {
+    val content = contentFactory.createContent(panel, shortenTitleText(panel.title), false).apply {
       putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
       tabName = panel.title
+      description = panel.description
       icon = panel.icon
       popupIcon = panel.icon
       setPreferredFocusedComponent(panel::preferredFocusableComponent)
@@ -1146,3 +1148,6 @@ private fun isLocalEmulator(deviceSerialNumber: String) =
 
 private fun isEmbeddedEmulator(commandLine: GeneralCommandLine) =
     commandLine.parametersList.parameters.contains("-qt-hide-window")
+
+private fun shortenTitleText(title: String): String =
+  StringUtil.shortenTextWithEllipsis(title, 25, 6)

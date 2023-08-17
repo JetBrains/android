@@ -28,6 +28,7 @@ import com.android.tools.idea.streaming.core.NUMBER_OF_DISPLAYS_KEY
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.RunningDevicePanel
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.icon
 import com.android.tools.idea.streaming.core.installFileDropHandler
 import com.android.tools.idea.streaming.core.sizeWithoutInsets
@@ -51,6 +52,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.JBColor
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
@@ -110,7 +112,10 @@ internal class EmulatorToolWindowPanel(
     get() = emulator.emulatorId
 
   override val title: String
-    get() = shortenTitleText(emulatorId.avdName)
+    get() = emulatorId.avdName
+
+  override val description: String
+    get() = "${emulatorId.avdName} ${"(${emulatorId.serialNumber})".htmlColored(JBColor.GRAY)}"
 
   override val icon: Icon
     get() {

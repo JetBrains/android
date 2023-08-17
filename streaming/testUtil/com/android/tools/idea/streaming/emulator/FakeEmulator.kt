@@ -198,8 +198,10 @@ class FakeEmulator(val avdFolder: Path, val grpcPort: Int, registrationDirectory
   /** The ID of the last loaded snapshot. */
   private var lastLoadedSnapshot: String? = null
 
-  val serialPort
+  val serialPort: Int
     get() = grpcPort - 3000 // Just like a real emulator.
+  val serialNumber: String
+    get() = "emulator-$serialPort"
 
   val grpcCallLog = LinkedBlockingDeque<GrpcCallRecord>()
   private val grpcSemaphore = Semaphore(Int.MAX_VALUE)
