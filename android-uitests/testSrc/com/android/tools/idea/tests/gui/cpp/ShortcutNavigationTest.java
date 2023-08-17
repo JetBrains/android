@@ -66,6 +66,6 @@ public class ShortcutNavigationTest extends DebuggerTestBase {
       .until(() -> "hello-jni.c".equals(ideFrame.getEditor().getCurrentFileName()));
 
     String currentLine = ideFrame.getEditor().getCurrentLine();
-    assertThat(currentLine.equals("Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,\n")).isTrue();
+    assertThat(currentLine).isEqualTo("Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,\n");
   }
 }
