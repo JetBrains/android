@@ -115,7 +115,7 @@ class DeviceMonitorModel @NonInjectable constructor(
     activeDeviceMutex.withLock {
       activeDevice?.let {
         val processList = filterProcessList(processService.fetchProcessList(it))
-        thisLogger().warn("$it: Process list updated to ${processList.size} processes")
+        thisLogger().debug("$it: Process list updated to ${processList.size} processes")
         tableModel.updateProcessRows(processList)
       }
     }
