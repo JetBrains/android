@@ -181,7 +181,6 @@ import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ex.ProjectEx
-import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.io.FileUtil.toCanonicalPath
@@ -196,6 +195,7 @@ import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl.ensureIndexesUpToDate
@@ -234,8 +234,6 @@ import java.nio.file.Paths
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
 
 data class AndroidProjectModels(
   val androidProject: IdeAndroidProjectImpl,
@@ -2170,13 +2168,12 @@ private fun <T> openPreparedProject(
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
         if (options.disableKtsRelatedIndexing) {
-          // NOTE: We do not re-register the extensions since (1) we do not know whether we removed it and (2) there is no simple way to
-          //       re-register it by its class name. It means that this test might affect tests running after this one.
-
           // [KotlinScriptWorkspaceFileIndexContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
           // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
           // run faster.
-          WorkspaceFileIndexImpl.EP_NAME.point.unregisterExtension(KotlinScriptWorkspaceFileIndexContributor::class.java)
+          val ep = WorkspaceFileIndexImpl.EP_NAME
+          val filteredExtensions = ep.extensionList.filter { it !is KotlinScriptWorkspaceFileIndexContributor }
+          ExtensionTestUtil.maskExtensions(ep, filteredExtensions, disposable)
         }
 
         var afterCreateCalled = false

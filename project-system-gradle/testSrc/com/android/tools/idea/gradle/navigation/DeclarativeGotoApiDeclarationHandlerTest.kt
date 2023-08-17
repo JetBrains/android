@@ -20,12 +20,7 @@ import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
-import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.RunsInEdt
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,18 +30,6 @@ class DeclarativeGotoApiDeclarationHandlerTest {
   val projectRule = AndroidGradleProjectRule().onEdt()
 
   private val myFixture by lazy { projectRule.fixture }
-
-  @get:Rule
-  val disposableRule = DisposableRule()
-
-  @Before
-  fun before(){
-    // make sure we have Kt index extension
-    ExtensionTestUtil.maskExtensions(
-      ExtensionPointName("com.intellij.workspaceModel.fileIndexContributor"),
-      listOf(KotlinScriptWorkspaceFileIndexContributor()),
-      disposableRule.disposable)
-  }
 
   @Test
   fun testGoToAaptOptionsInToml() {
