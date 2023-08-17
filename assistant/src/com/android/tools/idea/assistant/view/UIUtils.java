@@ -82,6 +82,7 @@ public class UIUtils {
   /**
    * Panel background color. Patterned after tree text background.
    */
+  @NotNull
   private static final Color BACKGROUND_COLOR = JBUI.CurrentTheme.ToolWindow.background();
 
   /**
@@ -100,6 +101,7 @@ public class UIUtils {
   private static final Color AS_STANDARD_BACKGROUND_COLOR =
     new JBColor(StartupUiUtil.isUnderDarcula() ? 0xFFE8E8E8 : CURRENT_BG_COLOR.getRGB(), 0xFF3D3F41);
 
+  @NotNull
   public static Color getBackgroundColor() {
     return BACKGROUND_COLOR;
   }
