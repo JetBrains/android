@@ -59,8 +59,6 @@ class DaggerRelatedItemLineMarkerProviderV2 :
     element: PsiElement,
     result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
   ) {
-    if (!isDaggerWithIndexEnabled()) return
-
     val metricsType: DaggerEditorEvent.ElementType
     val lineMarkerInfo: RelatedItemLineMarkerInfo<PsiElement>
 
@@ -187,10 +185,7 @@ class DaggerRelatedItemLineMarkerProviderV2 :
       if (gotoItems.size == 1) {
         gotoItems.first().navigate()
       } else {
-        getRelatedItemsPopup(
-            gotoItems,
-            DaggerBundle.message("dagger.related.items.popup.title")
-          )
+        getRelatedItemsPopup(gotoItems, DaggerBundle.message("dagger.related.items.popup.title"))
           .show(RelativePoint(mouseEvent))
       }
     }

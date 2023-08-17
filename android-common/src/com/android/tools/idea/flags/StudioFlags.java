@@ -1088,20 +1088,6 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> DAGGER_BUILT_IN_SEARCH_ENABLED = Flag.create(
-    EDITOR, "dagger.built.in.search.enabled",
-    "Enable using the built in annotation search for dagger",
-    "If enabled, uses the built in annotation search for dagger usages rather than the custom DaggerAnnotatedElementsSearch",
-    false
-  );
-
-  public static final Flag<Boolean> DAGGER_USING_INDEX_ENABLED = Flag.create(
-    EDITOR, "dagger.index.enabled",
-    "Enable the dagger index",
-    "If enabled, the dagger index is used for gutter icon and find usages support.",
-    true
-  );
-
   public static final Flag<Boolean> TRANSLATIONS_EDITOR_SYNCHRONIZATION = Flag.create(
     EDITOR, "translations.editor.synchronization",
     "Synchronize translations editor with resource file updates",

@@ -41,8 +41,6 @@ class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
     processor: Processor<in Usage>,
     options: FindUsagesOptions
   ) {
-    if (!isDaggerWithIndexEnabled()) return
-
     val (metricsType, elapsedTimeMillis) =
       runReadAction { processElementUsagesInReadAction(element, processor) } ?: return
 

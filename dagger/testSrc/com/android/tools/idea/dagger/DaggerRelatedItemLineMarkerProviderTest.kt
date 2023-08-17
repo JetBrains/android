@@ -17,7 +17,6 @@
 
 package com.android.tools.idea.dagger
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.loadNewFile
@@ -41,30 +40,21 @@ import icons.StudioIcons.Misc.DEPENDENCY_PROVIDER
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import javax.swing.JLabel
-import org.jetbrains.kotlin.asJava.LightClassUtil
-import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 
-abstract class DaggerRelatedItemLineMarkerProviderTestBase(
-  private val daggerUsingIndexEnabled: Boolean,
-  private val expectProviderToBeDisabledByProperty: Boolean,
-) : DaggerTestCase() {
+class DaggerRelatedItemLineMarkerProviderTest() : DaggerTestCase() {
   private lateinit var trackerService: TestDaggerAnalyticsTracker
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.DAGGER_USING_INDEX_ENABLED.override(daggerUsingIndexEnabled)
     trackerService = TestDaggerAnalyticsTracker()
     project.registerServiceInstance(DaggerAnalyticsTracker::class.java, trackerService)
   }
 
   override fun tearDown() {
-    StudioFlags.DAGGER_USING_INDEX_ENABLED.clearOverride()
-
     // Close the popups created by clickOnIcon(), otherwise they leak the test project.
     IdeEventQueue.getInstance().popupManager.closeAllPopups()
     super.tearDown()
@@ -103,15 +93,13 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
   fun testIsEnabledByDefault() {
     val provider = DaggerRelatedItemLineMarkerProvider()
 
+    // This system property used to indicate whether the provider was on by default, but should no
+    // longer have any effect.
     System.setProperty("disable.dagger.relateditems.gutter.icons", "false")
     assertThat(provider.isEnabledByDefault).isTrue()
 
     System.setProperty("disable.dagger.relateditems.gutter.icons", "true")
-    if (expectProviderToBeDisabledByProperty) {
-      assertThat(provider.isEnabledByDefault).isFalse()
-    } else {
-      assertThat(provider.isEnabledByDefault).isTrue()
-    }
+    assertThat(provider.isEnabledByDefault).isTrue()
 
     // Make sure to clear the property so that it doesn't pollute other tests.
     System.clearProperty("disable.dagger.relateditems.gutter.icons")
@@ -243,25 +231,13 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
     assertThat(gotoRelatedItems).hasSize(4)
     val consumerElements = gotoRelatedItems.map { it.element }
 
-    if (daggerUsingIndexEnabled) {
-      // Tooling V2 support returns the underlying KtElements instead of their corresponding light
-      // equivalents.
-      assertThat(consumerElements)
-        .containsExactly(
-          consumerField,
-          consumerKtField,
-          parameter,
-          consumerParameter,
-        )
-    } else {
-      assertThat(consumerElements)
-        .containsExactly(
-          consumerField,
-          LightClassUtil.getLightClassBackingField(consumerKtField as KtDeclaration),
-          parameter.toLightElements().single(),
-          consumerParameter.toLightElements().single()
-        )
-    }
+    assertThat(consumerElements)
+      .containsExactly(
+        consumerField,
+        consumerKtField,
+        parameter,
+        consumerParameter,
+      )
 
     val displayedNames = gotoRelatedItems.map { it.customName }
     assertThat(displayedNames)
@@ -1124,47 +1100,26 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
         .trimIndent()
     )
 
-    if (daggerUsingIndexEnabled) {
-      myFixture.loadNewFile(
-        "test/MyComponent.kt",
-        // language=kotlin
-        """
-        package test
-        import dagger.Component
-        import dagger.BindsInstance
-        import test.MyQualifier
+    myFixture.loadNewFile(
+      "test/MyComponent.kt",
+      // language=kotlin
+      """
+      package test
+      import dagger.Component
+      import dagger.BindsInstance
+      import test.MyQualifier
 
-        @Component
-        interface MyComponent {
-          @Component.Factory
-          interface MyComponentFactory
-          {
-            fun bindString(@BindsInstance @MyQualifier str:String):String
-          }
+      @Component
+      interface MyComponent {
+        @Component.Factory
+        interface MyComponentFactory
+        {
+          fun bindString(@BindsInstance @MyQualifier str:String):String
         }
-        """
-          .trimIndent()
-      )
-    } else {
-      // This is not a valid @BindsInstance method, but it's what v1 of the Dagger support currently
-      // recognizes.
-      myFixture.loadNewFile(
-        "test/MyModule.kt",
-        // language=kotlin
-        """
-        package test
-        import dagger.Module
-        import dagger.BindsInstance
-        import test.MyQualifier
-
-        @Module
-        class MyModule {
-           fun bindString(@BindsInstance @MyQualifier str:String):String
-        }
-        """
-          .trimIndent()
-      )
-    }
+      }
+      """
+        .trimIndent()
+    )
 
     myFixture.moveCaret("st|r")
 
@@ -1426,15 +1381,3 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
       else -> throw IllegalArgumentException()
     }
 }
-
-class DaggerRelatedItemLineMarkerProviderTestV1 :
-  DaggerRelatedItemLineMarkerProviderTestBase(
-    daggerUsingIndexEnabled = false,
-    expectProviderToBeDisabledByProperty = true
-  )
-
-class DaggerRelatedItemLineMarkerProviderTestV2 :
-  DaggerRelatedItemLineMarkerProviderTestBase(
-    daggerUsingIndexEnabled = true,
-    expectProviderToBeDisabledByProperty = false
-  )

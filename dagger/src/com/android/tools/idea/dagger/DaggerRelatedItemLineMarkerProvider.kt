@@ -17,7 +17,6 @@ package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.psi.PsiElement
@@ -47,15 +46,9 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     fun isEnabledByDefault(): Boolean
   }
 
-  // Both providers are instantiated and the decision of which to use is delayed until usage is
-  // required. This allows the flag to be changed for debugging at runtime without requiring a
-  // Studio restart. The perf impact is negligible since both objects have no state and do nothing
-  // on construction.
-  private val providerV1 = DaggerRelatedItemLineMarkerProviderV1()
   private val providerV2 = DaggerRelatedItemLineMarkerProviderV2()
 
-  private fun getProvider(): DaggerWrappedRelatedItemLineMarkerProvider =
-    if (StudioFlags.DAGGER_USING_INDEX_ENABLED.get()) providerV2 else providerV1
+  private fun getProvider(): DaggerWrappedRelatedItemLineMarkerProvider = providerV2
 
   override fun getName(): String = DaggerBundle.message("dagger.related.items")
 
