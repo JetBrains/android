@@ -191,159 +191,123 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         matchElementsToModels(existingModels, previewElementsList, previewElementModelAdapter)
       }
     } else List(previewElementsList.size) { -1 }
-  // Now we generate all the models (or reuse) for the PreviewElements.
-  val models =
+
+  // First, remove and dispose pre-existing models that won't be reused.
+  // This will happen for example if the user removes one or more previews.
+  val elementsToReusableModels =
     previewElementsList.mapIndexed { idx, previewElement ->
-      val fileContents = previewElementModelAdapter.toXml(previewElement)
-
-      debugLogger?.logPreviewElement(
-        previewElementModelAdapter.toLogString(previewElement),
-        fileContents
-      )
-      if (progressIndicator.isCanceled) {
-        // Return early if user cancels the refresh
-        return@updatePreviewsAndRefresh previewElementsList
-      }
-
-      val model =
-        if (modelIndices[idx] >= 0) {
-          // If model index for this preview element >= 0 then an existing model that can be reused
-          // is found. See matchElementsToModels for
-          // more details.
-          val reusedModel = existingModels[modelIndices[idx]]
-          val affinity =
-            previewElementModelAdapter.calcAffinity(
-              previewElement,
-              previewElementModelAdapter.modelToElement(reusedModel)
-            )
-          // If the model is for the same element (affinity=0) and we know that it is not spoiled by
-          // previous actions (reinflate=false)
-          // we can skip reinflate and therefore refresh much quicker
-          val forceReinflate = reinflate || affinity != 0
-
-          debugLogger?.log("Re-using model ${reusedModel.virtualFile.name}")
-          reusedModel.updateFileContentBlocking(fileContents)
-          // Reconfigure the model by setting the new display name and applying the configuration
-          // values
-          reusedModel.modelDisplayName = previewElement.displaySettings.name
-          reusedModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
-          // Even when reusing the same model, the situation may require a different model updater
-          reusedModel.setModelUpdater(modelUpdater)
-          // We call addModel even though the model might not be new. If we try to add an existing
-          // model,
-          // this will trigger a new render which is exactly what we want.
-          configureLayoutlibSceneManager(
-              previewElement.displaySettings,
-              addModelWithoutRender(reusedModel)
-            )
-            .also {
-              if (forceReinflate) {
-                it.forceReinflate()
-              }
-            }
-          reusedModel
-        } else {
-          val now = System.currentTimeMillis()
-          debugLogger?.log("No models to reuse were found. New model $now.")
-          val file =
-            previewElementModelAdapter.createLightVirtualFile(
-              fileContents,
-              psiFile.virtualFile,
-              now
-            )
-          val configuration =
-            Configuration.create(configurationManager, FolderConfiguration.createDefault())
-          withContext(AndroidDispatchers.workerThread) {
-            val newModel =
-              NlModel.builder(facet, file, configuration)
-                .withParentDisposable(parentDisposable)
-                .withModelUpdater(modelUpdater)
-                .withComponentRegistrar(NlComponentRegistrar)
-                .withDataContext(previewElementModelAdapter.createDataContext(previewElement))
-                .withXmlProvider { project, virtualFile ->
-                  NlModelBuilder.getDefaultFile(project, virtualFile).also {
-                    it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
-                  }
-                }
-                .build()
-                .apply { modelDisplayName = previewElement.displaySettings.name }
-            configureLayoutlibSceneManager(
-              previewElement.displaySettings,
-              addModelWithoutRender(newModel)
-            )
-            newModel.groupId = previewElement.displaySettings.group
-            newModel
-          }
-        }
-      if (progressIndicator.isCanceled) {
-        // Return early if user cancels the refresh
-        return@updatePreviewsAndRefresh previewElementsList
-      }
-
-      val offset = runReadAction {
-        previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0
-      }
-
-      val defaultFile =
-        previewElement.previewElementDefinitionPsi?.virtualFile?.let {
-          getPsiFileSafely(project, it)
-        }
-          ?: psiFile
-
-      (navigationHandler as? PreviewNavigationHandler)?.setDefaultLocation(
-        model,
-        defaultFile,
-        offset
-      )
-
-      withContext(AndroidDispatchers.workerThread) {
-        previewElementModelAdapter.applyToConfiguration(previewElement, model.configuration)
-      }
-
-      model to previewElement
+      // If model index for this preview element >= 0 then an existing model that can be reused
+      // is found. See matchElementsToModels for more details.
+      previewElement to if (modelIndices[idx] == -1) null else existingModels[modelIndices[idx]]
     }
-  if (progressIndicator.isCanceled)
-    return previewElementsList // Return early if user cancels the refresh
-
-  existingModels.removeAll(models.map { it.first })
-
-  // Remove and dispose pre-existing models that were not used.
-  // This will happen if the user removes one or more previews.
+  existingModels.removeAll(elementsToReusableModels.mapNotNull { it.second })
   debugLogger?.log("Removing ${existingModels.size} model(s)")
   existingModels.forEach {
     removeModel(it)
     Disposer.dispose(it)
   }
 
-  val newSceneManagers =
-    models.map {
-      val (model, _) = it
-      getSceneManager(model)!!
-    }
-
-  // Relayout the scene views and repaint, so that the updated lists of previews is shown before the
-  // render starts.
-  // While rendering, reused models will keep their current Preview image and new models will be
-  // empty.
-  revalidateScrollArea()
-  if (newSceneManagers.isNotEmpty()) {
-    var preview = 1 // next preview to render
-    progressIndicator.text =
-      message("refresh.progress.indicator.rendering.preview", preview++, newSceneManagers.size)
-    newSceneManagers.forEach {
-      if (progressIndicator.isCanceled) return@forEach
-      it.render()
-      if (
-        preview <= newSceneManagers.size
-      ) { // Skip the last one, since we log *before* rendering each preview.
-        progressIndicator.text =
-          message("refresh.progress.indicator.rendering.preview", preview++, newSceneManagers.size)
+  // Second, reorder the models to reuse and create the new models needed,
+  // adding placeholders for all of them, but without rendering anything yet.
+  val elementsToSceneManagers =
+    elementsToReusableModels.map { (previewElement, model) ->
+      if (progressIndicator.isCanceled) {
+        // Return early if user cancels the refresh
+        return@updatePreviewsAndRefresh previewElementsList
       }
+      val fileContents = previewElementModelAdapter.toXml(previewElement)
+      debugLogger?.logPreviewElement(
+        previewElementModelAdapter.toLogString(previewElement),
+        fileContents
+      )
+
+      val newModel: NlModel
+      var forceReinflate = true
+      if (model != null) {
+        debugLogger?.log("Re-using model ${model.virtualFile.name}")
+        val affinity =
+          previewElementModelAdapter.calcAffinity(
+            previewElement,
+            previewElementModelAdapter.modelToElement(model)
+          )
+        // If the model is for the same element (affinity=0) and we know that it is not spoiled by
+        // previous actions (reinflate=false) we can skip reinflate and therefore refresh much
+        // quicker
+        if (affinity == 0 && !reinflate) forceReinflate = false
+        model.updateFileContentBlocking(fileContents)
+        newModel = model
+      } else {
+        val now = System.currentTimeMillis()
+        debugLogger?.log("No models to reuse were found. New model $now.")
+        val file =
+          previewElementModelAdapter.createLightVirtualFile(fileContents, psiFile.virtualFile, now)
+        val configuration =
+          Configuration.create(configurationManager, FolderConfiguration.createDefault())
+        newModel =
+          withContext(AndroidDispatchers.workerThread) {
+            NlModel.builder(facet, file, configuration)
+              .withParentDisposable(parentDisposable)
+              .withComponentRegistrar(NlComponentRegistrar)
+              .withXmlProvider { project, virtualFile ->
+                NlModelBuilder.getDefaultFile(project, virtualFile).also {
+                  it.putUserData(ModuleUtilCore.KEY_MODULE, facet.module)
+                }
+              }
+              .build()
+          }
+      }
+
+      // Common configuration steps for new and reused models
+      newModel.modelDisplayName = previewElement.displaySettings.name
+      newModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
+      newModel.setModelUpdater(modelUpdater)
+      newModel.groupId = previewElement.displaySettings.group
+      val sceneManager =
+        configureLayoutlibSceneManager(
+            previewElement.displaySettings,
+            addModelWithoutRender(newModel)
+          )
+          .also {
+            if (forceReinflate) {
+              it.forceReinflate()
+            }
+          }
+
+      val offset = runReadAction {
+        previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0
+      }
+      val defaultFile =
+        previewElement.previewElementDefinitionPsi?.virtualFile?.let {
+          getPsiFileSafely(project, it)
+        }
+          ?: psiFile
+      (navigationHandler as? PreviewNavigationHandler)?.setDefaultLocation(
+        newModel,
+        defaultFile,
+        offset
+      )
+
+      withContext(AndroidDispatchers.workerThread) {
+        previewElementModelAdapter.applyToConfiguration(previewElement, newModel.configuration)
+      }
+
+      previewElement to sceneManager
     }
+
+  // Relayout the scene views and repaint, so that the updated lists of previews is shown before
+  // the renders start, according to the placeholders added above. At this point, reused models
+  // will keep their current Preview image and new models will be empty.
+  revalidateScrollArea()
+
+  // Finally, render
+  elementsToSceneManagers.forEachIndexed { idx, (_, sceneManager) ->
+    if (progressIndicator.isCanceled) return@forEachIndexed
+    progressIndicator.text =
+      message("refresh.progress.indicator.rendering.preview", idx + 1, elementsToSceneManagers.size)
+    sceneManager.render()
   }
+
   onRenderCompleted()
-
   debugLogger?.logRenderComplete(this)
-
-  return models.map { it.second }
+  return elementsToSceneManagers.map { it.first }
 }
