@@ -286,6 +286,5 @@ internal val MouseEvent.location: Point
   get() = Point(x, y)
 
 /** Wraps the string with &lt;font color=...>, &lt;/font> tags. */
-internal fun String.htmlColored(color: Color): String {
-  return "<font color=${(color.rgb and 0xFFFFFF).toString(16)}>}$this</font>"
-}
+internal fun String.htmlColored(color: Color): String =
+    "<font color=${(color.rgb and 0xFFFFFF).toString(16)}>$this</font>"
