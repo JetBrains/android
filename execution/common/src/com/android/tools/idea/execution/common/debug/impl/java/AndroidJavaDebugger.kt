@@ -92,7 +92,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
   override fun getDebugProcessStarterForExistingProcess(
     project: Project,
     client: Client,
-    applicationId: String,
+    applicationId: String?,
     state: AndroidDebuggerState?
   ): XDebugProcessStarter {
     try {

@@ -192,14 +192,16 @@ object DebugSessionStarter {
   ): XDebugSession = indicatorRunBlockingCancellable(indicator) {
     val sessionName = "${androidDebugger.displayName} (${client.clientData.pid})"
     try {
-      val applicationId = FacetFinder.findFacetForProcess(project, client.clientData).applicationId
+      val applicationId = runCatching { FacetFinder.findFacetForProcess(project, client.clientData).applicationId }.getOrNull()
       val starter = androidDebugger.getDebugProcessStarterForExistingProcess(project, client, applicationId, androidDebuggerState)
 
       val session = withContext(uiThread) {
         XDebuggerManager.getInstance(project).startSessionAndShowTab(sessionName, StudioIcons.Common.ANDROID_HEAD, null, false, starter)
       }
       val debugProcessHandler = session.debugProcess.processHandler
-      AndroidSessionInfo.create(debugProcessHandler, listOf(client.device), applicationId)
+      if (applicationId != null) {
+        AndroidSessionInfo.create(debugProcessHandler, listOf(client.device), applicationId)
+      }
       session
     } catch (e: Exception) {
       if (e is ExecutionException) {
