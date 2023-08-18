@@ -30,6 +30,7 @@ import icons.StudioIcons
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.LayoutManager
+import java.text.NumberFormat
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -54,7 +55,8 @@ val offlineModeIcon =
     UIUtil.getErrorForeground()
   )
 
-fun Any?.ifZero(fallback: String) = this.toString().takeUnless { it == "0" } ?: fallback
+fun Long.formatNumberToPrettyString(): String =
+  NumberFormat.getIntegerInstance().format(this).takeUnless { it == "0" } ?: "-"
 
 val dateFormatter: DateTimeFormatter
   get() =

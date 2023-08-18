@@ -37,7 +37,7 @@ import com.android.tools.idea.insights.ui.EMPTY_STATE_TEXT_FORMAT
 import com.android.tools.idea.insights.ui.EMPTY_STATE_TITLE_FORMAT
 import com.android.tools.idea.insights.ui.StackTraceConsole
 import com.android.tools.idea.insights.ui.dateFormatter
-import com.android.tools.idea.insights.ui.ifZero
+import com.android.tools.idea.insights.ui.formatNumberToPrettyString
 import com.android.tools.idea.insights.ui.prettyApiLevelRangeString
 import com.android.tools.idea.insights.ui.prettyRangeString
 import com.android.tools.idea.insights.ui.transparentPanel
@@ -350,9 +350,9 @@ class VitalsIssueDetailsPanel(
     timestampLabel.text = dateFormatter.format(issue.sampleEvent.eventData.eventTime)
 
     eventsCountLabel.icon = StudioIcons.AppQualityInsights.ISSUE
-    eventsCountLabel.text = issue.issueDetails.eventsCount.ifZero("-")
+    eventsCountLabel.text = issue.issueDetails.eventsCount.formatNumberToPrettyString()
     usersCountLabel.icon = StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE
-    usersCountLabel.text = issue.issueDetails.impactedDevicesCount.ifZero("-")
+    usersCountLabel.text = issue.issueDetails.impactedDevicesCount.formatNumberToPrettyString()
 
     affectedVersionsLabel.text =
       "App versions: ${prettyRangeString(issue.issueDetails.firstSeenVersion, issue.issueDetails.lastSeenVersion)}"

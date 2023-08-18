@@ -52,7 +52,6 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
-import kotlinx.coroutines.runBlocking
 import javax.swing.Box
 import javax.swing.JLabel
 import javax.swing.JProgressBar
@@ -181,16 +180,16 @@ class VitalsTabTest {
       val firstRow =
         fakeUi
           .findComponent<JLabel> {
-            it.icon == StudioIcons.AppQualityInsights.ISSUE && it.text == "50"
+            it.icon == StudioIcons.AppQualityInsights.ISSUE && it.text == "50,000,000"
           }!!
           .parent
       val firstRowComponents = firstRow.components.filter { it !is Box.Filler }
       with(firstRowComponents[0] as JLabel) {
-        assertThat(text).isEqualTo("50")
+        assertThat(text).isEqualTo("50,000,000")
         assertThat(icon).isEqualTo(StudioIcons.AppQualityInsights.ISSUE)
       }
       with(firstRowComponents[1] as JLabel) {
-        assertThat(text).isEqualTo("5")
+        assertThat(text).isEqualTo("3,000")
         assertThat(icon).isEqualTo(StudioIcons.LayoutEditor.Palette.QUICK_CONTACT_BADGE)
       }
       with(firstRowComponents[2] as JLabel) {

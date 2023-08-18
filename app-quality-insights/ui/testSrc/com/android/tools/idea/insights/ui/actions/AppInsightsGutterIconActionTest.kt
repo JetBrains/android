@@ -29,6 +29,7 @@ import com.android.tools.idea.insights.VITALS_KEY
 import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.insights.ui.JListSimpleColoredComponent
 import com.android.tools.idea.insights.ui.ResizedSimpleColoredComponent
+import com.android.tools.idea.insights.ui.formatNumberToPrettyString
 import com.google.common.truth.Truth
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.components.JBList
@@ -99,10 +100,16 @@ class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
       if (sortedGroupedInsights.size == 1) {
         val eventsPanel = coloredComponents[1]
         Truth.assertThat(eventsPanel.toString())
-          .isEqualTo("${insights.sumOf { it.issue.issueDetails.eventsCount }}")
+          .isEqualTo(
+            insights.sumOf { it.issue.issueDetails.eventsCount }.formatNumberToPrettyString()
+          )
         val usersPanel = coloredComponents[2]
         Truth.assertThat(usersPanel.toString())
-          .isEqualTo("${insights.sumOf { it.issue.issueDetails.impactedDevicesCount }}")
+          .isEqualTo(
+            insights
+              .sumOf { it.issue.issueDetails.impactedDevicesCount }
+              .formatNumberToPrettyString()
+          )
       }
     }
 
