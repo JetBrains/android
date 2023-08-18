@@ -39,8 +39,8 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import org.assertj.core.api.Assertions
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 
@@ -75,7 +75,7 @@ class FlowsTest {
               }
               .collect()
           } catch (_: TimeoutCancellationException) {
-            Assertions.fail("Timeout waiting for the changes")
+            fail("Timeout waiting for the changes")
           }
         }
       }

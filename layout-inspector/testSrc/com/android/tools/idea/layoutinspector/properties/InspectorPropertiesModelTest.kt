@@ -34,7 +34,7 @@ import com.android.tools.profiler.proto.Common
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
-import org.assertj.core.api.Assertions.assertThat
+import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 

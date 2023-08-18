@@ -21,9 +21,9 @@ import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentSt
 import com.android.tools.idea.run.deployment.DevicesSelectedService.State
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
+import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.SimpleConfigurationType
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

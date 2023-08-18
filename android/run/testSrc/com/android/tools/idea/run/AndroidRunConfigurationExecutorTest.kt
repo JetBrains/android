@@ -69,7 +69,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.content.Content
-import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -77,7 +77,6 @@ import org.mockito.Mockito.mock
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
-
 
 /**
  * Unit test for [AndroidRunConfigurationExecutor].
@@ -329,12 +328,11 @@ class AndroidRunConfigurationExecutorTest {
       deviceFutures,
       apkProvider = { throw ApkProvisionException("ApkProvisionException") })
 
-    assertThatThrownBy {
+    val thrown = assertThrows(ExecutionException::class.java) {
       ProgressManager.getInstance()
         .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     }
-      .isInstanceOf(ExecutionException::class.java)
-      .withFailMessage("ApkProvisionException")
+    assertThat(thrown).hasMessageThat().contains("ApkProvisionException")
   }
 
   @Test
@@ -359,12 +357,11 @@ class AndroidRunConfigurationExecutorTest {
       deviceFutures,
       apkProvider = { throw ApkProvisionException("ApkProvisionException") })
 
-    assertThatThrownBy {
+    val thrown = assertThrows(AndroidExecutionException::class.java) {
       ProgressManager.getInstance()
         .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     }
-      .isInstanceOf(AndroidExecutionException::class.java)
-      .withFailMessage("AndroidExecutionException packageName")
+    assertThat(thrown).hasMessageThat().contains("AndroidExecutionException packageName")
   }
 
   @Test
@@ -409,13 +406,11 @@ class AndroidRunConfigurationExecutorTest {
         }
       }
     )
-
-    assertThatThrownBy {
+    val thrown = assertThrows(ExecutionException::class.java) {
       ProgressManager.getInstance()
         .runProcess(Computable { runner.run(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     }
-      .isInstanceOf(ExecutionException::class.java)
-      .hasMessage(DeployerException.pmFlagsNotSupported().message)
+    assertThat(thrown).hasMessageThat().contains(DeployerException.pmFlagsNotSupported().message)
   }
 
   @Test
@@ -430,11 +425,10 @@ class AndroidRunConfigurationExecutorTest {
     runningProcessHandler.addTargetDevice(device)
     val runner = AndroidRunConfigurationExecutor(configuration.applicationIdProvider!!, env, deviceFutures, { throw ApkProvisionException("Exception") })
 
-    assertThatThrownBy {
+    assertThrows(ExecutionException::class.java) {
       ProgressManager.getInstance()
         .runProcess(Computable { runner.applyChanges(ProgressManager.getInstance().progressIndicator) }, EmptyProgressIndicator())
     }
-      .isInstanceOf(ExecutionException::class.java)
 
     assertThat(runningProcessHandler.isAssociated(device)).isEqualTo(true)
     assertThat(runningProcessHandler.isProcessTerminated).isEqualTo(false)

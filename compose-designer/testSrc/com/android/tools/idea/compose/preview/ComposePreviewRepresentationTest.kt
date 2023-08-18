@@ -56,7 +56,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.assertj.core.api.Assertions.assertThat
+import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -282,7 +282,7 @@ class ComposePreviewRepresentationTest {
 
       assertTrue(preview.atfChecksEnabled)
       assertThat(preview.availableGroupsFlow.value.map { it.displayName })
-        .containsExactly("Screen sizes")
+        .containsExactly("Screen sizes").inOrder()
       preview.filteredPreviewElementsInstancesFlowForTest().awaitStatus(
         "Failed set uiCheckMode",
         5.seconds

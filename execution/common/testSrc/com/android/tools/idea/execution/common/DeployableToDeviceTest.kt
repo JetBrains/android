@@ -17,9 +17,9 @@ package com.android.tools.idea.execution.common
 
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
+import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.util.UserDataHolder
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
 import org.mockito.Mockito.withSettings
 

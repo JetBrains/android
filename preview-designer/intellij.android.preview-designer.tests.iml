@@ -21,6 +21,7 @@
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" scope="TEST" />
+    <orderEntry type="library" name="truth" level="project" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.preview-elements" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.preview-designer" />

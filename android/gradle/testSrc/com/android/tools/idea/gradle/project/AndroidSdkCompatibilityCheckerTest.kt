@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.buildAndroidProjectStub
 import com.android.tools.idea.testing.onEdt
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.service.project.ProjectDataManager
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -38,7 +39,6 @@ import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.assertj.core.api.Assertions.assertThat
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
 import org.junit.Assert.assertThrows
@@ -225,7 +225,7 @@ class AndroidSdkCompatibilityCheckerTest {
     createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
       assertThat(it is AndroidSdkCompatibilityDialog)
       assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isTrue
+      assertThat(it.recommendedVersion.versionReleased).isTrue()
       assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Canary X")
       assertThat(it.potentialFallbackVersion).isNull()
     }
@@ -250,7 +250,7 @@ class AndroidSdkCompatibilityCheckerTest {
     createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
       assertThat(it is AndroidSdkCompatibilityDialog)
       assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isTrue
+      assertThat(it.recommendedVersion.versionReleased).isTrue()
       assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Beta Y")
       assertThat(it.potentialFallbackVersion).isNull()
     }
@@ -275,7 +275,7 @@ class AndroidSdkCompatibilityCheckerTest {
     createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
       assertThat(it is AndroidSdkCompatibilityDialog)
       assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isTrue
+      assertThat(it.recommendedVersion.versionReleased).isTrue()
       assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Stable Z")
       assertThat(it.potentialFallbackVersion).isNull()
     }
@@ -304,10 +304,10 @@ class AndroidSdkCompatibilityCheckerTest {
     createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
       assertThat(it is AndroidSdkCompatibilityDialog)
       assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isFalse
+      assertThat(it.recommendedVersion.versionReleased).isFalse()
       assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Beta Y")
-      assertThat(it.potentialFallbackVersion).isNotNull
-      assertThat(it.potentialFallbackVersion!!.versionReleased).isTrue
+      assertThat(it.potentialFallbackVersion).isNotNull()
+      assertThat(it.potentialFallbackVersion!!.versionReleased).isTrue()
       assertThat(it.potentialFallbackVersion!!.buildDisplayName).isEqualTo("Android Studio Canary X")
     }
   }
@@ -331,7 +331,7 @@ class AndroidSdkCompatibilityCheckerTest {
     createModalDialogAndInteractWithIt({ checker.checkAndroidSdkVersion(androidModels, projectRule.project, serverFlag) }) {
       assertThat(it is AndroidSdkCompatibilityDialog)
       assertThat((it as AndroidSdkCompatibilityDialog).modulesViolatingSupportRules).hasSize(1)
-      assertThat(it.recommendedVersion.versionReleased).isFalse
+      assertThat(it.recommendedVersion.versionReleased).isFalse()
       assertThat(it.recommendedVersion.buildDisplayName).isEqualTo("Android Studio Canary X")
       assertThat(it.potentialFallbackVersion).isNull()
     }

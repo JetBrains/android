@@ -25,7 +25,7 @@ import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
 import com.android.tools.idea.uibuilder.type.PreferenceScreenFileType
-import org.assertj.core.api.Assertions.assertThat
+import com.google.common.truth.Truth.assertThat
 
 class LayoutlibSceneManagerTest : SceneTest() {
 

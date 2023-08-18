@@ -14,5 +14,6 @@
     <orderEntry type="module" module-name="intellij.android.common" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="intellij.android.core.tests" scope="TEST" />
+    <orderEntry type="library" name="truth" level="project" scope="TEST" />
   </component>
 </module>

@@ -42,6 +42,7 @@ iml_module(
         "//tools/adt/idea/wear-designer:intellij.android.wear-designer[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
     ],
 )

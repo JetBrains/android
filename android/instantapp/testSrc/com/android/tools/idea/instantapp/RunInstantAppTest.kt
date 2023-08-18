@@ -26,8 +26,8 @@ import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.AndroidRunConfigurationExecutor
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.execution.createApp
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.executeMakeBeforeRunStepInTest
@@ -37,6 +37,7 @@ import com.google.android.instantapps.sdk.api.ExtendedSdk
 import com.google.android.instantapps.sdk.api.RunHandler
 import com.google.android.instantapps.sdk.api.StatusCode
 import com.google.common.collect.ImmutableList
+import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.executors.DefaultRunExecutor
@@ -45,7 +46,6 @@ import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.Computable
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -122,7 +122,7 @@ class RunInstantAppTest {
     verify(runHandler, times(1)).runApks(captor.capture(), isNull(), any(), eq(serialNumber), any(), any(), any())
 
     val apks = (captor.value as List<File>).map { it.name.substringAfterLast('/') }
-    assertThat(apks).containsExactlyInAnyOrder("app-debug.apk", "instantdynamicfeature-debug.apk", "dynamicfeature-debug.apk")
+    assertThat(apks).containsExactly("app-debug.apk", "instantdynamicfeature-debug.apk", "dynamicfeature-debug.apk")
   }
 
   @Test
@@ -147,7 +147,7 @@ class RunInstantAppTest {
     verify(runHandler, times(1)).runApks(captor.capture(), isNull(), any(), eq(serialNumber), any(), any(), any())
 
     val apks = (captor.value as List<File>).map { it.name.substringAfterLast('/') }
-    assertThat(apks).containsExactlyInAnyOrder("app-debug.apk", "instantdynamicfeature-debug.apk")
+    assertThat(apks).containsExactly("app-debug.apk", "instantdynamicfeature-debug.apk")
   }
 
   @Test
@@ -171,7 +171,7 @@ class RunInstantAppTest {
     verify(runHandler, times(1)).runApks(captor.capture(), isNull(), any(), eq(serialNumber), any(), any(), any())
 
     val apks = (captor.value as List<File>).map { it.name.substringAfterLast('/') }
-    assertThat(apks).containsExactlyInAnyOrder(
+    assertThat(apks).containsExactly(
       "instant-base-master.apk",
       "instant-instantdynamicfeature-master.apk",
       "instant-base-mdpi.apk"

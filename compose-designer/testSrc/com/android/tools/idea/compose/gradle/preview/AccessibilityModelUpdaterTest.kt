@@ -28,6 +28,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.w
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -36,17 +37,16 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import java.awt.BorderLayout
-import java.awt.Dimension
-import javax.swing.JPanel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.BorderLayout
+import java.awt.Dimension
+import javax.swing.JPanel
 
 class AccessibilityModelUpdaterTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
@@ -125,7 +125,7 @@ class AccessibilityModelUpdaterTest {
     assertNotEquals(-1, twoElementsPreviewRoot.accessibilityId)
 
     var children = twoElementsPreviewRoot.children
-    assertThat(children.size).isGreaterThanOrEqualTo(1)
+    assertThat(children.size).isGreaterThan(0)
     assertNotEquals(-1, children[0].accessibilityId)
     assertEquals(306, children[0].w)
 

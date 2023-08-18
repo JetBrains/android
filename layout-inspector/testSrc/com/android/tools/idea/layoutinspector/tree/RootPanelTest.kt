@@ -30,7 +30,7 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLoadingPanel
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
-import org.assertj.core.api.Assertions.assertThat
+import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
