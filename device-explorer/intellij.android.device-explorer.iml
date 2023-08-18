@@ -7,6 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.device-explorer-common" />
     <orderEntry type="module" module-name="intellij.android.device-explorer-files" />
     <orderEntry type="module" module-name="intellij.android.device-explorer-monitor" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />

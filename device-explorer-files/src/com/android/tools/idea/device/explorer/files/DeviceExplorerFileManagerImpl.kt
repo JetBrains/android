@@ -20,12 +20,12 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.diskIoThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.runWriteActionAndWait
+import com.android.tools.idea.device.explorer.common.DeviceFileExplorerSettings
 import com.android.tools.idea.device.explorer.files.DeviceExplorerFilesUtils.findFile
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 import com.android.tools.idea.device.explorer.files.fs.DownloadProgress
 import com.android.tools.idea.device.explorer.files.fs.FileTransferProgress
-import com.android.tools.idea.device.explorer.files.options.DeviceFileExplorerSettings
 import com.android.utils.FileUtils
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.actions.OpenFileAction
