@@ -70,7 +70,7 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 class ComposeDocumentationProvider : DocumentationProviderEx() {
   companion object {
     private val previewImageKey: Key<CachedValue<CompletableFuture<BufferedImage?>>> =
-      Key.create(Companion::previewImageKey.qualifiedName)
+      Key.create(Companion::previewImageKey.qualifiedName<ComposeDocumentationProvider>())
   }
 
   @AnyThread

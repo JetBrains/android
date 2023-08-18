@@ -156,8 +156,8 @@ class Preloader(
     classLoader.get()?.let { it.nonProjectLoadedClasses.size + it.projectLoadedClasses.size } ?: 0
 }
 
-private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName)
-val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName)
+private val PRELOADER: Key<Preloader> = Key.create(::PRELOADER.qualifiedName<StudioModuleClassLoaderManager>())
+val HATCHERY: Key<ModuleClassLoaderHatchery> = Key.create(::HATCHERY.qualifiedName<StudioModuleClassLoaderManager>())
 
 private fun calculateTransformationsUniqueId(
   projectClassesTransformationProvider: ClassTransform,

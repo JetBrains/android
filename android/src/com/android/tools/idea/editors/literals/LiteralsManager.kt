@@ -540,7 +540,7 @@ class LiteralsManager(
     }
 
   companion object {
-    private val MANAGED_KEY: Key<LiteralReference> = Key.create(Companion::MANAGED_KEY.qualifiedName)
+    private val MANAGED_KEY: Key<LiteralReference> = Key.create(Companion::MANAGED_KEY.qualifiedName<LiteralsManager>())
 
     /**
      * If the element has a [LiteralReference] associated, this will return it.

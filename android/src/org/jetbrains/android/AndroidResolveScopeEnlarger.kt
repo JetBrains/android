@@ -75,14 +75,14 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
      * modules' resolve scope.
      */
     @JvmField
-    val LIGHT_CLASS_KEY: Key<Class<out LightElement>> = Key.create(::LIGHT_CLASS_KEY.qualifiedName)
+    val LIGHT_CLASS_KEY: Key<Class<out LightElement>> = Key.create(::LIGHT_CLASS_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
     @JvmField
-    val BACKING_CLASS: Key<SmartPsiElementPointer<PsiClass>> = Key.create(::BACKING_CLASS.qualifiedName)
+    val BACKING_CLASS: Key<SmartPsiElementPointer<PsiClass>> = Key.create(::BACKING_CLASS.qualifiedName<AndroidResolveScopeEnlarger>())
     @JvmField
-    val MODULE_POINTER_KEY: Key<ModulePointer> = Key.create(::MODULE_POINTER_KEY.qualifiedName)
-    val AAR_ADDRESS_KEY: Key<String> = Key.create(::AAR_ADDRESS_KEY.qualifiedName)
-    val FILE_SOURCE_SET_KEY: Key<SourceSet> = Key.create(::FILE_SOURCE_SET_KEY.qualifiedName)
-    val TRANSITIVITY_KEY: Key<Transitivity> = Key.create(::TRANSITIVITY_KEY.qualifiedName)
+    val MODULE_POINTER_KEY: Key<ModulePointer> = Key.create(::MODULE_POINTER_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
+    val AAR_ADDRESS_KEY: Key<String> = Key.create(::AAR_ADDRESS_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
+    val FILE_SOURCE_SET_KEY: Key<SourceSet> = Key.create(::FILE_SOURCE_SET_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
+    val TRANSITIVITY_KEY: Key<Transitivity> = Key.create(::TRANSITIVITY_KEY.qualifiedName<AndroidResolveScopeEnlarger>())
 
     // Keys for caching resolve scopes.
     private val resolveScopeWithTestsKey =

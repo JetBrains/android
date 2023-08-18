@@ -158,7 +158,8 @@ class ResourceReferencePsiElement(
   companion object {
 
     @JvmField val RESOURCE_ICON: Icon =  StudioIcons.Shell.ToolWindows.VISUAL_ASSETS
-    @JvmField val RESOURCE_CONTEXT_ELEMENT: Key<PsiElement> = Key.create(::RESOURCE_CONTEXT_ELEMENT.qualifiedName)
+    @JvmField
+    val RESOURCE_CONTEXT_ELEMENT: Key<PsiElement> = Key.create(::RESOURCE_CONTEXT_ELEMENT.qualifiedName<ResourceReferencePsiElement>())
 
     @JvmStatic
     fun create(element: PsiElement): ResourceReferencePsiElement? {

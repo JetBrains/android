@@ -259,14 +259,14 @@ class DefaultModuleSystem(override val module: Module) :
     get() = getSubmodules(module.project, module)
 
   private companion object Keys {
-    val usesCompose: Key<Boolean> = Key.create(::usesCompose.qualifiedName)
-    val isRClassTransitive: Key<Boolean> = Key.create(::isRClassTransitive.qualifiedName)
-    val codeShrinker: Key<CodeShrinker?> = Key.create(::codeShrinker.qualifiedName)
-    val isMlModelBindingEnabled: Key<Boolean> = Key.create(::isMlModelBindingEnabled.qualifiedName)
-    val applicationRClassConstantIds: Key<Boolean> = Key.create(::applicationRClassConstantIds.qualifiedName)
-    val testRClassConstantIds: Key<Boolean> = Key.create(::testRClassConstantIds.qualifiedName)
-    val useAndroidX: Key<Boolean> = Key.create(::useAndroidX.qualifiedName)
-    val enableVcsInfo: Key<Boolean> = Key.create(::enableVcsInfo.qualifiedName)
+    val usesCompose: Key<Boolean> = Key.create(::usesCompose.qualifiedName<DefaultModuleSystem>())
+    val isRClassTransitive: Key<Boolean> = Key.create(::isRClassTransitive.qualifiedName<DefaultModuleSystem>())
+    val codeShrinker: Key<CodeShrinker?> = Key.create(::codeShrinker.qualifiedName<DefaultModuleSystem>())
+    val isMlModelBindingEnabled: Key<Boolean> = Key.create(::isMlModelBindingEnabled.qualifiedName<DefaultModuleSystem>())
+    val applicationRClassConstantIds: Key<Boolean> = Key.create(::applicationRClassConstantIds.qualifiedName<DefaultModuleSystem>())
+    val testRClassConstantIds: Key<Boolean> = Key.create(::testRClassConstantIds.qualifiedName<DefaultModuleSystem>())
+    val useAndroidX: Key<Boolean> = Key.create(::useAndroidX.qualifiedName<DefaultModuleSystem>())
+    val enableVcsInfo: Key<Boolean> = Key.create(::enableVcsInfo.qualifiedName<DefaultModuleSystem>())
   }
 
   override var usesCompose: Boolean by UserData(Keys.usesCompose, false)

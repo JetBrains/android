@@ -32,7 +32,7 @@ import java.io.File
 
 private abstract class AdbFileProviderBase(private val project: Project?, private val userData: UserDataHolder) : AdbFileProvider {
   companion object {
-    private val LOG_ERROR_KEY: Key<Boolean> = Key.create(::LOG_ERROR_KEY.qualifiedName)
+    private val LOG_ERROR_KEY: Key<Boolean> = Key.create(::LOG_ERROR_KEY.qualifiedName<AdbFileProviderBase>())
   }
 
   override fun get(): File? {

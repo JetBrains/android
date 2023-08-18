@@ -237,9 +237,10 @@ class LiveLiteralsService private constructor(private val project: Project,
                                                                                                      ManagedElementsUpdatedListener::class.java)
     private val DOCUMENTS_UPDATED_TOPIC: Topic<DocumentsUpdatedListener> = Topic.create("Documents updated",
                                                                                         DocumentsUpdatedListener::class.java)
-    private val COMPILER_LITERALS_FINDER: Key<CompilerLiveLiteralsManager.Finder> = Key.create(
-      Companion::COMPILER_LITERALS_FINDER.qualifiedName)
-    private val DOCUMENT_SNAPSHOT_KEY: Key<LiteralReferenceSnapshot> = Key.create(Companion::DOCUMENT_SNAPSHOT_KEY.qualifiedName)
+    private val COMPILER_LITERALS_FINDER: Key<CompilerLiveLiteralsManager.Finder> =
+      Key.create(Companion::COMPILER_LITERALS_FINDER.qualifiedName<LiveLiteralsService>())
+    private val DOCUMENT_SNAPSHOT_KEY: Key<LiteralReferenceSnapshot> =
+      Key.create(Companion::DOCUMENT_SNAPSHOT_KEY.qualifiedName<LiveLiteralsService>())
 
     private fun Document.getCachedDocumentSnapshot() = getUserData(DOCUMENT_SNAPSHOT_KEY)
     private fun Document.putCachedDocumentSnapshot(snapshot: LiteralReferenceSnapshot) = putUserData(DOCUMENT_SNAPSHOT_KEY, snapshot)

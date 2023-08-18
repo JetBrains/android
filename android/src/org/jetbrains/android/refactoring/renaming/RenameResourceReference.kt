@@ -233,7 +233,7 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
  * [DataKey] used by areas of the IDE that want to override the name suggestion field of the resource rename dialog with their own new name
  * suggestion.
  */
-val NEW_NAME_RESOURCE: DataKey<String> = DataKey.create(::NEW_NAME_RESOURCE.qualifiedName)
+val NEW_NAME_RESOURCE: DataKey<String> = DataKey.create(::NEW_NAME_RESOURCE.qualifiedName<ResourceRenameHandler>())
 
 /**
  * [RenameHandler] for Android Resources, in Java, XML, and PsiFiles.

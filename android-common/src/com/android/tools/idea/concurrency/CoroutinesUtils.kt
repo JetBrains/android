@@ -249,7 +249,7 @@ fun CoroutineScope.launchWithProgress(
 interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope {
 
   companion object {
-    private val CONTEXT: Key<CoroutineContext> = Key.create(::CONTEXT.qualifiedName)
+    private val CONTEXT: Key<CoroutineContext> = Key.create(::CONTEXT.qualifiedName<AndroidCoroutinesAware>())
   }
 
   /** @see AndroidCoroutineScope */
@@ -259,7 +259,7 @@ interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope 
     }
 }
 
-private val PROJECT_SCOPE: Key<CoroutineScope> = Key.create(::PROJECT_SCOPE.qualifiedName)
+private val PROJECT_SCOPE: Key<CoroutineScope> = Key.create(::PROJECT_SCOPE.qualifiedName<AndroidCoroutinesAware>())
 
 val Project.coroutineScope: CoroutineScope
   get() = getUserData(PROJECT_SCOPE) ?: (this as UserDataHolderEx).putUserDataIfAbsent(PROJECT_SCOPE, AndroidCoroutineScope(this))
