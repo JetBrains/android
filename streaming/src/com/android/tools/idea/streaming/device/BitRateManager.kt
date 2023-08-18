@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.intellij.configurationStore.JbXmlOutputter
 import com.intellij.configurationStore.serialize
@@ -48,7 +49,8 @@ private const val BIT_RATE_NOT_REACHED_SCORE = 16
 @State(name = "BitRates", storages = [(Storage("device.mirroring.bit.rates.xml"))])
 internal class BitRateManager : PersistentStateComponent<BitRateManager> {
 
-  var bitRateTrackers = linkedMapOf<String, BitRateTracker>()
+  @GuardedBy("bitRateTrackers")
+  var bitRateTrackers = linkedMapOf<String, BitRateTracker>() // Mutable for deserialization.
 
   /** Returns the video encoding bit rate for the given device type. */
   fun getBitRate(deviceProperties: DeviceProperties): Int {
@@ -100,11 +102,15 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
     if (javaClass != other?.javaClass) return false
 
     other as BitRateManager
-    return bitRateTrackers == other.bitRateTrackers
+    synchronized(bitRateTrackers) {
+      return bitRateTrackers == other.bitRateTrackers
+    }
   }
 
   override fun hashCode(): Int {
-    return bitRateTrackers.hashCode()
+    synchronized(bitRateTrackers) {
+      return bitRateTrackers.hashCode()
+    }
   }
 
   @TestOnly
@@ -116,7 +122,9 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
 
   @TestOnly
   fun toXmlString(): String {
-    val element = serialize(this) ?: return "Unable to serialize $this"
+    val element = synchronized(bitRateTrackers) {
+      serialize(this) ?: throw RuntimeException("Unable to serialize $this")
+    }
     val writer = StringWriter()
     JbXmlOutputter().output(element, writer)
     return writer.toString()
@@ -133,7 +141,8 @@ internal class BitRateManager : PersistentStateComponent<BitRateManager> {
   data class BitRateTracker private constructor(
     var bitRate: Int,
     @XCollection(propertyElementName = "candidates", valueAttributeName = Constants.LIST)
-    val candidates: MutableList<CandidateBitRate>) {
+    val candidates: MutableList<CandidateBitRate>
+  ) {
 
     constructor(candidate: CandidateBitRate) : this(0, mutableListOf(candidate))
     @Suppress("unused") // For deserialization
