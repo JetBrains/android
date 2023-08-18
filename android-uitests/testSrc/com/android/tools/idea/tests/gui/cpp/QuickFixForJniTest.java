@@ -82,6 +82,8 @@ public class QuickFixForJniTest {
     editor.moveBetween("public native String  stringFromJNI();", "")
       .enterText("\npublic native void printFromJNI();");
 
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     ideFrame.openFromMenu(InspectCodeDialogFixture::find, "Code", "Inspect Code...")
       .clickButton("Analyze");
 
