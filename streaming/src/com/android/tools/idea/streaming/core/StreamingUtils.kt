@@ -41,6 +41,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.math.abs
 import kotlin.math.ceil
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -268,8 +269,7 @@ internal fun Dimension.coerceAtMost(maximumValue: Dimension): Dimension {
 }
 
 internal val Container.sizeWithoutInsets: Dimension
-  get() = Dimension(width - insets.left - insets.right.coerceAtLeast(0),
-                    height - insets.top - insets.bottom.coerceAtLeast(0))
+  get() = Dimension(max(width - insets.left - insets.right, 0), max(height - insets.top - insets.bottom, 0))
 
 internal fun Point.constrainInside(d: Dimension) =
   if (this in d) this else Point(x.coerceIn(0, d.width - 1), y.coerceIn(0, d.height - 1))
