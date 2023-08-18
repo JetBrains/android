@@ -33,7 +33,6 @@ import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.getClassi
 import static com.android.tools.idea.avdmanager.ChooseSystemImagePanel.systemImageMatchesDevice;
 
 import com.android.repository.api.LocalPackage;
-import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RepoManager;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.impl.meta.RepositoryPackages;
@@ -42,7 +41,6 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.sdklib.AndroidVersion;
-import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Abi;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
@@ -59,7 +57,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
 
 public class ChooseSystemImagePanelTest extends AndroidTestCase {
 
@@ -204,20 +201,20 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       FakeProgressIndicator progress = new FakeProgressIndicator();
       SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
-      var gapiImage = getImageAt(systemImageManager, sdkHandler, gapiPath, progress);
-      var gapi29Image = getImageAt(systemImageManager, sdkHandler, gapi29Path, progress);
-      var gapi30Image = getImageAt(systemImageManager, sdkHandler, gapi30Path, progress);
-      var gapi31Image = getImageAt(systemImageManager, sdkHandler, gapi31Path, progress);
-      var gapi32Image = getImageAt(systemImageManager, sdkHandler, gapi32Path, progress);
-      var gapi33Image = getImageAt(systemImageManager, sdkHandler, gapi33Path, progress);
-      var playStoreImage = getImageAt(systemImageManager, sdkHandler, psPath, progress);
-      var wearImage = getImageAt(systemImageManager, sdkHandler, wearPath, progress);
-      var wear29Image = getImageAt(systemImageManager, sdkHandler, wear29Path, progress);
-      var wearCnImage = getImageAt(systemImageManager, sdkHandler, wearCnPath, progress);
-      var automotiveImage = getImageAt(systemImageManager, sdkHandler, automotivePath, progress);
-      var automotivePsImage = getImageAt(systemImageManager, sdkHandler, automotivePsPath, progress);
-      var tv30Image = getImageAt(systemImageManager, sdkHandler, tv30Path, progress);
-      var tv31Image = getImageAt(systemImageManager, sdkHandler, tv31Path, progress);
+      var gapiImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapiPath, progress);
+      var gapi29Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapi29Path, progress);
+      var gapi30Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapi30Path, progress);
+      var gapi31Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapi31Path, progress);
+      var gapi32Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapi32Path, progress);
+      var gapi33Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, gapi33Path, progress);
+      var playStoreImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, psPath, progress);
+      var wearImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, wearPath, progress);
+      var wear29Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, wear29Path, progress);
+      var wearCnImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, wearCnPath, progress);
+      var automotiveImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, automotivePath, progress);
+      var automotivePsImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, automotivePsPath, progress);
+      var tv30Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, tv30Path, progress);
+      var tv31Image = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, tv31Path, progress);
 
       gapiImageDescription = new SystemImageDescription(gapiImage);
       gapi29ImageDescription = new SystemImageDescription(gapi29Image);
@@ -233,20 +230,6 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
       automotivePsImageDescription = new SystemImageDescription(automotivePsImage);
       tv30ImageDescription = new SystemImageDescription(tv30Image);
       tv31ImageDescription = new SystemImageDescription(tv31Image);
-    }
-
-    @NotNull
-    private static ISystemImage getImageAt(@NotNull SystemImageManager manager,
-                                           @NotNull AndroidSdkHandler handler,
-                                           @NotNull String path,
-                                           @NotNull ProgressIndicator indicator) {
-      var localPackage = handler.getLocalPackage(path, indicator);
-      assert localPackage != null;
-
-      var image = manager.getImageAt(localPackage.getLocation());
-      assert image != null;
-
-      return image;
     }
   }
 

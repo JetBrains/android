@@ -18,10 +18,10 @@ package com.android.tools.idea.avdmanager;
 
 import static com.android.sdklib.internal.avd.GpuMode.OFF;
 import static com.android.sdklib.internal.avd.GpuMode.SWIFT;
+import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_X86_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
 import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
 import static com.android.tools.idea.avdmanager.ConfigureAvdOptionsStep.gpuOtherMode;
@@ -155,16 +155,11 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     FakeProgressIndicator progress = new FakeProgressIndicator();
     SystemImageManager systemImageManager = sdkHandler.getSystemImageManager(progress);
 
-    ISystemImage QImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(qPath, progress).getLocation());
-    ISystemImage marshmallowImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(marshmallowPath, progress).getLocation());
-    ISystemImage NPreviewImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(previewPath, progress).getLocation());
-    ISystemImage ZuluImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(zuluPath, progress).getLocation());
-    ISystemImage extensionsImage = systemImageManager.getImageAt(
-      sdkHandler.getLocalPackage(extensionsPath, progress).getLocation());
+    ISystemImage QImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, qPath, progress);
+    ISystemImage marshmallowImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, marshmallowPath, progress);
+    ISystemImage NPreviewImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, previewPath, progress);
+    ISystemImage ZuluImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, zuluPath, progress);
+    ISystemImage extensionsImage = SystemImageManagers.getImageAt(systemImageManager, sdkHandler, extensionsPath, progress);
 
     mySnapshotSystemImage = ZuluImage; // Re-use Zulu for the snapshot test
 
@@ -173,16 +168,14 @@ public class ConfigureAvdOptionsStepTest extends AndroidTestCase {
     myDesktop = devMgr.getDevice("desktop_small", "Google");
     myAutomotive = devMgr.getDevice("automotive_1024p_landscape", "Google");
 
-    myQAvdInfo =
-      new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), QImage, myPropertiesMap);
-    myMarshmallowAvdInfo =
-      new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), marshmallowImage, myPropertiesMap);
-    myPreviewAvdInfo =
-      new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), NPreviewImage, myPropertiesMap);
-    myZuluAvdInfo =
-      new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), ZuluImage, myPropertiesMap);
-    myExtensionsAvdInfo =
-      new AvdInfo("name", Paths.get("ini"), Paths.get("folder"), extensionsImage, myPropertiesMap);
+    var ini = Paths.get("ini");
+    var folder = Paths.get("folder");
+
+    myQAvdInfo = new AvdInfo("name", ini, folder, QImage, myPropertiesMap);
+    myMarshmallowAvdInfo = new AvdInfo("name", ini, folder, marshmallowImage, myPropertiesMap);
+    myPreviewAvdInfo = new AvdInfo("name", ini, folder, NPreviewImage, myPropertiesMap);
+    myZuluAvdInfo = new AvdInfo("name", ini, folder, ZuluImage, myPropertiesMap);
+    myExtensionsAvdInfo = new AvdInfo("name", ini, folder, extensionsImage, myPropertiesMap);
 
     BatchInvoker.setOverrideStrategy(BatchInvoker.INVOKE_IMMEDIATELY_STRATEGY);
   }
