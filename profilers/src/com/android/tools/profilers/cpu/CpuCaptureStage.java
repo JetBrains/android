@@ -118,7 +118,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   private static final String DISPLAY_HELP_LINK = "https://d.android.com/r/studio-ui/profiler/display-tracks";
 
-  private static final String POWER_RAILS_HELP_LINK = "https://developer.android.com/studio/profile/power-profiler";
+  private static final String POWER_RAILS_HELP_LINK = "https://d.android.com/r/studio-ui/profiler/power-profiler";
 
   public enum Aspect {
     /**
