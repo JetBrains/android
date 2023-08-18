@@ -37,7 +37,6 @@ import kotlinx.coroutines.withContext
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -68,8 +67,6 @@ class AddBaselineProfilesModuleTest(
   val projectRule = AndroidGradleProjectRule()
 
   @Test
-  // TODO(b/296559924) enable when Baseline Profile Gradle Plugin beta04+ is checked-in to prebuilts.
-  @Ignore("Ignored because Baseline Profile Gradle Plugin has max version limitation for AGP <8.3")
   fun addNewBaselineProfilesModule() {
     projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
 
