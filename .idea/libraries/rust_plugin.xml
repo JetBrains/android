@@ -1,5 +1,5 @@
 <component name="libraryTable">
-  <library name="studio-plugin-rust">
+  <library name="rust-plugin">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/rust-plugin/intellij-rust/lib/JavaEWAH-1.1.13.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/rust-plugin/intellij-rust/lib/antlr4-runtime-4.12.0.jar!/" />
