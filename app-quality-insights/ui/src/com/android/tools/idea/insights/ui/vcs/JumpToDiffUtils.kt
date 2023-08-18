@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights.ui.vcs
 
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.VCS_CATEGORY
 import com.android.tools.idea.insights.vcs.VcsForAppInsights
 import com.android.tools.idea.insights.vcs.createShortRevisionString
@@ -40,18 +41,20 @@ import javax.swing.event.HyperlinkEvent
 import javax.swing.event.HyperlinkListener
 
 /**
- * Context data for showing the diff view.
+ * Context data for requesting a diff view.
  *
  * @param vcsKey denotes the VCS type of the commit.
  * @param revision denotes the commit we are diffing with.
  * @param filePath is for locating the revision content and the current content.
  * @param lineNumber (1-based) is for placing caret at the line where the crash is captured.
+ * @param origin is to scope the request
  */
 data class ContextDataForDiff(
   val vcsKey: VCS_CATEGORY,
   val revision: String,
   val filePath: FilePath,
-  val lineNumber: Int
+  val lineNumber: Int,
+  val origin: Connection?
 )
 
 /**
@@ -62,7 +65,7 @@ data class ContextDataForDiff(
  *
  * The caret is placed on the line of the left panel where the crash is associated to.
  */
-internal fun goToDiff(context: ContextDataForDiff, project: Project) {
+fun goToDiff(context: ContextDataForDiff, project: Project) {
   val requestChain = InsightsDiffRequestChain(context, project)
 
   // TODO: Should bring up an existing window if there is one instead of creating a new one.

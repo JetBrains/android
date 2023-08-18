@@ -25,6 +25,7 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.StackTraceConsole.Companion.CURRENT_CONNECTION_MODE
 import com.android.tools.idea.insights.ui.StackTraceConsole.Companion.CURRENT_ISSUE
+import com.android.tools.idea.insights.ui.vcs.CONNECTION_OF_SELECTED_CRASH
 import com.android.tools.idea.insights.ui.vcs.InsightsAttachInlayDiffLinkFilter
 import com.android.tools.idea.insights.ui.vcs.VCS_INFO_OF_SELECTED_CRASH
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
@@ -63,6 +64,8 @@ class StackTraceConsole(
   private var currentIssue: AppInsightsIssue? = null
   private var connectionModeState =
     controller.state.map { it.mode }.stateIn(scope, SharingStarted.Eagerly, ConnectionMode.ONLINE)
+  private val connectionOrigin =
+    controller.state.map { it.connections.selected }.stateIn(scope, SharingStarted.Eagerly, null)
 
   init {
     Disposer.register(this, consoleView)
@@ -89,6 +92,7 @@ class StackTraceConsole(
       currentIssue = null
       consoleView.clear()
       consoleView.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, issue.sampleEvent.appVcsInfo)
+      consoleView.putClientProperty(CONNECTION_OF_SELECTED_CRASH, connectionOrigin.value)
 
       fun Blames.getConsoleViewContentType() =
         if (this == Blames.BLAMED) ConsoleViewContentType.ERROR_OUTPUT

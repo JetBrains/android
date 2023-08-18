@@ -126,7 +126,8 @@ class InsightsAttachDiffLinkFilterTest {
               vcsKey = VCS_CATEGORY.TEST_VCS,
               revision = "123",
               filePath = targetPsiFile.virtualFile.toVcsFilePath(),
-              lineNumber = 4
+              lineNumber = 4,
+              origin = null
             ),
           highlightStartOffset = 73,
           highlightEndOffset = 92,
@@ -160,7 +161,8 @@ class InsightsAttachDiffLinkFilterTest {
               vcsKey = VCS_CATEGORY.TEST_VCS,
               revision = "123",
               filePath = targetPsiFile.virtualFile.toVcsFilePath(),
-              lineNumber = 4
+              lineNumber = 4,
+              origin = null
             ),
           highlightStartOffset = 80,
           highlightEndOffset = 97,

@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui.vcs
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppVcsInfo
+import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.vcs.getVcsManager
 import com.android.tools.idea.insights.vcs.locateRepository
@@ -75,6 +76,10 @@ class InsightsAttachInlayDiffLinkFilter(
       ?.takeUnless { it == AppVcsInfo.NONE }
   }
 
+  private fun fetchAssociatedConnection(): Connection? {
+    return containingConsole.getClientProperty(CONNECTION_OF_SELECTED_CRASH) as? Connection
+  }
+
   private fun createContextDataForDiff(
     appVcsInfo: AppVcsInfo,
     virtualFiles: List<VirtualFile>,
@@ -93,7 +98,8 @@ class InsightsAttachInlayDiffLinkFilter(
           vcsKey = firstVcsInfo.vcsKey,
           revision = firstVcsInfo.revision,
           filePath = vFile.toVcsFilePath(),
-          lineNumber = lineNumber
+          lineNumber = lineNumber,
+          origin = fetchAssociatedConnection()
         )
       }
       .firstOrNull()

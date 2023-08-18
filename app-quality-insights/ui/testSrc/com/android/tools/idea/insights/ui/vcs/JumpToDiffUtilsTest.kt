@@ -56,7 +56,8 @@ class JumpToDiffUtilsTest {
         vcsKey = VCS_CATEGORY.TEST_VCS,
         revision = BEFORE_REVISION,
         filePath = vcsInsightsRule.projectBaseDir.findChild("Foo.kt")!!.toVcsFilePath(),
-        lineNumber = LINE_NUMBER
+        lineNumber = LINE_NUMBER,
+        origin = null
       )
 
     val requestChain = InsightsDiffRequestChain(context, projectRule.project)
