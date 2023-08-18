@@ -86,6 +86,17 @@ iml_studio_test(
     test_class = "com.android.tools.idea.projectsystem.gradle.OldProjectAppTest",
 )
 
+iml_studio_test(
+    name = "GradleTokensTest",
+    timeout = "long",
+    module = ":intellij.android.projectSystem.integration.tests",
+    tags_linux = ["block-network"],
+    # Commented out due to b/242358149
+    # tags_mac = ["block-network"],
+    tags_windows = ["block-network"],
+    test_class = "com.android.tools.idea.projectsystem.gradle.GradleTokensTest",
+)
+
 maven_repository(
     name = "sdkindexproject_deps",
     # keep sorted: for buildifier

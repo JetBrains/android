@@ -56,6 +56,9 @@
       <add-to-group group-id="BuildMenu" anchor="first"/>
       <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
     </action>
+    <action internal="true" id="VerifyGradleTokensAction" class="com.android.tools.idea.projectsystem.VerifyGradleTokensAction">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
     <action id="MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction">
       <add-to-group group-id="Android.MainToolbarRight" anchor="first"/>
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleProject"/>
