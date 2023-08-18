@@ -36,6 +36,7 @@ import com.android.repository.impl.meta.TypeDetails;
 import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
+import com.android.resources.ScreenOrientation;
 import com.android.sdklib.ISystemImage;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.DeviceManager;
@@ -78,16 +79,19 @@ public final class ConfigureAvdOptionsStepTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.withSdk();
 
+  private ISystemImage mySnapshotSystemImage;
+
+  private DeviceManager myManager;
+  private Device myFoldable;
+  private Device myDesktop;
+  private Device myAutomotive;
+
+  private final Map<String, String> myPropertiesMap = Maps.newHashMap();
   private AvdInfo myQAvdInfo;
   private AvdInfo myMarshmallowAvdInfo;
   private AvdInfo myPreviewAvdInfo;
   private AvdInfo myZuluAvdInfo;
   private AvdInfo myExtensionsAvdInfo;
-  private ISystemImage mySnapshotSystemImage;
-  private final Map<String, String> myPropertiesMap = Maps.newHashMap();
-  private Device myFoldable;
-  private Device myDesktop;
-  private Device myAutomotive;
 
   @Before
   public void setUp() {
@@ -172,10 +176,10 @@ public final class ConfigureAvdOptionsStepTest {
 
     mySnapshotSystemImage = ZuluImage; // Re-use Zulu for the snapshot test
 
-    DeviceManager devMgr = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
-    myFoldable = devMgr.getDevice("7.6in Foldable", "Generic");
-    myDesktop = devMgr.getDevice("desktop_small", "Google");
-    myAutomotive = devMgr.getDevice("automotive_1024p_landscape", "Google");
+    myManager = DeviceManager.createInstance(sdkHandler, new NoErrorsOrWarningsLogger());
+    myFoldable = myManager.getDevice("7.6in Foldable", "Generic");
+    myDesktop = myManager.getDevice("desktop_small", "Google");
+    myAutomotive = myManager.getDevice("automotive_1024p_landscape", "Google");
 
     var ini = Paths.get("ini");
     var folder = Paths.get("folder");
@@ -204,6 +208,22 @@ public final class ConfigureAvdOptionsStepTest {
 
     assertFalse(ConfigureAvdOptionsStep.isGoogleApiTag(DEFAULT_TAG));
     assertFalse(ConfigureAvdOptionsStep.isGoogleApiTag(GOOGLE_APIS_X86_TAG));
+  }
+
+  @Test
+  public void onEntering() {
+    // Arrange
+    var model = new AvdOptionsModel(myQAvdInfo);
+    model.device().setNullableValue(myManager.getDevice("pixel_tablet", "Google"));
+
+    var step = new ConfigureAvdOptionsStep(myRule.getProject(), model, newSkinChooser());
+    Disposer.register(myRule.getTestRootDisposable(), step);
+
+    // Act
+    step.onEntering();
+
+    // Assert
+    assertEquals(ScreenOrientation.LANDSCAPE, step.getOrientationToggle().getSelectedElement());
   }
 
   @Test

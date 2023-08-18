@@ -519,7 +519,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     updateComponents();
     myShowAdvancedSettingsButton.setText(SHOW);
     setAdvanceSettingsVisible(false);
-    toggleOptionals(getModel().device().get().orElse(null), false);
+    toggleOptionals(getModel().device().get().orElse(null));
     if (getModel().useExternalSdCard().get()) {
       myBuiltInSdCardStorage.setEnabled(false);
       myExternalSdCard.setEnabled(true);
@@ -651,7 +651,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener(FOCUS_OWNER, myPropertyChangeListener);
 
     myListeners.listen(getModel().device(), device -> {
-      toggleOptionals(device.orElse(null), true);
+      toggleOptionals(device.orElse(null));
       if (device.isPresent()) {
         myDeviceName.setIcon(DeviceDefinitionPreview.getIcon(getModel().getAvdDeviceData()));
         myDeviceName.setText(getModel().device().getValue().getDisplayName());
@@ -737,6 +737,11 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       updateGpuControlsAfterSystemImageChange();
       toggleSystemOptionals(false);
     }
+  }
+
+  @VisibleForTesting
+  ASGallery<ScreenOrientation> getOrientationToggle() {
+    return myOrientationToggle;
   }
 
   @VisibleForTesting
@@ -1339,7 +1344,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
    * Enable/Disable controls based on the capabilities of the selected device. For example, some devices may
    * not have a front facing camera.
    */
-  private void toggleOptionals(@Nullable Device device, boolean deviceChange) {
+  private void toggleOptionals(@Nullable Device device) {
     boolean IsDevicePresent = device != null;
     Hardware deviceDefaultHardware = IsDevicePresent ? device.getDefaultHardware() : null;
 
@@ -1347,10 +1352,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBackCameraCombo.setEnabled(IsDevicePresent && deviceDefaultHardware.getCamera(CameraLocation.BACK) != null);
     myOrientationToggle.setEnabled(IsDevicePresent && device.getDefaultState().getOrientation() != ScreenOrientation.SQUARE);
     myEnableComputerKeyboard.setEnabled(IsDevicePresent && !deviceDefaultHardware.getKeyboard().equals(Keyboard.QWERTY));
-    if (deviceChange) {
-      ScreenOrientation orientation = IsDevicePresent ? device.getDefaultState().getOrientation() : ScreenOrientation.PORTRAIT;
-      myOrientationToggle.setSelectedElement(orientation);
-    }
+    myOrientationToggle.setSelectedElement(IsDevicePresent ? device.getDefaultState().getOrientation() : ScreenOrientation.PORTRAIT);
 
     toggleOrientationPanel();
     File customSkin = getModel().getAvdDeviceData().customSkinFile().getValueOrNull();
