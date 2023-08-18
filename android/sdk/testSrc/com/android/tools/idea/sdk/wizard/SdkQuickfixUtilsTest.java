@@ -36,29 +36,31 @@ import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.testutils.file.InMemoryFileSystems;
+import com.android.tools.adtui.swing.HeadlessDialogRule;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
+import com.intellij.util.ui.UIUtil;
 import java.nio.file.Path;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 /**
  * Tests for {@link SdkQuickfixUtils}.
  */
 public class SdkQuickfixUtilsTest {
-  @Rule
   public AndroidProjectRule androidProjectRule = AndroidProjectRule.withSdk();
   @Rule
-  public EdtRule edtRule = new EdtRule();
+  public RuleChain ruleChain = RuleChain.outerRule(androidProjectRule).around(new EdtRule()).around(new HeadlessDialogRule());
 
   RepoManager myRepoManager;
   AndroidSdkHandler mySdkHandler;
@@ -113,7 +115,8 @@ public class SdkQuickfixUtilsTest {
                                                              Collections.emptyList(), ImmutableList.of(localPackage), mySdkHandler,
                                                              null, false);
     assertNotNull(dialog);
-    Disposer.register(androidProjectRule.getTestRootDisposable(), dialog.getDisposable());
+    dialog.close(DialogWrapper.CANCEL_EXIT_CODE);
+    UIUtil.dispatchAllInvocationEvents();
     // We're fine with non-zero cache expiration values, as those inherently optimize the redundant downloads.
     // One such call is currently made from the wizard, which starts SDK installation once built - we will accept that.
     verify(myRepoManager, never()).loadSynchronously(eq(0), any(), any(), any(), any(), any(), any());
