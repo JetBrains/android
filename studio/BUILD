@@ -958,7 +958,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-langInjection",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-properties",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-repository-search",
-        "//prebuilts/tools/common/rust-plugin",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-sh",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-tasks",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-terminal",
