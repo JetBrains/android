@@ -59,7 +59,8 @@ class VersionCatalogRenamingKtsTest  {
     }
 
     // Check expected results
-    assertEquals(catalogSnapshot.replaceFirst("[libraries]\nconstraint-layout", "[libraries]\nmy-constraint-layout"),
+    assertEquals(catalogSnapshot.replaceFirst("[libraries]\nconstraint-layout", "[libraries]\nmy-constraint-layout")
+                   .replaceFirst("both = [\"constraint-layout\"","both = [\"my-constraint-layout\""),
                         loadText(project.findPrimaryCatalog()))
     assertEquals(buildFileSnapshot.replaceFirst("libs.constraint.layout", "libs.my.constraint.layout"),
                         loadText(project.findAppGradleBuild()))
