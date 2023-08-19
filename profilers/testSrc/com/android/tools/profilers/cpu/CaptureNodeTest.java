@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Collections.emptyMap;
-import static java.util.Collections.list;
 
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.filter.Filter;
@@ -30,7 +29,6 @@ import com.intellij.util.containers.ContainerUtil;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;

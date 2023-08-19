@@ -52,12 +52,14 @@ class CaptureNodeSummaryDetailsView(profilersView: StudioProfilersView,
     addSection(buildSelectedNodeTable())
     // All Occurrences section only applies to single node selection.
     if (tabModel.dataSeries.size == 1) {
-      // Asynchronously add this section as it is needs expensive data to be computed.
+      // Asynchronously add this section as it needs expensive data (allOccurrencesStats and tenLongestRunningOccurrences) to be computed.
       profilersView.studioProfilers.ideServices.poolExecutor.execute {
         val model = tabModel.dataSeries[0]
         val allOccurrencesStats = model.allOccurrenceStats
         val tenLongestRunningOccurrences = model.getLongestRunningOccurrences(10)
         profilersView.studioProfilers.ideServices.mainExecutor.execute {
+          // We are appending a section to the end of a list of UI components, therefore, we can use this trick to asynchronously update
+          // the UI without any disruption to other UI components.
           addSection(buildAllOccurrencesSection(allOccurrencesStats, tenLongestRunningOccurrences))
         }
       }
