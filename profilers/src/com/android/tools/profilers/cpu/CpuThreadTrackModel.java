@@ -33,11 +33,18 @@ import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import kotlin.Lazy;
+import kotlin.LazyKt;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 /**
  * Track model for CPU threads in CPU capture stage. Consists of thread states and trace events.
@@ -52,6 +59,15 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull private final Function<CaptureNode, CpuCaptureNodeTooltip> myTraceEventTooltipBuilder;
   @NotNull private final MultiSelectionModel<CpuAnalyzable<?>> myMultiSelectionModel;
   @Nullable private final DataSeries<ThreadState> myThreadStateSeries;
+
+  /**
+   * Lazily retrievable map of node names to a list of nodes with the respective names.
+   *
+   * This mapping does take about a half-second to construct, which can be expensive, but it is done during the parsing and loading up of
+   * the capture stage, so the delay is not recognizable by the user. However, by taking up the cost of computing once in the beginning, it
+   * speeds up the total computations done for each capture node selection to essentially 0 seconds (was north of 1 second before).
+   */
+  @NotNull private final Lazy<Map<String, List<CaptureNode>>> lazyNameToNodes;
 
   @NotNull private final Function1<Runnable, Unit> myRunInBackground;
 
@@ -81,6 +97,11 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
       myThreadStateSeries = null;
     }
     myTraceEventTooltipBuilder = captureNode -> new CpuCaptureNodeTooltip(timeline, captureNode);
+
+    // For the thread this track model represents, we pre-process the node name to matching nodes map to speed up analysis done for each
+    // selected node.
+    CaptureNode rootNode = myCallChartModel.getNode() != null ? myCallChartModel.getNode().findRootNode() : null;
+    lazyNameToNodes = LazyKt.lazyOf(getNameToNodesMapping(rootNode));
   }
 
   @NotNull
@@ -180,5 +201,18 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   private Collection<CaptureNode> getCaptureNode() {
     assert myCapture.containsThread(myThreadInfo.getId());
     return Collections.singleton(myCapture.getCaptureNode(myThreadInfo.getId()));
+  }
+
+  public Map<String, List<CaptureNode>> getNameToNodes() {
+    return lazyNameToNodes.getValue();
+  }
+
+  @VisibleForTesting
+  public static Map<String, List<CaptureNode>> getNameToNodesMapping(CaptureNode node) {
+    if (node == null) {
+      return new HashMap<>();
+    }
+    return node.getDescendantsStream()
+      .collect(Collectors.groupingBy(n -> n.getData().getFullName()));
   }
 }

@@ -29,10 +29,14 @@ public class StubCaptureNodeModel implements CaptureNodeModel {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Return empty string so that tests that instatnitate the {@link CpuThreadTrackModel}
+   * (which invokes the getFullName) do not throw an exception.
+   */
   @NotNull
   @Override
   public String getFullName() {
-    throw new UnsupportedOperationException();
+    return "";
   }
 
   @NotNull
