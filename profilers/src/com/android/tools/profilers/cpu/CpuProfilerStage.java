@@ -18,19 +18,15 @@ package com.android.tools.profilers.cpu;
 import static com.android.tools.profilers.StudioProfilers.DAEMON_DEVICE_DIR_PATH;
 
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.EaseOutModel;
 import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
-import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
-import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter;
-import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
@@ -45,7 +41,7 @@ import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StreamingStage;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.TaskStage;
+import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.cpu.adapters.CpuDataProvider;
 import com.android.tools.profilers.cpu.config.ArtInstrumentedConfiguration;
 import com.android.tools.profilers.cpu.config.CpuProfilerConfigModel;
@@ -55,7 +51,6 @@ import com.android.tools.profilers.event.EventMonitor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -65,7 +60,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class CpuProfilerStage extends StreamingStage implements TaskStage {
+public class CpuProfilerStage extends StreamingStage implements InterimStage {
   private static final String HAS_USED_CPU_CAPTURE = "cpu.used.capture";
 
   private static final SingleUnitAxisFormatter CPU_USAGE_FORMATTER = new SingleUnitAxisFormatter(1, 5, 10, "%");
@@ -145,7 +140,7 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
   private final boolean isTraceboxEnabled;
 
   @NotNull
-  private Runnable myStopTaskAction;
+  private final Runnable myStopAction;
 
   @VisibleForTesting
   public CpuProfilerStage(@NotNull StudioProfilers profilers) {
@@ -158,13 +153,12 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
   }
 
   /**
-   * This constructor is used for creating CpuProfilerStage instances that are owned by a task handler.
-   * These task handlers can pass in a runnable, stopTaskAction, so that the CpuProfilerStageView can
-   * invoke the task handlers custom behavior on task end (e.g. when the user click a button to end a
-   * recording, the stopTaskAction can stop the capture).
+   * This constructor is utilized to create instances of CpuProfilerStage that allow the owning class to supply a custom runnable called
+   * stopAction. This enables the bound view to invoke this custom behavior on stoppage of whatever flow this stage is facilitating (e.g.
+   * if this stage is facilitating a recording, this can serve as the handler for the "Stop Recording" button).
    */
-  public CpuProfilerStage(@NotNull StudioProfilers profilers, @NotNull Runnable stopTaskAction) {
-    this(profilers, new CpuCaptureParser(profilers.getIdeServices()), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, stopTaskAction);
+  public CpuProfilerStage(@NotNull StudioProfilers profilers, @NotNull Runnable stopAction) {
+    this(profilers, new CpuCaptureParser(profilers.getIdeServices()), CpuCaptureMetadata.CpuProfilerEntryPoint.UNKNOWN, stopAction);
   }
 
   /**
@@ -178,7 +172,7 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
   private CpuProfilerStage(@NotNull StudioProfilers profilers,
                            @NotNull CpuCaptureParser captureParser,
                            CpuCaptureMetadata.CpuProfilerEntryPoint entryPoint,
-                           @NotNull Runnable stopTaskAction) {
+                           @NotNull Runnable stopAction) {
     super(profilers);
     mySession = profilers.getSession();
     myCpuDataProvider = new CpuDataProvider(profilers, getTimeline());
@@ -191,7 +185,7 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
     // Store and track how the user entered the CpuProfilerStage to take a cpu trace.
     myEntryPoint = entryPoint;
 
-    myStopTaskAction = stopTaskAction;
+    myStopAction = stopAction;
 
     List<Trace.TraceInfo> existingCompletedTraceInfoList =
       CpuProfiler.getTraceInfoFromSession(getStudioProfilers().getClient(), mySession).stream()
@@ -265,8 +259,8 @@ public class CpuProfilerStage extends StreamingStage implements TaskStage {
 
   @NotNull
   @Override
-  public Runnable getStopTaskAction() {
-    return myStopTaskAction;
+  public Runnable getStopAction() {
+    return myStopAction;
   }
 
   @Override

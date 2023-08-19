@@ -18,19 +18,18 @@ package com.android.tools.profilers
 import com.android.testutils.MockitoKt
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import org.mockito.Mockito
 
-class TaskStageTest {
+class InterimStageTest {
   @Test
-  fun testStopTaskActionExecuted() {
-    var stopTaskActionExecuted = false
-    val mockTaskStage = MockitoKt.mock<TaskStage>().apply {
-      MockitoKt.whenever(this.stopTaskAction).thenReturn(Runnable {
-        stopTaskActionExecuted = true
+  fun testStopActionExecuted() {
+    var stopActionExecuted = false
+    val mockInterimStage = MockitoKt.mock<InterimStage>().apply {
+      MockitoKt.whenever(this.stopAction).thenReturn(Runnable {
+        stopActionExecuted = true
       })
-      MockitoKt.whenever(stopTask()).thenCallRealMethod()
+      MockitoKt.whenever(stop()).thenCallRealMethod()
     }
-    mockTaskStage.stopTask()
-    assertThat(stopTaskActionExecuted).isTrue()
+    mockInterimStage.stop()
+    assertThat(stopActionExecuted).isTrue()
   }
 }

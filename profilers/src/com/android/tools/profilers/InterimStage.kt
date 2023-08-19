@@ -18,23 +18,27 @@ package com.android.tools.profilers
 import com.intellij.openapi.diagnostic.Logger
 
 /**
- * This interface will be implemented by stages utilized for "Task" execution w.r.t. the Task-Based UX.
+ * This interface will be implemented by stages that are used as an intermediate stage before entering a terminal stage. One example
+ * is the CpuProfilerStage. It is an InterimStage as it serves as the intermediate stage between starting and displaying a CPU trace.
  */
-interface TaskStage {
+interface InterimStage {
   private val LOGGER: Logger
-    get() = Logger.getInstance(TaskStage::class.java)
-
-  // To be passed in from the respective task handler, customizing the behavior on task stop.
-  val stopTaskAction: Runnable
+    get() = Logger.getInstance(InterimStage::class.java)
 
   /**
-   * Method used to safely invoke the "stopTaskAction".
-   *
-   * This now allows the implementing Stage's bound view to invoke the stop action of a task handler.
+   * To be passed in from the class creating the InterimStage instance, customizing the behavior on stoppage of this stage's facilitated
+   * procedure.
    */
-  fun stopTask() {
+  val stopAction: Runnable
+
+  /**
+   * Method used to safely invoke the "stopAction".
+   *
+   * This now allows the implementing Stage's bound view to invoke the stop action passed by a parent class.
+   */
+  fun stop() {
     try {
-      stopTaskAction.run() ?: LOGGER.error("Stop task action is null")
+      stopAction.run()
     } catch (e: Exception) {
       LOGGER.error(e.message.toString())
     }

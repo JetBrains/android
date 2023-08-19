@@ -37,7 +37,7 @@ import com.android.tools.profilers.RecordingOption;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.SupportLevel;
-import com.android.tools.profilers.TaskStage;
+import com.android.tools.profilers.InterimStage;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject;
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject;
@@ -57,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import perfetto.protos.PerfettoConfig;
 
-public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage implements TaskStage {
+public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage implements InterimStage {
   private static final String HEAP_DUMP_TOOLTIP = "View objects in your app that are using memory at a specific point in time";
   private static final String CAPTURE_HEAP_DUMP_TEXT = "Capture heap dump";
   private static final String RECORD_JAVA_TEXT = "Record Java / Kotlin allocations";
@@ -86,7 +86,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   private final RecordingOptionsModel myRecordingOptionsModel;
 
   @NotNull
-  private Runnable myStopTaskAction;
+  private final Runnable myStopAction;
 
   @VisibleForTesting
   public Lazy<RecordingOption> lazyHeapDumpRecordingOption =
@@ -128,18 +128,17 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
   }
 
   /**
-   * This constructor is used for creating MainMemoryProfilerStage instances that are owned by a task handler.
-   * These task handlers can pass in a runnable, stopTaskAction, so that the MainMemoryProfilerStage can invoke
-   * the task handlers custom behavior on task end (e.g. when the user click a button to end a recording, the
-   * stopTaskAction can stop the capture).
+   * This constructor is utilized to create instances of MainMemoryProfilerStage that allow the owning class to supply a custom runnable
+   * called stopAction. This enables the bound view to invoke this custom behavior on stoppage of whatever flow this stage is facilitating
+   * (e.g. if this stage is facilitating a recording, this can serve as the handler for the "Stop Recording" button).
    */
-  public MainMemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull Runnable stopTaskAction) {
-    this(profilers, new CaptureObjectLoader(), stopTaskAction);
+  public MainMemoryProfilerStage(@NotNull StudioProfilers profilers, @NotNull Runnable stopAction) {
+    this(profilers, new CaptureObjectLoader(), stopAction);
   }
 
   public MainMemoryProfilerStage(@NotNull StudioProfilers profilers,
                                  @NotNull CaptureObjectLoader loader,
-                                 @NotNull Runnable stopTaskAction) {
+                                 @NotNull Runnable stopAction) {
     super(profilers, loader);
     myIsMemoryCaptureOnly =
       profilers.getSessionsManager().getSelectedSessionMetaData().getType() == Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
@@ -162,7 +161,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
       .onChange(SessionAspect.SELECTED_SESSION, this::stopRecordingOnSessionStop);
 
     myRecordingOptionsModel = new RecordingOptionsModel();
-    myStopTaskAction = stopTaskAction;
+    myStopAction = stopAction;
   }
 
   public RecordingOptionsModel getRecordingOptionsModel() {
@@ -569,8 +568,8 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage im
 
   @Override
   @NotNull
-  public Runnable getStopTaskAction() {
-    return myStopTaskAction;
+  public Runnable getStopAction() {
+    return myStopAction;
   }
 
   @VisibleForTesting
