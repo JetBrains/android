@@ -84,7 +84,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
   var selectedNode: N? = null
     set(node) {
       if (field !== node) {
-        dataUpdated = true
+        selectionUpdated = true
         field = node
       }
     }
@@ -99,6 +99,7 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
    * operation which doesn't have to be done too often as usually the contents are static)
    */
   private var dataUpdated = false
+  private var selectionUpdated = false
   var maximumHeight = 0
     private set
 
@@ -140,6 +141,14 @@ class HTreeChart<N : HNode<N>> private constructor(builder: Builder<N>) : Animat
 
   override fun draw(g: Graphics2D, dim: Dimension) {
     val startTime = System.nanoTime()
+
+    // If the selection changed, a call to updateNodesAndClearCanvas is unnecessary as it reconstructs all nodes and rectangles.
+    // All we need to do is null out the canvas to trigger another render pass with the preserved node and rectangle data.
+    if (selectionUpdated) {
+      canvas = null
+      selectionUpdated = false
+    }
+
     if (dataUpdated) {
       // Nulling out the canvas will trigger a render pass, below
       updateNodesAndClearCanvas()
