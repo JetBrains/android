@@ -51,18 +51,6 @@ class TabbedToolbarTest {
   }
 
   @Test
-  fun tabCallbackIsCalledOnSelected() {
-    val component = JLabel("Test")
-    val toolbar = TabbedToolbar(component)
-    var called = false
-    toolbar.addTab("First") { called = true }
-    val tree = TreeWalker(toolbar)
-    val mouseEventComponents = tree.descendantStream().filter { it.mouseListeners.isNotEmpty() }
-    mouseEventComponents.forEach { FakeUi(it).mouse.click(0, 0) }
-    assertThat(called).isTrue()
-  }
-
-  @Test
   fun closedIsCalledWhenClicked() {
     val component = JLabel("Test")
     val toolbar = TabbedToolbar(component)
@@ -120,5 +108,14 @@ class TabbedToolbarTest {
     assertThat(toolbar.countTabs()).isEqualTo(2)
     toolbar.selectTab(1)
     assertThat(selected).isEqualTo("Fifth")
+  }
+
+  @Test
+  fun `adding tab should not trigger select listener`() {
+    var selected = "nope"
+    val toolbar = TabbedToolbar(JLabel("Title"))
+    toolbar.addTab("First") { selected = "First" }
+    // Confirm that calling addTab did not trigger select listener (did not set select = "First").
+    assertThat(selected).isEqualTo("nope")
   }
 }
