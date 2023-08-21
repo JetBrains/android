@@ -319,15 +319,12 @@ public class AndroidAnnotatorUtil {
     private final Consumer<String> mySetColorTask;
     private final boolean myIncludeClickAction;
     private final boolean myHasCustomColor;
-    // TODO(b/188937633): We should fix the root caused of memory leakage instead of using weak references.
-    @Nullable private final WeakReference<Configuration> myConfigurationRef;
 
     public ColorRenderer(@NotNull PsiElement element,
                          @Nullable Color color,
                          @NotNull ResourceResolver resolver,
                          @Nullable ResourceValue resourceValue,
-                         boolean hasCustomColor,
-                         @Nullable Configuration configuration) {
+                         boolean hasCustomColor) {
       myElement = element;
       myColor = color;
       myResolver = resolver;
@@ -336,7 +333,6 @@ public class AndroidAnnotatorUtil {
       myIncludeClickAction = true;
       myHasCustomColor = hasCustomColor;
       mySetColorTask = new SetAttributeConsumer(element, ResourceType.COLOR);
-      myConfigurationRef = new WeakReference<>(configuration);
     }
 
     @NotNull
@@ -386,9 +382,15 @@ public class AndroidAnnotatorUtil {
       return new AnAction() {
         @Override
         public void actionPerformed(@NotNull AnActionEvent e) {
+          PsiFile file = e.getData(CommonDataKeys.PSI_FILE);
+          if (file == null) return;
+          AndroidFacet facet = AndroidFacet.getInstance(file);
+          if (facet == null) return;
+
+          Configuration configuration = AndroidAnnotatorUtil.pickConfiguration(file, facet);
           Editor editor = e.getData(CommonDataKeys.EDITOR);
-          if (editor != null) {
-            openColorPicker(getCurrentColor());
+          if (editor != null && configuration != null) {
+            openColorPicker(getCurrentColor(), configuration);
           }
         }
       };
@@ -400,7 +402,7 @@ public class AndroidAnnotatorUtil {
       return myElement;
     }
 
-    private void openColorPicker(@Nullable Color currentColor) {
+    private void openColorPicker(@Nullable Color currentColor, @NotNull Configuration configuration) {
       List<ResourcePickerSources> pickerSources = new ArrayList<>();
       pickerSources.add(ResourcePickerSources.PROJECT);
       pickerSources.add(ResourcePickerSources.ANDROID);
@@ -414,7 +416,7 @@ public class AndroidAnnotatorUtil {
       ResourceChooserHelperKt.createAndShowColorPickerPopup(
         currentColor,
         myResourceValue,
-        myConfigurationRef.get(),
+        configuration,
         pickerSources,
         null,
         MouseInfo.getPointerInfo().getLocation(),
