@@ -351,6 +351,7 @@ private fun additionalProjectSetup(project: Project) {
     project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
   }
   ProjectStructure.getInstance(project).analyzeProjectStructure()
+  GradleVersionCatalogDetector.getInstance(project).maybeSuggestToml(project)
 }
 
 private fun removeGradleProducersFromIgnoredList(project: Project) {

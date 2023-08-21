@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.AndroidSdkCompatibilityChecker
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.SupportedModuleChecker
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
@@ -211,6 +212,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
           AndroidPluginInfo.findFromModel(project)?.let { info ->
             project.getService(AssistantInvoker::class.java).maybeRecommendPluginUpgrade(project, info)
           }
+          GradleVersionCatalogDetector.getInstance(project).maybeSuggestToml(project)
         }
       }
     }
