@@ -446,7 +446,6 @@ internal class EmulatorToolWindowPanel(
   class EmulatorUiState : UiState {
     var manageSnapshotsDialogShown = false
     var extendedControlsShown = false
-    var multiDisplayState: MultiDisplayState? = null
     val zoomScrollState = Int2ObjectRBTreeMap<AbstractDisplayPanel.ZoomScrollState>()
   }
 
