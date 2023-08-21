@@ -81,7 +81,7 @@ public class LayoutLibraryLoader {
     LayoutLibrary library = LayoutLibraryProvider.EP_NAME.computeSafeIfAny(LayoutLibraryProvider::getLibrary);
     if (library == null ||
         !library.init(buildPropMap != null ? buildPropMap : Collections.emptyMap(), fontFolderPath.toFile(),
-                      getNativeLibraryPath(dataPath), dataPath + "/icu/icudt70l.dat", keyboardPaths, enumMap, layoutLog)) {
+                      getNativeLibraryPath(dataPath), dataPath + "/icu/icudt72l.dat", keyboardPaths, enumMap, layoutLog)) {
       throw new RenderingException(LayoutlibBundle.message("layoutlib.init.failed"));
     }
     return library;
