@@ -206,7 +206,7 @@ class TemplateDiffTest(private val testMode: TestMode) {
     }
 
   private val withSpecificKotlin: ProjectStateCustomizer =
-    withKotlin(RenderTemplateModel.getComposeKotlinVersion(isMaterial3 = true))
+    withKotlin(RenderTemplateModel.getComposeKotlinVersion())
 
   @Suppress("SameParameterValue")
   private fun withApplicationId(applicationId: String): ProjectStateCustomizer =

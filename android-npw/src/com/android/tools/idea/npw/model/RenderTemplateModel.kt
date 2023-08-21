@@ -17,7 +17,6 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
@@ -205,7 +204,7 @@ class RenderTemplateModel private constructor(
       if (newTemplate.constraints.contains(TemplateConstraint.Compose)) {
         // Compose requires this specific Kotlin
         moduleTemplateDataBuilder.projectTemplateDataBuilder.kotlinVersion =
-          getComposeKotlinVersion(isMaterial3 = newTemplate.constraints.contains(TemplateConstraint.Material3))
+          getComposeKotlinVersion()
       }
 
       val context = RenderingContext(
@@ -282,6 +281,6 @@ class RenderTemplateModel private constructor(
         Language.Java
     }
 
-    fun getComposeKotlinVersion(isMaterial3: Boolean): String = "1.8.10"
+    fun getComposeKotlinVersion(): String = "1.8.10"
   }
 }
