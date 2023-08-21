@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library", "kotlin_test")
 
 # managed by go/iml_to_build
 iml_module(
@@ -31,5 +32,25 @@ iml_module(
         "//tools/adt/idea/preview-elements:intellij.android.preview-elements[module, test]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module, test]",
+    ],
+)
+
+# Build target to verify that preview-elements builds for tools/base
+kotlin_library(
+    name = "tools.preview-elements",
+    srcs = glob([
+        "src/**/*.java",
+        "src/**/*.kt",
+    ]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "//prebuilts/tools/common/lint-psi/intellij-core",
+        "//tools/adt/idea/render-resources:tools.render-resources",
+        "//tools/adt/idea/rendering:tools.rendering",
+        "//tools/base/common:tools.common",
+        "//tools/base/layoutlib-api:tools.layoutlib-api",
+        "//tools/base/resource-repository:tools.resource-repository",
+        "//tools/base/sdk-common:tools.sdk-common",
+        "//tools/base/sdklib:tools.sdklib",
     ],
 )
