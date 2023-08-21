@@ -48,9 +48,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
-import org.hamcrest.Matchers
 import org.jetbrains.annotations.Contract
 import com.intellij.openapi.application.runReadAction
+import org.hamcrest.CoreMatchers
 import org.junit.Assume
 import org.junit.Assume.assumeFalse
 import org.junit.Rule
@@ -134,7 +134,7 @@ fun IntegrationTestEnvironment.runProviderTest(testDefinition: AggregateTestDefi
 
   with(testDefinition) {
     if (!scenario.testProject.isCompatibleWith(agpVersion)) skipTest("Project ${scenario.testProject.name} is incompatible with $agpVersion")
-    Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), Matchers.nullValue())
+    Assume.assumeThat(runCatching { testConfiguration.IGNORE() }.exceptionOrNull(), CoreMatchers.nullValue())
     outputCurrentlyRunningTest(this)
     val preparedProject = prepareTestProject(scenario.testProject, agpVersion = agpVersion)
     preparedProject.open { project ->

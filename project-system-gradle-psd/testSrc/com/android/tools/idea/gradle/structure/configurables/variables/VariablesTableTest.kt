@@ -50,8 +50,8 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.components.JBTextField
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.CoreMatchers.not
-import org.hamcrest.Matchers.instanceOf
 import org.junit.After
 import org.junit.Assert.assertThat
 import org.junit.Before
