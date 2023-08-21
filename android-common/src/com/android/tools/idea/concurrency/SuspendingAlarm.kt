@@ -28,11 +28,7 @@ import kotlin.time.Duration
 
 /** Version of Alarm that is scoped and uses suspension. */
 class SuspendingAlarm(parentDisposable: Disposable, context: CoroutineContext = EmptyCoroutineContext) {
-  private val coroutineScope: CoroutineScope
-
-  init {
-    coroutineScope = AndroidCoroutineScope(parentDisposable, context)
-  }
+  private val coroutineScope = AndroidCoroutineScope(parentDisposable, context)
 
   fun cancelAll() { coroutineScope.coroutineContext.cancelChildren() }
 

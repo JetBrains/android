@@ -187,14 +187,13 @@ class BackgroundTaskEntriesView(
   private val cardLayout: CardLayout
   private val contentPanel: JPanel
 
-  @VisibleForTesting val tableView: BackgroundTaskTreeTableView
+  @VisibleForTesting val tableView: BackgroundTaskTreeTableView =
+    BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
 
-  @VisibleForTesting val graphView: WorkDependencyGraphView
+  @VisibleForTesting val graphView: WorkDependencyGraphView =
+    WorkDependencyGraphView(tab, client, selectionModel, scope, uiDispatcher)
 
   init {
-    tableView = BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
-    graphView = WorkDependencyGraphView(tab, client, selectionModel, scope, uiDispatcher)
-
     layout = TabularLayout("*", "Fit,*")
     minimumSize = Dimension(MINIMUM_ENTRIES_VIEW_WIDTH, minimumSize.height)
     add(buildActionBar(), TabularLayout.Constraint(0, 0))

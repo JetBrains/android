@@ -52,17 +52,14 @@ open class BaseCpuCapture @JvmOverloads constructor(/**
               captureTrees: Map<CpuThreadInfo, CaptureNode>) :
     this(traceId, type, true, null, range, captureTrees)
 
-  private val availableThreads: Set<CpuThreadInfo>
-  private val threadIdToNode: Map<Int, CaptureNode>
+  private val availableThreads: Set<CpuThreadInfo> = captureTrees.keys
+  private val threadIdToNode: Map<Int, CaptureNode> = captureTrees.mapKeys { it.key.id }
   private val mainThreadId: Int
   private var clockType: ClockType
   private var tagsCollapsed = setOf<String>()
-    private set
   private val unabbreviatedTrees: Map<CaptureNode, List<CaptureNode>>
 
   init {
-    availableThreads = captureTrees.keys
-    threadIdToNode = captureTrees.mapKeys { it.key.id }
     // If the trace is empty, use [NO_THREAD_ID].
     mainThreadId = (availableThreads.find { it.isMainThread } ?: captureTrees.maxByOrNull { it.value.duration }?.key)?.id ?: NO_THREAD_ID
     clockType = threadIdToNode[mainThreadId]?.clockType ?: ClockType.GLOBAL

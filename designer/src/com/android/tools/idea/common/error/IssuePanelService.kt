@@ -100,8 +100,7 @@ class IssuePanelService(private val project: Project) {
     }
     else {
       val connection = project.messageBus.connect()
-      val listener: ToolWindowManagerListener
-      listener = object : ToolWindowManagerListener {
+      val listener = object : ToolWindowManagerListener {
         override fun toolWindowsRegistered(ids: MutableList<String>, toolWindowManager: ToolWindowManager) {
           if (ProblemsView.ID in ids) {
             val problemsViewToolWindow = ProblemsView.getToolWindow(project)
