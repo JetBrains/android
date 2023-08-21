@@ -34,6 +34,7 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.core.SplitPanel
 import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration.PostureDescriptor
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
@@ -653,7 +654,7 @@ class EmulatorToolWindowPanelTest {
     assertAppearance(ui, "MultipleDisplays1", maxPercentDifferentMac = 0.09, maxPercentDifferentWindows = 0.25)
 
     // Resize emulator display panels.
-    ui.findAllComponents<EmulatorSplitPanel>().forEach { it.proportion /= 2 }
+    ui.findAllComponents<SplitPanel>().forEach { it.proportion /= 2 }
     ui.layoutAndDispatchEvents()
     val displayViewSizes = ui.findAllComponents<EmulatorView>().map { it.size }
 

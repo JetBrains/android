@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator
+package com.android.tools.idea.streaming.core
 
 import java.awt.Dimension
 import kotlin.math.max
@@ -30,7 +30,7 @@ import kotlin.math.min
  * @param rectangleSizes dimensions of the rectangles representing contents of all content panels
  *     before scaling. The size of this array may not exceed 4.
  */
-fun computeBestLayout(availableSpace: Dimension, rectangleSizes: List<Dimension>): LayoutNode {
+internal fun computeBestLayout(availableSpace: Dimension, rectangleSizes: List<Dimension>): LayoutNode {
   require(rectangleSizes.isNotEmpty())
   if (rectangleSizes.size < 2) {
     return LeafNode(0, availableSpace)
@@ -44,7 +44,7 @@ fun computeBestLayout(availableSpace: Dimension, rectangleSizes: List<Dimension>
  *
  * @param size dimensions of the panel contents before scaling
  */
-sealed class LayoutNode(val size: Dimension)
+internal sealed class LayoutNode(val size: Dimension)
 
 /**
  * Represents a content panel.
@@ -52,7 +52,7 @@ sealed class LayoutNode(val size: Dimension)
  * @param rectangleIndex the index in the `rectangleSizes` array corresponding to the content of the panel
  * @param size dimensions of the panel contents before scaling
  */
-class LeafNode(val rectangleIndex: Int, size: Dimension) : LayoutNode(size) {
+internal class LeafNode(val rectangleIndex: Int, size: Dimension) : LayoutNode(size) {
   override fun toString(): String {
     return "#$rectangleIndex"
   }
@@ -65,7 +65,7 @@ class LeafNode(val rectangleIndex: Int, size: Dimension) : LayoutNode(size) {
  * @param firstChild the node representing the first subpanel
  * @param secondChild the node representing the second subpanel
  */
-class SplitNode(
+internal class SplitNode(
   val splitType: SplitType,
   val firstChild: LayoutNode,
   val secondChild: LayoutNode)

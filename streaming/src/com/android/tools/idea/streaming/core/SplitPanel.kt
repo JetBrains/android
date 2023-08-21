@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator
+package com.android.tools.idea.streaming.core
 
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.intellij.ui.OnePixelSplitter
@@ -22,10 +22,9 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
- * A panel containing two subpanels separated by a [OnePixelSplitter].
+ * A panel containing two subpanels separated by an [OnePixelSplitter].
  */
-class EmulatorSplitPanel(splitType: SplitType, proportion: Double) : JPanel(BorderLayout()) {
-  private val splitter = OnePixelSplitter(splitType == SplitType.VERTICAL, proportion.toFloat())
+internal class SplitPanel(splitType: SplitType, proportion: Double) : JPanel(BorderLayout()) {
 
   var splitType: SplitType
     get() = if (splitter.orientation) SplitType.VERTICAL else SplitType.HORIZONTAL
@@ -40,6 +39,8 @@ class EmulatorSplitPanel(splitType: SplitType, proportion: Double) : JPanel(Bord
     get() = splitter.secondComponent
     set(value) { splitter.secondComponent = value }
 
+  private val splitter = OnePixelSplitter(splitType == SplitType.VERTICAL, proportion.toFloat())
+
   constructor(layoutNode: SplitNode) : this(layoutNode.splitType, layoutNode.splitRatio)
 
   init {
@@ -47,16 +48,16 @@ class EmulatorSplitPanel(splitType: SplitType, proportion: Double) : JPanel(Bord
     add(splitter, BorderLayout.CENTER)
   }
 
-  fun getState(): EmulatorPanelState {
-    return EmulatorPanelState(splitType, proportion, getChildState(firstComponent), getChildState(secondComponent))
+  fun getState(): PanelState {
+    return PanelState(splitType, proportion, getChildState(firstComponent), getChildState(secondComponent))
   }
 
-  private fun getChildState(child: JComponent): EmulatorPanelState {
+  private fun getChildState(child: JComponent): PanelState {
     return when (child) {
-      is EmulatorDisplayPanel -> {
-        EmulatorPanelState(child.displayId)
+      is AbstractDisplayPanel<*> -> {
+        PanelState(child.displayId)
       }
-      is EmulatorSplitPanel -> {
+      is SplitPanel -> {
         child.getState()
       }
       else -> {
@@ -66,7 +67,7 @@ class EmulatorSplitPanel(splitType: SplitType, proportion: Double) : JPanel(Bord
   }
 }
 
-enum class SplitType {
+internal enum class SplitType {
   /** Panels are side by side. */
   HORIZONTAL,
   /** One panel is above the other. */

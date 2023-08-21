@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.streaming.emulator
+package com.android.tools.idea.streaming.core
 
 import com.android.utils.HashCodes
 import kotlin.math.roundToInt
 
 /**
- * Persistent state representing [EmulatorDisplayPanel] or [EmulatorSplitPanel].
+ * Persistent state representing a [AbstractDisplayPanel] or a [SplitPanel].
  * The no-argument constructor is used by the XML deserializer.
  */
-class EmulatorPanelState() {
-  // The displayId and splitPanel are mutually exclusive. Exactly one of them is not null.
+internal class PanelState private constructor() {
+
+  // The displayId and splitPanel properties are mutually exclusive. Exactly one of them is not null.
   var displayId: Int? = null
   var splitPanel: SplitPanelState? = null
 
@@ -31,7 +32,7 @@ class EmulatorPanelState() {
     this.displayId = displayId
   }
 
-  constructor(splitType: SplitType, proportion: Double, firstComponent: EmulatorPanelState, secondComponent: EmulatorPanelState) : this() {
+  constructor(splitType: SplitType, proportion: Double, firstComponent: PanelState, secondComponent: PanelState) : this() {
     this.splitPanel = SplitPanelState(splitType, proportion, firstComponent, secondComponent)
   }
 
@@ -39,7 +40,7 @@ class EmulatorPanelState() {
     if (this === other) return true
     if (javaClass != other?.javaClass) return false
 
-    other as EmulatorPanelState
+    other as PanelState
     return displayId == other.displayId && splitPanel == other.splitPanel
   }
 
@@ -48,15 +49,16 @@ class EmulatorPanelState() {
   }
 
   /**
-   * Persistent state representing [EmulatorSplitPanel]. The no-argument constructor is used by the XML deserializer.
+   * Persistent state representing a [SplitPanel]. The no-argument constructor is used by the XML deserializer.
    */
-  class SplitPanelState() {
+  class SplitPanelState private constructor() {
+
     var splitType: SplitType = SplitType.HORIZONTAL
     var proportion: Double = 0.5
-    lateinit var firstComponent: EmulatorPanelState
-    lateinit var secondComponent: EmulatorPanelState
+    lateinit var firstComponent: PanelState
+    lateinit var secondComponent: PanelState
 
-    constructor(splitType: SplitType, proportion: Double, firstComponent: EmulatorPanelState, secondComponent: EmulatorPanelState)
+    constructor(splitType: SplitType, proportion: Double, firstComponent: PanelState, secondComponent: PanelState)
         : this() {
       this.splitType = splitType
       this.proportion = proportion

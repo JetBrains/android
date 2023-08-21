@@ -24,10 +24,16 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.LayoutNode
+import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.NUMBER_OF_DISPLAYS_KEY
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
+import com.android.tools.idea.streaming.core.PanelState
 import com.android.tools.idea.streaming.core.RunningDevicePanel
 import com.android.tools.idea.streaming.core.STREAMING_SECONDARY_TOOLBAR_ID
+import com.android.tools.idea.streaming.core.SplitNode
+import com.android.tools.idea.streaming.core.SplitPanel
+import com.android.tools.idea.streaming.core.computeBestLayout
 import com.android.tools.idea.streaming.core.htmlColored
 import com.android.tools.idea.streaming.core.icon
 import com.android.tools.idea.streaming.core.installFileDropHandler
@@ -346,7 +352,7 @@ internal class EmulatorToolWindowPanel(
 
     fun buildLayout(multiDisplayState: MultiDisplayState) {
       val newDisplays = multiDisplayState.displayDescriptors
-      val rootPanel = buildLayout(multiDisplayState.emulatorPanelState, newDisplays)
+      val rootPanel = buildLayout(multiDisplayState.panelState, newDisplays)
       displayDescriptors = newDisplays
       setRootPanel(rootPanel)
     }
@@ -362,7 +368,7 @@ internal class EmulatorToolWindowPanel(
           })
         }
         is SplitNode -> {
-          EmulatorSplitPanel(layoutNode).apply {
+          SplitPanel(layoutNode).apply {
             firstComponent = buildLayout(layoutNode.firstChild, displayDescriptors)
             secondComponent = buildLayout(layoutNode.secondChild, displayDescriptors)
           }
@@ -370,10 +376,10 @@ internal class EmulatorToolWindowPanel(
       }
     }
 
-    private fun buildLayout(state: EmulatorPanelState, displayDescriptors: List<DisplayDescriptor>): JPanel {
+    private fun buildLayout(state: PanelState, displayDescriptors: List<DisplayDescriptor>): JPanel {
       val splitPanelState = state.splitPanel
       return if (splitPanelState != null) {
-        EmulatorSplitPanel(splitPanelState.splitType, splitPanelState.proportion).apply {
+        SplitPanel(splitPanelState.splitType, splitPanelState.proportion).apply {
           firstComponent = buildLayout(splitPanelState.firstComponent, displayDescriptors)
           secondComponent = buildLayout(splitPanelState.secondComponent, displayDescriptors)
         }
@@ -412,7 +418,7 @@ internal class EmulatorToolWindowPanel(
     fun getMultiDisplayState(): MultiDisplayState? {
       if (centerPanel.componentCount > 0) {
         val panel = centerPanel.getComponent(0)
-        if (panel is EmulatorSplitPanel) {
+        if (panel is SplitPanel) {
           return MultiDisplayState(displayDescriptors.toMutableList(), panel.getState())
         }
       }
@@ -450,24 +456,24 @@ internal class EmulatorToolWindowPanel(
    */
   class MultiDisplayState() {
 
-    constructor(displayDescriptors: MutableList<DisplayDescriptor>, emulatorPanelState: EmulatorPanelState) : this() {
+    constructor(displayDescriptors: MutableList<DisplayDescriptor>, panelState: PanelState) : this() {
       this.displayDescriptors = displayDescriptors
-      this.emulatorPanelState = emulatorPanelState
+      this.panelState = panelState
     }
 
     lateinit var displayDescriptors: MutableList<DisplayDescriptor>
-    lateinit var emulatorPanelState: EmulatorPanelState
+    lateinit var panelState: PanelState
 
     override fun equals(other: Any?): Boolean {
       if (this === other) return true
       if (javaClass != other?.javaClass) return false
 
       other as MultiDisplayState
-      return displayDescriptors == other.displayDescriptors && emulatorPanelState == other.emulatorPanelState
+      return displayDescriptors == other.displayDescriptors && panelState == other.panelState
     }
 
     override fun hashCode(): Int {
-      return HashCodes.mix(displayDescriptors.hashCode(), emulatorPanelState.hashCode())
+      return HashCodes.mix(displayDescriptors.hashCode(), panelState.hashCode())
     }
   }
 
