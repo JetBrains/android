@@ -728,24 +728,10 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     projectPath: String,
     buildFilePath: String?
   ): ExternalSystemException {
-    var msg = error.message
+    val msg = error.message
     if (msg != null) {
       val rootCause = ExceptionUtil.getRootCause(error)
-      if (rootCause is ClassNotFoundException) {
-        msg = rootCause.message
-        // Project is using an old version of Gradle (and most likely an old version of the plug-in.)
-        if (isUsingUnsupportedGradleVersion(msg)) {
-          //TODO(b/292231180): this will generate an extra failure details event, wont it?
-          val event = AndroidStudioEvent.newBuilder()
-            .setCategory(EventCategory.GRADLE_SYNC)
-            .setKind(EventKind.GRADLE_SYNC_FAILURE_DETAILS)
-            .setGradleSyncFailure(GradleSyncFailure.UNSUPPORTED_GRADLE_VERSION)
-            .withProjectId(project)
-          log(event)
-          return ExternalSystemException("The project is using an unsupported version of Gradle.")
-        }
-      }
-      else if (rootCause is ZipException) {
+      if (rootCause is ZipException) {
         if (msg.startsWith(COULD_NOT_INSTALL_GRADLE_DISTRIBUTION_PREFIX)) {
           return ExternalSystemException(msg)
         }
@@ -1026,10 +1012,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
           .getNotificationsConfiguration()
           .changeSettings(BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME, NotificationDisplayType.NONE, false, false)
       }
-    }
-
-    private fun isUsingUnsupportedGradleVersion(errorMessage: String?): Boolean {
-      return "org.gradle.api.artifacts.result.ResolvedComponentResult" == errorMessage || "org.gradle.api.artifacts.result.ResolvedModuleVersionResult" == errorMessage
     }
 
     fun shouldDisableForceUpgrades(): Boolean {
