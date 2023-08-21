@@ -1143,6 +1143,14 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
             Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.commonMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.androidMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.commonMain
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/instrumentedTest
             -                             : file://<PROJECT>/kmpFirstLib/build/processedResources/android/instrumentedTest
@@ -1377,6 +1385,14 @@ PROJECT                       : Kotlin Multiplatform
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonTest
             Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.commonMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.androidMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.commonMain
+            Scope                         : Test
         Classes
             -                             : file://<PROJECT>/kmpFirstLib/build/classes/kotlin/android/unitTest
             -                             : file://<PROJECT>/kmpFirstLib/build/processedResources/android/unitTest
@@ -1558,6 +1574,14 @@ PROJECT                       : Kotlin Multiplatform
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.androidMain
             Scope                         : Test
         ORDER_ENTRY                   : Kotlin_Multiplatform.kmpFirstLib.commonMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.commonMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpJvmOnly.jvmMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.androidMain
+            Scope                         : Test
+        ORDER_ENTRY                   : Kotlin_Multiplatform.kmpSecondLib.commonMain
             Scope                         : Test
         Classes
             -                             : file://<PROJECT>/build/classes/test/Kotlin_Multiplatform.kmpFirstLib.commonTest

@@ -2363,6 +2363,10 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         androidLibrary                : androidx.annotation:annotation-experimental:1.1.0@aar
                         javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3
+                        module                        : :-:kmpSecondLib-commonMain
+                        module                        : :-:kmpSecondLib-androidMain
+                        module                        : :-:kmpJvmOnly-commonMain
+                        module                        : :-:kmpJvmOnly-jvmMain
                         module                        : :-:androidLib-MAIN
                     runtimeClasspath
                         module                        : :-:kmpFirstLib-androidMain
@@ -2405,6 +2409,10 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         androidLibrary                : androidx.annotation:annotation-experimental:1.1.0@aar
                         javaLibrary                   : com.google.code.findbugs:jsr305:2.0.1
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3
+                        module                        : :-:kmpSecondLib-commonMain
+                        module                        : :-:kmpSecondLib-androidMain
+                        module                        : :-:kmpJvmOnly-commonMain
+                        module                        : :-:kmpJvmOnly-jvmMain
                         module                        : :-:androidLib-MAIN
                 ApplicationId                 : com.example.kmpfirstlib.test
                 SigningConfigName             : debug
@@ -2437,6 +2445,10 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         javaLibrary                   : org.jetbrains:annotations:13.0
                         javaLibrary                   : junit:junit:4.13.2
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3
+                        module                        : :-:kmpSecondLib-commonMain
+                        module                        : :-:kmpSecondLib-androidMain
+                        module                        : :-:kmpJvmOnly-commonMain
+                        module                        : :-:kmpJvmOnly-jvmMain
                         module                        : :-:androidLib-MAIN
                     runtimeClasspath
                         module                        : :-:kmpFirstLib-commonTest
@@ -2450,6 +2462,10 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                         javaLibrary                   : org.jetbrains:annotations:13.0
                         javaLibrary                   : junit:junit:4.13.2
                         javaLibrary                   : org.hamcrest:hamcrest-core:1.3
+                        module                        : :-:kmpSecondLib-commonMain
+                        module                        : :-:kmpSecondLib-androidMain
+                        module                        : :-:kmpJvmOnly-commonMain
+                        module                        : :-:kmpJvmOnly-jvmMain
                         module                        : :-:androidLib-MAIN
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
@@ -2458,6 +2474,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : :androidLib
                 - dependency                  : :kmpFirstLib/androidMain
                 - dependency                  : :kmpFirstLib/commonMain
+                - dependency                  : :kmpJvmOnly
+                - dependency                  : :kmpSecondLib
                 - dependency                  : androidx.activity:activity:1.2.4
                 - dependency                  : androidx.annotation:annotation-experimental:1.1.0
                 - dependency                  : androidx.annotation:annotation:1.3.0
@@ -2510,6 +2528,8 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : :kmpFirstLib/androidMain
                 - dependency                  : :kmpFirstLib/commonMain
                 - dependency                  : :kmpFirstLib/commonTest
+                - dependency                  : :kmpJvmOnly
+                - dependency                  : :kmpSecondLib
                 - dependency                  : junit:junit:4.13.2
                 - dependency                  : org.hamcrest:hamcrest-core:1.3
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
@@ -2530,6 +2550,9 @@ MODULE                        : Kotlin_Multiplatform.kmpFirstLib
                 - dependency                  : :androidLib
                 - dependency                  : :kmpFirstLib/androidMain
                 - dependency                  : :kmpFirstLib/commonMain
+                - dependency                  : :kmpJvmOnly
+                - dependency                  : :kmpJvmOnly/commonMain
+                - dependency                  : :kmpSecondLib
                 - dependency                  : junit:junit:4.13.2
                 - dependency                  : org.hamcrest:hamcrest-core:1.3
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
