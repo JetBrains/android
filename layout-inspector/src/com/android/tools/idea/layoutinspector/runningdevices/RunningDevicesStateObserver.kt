@@ -168,7 +168,7 @@ private fun Project.getRunningDevicesSelectedTabDeviceSerialNumber(): DeviceId? 
 }
 
 /** Returns the list of [DeviceId]s for every tab in the Running Devices Tool Window. */
-private fun Project.getRunningDevicesExistingTabsDeviceSerialNumber(): List<DeviceId> {
+fun Project.getRunningDevicesExistingTabsDeviceSerialNumber(): List<DeviceId> {
   val contentManager = getRunningDevicesContentManager() ?: return emptyList()
   val contents = contentManager.contents ?: return emptyList()
   val tabIds =

@@ -32,6 +32,13 @@ import icons.StudioIcons
 import javax.swing.JComponent
 
 /** Action used to turn Layout Inspector on and off in Running Devices tool window. */
+
+/**
+ * The min API supported by the Embedded Layout Inspector. Before API 29 we don't have support for
+ * live updates.
+ */
+const val EMBEDDED_LAYOUT_INSPECTOR_MIN_API = 29
+
 class ToggleLayoutInspectorAction :
   ToggleAction(
     "Toggle Layout Inspector",
@@ -75,7 +82,7 @@ class ToggleLayoutInspectorAction :
     val apiLevel = runCatching { displayView?.apiLevel }.getOrNull()
     if (apiLevel == null) {
       e.presentation.isEnabled = false
-    } else if (apiLevel < 29) {
+    } else if (apiLevel < EMBEDDED_LAYOUT_INSPECTOR_MIN_API) {
       // We decided to always have Live Updates ON in Embedded Layout Inspector.
       // Live updates requires API 29+.
       // TODO(b/285889090): provide a better experience for devices with API lower than 29.
