@@ -1303,6 +1303,7 @@ MODULE                        : MainActivity
                                 outputDir                     : <ROOT>/javaLib/out/production/classes [-]
                                 - gradleOutputDirs            : <ROOT>/javaLib/build/classes/java/main [-]
                                 - gradleOutputDirs            : <ROOT>/javaLib/build/classes/kotlin/main [-]
+                                - gradleOutputDirs            : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
                                 patterns                      : FilePatternSetImpl
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
@@ -1324,6 +1325,7 @@ MODULE                        : MainActivity
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/javaLib/build/classes/java/main [-]
                             - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
+                            - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
                             - files                       : <ROOT>/javaLib/build/resources/main [-]
                         - artifacts                   : <ROOT>/javaLib/build/libs/javaLib.jar [-]
                         sourceCompatibility           : 1.7
@@ -1336,6 +1338,7 @@ MODULE                        : MainActivity
                                 outputDir                     : <ROOT>/javaLib/out/test/classes [-]
                                 - gradleOutputDirs            : <ROOT>/javaLib/build/classes/java/test [-]
                                 - gradleOutputDirs            : <ROOT>/javaLib/build/classes/kotlin/test [-]
+                                - gradleOutputDirs            : <ROOT>/javaLib/build/tmp/kapt3/classes/test [-]
                                 patterns                      : FilePatternSetImpl
                             TEST_RESOURCE                 : resources (DefaultExternalSourceDirectorySet)
                                 - srcDirs                     : <ROOT>/javaLib/src/test/resources [-]
@@ -1345,6 +1348,7 @@ MODULE                        : MainActivity
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/javaLib/build/classes/java/main [-]
                             - files                       : <ROOT>/javaLib/build/classes/kotlin/main [-]
+                            - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/main [-]
                             - files                       : <ROOT>/javaLib/build/resources/main [-]
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
@@ -1366,6 +1370,7 @@ MODULE                        : MainActivity
                         - dependencies                : DefaultFileCollectionDependency
                             - files                       : <ROOT>/javaLib/build/classes/java/test [-]
                             - files                       : <ROOT>/javaLib/build/classes/kotlin/test [-]
+                            - files                       : <ROOT>/javaLib/build/tmp/kapt3/classes/test [-]
                             - files                       : <ROOT>/javaLib/build/resources/test [-]
                         sourceCompatibility           : 1.7
                         targetCompatibility           : 1.7
@@ -2523,7 +2528,7 @@ MODULE                        : MainActivity.app
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -2551,7 +2556,7 @@ MODULE                        : MainActivity.app
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -2579,7 +2584,7 @@ MODULE                        : MainActivity.app
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-android-extensions/<KOTLIN_VERSION>/kotlin-android-extensions-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-compiler-embeddable/<KOTLIN_VERSION>/kotlin-compiler-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
@@ -2666,7 +2671,7 @@ MODULE                        : MainActivity.javaLib
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
@@ -2692,7 +2697,7 @@ MODULE                        : MainActivity.javaLib
                     enableSignatureClashChecks    : true
                     explicitApi                   : disable
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-embeddable/<KOTLIN_VERSION>/kotlin-annotation-processing-embeddable-<KOTLIN_VERSION>.jar
+                    - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-annotation-processing-gradle/<KOTLIN_VERSION>/kotlin-annotation-processing-gradle-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                     - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar

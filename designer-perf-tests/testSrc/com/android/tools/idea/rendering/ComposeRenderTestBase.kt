@@ -26,7 +26,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 
-internal const val DEFAULT_KOTLIN_VERSION = "1.8.10"
+internal const val DEFAULT_KOTLIN_VERSION = "1.9.0"
 
 open class ComposeRenderTestBase {
   @get:Rule

@@ -872,6 +872,7 @@ PROJECT                       : MainActivity
         Classes
             -                             : file://<PROJECT>/javaLib/build/classes/java/main
             -                             : file://<PROJECT>/javaLib/build/classes/kotlin/main
+            -                             : file://<PROJECT>/javaLib/build/tmp/kapt3/classes/main
             -                             : file://<PROJECT>/javaLib/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All

@@ -869,7 +869,7 @@
                         kotlinCompilerPluginClasspathTest       : <empty>
                         kotlinKlibCommonizerClasspath : <empty>
                         kotlinNativeCompilerPluginClasspath     : <empty>
-                        npm                           : <empty>
+                        npmAggregated                 : <empty>
                         - publicPackageJsonConfiguration        : <ROOT>/jsModule/build/tmp/publicPackageJson/package.json [-]
                         runtimeClasspath              : <empty>
                         runtimeOnly                   : <empty>
@@ -885,7 +885,7 @@
                         testImplementation            : <empty>
                         testImplementationDependenciesMetadata  : <empty>
                         testIntransitiveDependenciesMetadata    : <empty>
-                        testNpm                       : <empty>
+                        testNpmAggregated             : <empty>
                         testRuntimeClasspath          : <empty>
                         testRuntimeOnly               : <empty>
                 module2                       : :module2 (DefaultExternalProject)
@@ -2371,7 +2371,7 @@ Required by:
                 major                         : 1
                 minor                         : 9
                 patch                         : 0
-                versionString                 : 1.9.0-Beta
+                versionString                 : 1.9.0
             - targets                     : js (KotlinTargetImpl)
                 - compilations                : main (KotlinCompilationImpl)
                     - allSourceSets               : main (KotlinSourceSetImpl)
@@ -2972,7 +2972,7 @@ Required by:
                 major                         : 1
                 minor                         : 9
                 patch                         : 0
-                versionString                 : 1.9.0-Beta
+                versionString                 : 1.9.0
             - targets                     : android (KotlinTargetImpl)
                 - compilations                : debug (KotlinCompilationImpl)
                     - allSourceSets               : androidMain (KotlinSourceSetImpl)

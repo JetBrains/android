@@ -1625,6 +1625,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/contentLib/build/classes/java/main
             -                             : file://<PROJECT>/contentLib/build/classes/kotlin/main
+            -                             : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/main
             -                             : file://<PROJECT>/contentLib/build/resources/main
         BUILD_TASKS
             TEST_COMPILE_MODE             : All
@@ -1719,6 +1720,7 @@ PROJECT                       : project
         Classes
             -                             : file://<PROJECT>/contentLib/build/classes/java/test
             -                             : file://<PROJECT>/contentLib/build/classes/kotlin/test
+            -                             : file://<PROJECT>/contentLib/build/tmp/kapt3/classes/test
             -                             : file://<PROJECT>/contentLib/build/resources/test
         BUILD_TASKS
             TEST_COMPILE_MODE             : All

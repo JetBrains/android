@@ -2291,7 +2291,7 @@ MODULE                        : kotlinMultiPlatform.app
             major                         : 1
             minor                         : 9
             patch                         : 0
-            versionString                 : 1.9.0-Beta
+            versionString                 : 1.9.0
         - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
             kotlinSourceSet               : androidAndroidTest (KotlinSourceSetImpl)
                 actualPlatforms               : KotlinPlatformContainerImpl
@@ -3061,7 +3061,7 @@ MODULE                        : kotlinMultiPlatform.module2
             major                         : 1
             minor                         : 9
             patch                         : 0
-            versionString                 : 1.9.0-Beta
+            versionString                 : 1.9.0
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
