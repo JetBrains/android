@@ -691,15 +691,11 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
 
   public void testActionsEnabledAtStartup() {
     DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(getProject());
-    dumbService.setDumb(true);
-    try {
+    dumbService.runInDumbModeSynchronously(() -> {
       ActionButton button = findRequiredButtonByName(myToolWindow.getComponent(), "More Options");
       myToolWindow.updateActions();
       assertThat(button.isEnabled()).isTrue();
-    }
-    finally {
-      dumbService.setDumb(false);
-    }
+    });
   }
 
   private static void fireFocusLost(@NotNull JComponent component) {

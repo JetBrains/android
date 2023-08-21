@@ -416,9 +416,9 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     myFixture.copyFileToProject(myTestFolder + "/boolResReference.xml", "res/layout/main.xml");
     myFixture.copyFileToProject(myTestFolder + "/intbool.xml", "res/values/values.xml");
     // Completion providers don't actually kick in in dumb mode, but does outside of dumb mode.
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference.xml");
-    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    DumbServiceImpl.getInstance(getProject()).runInDumbModeSynchronously(() -> {
+      myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference.xml");
+    });
     myFixture.testCompletion("res/layout/main.xml", myTestFolder + "/boolResReference_after.xml");
   }
 
@@ -531,9 +531,9 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testTranslatableAttributeCompletionDumbMode() throws Throwable {
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr.xml");
-    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    DumbServiceImpl.getInstance(getProject()).runInDumbModeSynchronously(() -> {
+      toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr.xml");
+    });
     toTestCompletion("strings_translatable_attr.xml", "strings_translatable_attr_after.xml");
   }
 

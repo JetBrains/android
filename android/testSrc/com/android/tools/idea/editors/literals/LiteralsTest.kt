@@ -28,7 +28,6 @@ import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.IndexNotReadyException
-import com.intellij.openapi.rd.util.withUiContext
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -584,15 +583,15 @@ class LiteralsTest {
 
       val literals = asyncLiterals.map { it.second.await() }.toList()
 
-      withUiContext {
-        (DumbService.getInstance(projectRule.project) as DumbServiceImpl).isDumb = true
+
+      (DumbService.getInstance(projectRule.project) as DumbServiceImpl).runInDumbMode {
+        val contents = literals.flatMap {
+          it.all
+        }.map {
+          it.constantValue
+        }.distinct().joinToString("\n")
+        assertEquals("-120", contents)
       }
-      val contents = literals.flatMap {
-        it.all
-      }.map {
-        it.constantValue
-      }.distinct().joinToString("\n")
-      assertEquals("-120", contents)
     }
   }
 
@@ -616,14 +615,13 @@ class LiteralsTest {
     """.trimIndent())
 
     runBlocking {
-      withUiContext {
-        (DumbService.getInstance(projectRule.project) as DumbServiceImpl).isDumb = true
-      }
-
-      try {
-        literalsManager.findLiteralsBlocking(file)
-        fail("findLiterals will throw IndexNotReadyException when called not called in smart mode")
-      } catch (_: IndexNotReadyException) {
+      (DumbService.getInstance(projectRule.project) as DumbServiceImpl).runInDumbMode {
+        try {
+          literalsManager.findLiteralsBlocking(file)
+          fail("findLiterals will throw IndexNotReadyException when called not called in smart mode")
+        }
+        catch (_: IndexNotReadyException) {
+        }
       }
     }
   }

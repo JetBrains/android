@@ -67,21 +67,21 @@ class DumbModeTest {
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
 
     // enter dumb mode and update this newly added nav file by adding another argument
-    DumbServiceImpl.getInstance(project).isDumb = true
-    val replaceXmlContent =
-      """
-          <argument
-              android:name="arg2"
-              app:argType="integer" />
-        </fragment>
-      """.trimIndent()
-    WriteCommandAction.runWriteCommandAction(project) {
-      navFile.virtualFile.replaceWithSaving("</fragment>", replaceXmlContent, project)
+    DumbServiceImpl.getInstance(project).runInDumbModeSynchronously {
+      val replaceXmlContent =
+        """
+            <argument
+                android:name="arg2"
+                app:argType="integer" />
+          </fragment>
+        """.trimIndent()
+      WriteCommandAction.runWriteCommandAction(project) {
+        navFile.virtualFile.replaceWithSaving("</fragment>", replaceXmlContent, project)
+      }
+      // still 1 NavArgumentData due to dumb mode --previously cached results are returned
+      assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
     }
-    // still 1 NavArgumentData due to dumb mode --previously cached results are returned
-    assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
-    
-    DumbServiceImpl.getInstance(project).isDumb = false
+
     // fresh results are generated since smart mode
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(2)
   }
@@ -96,35 +96,36 @@ class DumbModeTest {
     // In dumb mode, add a resource and then request the current scope. In the past, this would cause
     // the scope enlarger to internally cache stale values (because the service that the enlarger
     // queries into aborts early in dumb mode).
-    dumbService.isDumb = true
-    safeArgsRule.fixture.addFileToProject(
-      "res/navigation/nav_main.xml",
-      //language=XML
-      """
-        <?xml version="1.0" encoding="utf-8"?>
-        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
-            app:startDestination="@id/main_fragment" >
-
-          <fragment
-              android:id="@+id/main_fragment"
-              android:name="test.safeargs.MainFragment"
-              android:label="MainFragment">
-              
-              <action
-                android:id="@+id/action_main_fragment_to_main"
-                app:destination="@id/main" />
-          </fragment>
-        </navigation>
-      """.trimIndent())
-    safeArgsRule.waitForResourceRepositoryUpdates()
-    val fragmentClass = safeArgsRule.fixture.addClass("public class MainFragment {}")
-
-    val dumbScope = fragmentClass.resolveScope
+    val (fragmentClass, dumbScope) = dumbService.computeInDumbModeSynchronously {
+      safeArgsRule.fixture.addFileToProject(
+        "res/navigation/nav_main.xml",
+        //language=XML
+        """
+          <?xml version="1.0" encoding="utf-8"?>
+          <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+              app:startDestination="@id/main_fragment" >
+  
+            <fragment
+                android:id="@+id/main_fragment"
+                android:name="test.safeargs.MainFragment"
+                android:label="MainFragment">
+                
+                <action
+                  android:id="@+id/action_main_fragment_to_main"
+                  app:destination="@id/main" />
+            </fragment>
+          </navigation>
+        """.trimIndent())
+      safeArgsRule.waitForResourceRepositoryUpdates()
+      val fragmentClass = safeArgsRule.fixture.addClass("public class MainFragment {}")
+      val dumbScope = fragmentClass.resolveScope
+      Pair(fragmentClass, dumbScope)
+    }
 
     // Exit dumb mode and request our final enlarged scope. It should pick up the changes that
     // occurred while we were previously in dumb mode.
-    dumbService.isDumb = false
+
     val enlargedScope = fragmentClass.resolveScope
 
     val moduleCache = SafeArgsCacheModuleService.getInstance(safeArgsRule.androidFacet)

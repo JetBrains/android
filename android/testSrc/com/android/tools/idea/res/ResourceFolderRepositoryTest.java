@@ -4066,30 +4066,32 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
    */
   public void testFileInvalidationAfterDumbMode() throws Exception {
     DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(getProject());
-    dumbService.setDumb(true);
-    VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
-    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file1);
-    assertNotNull(psiFile);
-    ResourceFolderRepository repository = createRegisteredRepository();
-    assertNotNull(repository);
-    assertTrue(repository.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
+    ResourceItem resourceItem = dumbService.computeInDumbModeSynchronously(() -> {
+      VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
+      PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file1);
+      assertNotNull(psiFile);
+      ResourceFolderRepository repository = createRegisteredRepository();
+      assertNotNull(repository);
+      assertTrue(repository.hasResources(RES_AUTO, ResourceType.STYLE, "DarkTheme"));
 
-    int rescans = repository.getFileRescans();
-    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
-    Document document = documentManager.getDocument(psiFile);
-    assertNotNull(document);
+      int rescans = repository.getFileRescans();
+      PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
+      Document document = documentManager.getDocument(psiFile);
+      assertNotNull(document);
 
-    WriteCommandAction.runWriteCommandAction(null, () -> {
-      int offset = document.getText().indexOf("DarkTheme");
-      document.replaceString(offset, offset + 4, "Grey");
-      documentManager.commitDocument(document);
+      WriteCommandAction.runWriteCommandAction(null, () -> {
+        int offset = document.getText().indexOf("DarkTheme");
+        document.replaceString(offset, offset + 4, "Grey");
+        documentManager.commitDocument(document);
+      });
+      waitForUpdates(repository);
+      ResourceItem item = repository.getResources(RES_AUTO, ResourceType.STYLE, "GreyTheme").get(0);
+      assertThat(repository.getFileRescans()).isEqualTo(rescans + 1); // First edit is not incremental (file -> Psi).
+      return item;
     });
-    waitForUpdates(repository);
-    ResourceItem item = repository.getResources(RES_AUTO, ResourceType.STYLE, "GreyTheme").get(0);
-    assertThat(repository.getFileRescans()).isEqualTo(rescans + 1); // First edit is not incremental (file -> Psi).
-    dumbService.setDumb(false);
+
     // Before the fix, item.getResourceValue would return null since the file is not invalid after getting out of dumb mode.
-    assertNotNull(item.getResourceValue());
+    assertNotNull(resourceItem.getResourceValue());
   }
 
   public void testAddingPlusToId() throws Exception {
@@ -4200,8 +4202,8 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     VirtualFile file = VfsUtil.findFileByIoFile(new File(myFixture.getTestDataPath(), DRAWABLE), true);
 
     // Trigger dumb mode to clear the PsiDirectory cache.
-    ((DumbServiceImpl)DumbService.getInstance(myModule.getProject())).setDumb(true);
-    ((DumbServiceImpl)DumbService.getInstance(myModule.getProject())).setDumb(false);
+    ((DumbServiceImpl)DumbService.getInstance(myModule.getProject())).runInDumbModeSynchronously(() -> {
+    });
     WriteCommandAction.runWriteCommandAction(
       myModule.getProject(), () -> {
         try {

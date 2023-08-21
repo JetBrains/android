@@ -190,8 +190,7 @@ class SourceCodeEditorProviderTest {
     // Now trigger smart mode. Representations should update
     val dumbService = DumbServiceImpl.getInstance(projectRule.project)
     invokeAndWaitIfNeeded {
-      dumbService.isDumb = true
-      dumbService.isDumb = false
+      dumbService.runInDumbModeSynchronously {}
     }
 
     dumbService.waitForSmartMode()

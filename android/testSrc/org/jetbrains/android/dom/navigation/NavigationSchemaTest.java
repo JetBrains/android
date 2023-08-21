@@ -109,17 +109,12 @@ public class NavigationSchemaTest extends AndroidTestCase {
   }
 
   public void testDumbMode() throws Exception {
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    try {
+    CompletableFuture<NavigationSchema> future = DumbServiceImpl.getInstance(getProject()).computeInDumbModeSynchronously(() -> {
       NavigationSchema schema = NavigationSchema.get(myModule);
-      CompletableFuture<NavigationSchema> future = schema.rebuildSchema();
-      DumbServiceImpl.getInstance(getProject()).setDumb(false);
-      schema = future.get();
-      assertNotNull(schema);
-    }
-    finally {
-      DumbServiceImpl.getInstance(getProject()).setDumb(false);
-    }
+      return schema.rebuildSchema();
+    });
+    NavigationSchema schema = future.get();
+    assertNotNull(schema);
   }
 
   public void testSubtags() {

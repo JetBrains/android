@@ -38,6 +38,7 @@ import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
@@ -134,20 +135,21 @@ class ResourceExplorerToolWindowTest {
 
   @Test
   fun createWithLoadingMessage() {
-    val windowManager = ToolWindowManager.getInstance(module.project)
-    val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
-    initFacet()
-    val resourceExplorerToolFactory = ResourceExplorerToolFactory()
-    runInEdtAndWait {
-      (DumbService.getInstance(project) as DumbServiceImpl).isDumb = true
+    runBlocking {
+      val windowManager = ToolWindowManager.getInstance(module.project)
+      val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
+      initFacet()
+      val resourceExplorerToolFactory = ResourceExplorerToolFactory()
+      (DumbService.getInstance(project) as DumbServiceImpl).runInDumbMode {
+        resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
+        assertThat(toolWindow.contentManager.contents).isNotEmpty()
+        val content = toolWindow.contentManager.contents[0].component
+        val label = UIUtil.findComponentOfType(content, JLabel::class.java)
+        assertNotNull(label)
+        assertNull(label.icon)
+        assertThat(label.text).isEqualTo("Loading...")
+      }
     }
-    resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
-    assertThat(toolWindow.contentManager.contents).isNotEmpty()
-    val content = toolWindow.contentManager.contents[0].component
-    val label = UIUtil.findComponentOfType(content, JLabel::class.java)
-    assertNotNull(label)
-    assertNull(label.icon)
-    assertThat(label.text).isEqualTo("Loading...")
   }
 
   @Test

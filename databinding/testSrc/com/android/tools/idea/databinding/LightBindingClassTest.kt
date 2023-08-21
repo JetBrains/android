@@ -972,21 +972,21 @@ class LightBindingClassTest {
       .containsExactly("ActivityFirstBinding")
 
     val dumbService = DumbService.getInstance(project) as DumbServiceImpl
-    dumbService.isDumb = true
+    dumbService.runInDumbModeSynchronously {
 
-    // First, verify that dumb mode doesn't prevent us from accessing the previous cache
-    assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
-      .containsExactly("ActivityFirstBinding")
+      // First, verify that dumb mode doesn't prevent us from accessing the previous cache
+      assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+        .containsExactly("ActivityFirstBinding")
 
-    // XML updates are ignored in dumb mode
-    fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
-    projectRule.waitForResourceRepositoryUpdates()
-    assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
-      .containsExactly("ActivityFirstBinding")
-
+      // XML updates are ignored in dumb mode
+      fixture.addFileToProject("res/layout/activity_second.xml", sampleXml)
+      projectRule.waitForResourceRepositoryUpdates()
+      assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
+        .containsExactly("ActivityFirstBinding")
+    }
     // XML updates should catch up after dumb mode is exited (in other words, we didn't save a snapshot of the stale
     // cache from before)
-    dumbService.isDumb = false
+
     assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding", "ActivitySecondBinding")
   }

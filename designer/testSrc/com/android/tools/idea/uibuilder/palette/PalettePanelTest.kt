@@ -280,16 +280,13 @@ public class MyWebView extends android.webkit.WebView {
     val list: JList<Palette.Item> = myPanel!!.itemList
     val handler = list.transferHandler
     val project = projectRule.project
-    try {
-      DumbServiceImpl.getInstance(project).isDumb = true
+    DumbServiceImpl.getInstance(project).runInDumbModeSynchronously {
       assertFalse(imitateDragAndDrop(handler, list))
       verify(statusBar)
         .notifyProgressByBalloon(
           eq(MessageType.WARNING),
           eq("Dragging from the Palette is not available while indices are updating.")
         )
-    } finally {
-      DumbServiceImpl.getInstance(project).isDumb = false
     }
   }
 

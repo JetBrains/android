@@ -62,9 +62,9 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         -1,
         -1, -1, -1, // bunch of tabbed elements
         0);
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    List<LineIndentInfo> indentInfosDumb = getIndentInfos(resFile1);
-    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    List<LineIndentInfo> indentInfosDumb = DumbServiceImpl.getInstance(getProject()).computeInDumbModeSynchronously(() -> {
+      return getIndentInfos(resFile1);
+    });
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(resFile2);
     assertSameIndents(indentInfosDumb, indentInfosSmart, expectedIndentSpacing);
   }
@@ -80,9 +80,9 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         2, -1, -1, // TextView
         2, -1, // TextView
         0);
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    List<LineIndentInfo> indentInfosDumb = getIndentInfos(resFile1);
-    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    List<LineIndentInfo> indentInfosDumb = DumbServiceImpl.getInstance(getProject()).computeInDumbModeSynchronously(() -> {
+      return getIndentInfos(resFile1);
+    });
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(resFile2);
     assertSameIndents(indentInfosDumb, indentInfosSmart, expectedIndentSpacing);
   }
@@ -98,9 +98,9 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         2,
         2, -1, -1, -1, 4, 6, 8, 8, 6, 4, 2,
         0);
-    DumbServiceImpl.getInstance(getProject()).setDumb(true);
-    List<LineIndentInfo> indentInfosDumb = getIndentInfos(manifestFile);
-    DumbServiceImpl.getInstance(getProject()).setDumb(false);
+    List<LineIndentInfo> indentInfosDumb = DumbServiceImpl.getInstance(getProject()).computeInDumbModeSynchronously(() -> {
+      return getIndentInfos(manifestFile);
+    });
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(manifestFile);
     assertSameIndents(indentInfosDumb, indentInfosSmart, expectedIndentSpacing);
   }

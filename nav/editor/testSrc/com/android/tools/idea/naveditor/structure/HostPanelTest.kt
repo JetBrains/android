@@ -43,16 +43,12 @@ class HostPanelTest : NavTestCase() {
     waitFor("list was never populated") { !listModel.isEmpty }
     panel.list.model = listModel
 
-    DumbServiceImpl.getInstance(project).isDumb = true
-    try {
+    DumbServiceImpl.getInstance(project).runInDumbModeSynchronously() {
       model.activate(this)
       waitFor("list expected to be empty") { listModel.isEmpty }
-      DumbServiceImpl.getInstance(project).isDumb = false
-      waitFor("list was never populated") { !listModel.isEmpty }
     }
-    finally {
-      DumbServiceImpl.getInstance(project).isDumb = false
-    }
+
+    waitFor("list was never populated") { !listModel.isEmpty }
   }
 
   fun testFindReferences() {
