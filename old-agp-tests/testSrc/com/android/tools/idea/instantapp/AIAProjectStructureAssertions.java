@@ -77,7 +77,7 @@ public class AIAProjectStructureAssertions {
     assertThat(projectType).named("Module type").isEqualTo(moduleType);
     assertThat(model.isBaseSplit()).named("IsBaseSplit").isEqualTo(isBaseFeature);
 
-    IdeDependencies dependencies = model.getSelectedMainCompileDependencies();
+    IdeDependencies dependencies = model.getMainArtifact().getCompileClasspath();
     List<String> libraries =
       dependencies.getLibraries().stream()
         .filter((x) -> x instanceof IdeModuleLibrary)

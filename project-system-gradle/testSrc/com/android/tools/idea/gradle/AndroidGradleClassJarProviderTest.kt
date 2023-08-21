@@ -57,7 +57,7 @@ class AndroidGradleClassJarProviderTest {
     }
 
     val model = GradleAndroidModel.get(module)!!
-    val runtimeDependencies = model.selectedMainRuntimeDependencies.all().toSet() - model.selectedMainCompileDependencies.all().toSet()
+    val runtimeDependencies = model.mainArtifact.runtimeClasspath.all().toSet() - model.mainArtifact.compileClasspath.all().toSet()
     assertTrue(runtimeDependencies.isNotEmpty())
 
     val classJarProvider = AndroidGradleClassJarProvider()

@@ -614,9 +614,9 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
 
   val aarManifests =
     (listOf(this) + dependencies)
-      .flatMap {
-        GradleAndroidModel.get(it)
-          ?.selectedMainCompileDependencies
+      .flatMap { androidFacet ->
+        GradleAndroidModel.get(androidFacet)
+          ?.mainArtifact?.compileClasspath
           ?.libraries
           ?.filterIsInstance<IdeAndroidLibrary>()
           ?.mapNotNull { it.manifestFile() }

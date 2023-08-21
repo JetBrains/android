@@ -79,7 +79,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
       val ordering = Ordering.natural<Version>().nullsFirst<Version>()
 
       ModuleManager.getInstance(project).modules.mapNotNull { module -> GradleAndroidModel.get(module) }.forEach { model ->
-        val dependencies = model.selectedMainCompileDependencies
+        val dependencies = model.mainArtifact.compileClasspath
 
         kotlinVersion = ordering.max(kotlinVersion, dependencies.libraries.findVersion("org.jetbrains.kotlin", "kotlin-stdlib"))
         ktxVersion = ordering.max(ktxVersion, dependencies.libraries.findVersion("androidx.core", "core-ktx"))
