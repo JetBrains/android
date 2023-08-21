@@ -150,21 +150,19 @@ public class RenderErrorContributorTest extends AndroidTestCase {
         logOperation.addErrors(logger, render);
       }
 
-      if (useDumbMode) {
-        DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(true);
-      }
-
-      try {
+      Runnable runnable = () -> {
         // The error model must be created on a background thread.
         Future<RenderErrorModel> errorModel = ApplicationManager.getApplication().executeOnPooledThread(
           () -> RenderErrorModelFactory.createErrorModel(null, render, null));
 
         Futures.getUnchecked(errorModel).getIssues().stream().sorted().forEachOrdered(issues::add);
+      };
+
+      if (useDumbMode) {
+        DumbServiceImpl.getInstance(myFixture.getProject()).runInDumbModeSynchronously(runnable::run);
       }
-      finally {
-        if (useDumbMode) {
-          DumbServiceImpl.getInstance(myFixture.getProject()).setDumb(false);
-        }
+      else {
+        runnable.run();
       }
     });
     return issues;

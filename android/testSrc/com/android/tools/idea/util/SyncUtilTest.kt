@@ -24,13 +24,13 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.WriteAction
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.ThrowableRunnable
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -92,20 +92,6 @@ class SyncUtilTest {
     Mockito.verifyNoMoreInteractions(listener)
   }
 
-  private fun startDumbMode() {
-    WriteAction.runAndWait(ThrowableRunnable<Exception> {
-      DumbServiceImpl.getInstance(project).isDumb = true
-    })
-    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-  }
-
-  private fun stopDumbMode() {
-    WriteAction.runAndWait(ThrowableRunnable<Exception> {
-      DumbServiceImpl.getInstance(project).isDumb = false
-    })
-    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-  }
-
   @Test
   fun waitForSmartAndSyncedWhenSmartAndSynced() {
     val callCount = AtomicInteger(0)
@@ -115,16 +101,18 @@ class SyncUtilTest {
 
   @Test
   fun waitForSmartAndSyncedWhenDumbAndSynced() {
-    val callCount = AtomicInteger(0)
-    // Start dumb mode
-    startDumbMode()
-
-    project.runWhenSmartAndSynced(callback = Consumer { callCount.incrementAndGet() })
-    assertThat(callCount.get()).isEqualTo(0)
-    emulateSync(SyncResult.SUCCESS)
-    assertThat(callCount.get()).isEqualTo(0)
-    stopDumbMode()
-    assertThat(callCount.get()).isEqualTo(1)
+    runBlocking {
+      val callCount = AtomicInteger(0)
+      // Start dumb mode
+      DumbServiceImpl.getInstance(project).runInDumbMode {
+        project.runWhenSmartAndSynced(callback = Consumer { callCount.incrementAndGet() })
+        assertThat(callCount.get()).isEqualTo(0)
+        emulateSync(SyncResult.SUCCESS)
+        assertThat(callCount.get()).isEqualTo(0)
+      }
+      ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+      assertThat(callCount.get()).isEqualTo(1)
+    }
   }
 
   @Test
@@ -143,25 +131,29 @@ class SyncUtilTest {
   @Ignore
   @Test
   fun waitForSmartAndSyncedWhenDumbAndNotSynced() {
-    val callCount = AtomicInteger(0)
-    val syncManager = TestSyncManager(project)
-    syncManager.testIsSyncInProgress = true
-    startDumbMode()
-    project.runWhenSmartAndSynced(
-      callback = Consumer { callCount.incrementAndGet() },
-      syncManager = syncManager)
-    assertThat(callCount.get()).isEqualTo(0)
-    syncManager.testIsSyncInProgress = false
-    emulateSync(SyncResult.SUCCESS)
-    // Now we are in dumb mode but synced
-    assertThat(callCount.get()).isEqualTo(0)
+    runBlocking {
+      val callCount = AtomicInteger(0)
+      val syncManager = TestSyncManager(project)
+      syncManager.testIsSyncInProgress = true
 
-    stopDumbMode()
-    assertThat(callCount.get()).isEqualTo(1)
+      DumbServiceImpl.getInstance(project).runInDumbMode {
+        project.runWhenSmartAndSynced(
+          callback = Consumer { callCount.incrementAndGet() },
+          syncManager = syncManager)
+        assertThat(callCount.get()).isEqualTo(0)
+        syncManager.testIsSyncInProgress = false
+        emulateSync(SyncResult.SUCCESS)
+        // Now we are in dumb mode but synced
+        assertThat(callCount.get()).isEqualTo(0)
+      }
 
-    // Once the callback has been called, new syncs or dumb mode changes won't call the method
-    emulateSync(SyncResult.SUCCESS)
-    assertThat(callCount.get()).isEqualTo(1)
+      ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+      assertThat(callCount.get()).isEqualTo(1)
+
+      // Once the callback has been called, new syncs or dumb mode changes won't call the method
+      emulateSync(SyncResult.SUCCESS)
+      assertThat(callCount.get()).isEqualTo(1)
+    }
   }
 
   @Test
@@ -208,7 +200,7 @@ class SyncUtilTest {
     val callCount = AtomicInteger(0)
     val syncManager = TestSyncManager(project)
 
-    stopDumbMode() // Not in dumb mode so callbacks should be immediately called
+    assertThat(DumbService.isDumb(project)).isFalse() // Not in dumb mode so callbacks should be immediately called
     project.runWhenSmartAndSynced(
       callback = Consumer {
         callCount.incrementAndGet()

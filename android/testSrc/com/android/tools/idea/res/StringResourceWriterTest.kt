@@ -581,11 +581,12 @@ class StringResourceWriterTest {
   private fun dumbSafeDelete(item: ResourceItem) = dumbSafeDelete(listOf(item))
 
   private fun dumbSafeDelete(items: List<ResourceItem>) {
-    (DumbService.getInstance(project) as DumbServiceImpl).isDumb = true
     runBlocking {
-      withTimeout(2.seconds) {
-        suspendCancellableCoroutine { cont ->
-          stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
+      (DumbService.getInstance(project) as DumbServiceImpl).runInDumbMode {
+        withTimeout(2.seconds) {
+          suspendCancellableCoroutine { cont ->
+            stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
+          }
         }
       }
     }
@@ -600,7 +601,7 @@ class StringResourceWriterTest {
       items: List<ResourceItem>,
       dialogInteraction: (DialogWrapper) -> Unit
   ) {
-    (DumbService.getInstance(project) as DumbServiceImpl).isDumb = false
+    assertThat(DumbService.isDumb(project)).isFalse()
     runBlocking {
       withTimeout(20.seconds) {
         suspendCancellableCoroutine { cont ->

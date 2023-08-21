@@ -19,7 +19,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.insertText
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.DefaultLogger
 import com.intellij.openapi.diagnostic.Logger
@@ -33,6 +33,7 @@ import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertNotEmpty
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -554,20 +555,18 @@ class MultiRepresentationPreviewTest {
     val sampleFile = myFixture.addFileToProject("src/Preview.kt", "")
     myFixture.configureFromExistingVirtualFile(sampleFile.virtualFile)
 
-    invokeAndWaitIfNeeded {
-      DumbServiceImpl.getInstance(project).isDumb = true
-    }
-    val provider = TestPreviewRepresentationProvider("Accepting", false)
-    val futureMultiPreview = async {
-      createMultiRepresentation(
-        sampleFile,
-        myFixture.editor,
-        listOf(provider))
-    }
-
-    invokeAndWaitIfNeeded {
-      provider.isAccept = true
-      DumbServiceImpl.getInstance(project).isDumb = false
+    val futureMultiPreview = DumbServiceImpl.getInstance(project).runInDumbMode {
+      val provider = TestPreviewRepresentationProvider("Accepting", false)
+      val future = async {
+        createMultiRepresentation(
+          sampleFile,
+          myFixture.editor,
+          listOf(provider))
+      }
+      withContext(Dispatchers.EDT) {
+        provider.isAccept = true
+      }
+      return@runInDumbMode future
     }
 
     multiPreview = futureMultiPreview.await()
