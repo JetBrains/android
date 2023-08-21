@@ -81,7 +81,7 @@ class BitRateManagerTest {
     bitRateManager.bitRateReduced(5000000, deviceProperties)
 
     val element = serialize(bitRateManager)!!
-    val copy = deserialize<BitRateManager>(element)
-    assertThat(copy).isEqualTo(bitRateManager)
+    val deserialized = deserialize<BitRateManager>(element)
+    assertThat(deserialized).isEqualTo(bitRateManager)
   }
 }
