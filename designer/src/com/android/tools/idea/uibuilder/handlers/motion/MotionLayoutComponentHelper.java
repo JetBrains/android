@@ -29,20 +29,19 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.rendering.RenderService;
 import com.android.tools.res.ids.ResourceIdManager;
 import com.android.utils.Pair;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.annotations.NotNull;
 
 public class MotionLayoutComponentHelper {
-
-  private static final boolean USE_MOTIONLAYOUT_HELPER_CACHE = true;
 
   private InvokeMethod myGetKeyframeAtLocation = new InvokeMethod<>("getKeyframeAtLocation", Object.class, float.class, float.class);
   private InvokeMethod myGetKeyframe = new InvokeMethod<>("getKeyframe", Object.class, int.class, int.class);
@@ -80,21 +79,21 @@ public class MotionLayoutComponentHelper {
   private HashMap<String, KeyframePos> myCachedKeyframePos = new HashMap<>();
   private HashMap<String, KeyframeInfo> myCachedKeyframeInfo = new HashMap<>();
 
-  static WeakHashMap<NlComponent, MotionLayoutComponentHelper> sCache = new WeakHashMap<>();
+  private static final Cache<NlComponent, MotionLayoutComponentHelper> sCache = CacheBuilder.newBuilder()
+    .weakValues()
+    .weakKeys()
+    .build();
+
 
   public static void clearCache() {
-    sCache.clear();
+    sCache.invalidateAll();
   }
 
   public static MotionLayoutComponentHelper create(@NotNull NlComponent component) {
-    if (USE_MOTIONLAYOUT_HELPER_CACHE) {
-      MotionLayoutComponentHelper helper = sCache.get(component);
-      if (helper == null) {
-        helper = new MotionLayoutComponentHelper(component);
-        sCache.put(component, helper);
-      }
-      return helper;
-    } else {
+    try {
+      return sCache.get(component, () -> new MotionLayoutComponentHelper(component));
+    }
+    catch (ExecutionException e) {
       return new MotionLayoutComponentHelper(component);
     }
   }
