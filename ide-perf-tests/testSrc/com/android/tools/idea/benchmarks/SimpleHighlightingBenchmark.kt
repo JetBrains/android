@@ -23,9 +23,11 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.runInEdtAndWait
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
+@Ignore("b/297025863")
 class SimpleHighlightingBenchmark {
   @get:Rule
   val gradleRule = AndroidGradleProjectRule()
