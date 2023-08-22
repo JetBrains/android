@@ -17,7 +17,9 @@ package com.android.tools.idea.adblib
 
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.tools.idea.adb.FakeAdbServiceRule
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.google.common.truth.Truth
+import com.intellij.openapi.components.service
 import com.intellij.testFramework.ProjectRule
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -28,9 +30,10 @@ class AdbLibApplicationServiceTest {
   private val projectRule = ProjectRule()
   private val fakeAdbRule = FakeAdbRule()
   private val fakeAdbServiceRule = FakeAdbServiceRule({ projectRule.project }, fakeAdbRule)
+  private val project2Rule = ProjectRule()
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(fakeAdbRule).around(fakeAdbServiceRule)!!
+  val ruleChain = RuleChain.outerRule(projectRule).around(project2Rule).around(fakeAdbRule).around(fakeAdbServiceRule)!!
 
   @Test
   fun hostServicesShouldWork() {
@@ -44,5 +47,54 @@ class AdbLibApplicationServiceTest {
 
     // Assert
     Truth.assertThat(version).isGreaterThan(1)
+  }
+
+  @Test
+  fun getDeviceProvisionerForSessionIsNotNullWhenUsingApplicationService() {
+    // Prepare
+    val applicationAdbSession = AdbLibApplicationService.instance.session
+    val deviceProvisionerService = projectRule.project.service<DeviceProvisionerService>()
+
+    // Act
+    val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(applicationAdbSession)
+
+    // Assert
+    Truth.assertThat(deviceProvisioner).isSameAs(deviceProvisionerService.deviceProvisioner)
+  }
+
+  @Test
+  fun getDeviceProvisionerForSessionIsNullWhenUsingApplicationService() {
+    // Prepare
+    val applicationAdbSession = AdbLibApplicationService.instance.session
+
+    // Act
+    val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(applicationAdbSession)
+
+    // Assert
+    Truth.assertThat(deviceProvisioner).isNull()
+  }
+
+  @Test
+  fun getDeviceProvisionerForSessionIsNotNullWhenUsingProjectService() {
+    // Prepare
+    val projectService = AdbLibService.getInstance(projectRule.project)
+
+    // Act
+    val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(projectService.session)
+
+    // Assert
+    Truth.assertThat(deviceProvisioner).isSameAs(projectRule.project.service<DeviceProvisionerService>().deviceProvisioner)
+  }
+
+  @Test
+  fun getDeviceProvisionerForSessionIsReturningCorrectInstance() {
+    // Prepare
+    val projectAdbSession = AdbLibService.getInstance(project2Rule.project).session
+
+    // Act
+    val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(projectAdbSession)
+
+    // Assert
+    Truth.assertThat(deviceProvisioner).isSameAs(project2Rule.project.service<DeviceProvisionerService>().deviceProvisioner)
   }
 }

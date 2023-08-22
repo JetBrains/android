@@ -500,8 +500,15 @@ public final class StudioFlags {
     RUNDEBUG,
     "adb.jdwp.scache.enabled",
     "Enable JDWP SCache",
-    "Enables JDWP Speculative Cache (SCache). Requires restart",
+    "Enables JDWP Speculative Cache (SCache)",
     false);
+
+  public static final Flag<Boolean> JDWP_SCACHE_REMOTE_ONLY = Flag.create(
+    RUNDEBUG,
+    "adb.jdwp.scache.remote.only.enabled",
+    "Enable JDWP SCache for remote devices only",
+    "Enables JDWP Speculative Cache (SCache) for remote devices only",
+    true);
 
   public static final Flag<Boolean> SUPPORT_FEATURE_ON_FEATURE_DEPS = Flag.create(
     RUNDEBUG,

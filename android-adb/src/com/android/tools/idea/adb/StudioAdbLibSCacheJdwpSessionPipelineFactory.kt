@@ -16,14 +16,19 @@
 package com.android.tools.idea.adb
 
 import com.android.adblib.AdbSession
+import com.android.adblib.ConnectedDevice
 import com.android.adblib.CoroutineScopeCache
 import com.android.adblib.getOrPutSynchronized
 import com.android.adblib.tools.debugging.JdwpSessionPipeline
 import com.android.adblib.tools.debugging.JdwpSessionPipelineFactory
 import com.android.adblib.tools.debugging.addJdwpSessionPipelineFactory
+import com.android.tools.idea.adblib.AdbLibApplicationService
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.openapi.diagnostic.thisLogger
 
 class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory {
+  private var logger = thisLogger()
+
   private val scacheLogger = StudioSCacheLogger()
 
   private var enabled: () -> Boolean = { true }
@@ -35,24 +40,59 @@ class StudioAdbLibSCacheJdwpSessionPipelineFactory : JdwpSessionPipelineFactory 
   override val priority: Int
     get() = -1000
 
-  override fun create(session: AdbSession, previousPipeline: JdwpSessionPipeline): JdwpSessionPipeline? {
+  override fun create(
+    session: AdbSession,
+    device: ConnectedDevice,
+    pid: Int,
+    previousPipeline: JdwpSessionPipeline
+  ): JdwpSessionPipeline? {
     return when(enabled()) {
        true -> {
-        // If we (i.e. SCache) are enabled, we (as opposed to adblib) take ownership of tracing
-        // JDWP packets, because SCache is the only component that has access to the "journaling"
-        // (i.e. emulated) JDWP traffic.
-        val monitor = when (StudioFlags.JDWP_TRACER.get()) {
-          true -> StudioAdbLibJdwpTracer()
-          false -> null
-        }
+         // Enable only if the device is remote
+         val enabledForDevice = if (StudioFlags.JDWP_SCACHE_REMOTE_ONLY.get()) {
+           device.isRemote()
+         }
+         else {
+           true
+         }
 
-        StudioAdbLibSCacheJdwpSessionPipeline(session, scacheLogger, monitor, previousPipeline)
-      }
+         logger.info("SCache for device $device, process=$pid: enabled=$enabledForDevice")
 
-      false  -> {
+         when (enabledForDevice) {
+           true -> {
+             // If we (i.e. SCache) are enabled, we (as opposed to adblib) take ownership of tracing
+             // JDWP packets, because SCache is the only component that has access to the "journaling"
+             // (i.e. emulated) JDWP traffic.
+             val monitor = when (StudioFlags.JDWP_TRACER.get()) {
+               true -> StudioAdbLibJdwpTracer()
+               false -> null
+             }
+
+             StudioAdbLibSCacheJdwpSessionPipeline(session, scacheLogger, monitor, previousPipeline)
+           }
+
+           false -> {
+             // Not enabled for this device
+             null
+           }
+         }
+       }
+
+      false -> {
+        // Not enabled
         null
       }
     }
+  }
+
+  private fun ConnectedDevice.isRemote(): Boolean {
+    val deviceProvisioner = AdbLibApplicationService.getDeviceProvisionerForSession(session)
+    val isDeviceRemote = deviceProvisioner?.devices?.value?.any { deviceHandle ->
+      (deviceHandle.state.connectedDevice === this) &&
+      (deviceHandle.state.properties.isRemote ?: false)
+    } ?: false
+
+    return isDeviceRemote
   }
 
   companion object {

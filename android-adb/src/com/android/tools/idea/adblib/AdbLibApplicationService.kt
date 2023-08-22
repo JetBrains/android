@@ -20,11 +20,15 @@ import com.android.adblib.AdbServerChannelProvider
 import com.android.adblib.AdbSession
 import com.android.adblib.AdbSessionHost
 import com.android.ddmlib.DdmPreferences
+import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.intellij.application.subscribe
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.components.serviceIfCreated
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
@@ -91,5 +95,36 @@ class AdbLibApplicationService : Disposable {
     @JvmStatic
     val instance: AdbLibApplicationService
       get() = ApplicationManager.getApplication().getService(AdbLibApplicationService::class.java)
+
+
+    /**
+     * Returns the [DeviceProvisioner] best matching the [session]. This method is needed
+     * because some components (e.g. ddmlib compatibility layer) uses the [AdbSession] from
+     * [AdbLibApplicationService.session], so there is no [Project] for the passed in session,
+     * meaning there is no [DeviceProvisioner] readily available.
+     */
+    @JvmStatic
+    fun getDeviceProvisionerForSession(session: AdbSession): DeviceProvisioner? {
+      val projects = ProjectManager.getInstance().openProjects.toList()
+
+      return if (session === instance.session) {
+        // If application service session, use the first available device provisioner
+        projects.firstNotNullOfOrNull { project ->
+          project.serviceIfCreated<DeviceProvisionerService>()?.deviceProvisioner
+        }
+      }
+      else {
+        // Find project corresponding to the adblib session
+        projects.firstNotNullOfOrNull { project ->
+          val projectSession = project.serviceIfCreated<AdbLibService>()?.session
+          if (session === projectSession) {
+            project.service<DeviceProvisionerService>().deviceProvisioner
+          }
+          else {
+            null
+          }
+        }
+      }
+    }
   }
 }
