@@ -1406,6 +1406,16 @@ public final class StudioFlags {
     COMPOSE, "compose.preview.render.quality", "Enable the usage of a render quality management mechanism for Compose Preview",
     "If enabled, different Previews will be rendered with different qualities according to zoom level, layout and scroll position",
     false);
+
+  public static final Flag<Long> COMPOSE_PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME = Flag.create(
+    COMPOSE, "compose.preview.render.quality.debounce.time", "Render quality debounce time",
+    "Milliseconds to wait before adjusting the quality of Previews, after a scroll or zoom change happens",
+    100L);
+
+  public static final Flag<Integer> COMPOSE_PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD = Flag.create(
+    COMPOSE, "compose.preview.render.quality.visibility.threshold", "Render quality zoom visibility threshold",
+    "When the zoom level is lower than this value, all previews will be rendered at low quality",
+    20);
   //endregion
 
   // region Wear surfaces

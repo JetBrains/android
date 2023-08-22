@@ -15,15 +15,21 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.modes.essentials.EssentialsMode
 import com.android.tools.idea.preview.RenderQualityPolicy
 
 object ComposePreviewRenderQualityPolicy : RenderQualityPolicy {
   override val acceptedErrorMargin = .05f // 5% error margin
-  override val debounceTimeMillis = 100L
+  override val debounceTimeMillis: Long
+    get() = StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_DEBOUNCE_TIME.get().coerceAtLeast(1)
 
   /** When the scale is lower than this value, then all previews are treated as not visible. */
-  const val scaleVisibilityThreshold: Float = 0.2f
+  val scaleVisibilityThreshold: Float
+    get() =
+      (StudioFlags.COMPOSE_PREVIEW_RENDER_QUALITY_VISIBILITY_THRESHOLD.get() / 100f)
+        .coerceAtLeast(0f)
+        .coerceAtMost(1f)
   const val lowestQuality: Float = 0.001f
 
   override fun getTargetQuality(scale: Double, isVisible: Boolean): Float {
