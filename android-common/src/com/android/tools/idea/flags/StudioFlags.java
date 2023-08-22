@@ -767,10 +767,6 @@ public final class StudioFlags {
     "Suggest migrating current project JDK configuration to .gradle/config.properties where gradleJvm uses the " +
     "#GRADLE_LOCAL_JAVA_HOME macro and the java.home stores the JDK path to trigger Gradle sync.", true);
 
-  public static final Flag<Boolean> GRADLE_VERSION_CATALOG_DISPLAY_BANNERS =
-    Flag.create(GRADLE_IDE, "gradle.version.catalog.banners", "IDE banners if Version Catalogs used",
-                "Display banners in Gradle-related tools when Version Catalogs are in use", false);
-
   public static final Flag<Boolean> DECLARATIVE_PLUGIN_STUDIO_SUPPORT =
     Flag.create(GRADLE_IDE, "declarative.plugin.studio.support", "Studio support for AGP declarative plugin",
                 "Enable support for gradle.build.toml in PSD and Assistants", false);

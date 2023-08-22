@@ -24,11 +24,8 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static com.intellij.util.ThreeState.YES;
 
 import com.android.annotations.concurrency.AnyThread;
-import com.android.repository.Revision;
 import com.android.tools.idea.actions.HideAndroidBannerAction;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
@@ -38,7 +35,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.build.BuildContentManager;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -70,21 +66,18 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final GradleVersionCatalogDetector myVersionCatalogDetector;
   private static final long HIDE_ACTION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(30);
 
   @SuppressWarnings("unused") // Invoked by IDEA
   public ProjectSyncStatusNotificationProvider(@NotNull Project project) {
-    this(GradleProjectInfo.getInstance(project), GradleSyncState.getInstance(project), GradleVersionCatalogDetector.getInstance(project));
+    this(GradleProjectInfo.getInstance(project), GradleSyncState.getInstance(project));
   }
 
   @NonInjectable
   public ProjectSyncStatusNotificationProvider(@NotNull GradleProjectInfo projectInfo,
-                                               @NotNull GradleSyncState syncState,
-                                               @NotNull GradleVersionCatalogDetector versionCatalogDetector) {
+                                               @NotNull GradleSyncState syncState) {
     myProjectInfo = projectInfo;
     mySyncState = syncState;
-    myVersionCatalogDetector = versionCatalogDetector;
   }
 
   @Override
@@ -119,12 +112,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       return NotificationPanel.Type.SYNC_NEEDED;
     }
 
-    if (myVersionCatalogDetector.isVersionCatalogProject()) {
-      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
-        return NotificationPanel.Type.VERSION_CATALOG_PROJECT;
-      }
-    }
-
     return NotificationPanel.Type.PROJECT_STRUCTURE;
   }
 
@@ -148,19 +135,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @Override
         @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           return null;
-        }
-      },
-      VERSION_CATALOG_PROJECT() {
-        @Override
-        @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
-          if (VersionCatalogProjectNotificationPanel.userAllowsShow(project)) {
-            File ioFile = virtualToIoFile(file);
-            if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile) && !ioFile.getName().endsWith("versions.toml")) {
-              return null;
-            }
-            return new VersionCatalogProjectNotificationPanel(project);
-          }
-          return PROJECT_STRUCTURE.create(project, file, projectInfo);
         }
       },
       PROJECT_STRUCTURE() {
@@ -262,26 +236,6 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         File logFile = new File(PathManager.getLogPath(), "idea.log");
         RevealFileAction.openFile(logFile);
       });
-    }
-  }
-
-  @VisibleForTesting
-  static class VersionCatalogProjectNotificationPanel extends NotificationPanel {
-    private static final String TEXT = "Project uses Gradle Version Catalogs: some editor tools may not work as expected";
-
-    VersionCatalogProjectNotificationPanel(@NotNull Project project) {
-      super(TEXT);
-      createActionLabel("Hide notification", () -> {
-        String version = ApplicationInfo.getInstance().getShortVersion();
-        PropertiesComponent.getInstance(project).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", version);
-        setVisible(false);
-      });
-    }
-
-    static boolean userAllowsShow(@NotNull Project project) {
-      String lastHiddenValue = PropertiesComponent.getInstance(project).getValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", "0.0");
-      Revision revision = Revision.safeParseRevision(lastHiddenValue);
-      return revision.compareTo(Revision.safeParseRevision(ApplicationInfo.getInstance().getShortVersion())) < 0;
     }
   }
 
