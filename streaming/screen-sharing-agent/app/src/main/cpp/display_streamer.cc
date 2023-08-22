@@ -258,9 +258,11 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, string codec_name, Size max
       max_video_resolution_(max_video_resolution),
       video_orientation_(initial_video_orientation) {
   assert(socket_fd > 0);
-  string mime_type = (codec_name_.compare(0, 2, "vp") == 0 ? "video/x-vnd.on2." : "video/") + codec_name_;
-  codec_info_ = SelectVideoEncoder(mime_type);
-  WriteChannelHeader(codec_name_, socket_fd_);
+  if (display_id_ == PRIMARY_DISPLAY_ID) {
+    string mime_type = (codec_name_.compare(0, 2, "vp") == 0 ? "video/x-vnd.on2." : "video/") + codec_name_;
+    codec_info_ = SelectVideoEncoder(mime_type);
+    WriteChannelHeader(codec_name_, socket_fd_);
+  }
 }
 
 DisplayStreamer::~DisplayStreamer() {
@@ -271,9 +273,8 @@ DisplayStreamer::~DisplayStreamer() {
 }
 
 void DisplayStreamer::Start() {
-  if (streamer_stopped_) {
-    Log::D("Starting display stream");
-    streamer_stopped_ = false;
+  if (streamer_stopped_.exchange(false)) {
+    Log::D("Starting video stream for display %d", display_id_);
     thread_ = thread([this]() {
       Jvm::AttachCurrentThread("DisplayStreamer");
       Run();
@@ -283,27 +284,12 @@ void DisplayStreamer::Start() {
 }
 
 void DisplayStreamer::Stop() {
-  if (!streamer_stopped_) {
-    Log::D("Stopping display stream");
-    streamer_stopped_ = true;
-    StopCodecAndWaitForThreadToTerminate();
-  }
-}
-
-void DisplayStreamer::Shutdown() {
-  if (socket_fd_ > 0) {
-    close(socket_fd_);
+  if (!streamer_stopped_.exchange(true)) {
+    Log::D("Stopping video stream for display %d", display_id_);
     StopCodec();
     if (thread_.joinable()) {
       thread_.join();
     }
-  }
-}
-
-void DisplayStreamer::StopCodecAndWaitForThreadToTerminate() {
-  StopCodec();
-  if (thread_.joinable()) {
-    thread_.join();
   }
 }
 

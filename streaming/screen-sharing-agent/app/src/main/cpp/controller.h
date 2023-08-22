@@ -35,12 +35,13 @@ namespace screensharing {
 // Processes control socket commands.
 class Controller : private DisplayManager::DisplayListener {
 public:
-  // The controller takes ownership of the socket file descriptor and closes it when destroyed.
   Controller(int socket_fd);
   virtual ~Controller();
 
   void Run();
-  void Shutdown();
+  // Stops the controller asynchronously. The controller can't be restarted one stopped.
+  // May be called on any thread.
+  void Stop();
 
 private:
   struct ClipboardListener : public ClipboardManager::ClipboardListener {

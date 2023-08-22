@@ -132,42 +132,89 @@ void Agent::Run(const vector<string>& args) {
   struct sigaction action = { .sa_handler = sighup_handler };
   int res = sigaction(SIGHUP, &action, nullptr);
   if (res < 0) {
-    Log::D("Unable to set SIGHUP handler - sigaction returned %d", res);
+    Log::E("Unable to set SIGHUP handler - sigaction returned %d", res);
   }
 
-  display_streamer_ = new DisplayStreamer(
-      display_id_, codec_name_, max_video_resolution_, initial_video_orientation_, max_bit_rate_, CreateAndConnectSocket(socket_name_));
-  controller_ = new Controller(CreateAndConnectSocket(socket_name_));
+  assert(display_streamers_.empty());
+  video_socket_fd_ = CreateAndConnectSocket(socket_name_);
+  control_socket_fd_ = CreateAndConnectSocket(socket_name_);
+  auto ret = display_streamers_.try_emplace(
+      PRIMARY_DISPLAY_ID,
+      PRIMARY_DISPLAY_ID, codec_name_, max_video_resolution_, initial_video_orientation_, max_bit_rate_, video_socket_fd_);
+  primary_display_streamer_ = &ret.first->second;
+  controller_ = new Controller(control_socket_fd_);
   Log::D("Created video and control sockets");
   if ((flags_ & START_VIDEO_STREAM) != 0) {
-    StartVideoStream(PRIMARY_DISPLAY_ID, max_video_resolution_);
+    primary_display_streamer_->Start();
   }
   controller_->Run();
   Shutdown();
 }
 
-void Agent::SetVideoOrientation(int32_t orientation) {
-  if (display_streamer_ != nullptr) {
-    display_streamer_->SetVideoOrientation(orientation);
+void Agent::StartVideoStream(int32_t display_id, Size max_video_resolution) {
+  DisplayStreamer* display_streamer;
+  bool created;
+  if (display_id == PRIMARY_DISPLAY_ID) {
+    display_streamer = primary_display_streamer_;
+    created = false;
+  } else {
+    auto ret = display_streamers_.try_emplace(
+        PRIMARY_DISPLAY_ID,
+        PRIMARY_DISPLAY_ID, codec_name_, max_video_resolution, DisplayStreamer::CURRENT_DISPLAY_ORIENTATION,
+        primary_display_streamer_->bit_rate(), video_socket_fd_);
+    display_streamer = &ret.first->second;
+    created = ret.second;
+  }
+  if (!created) {
+    display_streamer->SetMaxVideoResolution(max_video_resolution);
+  }
+  display_streamer->Start();
+}
+
+void Agent::StopVideoStream(int32_t display_id) {
+  auto it = display_streamers_.find(display_id);
+  if (it != display_streamers_.end()) {
+    DisplayStreamer& display_streamer = it->second;
+    display_streamer.Stop();
+    if (display_id != PRIMARY_DISPLAY_ID) {
+      display_streamers_.erase(it);
+    }
   }
 }
 
-void Agent::SetMaxVideoResolution(Size max_video_resolution) {
-  if (max_video_resolution.width <= 0 || max_video_resolution.height <= 0) {
-    Log::E("An attempt to set an invalid video resolution: %dx%d", max_video_resolution.width, max_video_resolution.height);
-    return;
-  }
-  max_video_resolution_ = max_video_resolution;
-  if (display_streamer_ != nullptr) {
-    display_streamer_->SetMaxVideoResolution(max_video_resolution);
+void Agent::SetVideoOrientation(int32_t display_id, int32_t orientation) {
+  auto it = display_streamers_.find(display_id);
+  if (it != display_streamers_.end()) {
+    DisplayStreamer& display_streamer = it->second;
+    display_streamer.SetVideoOrientation(orientation);
   }
 }
 
-DisplayInfo Agent::GetDisplayInfo() {
-  if (display_streamer_ == nullptr) {
-    Log::Fatal("DisplayStreamer has not been created yet");
+void Agent::SetVideoOrientationOfInternalDisplays(int32_t orientation) {
+  for (auto& it : display_streamers_) {
+    DisplayInfo display_info = GetDisplayInfo(it.first);
+    if (display_info.type == DisplayInfo::TYPE_INTERNAL) {
+      DisplayStreamer& display_streamer = it.second;
+      display_streamer.SetVideoOrientation(orientation);
+    }
   }
-  return display_streamer_->GetDisplayInfo();
+}
+
+void Agent::SetMaxVideoResolution(int32_t display_id, Size max_video_resolution) {
+  auto it = display_streamers_.find(display_id);
+  if (it != display_streamers_.end()) {
+    DisplayStreamer& display_streamer = it->second;
+    display_streamer.SetMaxVideoResolution(max_video_resolution);
+  }
+}
+
+DisplayInfo Agent::GetDisplayInfo(int32_t display_id) {
+  auto it = display_streamers_.find(display_id);
+  if (it != display_streamers_.end()) {
+    DisplayStreamer& display_streamer = it->second;
+    return display_streamer.GetDisplayInfo();
+  }
+  return DisplayManager::GetDisplayInfo(Jvm::GetJni(), display_id);
 }
 
 void Agent::InitializeSessionEnvironment() {
@@ -185,11 +232,13 @@ void Agent::RestoreEnvironment() {
 void Agent::Shutdown() {
   if (!shutting_down_.exchange(true)) {
     if (controller_ != nullptr) {
-      controller_->Shutdown();
+      controller_->Stop();
     }
-    if (display_streamer_ != nullptr) {
-      display_streamer_->Shutdown();
+    close(control_socket_fd_);
+    for (auto& it : display_streamers_) {
+      it.second.Stop();
     }
+    close(video_socket_fd_);
     RestoreEnvironment();
   }
 }
@@ -204,13 +253,15 @@ void Agent::RecordTouchEvent() {
 
 int32_t Agent::api_level_(0);
 string Agent::socket_name_("screen-sharing-agent");
-int32_t Agent::display_id_(0);
 Size Agent::max_video_resolution_(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max());
 int32_t Agent::initial_video_orientation_(-1);
 int32_t Agent::max_bit_rate_(0);
 string Agent::codec_name_("vp8");
 int32_t Agent::flags_(0);
-DisplayStreamer* Agent::display_streamer_(nullptr);
+int Agent::video_socket_fd_(0);
+int Agent::control_socket_fd_(0);
+std::map<int32_t, DisplayStreamer> Agent::display_streamers_;
+DisplayStreamer* Agent::primary_display_streamer_(nullptr);
 Controller* Agent::controller_(nullptr);
 mutex Agent::environment_mutex_;
 SessionEnvironment* Agent::session_environment_(nullptr);  // GUARDED_BY(environment_mutex_)

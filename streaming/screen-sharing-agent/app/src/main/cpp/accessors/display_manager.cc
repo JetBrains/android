@@ -50,6 +50,7 @@ void DisplayManager::InitializeStatics(Jni jni) {
     rotation_field_ = display_info_class.GetFieldId("rotation", "I");
     layer_stack_field_ = display_info_class.GetFieldId("layerStack", "I");
     flags_field_ = display_info_class.GetFieldId("flags", "I");
+    type_field_ = display_info_class.GetFieldId("type", "I");
     state_field_ = display_info_class.GetFieldId("state", "I");
 
     if (Agent::api_level() >= 29) {
@@ -87,8 +88,9 @@ DisplayInfo DisplayManager::GetDisplayInfo(Jni jni, int32_t display_id) {
   int rotation = display_info.GetIntField(rotation_field_);
   int layer_stack = display_info.GetIntField(layer_stack_field_);
   int flags = display_info.GetIntField(flags_field_);
+  int type = display_info.GetIntField(type_field_);
   int state = display_info.GetIntField(state_field_);
-  return DisplayInfo(logical_width, logical_height, logical_density_dpi, rotation, layer_stack, flags, state);
+  return DisplayInfo(logical_width, logical_height, logical_density_dpi, rotation, layer_stack, flags, type, state);
 }
 
 void DisplayManager::RegisterDisplayListener(Jni jni, DisplayManager::DisplayListener* listener) {
@@ -176,6 +178,7 @@ jfieldID DisplayManager::logical_density_dpi_field_ = nullptr;
 jfieldID DisplayManager::rotation_field_ = nullptr;
 jfieldID DisplayManager::layer_stack_field_ = nullptr;
 jfieldID DisplayManager::flags_field_ = nullptr;
+jfieldID DisplayManager::type_field_ = nullptr;
 jfieldID DisplayManager::state_field_ = nullptr;
 JClass DisplayManager::display_manager_class_;
 jmethodID DisplayManager::create_virtual_display_method_ = nullptr;

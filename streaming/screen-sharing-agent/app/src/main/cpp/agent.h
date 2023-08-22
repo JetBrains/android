@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -33,22 +34,19 @@ public:
   Agent() = delete;
   static void Run(const std::vector<std::string>& args);
 
-  static void StartVideoStream(int32_t display_id, Size max_video_resolution) {
-    SetMaxVideoResolution(max_video_resolution);
-    display_streamer_->Start();
-  }
-  static void StopVideoStream(int32_t display_id) {
-    display_streamer_->Stop();
-  }
+  static void StartVideoStream(int32_t display_id, Size max_video_resolution);
+  static void StopVideoStream(int32_t display_id);
 
   static void Shutdown();
 
   // Calls DisplayStreamer::SetVideoOrientation.
-  static void SetVideoOrientation(int32_t orientation);
+  static void SetVideoOrientation(int32_t display_id, int32_t orientation);
+  // Calls DisplayStreamer::SetVideoOrientation for all internal displays.
+  static void SetVideoOrientationOfInternalDisplays(int32_t orientation);
   // Calls DisplayStreamer::SetMaxVideoResolution.
-  static void SetMaxVideoResolution(Size max_video_resolution);
+  static void SetMaxVideoResolution(int32_t display_id, Size max_video_resolution);
   // Calls DisplayStreamer::GetDisplayInfo.
-  static DisplayInfo GetDisplayInfo();
+  static DisplayInfo GetDisplayInfo(int32_t display_id);
 
   // Modifies system settings for the screen sharing session. May be called on any thread.
   static void InitializeSessionEnvironment();
@@ -74,13 +72,15 @@ private:
 
   static int32_t api_level_;
   static std::string socket_name_;
-  static int32_t display_id_;
   static Size max_video_resolution_;
   static int32_t max_bit_rate_;  // Zero means no limit.
   static int32_t initial_video_orientation_;  // In quadrants counterclockwise.
   static std::string codec_name_;
   static int32_t flags_;
-  static DisplayStreamer* display_streamer_;
+  static int video_socket_fd_;
+  static int control_socket_fd_;
+  static std::map<int32_t, DisplayStreamer> display_streamers_;
+  static DisplayStreamer* primary_display_streamer_;
   static Controller* controller_;
   static std::mutex environment_mutex_;
   static SessionEnvironment* session_environment_;  // GUARDED_BY(environment_mutex_)

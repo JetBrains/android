@@ -41,18 +41,14 @@ public:
     CURRENT_VIDEO_ORIENTATION = -1, CURRENT_DISPLAY_ORIENTATION = -2
   };
 
-  // The display streamer takes ownership of the socket file descriptor and closes it when destroyed.
   DisplayStreamer(
       int display_id, std::string codec_name, Size max_video_resolution, int initial_video_orientation, int max_bitrate, int socket_fd);
   virtual ~DisplayStreamer();
 
   // Starts the streamer's thread.
   void Start();
-  // Stops the streamer without closing the file descriptor. Waits for the streamer's thread.
-  // to terminate.
+  // Stops the streamer. Waits for the streamer's thread to terminate.
   void Stop();
-  // Shuts down the streamer.  Waits for the streamer's thread. Once shut down, the streamer cannot be restarted.
-  void Shutdown();
 
   // Sets orientation of the device display. The orientation parameter may have a negative value
   // equal to one of the OrientationReset values.
@@ -61,6 +57,9 @@ public:
   void SetMaxVideoResolution(Size max_video_resolution);
   // Returns the cached version of DisplayInfo.
   DisplayInfo GetDisplayInfo();
+
+  CodecInfo* codec_info() const { return codec_info_; }
+  int32_t bit_rate() const { return bit_rate_; }
 
 private:
   struct DisplayRotationWatcher : public WindowManager::RotationWatcher {
@@ -79,7 +78,6 @@ private:
   void StopCodec();
   void StopCodecUnlocked();  // REQUIRES(mutex_)
   bool IsCodecRunning();
-  void StopCodecAndWaitForThreadToTerminate();
   // Returns true if the bit rate was deduced, false if it already reached allowed minimum.
   bool ReduceBitRate();
 
