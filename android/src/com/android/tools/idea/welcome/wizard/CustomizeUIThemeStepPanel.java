@@ -5,8 +5,10 @@ import com.intellij.ide.cloudConfig.CloudConfigProvider;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.laf.IntelliJLaf;
 import com.intellij.ide.ui.laf.LafManagerImpl;
+import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfo;
 import com.intellij.ide.ui.laf.darcula.DarculaLaf;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.SystemInfo;
@@ -231,9 +233,20 @@ public class CustomizeUIThemeStepPanel extends JPanel {
   }
 
   private void applyLaf(ThemeInfo theme, Component component) {
-    UIManager.LookAndFeelInfo info = new UIManager.LookAndFeelInfo(theme.name, theme.laf);
+    UIThemeLookAndFeelInfo info = null;
+    for (UIManager.LookAndFeelInfo lookAndFeelInfo : LafManager.getInstance().getInstalledLookAndFeels()) {
+      if (lookAndFeelInfo instanceof UIThemeLookAndFeelInfo) {
+        if (((UIThemeLookAndFeelInfo)lookAndFeelInfo).getTheme().getName().equals(theme.name)) {
+          info = (UIThemeLookAndFeelInfo)lookAndFeelInfo;
+        }
+      }
+    }
+    if (info == null) {
+      Logger.getInstance("CustomizeUIThemeStepPanel").error("Theme with name: " + theme.name + " not found");
+      return;
+    }
+
     try {
-      boolean wasUnderDarcula = StartupUiUtil.isUnderDarcula();
       UIManager.setLookAndFeel(info.getClassName());
       AppUIUtil.updateForDarcula(StartupUiUtil.isUnderDarcula());
       String className = info.getClassName();
@@ -246,7 +259,7 @@ public class CustomizeUIThemeStepPanel extends JPanel {
       }
       if (ApplicationManager.getApplication() != null) {
         LafManager lafManager = LafManager.getInstance();
-        lafManager.setCurrentLookAndFeel(info);
+        lafManager.setCurrentUIThemeLookAndFeel(info);
         if (lafManager instanceof LafManagerImpl) {
           //((LafManagerImpl)lafManager).updateWizardLAF(wasUnderDarcula);//Actually updateUI would be called inside EditorColorsManager
         }
