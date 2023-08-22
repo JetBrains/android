@@ -1524,6 +1524,22 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testBundlesWithoutLibraries() {
+    writeToBuildFile("")
+    writeToVersionCatalogFile("""
+        [bundles]
+        core = [ "foo", "bar" ]
+      """.trimIndent())
+
+    val vcModel = projectBuildModel.versionCatalogsModel
+    val bundles = vcModel.bundles("libs")!!
+    val literals = bundles.findProperty("core").toList()!!
+
+    assertEmpty(literals[0].dependencies)
+    assertEmpty(literals[1].dependencies)
+  }
+
+  @Test
   fun testBundleCreateMapWithLibs() {
     writeToBuildFile("")
     writeToVersionCatalogFile("""

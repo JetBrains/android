@@ -231,7 +231,7 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     GradleDslExpressionMap libraries = getPropertyElement("libraries", GradleDslExpressionMap.class);
     GradleDslExpressionMap bundles = getPropertyElement("bundles", GradleDslExpressionMap.class);
 
-    if (bundles == null) return;
+    if (bundles == null || libraries == null) return;
 
     Consumer<GradlePropertiesDslElement> libraryRefReplacer = (bundle) -> {
       List<GradleDslElement> elements = bundle.getCurrentElements();
