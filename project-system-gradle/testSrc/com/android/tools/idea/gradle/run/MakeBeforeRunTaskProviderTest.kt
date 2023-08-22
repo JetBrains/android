@@ -51,7 +51,6 @@ import com.intellij.util.ThreeState
 import org.apache.commons.io.FileUtils
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
-import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations.initMocks
@@ -97,7 +96,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
         )
       }.toTypedArray()
     )
-    myModules = ProjectStructure.getInstance(project).leafHolderModules.toTypedArray()
+    myModules = ProjectStructure.getInstance(project).appHolderModules.toTypedArray()
     myRunConfiguration = RunConfigurationGradleContext(
       androidFacet = project.gradleModule(modules.first().first)?.androidFacet!!,
       isTestConfiguration = false,

@@ -347,7 +347,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <TEMP>::generateDebugSources, <TEMP>::ideAndroidTestSetupTask1, <TEMP>::ideAndroidTestSetupTask2, <TEMP>::ideUnitTestSetupTask1, <TEMP>::ideUnitTestSetupTask2
-            ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest, :assembleDebugUnitTest
+            ASSEMBLE                      : <TEMP>::assembleDebug, <TEMP>::assembleDebugAndroidTest, <TEMP>::assembleDebugUnitTest
             REBUILD                       : <TEMP>::assembleDebug, <TEMP>::assembleDebugAndroidTest, <TEMP>::assembleDebugUnitTest, <TEMP>::clean
             COMPILE_JAVA                  : <TEMP>::compileDebugAndroidTestSources, <TEMP>::compileDebugSources, <TEMP>::compileDebugUnitTestSources
             SOURCE_GEN                    : <TEMP>::generateDebugSources, <TEMP>::ideAndroidTestSetupTask1, <TEMP>::ideAndroidTestSetupTask2, <TEMP>::ideUnitTestSetupTask1, <TEMP>::ideUnitTestSetupTask2
@@ -355,7 +355,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             APK_FROM_BUNDLE               : :extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <TEMP>::generateDebugSources, <TEMP>::ideAndroidTestSetupTask1, <TEMP>::ideAndroidTestSetupTask2
-            ASSEMBLE                      : :assembleDebug, :assembleDebugAndroidTest
+            ASSEMBLE                      : <TEMP>::assembleDebug, <TEMP>::assembleDebugAndroidTest
             REBUILD                       : <TEMP>::assembleDebug, <TEMP>::assembleDebugAndroidTest, <TEMP>::clean
             COMPILE_JAVA                  : <TEMP>::compileDebugAndroidTestSources, <TEMP>::compileDebugSources
             SOURCE_GEN                    : <TEMP>::generateDebugSources, <TEMP>::ideAndroidTestSetupTask1, <TEMP>::ideAndroidTestSetupTask2
@@ -363,7 +363,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             APK_FROM_BUNDLE               : :extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <TEMP>::generateDebugSources, <TEMP>::ideUnitTestSetupTask1, <TEMP>::ideUnitTestSetupTask2
-            ASSEMBLE                      : :assembleDebug, :assembleDebugUnitTest
+            ASSEMBLE                      : <TEMP>::assembleDebug, <TEMP>::assembleDebugUnitTest
             REBUILD                       : <TEMP>::assembleDebug, <TEMP>::assembleDebugUnitTest, <TEMP>::clean
             COMPILE_JAVA                  : <TEMP>::compileDebugUnitTestSources
             SOURCE_GEN                    : <TEMP>::generateDebugSources, <TEMP>::ideUnitTestSetupTask1, <TEMP>::ideUnitTestSetupTask2
@@ -371,7 +371,7 @@ PROJECT                       : testLightTestsWithDefaultTestProjectStructureFor
             APK_FROM_BUNDLE               : :extractApksForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <TEMP>::generateDebugSources
-            ASSEMBLE                      : :assembleDebug
+            ASSEMBLE                      : <TEMP>::assembleDebug
             REBUILD                       : <TEMP>::assembleDebug, <TEMP>::clean
             COMPILE_JAVA                  : <TEMP>::compileDebugSources
             SOURCE_GEN                    : <TEMP>::generateDebugSources

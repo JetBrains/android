@@ -1889,7 +1889,7 @@ PROJECT                       : project
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::awesomeandroidlibrary:createMockableJar, <PROJECT>::awesomeandroidlibrary:generateDebugAndroidTestSources, <PROJECT>::awesomeandroidlibrary:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugAndroidTest, <PROJECT>::awesomeandroidlibrary:assembleDebugUnitTest
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugAndroidTest, <PROJECT>::awesomeandroidlibrary:assembleDebugUnitTest, <PROJECT>::contentLib:assemble, <PROJECT>::contentLib:testClasses
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugAndroidTest, <PROJECT>::awesomeandroidlibrary:assembleDebugUnitTest, <PROJECT>::awesomeandroidlibrary:clean, <PROJECT>::contentLib:assemble, <PROJECT>::contentLib:clean, <PROJECT>::contentLib:testClasses
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::awesomeandroidlibrary:compileDebugAndroidTestSources, <PROJECT>::awesomeandroidlibrary:compileDebugSources, <PROJECT>::awesomeandroidlibrary:compileDebugUnitTestSources, <PROJECT>::contentLib:compileJava, <PROJECT>::contentLib:testClasses
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::awesomeandroidlibrary:createMockableJar, <PROJECT>::awesomeandroidlibrary:generateDebugAndroidTestSources, <PROJECT>::awesomeandroidlibrary:generateDebugSources
@@ -1897,7 +1897,7 @@ PROJECT                       : project
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::awesomeandroidlibrary:generateDebugAndroidTestSources, <PROJECT>::awesomeandroidlibrary:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugAndroidTest
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugAndroidTest, <PROJECT>::contentLib:assemble
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugAndroidTest, <PROJECT>::awesomeandroidlibrary:clean, <PROJECT>::contentLib:assemble, <PROJECT>::contentLib:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::awesomeandroidlibrary:compileDebugAndroidTestSources, <PROJECT>::awesomeandroidlibrary:compileDebugSources, <PROJECT>::contentLib:compileJava
             SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::awesomeandroidlibrary:generateDebugAndroidTestSources, <PROJECT>::awesomeandroidlibrary:generateDebugSources
@@ -1905,7 +1905,7 @@ PROJECT                       : project
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::awesomeandroidlibrary:createMockableJar, <PROJECT>::awesomeandroidlibrary:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugUnitTest
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugUnitTest, <PROJECT>::contentLib:assemble, <PROJECT>::contentLib:testClasses
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebugUnitTest, <PROJECT>::awesomeandroidlibrary:clean, <PROJECT>::contentLib:assemble, <PROJECT>::contentLib:clean, <PROJECT>::contentLib:testClasses
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::awesomeandroidlibrary:compileDebugUnitTestSources, <PROJECT>::contentLib:compileJava, <PROJECT>::contentLib:testClasses
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::awesomeandroidlibrary:createMockableJar, <PROJECT>::awesomeandroidlibrary:generateDebugSources
@@ -1913,7 +1913,7 @@ PROJECT                       : project
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::awesomeandroidlibrary:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebug
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::contentLib:assemble
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::awesomeandroidlibrary:assembleDebug, <PROJECT>::awesomeandroidlibrary:clean, <PROJECT>::contentLib:assemble, <PROJECT>::contentLib:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::awesomeandroidlibrary:compileDebugSources, <PROJECT>::contentLib:compileJava
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::awesomeandroidlibrary:generateDebugSources

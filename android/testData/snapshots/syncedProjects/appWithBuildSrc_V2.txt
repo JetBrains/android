@@ -1321,7 +1321,7 @@ PROJECT                       : project
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
@@ -1329,7 +1329,7 @@ PROJECT                       : project
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::buildSrc:assemble
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib2:assemble
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib2:compileJava
             SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources
@@ -1337,7 +1337,7 @@ PROJECT                       : project
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:testClasses
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib1:testClasses, <PROJECT>::buildSrc:lib2:compileJava, <PROJECT>::buildSrc:lib2:testClasses, <PROJECT>::buildSrc:testClasses
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources
@@ -1345,7 +1345,7 @@ PROJECT                       : project
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::buildSrc:assemble
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib2:assemble
             REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::buildSrc:assemble, <PROJECT>::buildSrc:clean, <PROJECT>::buildSrc:lib1:assemble, <PROJECT>::buildSrc:lib1:clean, <PROJECT>::buildSrc:lib2:assemble, <PROJECT>::buildSrc:lib2:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::buildSrc:compileJava, <PROJECT>::buildSrc:lib1:compileJava, <PROJECT>::buildSrc:lib2:compileJava
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources

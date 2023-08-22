@@ -97,12 +97,11 @@ fun ProjectDumper.dumpProject(project: Project) {
 
       val allModules = ModuleManager.getInstance(project).modules.toList().sortedModules()
       val appModules = ProjectStructure.getInstance(project).appHolderModules.sortedModules()
-      val leafModules = ProjectStructure.getInstance(project).leafHolderModules.sortedModules()
 
       when (buildMode) {
         BuildMode.REBUILD -> allModules
         BuildMode.COMPILE_JAVA -> allModules
-        BuildMode.ASSEMBLE -> leafModules
+        BuildMode.ASSEMBLE -> allModules
         BuildMode.CLEAN -> allModules
         BuildMode.APK_FROM_BUNDLE -> appModules
         BuildMode.BUNDLE -> appModules

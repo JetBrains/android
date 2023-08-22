@@ -1805,7 +1805,7 @@ PROJECT                       : MainActivity
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateLocalDebugAndroidTestSources, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugAndroidTest, <PROJECT>::app:assembleLocalDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
+            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugAndroidTest, <PROJECT>::app:assembleLocalDebugUnitTest, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest
             REBUILD                       : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugAndroidTest, <PROJECT>::app:assembleLocalDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:clean, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileLocalDebugAndroidTestSources, <PROJECT>::app:compileLocalDebugSources, <PROJECT>::app:compileLocalDebugUnitTestSources, <PROJECT>::javaLib:compileJava, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateLocalDebugAndroidTestSources, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
@@ -1813,7 +1813,7 @@ PROJECT                       : MainActivity
             APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateLocalDebugAndroidTestSources, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugAndroidTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest
+            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugAndroidTest, <PROJECT>::javaLib:assemble, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest
             REBUILD                       : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugAndroidTest, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileLocalDebugAndroidTestSources, <PROJECT>::app:compileLocalDebugSources, <PROJECT>::javaLib:compileJava, <PROJECT>::lib:compileDebugAndroidTestSources, <PROJECT>::lib:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateLocalDebugAndroidTestSources, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:generateDebugAndroidTestSources, <PROJECT>::lib:generateDebugSources
@@ -1821,7 +1821,7 @@ PROJECT                       : MainActivity
             APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugUnitTest, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest
+            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugUnitTest, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest
             REBUILD                       : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:assembleLocalDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:clean, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:assembleDebugUnitTest, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileLocalDebugUnitTestSources, <PROJECT>::javaLib:compileJava, <PROJECT>::javaLib:testClasses, <PROJECT>::lib:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:createMockableJar, <PROJECT>::lib:generateDebugSources
@@ -1829,7 +1829,7 @@ PROJECT                       : MainActivity
             APK_FROM_BUNDLE               : :app:extractApksForLocalDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::lib:assembleDebug
+            ASSEMBLE                      : <PROJECT>::app:assembleLocalDebug, <PROJECT>::javaLib:assemble, <PROJECT>::lib:assembleDebug
             REBUILD                       : <PROJECT>::app:assembleLocalDebug, <PROJECT>::app:clean, <PROJECT>::javaLib:assemble, <PROJECT>::javaLib:clean, <PROJECT>::lib:assembleDebug, <PROJECT>::lib:clean
             COMPILE_JAVA                  : <PROJECT>::app:compileLocalDebugSources, <PROJECT>::javaLib:compileJava, <PROJECT>::lib:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateLocalDebugSources, <PROJECT>::lib:generateDebugSources
