@@ -158,7 +158,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
             if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile) && !ioFile.getName().endsWith("versions.toml")) {
               return null;
             }
-            return new VersionCatalogProjectNotificationPanel(project, this);
+            return new VersionCatalogProjectNotificationPanel(project);
           }
           return PROJECT_STRUCTURE.create(project, file, projectInfo);
         }
@@ -182,7 +182,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                 return null;
               }
             }
-            return new ProjectStructureNotificationPanel(project, this, module);
+            return new ProjectStructureNotificationPanel(project, module);
           }
           return null;
         }
@@ -191,7 +191,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @Override
         @NotNull
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
-          return new NotificationPanel(this, "Gradle project sync in progress...");
+          return new NotificationPanel("Gradle project sync in progress...");
         }
       },
       FAILED() {
@@ -199,7 +199,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @NotNull
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           String text = "Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.";
-          return new SyncProblemNotificationPanel(project, this, text);
+          return new SyncProblemNotificationPanel(project, text);
         }
       },
       SYNC_NEEDED() {
@@ -209,7 +209,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
           boolean buildFilesModified = GradleFiles.getInstance(project).areExternalBuildFilesModified();
           String text = (buildFilesModified ? "External build files" : "Gradle files") +
                         " have changed since last project sync. A project sync may be necessary for the IDE to work properly.";
-          return new StaleGradleModelNotificationPanel(project, this, text);
+          return new StaleGradleModelNotificationPanel(project, text);
         }
       };
 
@@ -217,19 +217,16 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
       abstract NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo);
     }
 
-    @NotNull private final Type type;
-
-    NotificationPanel(@NotNull Type type, @NotNull String text) {
+    NotificationPanel(@NotNull String text) {
       super((Color)null, Status.Info);
-      this.type = type;
       setText(text);
     }
   }
 
   @VisibleForTesting
   static class StaleGradleModelNotificationPanel extends NotificationPanel {
-    StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
-      super(type, text);
+    StaleGradleModelNotificationPanel(@NotNull Project project, @NotNull String text) {
+      super(text);
       if (GradleFiles.getInstance(project).areExternalBuildFilesModified()) {
         // Set this to true so that the request sent to gradle daemon contains arg -Pandroid.injected.refresh.external.native.model=true,
         // which would refresh the C++ project. See com.android.tools.idea.gradle.project.sync.common.CommandLineArgs for related logic.
@@ -247,8 +244,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
   @VisibleForTesting
   static class SyncProblemNotificationPanel extends NotificationPanel {
-    SyncProblemNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull String text) {
-      super(type, text);
+    SyncProblemNotificationPanel(@NotNull Project project, @NotNull String text) {
+      super(text);
 
       createActionLabel("Try Again",
                         () -> GradleSyncInvoker.getInstance()
@@ -272,8 +269,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   static class VersionCatalogProjectNotificationPanel extends NotificationPanel {
     private static final String TEXT = "Project uses Gradle Version Catalogs: some editor tools may not work as expected";
 
-    VersionCatalogProjectNotificationPanel(@NotNull Project project, @NotNull Type type) {
-      super(type, TEXT);
+    VersionCatalogProjectNotificationPanel(@NotNull Project project) {
+      super(TEXT);
       createActionLabel("Hide notification", () -> {
         String version = ApplicationInfo.getInstance().getShortVersion();
         PropertiesComponent.getInstance(project).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", version);
@@ -293,8 +290,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     private static final String TEXT = "You can use the Project Structure dialog to view and edit your project configuration";
     private static final long RESHOW_TIMEOUT_MS = TimeUnit.DAYS.toMillis(30);
 
-    ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Type type, @NotNull Module module) {
-      super(type, TEXT);
+    ProjectStructureNotificationPanel(@NotNull Project project, @NotNull Module module) {
+      super(TEXT);
 
       String shortcutText = KeymapUtil.getFirstKeyboardShortcutText("ShowProjectStructureSettings");
       String label = "Open";
