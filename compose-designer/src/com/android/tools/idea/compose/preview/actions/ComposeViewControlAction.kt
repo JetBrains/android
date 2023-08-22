@@ -22,8 +22,8 @@ import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
-import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
+import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.LayoutManagerSwitcher
@@ -55,7 +55,7 @@ class ComposeViewControlAction(
   ) {
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
+    e.presentation.isEnabled = !isPreviewRefreshing(e.dataContext)
     e.presentation.isVisible = !isPreviewFilterEnabled(e.dataContext)
     e.presentation.description =
       if (ComposePreviewEssentialsModeManager.isEssentialsModeEnabled)

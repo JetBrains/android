@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
-import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
+import com.android.tools.idea.compose.preview.isPreviewRefreshing
 import com.android.tools.idea.preview.actions.disabledIf
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
@@ -50,5 +50,5 @@ internal fun AnAction.visibleOnlyInComposeDefaultPreview(): ActionGroup =
  */
 fun List<AnAction>.disabledIfRefreshingOrRenderErrors(sceneView: SceneView): List<AnAction> =
   disabledIf { context ->
-    isAnyPreviewRefreshing(context) || sceneView.hasRenderErrors()
+    isPreviewRefreshing(context) || sceneView.hasRenderErrors()
   }

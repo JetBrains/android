@@ -25,7 +25,7 @@ import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_MANAGER
 import com.android.tools.idea.compose.preview.ComposePreviewManager
-import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.editors.fast.fastPreviewManager
@@ -317,11 +317,9 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
       return
     }
 
-    // Each ComposePreviewManager will avoid refreshing the corresponding previews if it detects
-    // that nothing has changed. But we want to always force a refresh when this button is pressed
-    findComposePreviewManagersForContext(e.dataContext).forEach { composePreviewManager ->
-      composePreviewManager.invalidate()
-    }
+    // The ComposePreviewManager will avoid refreshing its corresponding preview if it detects
+    // that nothing has changed. But we want to always force a refresh when this button is pressed.
+    findComposePreviewManagerForContext(e.dataContext)?.invalidate()
 
     if (!requestBuildForSurface(surface)) {
       // If there are no models in the surface, we can not infer which models we should trigger
@@ -333,11 +331,12 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   override fun update(e: AnActionEvent) {
     val presentation = e.presentation
     val isRefreshing =
-      findComposePreviewManagersForContext(e.dataContext).any {
+      findComposePreviewManagerForContext(e.dataContext)?.let {
         e.updateSession.compute(this, "Check Preview Status", ActionUpdateThread.EDT) {
           it.status().isRefreshing
         }
       }
+        ?: false
     presentation.isEnabled = !isRefreshing
     templateText?.let {
       presentation.setText("$it${getBuildAndRefreshShortcut().asString()}", false)

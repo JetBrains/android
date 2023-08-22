@@ -77,7 +77,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
   private inner class ComposePreviewNorthGroup :
     DefaultActionGroup(
       listOfNotNull(
-        StopInteractivePreviewAction(forceDisable = { isAnyPreviewRefreshing(it.dataContext) }),
+        StopInteractivePreviewAction(forceDisable = { isPreviewRefreshing(it.dataContext) }),
         StopAnimationInspectorAction(),
         StopUiCheckPreviewAction(),
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled { ComposeFilterShowHistoryAction() },
@@ -90,7 +90,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
             layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
             layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS,
             isSurfaceLayoutActionEnabled = {
-              !isAnyPreviewRefreshing(it.dataContext) &&
+              !isPreviewRefreshing(it.dataContext) &&
                 // If Essentials Mode is enabled, it should not be possible to switch layout.
                 !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled
             },
@@ -205,34 +205,32 @@ internal val COMPOSE_PREVIEW_ELEMENT_INSTANCE =
 @TestOnly fun getComposePreviewManagerKeyForTests() = COMPOSE_PREVIEW_MANAGER
 
 /**
- * Returns a list of all [ComposePreviewManager]s related to the current context (which is implied
- * to be bound to a particular file). The search is done among the open preview parts and
- * `PreviewRepresentation`s (if any) of open file editors.
+ * Returns a [ComposePreviewManager] related to the current context (which is implied to be bound to
+ * a particular file), or null if one is not found. The search is done among the open preview parts
+ * and `PreviewRepresentation` of the selected file editor.
  *
  * This call might access the [CommonDataKeys.VIRTUAL_FILE] so it should not be called in the EDT
  * thread. For actions using it, they should use [ActionUpdateThread.BGT].
  */
-internal fun findComposePreviewManagersForContext(
-  context: DataContext
-): List<ComposePreviewManager> {
+internal fun findComposePreviewManagerForContext(context: DataContext): ComposePreviewManager? {
   context.getData(COMPOSE_PREVIEW_MANAGER)?.let {
     // The context is associated to a ComposePreviewManager so return it
-    return listOf(it)
+    return it
   }
 
-  // Fallback to finding the ComposePreviewManager by looking into all the editors
-  val project = context.getData(CommonDataKeys.PROJECT) ?: return emptyList()
-  val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
+  // Fallback to finding the ComposePreviewManager by looking into the selected editor
+  val project = context.getData(CommonDataKeys.PROJECT) ?: return null
+  val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return null
 
-  return FileEditorManager.getInstance(project)?.getAllEditors(file)?.mapNotNull {
-    it.getComposePreviewManager()
-  }
-    ?: emptyList()
+  return FileEditorManager.getInstance(project)?.getSelectedEditor(file)?.getComposePreviewManager()
 }
 
-/** Returns whether any preview manager is currently refreshing. */
-internal fun isAnyPreviewRefreshing(context: DataContext) =
-  findComposePreviewManagersForContext(context).any { it.status().isRefreshing }
+/**
+ * Returns whether the [ComposePreviewManager] corresponding to the given [DataContext] is currently
+ * refreshing.
+ */
+internal fun isPreviewRefreshing(context: DataContext) =
+  findComposePreviewManagerForContext(context)?.status()?.isRefreshing == true
 
 /** Returns whether the filter of preview is enabled. */
 internal fun isPreviewFilterEnabled(context: DataContext): Boolean {

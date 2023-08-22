@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
-import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.preview.actions.navigateBack
 import com.android.tools.idea.preview.modes.PreviewMode
@@ -38,10 +38,9 @@ class StopAnimationInspectorAction :
   override fun displayTextInToolbar(): Boolean = true
 
   override fun updateButton(e: AnActionEvent) {
-    val composePreviewManagers = findComposePreviewManagersForContext(e.dataContext)
-    e.presentation.isEnabled = !composePreviewManagers.any { it.status().isRefreshing }
-    e.presentation.isVisible =
-      composePreviewManagers.any { it.mode is PreviewMode.AnimationInspection }
+    val composePreviewManagers = findComposePreviewManagerForContext(e.dataContext)
+    e.presentation.isEnabled = composePreviewManagers?.status()?.isRefreshing != true
+    e.presentation.isVisible = composePreviewManagers?.mode is PreviewMode.AnimationInspection
   }
 
   override fun actionPerformed(e: AnActionEvent) {

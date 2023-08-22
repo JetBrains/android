@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.compose.preview.gallery
 
-import com.android.tools.idea.compose.preview.findComposePreviewManagersForContext
+import com.android.tools.idea.compose.preview.findComposePreviewManagerForContext
 import com.android.tools.idea.preview.modes.PreviewMode
 import com.android.tools.preview.ComposePreviewElementInstance
 import com.intellij.openapi.actionSystem.DataContext
@@ -32,16 +32,18 @@ class ComposeGalleryMode(rootComponent: JComponent) {
 
   private val tabChangeListener: (DataContext, PreviewElementKey?) -> Unit = { dataContext, tab ->
     val previewElement = tab?.element
-    findComposePreviewManagersForContext(dataContext).forEach { previewManager ->
+    findComposePreviewManagerForContext(dataContext)?.let { previewManager ->
       previewElement?.let { previewManager.setMode(PreviewMode.Gallery(previewElement)) }
     }
   }
 
   private val keysProvider: (DataContext) -> Set<PreviewElementKey> = { dataContext ->
-    findComposePreviewManagersForContext(dataContext)
-      .flatMap { it.allPreviewElementsInFileFlow.value }
-      .map { element -> PreviewElementKey(element) }
-      .toSet()
+    findComposePreviewManagerForContext(dataContext)
+      ?.allPreviewElementsInFileFlow
+      ?.value
+      ?.map { element -> PreviewElementKey(element) }
+      ?.toSet()
+      ?: emptySet()
   }
 
   private val tabs: GalleryTabs<PreviewElementKey> =
