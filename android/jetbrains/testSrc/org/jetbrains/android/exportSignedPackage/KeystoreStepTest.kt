@@ -68,44 +68,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     }
   }
 
-  fun testEnableEncryptedKeyExportFlagFalse() {
-    val wizard = setupWizardHelper()
-    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
-    val keystoreStep = KeystoreStep(wizard, true, facets)
-    keystoreStep._init()
-
-    assertEquals(false, keystoreStep.exportKeysCheckBox.isVisible)
-    assertEquals(false, keystoreStep.myExportKeyPathLabel.isVisible)
-    assertEquals(false, keystoreStep.myExportKeyPathField.isVisible)
-  }
-
-  fun testEnableEncryptedKeyExportFlagTrue() {
-    val wizard = setupWizardHelper()
-    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
-    val keystoreStep = KeystoreStep(wizard, true, facets)
-    keystoreStep._init()
-
-    assertEquals(true, keystoreStep.exportKeysCheckBox.isVisible)
-    assertEquals(true, keystoreStep.myExportKeyPathLabel.isVisible)
-    assertEquals(true, keystoreStep.myExportKeyPathField.isVisible)
-  }
-
-  fun testEnableEncryptedKeyCheckboxButNotSelected_ExportKeyPathFieldsShouldBeHidden() {
-    val wizard = setupWizardHelper()
-    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
-
-    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
-    settings.EXPORT_PRIVATE_KEY = false
-    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
-
-    val keystoreStep = KeystoreStep(wizard, true, facets)
-    keystoreStep._init()
-
-    assertEquals(false, keystoreStep.myExportKeyPathLabel.isVisible)
-    assertEquals(false, keystoreStep.myExportKeyPathField.isVisible)
-  }
-
-  fun testEnableEncryptedKeyCheckboxNotSelected_NextSucceeds() {
+  fun testNextSucceeds() {
     val wizard = setupWizardHelper()
     whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
     val testKeyStorePath = "/test/path/to/keystore"
@@ -117,7 +80,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     settings.KEY_STORE_PATH = testKeyStorePath
     settings.KEY_ALIAS = testKeyAlias
     settings.REMEMBER_PASSWORDS = false
-    settings.EXPORT_PRIVATE_KEY = false
     ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
@@ -125,55 +87,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     keystoreStep.keyPasswordField.text = testKeyPassword
     keystoreStep._init()
     keystoreStep.commitForNext()
-  }
-
-  fun testEnableEncryptedKeyCheckboxSelectedWithoutExportPath_NextFails() {
-    val wizard = setupWizardHelper()
-    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
-    val testKeyStorePath = "/test/path/to/keystore"
-    val testKeyAlias = "testkey"
-    val testKeyStorePassword = "123456"
-    val testKeyPassword = "qwerty"
-
-    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
-    settings.KEY_STORE_PATH = testKeyStorePath
-    settings.KEY_ALIAS = testKeyAlias
-    settings.REMEMBER_PASSWORDS = false
-    settings.EXPORT_PRIVATE_KEY = true
-    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
-
-    val keystoreStep = KeystoreStep(wizard, true, facets)
-    keystoreStep.keyStorePasswordField.text = testKeyStorePassword
-    keystoreStep.keyPasswordField.text = testKeyPassword
-    keystoreStep.myExportKeyPathField.text = ""
-    keystoreStep._init()
-    assertThrows(CommitStepException::class.java,
-                 AndroidBundle.message("android.apk.sign.gradle.missing.destination", wizard.targetType),
-                 ThrowableRunnable<RuntimeException> { keystoreStep.commitForNext() })
-  }
-
-  fun testEnableEncryptedKeyCheckboxSelectedWithExportPath_NextSucceeds() {
-    val wizard = setupWizardHelper()
-    whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.BUNDLE)
-    val testKeyStorePath = "/test/path/to/keystore"
-    val testKeyAlias = "testkey"
-    val testKeyStorePassword = "123456"
-    val testKeyPassword = "qwerty"
-    val testExportKeyPath = "test"
-    File(testExportKeyPath).mkdir()
-
-    val settings = GenerateSignedApkSettings.getInstance(wizard.project)
-    settings.KEY_STORE_PATH = testKeyStorePath
-    settings.KEY_ALIAS = testKeyAlias
-    settings.REMEMBER_PASSWORDS = false
-    settings.EXPORT_PRIVATE_KEY = true
-    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
-
-    val keystoreStep = KeystoreStep(wizard, true, facets)
-    keystoreStep.keyStorePasswordField.text = testKeyStorePassword
-    keystoreStep.keyPasswordField.text = testKeyPassword
-    keystoreStep.myExportKeyPathField.text = testExportKeyPath
-    keystoreStep._init()
   }
 
   fun testModuleDropDownEnabledByDefault() {
@@ -251,7 +164,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
-    keystoreStep.myExportKeyPathField.text = testExportKeyPath
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
     assertEquals(0, keystoreStep.keyStorePasswordField.password.size)
@@ -277,7 +189,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val testKeyStorePath2 = "/test/path/to/keystore2"
     val testKeyAlias1 = "testkey1"
     val testKeyAlias2 = "testkey2"
-    val testExportKeyPath = "test"
 
     // Setup in-memory PasswordSafe for tests
     val passwordSafeSettings = PasswordSafeSettings()
@@ -378,8 +289,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     val testKeyPassword = "qwerty"
     val testLegacyKeyPassword = "somestuff"
     val legacyRequestor = KeystoreStep::class.java
-    val testExportKeyPath = "test"
-    File(testExportKeyPath).mkdir()
 
     val settings = GenerateSignedApkSettings()
     settings.KEY_STORE_PATH = testKeyStorePath
@@ -400,7 +309,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
-    keystoreStep.myExportKeyPathField.text = testExportKeyPath
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
     // Yes, it's weird but before the fix for b/64995008 this was exactly the observed behavior: the keystore password would
@@ -453,7 +361,6 @@ class KeystoreStepTest : LightPlatformTestCase() {
     whenever(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
-    keystoreStep.myExportKeyPathField.text = testExportKeyPath
     assertEquals(testKeyStorePath, keystoreStep.keyStorePathField.text)
     assertEquals(testKeyAlias, keystoreStep.keyAliasField.text)
     waitForCondition(1, TimeUnit.SECONDS) {

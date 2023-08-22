@@ -44,7 +44,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -60,28 +59,24 @@ import org.jetbrains.annotations.Nullable;
 public class GoToBundleLocationTask {
   public static final String ANALYZE_URL_PREFIX = "analyze:";
   public static final String LOCATE_URL_PREFIX = "module:";
-  public static final String LOCATE_KEY_URL_PREFIX = "key:";
   @NotNull private final Project myProject;
   @NotNull private final String myNotificationTitle;
   @NotNull private final Collection<Module> myModules;
-  @Nullable private final File myExportedKeyFile;
   @NotNull private final List<String> myBuildVariants;
 
   public GoToBundleLocationTask(@NotNull Project project,
                                 @NotNull Collection<Module> modules,
                                 @NotNull String notificationTitle) {
-    this(project, modules, notificationTitle, Collections.emptyList(), null);
+    this(project, modules, notificationTitle, Collections.emptyList());
   }
 
   public GoToBundleLocationTask(@NotNull Project project,
                                 @NotNull Collection<Module> modules,
                                 @NotNull String notificationTitle,
-                                @NotNull List<String> buildVariants,
-                                @Nullable File exportedKeyFile) {
+                                @NotNull List<String> buildVariants) {
     myProject = project;
     myNotificationTitle = notificationTitle;
     myModules = modules;
-    myExportedKeyFile = exportedKeyFile;
     myBuildVariants = buildVariants;
   }
 
@@ -147,15 +142,8 @@ public class GoToBundleLocationTask {
         }
       }
 
-      if (myExportedKeyFile != null) {
-        builder.append("<br/>");
-        builder.append("<a href=\"").append(LOCATE_KEY_URL_PREFIX).append("\">Locate</a> exported key file.");
-      }
-
       String text = builder.toString();
-      notification.showBalloon(myNotificationTitle, text, INFORMATION, new OpenFolderNotificationListener(myProject,
-                                                                                                          bundleBuildsToPath,
-                                                                                                          myExportedKeyFile));
+      notification.showBalloon(myNotificationTitle, text, INFORMATION, new OpenFolderNotificationListener(myProject, bundleBuildsToPath));
     }
     else {
       builder.append(bundleBuildsToPath.entrySet().stream()
@@ -189,14 +177,11 @@ public class GoToBundleLocationTask {
   static class OpenFolderNotificationListener extends NotificationListener.Adapter {
     @NotNull private final Project myProject;
     @NotNull private final Map<String, File> myBundlePathsPerModule;
-    @Nullable private final File myExportedKeyFile;
 
     OpenFolderNotificationListener(@NotNull Project project,
-                                   @NotNull Map<String, File> myBuildsAndBundlePaths,
-                                   @Nullable File exportedKeyFile) {
+                                   @NotNull Map<String, File> myBuildsAndBundlePaths) {
       myProject = project;
       myBundlePathsPerModule = myBuildsAndBundlePaths;
-      myExportedKeyFile = exportedKeyFile;
     }
 
     @Override
@@ -212,9 +197,6 @@ public class GoToBundleLocationTask {
       }
       else if (description.startsWith(LOCATE_URL_PREFIX)) {
         openBundleDirectory(description.substring(LOCATE_URL_PREFIX.length()));
-      }
-      else if (description.startsWith(LOCATE_KEY_URL_PREFIX)) {
-        openKeyDirectory();
       }
     }
 
@@ -250,11 +232,6 @@ public class GoToBundleLocationTask {
 
     private void openBundleDirectory(String path) {
       showFileOrDirectory(myBundlePathsPerModule.get(path));
-    }
-
-    private void openKeyDirectory() {
-      assert myExportedKeyFile != null;
-      showFileOrDirectory(myExportedKeyFile);
     }
 
     @Override

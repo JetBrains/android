@@ -58,7 +58,7 @@ public class GenerateSignedApkAction extends AnAction {
     assert !facets.isEmpty();
 
     ExportSignedPackageWizard wizard =
-      new ExportSignedPackageWizard(project, facets, true, allowBundleSigning(project), new ExportEncryptedPrivateKeyTool());
+      new ExportSignedPackageWizard(project, facets, true, allowBundleSigning(project));
     wizard.show();
   }
 

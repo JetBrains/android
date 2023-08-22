@@ -92,7 +92,7 @@ public class GoToBundleLocationTaskTest extends PlatformTestCase {
     String moduleName = getModule().getName();
     String message = getExpectedModuleNotificationMessage(moduleName);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                           new OpenFolderNotificationListener(myProject, modulesToPaths, null));
+                                           new OpenFolderNotificationListener(myProject, modulesToPaths));
   }
 
   public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {

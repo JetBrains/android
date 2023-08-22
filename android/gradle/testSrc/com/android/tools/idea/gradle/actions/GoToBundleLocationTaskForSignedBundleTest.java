@@ -75,7 +75,7 @@ public class GoToBundleLocationTaskForSignedBundleTest extends PlatformTestCase 
     IdeComponents ideComponents = new IdeComponents(getProject());
     BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean())).thenReturn(buildsToPaths);
-    myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants, null) {
+    myTask = new GoToBundleLocationTask(getProject(), modules, NOTIFICATION_TITLE, buildVariants) {
       @Override
       boolean isShowFilePathActionSupported() {
         return isShowFilePathActionSupported;  // Inject ability to simulate both behaviors.
@@ -102,7 +102,7 @@ public class GoToBundleLocationTaskForSignedBundleTest extends PlatformTestCase 
     String moduleName = getModule().getName();
     String message = getExpectedModuleNotificationMessage(moduleName, buildVariant1, buildVariant2);
     verify(myMockNotification).showBalloon(NOTIFICATION_TITLE, message, INFORMATION,
-                                           new OpenFolderNotificationListener(myProject, buildsToPaths, null));
+                                           new OpenFolderNotificationListener(myProject, buildsToPaths));
   }
 
   public void testExecuteWithSuccessfulBuildNoShowFilePathAction() {
