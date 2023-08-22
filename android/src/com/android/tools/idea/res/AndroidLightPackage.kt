@@ -19,6 +19,7 @@ import com.android.utils.concurrency.getAndUnwrap
 import com.google.common.base.MoreObjects
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiManager
@@ -68,6 +69,7 @@ class AndroidLightPackage private constructor(
   /**
    * Project service responsible for interning instances of [AndroidLightPackage] with a given name.
    */
+  @Service(Service.Level.PROJECT)
   class InstanceCache(val project: Project) {
 
     /**

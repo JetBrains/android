@@ -591,7 +591,6 @@
     <resolveScopeEnlarger implementation="org.jetbrains.android.AndroidResolveScopeEnlarger" />
 
     <java.elementFinder implementation="com.android.tools.idea.res.AndroidInternalRClassFinder"/>
-    <projectService serviceImplementation="com.android.tools.idea.res.AndroidLightPackage$InstanceCache" />
     <projectService serviceImplementation="com.android.tools.idea.res.ProjectLightResourceClassService" />
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidManifestClassPsiElementFinder" />
 
