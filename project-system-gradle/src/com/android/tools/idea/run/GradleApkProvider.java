@@ -444,10 +444,6 @@ public final class GradleApkProvider implements ApkProvider {
     List<GenericBuiltArtifacts> builtArtifacts =
       GenericBuiltArtifactsLoader.loadListFromFile(
         outputListingFile, new LogWrapper(getLogger()));
-    if (builtArtifacts.isEmpty()) {
-      throw new ApkProvisionException(
-        String.format("Error loading build artifacts from: %s", outputListingFile));
-    }
 
     List<ApkInfo> list = new ArrayList<>();
     for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
@@ -470,12 +466,6 @@ public final class GradleApkProvider implements ApkProvider {
     List<GenericBuiltArtifacts> builtArtifacts =
       GenericBuiltArtifactsLoader.loadListFromFile(
         outputListingForLegacyPrivacySandboxFile, new LogWrapper(getLogger()));
-    if (builtArtifacts.isEmpty()) {
-      throw new ApkProvisionException(
-        String.format(
-          "Error loading build artifacts from: %s",
-          outputListingForLegacyPrivacySandboxFile));
-    }
 
     List<ApkFileUnit> list = new ArrayList<>();
     for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
