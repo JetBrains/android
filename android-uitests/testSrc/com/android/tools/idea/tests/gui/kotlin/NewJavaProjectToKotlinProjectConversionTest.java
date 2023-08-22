@@ -83,7 +83,7 @@ public class NewJavaProjectToKotlinProjectConversionTest {
 
     WizardUtils.createNewProject(guiTest, EMPTY_VIEWS_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 
-    ConversionTestUtil.convertJavaToKotlin(guiTest);
+    ConversionTestUtil.convertJavaToKotlin(guiTest, "build.gradle.kts");
 
     guiTest.waitForBackgroundTasks();
 
@@ -105,9 +105,9 @@ public class NewJavaProjectToKotlinProjectConversionTest {
 
     WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
 
-    ConversionTestUtil.convertJavaToKotlin(guiTest);
+    ConversionTestUtil.convertJavaToKotlin(guiTest, "build.gradle.kts");
 
-    ConversionTestUtil.changeKotlinVersion(guiTest);
+    ConversionTestUtil.changeKotlinVersion(guiTest, "build.gradle.kts");
 
     guiTest.ideFrame().requestProjectSyncAndWaitForSyncToFinish();
 

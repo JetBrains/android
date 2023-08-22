@@ -24,9 +24,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.KotlinIsNotConfiguredDialogFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.timing.Wait;
 import org.junit.Before;
@@ -44,7 +46,7 @@ public class JavaToKotlinConversionTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private IdeFrameFixture ideFrame;
 
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
+  protected static final String EMPTY_VIEWS_ACTIVITY_TEMPLATE = "Empty Views Activity";
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
   protected static final int MIN_SDK_API = 30;
@@ -74,7 +76,7 @@ public class JavaToKotlinConversionTest {
   @Before
   public void setUp() throws Exception {
 
-    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java);
+    WizardUtils.createNewProject(guiTest, EMPTY_VIEWS_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Language.Java, BuildConfigurationLanguageForNewProject.Groovy);
     guiTest.robot().waitForIdle();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
@@ -90,11 +92,9 @@ public class JavaToKotlinConversionTest {
   public void testJavaToKotlinConversion() throws Exception {
     EditorFixture editor = ideFrame.getEditor();
 
-    // Clearing any notifications on the ideframe
-    ideFrame.clearNotificationsPresentOnIdeFrame();
-
     ideFrame.getProjectView()
-      .selectAndroidPane();
+      .selectAndroidPane()
+      .clickPath("app", "java");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Kotlin Not configured dialog box opens, click ok
@@ -138,7 +138,7 @@ public class JavaToKotlinConversionTest {
     configureKotlinDialogBox.clickOkAndWaitDialogDisappear();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    assertThat(editor.open("build.gradle.kts")
+    assertThat(editor.open("build.gradle")
                  .getCurrentFileContents()
       // If created as a Kotlin language, this should be written using version catalogs, but this scenario is created as a Java project
       // first, then converted to Kotlin project. In that case, kotlin plugin isn't written using version catalogs.
@@ -146,7 +146,7 @@ public class JavaToKotlinConversionTest {
       .isTrue();
 
     //Manually changing the kotlin version to the latest version, and this step needs to be updated with every new release.
-    ConversionTestUtil.changeKotlinVersion(guiTest);
+    ConversionTestUtil.changeKotlinVersion(guiTest, "build.gradle");
 
     //Manually syncing after changing the kotlin version.
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
@@ -155,7 +155,12 @@ public class JavaToKotlinConversionTest {
     //Taking screenshot to make sure kotlin version is updated and sync is successful.
     ideFrame.takeScreenshot();
 
-    ideFrame.getEditor().open("app/src/main/java/android/com/app/MainActivity.java");
+    ideFrame.getProjectView()
+      .selectAndroidPane()
+      .clickPath("app", "kotlin+java");
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
+
+    //ideFrame.getEditor().open("app/kotlin+java/android/com/app/MainActivity.java");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Converting MainActivity.java to kotlin file.
@@ -173,7 +178,7 @@ public class JavaToKotlinConversionTest {
     ideFrame.requestProjectSyncAndWaitForSyncToFinish();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    //Invoking project make.
+   //Invoking project make.
     ideFrame.invokeAndWaitForBuildAction(Wait.seconds(300),
                                          "Build", "Rebuild Project");
     guiTest.waitForAllBackgroundTasksToBeCompleted();

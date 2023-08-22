@@ -76,7 +76,7 @@ public class ConversionTestUtil {
   }
 
   @NotNull
-  protected static void convertJavaToKotlin(@NotNull GuiTestRule guiTest) throws Exception {
+  protected static void convertJavaToKotlin(@NotNull GuiTestRule guiTest, @NotNull String gradleFile) throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     ideFrameFixture.waitAndInvokeMenuPath("Code", "Convert Java File to Kotlin File");
@@ -92,11 +92,11 @@ public class ConversionTestUtil {
     ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
       .clickOkAndWaitDialogDisappear();
 
-    changeKotlinVersion(guiTest);
+    changeKotlinVersion(guiTest, gradleFile);
   }
 
   @NotNull
-  public static void changeKotlinVersion(@NotNull GuiTestRule guiTest) throws Exception {
+  public static void changeKotlinVersion(@NotNull GuiTestRule guiTest, @NotNull String gradleFile) throws Exception {
     IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
     // TODO: the following is a hack. See http://b/79752752 for removal of the hack
@@ -106,39 +106,14 @@ public class ConversionTestUtil {
     Wait.seconds(15)
       .expecting("Gradle project sync in progress...")
       .until(() ->
-               ideFrameFixture.getEditor().open("build.gradle.kts").getCurrentFileContents().contains("kotlin")
+               ideFrameFixture.getEditor().open(gradleFile).getCurrentFileContents().contains("kotlin")
       );
 
-    String buildGradleContents = ideFrameFixture.getEditor()
-      .open("build.gradle.kts")
-      .getCurrentFileContents();
+    ideFrameFixture.getEditor()
+      .open(gradleFile)
+      .select("(id 'org.jetbrains.kotlin.android.*)")
+      .pasteText("id(\"org.jetbrains.kotlin.android\") version \"1.9.0\" apply false");
 
-    //String kotlinVersion = kotlinCompilerVersionShort();
-    String newBuildGradleContents = buildGradleContents.replaceAll(
-        "id\\(\"org\\.jetbrains\\.kotlin\\.android\"\\) *version *\"\\d+\\.\\d+\\.\\d+\" *apply *false",
-        "id(\"org.jetbrains.kotlin.android\") version \"1.8.10\" apply false"
-      );
-
-    OutputStream buildGradleOutput = ideFrameFixture.getEditor()
-      .open("build.gradle.kts")
-      .getCurrentFile()
-      .getOutputStream(null);
-    Ref<IOException> ioErrors = new Ref<>();
-    ApplicationManager.getApplication().invokeAndWait(() -> {
-      ApplicationManager.getApplication().runWriteAction(() -> {
-        try (
-          Writer buildGradleWriter = new OutputStreamWriter(buildGradleOutput, StandardCharsets.UTF_8)
-        ) {
-          buildGradleWriter.write(newBuildGradleContents);
-        } catch (IOException writeError) {
-          ioErrors.set(writeError);
-        }
-      });
-    });
-    IOException ioError = ioErrors.get();
-    if (ioError != null) {
-      throw new Exception("Unable to modify build.gradle file", ioError);
-    }
     guiTest.waitForBackgroundTasks();
     // TODO End hack
   }
@@ -163,7 +138,7 @@ public class ConversionTestUtil {
     //String kotlinVersion = kotlinCompilerVersionShort();
     String newBuildGradleContents = buildGradleContents.replaceAll(
       "kotlin_version\\s\\=\\s\\'\\d+\\.\\d+\\.\\d+\\'",
-      "kotlin_version = '1.6.21'"
+      "kotlin_version = '1.9.0'"
     );
 
     OutputStream buildGradleOutput = ideFrameFixture.getEditor()
