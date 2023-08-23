@@ -20,7 +20,6 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.project.Project
@@ -30,35 +29,8 @@ import com.intellij.psi.PsiManager
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 
-/**
- * Testing infrastructure.
- */
-fun performWithoutSync(projectRule: AndroidGradleProjectRule, action: AndroidMavenImportIntentionAction, element: PsiElement) {
-  action.perform(projectRule.project, projectRule.fixture.editor, element, false)
-}
-
 fun PreparedTestProject.Context.performWithoutSync(action: AndroidMavenImportIntentionAction, element: PsiElement) {
   action.perform(project, fixture.editor, element, false)
-}
-
-fun performAndWaitForSyncEnd(
-  projectRule: AndroidGradleProjectRule,
-  invoke: () -> Unit,
-) {
-  val publishedResult = SettableFuture.create<ProjectSystemSyncManager.SyncResult>()
-  val project = projectRule.project
-  project.messageBus
-    .connect(project)
-    .subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
-      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
-        publishedResult.set(result)
-      }
-    })
-
-  invoke()
-
-  val results = publishedResult.get(10, TimeUnit.SECONDS)
-  assertThat(results).named("Second sync result").isEqualTo(ProjectSystemSyncManager.SyncResult.SUCCESS)
 }
 
 fun PreparedTestProject.Context.performAndWaitForSyncEnd(
