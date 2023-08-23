@@ -40,7 +40,7 @@ interface NlModelFactoryInterface {
  * An {@link NlModel} builder
  */
 // TODO: Migrate next to NlModel if/when NlModel is migrated to Kotlin
-class NlModelBuilder constructor(val facet: AndroidFacet, val file: VirtualFile, val configuration: Configuration) {
+class NlModelBuilder(val facet: AndroidFacet, val file: VirtualFile, val configuration: Configuration) {
   private var modelFactory: NlModelFactoryInterface = object : NlModelFactoryInterface {
     override fun build(nlModelBuilder: NlModelBuilder): NlModel = with(nlModelBuilder) {
       NlModel.create(

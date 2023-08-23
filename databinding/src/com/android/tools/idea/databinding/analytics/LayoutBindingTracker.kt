@@ -39,7 +39,7 @@ import com.intellij.psi.search.GlobalSearchScope
  * Class for logging data binding and view binding related metrics.
  */
 @VisibleForTesting // This class uses inheritance to override threading behavior for tests only
-open class LayoutBindingTracker constructor(private val project: Project) : DataBindingTracker {
+open class LayoutBindingTracker(private val project: Project) : DataBindingTracker {
 
   override fun trackPolledMetaData() {
     if (enabledFacetsProvider.getAllBindingEnabledFacets().isNotEmpty()) {

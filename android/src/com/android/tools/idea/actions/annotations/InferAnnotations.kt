@@ -194,7 +194,7 @@ class InferAnnotations(val settings: InferAnnotationsSettings, val project: Proj
     return sb.toString()
   }
 
-  class ConstraintUsageInfo constructor(element: PsiElement, val constraints: InferredConstraints) : UsageInfo(element) {
+  class ConstraintUsageInfo(element: PsiElement, val constraints: InferredConstraints) : UsageInfo(element) {
     val inferred: List<String> get() = constraints.getExplanations()
 
     // We can't change the presentation of each usage info, so instead we use tooltips to explain

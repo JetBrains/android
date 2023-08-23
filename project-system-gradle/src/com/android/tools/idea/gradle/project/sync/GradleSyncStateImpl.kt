@@ -87,7 +87,7 @@ private val SYNC_NOTIFICATION_GROUP =
  * events to any registered [GradleSyncListener]s via the projects messageBus or any one-time sync listeners passed into a specific
  * invocation of sync.
  */
-class GradleSyncStateImpl constructor(project: Project) : GradleSyncState {
+class GradleSyncStateImpl(project: Project) : GradleSyncState {
   private val delegate = GradleSyncStateHolder.getInstance(project)
   override val isSyncInProgress: Boolean
     get() = delegate.isSyncInProgress
@@ -116,7 +116,7 @@ val GRADLE_SYNC_TOPIC = Topic("Project sync with Gradle", GradleSyncListenerWith
  * A real implementation of [GradleSyncStateImpl] service which, unlike [GradleSyncStateImpl], can be accessed by various listeners in this
  * file as an implementing class type.
  */
-class GradleSyncStateHolder constructor(private val project: Project)  {
+class GradleSyncStateHolder(private val project: Project)  {
 
   companion object {
     @JvmStatic

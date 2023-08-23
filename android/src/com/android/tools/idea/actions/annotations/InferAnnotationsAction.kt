@@ -238,7 +238,7 @@ class InferAnnotationsAction : BaseAnalysisAction("Infer Support Annotations", I
     options = null
   }
 
-  private class AnnotateTask constructor(
+  private class AnnotateTask(
     private val myProject: Project,
     private val myTask: SequentialModalProgressTask,
     private val myInfos: Array<UsageInfo>

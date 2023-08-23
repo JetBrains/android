@@ -388,7 +388,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     return true
   }
 
-  private inner class MyListener constructor(
+  private inner class MyListener(
     private val buildEventDispatcher: BuildEventDispatcher,
     private val request: GradleBuildInvoker.Request,
     private val buildViewManager: BuildViewManager,
@@ -518,7 +518,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     }
   }
 
-  private inner class RestartAction constructor(private val myRequest: GradleBuildInvoker.Request) : AnAction() {
+  private inner class RestartAction(private val myRequest: GradleBuildInvoker.Request) : AnAction() {
 
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = !buildStopper.contains(myRequest.taskId)
@@ -534,7 +534,7 @@ class GradleBuildInvokerImpl @NonInjectable @VisibleForTesting internal construc
     }
   }
 
-  private inner class StopAction constructor(private val myRequest: GradleBuildInvoker.Request) : AnAction() {
+  private inner class StopAction(private val myRequest: GradleBuildInvoker.Request) : AnAction() {
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = buildStopper.contains(myRequest.taskId)
     }

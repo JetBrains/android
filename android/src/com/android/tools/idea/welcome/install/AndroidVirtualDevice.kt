@@ -54,7 +54,7 @@ import java.nio.file.Path
 /**
  * Logic for setting up Android virtual device
  */
-class AndroidVirtualDevice constructor(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
+class AndroidVirtualDevice(remotePackages: Map<String?, RemotePackage>, installUpdates: Boolean) : InstallableComponent(
   "Android Virtual Device",
   "A preconfigured and optimized Android Virtual Device for app testing on the emulator. (Recommended)",
   installUpdates

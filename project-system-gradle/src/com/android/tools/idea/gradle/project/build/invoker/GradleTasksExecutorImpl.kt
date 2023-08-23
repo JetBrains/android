@@ -131,7 +131,7 @@ internal class GradleTasksExecutorImpl : GradleTasksExecutor {
     return false
   }
 
-  private class TaskImpl constructor(
+  private class TaskImpl(
     private val myRequest: GradleBuildInvoker.Request,
     private val myBuildAction: BuildAction<*>?,
     private val myBuildStopper: BuildStopper,

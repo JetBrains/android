@@ -32,7 +32,7 @@ import javax.swing.JLabel
  * Provides a result RunContentDescriptor for Apply Code Changes and Apply Changes operation.
  * Rewrites [isHiddenContent] to true that forces [ExecutionManagerImpl] not to show [delegate] descriptor.
  */
-internal class HiddenRunContentDescriptor constructor(private val delegate: RunContentDescriptor) :
+internal class HiddenRunContentDescriptor(private val delegate: RunContentDescriptor) :
   RunContentDescriptor(null, null, JLabel(), "hidden", null, null, null) {
   init {
     Disposer.register(this, delegate)

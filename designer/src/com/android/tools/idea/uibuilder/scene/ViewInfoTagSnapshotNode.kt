@@ -24,7 +24,7 @@ import com.intellij.util.containers.ContainerUtil
 /**
  * A TagSnapshot tree that mirrors the ViewInfo tree.
  */
-internal class ViewInfoTagSnapshotNode constructor(private val myViewInfo: ViewInfo) : TagSnapshotTreeNode {
+internal class ViewInfoTagSnapshotNode(private val myViewInfo: ViewInfo) : TagSnapshotTreeNode {
   override fun getTagSnapshot(): TagSnapshot? {
     val result = myViewInfo.cookie
     return if (result is TagSnapshot) result else null

@@ -20,7 +20,7 @@ import org.jetbrains.android.uipreview.ModuleClassLoaderDiagnosticsRead
 /**
  * Class to record stats from a render result.
  */
-data class RenderResultStats constructor(
+data class RenderResultStats(
   /** Inflate duration in ms or -1 if unknown. */
   val inflateDurationMs: Long = -1,
   /** Render duration in ms or -1 if unknown. */

@@ -52,7 +52,7 @@ fun create(xml: PathString, namespace: ResourceNamespace): ILayoutPullParser? {
  * Modified [XmlPullParser] that adds the methods of [ILayoutPullParser], and performs
  * other layout-specific parser behavior like translating fragment tags into include tags.
  */
-private class LayoutPullParserImpl constructor(
+private class LayoutPullParserImpl(
   private val delegate: XmlPullParser,
   private val layoutNamespace: ResourceNamespace
 ) : ILayoutPullParser, XmlPullParser by delegate {

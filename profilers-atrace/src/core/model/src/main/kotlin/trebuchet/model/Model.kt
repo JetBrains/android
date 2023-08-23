@@ -18,7 +18,7 @@ package trebuchet.model
 
 import trebuchet.model.fragments.ModelFragment
 
-class Model constructor(fragments: Iterable<ModelFragment>) {
+class Model(fragments: Iterable<ModelFragment>) {
     /**
      * For each process found in the atrace file we keep a map of process id to process model.
      */

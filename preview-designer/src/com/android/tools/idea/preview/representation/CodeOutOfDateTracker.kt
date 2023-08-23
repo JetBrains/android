@@ -64,8 +64,7 @@ object NopCodeOutOfDateTrackerImpl : CodeOutOfDateTracker {
   override fun getModificationCount(): Long = 0
 }
 
-private class CodeOutOfDateTrackerImpl
-constructor(module: Module, parentDisposable: Disposable, needsRefreshCallback: () -> Unit) :
+private class CodeOutOfDateTrackerImpl(module: Module, parentDisposable: Disposable, needsRefreshCallback: () -> Unit) :
   CodeOutOfDateTracker {
   private val log = Logger.getInstance(CodeOutOfDateTrackerImpl::class.java)
 

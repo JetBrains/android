@@ -51,7 +51,7 @@ import com.intellij.util.EventDispatcher
 import java.util.function.Consumer
 
 private val LOG = Logger.getInstance(PsContextImpl::class.java)
-class PsContextImpl constructor(
+class PsContextImpl(
   override val project: PsProjectImpl,
   parentDisposable: Disposable,
   disableAnalysis: Boolean = false,

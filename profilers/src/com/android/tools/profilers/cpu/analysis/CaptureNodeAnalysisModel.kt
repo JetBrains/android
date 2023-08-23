@@ -20,7 +20,7 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import kotlin.streams.toList
 
-data class CaptureNodeAnalysisModel constructor(val node: CaptureNode,
+data class CaptureNodeAnalysisModel(val node: CaptureNode,
                                     private val capture: CpuCapture,
                                     private val runModelUpdate: (Runnable) -> Unit) : CpuAnalyzable<CaptureNodeAnalysisModel> {
   val nodeRange: Range get() = Range(node.start.toDouble(), node.end.toDouble())

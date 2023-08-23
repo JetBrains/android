@@ -37,9 +37,9 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import icons.StudioIcons
 import java.util.function.Supplier
 
-class StudioProfilersWrapper constructor(private val project: Project,
-                                         private val window: ToolWindowWrapper,
-                                         ideProfilerServices: IntellijProfilerServices) : AspectObserver(), Disposable {
+class StudioProfilersWrapper(private val project: Project,
+                             private val window: ToolWindowWrapper,
+                             ideProfilerServices: IntellijProfilerServices) : AspectObserver(), Disposable {
   val profilers: StudioProfilers
   val profilersView: StudioProfilersView
 

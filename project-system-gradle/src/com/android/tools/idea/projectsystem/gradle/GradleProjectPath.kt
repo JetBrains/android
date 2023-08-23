@@ -39,12 +39,12 @@ sealed class GradleProjectPath {
   abstract val path: String
 }
 
-data class GradleHolderProjectPath constructor(
+data class GradleHolderProjectPath(
   override val buildRoot: @SystemIndependent String,
   override val path: String
 ) : GradleProjectPath()
 
-data class GradleSourceSetProjectPath constructor(
+data class GradleSourceSetProjectPath(
   override val buildRoot: @SystemIndependent String,
   override val path: String,
   val sourceSet: IdeModuleSourceSet

@@ -47,8 +47,7 @@ data class LintBatchResult(
   }
 }
 
-class LintEditorResult
-constructor(
+class LintEditorResult(
   private val myModule: Module,
   val mainFile: VirtualFile,
   val mainFileContent: String,

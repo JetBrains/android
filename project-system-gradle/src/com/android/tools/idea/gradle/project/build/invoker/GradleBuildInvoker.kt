@@ -67,7 +67,7 @@ interface GradleBuildInvoker {
   fun stopBuild(id: ExternalSystemTaskId): Boolean
   val project: Project
 
-  data class Request constructor(
+  data class Request(
     val project: Project,
     val taskId: ExternalSystemTaskId,
     val data: RequestData,
@@ -143,7 +143,7 @@ interface GradleBuildInvoker {
       val isPassParentEnvs: Boolean = true,
     )
 
-    class Builder constructor(
+    class Builder(
       project: Project,
       requestData: RequestData
     ) {

@@ -31,7 +31,7 @@ import kotlin.math.min
  * A "snap" target for CoordinatorLayout. When a CoordinatorDragTarget
  * is moved close to this, we'll snap the component at the location.
  */
-class CoordinatorSnapTarget constructor(type: Type) : BaseTarget(), NonPlaceholderDragTarget {
+class CoordinatorSnapTarget(type: Type) : BaseTarget(), NonPlaceholderDragTarget {
   private val DEBUG: Boolean = false
 
   enum class Type {

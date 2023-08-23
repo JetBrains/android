@@ -60,9 +60,9 @@ import java.util.concurrent.Executor
  * Allows any component to listen to all method body edits of a project.
  */
 @Service
-class LiveEditService constructor(val project: Project,
-                                  var executor: Executor,
-                                  val adbEventsListener: LiveEditAdbEventsListener) : Disposable {
+class LiveEditService(val project: Project,
+                      var executor: Executor,
+                      val adbEventsListener: LiveEditAdbEventsListener) : Disposable {
 
   private val notifications = LiveEditNotifications(project)
 
