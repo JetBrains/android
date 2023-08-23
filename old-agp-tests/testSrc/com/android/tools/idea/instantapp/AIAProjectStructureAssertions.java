@@ -19,11 +19,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType;
 import com.android.tools.idea.gradle.model.IdeDependencies;
-import com.android.tools.idea.gradle.model.IdeDependencyKt;
+import com.android.tools.idea.gradle.model.IdeModuleLibrary;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -80,7 +79,11 @@ public class AIAProjectStructureAssertions {
 
     IdeDependencies dependencies = model.getSelectedMainCompileDependencies();
     List<String> libraries =
-      ContainerUtil.map(dependencies.getModuleDependencies(), IdeDependencyKt::getProjectPath);
+      dependencies.getLibraries().stream()
+        .filter((x) -> x instanceof IdeModuleLibrary)
+        .map((x) -> (IdeModuleLibrary)x)
+        .map(IdeModuleLibrary::getProjectPath)
+        .toList();
     assertThat(libraries).containsExactlyElementsIn(expectedDependencies);
   }
 }
