@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.DoubleClickListener
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.PopupHandler
 import java.awt.Component
 import java.awt.Graphics
@@ -210,8 +211,10 @@ class LayoutInspectorRenderer(
     if (renderModel.model.resourceLookup.isRunningInMainDisplay == false) {
       if (!notificationModel.hasNotification(notificationId)) {
         notificationModel.addNotification(
-          notificationId,
-          LayoutInspectorBundle.message(notificationId)
+          id = notificationId,
+          text = LayoutInspectorBundle.message(notificationId),
+          status = EditorNotificationPanel.Status.Warning,
+          actions = emptyList()
         )
       }
       // Do no render view bounds, because they would be on the wrong display.

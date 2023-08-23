@@ -575,6 +575,10 @@ class LayoutInspectorRendererTest {
     paint(renderImage, layoutInspectorRenderer)
 
     assertThat(seenNotificationIds).containsExactly("rendering.in.secondary.display.not.supported")
+    notificationModel.notifications
+      .find { it.id == "rendering.in.secondary.display.not.supported" }!!
+      .actions
+      .isEmpty()
 
     inspectorModelWithLeftBorder.resourceLookup.isRunningInMainDisplay = true
 
