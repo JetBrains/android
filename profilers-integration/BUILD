@@ -39,7 +39,7 @@ iml_studio_test(
         "very_flaky",  # b/282881259
         "block-network",
     ],
-    tags_mac = ["manual"],  # b/282881259: Enable the tests in MAC once the flakiness is resolved in linux and moved to pre-submits.
+    tags_mac = [],
     tags_windows = [
         "block-network",
         "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
