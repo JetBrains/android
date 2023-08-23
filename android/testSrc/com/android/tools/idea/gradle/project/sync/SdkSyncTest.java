@@ -22,17 +22,21 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.util.Ref;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.idea.gradle.project.sync.SdkSync.ANDROID_MANIFEST_PATH;
+
 /**
  * Tests for {@link SdkSync}.
  */
-public class SdkSyncTest extends PlatformTestCase {
+public class SdkSyncTest extends HeavyPlatformTestCase {
   private LocalProperties myLocalProperties;
   private File myAndroidSdkPath;
   private IdeSdks myIdeSdks;
@@ -58,7 +62,7 @@ public class SdkSyncTest extends PlatformTestCase {
     });
 
     createEmptyLocalPropertiesFile();
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, myProject);
 
     assertProjectSdkSet();
   }
@@ -69,7 +73,7 @@ public class SdkSyncTest extends PlatformTestCase {
     });
 
     assertNoLocalPropertiesExists();
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, myProject);
 
     if (IdeInfo.getInstance().isAndroidStudio()) {
       assertProjectSdkSet();
@@ -88,7 +92,7 @@ public class SdkSyncTest extends PlatformTestCase {
     myLocalProperties.setAndroidSdkPath(new File("randomPath"));
     myLocalProperties.save();
 
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, myProject);
 
     assertProjectSdkSet();
   }
@@ -97,7 +101,7 @@ public class SdkSyncTest extends PlatformTestCase {
     myLocalProperties.setAndroidSdkPath(myAndroidSdkPath);
     myLocalProperties.save();
 
-    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties);
+    mySdkSync.syncIdeAndProjectAndroidSdks(myLocalProperties, myProject);
 
     assertDefaultSdkSet();
   }
@@ -129,29 +133,18 @@ public class SdkSyncTest extends PlatformTestCase {
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenLocalPropertiesExistsAndUserSelectsValidSdkPath() throws Exception {
-    Ref<Boolean> selectSdkDialogShown = new Ref<>(false);
     SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
-      @Nullable
       @Override
       File selectValidSdkPath() {
-        selectSdkDialogShown.set(true);
         return myAndroidSdkPath;
       }
     };
 
     createEmptyLocalPropertiesFile();
-    mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
+    mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, null);
 
-    assertEquals("IDEA should not ask users to configure Android SDK in KMPP projects with no android modules (https://youtrack.jetbrains.com/issue/IDEA-265504). " +
-                 "Android Studio asks users to do so.",
-                 IdeInfo.getInstance().isAndroidStudio(), selectSdkDialogShown.get().booleanValue());
-
-    if (IdeInfo.getInstance().isAndroidStudio()) {
-      assertProjectSdkSet();
-      assertDefaultSdkSet();
-    } else {
-      assertNull(myLocalProperties.getAndroidSdkPath());
-    }
+    assertProjectSdkSet();
+    assertDefaultSdkSet();
   }
 
   public void testSyncIdeAndProjectAndroidHomesWhenUserDoesNotSelectValidSdkPath() throws Exception {
@@ -175,6 +168,42 @@ public class SdkSyncTest extends PlatformTestCase {
     assertNull(myLocalProperties.getAndroidSdkPath());
   }
 
+  public void testSyncIdeAndProjectAndroidHomesWhenManifestExistsInExpectedPlace() throws Exception {
+    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
+      @Override
+      File selectValidSdkPath() {
+        return myAndroidSdkPath;
+      }
+    };
+    createAndroidManifestFile(ANDROID_MANIFEST_PATH);
+    mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
+
+    assertProjectSdkSet();
+    assertDefaultSdkSet();
+  }
+
+  public void testSyncIdeAndProjectAndroidHomesWhenManifestExistsInUnexpectedPlace() throws Exception {
+    SdkSync.FindValidSdkPathTask task = new SdkSync.FindValidSdkPathTask() {
+      @Override
+      File selectValidSdkPath() {
+        if (!IdeInfo.getInstance().isAndroidStudio()) {
+          fail("IDEA should not ask users to configure Android SDK if the Android Manifest file is not at the expected path - " +
+               "we assume that in this project the Android module may not be the primary");
+        }
+        return myAndroidSdkPath;
+      }
+    };
+    createAndroidManifestFile("/androidApp" + ANDROID_MANIFEST_PATH);
+    mySdkSync.syncIdeAndProjectAndroidSdk(myLocalProperties, task, myProject);
+
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      assertProjectSdkSet();
+      assertDefaultSdkSet();
+    } else {
+      assertNull(myLocalProperties.getAndroidSdkPath());
+    }
+  }
+
   private void assertDefaultSdkSet() {
     File actual = myIdeSdks.getAndroidSdkPath();
     assertNotNull(actual);
@@ -196,5 +225,11 @@ public class SdkSyncTest extends PlatformTestCase {
 
   private void assertNoLocalPropertiesExists() {
     assertFalse("Precondition failed: file local.properties should not exist", myLocalProperties.getPropertiesFilePath().exists());
+  }
+
+  private void createAndroidManifestFile(String path) throws IOException {
+    WriteAction.compute(() -> createChildData(
+                            VfsUtil.createDirectoryIfMissing(createTestProjectStructure(), VfsUtil.getParentDir(path)),
+                            VfsUtil.extractFileName(path)));
   }
 }

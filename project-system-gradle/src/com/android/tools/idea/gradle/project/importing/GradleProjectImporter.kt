@@ -81,9 +81,9 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   ): Project? {
     val projectFolderPath = VfsUtilCore.virtualToIoFile(projectFolder)
     try {
-      setUpLocalProperties(projectFolderPath)
       val projectName = projectFolder.name
       val newProject = createProject(projectName, projectFolderPath)
+      setUpLocalProperties(projectFolderPath, newProject)
       importProjectNoSync(Request(newProject))
       return ProjectManagerEx.getInstanceEx().openProject(
         projectFolderPath.toPath(),
@@ -107,12 +107,10 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   }
 
   @Throws(IOException::class)
-  private fun setUpLocalProperties(projectFolderPath: File) {
+  private fun setUpLocalProperties(projectFolderPath: File, project: Project) {
     try {
       val localProperties = LocalProperties(projectFolderPath)
-      if (IdeInfo.getInstance().isAndroidStudio) {
-        mySdkSync.syncIdeAndProjectAndroidSdks(localProperties)
-      }
+      mySdkSync.syncIdeAndProjectAndroidSdks(localProperties, project)
     }
     catch (e: IOException) {
       logger.info("Failed to sync SDKs", e)

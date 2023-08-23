@@ -643,8 +643,8 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
     SimulatedSyncErrors.simulateRegisteredSyncError()
     val projectPath = resolverCtx.projectPath
-    SdkSync.getInstance().syncAndroidSdks(projectPath)
     val project = project
+    SdkSync.getInstance().syncAndroidSdks(projectPath, project)
 
     if (IdeInfo.getInstance().isAndroidStudio) {
       // do not confuse IDEA users with warnings and quick fixes that suggest something about Android Studio in pure gradle-java projects (IDEA-266355)
