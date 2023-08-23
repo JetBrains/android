@@ -459,34 +459,32 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         dump("compileClasspath", ideBaseArtifact.compileClasspath)
         dump("runtimeClasspath", ideBaseArtifact.runtimeClasspath)
       }
-      val runtimeNames =
-        (ideBaseArtifact.runtimeClasspath.androidLibraries + ideBaseArtifact.runtimeClasspath.javaLibraries).map { it.target.name }.toSet()
-      val compileTimeNames =
-        (ideBaseArtifact.compileClasspath.androidLibraries + ideBaseArtifact.compileClasspath.javaLibraries).map { it.target.name }.toSet()
-      val providedDependencies =
-        (ideBaseArtifact.compileClasspath.androidLibraries + ideBaseArtifact.compileClasspath.javaLibraries)
-          .filter { it.target.name !in runtimeNames }
+      val runtimeNames = ideBaseArtifact.runtimeClasspath.libraries.filterIsInstance<IdeArtifactLibrary>().map { it.name }.toSet()
+      val compileTimeNames = ideBaseArtifact.compileClasspath.libraries.filterIsInstance<IdeArtifactLibrary>().map { it.name }.toSet()
+      val providedDependencies = ideBaseArtifact.compileClasspath.libraries.filterIsInstance<IdeArtifactLibrary>()
+        .filter { it.name !in runtimeNames }
       if (providedDependencies.isNotEmpty()) {
         head("ProvidedDependencies")
         nest {
           providedDependencies
-            .sortedBy { it.target.name }
+            .sortedBy { it.name }
             .forEach {
-              prop("- provided") { it.target.name.replaceKnownPatterns().replaceKnownPaths() }
+              prop("- provided") { it.name.replaceKnownPatterns().replaceKnownPaths() }
             }
         }
       }
       val runtimeOnlyClasses =
-        (
-          ideBaseArtifact.runtimeClasspath.androidLibraries
-            .filter { it.target.name !in compileTimeNames }
-            .flatMap { it.target.runtimeJarFiles } +
-
-            ideBaseArtifact.runtimeClasspath.javaLibraries
-              .filter { it.target.name !in compileTimeNames }
-              .map { it.target.artifact }
-          ).distinct()
-
+        ideBaseArtifact.runtimeClasspath.libraries
+          .filterIsInstance<IdeArtifactLibrary>()
+          .filter { it.name !in compileTimeNames }
+          .flatMap {
+            when (it) {
+              is IdeAndroidLibrary -> it.runtimeJarFiles
+              is IdeJavaLibrary -> listOf(it.artifact)
+              else -> emptyList()
+            }
+          }
+          .distinct()
       if (runtimeOnlyClasses.isNotEmpty()) {
         head("RuntimeOnlyClasses")
         nest {
