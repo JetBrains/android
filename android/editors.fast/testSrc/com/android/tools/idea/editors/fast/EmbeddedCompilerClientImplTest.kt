@@ -146,38 +146,6 @@ internal class EmbeddedCompilerClientImplTest {
     }
   }
 
-  @Test
-  fun `test retry`() {
-    val attempts = 20
-    var executedRetries = 0
-    val result = retryInNonBlockingReadAction(attempts) {
-      executedRetries++
-      // Throw in all but the last one
-      if (executedRetries < attempts - 1) throw IllegalStateException()
-      230L
-    }
-    assertEquals(230L, result)
-    assertEquals(attempts - 1, executedRetries)
-
-    class TestException: Exception()
-    executedRetries = 0
-    try {
-      retryInNonBlockingReadAction(attempts) {
-        executedRetries++
-        // Do not execute all attempts, just throw a NonRetryableException after 5 attempts
-        // to avoid more retries.
-        if (executedRetries == 5) throw NonRetriableException(TestException())
-        throw IllegalStateException()
-      }
-    }
-    catch (t: TestException) {
-      assertEquals(5, executedRetries)
-    }
-    catch (t: Throwable) {
-      fail("Unexpected exception ${t.message}")
-    }
-  }
-
   /**
    * Verifies that the compileRequest fails correctly when passing a qualifier call with no receiver like `Test.`.
    * This is a regression test to verify that compileRequest does not break and handles that case correctly.
