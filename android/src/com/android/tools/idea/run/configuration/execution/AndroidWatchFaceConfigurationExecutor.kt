@@ -59,17 +59,17 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment,
     if (version < WATCH_FACE_MIN_DEBUG_SURFACE_VERSION) {
       throw SurfaceVersionException(WATCH_FACE_MIN_DEBUG_SURFACE_VERSION, version, device.isEmulator)
     }
-    setWatchFace(app, mode, indicator)
+    setWatchFace(app, mode, indicator, device)
     showWatchFace(device, console, indicator)
   }
 
-  private fun setWatchFace(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator) {
+  private fun setWatchFace(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator, device: IDevice) {
     indicator.checkCanceled()
     indicator.text = "Launching the watch face"
 
     val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
     try {
-      app.activateComponent(watchFaceLaunchOptions.componentType, watchFaceLaunchOptions.componentName!!, mode, outputReceiver)
+      app.activateComponent(watchFaceLaunchOptions.componentType, watchFaceLaunchOptions.componentName!!, mode, outputReceiver, device)
     }
     catch (ex: DeployerException) {
       throw ExecutionException("Error while launching watch face, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)

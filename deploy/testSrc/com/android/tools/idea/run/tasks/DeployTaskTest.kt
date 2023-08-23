@@ -64,7 +64,7 @@ class DeployTaskTest {
     MockitoAnnotations.initMocks(this)
     application.registerService(NotificationGroupManager::class.java, notificationGroupManager)
     whenever(deployer.install(any(), any(), any(), any())).thenReturn(
-      Deployer.Result(false, false, false, App("id", emptyList(), device, logger))
+      Deployer.Result(false, false, false, App("id", emptyList(), logger))
     )
     whenever(canceller.cancelled()).thenReturn(false)
   }

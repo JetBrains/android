@@ -77,7 +77,7 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions, LaunchOptionS
     val mode = if (isDebug) AppComponent.Mode.DEBUG else AppComponent.Mode.RUN
     val activityQualifiedName = getQualifiedActivityName(device, apkProvider, app.appId)
     val receiver = AndroidBackgroundTaskReceiver(console)
-    app.activateComponent(componentType, activityQualifiedName, extraFlags, mode, receiver)
+    app.activateComponent(componentType, activityQualifiedName, extraFlags, mode, receiver, device)
     val matcher = activityDoesNotExistPattern.matcher(receiver.output.joinToString())
     if (matcher.find()) {
       throw AndroidExecutionException(ACTIVITY_DOES_NOT_EXIST, matcher.group())

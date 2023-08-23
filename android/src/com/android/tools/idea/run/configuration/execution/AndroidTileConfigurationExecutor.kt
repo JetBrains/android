@@ -77,20 +77,20 @@ class AndroidTileConfigurationExecutor(
 
     // TODO(b/226550406): Only add this sleep for older versions where the race condition exists.
     Thread.sleep(Duration.ofSeconds(2).toMillis())
-    val tileIndex = setWatchTile(app, mode, indicator, console)
+    val tileIndex = setWatchTile(app, mode, indicator, console, device)
     val showTileCommand = SHOW_TILE_COMMAND + tileIndex!!
     val showTileReceiver = CommandResultReceiver()
     device.executeShellCommand(showTileCommand, console, showTileReceiver, indicator = indicator)
     verifyResponse(showTileReceiver, console)
   }
 
-  private fun setWatchTile(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator?, console: ConsoleView): Int? {
+  private fun setWatchTile(app: App, mode: AppComponent.Mode, indicator: ProgressIndicator?, console: ConsoleView, device: IDevice): Int? {
     val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
     val consoleReceiver = ConsoleOutputReceiver({ indicator?.isCanceled == true }, console)
     val indexReceiver = AddTileCommandResultReceiver { indicator?.isCanceled == true }
     val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
     try {
-      app.activateComponent(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver)
+      app.activateComponent(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver, device)
     }
     catch (ex: DeployerException) {
       throw ExecutionException("Error while setting the tile, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)

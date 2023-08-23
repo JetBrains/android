@@ -223,7 +223,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     // Executor we test.
     val app = Mockito.mock(App::class.java)
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any())
+      .whenever(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any(), any())
     val appInstaller = TestApplicationInstaller(appId, app)
     val executor = AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
 

@@ -37,9 +37,8 @@ import org.mockito.Mockito.mock
 class DeployAndHandleErrorKtTest {
   private val ACTIVITY_NAME = "com.example.Activity"
   private val APPLICATION_ID = "com.example"
-  private val device = mock(IDevice::class.java)
   private val deployerResult = Deployer.Result(false, false, false,
-                                               createApp(device, APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
+                                               createApp(APPLICATION_ID, activitiesName = listOf(ACTIVITY_NAME)))
 
   val projectRule = AndroidProjectRule.inMemory()
   val notificationRule = NotificationRule(projectRule)

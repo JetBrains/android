@@ -85,12 +85,12 @@ class AndroidComplicationConfigurationExecutor(
     installWatchApp(device, console, indicator)
 
     complicationLaunchOptions.chosenSlots.forEach { slot ->
-      setComplicationOnWatchFace(app, slot, mode, indicator)
+      setComplicationOnWatchFace(app, slot, mode, indicator, device)
     }
     showWatchFace(device, console, indicator)
   }
 
-  private fun setComplicationOnWatchFace(app: App, slot: ChosenSlot, mode: AppComponent.Mode, indicator: ProgressIndicator?) {
+  private fun setComplicationOnWatchFace(app: App, slot: ChosenSlot, mode: AppComponent.Mode, indicator: ProgressIndicator?, device: IDevice) {
     if (slot.type == null) {
       throw ExecutionException("Slot type is not specified for slot(id: ${slot.id}).")
     }
@@ -104,7 +104,8 @@ class AndroidComplicationConfigurationExecutor(
         complicationLaunchOptions.componentName!!,
         "$watchFaceInfo ${slot.id} ${slot.type}",
         mode,
-        receiver)
+        receiver,
+        device)
     }
     catch (ex: DeployerException) {
       throw ExecutionException("Error while launching complication, message: ${receiver.getOutput().ifEmpty { ex.details }}", ex)

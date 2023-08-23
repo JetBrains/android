@@ -217,7 +217,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val app = Mockito.mock(App::class.java)
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any())
+      .whenever(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any(), any())
     val appInstaller = TestApplicationInstaller(appId, app)
     val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
 

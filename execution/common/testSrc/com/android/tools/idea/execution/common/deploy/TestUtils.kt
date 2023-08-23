@@ -23,13 +23,12 @@ import com.android.tools.manifest.parser.components.ManifestActivityInfo
 import com.android.tools.manifest.parser.components.ManifestServiceInfo
 import com.android.utils.NullLogger
 
-fun createApp(
-  device: IDevice, appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()
+fun createApp(appId: String, servicesName: List<String> = emptyList(), activitiesName: List<String> = emptyList()
 ): App {
   val services = servicesName.map { createManifestServiceInfo(it, appId) }
   val activities = activitiesName.map { createManifestActivityInfo(it, appId) }
   val apk = Apk.Builder().setServices(services).setActivities(activities).build()
-  return App(appId, listOf(apk), device, NullLogger())
+  return App(appId, listOf(apk), NullLogger())
 }
 
 private fun createManifestServiceInfo(
