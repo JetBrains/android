@@ -29,6 +29,7 @@ class DesignToolsTroubleInfoCollector(
       BuildStatusTroubleInfoCollector(),
       FastPreviewTroubleInfoCollector(),
       ProjectInfoTroubleInfoCollector(),
+      PsiCodeFileChangeDetectorServiceTroubleInfoCollector(),
     )
 ) : TroubleInfoCollector {
   override fun toString(): String = "Design Tools"

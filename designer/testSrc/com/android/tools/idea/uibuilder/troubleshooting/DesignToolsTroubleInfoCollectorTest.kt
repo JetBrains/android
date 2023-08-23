@@ -39,6 +39,8 @@ class DesignToolsTroubleInfoCollectorTest {
           libDepCount=0
 
 
+        PsiCodeFileChangeDetectorService: outOfDateFiles=[]
+
         IssuePanelService: nIssues=0
 
 

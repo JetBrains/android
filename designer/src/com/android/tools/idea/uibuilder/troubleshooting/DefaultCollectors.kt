@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.troubleshooting
 
+import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.projectsystem.DependencyScopeType
 import com.android.tools.idea.projectsystem.ProjectSystemService
@@ -88,4 +89,10 @@ internal class FastPreviewTroubleInfoCollector : TroubleInfoCollector {
       "FastPreviewStatus: available=${fastPreview.isAvailable} disableReason=${fastPreview.disableReason}"
     else ""
   }
+}
+
+/** [TroubleInfoCollector] for [PsiCodeFileChangeDetectorService] status. */
+internal class PsiCodeFileChangeDetectorServiceTroubleInfoCollector : TroubleInfoCollector {
+  override fun collectInfo(project: Project): String =
+    "PsiCodeFileChangeDetectorService: outOfDateFiles=[${PsiCodeFileChangeDetectorService.getInstance(project).outOfDateFiles.joinToString(",")}]"
 }
