@@ -74,7 +74,7 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
   }
 
   override fun getChildrenModels(): Collection<PsModule> {
-    val currentModuleGradlePath = getModule().gradlePath
+    val currentModuleGradlePath = module.gradlePath
     return if (currentModuleGradlePath == null) emptyList()
     else context.project.modules
       .filter { it.gradlePath != null }

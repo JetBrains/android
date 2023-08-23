@@ -77,8 +77,8 @@ class AndroidTestConfigurationProducer : JavaRunConfigurationProducerBase<Androi
     return if (contextModule != null) {
       contextModule
     }
-    else if (configuration.getConfigurationModule().getModule() != null) {
-      configuration.getConfigurationModule().getModule()
+    else if (configuration.configurationModule.module != null) {
+      configuration.configurationModule.module
     }
     else null
   }

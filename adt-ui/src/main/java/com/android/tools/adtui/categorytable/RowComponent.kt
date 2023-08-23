@@ -132,7 +132,7 @@ internal class ValueRowComponent<T>(
   }
 
   private val valueRowLayout: ValueRowLayout
-    get() = getLayout() as ValueRowLayout
+    get() = layout as ValueRowLayout
 
   override var indent: Int by valueRowLayout::indent
 

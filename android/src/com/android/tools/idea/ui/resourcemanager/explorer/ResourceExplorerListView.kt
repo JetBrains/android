@@ -450,7 +450,7 @@ class ResourceExplorerListView(
   private fun populateSearchLinkLabels() {
     if (moduleSearchView == null) return
     searchFuture?.let { future ->
-      if (!future.isDone()) {
+      if (!future.isDone) {
         // Only one 'future' for getOtherModulesResourceLists may run at a time.
         future.cancel(true)
       }

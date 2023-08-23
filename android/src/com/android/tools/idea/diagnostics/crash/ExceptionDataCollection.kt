@@ -87,7 +87,7 @@ class ExceptionDataCollection {
         append('[')
         append((now - creationTimestamp).toString().padStart(7))
         append("] ")
-        val levelString = event.getLevel().toString()
+        val levelString = event.level.toString()
         append(levelString.substring(0, min(1, levelString.length)))
         append(" [")
         val category = event.loggerName

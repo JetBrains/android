@@ -287,7 +287,7 @@ class KotlinDslParser(
       val propertiesElement = methodCallBlock(expression, parent, name) ?: getPropertiesElement(listOf(referenceName), parent, name) ?: return
       val body = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
-      propertiesElement.setPsiElement(body ?: expression)
+      propertiesElement.psiElement = body ?: expression
       if (body == null && propertiesElement is GradleDslBlockElement) {
         propertiesElement.hasBraces = false
       }

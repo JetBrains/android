@@ -2147,7 +2147,7 @@ fun getResourceElementFromSurroundingValuesTag(element: PsiElement): ResourceRef
 fun getViewTag(item: ResourceItem): String? {
   if (item is PsiResourceItem) {
     val tag = item.tag
-    val id = item.getName()
+    val id = item.name
     if (tag != null && tag.isValid // Make sure that the id attribute we're searching for is actually
         // defined for this tag, not just referenced from this tag.
         // For example, we could have

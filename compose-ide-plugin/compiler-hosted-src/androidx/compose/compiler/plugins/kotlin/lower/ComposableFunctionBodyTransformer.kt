@@ -3667,7 +3667,7 @@ class ComposableFunctionBodyTransformer(
             }
 
             private fun callInformation(): String =
-                if (!function.name.isSpecial())
+                if (!function.name.isSpecial)
                     "C(${function.name.asString()})"
                 else "C"
 

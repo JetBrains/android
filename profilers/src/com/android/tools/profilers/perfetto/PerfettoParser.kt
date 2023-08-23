@@ -89,7 +89,7 @@ class PerfettoParser(private val mainProcessSelector: MainProcessSelector,
 
       val builder = SystemTraceCpuCaptureBuilder(model)
 
-      if (initialViewRange.isEmpty()) {
+      if (initialViewRange.isEmpty) {
         initialViewRange.set(model.getCaptureStartTimestampUs().toDouble(), model.getCaptureEndTimestampUs().toDouble())
       }
       return builder.build(traceId, userSelectedProcess, initialViewRange)
