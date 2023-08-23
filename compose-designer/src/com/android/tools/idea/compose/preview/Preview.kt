@@ -1471,7 +1471,9 @@ class ComposePreviewRepresentation(
           )
           // If gallery mode was selected before - need to restore this type of layout.
           if (it == PREVIEW_LAYOUT_GALLERY_OPTION) {
-            setMode(PreviewMode.Gallery(allPreviewElementsInFileFlow.value.first()))
+            allPreviewElementsInFileFlow.value.firstOrNull()?.let { previewElement ->
+              setMode(PreviewMode.Gallery(previewElement))
+            }
           }
         }
     }
