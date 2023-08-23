@@ -21,6 +21,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.model.GradleAndroidModelData
@@ -44,6 +45,7 @@ import com.intellij.execution.RunConfigurationProducerService
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -65,6 +67,7 @@ import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.workspaceModel.ide.JpsProjectLoadingManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConfigurationProducer
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer
@@ -95,8 +98,14 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
     removeGradleProducersFromIgnoredList(project)
 
     if (shouldSyncOrAttachModels()) {
-      removeEmptyModules(project)
-      attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
+      JpsProjectLoadingManager.getInstance(project).jpsProjectLoaded {
+        invokeAndWaitIfNeeded {
+          runWriteAction {
+            removePointlessModules(project)
+          }
+        }
+        attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
+      }
     }
 
     gradleProjectInfo.isSkipStartupActivity = false
@@ -105,30 +114,36 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
 
 private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.java)
 
-private fun removeEmptyModules(project: Project) {
+private fun removePointlessModules(project: Project) {
   val moduleManager = ModuleManager.getInstance(project)
-  val modulesToRemove =
-    moduleManager
-      .modules
-      .filter { module ->
-        module.isLoaded &&
-          module.moduleFile == null &&
-          ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId().isNullOrEmpty() &&
-          module.rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }
-      }
-      .takeUnless { it.isEmpty() }
-      ?: return
+  val emptyModulesToRemove = mutableListOf<Module>()
+  val nativeOnlySourceRootsModulesToRemove = mutableListOf<Module>()
 
-  runWriteAction {
-    with(moduleManager.getModifiableModel()) {
-      modulesToRemove.forEach {
-        LOG.warn(
-          "Disposing module '${it.name}' which is empty, not registered with the external system and '${it.moduleFilePath}' does not exist."
-        )
-        disposeModule(it)
+  moduleManager.modules.forEach { module ->
+    if (module.isLoaded && ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId().isNullOrEmpty()) {
+      if (module.isEmptyModule()) {
+        emptyModulesToRemove.add(module)
+      } else if (module.hasOnlyNativeSourceRoots()) {
+        nativeOnlySourceRootsModulesToRemove.add(module)
       }
-      commit()
     }
+  }
+
+  removeModules(emptyModulesToRemove, moduleManager) {
+    LOG.warn("Disposed module '$name' which is empty, not registered with the external system and '$moduleFilePath' does not exist.")
+  }
+  removeModules(nativeOnlySourceRootsModulesToRemove, moduleManager) {
+    LOG.warn("Disposed module '$name' which is not registered with the external system and contains only native source roots.")
+  }
+}
+
+private fun removeModules(modules: List<Module>, moduleManager: ModuleManager, onRemovingModule: Module.() -> Unit ) {
+  with(moduleManager.getModifiableModel()) {
+    modules.forEach {
+      onRemovingModule(it)
+      disposeModule(it)
+    }
+    commit()
   }
 }
 
@@ -338,3 +353,10 @@ private fun removeGradleProducersFromIgnoredList(project: Project) {
   producerService.state.ignoredProducers.remove(TestClassGradleConfigurationProducer::class.java.name)
   producerService.state.ignoredProducers.remove(TestMethodGradleConfigurationProducer::class.java.name)
 }
+
+private fun Module.isEmptyModule() =
+  moduleFile == null &&
+  rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }
+
+private fun Module.hasOnlyNativeSourceRoots() =
+  rootManager.let { roots -> roots.sourceRoots.isNotEmpty() && roots.getSourceRoots(NativeSourceRootType).size == roots.sourceRoots.size }
