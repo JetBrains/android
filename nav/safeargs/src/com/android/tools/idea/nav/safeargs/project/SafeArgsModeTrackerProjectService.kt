@@ -31,7 +31,7 @@ import net.jcip.annotations.ThreadSafe
  */
 @ThreadSafe
 @Service
-class SafeArgsModeTrackerProjectService() {
+class SafeArgsModeTrackerProjectService {
   companion object {
     fun getInstance(project: Project) = project.getService(SafeArgsModeTrackerProjectService::class.java)!!
   }

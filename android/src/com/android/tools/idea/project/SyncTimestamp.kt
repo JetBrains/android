@@ -34,7 +34,7 @@ class SyncTimestampListener(private val project: Project): SyncResultListener {
   }
 }
 
-class SyncTimestamp() {
+class SyncTimestamp {
   private val lastSyncTimestamp = AtomicLong(-1L)
 
   /**

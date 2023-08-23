@@ -129,7 +129,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
   }
 }
 
-private class UseJavaHomeAsJdkQuickFix() : DescribedBuildIssueQuickFix {
+private class UseJavaHomeAsJdkQuickFix : DescribedBuildIssueQuickFix {
   override val description: String = "Set Android Studio to use the same JDK as Gradle and sync project"
   override val id: String = "use.java.home.as.jdk"
 

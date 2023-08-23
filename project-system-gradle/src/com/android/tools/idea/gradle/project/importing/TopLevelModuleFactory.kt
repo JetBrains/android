@@ -39,7 +39,7 @@ import java.io.File
 
 private val LOG: Logger =  Logger.getInstance(TopLevelModuleFactory::class.java)
 
-class TopLevelModuleFactory() {
+class TopLevelModuleFactory {
 
   /**
    * Creates and configures a temporary module holding covering sources in the root of the Gradle project root to solve the

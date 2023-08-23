@@ -28,7 +28,7 @@ class AndroidGradleDisableAutoImportInitializer : ApplicationInitializedListener
   }
 }
 
-class RefreshOnlyAutoImportProjectTracker(): ExternalSystemProjectTracker {
+class RefreshOnlyAutoImportProjectTracker : ExternalSystemProjectTracker {
   override fun activate(id: ExternalSystemProjectId) = Unit
   override fun markDirty(id: ExternalSystemProjectId) = Unit
   override fun markDirtyAllProjects() = Unit

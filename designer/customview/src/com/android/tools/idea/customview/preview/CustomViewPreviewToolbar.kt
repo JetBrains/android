@@ -40,7 +40,7 @@ internal class CustomViewPreviewToolbar(surface: DesignSurface<*>) : ToolbarActi
     }
   }
 
-  private class CustomViewSelector() :
+  private class CustomViewSelector :
     DropDownAction(null, "Custom View for Preview", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
     override fun update(e: AnActionEvent) {
       super.update(e)

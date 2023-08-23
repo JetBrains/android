@@ -69,7 +69,7 @@ class BottomPanel(
     preferredSize = Dimension(width, InspectorLayout.BOTTOM_PANEL_HEIGHT)
   }
 
-  private inner class ClockTimeLabel() : ToolbarLabelAction() {
+  private inner class ClockTimeLabel : ToolbarLabelAction() {
     override fun createCustomComponent(presentation: Presentation, place: String): JComponent =
       (super.createCustomComponent(presentation, place) as JBLabel).apply {
         font = JBFont.smallOrNewUiMedium()
@@ -84,7 +84,7 @@ class BottomPanel(
     }
   }
 
-  private inner class ResetTimelineAction() :
+  private inner class ResetTimelineAction :
     AnActionButton(
       message("animation.inspector.action.reset.timeline"),
       StudioIcons.LayoutEditor.Toolbar.LEFT_ALIGNED

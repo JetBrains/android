@@ -117,7 +117,7 @@ class AnimationCard(
     }
   }
 
-  private inner class ExpandAction() :
+  private inner class ExpandAction :
     AnActionButton(message("animation.inspector.action.expand"), UIUtil.getTreeCollapsedIcon()) {
 
     override fun actionPerformed(e: AnActionEvent) {

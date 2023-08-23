@@ -32,7 +32,7 @@ sealed class LintResult {
  * infrastructure (such as [ApiLookup] and need to construct a client but you don't need to record
  * any potential warnings.
  */
-class LintIgnoredResult() : LintResult() {
+class LintIgnoredResult : LintResult() {
   override fun getIssues(): Set<Issue> = emptySet()
 }
 
