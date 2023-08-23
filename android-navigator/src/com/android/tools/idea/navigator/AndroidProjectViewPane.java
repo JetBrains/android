@@ -33,6 +33,7 @@ import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructurePr
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
 import com.intellij.facet.ProjectWideFacetListenersRegistry;
+import com.intellij.ide.DataManager;
 import com.intellij.ide.DeleteProvider;
 import com.intellij.ide.SelectInTarget;
 import com.intellij.ide.impl.ProjectViewSelectInTarget;
@@ -368,15 +369,20 @@ public class AndroidProjectViewPane extends AbstractProjectViewPaneWithAsyncSupp
     return false;
   }
 
-  private class MyProjectViewTree extends ProjectViewTree implements DataProvider {
+  private class MyProjectViewTree extends ProjectViewTree {
     MyProjectViewTree(DefaultTreeModel treeModel) {
       super(treeModel);
-    }
-
-    @Nullable
-    @Override
-    public Object getData(@NotNull @NonNls String dataId) {
-      return AndroidProjectViewPane.this.getData(dataId);
+      DataProvider parentProvider = DataManager.getDataProvider(this);
+      DataManager.removeDataProvider(this);
+      DataManager.registerDataProvider(this, new DataProvider() {
+        @Override
+        public @Nullable Object getData(@NotNull @NonNls String dataId) {
+          Object result = AndroidProjectViewPane.this.getData(dataId);
+          if (result != null) return result;
+          if (parentProvider != null) parentProvider.getData(dataId);
+          return null;
+        }
+      });
     }
   }
 
