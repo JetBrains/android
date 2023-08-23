@@ -18,7 +18,9 @@ package com.android.tools.idea.gradle
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
@@ -46,8 +48,13 @@ class AndroidGradleClassJarProviderTest {
     val dependencyManager = GradleDependencyManager.getInstance(gradleProjectRule.project)
     assertTrue(dependencyManager.addDependenciesAndSync(module, listOf(mockitoDependency)))
 
-    fun IdeDependencies.all() =
-      (this.androidLibraries.flatMap { it.target.runtimeJarFiles } + this.javaLibraries.map { it.target.artifact })
+    fun IdeDependencies.all() = this.libraries.flatMap {
+      when (it) {
+        is IdeAndroidLibrary -> it.runtimeJarFiles
+        is IdeJavaLibrary -> listOf(it.artifact)
+        else -> emptyList()
+      }
+    }
 
     val model = GradleAndroidModel.get(module)!!
     val runtimeDependencies = model.selectedMainRuntimeDependencies.all().toSet() - model.selectedMainCompileDependencies.all().toSet()

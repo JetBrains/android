@@ -29,7 +29,9 @@ import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeDependencies
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.getGradleProjectPath
@@ -148,8 +150,9 @@ class GradleModuleSystem(
 
   override fun getResolvedDependency(coordinate: GradleCoordinate, scope: DependencyScopeType): GradleCoordinate? {
     return getCompileDependenciesFor(module, scope)
-      ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-      ?.mapNotNull { it.target.component }
+      ?.libraries
+      ?.filterIsInstance<IdeArtifactLibrary>()
+      ?.mapNotNull { it.component }
       ?.find { it.matches(coordinate) }
       ?.let { GradleCoordinate(it.group, it.name, it.version.toString()) }
   }
@@ -161,12 +164,18 @@ class GradleModuleSystem(
 
   private fun GradleCoordinate.toDependency(): Dependency = Dependency.parse(toString());
 
+  private fun IdeArtifactLibrary.componentToArtifact(): Pair<Component, File?>? =
+    when (this) {
+      is IdeAndroidLibrary -> component?.let { it to artifact }
+      is IdeJavaLibrary -> component?.let { it to artifact }
+      else -> null
+    }
+
   override fun getDependencyPath(coordinate: GradleCoordinate): Path? {
     return getCompileDependenciesFor(module, DependencyScopeType.MAIN)
-      ?.let { dependencies ->
-        dependencies.androidLibraries.asSequence().mapNotNull { it.target.component?.let { c -> c to it.target.artifact } } +
-          dependencies.javaLibraries.asSequence().mapNotNull { it.target.component?.let { c -> c to it.target.artifact } }
-      }
+      ?.libraries
+      ?.filterIsInstance<IdeArtifactLibrary>()
+      ?.mapNotNull { it.componentToArtifact() }
       ?.find { it.first.matches(coordinate) }
       ?.second?.toPath()
   }
@@ -217,8 +226,10 @@ class GradleModuleSystem(
       }
     } else {
       getCompileDependenciesFor(module, DependencyScopeType.MAIN)
-        ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-        ?.mapNotNull { it.target.component?.dependency() } ?: emptySequence()
+        ?.libraries
+        ?.asSequence()
+        ?.filterIsInstance<IdeArtifactLibrary>()
+        ?.mapNotNull { it.component?.dependency() } ?: emptySequence()
     }
   }
 
@@ -240,9 +251,9 @@ class GradleModuleSystem(
   override fun getAndroidLibraryDependencies(scope: DependencyScopeType): Collection<ExternalAndroidLibrary> {
     // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
     return getRuntimeDependenciesFor(module, scope)
-      .flatMap { it.androidLibraries }
+      .flatMap { it.libraries }
       .distinct()
-      .map(IdeAndroidLibraryDependency::target)
+      .filterIsInstance<IdeAndroidLibrary>()
       .map(::convertLibraryToExternalLibrary)
       .toList()
   }
@@ -606,8 +617,9 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
       .flatMap {
         GradleAndroidModel.get(it)
           ?.selectedMainCompileDependencies
-          ?.androidLibraries
-          ?.mapNotNull { it.target.manifestFile() }
+          ?.libraries
+          ?.filterIsInstance<IdeAndroidLibrary>()
+          ?.mapNotNull { it.manifestFile() }
           .orEmpty()
       }
       .toSet()

@@ -22,6 +22,7 @@ import com.android.tools.idea.databinding.module.LayoutBindingModuleCache
 import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -222,11 +223,11 @@ class GeneratedCodeMatchTest(private val parameters: TestParameters) {
 
   private fun findViewDataBindingClass(): ClassReader {
     val model = GradleAndroidModel.get(projectRule.androidFacet(":app"))!!
-    val classJar = model.mainArtifact.compileClasspath.androidLibraries.first { lib ->
-      lib.target.component?.let {
+    val classJar = model.mainArtifact.compileClasspath.libraries.filterIsInstance(IdeAndroidLibrary::class.java).first { lib ->
+      lib.component?.let {
         it.group == parameters.dataBindingLibArtifact.first && it.name == parameters.dataBindingLibArtifact.second
       } ?: false
-    }.target.runtimeJarFiles.find {
+    }.runtimeJarFiles.find {
       it.name == "classes.jar"
     }
 

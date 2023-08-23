@@ -30,6 +30,8 @@ import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.android.tools.analytics.withProjectId
+import com.android.tools.idea.gradle.model.IdeAndroidLibrary
+import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleAndroidModule
@@ -265,8 +267,9 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
         chosenVariant.set(model.selectedVariant)
       }
       val dependencies = chosenVariant.get()!!.mainArtifact.compileClasspath
-      return GradleLibrary.newBuilder().setAarDependencyCount(dependencies.androidLibraries.size.toLong())
-        .setJarDependencyCount(dependencies.javaLibraries.size.toLong())
+      return GradleLibrary.newBuilder()
+        .setAarDependencyCount(dependencies.libraries.count { it is IdeAndroidLibrary }.toLong())
+        .setJarDependencyCount(dependencies.libraries.count { it is IdeJavaLibrary }.toLong())
         .build()
     }
   }
