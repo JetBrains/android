@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.gradle.model.impl
 
-import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesCore
 import com.android.tools.idea.gradle.model.IdeDependencyCore
-import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
-import com.android.tools.idea.gradle.model.IdeModuleDependency
-import com.android.tools.idea.gradle.model.IdeUnknownDependency
 import java.io.Serializable
 
 /**
@@ -66,22 +62,6 @@ data class IdeDependenciesImpl(
   private val classpath: IdeDependenciesCore,
   override val resolver: IdeLibraryModelResolver
 ) : IdeDependencies {
-  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  override val androidLibraries: Collection<IdeAndroidLibraryDependency> by lazy {
-    classpath.dependencies.flatMap(resolver::resolveAndroidLibrary)
-  }
-  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  override val javaLibraries: Collection<IdeJavaLibraryDependency> by lazy {
-    classpath.dependencies.flatMap(resolver::resolveJavaLibrary)
-  }
-  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  override val moduleDependencies: Collection<IdeModuleDependency> by lazy {
-    classpath.dependencies.flatMap(resolver::resolveModule)
-  }
-  @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  override val unknownDependencies: Collection<IdeUnknownDependency> by lazy {
-    classpath.dependencies.flatMap(resolver::resolveUnknownLibrary)
-  }
   override val libraries by lazy { classpath.dependencies.flatMap { resolver.resolve(it) } }
   override val unresolvedDependencies = classpath.dependencies
   override val lookup: (Int) -> IdeDependencyCore = { classpath.lookup(it) }
