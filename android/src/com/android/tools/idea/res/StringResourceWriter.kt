@@ -27,6 +27,7 @@ import com.intellij.ide.util.DeleteHandler
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -216,6 +217,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
                 resourceDirectory.createChildDirectory(this, valuesDirectoryName)
               }
     } catch (e: IOException) {
+      thisLogger().error("Could not create values directory", e)
       null
     }
   }
@@ -244,6 +246,7 @@ private object StringResourceWriterImpl : StringResourceWriter {
           ResourceType.STRING.name,
           valuesResourceFile = true)
     } catch (e: Exception) {
+      thisLogger().error("Could not create string resource file", e)
       null
     }
   }
