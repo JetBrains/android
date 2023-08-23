@@ -1,7 +1,7 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
 load("//tools/adt/idea/studio:studio.bzl", "iml_studio_test")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
+load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
 iml_module(
@@ -464,6 +464,30 @@ iml_studio_test(
     test_class = "com.android.tools.idea.DebugJUnitTest",
 )
 
+iml_studio_test(
+    name = "BuildAndRunKMPTest",
+    timeout = "long",
+    data = [
+        ":buildkmpproject_deps",
+        ":kmpapp",
+        "//prebuilts/studio/sdk:build-tools/30.0.3",
+        "//prebuilts/studio/sdk:emulator",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/android-33",
+        INTEGRATION_TEST_GRADLE_VERSION,
+        INTEGRATION_TEST_SYSTEM_IMAGE,
+    ],
+    module = ":intellij.android.core.integration",
+    tags = ["manual"],  # b/297405728
+    tags_linux = ["block-network"],
+    tags_mac = [],
+    tags_windows = [
+        "block-network",
+        "manual",  # RBE environment doesn't allow emulation (requires nested virtualization).
+    ],
+    test_class = "com.android.tools.idea.BuildAndRunKMPTest",
+)
+
 maven_repository(
     name = "buildproject_deps",
     # keep sorted: for buildifier
@@ -608,6 +632,59 @@ maven_repository(
     ],
 )
 
+maven_repository(
+    name = "buildkmpproject_deps",
+    # keep sorted: for buildifier
+    artifacts = [
+        "@maven//:androidx.activity.activity-compose_1.7.2",
+        "@maven//:androidx.compose.compiler.compiler_1.4.7",
+        "@maven//:androidx.compose.compose-bom_2023.06.00",
+        "@maven//:androidx.compose.material.material_1.4.3",
+        "@maven//:androidx.compose.runtime.runtime-saveable_1.4.3",
+        "@maven//:androidx.compose.runtime.runtime_1.0.1",
+        "@maven//:androidx.compose.runtime.runtime_1.4.3",
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.4.3",
+        "@maven//:androidx.compose.ui.ui-tooling_1.4.3",
+        "@maven//:androidx.compose.ui.ui_1.0.1",
+        "@maven//:androidx.core.core-ktx_1.10.1",
+        "@maven//:androidx.core.core-ktx_1.9.0",
+        "@maven//:androidx.datastore.datastore-core-android_1.1.0-alpha04",
+        "@maven//:androidx.datastore.datastore-core-jvm_1.1.0-alpha04",
+        "@maven//:androidx.datastore.datastore-core-okio-jvm_1.1.0-alpha04",
+        "@maven//:androidx.datastore.datastore-core-okio_1.1.0-alpha04",
+        "@maven//:androidx.datastore.datastore-preferences-core-jvm_1.1.0-alpha04",
+        "@maven//:androidx.datastore.datastore-preferences-core_1.1.0-alpha04",
+        "@maven//:androidx.lifecycle.lifecycle-common_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-compose_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-compose_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.6.1",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_7.4.2",
+        "@maven//:com.android.library.com.android.library.gradle.plugin_7.4.2",
+        "@maven//:com.android.tools.build.aapt2_7.4.2-8841542",
+        "@maven//:com.android.tools.lint.lint-gradle_30.4.2",
+        "@maven//:com.google.devtools.ksp.com.google.devtools.ksp.gradle.plugin_1.8.21-1.0.11",
+        "@maven//:com.google.devtools.ksp.symbol-processing_1.8.21-1.0.11",
+        "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
+        "@maven//:com.google.protobuf.protobuf-java_3.17.2",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-klib-commonizer-embeddable_1.8.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.21",
+        "@maven//:org.jetbrains.kotlin.multiplatform.org.jetbrains.kotlin.multiplatform.gradle.plugin_1.8.21",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.7.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-bom_1.7.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core-jvm_1.7.1",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.7.1",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "minapp",
     srcs = glob(["testData/minapp/**"]),
@@ -648,4 +725,9 @@ filegroup(
     name = "languagehighlighting",
     srcs = glob(["testData/languagehighlighting/**"]),
     visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "kmpapp",
+    srcs = glob(["testData/kmpapp/**"]),
 )
