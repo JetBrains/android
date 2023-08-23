@@ -40,6 +40,7 @@ public:
   };
 
   static DisplayInfo GetDisplayInfo(Jni jni, int32_t display_id);
+  static std::vector<int32_t> GetDisplayIds(Jni jni);
   static void RegisterDisplayListener(Jni jni, DisplayListener* listener);
   static void UnregisterDisplayListener(Jni jni, DisplayListener* listener);
 
@@ -66,6 +67,7 @@ private:
   static JClass display_manager_global_class_;
   static JObject display_manager_global_;
   static jmethodID get_display_info_method_;
+  static jmethodID get_display_ids_method_;
   // DisplayInfo class.
   static jfieldID logical_width_field_;
   static jfieldID logical_height_field_;

@@ -59,6 +59,9 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
     case RequestDeviceStateMessage::TYPE:
       return unique_ptr<ControlMessage>(RequestDeviceStateMessage::Deserialize(stream));
 
+    case DisplayConfigurationRequest::TYPE:
+      return unique_ptr<ControlMessage>(DisplayConfigurationRequest::Deserialize(stream));
+
     default:
       Log::Fatal("Unexpected message type %d", type);
   }
@@ -66,6 +69,11 @@ unique_ptr<ControlMessage> ControlMessage::Deserialize(int32_t type, Base128Inpu
 
 void ControlMessage::Serialize(Base128OutputStream& stream) const {
   stream.WriteInt32(type_);
+}
+
+void CorrelatedMessage::Serialize(Base128OutputStream& stream) const {
+  ControlMessage::Serialize(stream);
+  stream.WriteInt32(request_id_);
 }
 
 MotionEventMessage* MotionEventMessage::Deserialize(Base128InputStream& stream) {
@@ -148,6 +156,28 @@ RequestDeviceStateMessage* RequestDeviceStateMessage::Deserialize(Base128InputSt
   return new RequestDeviceStateMessage(state);
 }
 
+DisplayConfigurationRequest* DisplayConfigurationRequest::Deserialize(Base128InputStream& stream) {
+  int32_t request_id = stream.ReadInt32();
+  return new DisplayConfigurationRequest(request_id);
+}
+
+void ErrorResponse::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
+  stream.WriteBytes(error_message_);
+}
+
+void DisplayConfigurationResponse::Serialize(Base128OutputStream& stream) const {
+  CorrelatedMessage::Serialize(stream);
+  stream.WriteInt32(displays_.size());
+  for (auto display : displays_) {
+    stream.WriteInt32(display.first);
+    stream.WriteInt32(display.second.logical_size.width);
+    stream.WriteInt32(display.second.logical_size.height);
+    stream.WriteInt32(display.second.rotation);
+    stream.WriteInt32(display.second.type);
+  }
+}
+
 void ClipboardChangedNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteBytes(text_);
@@ -166,9 +196,6 @@ void DeviceStateNotification::Serialize(Base128OutputStream& stream) const {
 void DisplayAddedNotification::Serialize(Base128OutputStream& stream) const {
   ControlMessage::Serialize(stream);
   stream.WriteInt32(display_id_);
-  stream.WriteInt32(logical_size_.width);
-  stream.WriteInt32(logical_size_.height);
-  stream.WriteInt32(orientation_);
 }
 
 void DisplayRemovedNotification::Serialize(Base128OutputStream& stream) const {

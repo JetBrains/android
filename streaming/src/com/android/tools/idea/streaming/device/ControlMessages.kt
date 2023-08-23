@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.device.RequestDeviceStateMessage.Companion.PHYSICAL_STATE
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128InputStream.StreamFormatException
@@ -62,6 +63,9 @@ sealed class ControlMessage(val type: Int) {
         StartClipboardSyncMessage.TYPE -> StartClipboardSyncMessage.deserialize(stream)
         StopClipboardSyncMessage.TYPE -> StopClipboardSyncMessage.deserialize(stream)
         RequestDeviceStateMessage.TYPE -> RequestDeviceStateMessage.deserialize(stream)
+        DisplayConfigurationRequest.TYPE -> DisplayConfigurationRequest.deserialize(stream)
+        ErrorResponse.TYPE -> ErrorResponse.deserialize(stream)
+        DisplayConfigurationResponse.TYPE -> DisplayConfigurationResponse.deserialize(stream)
         ClipboardChangedNotification.TYPE -> ClipboardChangedNotification.deserialize(stream)
         SupportedDeviceStatesNotification.TYPE -> SupportedDeviceStatesNotification.deserialize(stream)
         DeviceStateNotification.TYPE -> DeviceStateNotification.deserialize(stream)
@@ -74,6 +78,18 @@ sealed class ControlMessage(val type: Int) {
     }
   }
 }
+
+/** Interface that has to be implemented by all request and response control messages. */
+internal abstract class CorrelatedMessage(type: Int) : ControlMessage(type) {
+  abstract val requestId: Int
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(requestId)
+  }
+}
+
+// Messages sent to the device.
 
 /** Represents an Android [MotionEvent](https://developer.android.com/reference/android/view/MotionEvent). */
 internal data class MotionEventMessage(
@@ -141,7 +157,7 @@ internal data class MotionEventMessage(
       return MotionEventMessage(pointers, action, buttonState, actionButton, displayId)
     }
 
-    fun deserializePointer(stream: Base128InputStream): Pointer {
+    private fun deserializePointer(stream: Base128InputStream): Pointer {
       val x = stream.readInt()
       val y = stream.readInt()
       val pointerId = stream.readInt()
@@ -380,11 +396,99 @@ internal data class RequestDeviceStateMessage(val state: Int) : ControlMessage(T
   companion object : Deserializer {
     const val TYPE = 10
 
-    const val PHYSICAL_STATE = -1;
+    const val PHYSICAL_STATE = -1
 
     override fun deserialize(stream: Base128InputStream): RequestDeviceStateMessage {
       val state = stream.readInt() - 1 // Subtracting 1 to account for shifted encoding.
       return RequestDeviceStateMessage(state)
+    }
+  }
+}
+
+/** Requests a display screenshot. */
+internal data class DisplayConfigurationRequest private constructor(override val requestId: Int) : CorrelatedMessage(TYPE) {
+
+  constructor(requestIdGenerator: () -> Int) : this(requestIdGenerator())
+
+  override fun toString(): String {
+    return "DisplayConfigurationRequest(requestId=$requestId)"
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 11
+
+    override fun deserialize(stream: Base128InputStream): DisplayConfigurationRequest {
+      val requestId = stream.readInt()
+      return DisplayConfigurationRequest(requestId)
+    }
+  }
+}
+
+// Messages received from the device.
+
+/** Error response from the device to a command that is guaranteed to trigger a response. */
+internal data class ErrorResponse(override val requestId: Int, val errorMessage: String) : CorrelatedMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBytes(errorMessage.toByteArray(UTF_8))
+  }
+
+  override fun toString(): String {
+    return "ErrorResponse(requestId=$requestId, errorMesage=\"$errorMessage\")"
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 12
+
+    override fun deserialize(stream: Base128InputStream): ErrorResponse {
+      val requestId = stream.readInt()
+      val errorMessage = stream.readBytes().toString(UTF_8)
+      return ErrorResponse(requestId, errorMessage)
+    }
+  }
+}
+
+/** Screenshot of a device display. */
+internal class DisplayConfigurationResponse(override val requestId: Int, val displays: List<DisplayDescriptor>): CorrelatedMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(displays.size)
+    for (display in displays) {
+      stream.writeInt(display.displayId)
+      stream.writeInt(display.width)
+      stream.writeInt(display.height)
+      stream.writeInt(display.orientation)
+      stream.writeInt(display.type.ordinal)
+    }
+  }
+
+  override fun toString(): String {
+    return "ScreenshotResponse(requestId=$requestId, displays=$displays"
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 13
+
+    override fun deserialize(stream: Base128InputStream): DisplayConfigurationResponse {
+      val requestId = stream.readInt()
+      val count = stream.readInt()
+      val displays = ArrayList<DisplayDescriptor>(count)
+      for (i in 0 until count) {
+        val displayId = stream.readInt()
+        val width = stream.readInt()
+        val height = stream.readInt()
+        val orientation = stream.readInt()
+        val type = try {
+          DisplayDescriptor.Type.values()[stream.readInt()]
+        }
+        catch (e: ArrayIndexOutOfBoundsException) {
+          DisplayDescriptor.Type.UNKNOWN
+        }
+        displays.add(DisplayDescriptor(displayId, width, height, orientation, type))
+      }
+      return DisplayConfigurationResponse(requestId, displays)
     }
   }
 }
@@ -401,7 +505,7 @@ internal data class ClipboardChangedNotification(val text: String) : ControlMess
       "ClipboardChangedNotification(text=\"$text\")"
 
   companion object : Deserializer {
-    const val TYPE = 11
+    const val TYPE = 14
 
     override fun deserialize(stream: Base128InputStream): ClipboardChangedNotification {
       val bytes = stream.readBytes()
@@ -433,7 +537,7 @@ internal data class SupportedDeviceStatesNotification(val text: String) : Contro
       "SupportedDeviceStatesNotification(text=\"$text\")"
 
   companion object : Deserializer {
-    const val TYPE = 12
+    const val TYPE = 15
 
     override fun deserialize(stream: Base128InputStream): SupportedDeviceStatesNotification {
       val bytes = stream.readBytes()
@@ -457,7 +561,7 @@ internal data class DeviceStateNotification(val deviceState: Int) : ControlMessa
       "DeviceStateNotification(deviceState=$deviceState)"
 
   companion object : Deserializer {
-    const val TYPE = 13
+    const val TYPE = 16
 
     override fun deserialize(stream: Base128InputStream): DeviceStateNotification {
       val deviceState = stream.readInt()
@@ -469,28 +573,22 @@ internal data class DeviceStateNotification(val deviceState: Int) : ControlMessa
 /**
  * Notification of an added display.
  */
-internal data class DisplayAddedNotification(val displayId: Int, val logicalSize: Dimension, val orientation: Int) : ControlMessage(TYPE) {
+internal data class DisplayAddedNotification(val displayId: Int) : ControlMessage(TYPE) {
 
   override fun serialize(stream: Base128OutputStream) {
     super.serialize(stream)
     stream.writeInt(displayId)
-    stream.writeInt(logicalSize.width)
-    stream.writeInt(logicalSize.height)
-    stream.writeInt(orientation)
   }
 
   override fun toString(): String =
-      "DisplayAddedNotification(displayId=$displayId, logicalSize=${logicalSize.width}x${logicalSize.height}, orientation=$orientation)"
+      "DisplayAddedNotification(displayId=$displayId)"
 
   companion object : Deserializer {
-    const val TYPE = 14
+    const val TYPE = 17
 
     override fun deserialize(stream: Base128InputStream): DisplayAddedNotification {
       val displayId = stream.readInt()
-      val width = stream.readInt()
-      val height = stream.readInt()
-      val orientation = stream.readInt() % 4
-      return DisplayAddedNotification(displayId, Dimension(width, height), orientation)
+      return DisplayAddedNotification(displayId)
     }
   }
 }
@@ -509,7 +607,7 @@ internal data class DisplayRemovedNotification(val displayId: Int) : ControlMess
       "DisplayRemovedNotification(displayId=$displayId)"
 
   companion object : Deserializer {
-    const val TYPE = 15
+    const val TYPE = 18
 
     override fun deserialize(stream: Base128InputStream): DisplayRemovedNotification {
       val displayId = stream.readInt()

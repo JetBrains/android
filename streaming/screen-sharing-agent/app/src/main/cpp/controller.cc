@@ -252,6 +252,10 @@ void Controller::ProcessMessage(const ControlMessage& message) {
       RequestDeviceState((const RequestDeviceStateMessage&) message);
       break;
 
+    case DisplayConfigurationRequest::TYPE:
+      SendDisplayConfigurations((const DisplayConfigurationRequest&) message);
+      break;
+
     default:
       Log::E("Unexpected message type %d", message.type());
       break;
@@ -491,6 +495,18 @@ void Controller::SendDeviceStateNotification() {
   }
 }
 
+void Controller::SendDisplayConfigurations(const DisplayConfigurationRequest& request) {
+  vector<int32_t> display_ids = DisplayManager::GetDisplayIds(jni_);
+  vector<pair<int32_t, DisplayInfo>> displays;
+  displays.reserve(display_ids.size());
+  for (auto display_id : display_ids) {
+    displays.emplace_back(display_id, DisplayManager::GetDisplayInfo(jni_, display_id));
+  }
+  DisplayConfigurationResponse response(request.request_id(), std::move(displays));
+  response.Serialize(output_stream_);
+  output_stream_.Flush();
+}
+
 void Controller::OnDisplayAdded(int32_t display_id) {
   scoped_lock lock(display_events_mutex_);
   pending_display_events_.emplace_back(display_id, DisplayEvent::Type::ADDED);
@@ -513,8 +529,7 @@ void Controller::SendPendingDisplayEvents() {
 
   for (auto event : display_events) {
     if (event.type == DisplayEvent::Type::ADDED) {
-      DisplayInfo display_info = DisplayManager::GetDisplayInfo(Jvm::GetJni(), event.display_id);
-      DisplayAddedNotification notification(event.display_id, display_info.logical_size, display_info.rotation);
+      DisplayAddedNotification notification(event.display_id);
       notification.Serialize(output_stream_);
       output_stream_.Flush();
     }

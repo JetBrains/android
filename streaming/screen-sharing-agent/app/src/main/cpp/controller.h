@@ -101,6 +101,7 @@ private:
   void OnDeviceStateChanged(int32_t device_state);
   void SendDeviceStateNotification();
 
+  void SendDisplayConfigurations(const DisplayConfigurationRequest& request);
   virtual void OnDisplayAdded(int32_t display_id);
   virtual void OnDisplayRemoved(int32_t display_id);
   virtual void OnDisplayChanged(int32_t display_id);

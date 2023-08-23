@@ -24,6 +24,7 @@ import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.core.AbstractDisplayPanel
 import com.android.tools.idea.streaming.core.DeviceId
+import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.LayoutNode
 import com.android.tools.idea.streaming.core.LeafNode
 import com.android.tools.idea.streaming.core.NUMBER_OF_DISPLAYS_KEY
@@ -64,7 +65,6 @@ import com.intellij.util.xmlb.annotations.Property
 import icons.StudioIcons
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap
 import org.jetbrains.annotations.TestOnly
-import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.KeyboardFocusManager
 import java.beans.PropertyChangeListener
@@ -423,23 +423,6 @@ internal class EmulatorToolWindowPanel(
         }
       }
       return null
-    }
-  }
-
-  data class DisplayDescriptor(var displayId: Int, var width: Int, var height: Int) : Comparable<DisplayDescriptor> {
-
-    constructor(displayConfig: DisplayConfiguration) : this(displayConfig.display, displayConfig.width, displayConfig.height)
-
-    constructor(displayId: Int, size: Dimension) : this(displayId, size.width, size.height)
-
-    @Suppress("unused") // Used by XML deserializer.
-    constructor() : this(0, 0, 0)
-
-    val size
-      get() = Dimension(width, height)
-
-    override fun compareTo(other: DisplayDescriptor): Int {
-      return displayId - other.displayId
     }
   }
 

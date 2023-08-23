@@ -23,6 +23,7 @@
 #include <vector>
 #include <android/input.h>
 
+#include "accessors/display_info.h"
 #include "base128_input_stream.h"
 #include "base128_output_stream.h"
 #include "common.h"
@@ -48,6 +49,27 @@ protected:
 
   int32_t type_;
 };
+
+// Common base class of all request and response control messages.
+class CorrelatedMessage : public ControlMessage {
+public:
+  int32_t request_id() const { return request_id_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+protected:
+  CorrelatedMessage(int32_t type, int32_t request_id)
+      : ControlMessage(type),
+        request_id_(request_id) {
+  }
+
+private:
+  int32_t request_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(CorrelatedMessage);
+};
+
+// Messages received from the host.
 
 // Represents an Android MotionEvent.
 class MotionEventMessage : ControlMessage {
@@ -343,6 +365,76 @@ private:
   DISALLOW_COPY_AND_ASSIGN(RequestDeviceStateMessage);
 };
 
+// Asks the agent to send back configurations of all displays.
+class DisplayConfigurationRequest : public CorrelatedMessage {
+public:
+  DisplayConfigurationRequest(int32_t request_id)
+      : CorrelatedMessage(TYPE, request_id) {
+  }
+  virtual ~DisplayConfigurationRequest() {};
+
+  static constexpr int TYPE = 11;
+
+private:
+  friend class ControlMessage;
+
+  static DisplayConfigurationRequest* Deserialize(Base128InputStream& stream);
+
+  DISALLOW_COPY_AND_ASSIGN(DisplayConfigurationRequest);
+};
+
+// Messages sent to the host.
+
+// Error response to a request message.
+class ErrorResponse : public CorrelatedMessage {
+public:
+  ErrorResponse(int32_t request_id, const std::string& error_message)
+      : CorrelatedMessage(TYPE, request_id),
+        error_message_(error_message) {
+  }
+  ErrorResponse(int32_t request_id, std::string&& error_message)
+      : CorrelatedMessage(TYPE, request_id),
+        error_message_(error_message) {
+  }
+  virtual ~ErrorResponse() {};
+
+  const std::string& error_message() const { return error_message_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 12;
+
+private:
+  friend class ControlMessage;
+
+  std::string error_message_;
+
+  DISALLOW_COPY_AND_ASSIGN(ErrorResponse);
+};
+
+// Parameters of all device displays. Sent in response to DisplayConfigurationRequest.
+class DisplayConfigurationResponse : public CorrelatedMessage {
+public:
+  DisplayConfigurationResponse(int32_t request_id, std::vector<std::pair<int32_t, DisplayInfo>>&& displays)
+      : CorrelatedMessage(TYPE, request_id),
+        displays_(displays) {
+  }
+  virtual ~DisplayConfigurationResponse() {}
+
+  const std::vector<std::pair<int32_t, DisplayInfo>>& displays() const { return displays_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 13;
+
+private:
+  friend class ControlMessage;
+
+  std::vector<std::pair<int32_t, DisplayInfo>> displays_;
+
+  DISALLOW_COPY_AND_ASSIGN(DisplayConfigurationResponse);
+};
+
 // Notification of clipboard content change.
 class ClipboardChangedNotification : ControlMessage {
 public:
@@ -360,7 +452,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 11;
+  static constexpr int TYPE = 14;
 
 private:
   friend class ControlMessage;
@@ -387,7 +479,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 12;
+  static constexpr int TYPE = 15;
 
 private:
   friend class ControlMessage;
@@ -411,7 +503,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 13;
+  static constexpr int TYPE = 16;
 
 private:
   friend class ControlMessage;
@@ -424,28 +516,22 @@ private:
 // Notification of an added display.
 class DisplayAddedNotification : ControlMessage {
 public:
-  DisplayAddedNotification(int32_t display_id, Size logical_size, int32_t orientation)
+  DisplayAddedNotification(int32_t display_id)
       : ControlMessage(TYPE),
-        display_id_(display_id),
-        logical_size_(logical_size),
-        orientation_(orientation) {
+        display_id_(display_id) {
   }
   virtual ~DisplayAddedNotification() = default;
 
   int32_t display_id() const { return display_id_; }
-  const Size& logical_size() const { return logical_size_; }
-  int32_t orientation() const { return orientation_; }
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 14;
+  static constexpr int TYPE = 17;
 
 private:
   friend class ControlMessage;
 
   int32_t display_id_;
-  Size logical_size_;
-  int32_t orientation_;
 
   DISALLOW_COPY_AND_ASSIGN(DisplayAddedNotification);
 };
@@ -463,7 +549,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 15;
+  static constexpr int TYPE = 18;
 
 private:
   friend class ControlMessage;

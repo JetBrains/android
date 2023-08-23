@@ -21,6 +21,7 @@ import com.android.fakeadbserver.ShellV2Protocol
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.core.DisplayDescriptor
 import com.android.tools.idea.streaming.core.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.core.interpolate
 import com.android.tools.idea.streaming.core.putUInt
@@ -128,7 +129,7 @@ class FakeScreenSharingAgent(
       if (value != oldValue) {
         agentsScope.launch {
           if (clipboardSynchronizationActive.get()) {
-            sendNotification(ClipboardChangedNotification(value))
+            sendNotificationOrResponse(ClipboardChangedNotification(value))
           }
         }
       }
@@ -446,11 +447,17 @@ class FakeScreenSharingAgent(
   }
 
   private fun sendDeviceStateNotification() {
-    sendNotification(DeviceStateNotification(foldingState!!.ordinal))
+    sendNotificationOrResponse(DeviceStateNotification(foldingState!!.ordinal))
   }
 
-  private fun sendNotification(message: ControlMessage) {
-    controller?.sendNotification(message)
+  private fun sendDisplayConfigurations(message: DisplayConfigurationRequest) {
+    val displays =
+        listOf(DisplayDescriptor(displayId, displaySize.width, displaySize.height, displayOrientation, DisplayDescriptor.Type.INTERNAL))
+    sendNotificationOrResponse(DisplayConfigurationResponse(message.requestId, displays))
+  }
+
+  private fun sendNotificationOrResponse(message: ControlMessage) {
+    controller?.sendNotificationOrResponse(message)
   }
 
   private inner class DisplayStreamer(private val channel: SuspendingSocketChannel, initialBitRate: Int) : Disposable {
@@ -757,7 +764,7 @@ class FakeScreenSharingAgent(
                 DeviceState{identifier=6, name='FLIPPED', app_accessible=true},
               ]
               """.trimIndent()
-          sendNotification(SupportedDeviceStatesNotification(supportedStates))
+          sendNotificationOrResponse(SupportedDeviceStatesNotification(supportedStates))
           sendDeviceStateNotification()
         }
 
@@ -794,7 +801,7 @@ class FakeScreenSharingAgent(
       }
     }
 
-    fun sendNotification(message: ControlMessage) {
+    fun sendNotificationOrResponse(message: ControlMessage) {
       try {
         message.serialize(codedOutput)
         codedOutput.flush()
@@ -812,6 +819,7 @@ class FakeScreenSharingAgent(
         is StartClipboardSyncMessage -> startClipboardSync(message)
         is StopClipboardSyncMessage -> stopClipboardSync()
         is RequestDeviceStateMessage -> requestDeviceState(message)
+        is DisplayConfigurationRequest -> sendDisplayConfigurations(message)
         else -> {}
       }
       commandLog.add(message)
