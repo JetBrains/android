@@ -58,17 +58,17 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
-import com.intellij.ui.JBSplitter
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
+import java.awt.Insets
 import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.LayoutFocusTraversalPolicy
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
-private const val ISSUE_SPLITTER_DIVIDER_WIDTH_PX = 3
 private const val COMPOSE_PREVIEW_DOC_URL = "https://d.android.com/jetpack/compose/preview"
 
 /** Interface that isolates the view of the Compose view so it can be replaced for testing. */
@@ -314,7 +314,7 @@ internal class ComposePreviewViewImpl(
    * inspector that lists all the animations the preview has.
    */
   private val mainPanelSplitter =
-    JBSplitter(true, 0.7f).apply { dividerWidth = ISSUE_SPLITTER_DIVIDER_WIDTH_PX }
+    OnePixelSplitter(true, 0.7f).apply { this.setBlindZone { Insets(1, 0, 1, 0) } }
 
   /** [ActionData] that triggers Build and Refresh of the preview. */
   private val buildAndRefreshAction: ActionData
