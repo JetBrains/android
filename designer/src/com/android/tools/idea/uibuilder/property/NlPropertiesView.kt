@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.property.inspector.AllAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property.inspector.CommonAttributesInspectorBuilder
-import com.android.tools.idea.uibuilder.property.inspector.ComponentActionsInspectorBuilder
 import com.android.tools.idea.uibuilder.property.inspector.ConstraintLayoutHelperInspectorBuilder
 import com.android.tools.idea.uibuilder.property.inspector.DeclaredAttributesInspectorBuilder
 import com.android.tools.idea.uibuilder.property.inspector.FavoritesInspectorBuilder
@@ -47,9 +45,6 @@ class NlPropertiesView(model: NlPropertiesModel) :
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
     main.builders.add(SelectedComponentBuilder(model))
     val tab = addTab("")
-    if (StudioFlags.NELE_PROPERTY_PANEL_ACTIONBAR.get()) {
-      tab.builders.add(ComponentActionsInspectorBuilder(model))
-    }
     tab.builders.add(IdInspectorBuilder(editorProvider))
     tab.builders.add(ConstraintLayoutHelperInspectorBuilder(editorProvider))
     tab.builders.add(DeclaredAttributesInspectorBuilder(model, enumSupportProvider))

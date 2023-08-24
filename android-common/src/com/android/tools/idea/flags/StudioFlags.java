@@ -244,11 +244,6 @@ public final class StudioFlags {
     "New architecture for dragging widgets in Layout Editor",
     true);
 
-  public static final Flag<Boolean> NELE_PROPERTY_PANEL_ACTIONBAR = Flag.create(
-    NELE, "property.panel.actionbar", "Property Panel Actionbar",
-    "Support Actionbar in property panel",
-    false);
-
   public static final Flag<Boolean> NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD = Flag.create(
     NELE, "recyclerview.setup.wizard", "Show setup wizard for recycler view",
     "When you right click recycler view in layout editor, you can now see \"Generate Adapter\" " +
