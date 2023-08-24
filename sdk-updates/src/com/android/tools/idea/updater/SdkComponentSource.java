@@ -27,11 +27,12 @@ import com.android.repository.impl.meta.RepositoryPackages;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.AndroidVersionUtils;
 import com.android.sdklib.repository.meta.DetailsTypes;
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.progress.RepoProgressIndicatorAdapter;
+import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.StudioSettingsController;
-import com.android.tools.idea.progress.RepoProgressIndicatorAdapter;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -39,10 +40,12 @@ import com.google.common.collect.Sets;
 import com.intellij.ide.externalComponents.ExternalComponentSource;
 import com.intellij.ide.externalComponents.UpdatableExternalComponent;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -123,6 +126,13 @@ public class SdkComponentSource implements ExternalComponentSource {
   @Override
   public Collection<UpdatableExternalComponent> getAvailableVersions(@Nullable ProgressIndicator indicator,
                                                                      @Nullable UpdateSettings updateSettings) {
+    if (!IdeInfo.getInstance().isAndroidStudio()) {
+      List<Sdk> sdks = AndroidSdks.getInstance().getAllAndroidSdks();
+      if (sdks.isEmpty()) { // do not automatically check updates of SDK on IDEA startup, this is harmful for startup performance
+        return Collections.emptyList();
+      }
+    }
+
     return getComponents(indicator, updateSettings, true);
   }
 
