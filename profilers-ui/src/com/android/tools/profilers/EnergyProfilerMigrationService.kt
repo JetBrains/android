@@ -40,7 +40,7 @@ class EnergyProfilerMigrationService(val profilers: StudioProfilers) {
   private val MIGRATING_FROM = "energy data"
   private val MIGRATING_TO = "System Trace"
 
-  private val HEADER_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(32f)
+  private val HEADER_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(24f)
   private val TEXT_FONT = AdtUiUtils.DEFAULT_FONT.deriveFont(16f)
 
   val isMigrationEnabled = profilers.ideServices.featureConfig.systemTracePowerProfilerDisplayMode != PowerProfilerDisplayMode.HIDE
@@ -72,7 +72,7 @@ class EnergyProfilerMigrationService(val profilers: StudioProfilers) {
       HyperlinkInstruction(TEXT_FONT, MIGRATING_TO, ::openCpuProfilerWithSystemTraceEnabled),
       TextInstruction(normalTextFontMetrics, "to see ${MIGRATING_FROM}."),
       // Negative vertical margin value is used to collapse space between two stacked instructions.
-      NewRowInstruction(-1 * TEXT_FONT.size),
+      NewRowInstruction((-0.5 * TEXT_FONT.size).toInt()),
       TextInstruction(italicTextFontMetrics, "Available on Android Q and above")
     ).setColors(UIUtil.getInactiveTextColor(), null)
 
