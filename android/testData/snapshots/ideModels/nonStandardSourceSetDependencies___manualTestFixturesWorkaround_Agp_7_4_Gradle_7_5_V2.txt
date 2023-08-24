@@ -703,13 +703,6 @@ LIBRARY_TABLE
         projectPath                   : :feature-b
         sourceSet                     : MAIN
         variant                       : debug
-    - library                     : <ROOT>::feature-b@debug/commonMain (IdeModuleLibraryImpl)
-        buildId                       : <ROOT>
-        lintJar                       : <ROOT>/feature-b/build/intermediates/lint_publish_jar/global/lint.jar [-]
-        projectPath                   : :feature-b
-        sourceSet                     : commonMain (IdeModuleSourceSetImpl)
-            canBeConsumed                 : true
-        variant                       : debug
     - library                     : <ROOT>::javaLibrary (IdeModuleLibraryImpl)
         buildId                       : <ROOT>
         projectPath                   : :javaLibrary
@@ -1058,18 +1051,12 @@ MODULE                        : NonStandardSourceSetDependencies
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathJvmMain    : <empty>
                     kotlinCompilerPluginClasspathJvmTest    : <empty>
-                    kotlinCompilerPluginClasspathMetadataCommonMain   : <empty>
                     kotlinCompilerPluginClasspathMetadataMain         : <empty>
                     kotlinKlibCommonizerClasspath : <empty>
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     kotlinScriptDef               : <empty>
                     kotlinScriptDefExtensions     : <empty>
                     - metadataApiElements         : <ROOT>/common/build/libs/common-metadata.jar [-]
-                    metadataCommonMainCompilationApi        : <empty>
-                    metadataCommonMainCompilationCompileOnly          : <empty>
-                    metadataCommonMainCompilationImplementation       : <empty>
-                    metadataCommonMainCompilationRuntimeOnly          : <empty>
-                    metadataCommonMainCompileClasspath      : <empty>
                     metadataCompilationApi        : <empty>
                     metadataCompilationCompileOnly          : <empty>
                     metadataCompilationImplementation       : <empty>
@@ -1652,18 +1639,12 @@ MODULE                        : NonStandardSourceSetDependencies
                     kotlinCompilerPluginClasspathAndroidDebugUnitTest : <empty>
                     kotlinCompilerPluginClasspathAndroidRelease       : <empty>
                     kotlinCompilerPluginClasspathAndroidReleaseUnitTest         : <empty>
-                    kotlinCompilerPluginClasspathMetadataCommonMain   : <empty>
                     kotlinCompilerPluginClasspathMetadataMain         : <empty>
                     kotlinKlibCommonizerClasspath : <empty>
                     kotlinNativeCompilerPluginClasspath     : <empty>
                     lintChecks                    : <empty>
                     lintPublish                   : <empty>
                     - metadataApiElements         : <ROOT>/feature-b/build/libs/feature-b-metadata.jar [-]
-                    metadataCommonMainCompilationApi        : <empty>
-                    metadataCommonMainCompilationCompileOnly          : <empty>
-                    metadataCommonMainCompilationImplementation       : <empty>
-                    metadataCommonMainCompilationRuntimeOnly          : <empty>
-                    metadataCommonMainCompileClasspath      : <empty>
                     metadataCompilationApi        : <empty>
                     metadataCompilationCompileOnly          : <empty>
                     metadataCompilationImplementation       : <empty>
@@ -2050,18 +2031,12 @@ MODULE                        : NonStandardSourceSetDependencies
                             kotlinCompilerPluginClasspath : <empty>
                             kotlinCompilerPluginClasspathJvmMain    : <empty>
                             kotlinCompilerPluginClasspathJvmTest    : <empty>
-                            kotlinCompilerPluginClasspathMetadataCommonMain   : <empty>
                             kotlinCompilerPluginClasspathMetadataMain         : <empty>
                             kotlinKlibCommonizerClasspath : <empty>
                             kotlinNativeCompilerPluginClasspath     : <empty>
                             kotlinScriptDef               : <empty>
                             kotlinScriptDefExtensions     : <empty>
                             - metadataApiElements         : <ROOT>/kmp-java/sample/build/libs/sample-metadata.jar [-]
-                            metadataCommonMainCompilationApi        : <empty>
-                            metadataCommonMainCompilationCompileOnly          : <empty>
-                            metadataCommonMainCompilationImplementation       : <empty>
-                            metadataCommonMainCompilationRuntimeOnly          : <empty>
-                            metadataCommonMainCompileClasspath      : <empty>
                             metadataCompilationApi        : <empty>
                             metadataCompilationCompileOnly          : <empty>
                             metadataCompilationImplementation       : <empty>
@@ -2751,7 +2726,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:feature-a-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
-                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:javaLibrary-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -2884,7 +2858,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
-                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
@@ -2963,7 +2936,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:feature-a-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
-                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:javaLibrary-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -3010,7 +2982,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:feature-a-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
-                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:javaLibrary-MAIN
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -3141,7 +3112,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:feature-a-MAIN
                             module                        : <ROOT>-:feature-b-MAIN
-                            module                        : <ROOT>-:feature-b-commonMain
                             module                        : <ROOT>-:javaLibrary-MAIN
                             module                        : <ROOT>-:javaLibrary-MAIN
                             androidLibrary                : __wrapped_aars__::aarWrapperLib:unspecified@aar
@@ -3157,7 +3127,6 @@ MODULE                        : NonStandardSourceSetDependencies.app
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
-                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
@@ -3316,13 +3285,15 @@ MODULE                        : NonStandardSourceSetDependencies.common
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
+            isHMPPEnabled                 : true
         kotlinGradlePluginVersion
             versionString                 : <KGP_VERSION>
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
-                        - platforms                   : COMMON
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3333,7 +3304,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/common/src/commonMain/resources [-]
                     - sourceDirs                  : <ROOT>/common/src/commonMain/kotlin
-                    platform                      : COMMON
+                    platform                      : JVM
                 - allSourceSets               : jvmMain (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
@@ -3389,7 +3360,8 @@ MODULE                        : NonStandardSourceSetDependencies.common
             - compilations                : test (KotlinCompilationImpl)
                 - allSourceSets               : commonTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
-                        - platforms                   : COMMON
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
                     - additionalVisibleSourceSets : jvmMain
                     - additionalVisibleSourceSets : commonMain
                     isTestComponent               : true
@@ -3403,7 +3375,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/common/src/commonTest/resources [-]
                     - sourceDirs                  : <ROOT>/common/src/commonTest/kotlin [-]
-                    platform                      : COMMON
+                    platform                      : JVM
                 - allSourceSets               : jvmTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
@@ -4951,6 +4923,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_r_class_jar/debug/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debug/classes [-]
                 ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debug [-]
+                VariantSourceProvider
+                    Name                          : debug_KotlinMPP
+                    Manifest                      : <ROOT>/feature-b/src/androidMain/__KotlinMPP__/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/feature-b/src/commonMain/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/feature-b/src/commonMain/resources [-]
                 Dependencies
                     compileClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -4998,14 +4975,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
-                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:feature-b-MAIN
-                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
@@ -5038,6 +5013,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 ClassesFolder                 : <ROOT>/feature-b/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugUnitTest/R.jar [-]
                 ClassesFolder                 : <ROOT>/feature-b/build/intermediates/javac/debugUnitTest/classes [-]
                 ClassesFolder                 : <ROOT>/feature-b/build/tmp/kotlin-classes/debugUnitTest [-]
+                VariantSourceProvider
+                    Name                          : debug_KotlinMPP
+                    Manifest                      : <ROOT>/feature-b/src/androidUnitTest/__KotlinMPP__/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/feature-b/src/commonTest/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/feature-b/src/commonTest/resources [-]
                 Dependencies
                     compileClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
@@ -5048,14 +5028,12 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                         module                        : <ROOT>-:feature-b-MAIN
-                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                     runtimeClasspath
                         javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         javaLibrary                   : org.jetbrains:annotations:13.0@jar
                         module                        : <ROOT>-:feature-b-MAIN
-                        module                        : <ROOT>-:feature-b-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                             module                        : <ROOT>-:common-jvmMain
                             module                        : <ROOT>-:common-commonMain
@@ -5065,7 +5043,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         module                        : <ROOT>-:common-commonMain
                             javaLibrary                   : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
-    kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest, commonMain=commonMain, commonTest=commonTest} (KotlinMPPGradleModelImpl)
+    kotlinMppGradleModel          : {androidInstrumentedTest=androidInstrumentedTest, androidMain=androidMain, androidUnitTest=androidUnitTest} (KotlinMPPGradleModelImpl)
         dependencies
             androidInstrumentedTest
                 - dependency                  : :feature-b/androidDebug
@@ -5077,42 +5055,21 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 - dependency                  : :feature-b/androidMain
                 - dependency                  : :feature-b/commonMain
                 - dependency                  : :feature-b/commonTest
-            commonMain
-                - dependency                  : :common/commonMain
-            commonTest
-                - dependency                  : :common/commonMain
-                - dependency                  : :feature-b/androidMain
-                - dependency                  : :feature-b/commonMain
         extraFeatures                 : ExtraFeaturesImpl
+            isHMPPEnabled                 : true
         kotlinGradlePluginVersion
             versionString                 : <KGP_VERSION>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
-                - allSourceSets               : commonMain (KotlinSourceSetImpl)
-                    actualPlatforms               : KotlinPlatformContainerImpl
-                        - platforms                   : COMMON
-                    languageSettings              : KotlinLanguageSettingsImpl
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - resourceDirs                : <ROOT>/feature-b/src/commonMain/resources [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/commonMain/kotlin [-]
-                    platform                      : COMMON
                 - allSourceSets               : androidMain (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
-                    - allDependsOnSourceSets      : commonMain
                     androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
                         androidSourceSetName          : main
                         - androidVariantNames         : debug
                         - androidVariantNames         : release
                         kotlinSourceSetName           : androidMain
-                    - declaredDependsOnSourceSets : commonMain
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5123,11 +5080,13 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/feature-b/src/androidMain/resources [-]
                     - resourceDirs                : <ROOT>/feature-b/src/main/resources [-]
+                    - resourceDirs                : <ROOT>/feature-b/src/commonMain/resources [-]
                     - resourceDirs                : <ROOT>/feature-b/src/androidDebug/resources [-]
                     - resourceDirs                : <ROOT>/feature-b/src/debug/resources [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/androidMain/kotlin [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/main/java [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/main/kotlin [-]
+                    - sourceDirs                  : <ROOT>/feature-b/src/commonMain/kotlin [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/androidDebug/kotlin [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/debug/java [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/debug/kotlin [-]
@@ -5176,7 +5135,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
                     - additionalVisibleSourceSets : androidMain
-                    - additionalVisibleSourceSets : commonMain
                     androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
                         androidSourceSetName          : androidTest
                         - androidVariantNames         : debugAndroidTest
@@ -5241,36 +5199,16 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                     resourcesDir                  : <ROOT>/feature-b/build/processedResources/android/debugAndroidTest [-]
                 platform                      : ANDROID
             - compilations                : debugUnitTest (KotlinCompilationImpl)
-                - allSourceSets               : commonTest (KotlinSourceSetImpl)
-                    actualPlatforms               : KotlinPlatformContainerImpl
-                        - platforms                   : COMMON
-                    - additionalVisibleSourceSets : androidMain
-                    - additionalVisibleSourceSets : commonMain
-                    isTestComponent               : true
-                    languageSettings              : KotlinLanguageSettingsImpl
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - resourceDirs                : <ROOT>/feature-b/src/commonTest/resources [-]
-                    - sourceDirs                  : <ROOT>/feature-b/src/commonTest/kotlin [-]
-                    platform                      : COMMON
                 - allSourceSets               : androidUnitTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
                         - platforms                   : ANDROID
                     - additionalVisibleSourceSets : androidMain
-                    - additionalVisibleSourceSets : commonMain
-                    - allDependsOnSourceSets      : commonTest
                     androidSourceSetInfo          : KotlinAndroidSourceSetInfoImpl
                         androidSourceSetName          : test
                         - androidVariantNames         : debugUnitTest
                         - androidVariantNames         : releaseUnitTest
                         kotlinSourceSetName           : androidUnitTest
-                    - declaredDependsOnSourceSets : commonTest
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -5282,11 +5220,13 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/feature-b/src/androidUnitTest/resources [-]
                     - resourceDirs                : <ROOT>/feature-b/src/test/resources [-]
+                    - resourceDirs                : <ROOT>/feature-b/src/commonTest/resources [-]
                     - resourceDirs                : <ROOT>/feature-b/src/androidUnitTestDebug/resources [-]
                     - resourceDirs                : <ROOT>/feature-b/src/testDebug/resources [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/androidUnitTest/kotlin [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/test/java [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/test/kotlin [-]
+                    - sourceDirs                  : <ROOT>/feature-b/src/commonTest/kotlin [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/androidUnitTestDebug/kotlin [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/testDebug/java [-]
                     - sourceDirs                  : <ROOT>/feature-b/src/testDebug/kotlin [-]
@@ -5343,12 +5283,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
             androidInstrumentedTest       : androidInstrumentedTest (KotlinSourceSetImpl) (*seen*)
             androidMain                   : androidMain (KotlinSourceSetImpl) (*seen*)
             androidUnitTest               : androidUnitTest (KotlinSourceSetImpl) (*seen*)
-            commonMain                    : commonMain (KotlinSourceSetImpl) (*seen*)
-            commonTest                    : commonTest (KotlinSourceSetImpl) (*seen*)
     externalProject               : :feature-b (DefaultExternalProject) (*seen*)
 MODULE                        : NonStandardSourceSetDependencies.feature-b.androidTest
-MODULE                        : NonStandardSourceSetDependencies.feature-b.commonMain
-MODULE                        : NonStandardSourceSetDependencies.feature-b.commonTest
 MODULE                        : NonStandardSourceSetDependencies.feature-b.main
 MODULE                        : NonStandardSourceSetDependencies.feature-b.unitTest
 MODULE                        : NonStandardSourceSetDependencies.jarWrapperLib
@@ -5507,13 +5443,15 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
+            isHMPPEnabled                 : true
         kotlinGradlePluginVersion
             versionString                 : <KGP_VERSION>
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
-                        - platforms                   : COMMON
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -5524,7 +5462,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/kmp-java/sample/src/commonMain/resources [-]
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/commonMain/kotlin
-                    platform                      : COMMON
+                    platform                      : JVM
                 - allSourceSets               : jvmMain (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true
@@ -5582,7 +5520,8 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             - compilations                : test (KotlinCompilationImpl)
                 - allSourceSets               : commonTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
-                        - platforms                   : COMMON
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
                     - additionalVisibleSourceSets : jvmMain
                     - additionalVisibleSourceSets : commonMain
                     isTestComponent               : true
@@ -5596,7 +5535,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - resourceDirs                : <ROOT>/kmp-java/sample/src/commonTest/resources [-]
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/commonTest/kotlin [-]
-                    platform                      : COMMON
+                    platform                      : JVM
                 - allSourceSets               : jvmTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
                         arePlatformsInitialized       : true

@@ -110,7 +110,6 @@ data class IdeModelSnapshotComparisonTestDefinition(
         TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND,
         skipV1toV2Comparison = true
       ),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.LINKED),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_KAPT),
       IdeModelSnapshotComparisonTestDefinition(TestProject.LINT_CUSTOM_CHECKS),
@@ -128,15 +127,10 @@ data class IdeModelSnapshotComparisonTestDefinition(
         )
       ),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL, skipV1toV2Comparison = true),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_WITHJS, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM, skipV1toV2Comparison = true),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL, skipV1toV2Comparison = true),
-      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP, skipV1toV2Comparison = true),
-      IdeModelSnapshotComparisonTestDefinition(
-        TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE,
-        skipV1toV2Comparison = true
-      ),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP, skipV1toV2Comparison = true),
+      IdeModelSnapshotComparisonTestDefinition(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE, skipV1toV2Comparison = true),
       IdeModelSnapshotComparisonTestDefinition(
         TestProject.KOTLIN_MULTIPLATFORM_MULTIPLE_SOURCE_SET_PER_ANDROID_COMPILATION,
         skipV1toV2Comparison = true

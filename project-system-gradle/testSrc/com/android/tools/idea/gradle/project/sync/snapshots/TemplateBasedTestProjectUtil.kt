@@ -80,18 +80,11 @@ internal fun cloneProjectRootIntoMultipleGradleRoots(
 
 internal fun patchMppProject(
   projectRoot: File,
-  enableHierarchicalSupport: Boolean,
   convertAppToKmp: Boolean = false,
   addJvmTo: List<String> = emptyList(),
   addIntermediateTo: List<String> = emptyList(),
   addJsModule: Boolean = false
 ) {
-  if (enableHierarchicalSupport) {
-    projectRoot.resolve("gradle.properties").replaceInContent(
-      "kotlin.mpp.hierarchicalStructureSupport=false",
-      "kotlin.mpp.hierarchicalStructureSupport=true"
-    )
-  }
   if (convertAppToKmp) {
     projectRoot.resolve("app").resolve("build.gradle").replaceInContent(
       """

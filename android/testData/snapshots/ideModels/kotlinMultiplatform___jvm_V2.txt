@@ -2681,13 +2681,16 @@ MODULE                        : kotlinMultiPlatform.module2
                 - dependency                  : org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
                 - dependency                  : org.jetbrains:annotations:13.0
         extraFeatures                 : ExtraFeaturesImpl
+            isHMPPEnabled                 : true
         kotlinGradlePluginVersion
             versionString                 : <KGP_VERSION>
         - targets                     : android (KotlinTargetImpl)
             - compilations                : debug (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
-                        - platforms                   : COMMON
+                        arePlatformsInitialized       : true
+                        - platforms                   : ANDROID
+                        - platforms                   : JVM
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -2840,7 +2843,9 @@ MODULE                        : kotlinMultiPlatform.module2
             - compilations                : debugUnitTest (KotlinCompilationImpl)
                 - allSourceSets               : commonTest (KotlinSourceSetImpl)
                     actualPlatforms               : KotlinPlatformContainerImpl
-                        - platforms                   : COMMON
+                        arePlatformsInitialized       : true
+                        - platforms                   : ANDROID
+                        - platforms                   : JVM
                     - additionalVisibleSourceSets : commonMain
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl

@@ -137,9 +137,6 @@ abstract class SyncedProjectTest(
   fun testNonStandardSourceSetDependencies_manualTestFixturesWorkaround() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_MANUAL_TEST_FIXTURES_WORKAROUND)
 
   @Test
-  fun testNonStandardSourceSetDependencies_hierarchical() = testProject(TestProject.NON_STANDARD_SOURCE_SET_DEPENDENCIES_HIERARCHICAL)
-
-  @Test
   fun testLinked() = testProject(TestProject.LINKED)
 
   @Test
@@ -158,23 +155,16 @@ abstract class SyncedProjectTest(
   fun testKotlinMultiplatform() = testProject(TestProject.KOTLIN_MULTIPLATFORM)
 
   @Test
-  fun testKotlinMultiplatform_hierarchical() = testProject(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL)
-
-  @Test
-  fun testKotlinMultiplatform_hierarchical_withJs() = testProject(TestProject.KOTLIN_MULTIPLATFORM_HIERARCHICAL_WITHJS)
+  fun testKotlinMultiplatform_withJs() = testProject(TestProject.KOTLIN_MULTIPLATFORM_WITHJS)
 
   @Test
   fun testKotlinMultiplatform_jvm() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM)
 
   @Test
-  fun testKotlinMultiplatform_jvm_hierarchical() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL)
+  fun testKotlinMultiplatform_jvm_kmpapp() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP)
 
   @Test
-  fun testKotlinMultiplatform_jvm_hierarchical_kmpapp() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP)
-
-  @Test
-  fun testKotlinMultiplatform_jvm_hierarchical_kmpapp_withintermediate() =
-    testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_HIERARCHICAL_KMPAPP_WITHINTERMEDIATE)
+  fun testKotlinMultiplatform_jvm_kmpapp_withintermediate() = testProject(TestProject.KOTLIN_MULTIPLATFORM_JVM_KMPAPP_WITHINTERMEDIATE)
 
   @Test
   fun testKotlinMultiplatform_multiple_source_set_per_android_compilation() =

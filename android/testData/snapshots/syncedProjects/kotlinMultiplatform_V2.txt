@@ -268,8 +268,6 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.app.main
             Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
-            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
             Scope                         : Test
         Classes
@@ -427,7 +425,6 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
         Classes
             -                             : file://<PROJECT>/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
@@ -619,8 +616,6 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.app.main
-            Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
             Scope                         : Test
@@ -861,8 +856,6 @@ PROJECT                       : kotlinMultiPlatform
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
             Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
-            Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
             Scope                         : Test
         Classes
@@ -892,152 +885,6 @@ PROJECT                       : kotlinMultiPlatform
                 REBUILD                       : :module2:assembleDebug, :module2:clean
                 COMPILE_JAVA                  : :module2:compileDebugSources
                 SOURCE_GEN                    : :module2:generateDebugSources
-    MODULE                        : kotlinMultiPlatform.module2.commonMain
-        ExternalModuleGroup           : kotlinMultiPlatform
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :module2:commonMain
-        LinkedProjectPath             : <PROJECT>/module2
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlinMultiPlatform.module2.commonMain [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.commonMain [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.commonMain.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        FACET                         : Kotlin
-            TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
-            CompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                multiPlatform                 : true
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            CompilerSettings
-                additionalArguments           :
-                copyJsLibraryFiles            : true
-                outputDirectoryForJsLibraryFiles        : lib
-            ExternalProjectId             : :module2
-            IsTestModule                  : false
-            Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.9
-            MergedCompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                multiPlatform                 : true
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (1.8)/JS/Wasm/Native (general)
-            UseProjectSettings            : false
-            Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonMain
-        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/commonMain/resources [-]
-        JDK                           : <NAME_CUT> KotlinSDK
-        *isInherited                  : false
-            SdkType                       : KotlinSDK
-            HomePath                      :  [-]
-        ORDER_ENTRY                   : <Module source>
-        BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :module2:assemble, :module2:testClasses
-                REBUILD                       : :module2:assemble, :module2:clean, :module2:testClasses
-                COMPILE_JAVA                  : :module2:compileJava, :module2:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :module2:assemble
-                REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :module2:assemble, :module2:testClasses
-                REBUILD                       : :module2:assemble, :module2:clean, :module2:testClasses
-                COMPILE_JAVA                  : :module2:compileJava, :module2:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :module2:assemble
-                REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
-    MODULE                        : kotlinMultiPlatform.module2.commonTest
-        ExternalModuleGroup           : kotlinMultiPlatform
-        ExternalModuleType            : sourceSet
-        ExternalModuleVersion         : unspecified
-        LinkedProjectId               : :module2:commonTest
-        LinkedProjectPath             : <PROJECT>/module2
-        RootProjectPath               : <PROJECT>
-        COMPILER_MODULE_EXTENSION
-            compilerSourceOutputPath      : file://<PROJECT>/build/classes/production/kotlinMultiPlatform.module2.commonTest [-]
-            compilerTestOutputPath        : file://<PROJECT>/build/classes/test/kotlinMultiPlatform.module2.commonTest [-]
-            isCompilerPathInherited       : true
-            isExcludeOutput               : true
-        TEST_MODULE_PROPERTIES
-            productionModuleName          : kotlinMultiPlatform.module2.commonMain
-        ModuleFile                    : <PROJECT>/.idea/modules/module2/kotlinMultiPlatform.module2.commonTest.iml [-]
-        ModuleTypeName                : JAVA_MODULE
-        FACET                         : Kotlin
-            TypeId                        : kotlin-language
-            ExternalSource                : GRADLE
-            ApiLevel                      : 1.9
-            CompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                multiPlatform                 : true
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            CompilerSettings
-                additionalArguments           :
-                copyJsLibraryFiles            : true
-                outputDirectoryForJsLibraryFiles        : lib
-            ExternalProjectId             : :module2
-            IsTestModule                  : true
-            Kind                          : SOURCE_SET_HOLDER
-            LanguageLevel                 : 1.9
-            MergedCompilerArguments
-                apiVersion                    : 1.9
-                languageVersion               : 1.9
-                multiPlatform                 : true
-                - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            Platform                      : JVM (1.8)/JS/Wasm/Native (general)
-            UseProjectSettings            : false
-            Version                       : 5
-        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonTest [-]
-        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/commonTest/resources [-]
-        JDK                           : <NAME_CUT> KotlinSDK
-        *isInherited                  : false
-            SdkType                       : KotlinSDK
-            HomePath                      :  [-]
-        ORDER_ENTRY                   : <Module source>
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
-            Scope                         : Test
-        BUILD_TASKS
-            TEST_COMPILE_MODE             : All
-                ASSEMBLE                      : :module2:assemble, :module2:testClasses
-                REBUILD                       : :module2:assemble, :module2:clean, :module2:testClasses
-                COMPILE_JAVA                  : :module2:compileJava, :module2:testClasses
-            TEST_COMPILE_MODE             : Android tests
-                ASSEMBLE                      : :module2:assemble
-                REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
-            TEST_COMPILE_MODE             : Unit tests
-                ASSEMBLE                      : :module2:assemble, :module2:testClasses
-                REBUILD                       : :module2:assemble, :module2:clean, :module2:testClasses
-                COMPILE_JAVA                  : :module2:compileJava, :module2:testClasses
-            TEST_COMPILE_MODE             : None
-                ASSEMBLE                      : :module2:assemble
-                REBUILD                       : :module2:assemble, :module2:clean
-                COMPILE_JAVA                  : :module2:compileJava
     MODULE                        : kotlinMultiPlatform.module2.main
         LINKED_ANDROID_MODULE_GROUP
             holder                        : kotlinMultiPlatform.module2
@@ -1108,7 +955,6 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             Platform                      : JVM (17)
-            - SourceSetName               : kotlinMultiPlatform.module2.commonMain
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
@@ -1116,6 +962,7 @@ PROJECT                       : kotlinMultiPlatform
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidDebug [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidMain
             JavaSource                    : file://<PROJECT>/module2/src/androidMain/kotlin
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonMain
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/debug [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/main [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/build/generated/ap_generated_sources/debug/out [-]
@@ -1131,6 +978,8 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/res [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/androidMain/resources [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/androidMain/shaders [-]
+        WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/commonMain/kotlin [-]
+        WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/commonMain/resources [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/assets [-]
         WATCHED_RESOURCE_FOLDER       : file://<PROJECT>/module2/src/debug/baselineProfiles [-]
         WATCHED_SOURCE_FOLDER         : file://<PROJECT>/module2/src/debug/java [-]
@@ -1152,7 +1001,6 @@ PROJECT                       : kotlinMultiPlatform
         ORDER_ENTRY                   : <Module source>
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
         Classes
             -                             : file://<PROJECT>/module2/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes
         BUILD_TASKS
@@ -1248,12 +1096,12 @@ PROJECT                       : kotlinMultiPlatform
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
                 - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
             Platform                      : JVM (17)
-            - SourceSetName               : kotlinMultiPlatform.module2.commonTest
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidUnitTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/androidUnitTestDebug [-]
+        CONENT_ENTRY                  : file://<PROJECT>/module2/src/commonTest [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/test [-]
         CONENT_ENTRY                  : file://<PROJECT>/module2/src/testDebug [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -1268,6 +1116,8 @@ PROJECT                       : kotlinMultiPlatform
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidUnitTestDebug/res [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/androidUnitTestDebug/resources [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/androidUnitTestDebug/shaders [-]
+        WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/commonTest/kotlin [-]
+        WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/commonTest/resources [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/assets [-]
         WATCHED_TEST_RESOURCE_FOLDER  : file://<PROJECT>/module2/src/test/baselineProfiles [-]
         WATCHED_TEST_SOURCE_FOLDER    : file://<PROJECT>/module2/src/test/java [-]
@@ -1294,10 +1144,6 @@ PROJECT                       : kotlinMultiPlatform
         LIBRARY                       : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             Scope                         : Test
         LIBRARY                       : Gradle: org.jetbrains:annotations:13.0 [=]
-            Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonMain
-            Scope                         : Test
-        ORDER_ENTRY                   : kotlinMultiPlatform.module2.commonTest
             Scope                         : Test
         ORDER_ENTRY                   : kotlinMultiPlatform.module2.main
             Scope                         : Test
@@ -1450,33 +1296,33 @@ PROJECT                       : kotlinMultiPlatform
     BUILD_TASKS
         TEST_COMPILE_MODE             : All
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:createMockableJar, <PROJECT>::module2:generateDebugAndroidTestSources, <PROJECT>::module2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest, <PROJECT>::module2:testClasses
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest, <PROJECT>::module2:clean, <PROJECT>::module2:testClasses
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::module2:compileDebugAndroidTestSources, <PROJECT>::module2:compileDebugSources, <PROJECT>::module2:compileDebugUnitTestSources, <PROJECT>::module2:compileJava, <PROJECT>::module2:testClasses
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebugUnitTest, <PROJECT>::module2:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::module2:compileDebugAndroidTestSources, <PROJECT>::module2:compileDebugSources, <PROJECT>::module2:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:createMockableJar, <PROJECT>::module2:generateDebugAndroidTestSources, <PROJECT>::module2:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Android tests
             CLEAN                         : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:generateDebugAndroidTestSources, <PROJECT>::module2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::module2:compileDebugAndroidTestSources, <PROJECT>::module2:compileDebugSources, <PROJECT>::module2:compileJava
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugAndroidTest, <PROJECT>::app:clean, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugAndroidTest, <PROJECT>::module2:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugAndroidTestSources, <PROJECT>::app:compileDebugSources, <PROJECT>::module2:compileDebugAndroidTestSources, <PROJECT>::module2:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateDebugAndroidTestSources, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:generateDebugAndroidTestSources, <PROJECT>::module2:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : Unit tests
             CLEAN                         : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:createMockableJar, <PROJECT>::module2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugUnitTest, <PROJECT>::module2:testClasses
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugUnitTest, <PROJECT>::module2:clean, <PROJECT>::module2:testClasses
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::module2:compileDebugUnitTestSources, <PROJECT>::module2:compileJava, <PROJECT>::module2:testClasses
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugUnitTest
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:assembleDebugUnitTest, <PROJECT>::app:clean, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:assembleDebugUnitTest, <PROJECT>::module2:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugUnitTestSources, <PROJECT>::module2:compileDebugUnitTestSources
             SOURCE_GEN                    : <PROJECT>::app:createMockableJar, <PROJECT>::app:generateDebugSources, <PROJECT>::module2:createMockableJar, <PROJECT>::module2:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
         TEST_COMPILE_MODE             : None
             CLEAN                         : <PROJECT>::app:generateDebugSources, <PROJECT>::module2:generateDebugSources
-            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug
-            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::module2:assemble, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:clean
-            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::module2:compileDebugSources, <PROJECT>::module2:compileJava
+            ASSEMBLE                      : <PROJECT>::app:assembleDebug, <PROJECT>::module2:assembleDebug
+            REBUILD                       : <PROJECT>::app:assembleDebug, <PROJECT>::app:clean, <PROJECT>::module2:assembleDebug, <PROJECT>::module2:clean
+            COMPILE_JAVA                  : <PROJECT>::app:compileDebugSources, <PROJECT>::module2:compileDebugSources
             SOURCE_GEN                    : <PROJECT>::app:generateDebugSources, <PROJECT>::module2:generateDebugSources
             BUNDLE                        : :app:bundleDebug
             APK_FROM_BUNDLE               : :app:extractApksForDebug
