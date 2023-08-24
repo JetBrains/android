@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.resources.Density;
 import com.android.resources.ScreenRatio;
 import com.android.resources.ScreenRound;
 import com.android.resources.ScreenSize;
@@ -23,16 +22,13 @@ import com.android.resources.TouchScreen;
 import com.android.sdklib.devices.Multitouch;
 import com.android.sdklib.devices.Screen;
 import com.android.sdklib.devices.ScreenType;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Contains all methods needed to build a {@link Screen} instance.
  */
 public final class AvdScreenData {
-  private AvdDeviceData myDeviceData;
+  private final AvdDeviceData myDeviceData;
 
   public AvdScreenData(AvdDeviceData deviceData) {
     myDeviceData = deviceData;
@@ -43,9 +39,10 @@ public final class AvdScreenData {
     double diagonalPixelResolution;
     if (isRound) {
       // Round: The "diagonal" is the same as the diameter.
-      // Use the width so we don't have to consider a possible chin.
+      // Use the width, so we don't have to consider a possible chin.
       diagonalPixelResolution = screenResolutionWidth;
-    } else {
+    }
+    else {
       // Calculate diagonal resolution in pixels using the Pythagorean theorem: Dp = (pixelWidth^2 + pixelHeight^2)^1/2
       diagonalPixelResolution = Math.sqrt(Math.pow(screenResolutionWidth, 2) + Math.pow(screenResolutionHeight, 2));
     }
@@ -65,7 +62,7 @@ public final class AvdScreenData {
 
     screen.setScreenRound((myDeviceData.isScreenRound().get()) ? ScreenRound.ROUND : ScreenRound.NOTROUND);
 
-    int screenWidth  = myDeviceData.screenResolutionWidth().get();
+    int screenWidth = myDeviceData.screenResolutionWidth().get();
     int screenHeight = myDeviceData.screenResolutionHeight().get();
     double screenDiagonal = myDeviceData.diagonalScreenSize().get();
     double effectiveDiagonal = screenDiagonal;
