@@ -243,7 +243,7 @@ public class AndroidGradleTests {
         contents = updateBuildToolsVersion(contents);
         contents = updateCompileSdkVersion(contents, compileSdkVersion);
         contents = updateTargetSdkVersion(contents);
-        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion[ (](\\d+)");
+        contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdkVersion *[(=]? *(\\d+)");
         contents = updateMinSdkVersionOnlyIfGreaterThanExisting(contents, "minSdk *= *(\\d+)");
         contents = updateLocalRepositories(contents, localRepositories);
 
@@ -331,14 +331,14 @@ public class AndroidGradleTests {
 
   @NotNull
   public static String updateCompileSdkVersion(@NotNull String contents, @NotNull String compileSdkVersion) {
-    contents = replaceRegexGroup(contents, "compileSdkVersion[ (]([0-9]+)", compileSdkVersion);
+    contents = replaceRegexGroup(contents, "compileSdkVersion *[(=]? *([0-9]+)", compileSdkVersion);
     contents = replaceRegexGroup(contents, "compileSdk *[(=]? *([0-9]+)", compileSdkVersion);
     return contents;
   }
 
   @NotNull
   public static String updateTargetSdkVersion(@NotNull String contents) {
-    contents = replaceRegexGroup(contents, "targetSdkVersion[ (]([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
+    contents = replaceRegexGroup(contents, "targetSdkVersion *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
     contents = replaceRegexGroup(contents, "targetSdk *[(=]? *([0-9]+)", BuildEnvironment.getInstance().getTargetSdkVersion());
     return contents;
   }

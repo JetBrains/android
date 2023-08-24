@@ -21,7 +21,6 @@ import com.intellij.ide.highlighter.XmlFileType
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.BeforeClass
 import org.junit.ClassRule
-import org.junit.Ignore
 import org.junit.Test
 
 /**
@@ -30,7 +29,6 @@ import org.junit.Test
  * Run locally with:
  * bazel test --test_output=streamed --test_filter=SantaTrackerBenchmark //tools/adt/idea/ide-perf-tests/...
  */
-@Ignore("b/297028624")
 class SantaTrackerBenchmark : FullProjectBenchmark() {
   override val gradleRule = staticRule
 

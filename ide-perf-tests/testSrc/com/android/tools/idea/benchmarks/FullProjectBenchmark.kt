@@ -23,6 +23,7 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.google.common.truth.Truth.assertThat
 import com.intellij.analysis.AnalysisScope
+import com.intellij.codeInsight.daemon.ProblemHighlightFilter
 import com.intellij.codeInspection.ex.GlobalInspectionContextBase
 import com.intellij.lang.Language
 import com.intellij.lang.annotation.HighlightSeverity
@@ -46,6 +47,7 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
@@ -363,12 +365,13 @@ abstract class FullProjectBenchmark {
     fun loadProject(gradleRule: AndroidGradleProjectRule, projectName: String) {
       val modulePath = AndroidTestBase.getModulePath("ide-perf-tests")
       gradleRule.fixture.testDataPath = modulePath + File.separator + "testData"
-      disableExpensivePlatformAssertions(gradleRule.fixture)
-      enableAllDefaultInspections(gradleRule.fixture)
 
       gradleRule.load(projectName)
       // TODO(b/149240940): gradleRule.generateSources() // Gets us closer to a production setup.
       waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
+
+      disableExpensivePlatformAssertions(gradleRule.fixture)
+      enableAllDefaultInspections(gradleRule.fixture)
     }
 
     private fun collectSuitableFiles(fileType: FileType, scope: GlobalSearchScope, limit: Int = 100): List<VirtualFile> {
@@ -540,7 +543,9 @@ abstract class FullProjectBenchmark {
   private fun measureHighlighting(fileType: FileType, projectName: String) {
     // Collect files.
     val project = gradleRule.project
-    val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project))
+    val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project)).filter {
+      it.toPsiFile(gradleRule.project)?.let(ProblemHighlightFilter::shouldHighlightFile) == true
+    }
     assert(files.isNotEmpty())
 
     // Warmup.
