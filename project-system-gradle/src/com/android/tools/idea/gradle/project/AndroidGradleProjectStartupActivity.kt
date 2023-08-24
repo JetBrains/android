@@ -98,13 +98,14 @@ class AndroidGradleProjectStartupActivity : StartupActivity {
     removeGradleProducersFromIgnoredList(project)
 
     if (shouldSyncOrAttachModels()) {
+      // Initially, IJ loads the state of workspace model from the cache and in DelayedProjectSynchronizer synchronizes the state of
+      // workspace model with project model files using JpsProjectModelSynchronizer. Since that activity runs async we need to detect
+      // when the JPS was loaded, otherwise, any change will be overridden.
       JpsProjectLoadingManager.getInstance(project).jpsProjectLoaded {
         invokeAndWaitIfNeeded {
-          runWriteAction {
-            removePointlessModules(project)
-          }
+          removePointlessModules(project)
+          attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
         }
-        attachCachedModelsOrTriggerSync(project, gradleProjectInfo)
       }
     }
 
@@ -116,34 +117,39 @@ private val LOG = Logger.getInstance(AndroidGradleProjectStartupActivity::class.
 
 private fun removePointlessModules(project: Project) {
   val moduleManager = ModuleManager.getInstance(project)
-  val emptyModulesToRemove = mutableListOf<Module>()
-  val nativeOnlySourceRootsModulesToRemove = mutableListOf<Module>()
+  val emptyModulesToRemove = mutableListOf<Pair<Module, Module.() -> Unit>>()
+  val nativeOnlySourceRootsModulesToRemove = mutableListOf<Pair<Module, Module.() -> Unit>>()
 
   moduleManager.modules.forEach { module ->
     if (module.isLoaded && ExternalSystemModulePropertyManager.getInstance(module).getExternalSystemId().isNullOrEmpty()) {
       if (module.isEmptyModule()) {
-        emptyModulesToRemove.add(module)
+        emptyModulesToRemove.add(Pair(module) {
+          LOG.warn("Disposing module '$name' which is empty, not registered with the external system and '$moduleFilePath' does not exist.")
+        })
       } else if (module.hasOnlyNativeSourceRoots()) {
-        nativeOnlySourceRootsModulesToRemove.add(module)
+        nativeOnlySourceRootsModulesToRemove.add(Pair(module) {
+          LOG.warn("Disposing module '$name' which is not registered with the external system and contains only native source roots.")
+        })
       }
     }
   }
 
-  removeModules(emptyModulesToRemove, moduleManager) {
-    LOG.warn("Disposed module '$name' which is empty, not registered with the external system and '$moduleFilePath' does not exist.")
-  }
-  removeModules(nativeOnlySourceRootsModulesToRemove, moduleManager) {
-    LOG.warn("Disposed module '$name' which is not registered with the external system and contains only native source roots.")
-  }
+  removeModules(
+    moduleManager,
+    modules = emptyModulesToRemove + nativeOnlySourceRootsModulesToRemove
+  )
 }
 
-private fun removeModules(modules: List<Module>, moduleManager: ModuleManager, onRemovingModule: Module.() -> Unit ) {
-  with(moduleManager.getModifiableModel()) {
-    modules.forEach {
-      onRemovingModule(it)
-      disposeModule(it)
+private fun removeModules(moduleManager: ModuleManager, modules: List<Pair<Module, Module.() -> Unit>>) {
+  if (modules.isEmpty()) return
+  runWriteAction {
+    with(moduleManager.getModifiableModel()) {
+      modules.forEach { (module, onRemovingModule) ->
+        onRemovingModule(module)
+        disposeModule(module)
+      }
+      commit()
     }
-    commit()
   }
 }
 
