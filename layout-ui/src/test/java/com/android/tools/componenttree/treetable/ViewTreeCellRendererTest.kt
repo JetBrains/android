@@ -46,6 +46,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 
 private const val TEST_ROW = 1
+private val LONG_TEXT_VALUE = "1234567890".repeat(1000)
 
 class ViewTreeCellRendererTest {
 
@@ -382,6 +383,30 @@ class ViewTreeCellRendererTest {
           .trimIndent()
       )
     assertThat(ViewTreeCellRenderer.computeSearchString(type, item)).isEqualTo("text \"Hello\"")
+  }
+
+  @Test
+  fun testLongTextValue() {
+    val item = Item(FQCN_TEXT_VIEW, "@+id/text", LONG_TEXT_VALUE, Palette.TEXT_VIEW)
+    item.enabled = false
+    val component =
+      renderAndCheckFragments(
+        item,
+        Fragment("text", strikeout),
+        Fragment(" $LONG_TEXT_VALUE", greyStrikeout)
+      )
+    assertThat(component.icon).isEqualTo(Palette.TEXT_VIEW)
+    assertThat(component.toolTipText)
+      .isEqualTo(
+        """
+      <html>
+        TextView<br/>
+        text: ${LONG_TEXT_VALUE.substring(0, 1000)}...
+      </html>"""
+          .trimIndent()
+      )
+    assertThat(ViewTreeCellRenderer.computeSearchString(type, item))
+      .isEqualTo("text ${LONG_TEXT_VALUE.substring(0, 1000)}...")
   }
 
   @Test
