@@ -203,6 +203,36 @@ class ComposeLayoutInspectorClientTest {
   }
 
   @Test
+  fun inspectorArtifactNotFound_showComposeInspectionNotAvailableBanner_UiAndroid() = runBlocking {
+    val artifactService =
+      object : InspectorArtifactService {
+        override suspend fun getOrResolveInspectorArtifact(
+          artifactCoordinate: ArtifactCoordinate,
+          project: Project
+        ): Path {
+          throw AppInspectionArtifactNotFoundException(
+            "not found",
+            ArtifactCoordinate("androidx.compose.ui", "ui-android", "1.5.0")
+          )
+        }
+      }
+    ApplicationManager.getApplication()
+      .registerServiceInstance(InspectorArtifactService::class.java, artifactService)
+    val target = mock<AppInspectionTarget>()
+    whenever(target.getLibraryVersions(any()))
+      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), Status.COMPATIBLE, "1.5.0", "")))
+    val apiServices = mock<AppInspectionApiServices>()
+    whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name))
+      .thenReturn(target)
+
+    checkLaunch(
+      apiServices,
+      LayoutInspectorBundle.message(COMPOSE_INSPECTION_NOT_AVAILABLE_KEY),
+      AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
+    )
+  }
+
+  @Test
   fun inspectorArtifactVersionMissing_showBanner() = runBlocking {
     val target = mock<AppInspectionTarget>()
     whenever(target.getLibraryVersions(any()))
