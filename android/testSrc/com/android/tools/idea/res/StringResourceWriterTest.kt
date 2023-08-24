@@ -29,6 +29,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.BundleBase
 import com.intellij.ide.IdeBundle
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.progress.runWithModalProgressBlocking
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.Project
@@ -41,9 +43,13 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.application
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
@@ -581,11 +587,20 @@ class StringResourceWriterTest {
   private fun dumbSafeDelete(item: ResourceItem) = dumbSafeDelete(listOf(item))
 
   private fun dumbSafeDelete(items: List<ResourceItem>) {
-    runBlocking {
-      (DumbService.getInstance(project) as DumbServiceImpl).runInDumbMode {
-        withTimeout(2.seconds) {
-          suspendCancellableCoroutine { cont ->
-            stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
+    fun runBlockingOrBlockingModalIfEdt(block: suspend CoroutineScope.() -> Unit) {
+      if (application.isDispatchThread)
+        runWithModalProgressBlocking(project, "test", block)
+      else
+        runBlocking(block = block)
+    }
+
+    runBlockingOrBlockingModalIfEdt {
+      withTimeout(2.seconds) {
+        (DumbService.getInstance(project) as DumbServiceImpl).runInDumbMode {
+          withContext(Dispatchers.EDT) {
+            suspendCancellableCoroutine { cont ->
+              stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
+            }
           }
         }
       }
