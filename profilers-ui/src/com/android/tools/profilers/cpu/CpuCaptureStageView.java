@@ -246,7 +246,11 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     if (getStage().getCapture().getRange().isEmpty()) {
       // If the capture range is empty, it means the capture doesn't contain any data.
       JPanel container = new JPanel(new BorderLayout());
-      JLabel label = new JLabel("This trace doesn't contain any data. Please record a new one and interact with the app to generate data.");
+      JLabel label = new JLabel(
+        "<html><div style='text-align: center;'>" +
+        "This trace was recorded successfully but it doesn't contain any CPU usage data.<br>" +
+        "Please interact with the app to generate data while recording a trace." +
+        "</div></html>");
       label.setFont(ProfilerFonts.H3_FONT);
       label.setHorizontalAlignment(SwingConstants.CENTER);
       label.setVerticalAlignment(SwingConstants.CENTER);
