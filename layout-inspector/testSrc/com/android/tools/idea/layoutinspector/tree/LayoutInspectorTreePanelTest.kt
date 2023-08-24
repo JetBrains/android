@@ -1032,7 +1032,13 @@ class LayoutInspectorTreePanelTest {
     setToolContext(panel, inspectorRule.inspector)
 
     assertThat(inspectorRule.inspector.inspectorModel.selectionListeners).hasSize(1)
-    assertThat(inspectorRule.inspector.inspectorModel.connectionListeners).hasSize(2)
+
+    var connectionListenersCount1 = 0
+    inspectorRule.inspector.inspectorModel.connectionListeners.forEach {
+      connectionListenersCount1 += 1
+    }
+    assertThat(connectionListenersCount1).isEqualTo(2)
+
     var modificationListenerCount1 = 0
     inspectorRule.inspector.inspectorModel.modificationListeners.forEach {
       modificationListenerCount1++
@@ -1042,7 +1048,13 @@ class LayoutInspectorTreePanelTest {
     Disposer.dispose(disposable)
 
     assertThat(inspectorRule.inspector.inspectorModel.selectionListeners).hasSize(0)
-    assertThat(inspectorRule.inspector.inspectorModel.connectionListeners).hasSize(0)
+
+    var connectionListenersCount2 = 0
+    inspectorRule.inspector.inspectorModel.connectionListeners.forEach {
+      connectionListenersCount2 += 1
+    }
+    assertThat(connectionListenersCount2).isEqualTo(0)
+
     var modificationListenerCount2 = 0
     inspectorRule.inspector.inspectorModel.modificationListeners.forEach {
       modificationListenerCount2++

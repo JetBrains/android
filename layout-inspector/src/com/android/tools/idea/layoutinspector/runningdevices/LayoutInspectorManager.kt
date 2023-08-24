@@ -135,13 +135,12 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       }
 
       val previousTab = field
-      // only disable Layout Inspector if the previous tab is still open.
-      if (previousTab != null && previousTab.deviceId in existingRunningDevicesTabs) {
-        previousTab.disableLayoutInspector()
-        previousTab.layoutInspector.stopInspector()
-      }
       if (previousTab != null) {
-        // Layout Inspector UI has been removed, dispose to trigger clean up.
+        previousTab.layoutInspector.deviceModel?.selectedDevice = null
+
+        // Remove Layout Inspector UI from Running Devices.
+        previousTab.disableLayoutInspector()
+        // Dispose to trigger clean up.
         Disposer.dispose(previousTab.tabComponents)
       }
 

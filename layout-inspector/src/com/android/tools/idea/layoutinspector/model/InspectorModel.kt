@@ -70,7 +70,8 @@ class InspectorModel(
   val modificationListeners =
     ListenerCollection.createWithDirectExecutor<InspectorModelModificationListener>()
 
-  val connectionListeners = mutableListOf<(InspectorClient?) -> Unit>()
+  val connectionListeners =
+    ListenerCollection.createWithDirectExecutor<(InspectorClient?) -> Unit>()
   var lastGeneration = 0
   var updating = false
 

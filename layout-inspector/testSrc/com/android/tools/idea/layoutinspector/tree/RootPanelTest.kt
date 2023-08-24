@@ -25,12 +25,12 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspecti
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.runningdevices.withEmbeddedLayoutInspector
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.ui.components.JBLoadingPanel
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
-import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -168,12 +168,24 @@ class RootPanelTest {
 
     assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
       .hasSize(1)
-    assertThat(layoutInspectorRule.inspectorModel.connectionListeners).hasSize(1)
+
+    var connectionListenersCount1 = 0
+    layoutInspectorRule.inspectorModel.connectionListeners.forEach {
+      connectionListenersCount1 += 1
+    }
+    assertThat(connectionListenersCount1).isEqualTo(1)
 
     Disposer.dispose(androidProjectRule.testRootDisposable)
 
     assertThat(layoutInspectorRule.fakeForegroundProcessDetection.foregroundProcessListeners)
       .hasSize(0)
-    assertThat(layoutInspectorRule.inspectorModel.connectionListeners).hasSize(0)
+
+    var connectionListenersCount2 = 0
+    layoutInspectorRule.inspectorModel.connectionListeners.forEach {
+      connectionListenersCount2 += 1
+    }
+    assertThat(connectionListenersCount2).isEqualTo(0)
+
+    assertThat(connectionListenersCount2).isEqualTo(0)
   }
 }
