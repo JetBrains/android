@@ -117,7 +117,11 @@ class AppInspectorTabLaunchSupportTest {
               artifactCoordinate: ArtifactCoordinate,
               project: Project
             ): Path {
-              return if (artifactCoordinate == unresolvedLibrary) {
+              return if (
+                artifactCoordinate.groupId == unresolvedLibrary.groupId &&
+                  artifactCoordinate.artifactId == unresolvedLibrary.artifactId &&
+                  artifactCoordinate.version == unresolvedLibrary.version
+              ) {
                 throw AppInspectionArtifactNotFoundException("not found", artifactCoordinate)
               } else {
                 Paths.get("resolved", "jar")
@@ -197,10 +201,12 @@ class AppInspectorTabLaunchSupportTest {
             assertThat(jar).isSameAs(TEST_JAR)
           }
           else -> {
-            assertThat(target.artifactCoordinate)
+            // TODO(xof) temporary .toString() while refactoring
+            assertThat(target.artifactCoordinate?.toString())
               .isEqualTo(
                 (tabTargets.provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
                   .minVersionLibraryCoordinate
+                  .toString()
               )
             assertThat(jar).isEqualTo(AppInspectorJar("jar", "resolved", "resolved"))
           }

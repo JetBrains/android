@@ -99,11 +99,10 @@ interface AppInspectionApiServices {
 suspend fun AppInspectionApiServices.checkVersion(
   project: String,
   process: ProcessDescriptor,
-  groupId: String,
-  artifactId: String,
+  artifactCoordinate: ArtifactCoordinate,
   expectedClassNames: List<String> = emptyList()
 ): LibraryCompatibilityInfo? {
-  val coordinateAnyVersion = ArtifactCoordinate(groupId, artifactId, "0.0.0")
+  val coordinateAnyVersion = artifactCoordinate.toAny()
   return attachToProcess(process, project)
     .getLibraryVersions(listOf(LibraryCompatibility(coordinateAnyVersion, expectedClassNames)))
     .singleOrNull()

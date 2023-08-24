@@ -16,6 +16,7 @@
 package com.android.tools.idea.appinspection.inspector.api.launch
 
 import com.android.tools.app.inspection.AppInspection
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Contains information that uniquely identifies the library.
@@ -25,12 +26,12 @@ import com.android.tools.app.inspection.AppInspection
  * [version] can optionally be '+' to match any version of the artifact, when used in the context of
  * compatibility checks.
  */
-data class ArtifactCoordinate(val groupId: String, val artifactId: String, val version: String) {
-  /** The coordinate for this library, i.e. how it would appear in a Gradle dependencies block. */
-  override fun toString() = "${groupId}:${artifactId}:${version}"
+interface ArtifactCoordinate {
+  val groupId: String
+  val artifactId: String
+  val version: String
 
-  /** Returns true if the artifacts are the same without checking the version. */
-  fun sameArtifact(other: ArtifactCoordinate): Boolean =
+  fun sameArtifact(other: ArtifactCoordinate) =
     groupId == other.groupId && artifactId == other.artifactId
 
   fun toArtifactCoordinateProto(): AppInspection.ArtifactCoordinate =
@@ -39,4 +40,59 @@ data class ArtifactCoordinate(val groupId: String, val artifactId: String, val v
       .setArtifactId(artifactId)
       .setVersion(version)
       .build()
+
+  fun toCoordinateString() = "${groupId}:${artifactId}:${version}"
+
+  fun toWild(): ArtifactCoordinate = WildArtifactCoordinate(this)
+
+  fun toAny(): ArtifactCoordinate = AnyArtifactCoordinate(this)
+
+  private enum class Module(val groupId: String, val artifactId: String) {
+    COMPOSE_UI("androidx.compose.ui", "ui"),
+    COMPOSE_UI_ANDROID("androidx.compose.ui", "ui-android"),
+    WORK_RUNTIME("androidx.work", "work-runtime"),
+  }
+
+  enum class MinimumArtifactCoordinate(module: Module, override val version: String) :
+    ArtifactCoordinate {
+    COMPOSE_UI(Module.COMPOSE_UI, "1.0.0-beta02"),
+    COMPOSE_UI_ANDROID(Module.COMPOSE_UI_ANDROID, "1.5.0-beta01"),
+    WORK_RUNTIME(Module.WORK_RUNTIME, "2.5.0"),
+    ;
+
+    override val groupId = module.groupId
+    override val artifactId = module.artifactId
+
+    override fun toString() = toCoordinateString()
+  }
+
+  class RunningArtifactCoordinate(minimum: ArtifactCoordinate, override val version: String) :
+    ArtifactCoordinate {
+    override val groupId = minimum.groupId
+    override val artifactId = minimum.artifactId
+
+    override fun toString() = toCoordinateString()
+  }
+
+  private class WildArtifactCoordinate(private val coordinate: ArtifactCoordinate) :
+    ArtifactCoordinate by coordinate {
+    override val version = "+"
+  }
+
+  private class AnyArtifactCoordinate(private val coordinate: ArtifactCoordinate) :
+    ArtifactCoordinate by coordinate {
+    override val version = "0.0.0"
+  }
+
+  companion object {
+    @TestOnly
+    operator fun invoke(groupId: String, artifactId: String, version: String) =
+      object : ArtifactCoordinate {
+        override val groupId = groupId
+        override val artifactId = artifactId
+        override val version = version
+
+        override fun toString() = toCoordinateString()
+      }
+  }
 }

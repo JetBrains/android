@@ -24,7 +24,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactN
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate.MinimumArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
@@ -78,12 +79,12 @@ import layoutinspector.compose.inspection.LayoutInspectorComposeProtocol.UpdateS
 
 const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 
-val MINIMUM_COMPOSE_COORDINATE = ArtifactCoordinate("androidx.compose.ui", "ui", "1.0.0-beta02")
-val MINIMUM_COMPOSE_ANDROID_COORDINATE =
-  ArtifactCoordinate("androidx.compose.ui", "ui-android", "1.5.0-beta01")
 const val EXPECTED_CLASS_IN_COMPOSE_LIBRARY = "androidx.compose.ui.Modifier"
 val COMPOSE_INSPECTION_COMPATIBILITY =
-  LibraryCompatibility(MINIMUM_COMPOSE_COORDINATE, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
+  LibraryCompatibility(
+    MinimumArtifactCoordinate.COMPOSE_UI,
+    listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY)
+  )
 private val KMP_MIGRATION_VERSION = Version.parse("1.5.0-beta01")
 
 @VisibleForTesting const val INCOMPATIBLE_LIBRARY_MESSAGE_KEY = "incompatible.library.message"
@@ -174,9 +175,13 @@ class ComposeLayoutInspectorClient(
       // cannot reliably detect)
     }
 
-    fun determineArtifactId(versionIdentifier: String) =
+    @VisibleForTesting
+    fun determineArtifactCoordinate(versionIdentifier: String) =
       Version.parse(versionIdentifier).let {
-        if (it < KMP_MIGRATION_VERSION) "ui" else "ui-android"
+        if (it < KMP_MIGRATION_VERSION)
+          RunningArtifactCoordinate(MinimumArtifactCoordinate.COMPOSE_UI, versionIdentifier)
+        else
+          RunningArtifactCoordinate(MinimumArtifactCoordinate.COMPOSE_UI_ANDROID, versionIdentifier)
       }
 
     fun handleCompatibilityAndComputeVersion(
@@ -213,12 +218,7 @@ class ComposeLayoutInspectorClient(
         runBlocking {
           InspectorArtifactService.instance.getOrResolveInspectorJar(
             project,
-            MINIMUM_COMPOSE_COORDINATE.copy(
-              // TODO: workaround for kmp migration at 1.5.0-beta01 where the artifact id became
-              // "ui-android"
-              artifactId = determineArtifactId(version),
-              version = version
-            )
+            determineArtifactCoordinate(version)
           )
         }
       } catch (exception: AppInspectionArtifactNotFoundException) {
@@ -278,8 +278,7 @@ class ComposeLayoutInspectorClient(
             apiServices.checkVersion(
               project.name,
               process,
-              MINIMUM_COMPOSE_COORDINATE.groupId,
-              MINIMUM_COMPOSE_COORDINATE.artifactId,
+              MinimumArtifactCoordinate.COMPOSE_UI,
               listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY)
             )
 

@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.ide.ui.AppInspectionView
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
@@ -109,7 +110,7 @@ class AppInspectorTabLaunchSupport(
           when (compatibilityResponse[i].status) {
             LibraryCompatibilityInfo.Status.COMPATIBLE ->
               getInspectorJarTarget(
-                compatibilityResponse[i].run { libraryCoordinate.copy(version = version) }
+                RunningArtifactCoordinate(artifactCoordinates[i], compatibilityResponse[i].version)
               )
             LibraryCompatibilityInfo.Status.APP_PROGUARDED ->
               InspectorJarTarget.Unresolved(APP_PROGUARDED_MESSAGE, artifactCoordinates[i])
@@ -119,7 +120,7 @@ class AppInspectorTabLaunchSupport(
                 // We still want to perform the check because it gives us other useful warnings such
                 // as
                 // when the app is proguarded.
-                getInspectorJarTarget(artifactCoordinates[i].copy(version = "+"))
+                getInspectorJarTarget(artifactCoordinates[i].toWild())
               } else {
                 InspectorJarTarget.Unresolved(
                   provider.toIncompatibleVersionMessage(),
