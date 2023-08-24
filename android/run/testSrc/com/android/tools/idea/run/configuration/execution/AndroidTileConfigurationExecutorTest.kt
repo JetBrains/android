@@ -20,6 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.deployer.Activator
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
@@ -215,14 +216,18 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
       override val module = myModule
     }
 
-    val app = Mockito.mock(App::class.java)
+    val activator = Mockito.mock(Activator::class.java)
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any(), any())
+      .whenever(activator).activate(any(), any(), any(AppComponent.Mode::class.java), any(), any())
+
+    val app = Mockito.mock(App::class.java)
     val appInstaller = TestApplicationInstaller(appId, app)
     val executor = AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val spyExecutor = Mockito.spy(executor)
+    Mockito.`when`(spyExecutor.getActivator(app)).thenReturn(activator)
 
     val e = assertFailsWith<ExecutionException>("Error while setting the tile, message: $failedResponse") {
-      getRunContentDescriptorForTests { executor.run(EmptyProgressIndicator()) }
+      getRunContentDescriptorForTests { spyExecutor.run(EmptyProgressIndicator()) }
     }
 
     assertThat(e).hasMessageThat().contains("Error while setting the tile, message: $failedResponse")

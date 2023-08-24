@@ -99,7 +99,7 @@ class AndroidComplicationConfigurationExecutor(
     val watchFaceInfo =
       "${complicationLaunchOptions.watchFaceInfo.appId} ${complicationLaunchOptions.watchFaceInfo.watchFaceFQName}"
     try {
-      app.activateComponent(
+      getActivator(app).activate(
         complicationLaunchOptions.componentType,
         complicationLaunchOptions.componentName!!,
         "$watchFaceInfo ${slot.id} ${slot.type}",

@@ -19,6 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.deployer.Activator
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.deployer.model.component.AppComponent
@@ -222,13 +223,17 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     // Executor we test.
     val app = Mockito.mock(App::class.java)
-    Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
-      .whenever(app).activateComponent(any(), any(), any(AppComponent.Mode::class.java), any(), any())
     val appInstaller = TestApplicationInstaller(appId, app)
+    val activator = Mockito.mock(Activator::class.java)
+    Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
+      .whenever(activator).activate(any(), any(), any(AppComponent.Mode::class.java), any(), any())
+
     val executor = AndroidWatchFaceConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId), TestApksProvider(appId), appInstaller)
+    val spyExecutor = Mockito.spy(executor)
+    Mockito.`when`(spyExecutor.getActivator(app)).thenReturn(activator)
 
     assertFailsWith<ExecutionException>("Error while launching watch face, message: $failedResponse") {
-      getRunContentDescriptorForTests { executor.debug(EmptyProgressIndicator()) }
+      getRunContentDescriptorForTests { spyExecutor.debug(EmptyProgressIndicator()) }
     }
   }
 

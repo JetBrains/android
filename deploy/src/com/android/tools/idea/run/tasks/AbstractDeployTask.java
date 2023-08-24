@@ -235,7 +235,7 @@ public abstract class AbstractDeployTask {
 
   public static App getAppToInstall(@NotNull ApkInfo apkInfo) {
     List<Path> paths = apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).collect(Collectors.toList());
-    return App.fromPaths(apkInfo.getApplicationId(),paths, new LogWrapper(LOG));
+    return App.fromPaths(apkInfo.getApplicationId(),paths);
   }
 
   private static AndroidStudioEvent.Builder toStudioEvent(Deploy.AgentExceptionLog log) {

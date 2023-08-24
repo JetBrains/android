@@ -90,7 +90,7 @@ class AndroidTileConfigurationExecutor(
     val indexReceiver = AddTileCommandResultReceiver { indicator?.isCanceled == true }
     val receiver = MultiReceiver(outputReceiver, consoleReceiver, indexReceiver)
     try {
-      app.activateComponent(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver, device)
+      getActivator(app).activate(tileLaunchOptions.componentType, tileLaunchOptions.componentName!!, mode, receiver, device)
     }
     catch (ex: DeployerException) {
       throw ExecutionException("Error while setting the tile, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)

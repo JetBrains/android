@@ -69,7 +69,7 @@ class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment,
 
     val outputReceiver = RecordOutputReceiver { indicator?.isCanceled == true }
     try {
-      app.activateComponent(watchFaceLaunchOptions.componentType, watchFaceLaunchOptions.componentName!!, mode, outputReceiver, device)
+      getActivator(app).activate(watchFaceLaunchOptions.componentType, watchFaceLaunchOptions.componentName!!, mode, outputReceiver, device)
     }
     catch (ex: DeployerException) {
       throw ExecutionException("Error while launching watch face, message: ${outputReceiver.getOutput().ifEmpty { ex.details }}", ex)

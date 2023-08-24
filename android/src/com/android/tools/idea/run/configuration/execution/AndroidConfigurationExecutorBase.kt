@@ -17,6 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.IDevice
+import com.android.tools.deployer.Activator
 import com.android.tools.deployer.DeployerException
 import com.android.tools.deployer.model.App
 import com.android.tools.idea.execution.common.AndroidConfigurationExecutor
@@ -26,6 +27,7 @@ import com.android.tools.idea.execution.common.ApplicationDeployer
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.stats.RunStats
+import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.DeviceFutures
@@ -54,10 +56,15 @@ abstract class AndroidConfigurationExecutorBase(
 ) : AndroidConfigurationExecutor {
 
   private val LOG = Logger.getInstance(this::class.java)
+  val logger = LogWrapper(LOG)
 
   override val configuration: RunConfiguration = environment.runProfile as RunConfiguration
 
   protected val project = environment.project
+
+  internal fun getActivator(app: App) : Activator {
+    return Activator(app, logger)
+  }
 
   @WorkerThread
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable {
