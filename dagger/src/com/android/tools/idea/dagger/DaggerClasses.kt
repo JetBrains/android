@@ -64,7 +64,10 @@ object DaggerClasses {
   val Binds = dagger("Binds")
   val Lazy = dagger("Lazy")
   val BindsInstance = dagger("BindsInstance")
+  val BindsOptionalOf = dagger("BindsOptionalOf")
   val Component = dagger("Component")
+  val ComponentBuilder = Component.nested("Builder")
+  val ComponentFactory = Component.nested("Factory")
   val Subcomponent = dagger("Subcomponent")
   val SubcomponentFactory = Subcomponent.nested("Factory")
 

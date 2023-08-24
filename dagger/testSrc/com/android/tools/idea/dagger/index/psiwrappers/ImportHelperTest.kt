@@ -50,17 +50,17 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-        package com.example
+        package dagger
         """
           .trimIndent()
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.INJECT))
       .containsExactly("javax.inject.Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
-      .containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.MODULE))
+      .containsExactly("dagger.Module", "Module")
   }
 
   @Test
@@ -70,7 +70,7 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-        package com.example
+        package dagger
         import javax.inject.*
         """
           .trimIndent()
@@ -78,10 +78,10 @@ class ImportHelperTest {
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.INJECT))
       .containsExactly("javax.inject.Inject", "Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
-      .containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.MODULE))
+      .containsExactly("dagger.Module", "Module")
   }
 
   @Test
@@ -91,7 +91,7 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-        package com.example
+        package dagger
         import javax.inject.Inject
         """
           .trimIndent()
@@ -99,10 +99,10 @@ class ImportHelperTest {
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.INJECT))
       .containsExactly("javax.inject.Inject", "Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
-      .containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.MODULE))
+      .containsExactly("dagger.Module", "Module")
   }
 
   @Test
@@ -112,7 +112,7 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-        package com.example
+        package dagger
         import javax.inject.Inject as OtherInject
         """
           .trimIndent()
@@ -120,10 +120,10 @@ class ImportHelperTest {
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.INJECT))
       .containsExactly("javax.inject.Inject", "OtherInject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
-      .containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.MODULE))
+      .containsExactly("dagger.Module", "Module")
   }
 
   @Test
@@ -133,7 +133,7 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-        package com.example
+        package javax
         import javax.inject.*
         import javax.inject.Inject
         import javax.inject.Inject as OtherInject
@@ -143,10 +143,8 @@ class ImportHelperTest {
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.INJECT))
       .containsExactly("javax.inject.Inject", "Inject", "OtherInject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
-      .containsExactly("com.example.Inject", "Inject")
   }
 
   @Test
@@ -157,46 +155,48 @@ class ImportHelperTest {
         // language=kotlin
         """
         package com.example
-        import com.other.Foo1
-        import com.other.Foo2.Inner
-        import com.other.Foo3 as MyFoo3
-
-        import com.other.Foo4
-        import com.other.Foo4.Inner4
+        import dagger.*
+        import dagger.Component as Comp
+        import dagger.Component.Builder
         """
           .trimIndent()
       ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Foo0.Inner"))
-      .containsExactly("com.example.Foo0.Inner", "Foo0.Inner")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Foo0.Inner.NestedAgain"))
-      .containsExactly("com.example.Foo0.Inner.NestedAgain", "Foo0.Inner.NestedAgain")
-
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo1.Inner"))
-      .containsExactly("com.other.Foo1.Inner", "Foo1.Inner")
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo1.Inner.NestedAgain"))
-      .containsExactly("com.other.Foo1.Inner.NestedAgain", "Foo1.Inner.NestedAgain")
-
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo2.Inner"))
-      .containsExactly("com.other.Foo2.Inner", "Inner")
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo2.Inner.NestedAgain"))
-      .containsExactly("com.other.Foo2.Inner.NestedAgain", "Inner.NestedAgain")
-
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo3.Inner"))
-      .containsExactly("com.other.Foo3.Inner", "MyFoo3.Inner")
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo3.Inner.NestedAgain"))
-      .containsExactly("com.other.Foo3.Inner.NestedAgain", "MyFoo3.Inner.NestedAgain")
-
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo4.Inner4"))
-      .containsExactly("com.other.Foo4.Inner4", "Foo4.Inner4", "Inner4")
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo4.Inner4.NestedAgain"))
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.COMPONENT_BUILDER))
       .containsExactly(
-        "com.other.Foo4.Inner4.NestedAgain",
-        "Foo4.Inner4.NestedAgain",
-        "Inner4.NestedAgain"
+        "dagger.Component.Builder",
+        "Component.Builder",
+        "Builder",
+        "Comp.Builder",
       )
+
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.COMPONENT_FACTORY))
+      .containsExactly(
+        "dagger.Component.Factory",
+        "Component.Factory",
+        "Comp.Factory",
+      )
+  }
+
+  @Test
+  fun kotlin_getPossibleAnnotationText_parentPackageImport() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+        package com.example
+        import javax.*
+        """
+          .trimIndent()
+      ) as KtFile
+
+    val importHelper = KotlinImportHelper(psiFile)
+
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.INJECT))
+      .containsExactly("javax.inject.Inject")
   }
 
   @Test
@@ -265,17 +265,17 @@ class ImportHelperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-        package com.example;
+        package dagger;
         """
           .trimIndent()
       ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.INJECT))
       .containsExactly("javax.inject.Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
-      .containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.MODULE))
+      .containsExactly("dagger.Module", "Module")
   }
 
   @Test
@@ -285,7 +285,7 @@ class ImportHelperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-        package com.example;
+        package dagger;
         import javax.inject.*;
         """
           .trimIndent()
@@ -293,10 +293,10 @@ class ImportHelperTest {
 
     val importHelper = JavaImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.INJECT))
       .containsExactly("javax.inject.Inject", "Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
-      .containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.MODULE))
+      .containsExactly("dagger.Module", "Module")
   }
 
   @Test
@@ -306,7 +306,7 @@ class ImportHelperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-        package com.example;
+        package dagger;
         import javax.inject.Inject;
         """
           .trimIndent()
@@ -314,10 +314,10 @@ class ImportHelperTest {
 
     val importHelper = JavaImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.INJECT))
       .containsExactly("javax.inject.Inject", "Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
-      .containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.MODULE))
+      .containsExactly("dagger.Module", "Module")
   }
 
   @Test
@@ -327,7 +327,7 @@ class ImportHelperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-        package com.example;
+        package dagger;
         import javax.inject.*;
         import javax.inject.Inject;
         """
@@ -336,10 +336,10 @@ class ImportHelperTest {
 
     val importHelper = JavaImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("javax.inject.Inject"))
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.INJECT))
       .containsExactly("javax.inject.Inject", "Inject")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
-      .containsExactly("com.example.Inject", "Inject")
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.MODULE))
+      .containsExactly("dagger.Module", "Module")
   }
 
   @Test
@@ -350,39 +350,19 @@ class ImportHelperTest {
         // language=java
         """
         package com.example;
-        import com.other.Foo1;
-        import com.other.Foo2.Inner;
 
-        import com.other.Foo3;
-        import com.other.Foo3.Inner3;
+        import dagger.Component;
+        import dagger.Component.Builder;
         """
           .trimIndent()
       ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
 
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Foo0.Inner"))
-      .containsExactly("com.example.Foo0.Inner", "Foo0.Inner")
-    assertThat(importHelper.getPossibleAnnotationText("com.example.Foo0.Inner.NestedAgain"))
-      .containsExactly("com.example.Foo0.Inner.NestedAgain", "Foo0.Inner.NestedAgain")
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.COMPONENT_BUILDER))
+      .containsExactly("dagger.Component.Builder", "Component.Builder", "Builder")
 
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo1.Inner"))
-      .containsExactly("com.other.Foo1.Inner", "Foo1.Inner")
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo1.Inner.NestedAgain"))
-      .containsExactly("com.other.Foo1.Inner.NestedAgain", "Foo1.Inner.NestedAgain")
-
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo2.Inner"))
-      .containsExactly("com.other.Foo2.Inner", "Inner")
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo2.Inner.NestedAgain"))
-      .containsExactly("com.other.Foo2.Inner.NestedAgain", "Inner.NestedAgain")
-
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo3.Inner3"))
-      .containsExactly("com.other.Foo3.Inner3", "Foo3.Inner3", "Inner3")
-    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo3.Inner3.NestedAgain"))
-      .containsExactly(
-        "com.other.Foo3.Inner3.NestedAgain",
-        "Foo3.Inner3.NestedAgain",
-        "Inner3.NestedAgain"
-      )
+    assertThat(importHelper.getPossibleAnnotationText(DaggerAnnotation.COMPONENT_FACTORY))
+      .containsExactly("dagger.Component.Factory", "Component.Factory")
   }
 }

@@ -29,6 +29,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -102,26 +103,17 @@ class ComponentProvisionMethodConceptTest {
       .containsExactly(
         "Foo",
         setOf(
-          ComponentProvisionMethodIndexValue("com.example.MyComponent", "provisionMethodComponent"),
-          ComponentProvisionMethodIndexValue(
-            "com.example.MySubcomponent",
-            "provisionMethodSubcomponent"
-          ),
-          ComponentProvisionPropertyIndexValue(
-            "com.example.MyComponent",
-            "provisionPropertyComponent"
-          ),
-          ComponentProvisionPropertyIndexValue(
-            "com.example.MySubcomponent",
-            "provisionPropertySubcomponent"
-          )
+          ComponentProvisionMethodIndexValue(MY_COMPONENT_ID, "provisionMethodComponent"),
+          ComponentProvisionMethodIndexValue(MY_SUBCOMPONENT_ID, "provisionMethodSubcomponent"),
+          ComponentProvisionPropertyIndexValue(MY_COMPONENT_ID, "provisionPropertyComponent"),
+          ComponentProvisionPropertyIndexValue(MY_SUBCOMPONENT_ID, "provisionPropertySubcomponent")
         )
       )
   }
 
   @Test
   fun componentProvisionMethodIndexValue_serialization() {
-    val indexValue = ComponentProvisionMethodIndexValue("abc", "def")
+    val indexValue = ComponentProvisionMethodIndexValue(MY_COMPONENT_ID, "def")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -193,29 +185,23 @@ class ComponentProvisionMethodConceptTest {
 
     // Expected to resolve
     assertThat(
-        ComponentProvisionMethodIndexValue("com.example.MyComponent", "provisionMethodComponent")
+        ComponentProvisionMethodIndexValue(MY_COMPONENT_ID, "provisionMethodComponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(provisionMethodComponentDaggerElement)
     assertThat(
-        ComponentProvisionPropertyIndexValue("com.example.MyComponent", "fooPropertyComponent")
+        ComponentProvisionPropertyIndexValue(MY_COMPONENT_ID, "fooPropertyComponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(provisionPropertyComponentDaggerElement)
 
     assertThat(
-        ComponentProvisionMethodIndexValue(
-            "com.example.MySubcomponent",
-            "provisionMethodSubcomponent"
-          )
+        ComponentProvisionMethodIndexValue(MY_SUBCOMPONENT_ID, "provisionMethodSubcomponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(provisionMethodSubcomponentDaggerElement)
     assertThat(
-        ComponentProvisionPropertyIndexValue(
-            "com.example.MySubcomponent",
-            "fooPropertySubcomponent"
-          )
+        ComponentProvisionPropertyIndexValue(MY_SUBCOMPONENT_ID, "fooPropertySubcomponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(provisionPropertySubcomponentDaggerElement)
@@ -223,30 +209,30 @@ class ComponentProvisionMethodConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        "com.example.MyComponent" to "nonProvisionMethodComponent",
-        "com.example.MyComponent" to "concreteMethodComponent",
-        "com.example.MyComponent" to "fooPropertyConcreteComponent",
-        "com.example.MySubcomponent" to "nonProvisionMethodSubcomponent",
-        "com.example.MySubcomponent" to "concreteMethodSubcomponent",
-        "com.example.MySubcomponent" to "fooPropertyConcreteSubComponent",
-        "com.example.NotAComponent" to "provisionMethodNotAComponent",
-        "com.example.NotAComponent" to "nonProvisionMethodNotAComponent",
-        "com.example.NotAComponent" to "concreteMethodNotAComponent",
-        "com.example.NotAComponent" to "fooPropertyNotAComponent",
-        "com.example.NotAComponent" to "fooPropertyConcreteNotAComponent",
+        MY_COMPONENT_ID to "nonProvisionMethodComponent",
+        MY_COMPONENT_ID to "concreteMethodComponent",
+        MY_COMPONENT_ID to "fooPropertyConcreteComponent",
+        MY_SUBCOMPONENT_ID to "nonProvisionMethodSubcomponent",
+        MY_SUBCOMPONENT_ID to "concreteMethodSubcomponent",
+        MY_SUBCOMPONENT_ID to "fooPropertyConcreteSubComponent",
+        NOT_A_COMPONENT_ID to "provisionMethodNotAComponent",
+        NOT_A_COMPONENT_ID to "nonProvisionMethodNotAComponent",
+        NOT_A_COMPONENT_ID to "concreteMethodNotAComponent",
+        NOT_A_COMPONENT_ID to "fooPropertyNotAComponent",
+        NOT_A_COMPONENT_ID to "fooPropertyConcreteNotAComponent",
       )
 
-    for ((classFqName, methodName) in nonResolving) {
-      assertWithMessage("Resolution for ($classFqName, $methodName)")
+    for ((classId, methodName) in nonResolving) {
+      assertWithMessage("Resolution for ($classId, $methodName)")
         .that(
-          ComponentProvisionMethodIndexValue(classFqName, methodName)
+          ComponentProvisionMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope()),
         )
         .isEmpty()
 
-      assertWithMessage("Resolution for ($classFqName, $methodName)")
+      assertWithMessage("Resolution for ($classId, $methodName)")
         .that(
-          ComponentProvisionPropertyIndexValue(classFqName, methodName)
+          ComponentProvisionPropertyIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope()),
         )
         .isEmpty()
@@ -303,15 +289,12 @@ class ComponentProvisionMethodConceptTest {
 
     // Expected to resolve
     assertThat(
-        ComponentProvisionMethodIndexValue("com.example.MyComponent", "provisionMethodComponent")
+        ComponentProvisionMethodIndexValue(MY_COMPONENT_ID, "provisionMethodComponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(provisionMethodComponentDaggerElement)
     assertThat(
-        ComponentProvisionMethodIndexValue(
-            "com.example.MySubcomponent",
-            "provisionMethodSubcomponent"
-          )
+        ComponentProvisionMethodIndexValue(MY_SUBCOMPONENT_ID, "provisionMethodSubcomponent")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(provisionMethodSubcomponentDaggerElement)
@@ -319,19 +302,19 @@ class ComponentProvisionMethodConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        "com.example.MyComponent" to "nonProvisionMethodComponent",
-        "com.example.MyComponent" to "concreteMethodComponent",
-        "com.example.MySubcomponent" to "nonProvisionMethodSubcomponent",
-        "com.example.MySubcomponent" to "concreteMethodSubcomponent",
-        "com.example.NotAComponent" to "provisionMethodNotAComponent",
-        "com.example.NotAComponent" to "nonProvisionMethodNotAComponent",
-        "com.example.NotAComponent" to "concreteMethodNotAComponent"
+        MY_COMPONENT_ID to "nonProvisionMethodComponent",
+        MY_COMPONENT_ID to "concreteMethodComponent",
+        MY_SUBCOMPONENT_ID to "nonProvisionMethodSubcomponent",
+        MY_SUBCOMPONENT_ID to "concreteMethodSubcomponent",
+        NOT_A_COMPONENT_ID to "provisionMethodNotAComponent",
+        NOT_A_COMPONENT_ID to "nonProvisionMethodNotAComponent",
+        NOT_A_COMPONENT_ID to "concreteMethodNotAComponent"
       )
 
-    for ((classFqName, methodName) in nonResolving) {
-      assertWithMessage("Resolution for ($classFqName, $methodName)")
+    for ((classId, methodName) in nonResolving) {
+      assertWithMessage("Resolution for ($classId, $methodName)")
         .that(
-          ComponentProvisionMethodIndexValue(classFqName, methodName)
+          ComponentProvisionMethodIndexValue(classId, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope()),
         )
         .isEmpty()
@@ -340,7 +323,13 @@ class ComponentProvisionMethodConceptTest {
 
   @Test
   fun componentProvisionPropertyIndexValue_serialization() {
-    val indexValue = ComponentProvisionPropertyIndexValue("abc", "def")
+    val indexValue = ComponentProvisionPropertyIndexValue(MY_COMPONENT_ID, "def")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
+  }
+
+  companion object {
+    private val MY_COMPONENT_ID = ClassId.fromString("com/example/MyComponent")
+    private val MY_SUBCOMPONENT_ID = ClassId.fromString("com/example/MySubcomponent")
+    private val NOT_A_COMPONENT_ID = ClassId.fromString("com/example/NotAComponent")
   }
 }

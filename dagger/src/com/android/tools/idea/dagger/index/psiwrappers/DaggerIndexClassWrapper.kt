@@ -16,6 +16,8 @@
 package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.intellij.psi.PsiClass
+import org.jetbrains.kotlin.idea.base.psi.classIdIfNonLocal
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
@@ -23,39 +25,37 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 /** A [DaggerIndexPsiWrapper] representing a class. */
 interface DaggerIndexClassWrapper : DaggerIndexAnnotatedWrapper {
   /**
-   * Returns the fully-qualified name of the class. Eg: "com.example.Foo"
-   *
-   * If the class has generic type arguments, they are omitted from the returned name.
+   * Returns the fully-qualified class ID of the class, including package and containing classes.
    */
-  fun getFqName(): String
+  fun getClassId(): ClassId
 
   /**
    * Returns whether the specified annotation is present on:
    * 1. the wrapped class, or
    * 2. the parent of the wrapped object, when the wrapped object is a companion.
    */
-  fun getIsSelfOrCompanionParentAnnotatedWith(fqName: String): Boolean
+  fun getIsSelfOrCompanionParentAnnotatedWith(annotation: DaggerAnnotation): Boolean
 }
 
 internal class KtClassOrObjectWrapper(
   private val ktClassOrObject: KtClassOrObject,
   private val importHelper: KotlinImportHelper
 ) : DaggerIndexAnnotatedKotlinWrapper(ktClassOrObject, importHelper), DaggerIndexClassWrapper {
-  override fun getFqName(): String = ktClassOrObject.fqName!!.asString()
+  override fun getClassId(): ClassId = ktClassOrObject.getClassId()!!
 
-  override fun getIsSelfOrCompanionParentAnnotatedWith(fqName: String): Boolean =
-    getIsAnnotatedWith(fqName) ||
+  override fun getIsSelfOrCompanionParentAnnotatedWith(annotation: DaggerAnnotation): Boolean =
+    getIsAnnotatedWith(annotation) ||
       (ktClassOrObject is KtObjectDeclaration &&
         ktClassOrObject.isCompanion() &&
         ktClassOrObject.containingClassOrObject?.let {
-          KtClassOrObjectWrapper(it, importHelper).getIsAnnotatedWith(fqName)
+          KtClassOrObjectWrapper(it, importHelper).getIsAnnotatedWith(annotation)
         } == true)
 }
 
 internal class PsiClassWrapper(private val psiClass: PsiClass, importHelper: JavaImportHelper) :
   DaggerIndexAnnotatedJavaWrapper(psiClass, importHelper), DaggerIndexClassWrapper {
-  override fun getFqName(): String = psiClass.qualifiedName!!
+  override fun getClassId(): ClassId = psiClass.classIdIfNonLocal!!
 
-  override fun getIsSelfOrCompanionParentAnnotatedWith(fqName: String): Boolean =
-    getIsAnnotatedWith(fqName)
+  override fun getIsSelfOrCompanionParentAnnotatedWith(annotation: DaggerAnnotation): Boolean =
+    getIsAnnotatedWith(annotation)
 }

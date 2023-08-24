@@ -31,6 +31,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -105,14 +106,14 @@ class InjectedConstructorDaggerConceptTest {
 
     assertThat(entries)
       .containsExactly(
-        "com.example.Foo",
-        setOf(InjectedConstructorIndexValue("com.example.Foo")),
+        FOO_ID.asFqNameString(),
+        setOf(InjectedConstructorIndexValue(FOO_ID)),
         "Bar",
-        setOf(InjectedConstructorParameterIndexValue("com.example.Foo", "arg1")),
+        setOf(InjectedConstructorParameterIndexValue(FOO_ID, "arg1")),
         "Baz",
         setOf(
-          InjectedConstructorParameterIndexValue("com.example.Foo", "arg2"),
-          InjectedConstructorParameterIndexValue("com.example.Foo", "arg3")
+          InjectedConstructorParameterIndexValue(FOO_ID, "arg2"),
+          InjectedConstructorParameterIndexValue(FOO_ID, "arg3")
         ),
       )
   }
@@ -187,7 +188,7 @@ class InjectedConstructorDaggerConceptTest {
 
   @Test
   fun injectedConstructorIndexValue_serialization() {
-    val indexValue = InjectedConstructorIndexValue("a")
+    val indexValue = InjectedConstructorIndexValue(FOO_ID)
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -215,8 +216,8 @@ class InjectedConstructorDaggerConceptTest {
     val constructor1Element: KtConstructor<*> =
       myFixture.findParentElement("ClassWithInjectedConstructor @Inject cons|tructor")
 
-    val indexValue1 = InjectedConstructorIndexValue("com.example.ClassWithInjectedConstructor")
-    val indexValue2 = InjectedConstructorIndexValue("com.example.ClassWithoutInjectedConstructor")
+    val indexValue1 = InjectedConstructorIndexValue(CLASS_WITH_INJECTED_CONSTRUCTOR_ID)
+    val indexValue2 = InjectedConstructorIndexValue(CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID)
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(constructor1Element))
@@ -250,8 +251,8 @@ class InjectedConstructorDaggerConceptTest {
 
     val constructor1Element: PsiMethod =
       myFixture.findParentElement("ClassWithInjectedConstru|ctor()")
-    val indexValue1 = InjectedConstructorIndexValue("com.example.ClassWithInjectedConstructor")
-    val indexValue2 = InjectedConstructorIndexValue("com.example.ClassWithoutInjectedConstructor")
+    val indexValue1 = InjectedConstructorIndexValue(CLASS_WITH_INJECTED_CONSTRUCTOR_ID)
+    val indexValue2 = InjectedConstructorIndexValue(CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID)
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(constructor1Element))
@@ -261,7 +262,7 @@ class InjectedConstructorDaggerConceptTest {
 
   @Test
   fun injectedConstructorParameterIndexValue_serialization() {
-    val indexValue = InjectedConstructorParameterIndexValue("a", "b")
+    val indexValue = InjectedConstructorParameterIndexValue(FOO_ID, "b")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -291,9 +292,9 @@ class InjectedConstructorDaggerConceptTest {
     val parameter1Element: KtParameter =
       myFixture.findParentElement("ClassWithInjectedConstructor @Inject constructor(b|ar: Bar)")
     val indexValue1 =
-      InjectedConstructorParameterIndexValue("com.example.ClassWithInjectedConstructor", "bar")
+      InjectedConstructorParameterIndexValue(CLASS_WITH_INJECTED_CONSTRUCTOR_ID, "bar")
     val indexValue2 =
-      InjectedConstructorParameterIndexValue("com.example.ClassWithoutInjectedConstructor", "bar")
+      InjectedConstructorParameterIndexValue(CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID, "bar")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(parameter1Element))
@@ -330,14 +331,22 @@ class InjectedConstructorDaggerConceptTest {
     val parameter1Element: PsiParameter =
       myFixture.findParentElement("ClassWithInjectedConstructor(Bar ba|r)")
     val indexValue1 =
-      InjectedConstructorParameterIndexValue("com.example.ClassWithInjectedConstructor", "bar")
+      InjectedConstructorParameterIndexValue(CLASS_WITH_INJECTED_CONSTRUCTOR_ID, "bar")
 
     val indexValue2 =
-      InjectedConstructorParameterIndexValue("com.example.ClassWithoutInjectedConstructor", "bar")
+      InjectedConstructorParameterIndexValue(CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID, "bar")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(parameter1Element))
 
     assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+  }
+
+  companion object {
+    private val FOO_ID = ClassId.fromString("com/example/Foo")
+    private val CLASS_WITH_INJECTED_CONSTRUCTOR_ID =
+      ClassId.fromString("com/example/ClassWithInjectedConstructor")
+    private val CLASS_WITHOUT_INJECTED_CONSTRUCTOR_ID =
+      ClassId.fromString("com/example/ClassWithoutInjectedConstructor")
   }
 }

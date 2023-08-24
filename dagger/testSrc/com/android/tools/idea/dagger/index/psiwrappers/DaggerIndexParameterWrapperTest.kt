@@ -56,7 +56,7 @@ class DaggerIndexParameterWrapperTest {
       package com.example
 
       class Foo {
-        fun bar(arg: Bat): Baz {} 
+        fun bar(arg: Bat): Baz {}
       }
       """
           .trimIndent()
@@ -77,7 +77,7 @@ class DaggerIndexParameterWrapperTest {
         // language=java
         """
       package com.example;
-      
+
       public class Foo {
         public Baz bar(Bat arg) {}
       }

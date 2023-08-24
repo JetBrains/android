@@ -26,6 +26,7 @@ import com.intellij.psi.PsiParameter
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -75,26 +76,26 @@ class AssistedInjectConstructorDaggerConceptTest {
 
     assertThat(indexResults)
       .containsExactly(
-        "com.example.MyAssistedInjectClass",
-        setOf(AssistedInjectConstructorIndexValue("com.example.MyAssistedInjectClass")),
+        MY_ASSISTED_INJECT_CLASS_ID.asFqNameString(),
+        setOf(AssistedInjectConstructorIndexValue(MY_ASSISTED_INJECT_CLASS_ID)),
         "Dep1",
         setOf(
           AssistedInjectConstructorUnassistedParameterIndexValue(
-            "com.example.MyAssistedInjectClass",
+            MY_ASSISTED_INJECT_CLASS_ID,
             "dep1"
           )
         ),
         "Dep2",
         setOf(
           AssistedInjectConstructorUnassistedParameterIndexValue(
-            "com.example.MyAssistedInjectClass",
+            MY_ASSISTED_INJECT_CLASS_ID,
             "dep2"
           )
         ),
         "Dep3",
         setOf(
           AssistedInjectConstructorUnassistedParameterIndexValue(
-            "com.example.MyAssistedInjectClass",
+            MY_ASSISTED_INJECT_CLASS_ID,
             "dep3"
           )
         ),
@@ -103,7 +104,7 @@ class AssistedInjectConstructorDaggerConceptTest {
 
   @Test
   fun assistedInjectConstructorIndexValue_serialization() {
-    val indexValue = AssistedInjectConstructorIndexValue("abc")
+    val indexValue = AssistedInjectConstructorIndexValue(MY_ASSISTED_INJECT_CLASS_ID)
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -147,13 +148,13 @@ class AssistedInjectConstructorDaggerConceptTest {
       )
 
     assertThat(
-        AssistedInjectConstructorIndexValue("com.example.MyAssistedInjectClass")
+        AssistedInjectConstructorIndexValue(MY_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(assistedInjectConstructorDaggerElement)
 
     assertThat(
-        AssistedInjectConstructorIndexValue("com.example.MyNotAssistedInjectClass")
+        AssistedInjectConstructorIndexValue(MY_NOT_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .isEmpty()
@@ -201,13 +202,13 @@ class AssistedInjectConstructorDaggerConceptTest {
       )
 
     assertThat(
-        AssistedInjectConstructorIndexValue("com.example.MyAssistedInjectClass")
+        AssistedInjectConstructorIndexValue(MY_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(assistedInjectConstructorDaggerElement)
 
     assertThat(
-        AssistedInjectConstructorIndexValue("com.example.MyNotAssistedInjectClass")
+        AssistedInjectConstructorIndexValue(MY_NOT_ASSISTED_INJECT_CLASS_ID)
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .isEmpty()
@@ -215,7 +216,8 @@ class AssistedInjectConstructorDaggerConceptTest {
 
   @Test
   fun assistedInjectConstructorUnassistedParameterIndexValue_serialization() {
-    val indexValue = AssistedInjectConstructorUnassistedParameterIndexValue("abc", "def")
+    val indexValue =
+      AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "def")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -256,10 +258,7 @@ class AssistedInjectConstructorDaggerConceptTest {
 
     // Expected to resolve
     assertThat(
-        AssistedInjectConstructorUnassistedParameterIndexValue(
-            "com.example.MyAssistedInjectClass",
-            "dep3"
-          )
+        AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "dep3")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(parameterDaggerElement)
@@ -267,16 +266,16 @@ class AssistedInjectConstructorDaggerConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        "com.example.MyAssistedInjectClass" to "dep1",
-        "com.example.MyAssistedInjectClass" to "dep2",
-        "com.example.MyNotAssistedInjectClass" to "notDep1",
-        "com.example.MyNotAssistedInjectClass" to "notDep2",
-        "com.example.MyNotAssistedInjectClass" to "notDep3",
+        MY_ASSISTED_INJECT_CLASS_ID to "dep1",
+        MY_ASSISTED_INJECT_CLASS_ID to "dep2",
+        MY_NOT_ASSISTED_INJECT_CLASS_ID to "notDep1",
+        MY_NOT_ASSISTED_INJECT_CLASS_ID to "notDep2",
+        MY_NOT_ASSISTED_INJECT_CLASS_ID to "notDep3",
       )
 
-    for ((classFqName, parameterName) in nonResolving) {
+    for ((classId, parameterName) in nonResolving) {
       assertThat(
-          AssistedInjectConstructorUnassistedParameterIndexValue(classFqName, parameterName)
+          AssistedInjectConstructorUnassistedParameterIndexValue(classId, parameterName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
@@ -324,10 +323,7 @@ class AssistedInjectConstructorDaggerConceptTest {
 
     // Expected to resolve
     assertThat(
-        AssistedInjectConstructorUnassistedParameterIndexValue(
-            "com.example.MyAssistedInjectClass",
-            "dep3"
-          )
+        AssistedInjectConstructorUnassistedParameterIndexValue(MY_ASSISTED_INJECT_CLASS_ID, "dep3")
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(parameterDaggerElement)
@@ -335,16 +331,16 @@ class AssistedInjectConstructorDaggerConceptTest {
     // Expected to not resolve
     val nonResolving =
       listOf(
-        "com.example.MyAssistedInjectClass" to "dep1",
-        "com.example.MyAssistedInjectClass" to "dep2",
-        "com.example.MyNotAssistedInjectClass" to "notDep1",
-        "com.example.MyNotAssistedInjectClass" to "notDep2",
-        "com.example.MyNotAssistedInjectClass" to "notDep3",
+        MY_ASSISTED_INJECT_CLASS_ID to "dep1",
+        MY_ASSISTED_INJECT_CLASS_ID to "dep2",
+        MY_NOT_ASSISTED_INJECT_CLASS_ID to "notDep1",
+        MY_NOT_ASSISTED_INJECT_CLASS_ID to "notDep2",
+        MY_NOT_ASSISTED_INJECT_CLASS_ID to "notDep3",
       )
 
-    for ((classFqName, parameterName) in nonResolving) {
+    for ((classId, parameterName) in nonResolving) {
       assertThat(
-          AssistedInjectConstructorUnassistedParameterIndexValue(classFqName, parameterName)
+          AssistedInjectConstructorUnassistedParameterIndexValue(classId, parameterName)
             .resolveToDaggerElements(myProject, myProject.projectScope())
         )
         .isEmpty()
@@ -397,5 +393,12 @@ class AssistedInjectConstructorDaggerConceptTest {
           "create"
         )
       )
+  }
+
+  companion object {
+    private val MY_ASSISTED_INJECT_CLASS_ID =
+      ClassId.fromString("com/example/MyAssistedInjectClass")
+    private val MY_NOT_ASSISTED_INJECT_CLASS_ID =
+      ClassId.fromString("com/example/MyNotAssistedInjectClass")
   }
 }

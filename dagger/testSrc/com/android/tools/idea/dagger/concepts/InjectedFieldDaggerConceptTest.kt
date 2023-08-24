@@ -30,6 +30,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
@@ -81,10 +82,7 @@ class InjectedFieldDaggerConceptTest {
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries)
-      .containsExactly(
-        "Heater",
-        setOf(InjectedFieldIndexValue("com.example.CoffeeMaker", "heater"))
-      )
+      .containsExactly("Heater", setOf(InjectedFieldIndexValue(COFFEE_MAKER_ID, "heater")))
   }
 
   @Test
@@ -135,7 +133,7 @@ class InjectedFieldDaggerConceptTest {
 
   @Test
   fun injectedFieldIndexValue_serialization() {
-    val indexValue = InjectedFieldIndexValue("a", "b")
+    val indexValue = InjectedFieldIndexValue(COFFEE_MAKER_ID, "b")
     assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 
@@ -161,8 +159,8 @@ class InjectedFieldDaggerConceptTest {
         .trimIndent()
     )
 
-    val indexValue1 = InjectedFieldIndexValue("com.example.CoffeeMaker", "heater")
-    val indexValue2 = InjectedFieldIndexValue("com.example.CoffeeMaker", "notInjectedHeater")
+    val indexValue1 = InjectedFieldIndexValue(COFFEE_MAKER_ID, "heater")
+    val indexValue2 = InjectedFieldIndexValue(COFFEE_MAKER_ID, "notInjectedHeater")
 
     val heaterField: KtProperty = myFixture.findParentElement("var hea|ter")
 
@@ -196,8 +194,8 @@ class InjectedFieldDaggerConceptTest {
         .trimIndent()
     )
 
-    val indexValue1 = InjectedFieldIndexValue("com.example.CoffeeMaker", "heater")
-    val indexValue2 = InjectedFieldIndexValue("com.example.CoffeeMaker", "notInjectedHeater")
+    val indexValue1 = InjectedFieldIndexValue(COFFEE_MAKER_ID, "heater")
+    val indexValue2 = InjectedFieldIndexValue(COFFEE_MAKER_ID, "notInjectedHeater")
 
     val heaterField: PsiField = myFixture.findParentElement("Heater hea|ter")
 
@@ -205,5 +203,9 @@ class InjectedFieldDaggerConceptTest {
       .isEqualTo(ConsumerDaggerElement(heaterField))
 
     assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+  }
+
+  companion object {
+    private val COFFEE_MAKER_ID = ClassId.fromString("com/example/CoffeeMaker")
   }
 }
