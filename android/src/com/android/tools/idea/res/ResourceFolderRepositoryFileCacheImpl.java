@@ -17,6 +17,8 @@ package com.android.tools.idea.res;
 
 import static com.android.tools.res.AndroidPluginVersion.getAndroidPluginVersion;
 
+import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.intellij.facet.ProjectFacetManager;
@@ -402,6 +404,11 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
 
+      if (!IdeInfo.getInstance().isAndroidStudio()
+          && AndroidSdks.getInstance().getAllAndroidSdks().isEmpty()) {
+        return; // do not activate in IDEA without Android SDKs
+      }
+
       // Prune directories within the current project.
       PruneTask pruneTask = new PruneTask(project);
       pruneTask.queue(project);
@@ -416,6 +423,11 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
     @Override
     public void runActivity(@NotNull Project project) {
       if (ApplicationManager.getApplication().isUnitTestMode()) return;
+
+      if (!IdeInfo.getInstance().isAndroidStudio()
+          && AndroidSdks.getInstance().getAllAndroidSdks().isEmpty()) {
+        return; // do not activate in IDEA without Android SDKs
+      }
 
       // Pre-populate the in-memory resource folder registry for the project.
       ResourceFolderRegistry.PopulateCachesTask task = new ResourceFolderRegistry.PopulateCachesTask(project);
