@@ -63,8 +63,8 @@ class DeployTaskTest {
     application.registerService(IdeUICustomization::class.java)
     MockitoAnnotations.initMocks(this)
     application.registerService(NotificationGroupManager::class.java, notificationGroupManager)
-    whenever(deployer.install(any(), any(), any(), any())).thenReturn(
-      Deployer.Result(false, false, false, App("id", emptyList(), logger))
+    whenever(deployer.install(any(), any(), any())).thenReturn(
+      Deployer.Result(false, false, false, App.fromApks("id", emptyList(), logger))
     )
     whenever(canceller.cancelled()).thenReturn(false)
   }
@@ -88,7 +88,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), null, true, false)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller )
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -99,7 +99,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), "-v", true, false)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -110,7 +110,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), null, true, false)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -121,7 +121,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), "-v", true, false)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -132,7 +132,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), null, true, false)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -144,7 +144,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), "-v", true, false)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -155,7 +155,7 @@ class DeployTaskTest {
 
     val deployTask = DeployTask(project, listOf(), null, false, false)
     deployTask.perform(device, deployer, mock(ApkInfo::class.java), canceller)
-    verify(deployer, atLeast(1)).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer, atLeast(1)).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -190,7 +190,7 @@ class DeployTaskTest {
 
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.R)
 
-    verify(deployer).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -204,7 +204,7 @@ class DeployTaskTest {
 
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.Q)
 
-    verify(deployer).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer).install(any(), eq(expectedOptions), any())
   }
 
   @Test
@@ -215,7 +215,7 @@ class DeployTaskTest {
 
     deployApkWithRequiredInstallOptions(AndroidVersion.VersionCodes.LOLLIPOP_MR1)
 
-    verify(deployer).install(any(), any(), eq(expectedOptions), any())
+    verify(deployer).install(any(), eq(expectedOptions), any())
   }
 
   private fun deployApkWithRequiredInstallOptions(deviceApiLevel: Int) {

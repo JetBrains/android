@@ -86,7 +86,7 @@ public class ApplyCodeChangesTask extends AbstractDeployTask {
     // TODO: support fallback on R- devices
     ImmutableMap<Integer, ClassRedefiner> debuggerRedefiners = makeDebuggerRedefiners(
       getProject(), device, getFastRerunOnSwapFailure() && deployer.supportsNewPipeline());
-    return deployer.codeSwap(getPathsToInstall(apkInfo), debuggerRedefiners, canceller);
+    return deployer.codeSwap(getAppToInstall(apkInfo), debuggerRedefiners, canceller);
   }
 
   @NotNull

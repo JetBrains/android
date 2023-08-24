@@ -30,6 +30,7 @@ import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.DeployerOption;
 import com.android.tools.deployer.Installer;
 import com.android.tools.deployer.MetricsRecorder;
+import com.android.tools.deployer.model.App;
 import com.android.tools.deployer.tasks.Canceller;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.OptimisticInstallSupportLevel;
@@ -232,8 +233,9 @@ public abstract class AbstractDeployTask {
     return myPackages;
   }
 
-  protected static List<String> getPathsToInstall(@NotNull ApkInfo apkInfo) {
-    return apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).map(Path::toString).collect(Collectors.toList());
+  public static App getAppToInstall(@NotNull ApkInfo apkInfo) {
+    List<Path> paths = apkInfo.getFiles().stream().map(ApkFileUnit::getApkPath).collect(Collectors.toList());
+    return App.fromPaths(apkInfo.getApplicationId(),paths, new LogWrapper(LOG));
   }
 
   private static AndroidStudioEvent.Builder toStudioEvent(Deploy.AgentExceptionLog log) {
