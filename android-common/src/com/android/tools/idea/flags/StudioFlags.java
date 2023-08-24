@@ -1433,6 +1433,14 @@ public final class StudioFlags {
       "Enable FTL DirectAccess",
       false);
 
+  public static final Flag<Boolean> DIRECT_ACCESS_ADD_DEVICE =
+    Flag.create(
+      FIREBASE_TEST_LAB,
+      "direct.access.add.device",
+      "Direct Access Add Device",
+      "Enable the new FTL DirectAccess Add Device workflow.",
+      false);
+
   public static final Flag<String> DIRECT_ACCESS_ENDPOINT =
     Flag.create(
       FIREBASE_TEST_LAB,
