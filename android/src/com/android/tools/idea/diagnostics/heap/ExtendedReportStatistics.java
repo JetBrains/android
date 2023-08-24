@@ -218,6 +218,7 @@ public class ExtendedReportStatistics {
       totalDisposedButReferencedObjectsStatistics.addStats(value);
     }
     rootPathTree.printPathTreeForComponentDisposedReferencedObjects(writer, statistics, totalDisposedButReferencedObjectsStatistics);
+    rootPathTree.printPathTreeForComponentObjectsReferringNominatedLoaders(writer, statistics, component);
   }
 
   static class CategoryHistogram extends ClusterHistogram {

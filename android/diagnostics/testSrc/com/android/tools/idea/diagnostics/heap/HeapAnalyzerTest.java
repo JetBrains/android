@@ -21,6 +21,7 @@ import static com.google.wireless.android.sdk.stats.MemoryUsageReportEvent.Memor
 import static org.junit.Assert.assertThat;
 
 import com.android.annotations.NonNull;
+import com.android.testutils.classloader.SingleClassLoader;
 import com.android.tools.adtui.workbench.PropertiesComponentMock;
 import com.android.tools.analytics.crash.CrashReport;
 import com.android.tools.idea.diagnostics.TruncatingStringBuilder;
@@ -39,6 +40,8 @@ import com.intellij.util.TriConsumer;
 import com.intellij.util.containers.WeakList;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
@@ -524,7 +527,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                           "com.android.tools.idea.diagnostics"),
                                                         Collections.emptyList(),
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B",
-                                                                "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+                                                                "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        Collections.emptyList());
 
     HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
       /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/false));
@@ -555,7 +559,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         defaultCategory,
                                                         Collections.emptyList(),
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
-                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"),
+                                                        Collections.emptyList());
     FakeCrushReporter crushReporter = new FakeCrushReporter();
     getApplication().registerService(StudioCrashReporter.class, crushReporter);
 
@@ -649,13 +654,15 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
                                                         defaultCategory,
                                                         Collections.emptyList(),
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"),
-                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"),
+                                                        Collections.emptyList());
     componentsSet.addComponentWithPackagesAndClassNames("B",
                                                         2,
                                                         defaultCategory,
                                                         Collections.emptyList(),
                                                         List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"),
-                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"),
+                                                        Collections.emptyList());
     HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
       /*collectHistograms=*/false, /*collectDisposerTreeInfo=*/false));
     FakeCrushReporter crushReporter = new FakeCrushReporter();
@@ -709,7 +716,19 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
               24B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
       Number of instances of tracked classes:
             com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A:1
-      Platform object: 0B/0 objects[0B/0 objects]""");
+      Platform object: 0B/0 objects[0B/0 objects]
+      ======== INSTANCES OF EACH NOMINATED CLASS ========
+      Nominated classes:
+       --> [24B/1 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+       --> [16B/1 objects] java.lang.Integer
+
+      CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A (1 objects)
+      Root 1:
+      [    1/100%/   24B]       24B/1 objects *        (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+      CLASS: java.lang.Integer (1 objects)
+      Root 1:
+      [    1/100%/   16B]       24B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+      [    1/100%/   16B]       16B/1 objects *        myInt: java.lang.Integer""");
     assertRequestContainsField(serializedExtendedReport, "Component B", """
       Owned: 16B/1 objects
             Histogram:
@@ -720,7 +739,113 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
               16B/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
       Number of instances of tracked classes:
             com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B:1
+      Platform object: 0B/0 objects[0B/0 objects]
+      ======== INSTANCES OF EACH NOMINATED CLASS ========
+      Nominated classes:
+       --> [16B/1 objects] com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+
+      CLASS: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B (1 objects)
+      Root 1:
+      [    1/100%/   16B]       24B/1 objects          (root): com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+      [    1/100%/   16B]       16B/1 objects *        myB: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B""");
+    assertRequestContainsFieldWithPattern(serializedExtendedReport, "Disposer tree information", "Disposer tree size: \\d+\n" +
+                                                                                                 "Total number of disposed but strong referenced objects: 0");
+  }
+
+  @Test
+  public void testExtendedReportCustomClassLoaders() throws
+                                                     IOException,
+                                                     ClassNotFoundException,
+                                                     NoSuchMethodException,
+                                                     InvocationTargetException,
+                                                     InstantiationException,
+                                                     IllegalAccessException {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory defaultCategory = componentsSet.registerCategory("diagnostics");
+    componentsSet.addComponentWithPackagesAndClassNames("B",
+                                                        2,
+                                                        defaultCategory,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.SampleClass"),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.SampleClass"),
+                                                        List.of("com.android.testutils.classloader.MultiClassLoader"));
+    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
+      /*collectHistograms=*/false, /*collectDisposerTreeInfo=*/false));
+    FakeCrushReporter crushReporter = new FakeCrushReporter();
+    getApplication().registerService(StudioCrashReporter.class, crushReporter);
+
+    WeakList<Object> roots = new WeakList<>();
+    SingleClassLoader sampleClassLoader = new SingleClassLoader(SampleClass.class.getName());
+    Class<?> sampleClass = sampleClassLoader.load();
+
+    Constructor<?> sampleClassConstructor = sampleClass.getDeclaredConstructor();
+    sampleClassConstructor.setAccessible(true);
+    Object sampleClassObject = sampleClassConstructor.newInstance();
+    Object[] objects = new Object[]{sampleClassObject, "test"};
+    roots.add(objects);
+
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        MemoryReportCollector.collectMemoryReport(statistics, () -> roots));
+    assertSize(1, crushReporter.crashReports);
+    CrashReport report = crushReporter.crashReports.get(0);
+    MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    report.serialize(builder);
+    String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
+    assertRequestContainsField(serializedExtendedReport, "Clusters that exceeded the memory usage threshold", "B");
+    assertRequestContainsField(serializedExtendedReport, "Total used memory", "88B/4 objects");
+    assertRequestContainsField(serializedExtendedReport, "Category android:uncategorized", """
+      Owned: 72B/3 objects
+            Histogram:
+              24B/1 objects: [Ljava.lang.Object;
+              24B/1 objects: [B
+              24B/1 objects: java.lang.String
+            Studio objects histogram:
+            Category roots histogram:
       Platform object: 0B/0 objects[0B/0 objects]""");
+    assertRequestContainsField(serializedExtendedReport, "Category diagnostics", """
+      Owned: 16B/1 objects
+            Histogram:
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+            Studio objects histogram:
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+            Category roots histogram:
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+      Platform object: 0B/0 objects[0B/0 objects]""");
+    assertRequestContainsField(serializedExtendedReport, "Component uncategorized_main", """
+      Owned: 72B/3 objects
+            Histogram:
+              24B/1 objects: [Ljava.lang.Object;
+              24B/1 objects: [B
+              24B/1 objects: java.lang.String
+            Studio objects histogram:
+            Component roots histogram:
+      Platform object: 0B/0 objects[0B/0 objects]""");
+    assertRequestContainsField(serializedExtendedReport, "Component B", """
+      Owned: 16B/1 objects
+            Histogram:
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+            Studio objects histogram:
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+            Component roots histogram:
+              16B/1 objects: com.android.tools.idea.diagnostics.heap.SampleClass
+      Number of instances of tracked classes:
+            com.android.tools.idea.diagnostics.heap.SampleClass:1
+      Platform object: 0B/0 objects[0B/0 objects]
+      ======== INSTANCES OF EACH NOMINATED CLASS ========
+      Nominated classes:
+       --> [16B/1 objects] com.android.tools.idea.diagnostics.heap.SampleClass
+            
+      CLASS: com.android.tools.idea.diagnostics.heap.SampleClass (1 objects)
+      Root 1:
+      [    1/100%/   16B]       24B/1 objects          (root): [Ljava.lang.Object;
+      [    1/100%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.SampleClass
+      ================= OBJECTS RETAINING NOMINATED LOADERS ================
+      Nominated ClassLoaders:
+       --> com.android.testutils.classloader.MultiClassLoader
+      Root 1:
+      [    1/100%/   16B]       24B/1 objects          (root): [Ljava.lang.Object;
+      [    1/100%/   16B]       16B/1 objects *        []: com.android.tools.idea.diagnostics.heap.SampleClass""");
     assertRequestContainsFieldWithPattern(serializedExtendedReport, "Disposer tree information", "Disposer tree size: \\d+\n" +
                                                                                                  "Total number of disposed but strong referenced objects: 0");
   }

@@ -119,7 +119,7 @@ public final class HeapSnapshotStatistics {
     ComponentClusterObjectsStatistics stats = componentStats.get(componentId);
     stats.addOwnedObject(size, isPlatformObject, isRetainedByPlatform);
     
-    if (stats.getComponent().getTrackedFQNs() != null && stats.getComponent().getTrackedFQNs().contains(objectClassName)) {
+    if (stats.getComponent().isClassNameTracked(objectClassName)) {
       stats.addTrackedFQNInstance(objectClassName);
     }
 

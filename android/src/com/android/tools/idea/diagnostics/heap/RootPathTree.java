@@ -41,9 +41,13 @@ public class RootPathTree {
   // 3) Objects that were loaded with a regular ClassLoader but refer to objects loaded with `StudioModuleClassLoader`
   private static final int MAX_NUMBER_OF_NOMINATED_NODE_TYPES = NOMINATED_CLASSES_NUMBER_IN_SECTION * 3 + 2;
   private static final int DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE = 9;
-  private static final IntSet NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION = IntSet.of(9);
+  private static final int OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE = 10;
+  private static final IntSet NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION =
+    IntSet.of(DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE, OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE);
   @NotNull
   private final List<RootPathTreeNode> roots = Lists.newArrayList();
+  @NotNull
+  private final ObjectsStatistics totalNominatedLoadersReferringObjectsStatistics = new ObjectsStatistics();
   private int numberOfRootPathTreeNodes = 0;
 
   private final ExtendedReportStatistics extendedReportStatistics;
@@ -56,13 +60,17 @@ public class RootPathTree {
   }
 
   public void addDisposedReferencedObjectWithPathToRoot(@NotNull final Stack<RootPathElement> rootPath,
-                                                        @NotNull final Object rootObject,
                                                         @NotNull final ExceededClusterStatistics exceededClusterStatistics) {
-    addObjectWithPathToRoot(rootPath, rootObject, exceededClusterStatistics, DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE);
+    addObjectWithPathToRoot(rootPath, exceededClusterStatistics, DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE);
+  }
+
+  public void addClassLoaderPath(@NotNull final Stack<RootPathElement> rootPath,
+                                 @NotNull final ExceededClusterStatistics exceededClusterStatistics) {
+    addObjectWithPathToRoot(rootPath, exceededClusterStatistics, OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE);
+    totalNominatedLoadersReferringObjectsStatistics.addObject(rootPath.lastElement().size);
   }
 
   public void addObjectWithPathToRoot(@NotNull final Stack<RootPathElement> rootPath,
-                                      @NotNull final Object rootObject,
                                       @NotNull final ExceededClusterStatistics exceededClusterStatistics,
                                       int nominatedNodeTypeId) {
     if (rootPath.size() > ROOT_PATH_TREE_MAX_OBJECT_DEPTH && !NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION.contains(nominatedNodeTypeId)) {
@@ -85,11 +93,7 @@ public class RootPathTree {
 
     if (rootPathTreeNode == null) {
       RootPathElement pathElement = rootPathIterator.next();
-      String rootNodeClassName = pathElement.getClassName();
-      if (rootObject instanceof Class<?>) {
-        rootNodeClassName += String.format("(%s)", ((Class<?>)rootObject).getName());
-      }
-      rootPathTreeNode = createRootPathTreeNode(pathElement.getLabel(), rootNodeClassName, extendedReportStatistics);
+      rootPathTreeNode = createRootPathTreeNode(pathElement.getLabel(), pathElement.getClassName(), extendedReportStatistics);
       rootPathTreeNode.incrementNumberOfInstances(exceededClusterId, nominatedNodeTypeId, pathElement.size);
 
       roots.add(rootPathTreeNode);
@@ -138,9 +142,27 @@ public class RootPathTree {
   public void printPathTreeForComponentDisposedReferencedObjects(@NotNull final Consumer<String> writer,
                                                                  @NotNull final ExceededClusterStatistics exceededClusterStatistics,
                                                                  @NotNull final ObjectsStatistics totalNominatedTypeStatistics) {
+    if (totalNominatedTypeStatistics.getObjectsCount() == 0) {
+      return;
+    }
     writer.accept("================= DISPOSED OBJECTS ================");
     printPathTreeForComponentAndNominatedType(writer, exceededClusterStatistics, DISPOSED_BUT_REFERENCED_NOMINATED_NODE_TYPE,
                                               totalNominatedTypeStatistics);
+  }
+
+  public void printPathTreeForComponentObjectsReferringNominatedLoaders(@NotNull final Consumer<String> writer,
+                                                                        @NotNull final ExceededClusterStatistics exceededClusterStatistics,
+                                                                        @NotNull final ComponentsSet.Component component) {
+    if (component.customClassLoaders == null || totalNominatedLoadersReferringObjectsStatistics.getObjectsCount() == 0) {
+      return;
+    }
+    writer.accept("================= OBJECTS RETAINING NOMINATED LOADERS ================");
+    writer.accept("Nominated ClassLoaders:");
+    for (String loader : component.customClassLoaders) {
+      writer.accept(String.format(Locale.US, " --> %s", loader));
+    }
+    printPathTreeForComponentAndNominatedType(writer, exceededClusterStatistics, OBJECT_REFERRING_LOADER_NOMINATED_NODE_TYPE,
+                                              totalNominatedLoadersReferringObjectsStatistics);
   }
 
   public void printPathTreeForComponentAndNominatedType(@NotNull final Consumer<String> writer,
@@ -156,14 +178,21 @@ public class RootPathTree {
     roots.stream().filter(r -> {
       ObjectsStatistics rootSubtreeStatistics = nominatedObjectsStatsInTheNodeSubtree.get(r);
       return (rootSubtreeStatistics != null) &&
-             ((100 * rootSubtreeStatistics.getObjectsCount() >=
-               totalNominatedTypeStatistics.getObjectsCount() * NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT) || (
-                rootSubtreeStatistics.getTotalSizeInBytes() >= NODE_SUBTREE_OBJECTS_SIZE_REQUIREMENT_BYTES));
+             !shouldSkipPrintingNodeSubtree(totalNominatedTypeStatistics, rootSubtreeStatistics, nominatedNodeTypeId);
     }).sorted(Comparator.comparingInt(r -> nominatedObjectsStatsInTheNodeSubtree.get(r).getObjectsCount()).reversed()).forEach(r -> {
       writer.accept(String.format(Locale.US, "Root %d:", rootIndex.getAndIncrement()));
       printRootPathIteration(writer, r, " ", true, false, totalNominatedTypeStatistics, exceededClusterStatistics.exceededClusterIndex,
                              nominatedNodeTypeId, nominatedObjectsStatsInTheNodeSubtree);
     });
+  }
+
+  private static boolean shouldSkipPrintingNodeSubtree(@NotNull ObjectsStatistics totalNominatedTypeStatistics,
+                                                       ObjectsStatistics rootSubtreeStatistics,
+                                                       int nominatedNodeTypeId) {
+    return (100 * rootSubtreeStatistics.getObjectsCount() <
+            totalNominatedTypeStatistics.getObjectsCount() * NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT) &&
+           (rootSubtreeStatistics.getTotalSizeInBytes() < NODE_SUBTREE_OBJECTS_SIZE_REQUIREMENT_BYTES) &&
+           !NOMINATED_NODE_TYPES_NO_PRINTING_OPTIMIZATION.contains(nominatedNodeTypeId);
   }
 
   private ObjectsStatistics calculateNominatedObjectsStatisticsInTheSubtree(@NotNull final RootPathTreeNode node,
@@ -216,9 +245,7 @@ public class RootPathTree {
                                       @NotNull final Map<RootPathTreeNode, ObjectsStatistics> nominatedObjectsStatsInTheNodeSubtree) {
     ObjectsStatistics nominatedObjectsInTheSubtree = nominatedObjectsStatsInTheNodeSubtree.get(node);
 
-    if (nominatedObjectsInTheSubtree.getTotalSizeInBytes() < NODE_SUBTREE_OBJECTS_SIZE_REQUIREMENT_BYTES &&
-        100 * nominatedObjectsInTheSubtree.getObjectsCount() <
-        totalNominatedTypeStatistics.getObjectsCount() * NODE_SUBTREE_SIZE_PERCENTAGE_REQUIREMENT) {
+    if (shouldSkipPrintingNodeSubtree(totalNominatedTypeStatistics, nominatedObjectsInTheSubtree, nominatedNodeTypeId)) {
       return;
     }
 

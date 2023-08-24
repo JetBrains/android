@@ -77,7 +77,7 @@ public final class ComponentsSet {
       registerComponent(UNCATEGORIZED_COMPONENT_LABEL,
                         uncategorizedComponentThreshold,
                         registerCategory(UNCATEGORIZED_CATEGORY_LABEL, uncategorizedComponentThreshold, Collections.emptyList()),
-                        Collections.emptyList());
+                        Collections.emptyList(), Collections.emptyList());
   }
 
   public long getSharedClusterExtendedReportThreshold() {
@@ -126,8 +126,10 @@ public final class ComponentsSet {
   Component registerComponent(@NotNull final String componentLabel,
                               long extendedReportCollectionThresholdBytes,
                               @NotNull final ComponentCategory category,
-                              @NotNull final List<String> trackedFQNs) {
-    Component component = new Component(componentLabel, extendedReportCollectionThresholdBytes, trackedFQNs, components.size(), category);
+                              @NotNull final List<String> trackedFQNs,
+                              @NotNull final List<String> customClassLoaders) {
+    Component component =
+      new Component(componentLabel, extendedReportCollectionThresholdBytes, trackedFQNs, customClassLoaders, components.size(), category);
     components.add(component);
     return component;
   }
@@ -143,7 +145,7 @@ public final class ComponentsSet {
                                              @NotNull final List<String> packageNames,
                                              @NotNull final List<String> classNames) {
     addComponentWithPackagesAndClassNames(componentLabel, TEST_COMPONENTS_EXTENDED_REPORT_THRESHOLD, componentCategory, packageNames,
-                                          classNames, Collections.emptyList());
+                                          classNames, Collections.emptyList(), Collections.emptyList());
   }
 
   ComponentCategory registerCategory(@NotNull final String componentCategoryLabel,
@@ -167,7 +169,7 @@ public final class ComponentsSet {
                                                                 ? component.getExtendedReportThresholdBytes()
                                                                 : Long.MAX_VALUE,
                                           componentCategory, component.getPackageNamesList(), component.getClassNamesList(),
-                                          component.getTrackedFqnsList());
+                                          component.getTrackedFqnsList(), component.getCustomClassLoadersList());
   }
 
   void addComponentWithPackagesAndClassNames(@NotNull final String componentLabel,
@@ -175,8 +177,10 @@ public final class ComponentsSet {
                                              @NotNull final ComponentCategory componentCategory,
                                              @NotNull final List<String> packageNames,
                                              @NotNull final List<String> classNames,
-                                             @NotNull final List<String> trackedFQNs) {
-    Component newComponent = registerComponent(componentLabel, extendedReportCollectionThresholdBytes, componentCategory, trackedFQNs);
+                                             @NotNull final List<String> trackedFQNs,
+                                             @NotNull final List<String> customClassLoaders) {
+    Component newComponent =
+      registerComponent(componentLabel, extendedReportCollectionThresholdBytes, componentCategory, trackedFQNs, customClassLoaders);
 
     for (String name : classNames) {
       classNameToComponent.put(name, newComponent);
@@ -274,16 +278,19 @@ public final class ComponentsSet {
 
     @Nullable
     private final Set<String> trackedFQNs;
+    final Set<String> customClassLoaders;
 
     private Component(@NotNull final String componentLabel,
                       long extendedReportCollectionThresholdBytes,
                       @NotNull final List<String> trackedFQNs,
+                      @NotNull final List<String> customClassLoaders,
                       int id,
                       @NotNull final ComponentCategory category) {
       this.componentLabel = componentLabel;
       this.extendedReportCollectionThresholdBytes = extendedReportCollectionThresholdBytes;
       this.id = id;
       this.trackedFQNs = trackedFQNs.isEmpty() ? null : Sets.newHashSet(trackedFQNs);
+      this.customClassLoaders = customClassLoaders.isEmpty() ? null : Sets.newHashSet(customClassLoaders);
       componentCategory = category;
     }
 
@@ -305,9 +312,12 @@ public final class ComponentsSet {
       return extendedReportCollectionThresholdBytes;
     }
 
-    @Nullable
-    public Set<String> getTrackedFQNs() {
-      return trackedFQNs;
+    public boolean isClassNameTracked(@NotNull final String className) {
+      return trackedFQNs != null && trackedFQNs.contains(className);
+    }
+
+    public boolean isClassLoaderOwned(@NotNull final ClassLoader loader) {
+      return customClassLoaders != null && customClassLoaders.contains(loader.getClass().getName());
     }
   }
 

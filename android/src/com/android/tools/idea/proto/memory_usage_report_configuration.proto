@@ -18,6 +18,10 @@ message MemoryUsageComponent {
   // The names of the classes whose instances will be counted and included in
   // the memory report
   repeated string tracked_fqns = 5;
+  // Names of the ClassLoaders owned by the component. Pathes of the objects
+  // retaining instances of these ClassLoaders will be included in the extended
+  // report
+  repeated string custom_class_loaders = 6;
 }
 
 // Configuration of the category, for which the memory usage report will
