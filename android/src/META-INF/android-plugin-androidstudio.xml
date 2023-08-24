@@ -62,6 +62,8 @@
     <applicationInitializedListener implementation="com.intellij.internal.statistic.updater.StatisticsStateCollectorsScheduler"/>
 
     <projectService serviceImplementation="com.android.tools.idea.stats.ToolWindowTrackerService"/>
+
+    <spellchecker.support language="Groovy" implementationClass="org.jetbrains.android.spellchecker.AndroidGradleSpellcheckingStrategy" order="first"/>
   </extensions>
 
   <!--The following suppression is currently needed because PluginXmlDomInspection says, "Could not determine target platform version." -->
