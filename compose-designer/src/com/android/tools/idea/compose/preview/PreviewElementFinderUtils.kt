@@ -30,35 +30,23 @@ import com.android.tools.idea.preview.findPreviewDefaultValues
 import com.android.tools.idea.preview.qualifiedName
 import com.android.tools.idea.preview.toSmartPsiPointer
 import com.android.tools.preview.ComposePreviewElement
-import com.android.tools.preview.PreviewConfiguration
 import com.android.tools.preview.PreviewDisplaySettings
 import com.android.tools.preview.PreviewNode
 import com.android.tools.preview.PreviewParameter
 import com.android.tools.preview.SingleComposePreviewElementInstance
-import com.android.tools.preview.config.PARAMETER_API_LEVEL
+import com.android.tools.preview.attributesToConfiguration
 import com.android.tools.preview.config.PARAMETER_BACKGROUND_COLOR
-import com.android.tools.preview.config.PARAMETER_DEVICE
-import com.android.tools.preview.config.PARAMETER_FONT_SCALE
 import com.android.tools.preview.config.PARAMETER_GROUP
-import com.android.tools.preview.config.PARAMETER_HEIGHT
-import com.android.tools.preview.config.PARAMETER_HEIGHT_DP
-import com.android.tools.preview.config.PARAMETER_LOCALE
 import com.android.tools.preview.config.PARAMETER_NAME
 import com.android.tools.preview.config.PARAMETER_SHOW_BACKGROUND
 import com.android.tools.preview.config.PARAMETER_SHOW_DECORATION
 import com.android.tools.preview.config.PARAMETER_SHOW_SYSTEM_UI
-import com.android.tools.preview.config.PARAMETER_THEME
-import com.android.tools.preview.config.PARAMETER_UI_MODE
-import com.android.tools.preview.config.PARAMETER_WALLPAPER
-import com.android.tools.preview.config.PARAMETER_WIDTH
-import com.android.tools.preview.config.PARAMETER_WIDTH_DP
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.util.containers.sequenceOfNotNull
-import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UClassLiteralExpression
@@ -328,42 +316,6 @@ private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_ANNOTATION
 private fun UAnnotation.findClassNameValue(name: String) =
   (findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
 
-/**
- * Reads the `@Preview` annotation parameters and returns a [PreviewConfiguration] containing the
- * values.
- */
-private fun attributesToConfiguration(
-  node: UAnnotation,
-  defaultValues: Map<String, String?>
-): PreviewConfiguration {
-  val apiLevel = node.getIntAttribute(PARAMETER_API_LEVEL, defaultValues)
-  val theme = node.getStringAttribute(PARAMETER_THEME, defaultValues)
-  // Both width and height have to support old ("width") and new ("widthDp") conventions
-  val width =
-    node.getIntAttribute(PARAMETER_WIDTH, defaultValues)
-      ?: node.getIntAttribute(PARAMETER_WIDTH_DP, defaultValues)
-  val height =
-    node.getIntAttribute(PARAMETER_HEIGHT, defaultValues)
-      ?: node.getIntAttribute(PARAMETER_HEIGHT_DP, defaultValues)
-  val fontScale = node.getFloatAttribute(PARAMETER_FONT_SCALE, defaultValues)
-  val uiMode = node.getIntAttribute(PARAMETER_UI_MODE, defaultValues)
-  val device = node.getStringAttribute(PARAMETER_DEVICE, defaultValues)
-  val locale = node.getStringAttribute(PARAMETER_LOCALE, defaultValues)
-  val wallpaper = node.getIntAttribute(PARAMETER_WALLPAPER, defaultValues)
-
-  return PreviewConfiguration.cleanAndGet(
-    apiLevel,
-    theme,
-    width,
-    height,
-    locale,
-    fontScale,
-    uiMode,
-    device,
-    wallpaper,
-  )
-}
-
 /** Converts the given [previewAnnotation] to a [ComposePreviewElement]. */
 private fun previewAnnotationToPreviewElement(
   previewAnnotation: UAnnotation,
@@ -384,11 +336,11 @@ private fun previewAnnotationToPreviewElement(
   val defaultValues = previewAnnotation.findPreviewDefaultValues()
 
   val groupName = overrideGroupName ?: previewAnnotation.getDeclaredAttributeValue(PARAMETER_GROUP)
+  val attributesProvider = UastAnnotationAttributesProvider(previewAnnotation, defaultValues)
   val showDecorations =
-    previewAnnotation.getBooleanAttribute(PARAMETER_SHOW_DECORATION, defaultValues)
-      ?: (previewAnnotation.getBooleanAttribute(PARAMETER_SHOW_SYSTEM_UI, defaultValues)) ?: false
-  val showBackground =
-    previewAnnotation.getBooleanAttribute(PARAMETER_SHOW_BACKGROUND, defaultValues) ?: false
+    attributesProvider.getBooleanAttribute(PARAMETER_SHOW_DECORATION)
+      ?: (attributesProvider.getBooleanAttribute(PARAMETER_SHOW_SYSTEM_UI)) ?: false
+  val showBackground = attributesProvider.getBooleanAttribute(PARAMETER_SHOW_BACKGROUND) ?: false
   // We don't use the library's default value for BackgroundColor and instead use a value defined
   // here, see PreviewElement#toPreviewXml.
   val backgroundColor = previewAnnotation.getDeclaredAttributeValue<Any>(PARAMETER_BACKGROUND_COLOR)
@@ -418,7 +370,7 @@ private fun previewAnnotationToPreviewElement(
       displaySettings,
       rootAnnotation.toSmartPsiPointer(),
       annotatedMethod.uastBody.toSmartPsiPointer(),
-      attributesToConfiguration(previewAnnotation, defaultValues)
+      attributesToConfiguration(attributesProvider)
     )
   return if (!parameters.isEmpty()) {
     StudioParametrizedComposePreviewElementTemplate(basePreviewElement, parameters)
@@ -455,27 +407,7 @@ private inline fun <reified T> UAnnotation.getDeclaredAttributeValue(attributeNa
   return expression?.getValueOfType() as T?
 }
 
-private inline fun <reified T> UAnnotation.getAttributeValue(attributeName: String): T? {
+internal inline fun <reified T> UAnnotation.getAttributeValue(attributeName: String): T? {
   val expression = this.findAttributeValue(attributeName)
   return expression?.getValueOfType()
 }
-
-private fun UAnnotation.getBooleanAttribute(
-  attributeName: String,
-  defaultValues: Map<String, String?>
-) = this.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toBoolean()
-
-private fun UAnnotation.getIntAttribute(
-  attributeName: String,
-  defaultValues: Map<String, String?>
-) = this.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toInt()
-
-private fun UAnnotation.getFloatAttribute(
-  attributeName: String,
-  defaultValues: Map<String, String?>
-) = this.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toFloat()
-
-private fun UAnnotation.getStringAttribute(
-  attributeName: String,
-  defaultValues: Map<String, String?>
-) = this.getAttributeValue<String>(attributeName)?.nullize() ?: defaultValues[attributeName]
