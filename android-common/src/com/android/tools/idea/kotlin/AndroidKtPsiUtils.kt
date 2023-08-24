@@ -281,35 +281,11 @@ val KtFunction.psiType get() = LightClassUtil.getLightClassMethod(this)?.returnT
 fun KtClassOrObject.toPsiType() =
   toLightElements().filterIsInstance(PsiClass::class.java).firstOrNull()?.let { AndroidPsiUtils.toPsiType(it) }
 
-@Deprecated(
-  "Prefer finding annotations by ClassId",
-  ReplaceWith(
-    "hasAnnotation(ClassId.topLevel(FqName(fqNameString))",
-    "org.jetbrains.kotlin.name.ClassId",
-    "org.jetbrains.kotlin.name.FqName",
-  )
-)
-fun KtAnnotated.hasAnnotation(fqNameString: String): Boolean = hasAnnotation(ClassId.topLevel(FqName(fqNameString)))
-
 fun KtAnnotated.hasAnnotation(classId: ClassId): Boolean =
   if (isK2Plugin()) {
     mapOnDeclarationSymbol { it.hasAnnotation(classId) } == true
   } else {
     findAnnotationK1(classId.asSingleFqName()) != null
-  }
-
-@Deprecated(
-  "Prefer finding annotations by ClassId",
-  ReplaceWith(
-    "findAnnotation(ClassId.topLevel(fqName))",
-    "org.jetbrains.kotlin.name.ClassId",
-  )
-)
-fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
-  if (isK2Plugin()) {
-    findAnnotationK2(ClassId.topLevel(fqName))
-  } else {
-    findAnnotationK1(fqName)
   }
 
 fun KtAnnotated.findAnnotation(classId: ClassId): KtAnnotationEntry? =
@@ -318,7 +294,6 @@ fun KtAnnotated.findAnnotation(classId: ClassId): KtAnnotationEntry? =
   } else {
     findAnnotationK1(classId.asSingleFqName())
   }
-
 
 private fun KtAnnotated.findAnnotationK2(classId: ClassId): KtAnnotationEntry? =
   mapOnDeclarationSymbol { it.annotationsByClassId(classId).singleOrNull()?.psi as? KtAnnotationEntry }
