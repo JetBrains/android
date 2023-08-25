@@ -162,6 +162,7 @@ class GradleJdkPathEditComboBox(
       AllIcons.General.OpenDiskHover,
       AndroidBundle.message("gradle.settings.jdk.browse.button.tooltip.text")
     ) {
+      jdkComboBox.isPopupVisible = false
       SdkConfigurationUtil.selectSdkHome(JavaSdk.getInstance()) { jdkPath ->
         jdkComboBox.editor.item = jdkPath
       }
