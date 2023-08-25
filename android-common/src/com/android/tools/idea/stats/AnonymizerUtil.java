@@ -20,24 +20,21 @@ import com.android.tools.idea.log.LogWrapper;
 import com.android.utils.ILogger;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-
 public class AnonymizerUtil {
   private static final String ANONYMIZATION_ERROR = "*ANONYMIZATION_ERROR*";
   public static final ILogger LOGGER = new LogWrapper(AnonymizerUtil.class);
 
   /**
-   * Like {@link Anonymizer#anonymizeUtf8(ILogger, String)} but maintains its own IntelliJ logger and upon error
-   * reports to logger and returns ANONYMIZATION_ERROR instead of throwing an exception.
+   * Like {@link Anonymizer#anonymize(String)} but maintains its own IntelliJ logger and upon error
+   * reports to logger and returns ANONYMIZATION_ERROR instead of returning null.
    */
   @NotNull
   public static String anonymizeUtf8(@NotNull String value) {
-    try {
-      return Anonymizer.anonymizeUtf8(LOGGER, value);
-    }
-    catch (IOException e) {
-      LOGGER.warning("Unable to read anonymization settings, not reporting any values: " + e.getMessage());
+    String result = Anonymizer.anonymize(value);
+    if (result == null) {
+      LOGGER.warning("Unable to read anonymization settings, not reporting any values");
       return ANONYMIZATION_ERROR;
     }
+    return result;
   }
 }
