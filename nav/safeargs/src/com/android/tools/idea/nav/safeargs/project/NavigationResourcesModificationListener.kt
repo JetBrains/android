@@ -20,7 +20,6 @@ import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.util.PathString
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.module.ModuleNavigationResourcesModificationTracker
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
@@ -125,8 +124,6 @@ class NavigationResourcesModificationListener(
       val resourceListener = NavigationResourcesModificationListener(project)
       val subscriber = object : LazyFileListenerSubscriber<NavigationResourcesModificationListener>(resourceListener, project) {
         override fun subscribe() {
-          if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return
-
           // To receive all changes happening in the VFS. File modifications may
           // not be picked up immediately if such changes are not saved on the disk yet
           VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)

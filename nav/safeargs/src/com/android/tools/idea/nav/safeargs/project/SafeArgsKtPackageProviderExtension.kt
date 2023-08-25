@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.project
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.module.KtDescriptorCacheModuleService
 import com.android.tools.idea.nav.safeargs.psi.kotlin.toModule
@@ -44,8 +43,6 @@ class SafeArgsKtPackageProviderExtension(val project: Project) : PackageFragment
                                           trace: BindingTrace,
                                           moduleInfo: ModuleInfo?,
                                           lookupTracker: LookupTracker): PackageFragmentProvider? {
-    if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
-
     val facet = moduleInfo?.toModule()?.let { AndroidFacet.getInstance(it) } ?: return null
     if (facet.safeArgsMode != SafeArgsMode.KOTLIN) return null
 

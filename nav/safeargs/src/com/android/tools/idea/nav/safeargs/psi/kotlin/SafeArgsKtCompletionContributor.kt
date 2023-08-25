@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -51,59 +50,57 @@ import org.jetbrains.kotlin.resolve.source.getPsi
  */
 class SafeArgsKtCompletionContributor : CompletionContributor() {
   init {
-    if (StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) {
-      extend(CompletionType.BASIC, PlatformPatterns.psiElement(), object : CompletionProvider<CompletionParameters>() {
-        override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement(), object : CompletionProvider<CompletionParameters>() {
+      override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
 
-          val position = parameters.position
-          val facet = position.androidFacet ?: return
+        val position = parameters.position
+        val facet = position.androidFacet ?: return
 
-          val element = position.parent as? KtSimpleNameExpression ?: return
-          if (element.isImportDirectiveExpression()) return
-          if (element.getReceiverExpression() != null) return
+        val element = position.parent as? KtSimpleNameExpression ?: return
+        if (element.isImportDirectiveExpression()) return
+        if (element.getReceiverExpression() != null) return
 
-          val importedDirectives = getImportedDirectives(element)
+        val importedDirectives = getImportedDirectives(element)
 
-          val lookupElements = facet.module.getDescriptorsByModulesWithDependencies().values.asSequence()
-            .flatten()
-            .map { ProgressManager.checkCanceled(); it }
-            .filter { element.containingKtFile.packageFqName != it.fqName }
-            .mapNotNull { it.getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { true }.firstOrNull() }
-            .filterIsInstance<ClassDescriptor>()
-            .filter { it.importableFqName != null }
-            .filter { descriptor ->
-              // Classes in imported packages are already autocompleted, and we don't want to add duplicate results.
-              importedDirectives.none { importPath -> descriptor.importableFqName!!.isImported(importPath) }
-            }
-            .mapNotNull { createLookUpElement(it) }
-            .toList()
-
-          result.addAllElements(lookupElements)
-        }
-
-        private fun createLookUpElement(classDescriptor: ClassDescriptor): LookupElement? {
-          val lookupObject = object : DeclarationLookupObjectImpl(classDescriptor) {
-            override val psiElement = classDescriptor.source.getPsi()
-            override fun getIcon(flags: Int) = KotlinDescriptorIconProvider.getIcon(classDescriptor, psiElement, flags)
+        val lookupElements = facet.module.getDescriptorsByModulesWithDependencies().values.asSequence()
+          .flatten()
+          .map { ProgressManager.checkCanceled(); it }
+          .filter { element.containingKtFile.packageFqName != it.fqName }
+          .mapNotNull { it.getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) { true }.firstOrNull() }
+          .filterIsInstance<ClassDescriptor>()
+          .filter { it.importableFqName != null }
+          .filter { descriptor ->
+            // Classes in imported packages are already autocompleted, and we don't want to add duplicate results.
+            importedDirectives.none { importPath -> descriptor.importableFqName!!.isImported(importPath) }
           }
+          .mapNotNull { createLookUpElement(it) }
+          .toList()
 
-          var element = LookupElementBuilder.create(lookupObject, classDescriptor.name.asString())
-            .withInsertHandler(KotlinClassifierInsertHandler)
+        result.addAllElements(lookupElements)
+      }
 
-          val classFqName = classDescriptor.fqNameSafe.takeUnless { it.isRoot } ?: return null
-
-          val containerName = classFqName.parent()
-          element = element.appendTailText(" ($containerName)", true)
-          return element.withIconFromLookupObject()
+      private fun createLookUpElement(classDescriptor: ClassDescriptor): LookupElement? {
+        val lookupObject = object : DeclarationLookupObjectImpl(classDescriptor) {
+          override val psiElement = classDescriptor.source.getPsi()
+          override fun getIcon(flags: Int) = KotlinDescriptorIconProvider.getIcon(classDescriptor, psiElement, flags)
         }
 
-        private fun getImportedDirectives(element: KtSimpleNameExpression): Set<ImportPath> {
-          return element.containingKtFile.importDirectives
-            .mapNotNull { it.importPath }
-            .toSet()
-        }
-      })
-    }
+        var element = LookupElementBuilder.create(lookupObject, classDescriptor.name.asString())
+          .withInsertHandler(KotlinClassifierInsertHandler)
+
+        val classFqName = classDescriptor.fqNameSafe.takeUnless { it.isRoot } ?: return null
+
+        val containerName = classFqName.parent()
+        element = element.appendTailText(" ($containerName)", true)
+        return element.withIconFromLookupObject()
+      }
+
+      private fun getImportedDirectives(element: KtSimpleNameExpression): Set<ImportPath> {
+        return element.containingKtFile.importDirectives
+          .mapNotNull { it.importPath }
+          .toSet()
+      }
+    })
   }
 }
 

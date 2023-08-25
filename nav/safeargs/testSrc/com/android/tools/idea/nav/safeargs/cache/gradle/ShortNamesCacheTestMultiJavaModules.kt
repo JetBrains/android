@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.cache.gradle
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.extensions.getContents
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
@@ -35,9 +33,6 @@ import org.junit.rules.RuleChain
 class ShortNamesCacheTestMultiJavaModules {
   private val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val restoreSafeArgsFlagRule = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
-
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -46,7 +41,6 @@ class ShortNamesCacheTestMultiJavaModules {
 
   @Before
   fun setUp() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     projectRule.load(TestDataPaths.SIMPLE_JAVA_PROJECT)
     NavigationResourcesModificationListener.ensureSubscribed(fixture.project)

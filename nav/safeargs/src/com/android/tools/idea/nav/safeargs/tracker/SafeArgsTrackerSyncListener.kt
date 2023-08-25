@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.tracker
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.NavSafeArgsEvent
 import com.intellij.openapi.project.Project
@@ -24,9 +23,7 @@ class SafeArgsTrackerSyncListener(project: Project) : ProjectSystemSyncManager.S
   private val safeArgsTracer = SafeArgsTracker.getInstance(project)
 
   private fun handleTrackingAnalytics() {
-    if (StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) {
-      safeArgsTracer.trackProjectStats(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
-    }
+    safeArgsTracer.trackProjectStats(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
   }
 
   override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {

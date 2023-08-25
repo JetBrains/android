@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.module.SafeArgsModeModuleService
 import com.android.tools.idea.nav.safeargs.project.SafeArgsModeTrackerProjectService
 import com.intellij.openapi.project.Project
@@ -60,4 +59,4 @@ var AndroidFacet.safeArgsMode: SafeArgsMode
 val Project.safeArgsModeTracker: ModificationTracker
   get() = SafeArgsModeTrackerProjectService.getInstance(this).tracker
 
-fun AndroidFacet.isSafeArgsEnabled() = StudioFlags.NAV_SAFE_ARGS_SUPPORT.get() && safeArgsMode != SafeArgsMode.NONE
+fun AndroidFacet.isSafeArgsEnabled() = safeArgsMode != SafeArgsMode.NONE

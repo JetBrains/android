@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.kotlin
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.intellij.codeInsight.daemon.QuickFixBundle
 import com.intellij.codeInsight.intention.IntentionAction
@@ -64,7 +63,6 @@ import javax.swing.ListCellRenderer
  */
 class SafeArgsImportKtResolver : QuickFixContributor {
   override fun registerQuickFixes(quickFixes: QuickFixes) {
-    if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return
     quickFixes.register(Errors.UNRESOLVED_REFERENCE, SafeArgsImportIntentionAction())
   }
 }

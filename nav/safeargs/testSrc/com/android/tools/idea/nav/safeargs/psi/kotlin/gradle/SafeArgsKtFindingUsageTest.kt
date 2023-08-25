@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.psi.kotlin.gradle
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.projectsystem.getMainModule
@@ -41,9 +39,6 @@ import java.io.File
 class SafeArgsKtFindingUsageTest {
   private val projectRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val restoreSafeArgsFlagRule = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
-
   // The tests need to run on the EDT thread but we must initialize the project rule off of it
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
@@ -52,7 +47,6 @@ class SafeArgsKtFindingUsageTest {
 
   @Before
   fun setUp() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     projectRule.load(TestDataPaths.SIMPLE_KOTLIN_PROJECT) { projectRoot ->
       // Create a placeholder class that we can use as a hook to replace with various

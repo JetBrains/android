@@ -18,7 +18,6 @@ package com.android.tools.idea.nav.safeargs
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenArtifactId
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.TestProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.facet.FacetManager
@@ -58,8 +57,6 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
   }
 
   override fun before() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
-
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     fixture.addFileToProject("AndroidManifest.xml", """
       <?xml version="1.0" encoding="utf-8"?>
@@ -91,10 +88,6 @@ class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResourc
       """.trimIndent())) {
       fixture.allowTreeAccessForFile(this.virtualFile)
     }
-  }
-
-  override fun after() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.clearOverride()
   }
 
   override fun apply(base: Statement, description: Description): Statement {

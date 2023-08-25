@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.finder
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService
 import com.android.tools.idea.nav.safeargs.safeArgsMode
@@ -47,8 +46,6 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
   }
 
   internal fun getAdditionalResolveScope(facet: AndroidFacet): SearchScope? {
-    if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return null
-
     return CachedValuesManager.getManager(facet.module.project).getCachedValue(facet) {
       val allFacets = listOf(facet) + ModuleRootManager.getInstance(facet.module)
         .getDependencies(false)

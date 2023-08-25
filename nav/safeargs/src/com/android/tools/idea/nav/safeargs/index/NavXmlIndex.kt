@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.index
 
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -64,9 +63,6 @@ class NavXmlIndex : SingleEntryFileBasedIndexExtension<NavXmlData>() {
   override fun getInputFilter(): FileBasedIndex.InputFilter {
     return object : DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE) {
       override fun acceptInput(file: VirtualFile): Boolean {
-        if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) {
-          return false
-        }
         return "xml" == file.extension
       }
     }

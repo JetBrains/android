@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.nav.safeargs.codegen.gradle
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.TestUtils.resolveWorkspacePath
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.project.NavigationResourcesModificationListener
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidGradleProjectRule
@@ -70,9 +68,6 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
   val expect: Expect = Expect.create()
 
   @get:Rule
-  val enableSafeArgsCodeGen = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
-
-  @get:Rule
   val temporaryFolder = TemporaryFolder()
 
 
@@ -81,7 +76,6 @@ class SafeArgsGeneratedKotlinCodeMatchTest {
 
   @Before
   fun initProject() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
     // to be able to change the project before import, we copy it into a temp folder
     val testSrc = resolveWorkspacePath("tools/adt/idea/nav/safeargs/testData/projects/SafeArgsTestApp")
     val container = temporaryFolder.newFile("TestApp")

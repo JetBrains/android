@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.gradle
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.nav.safeargs.safeArgsMode
@@ -39,17 +37,16 @@ import org.junit.runners.Parameterized
 @RunsInEdt
 @RunWith(Parameterized::class)
 class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
-  data class TestParams(val project: String, val flagEnabled: Boolean, val mode: SafeArgsMode)
+  data class TestParams(val project: String, val mode: SafeArgsMode)
 
   companion object {
     @Suppress("unused") // Accessed via reflection by JUnit
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
     val parameters = listOf(
-      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, true, SafeArgsMode.JAVA),
-      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, true, SafeArgsMode.KOTLIN),
-      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, false, SafeArgsMode.NONE),
-      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, false, SafeArgsMode.NONE))
+      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, SafeArgsMode.JAVA),
+      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, SafeArgsMode.KOTLIN)
+    )
   }
 
   private val projectRule = AndroidGradleProjectRule()
@@ -58,17 +55,11 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  @get:Rule
-  val restoreSafeArgsFlagRule = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
-
-
   private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
   private var modificationCountBaseline = Long.MIN_VALUE
 
   @Before
   fun setUp() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(params.flagEnabled)
-
     modificationCountBaseline = projectRule.project.safeArgsModeTracker.modificationCount
 
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
@@ -81,12 +72,6 @@ class SafeArgsModeSyncGradlePluginTest(val params: TestParams) {
 
     val facet = projectRule.androidFacet(":app")
     assertThat(facet.safeArgsMode).isEqualTo(params.mode)
-
-    if (params.flagEnabled) {
-      assertThat(projectRule.project.safeArgsModeTracker.modificationCount).isGreaterThan(modificationCountBaseline)
-    }
-    else {
-      assertThat(projectRule.project.safeArgsModeTracker.modificationCount).isEqualTo(0)
-    }
+    assertThat(projectRule.project.safeArgsModeTracker.modificationCount).isGreaterThan(modificationCountBaseline)
   }
 }

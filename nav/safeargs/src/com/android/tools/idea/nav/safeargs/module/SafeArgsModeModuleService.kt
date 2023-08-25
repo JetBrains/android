@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.module
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
@@ -42,32 +41,29 @@ class SafeArgsModeModuleService(val module: Module) {
   internal var safeArgsMode: SafeArgsMode
     get() = atomicSafeArgsMode.get()
     set(value) {
-      if (!StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) return
       if (atomicSafeArgsMode.getAndSet(value) != value) {
         SafeArgsModeTrackerProjectService.getInstance(module.project).tracker.incModificationCount()
       }
     }
 
   init {
-    if (StudioFlags.NAV_SAFE_ARGS_SUPPORT.get()) {
-      // As this class is a (lazily instantiated) service, it's possible Gradle was already
-      // initialized before here, so call update immediately just in case.
-      updateSafeArgsMode()
+    // As this class is a (lazily instantiated) service, it's possible Gradle was already
+    // initialized before here, so call update immediately just in case.
+    updateSafeArgsMode()
 
-      GradleSyncState.subscribe(module.project, object : GradleSyncListener {
-        override fun syncSucceeded(project: Project) {
-          updateSafeArgsMode()
-        }
+    GradleSyncState.subscribe(module.project, object : GradleSyncListener {
+      override fun syncSucceeded(project: Project) {
+        updateSafeArgsMode()
+      }
 
-        override fun syncFailed(project: Project, errorMessage: String) {
-          updateSafeArgsMode()
-        }
+      override fun syncFailed(project: Project, errorMessage: String) {
+        updateSafeArgsMode()
+      }
 
-        override fun syncSkipped(project: Project) {
-          updateSafeArgsMode()
-        }
-      }, module)
-    }
+      override fun syncSkipped(project: Project) {
+        updateSafeArgsMode()
+      }
+    }, module)
   }
 
   private fun updateSafeArgsMode() {

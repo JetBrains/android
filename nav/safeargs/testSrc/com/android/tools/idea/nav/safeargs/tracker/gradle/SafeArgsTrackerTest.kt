@@ -15,11 +15,9 @@
  */
 package com.android.tools.idea.nav.safeargs.tracker.gradle
 
-import com.android.flags.junit.FlagRule
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.nav.safeargs.TestDataPaths
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -40,9 +38,9 @@ import org.junit.runners.Parameterized
 @RunsInEdt
 @RunWith(Parameterized::class)
 class SafeArgsTrackerTest(private val params: TestParams) {
-  data class TestParams(val project: String, val flagEnabled: Boolean, val verify: (NavSafeArgsEvent?) -> Unit) {
+  data class TestParams(val project: String, val verify: (NavSafeArgsEvent?) -> Unit) {
     override fun toString(): String {
-      return "$project (flag enabled = $flagEnabled)"
+      return "$project"
     }
   }
 
@@ -51,7 +49,7 @@ class SafeArgsTrackerTest(private val params: TestParams) {
     @JvmStatic
     @get:Parameterized.Parameters(name = "{0}")
     val parameters = listOf(
-      TestParams(TestDataPaths.MULTI_MODULE_PROJECT, true) { event ->
+      TestParams(TestDataPaths.MULTI_MODULE_PROJECT) { event ->
         event!!
         assertThat(event.eventContext).isEqualTo(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
         event.projectMetadata.let { projectMetadata ->
@@ -60,7 +58,7 @@ class SafeArgsTrackerTest(private val params: TestParams) {
           assertThat(projectMetadata.kotlinPluginCount).isEqualTo(1)
         }
       },
-      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, true) { event ->
+      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN) { event ->
         event!!
         assertThat(event.eventContext).isEqualTo(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
         event.projectMetadata.let { projectMetadata ->
@@ -69,7 +67,7 @@ class SafeArgsTrackerTest(private val params: TestParams) {
           assertThat(projectMetadata.kotlinPluginCount).isEqualTo(0)
         }
       },
-      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, true) { event ->
+      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN) { event ->
         event!!
         assertThat(event.eventContext).isEqualTo(NavSafeArgsEvent.EventContext.SYNC_EVENT_CONTEXT)
         event.projectMetadata.let { projectMetadata ->
@@ -78,11 +76,8 @@ class SafeArgsTrackerTest(private val params: TestParams) {
           assertThat(projectMetadata.kotlinPluginCount).isEqualTo(1)
         }
       },
-      TestParams(TestDataPaths.MULTI_MODULE_PROJECT, false) { event -> assertThat(event).isNull() },
-      TestParams(TestDataPaths.PROJECT_USING_JAVA_PLUGIN, false) { event -> assertThat(event).isNull() },
-      TestParams(TestDataPaths.PROJECT_USING_KOTLIN_PLUGIN, false) { event -> assertThat(event).isNull() },
       // Projects not using safe args don't generate safe args metrics
-      TestParams(TestDataPaths.PROJECT_WITHOUT_SAFE_ARGS, true) { event -> assertThat(event).isNull() })
+      TestParams(TestDataPaths.PROJECT_WITHOUT_SAFE_ARGS) { event -> assertThat(event).isNull() })
   }
 
   private val projectRule = AndroidGradleProjectRule()
@@ -91,14 +86,10 @@ class SafeArgsTrackerTest(private val params: TestParams) {
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
-  @get:Rule
-  val restoreSafeArgsFlagRule = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
-
   private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
 
   @Test
   fun verifyExpectedAnalytics() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(params.flagEnabled)
     fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
     val tracker = TestUsageTracker(VirtualTimeScheduler())
 

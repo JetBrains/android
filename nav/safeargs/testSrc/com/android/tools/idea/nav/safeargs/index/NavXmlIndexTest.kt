@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.nav.safeargs.index
 
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
@@ -35,9 +33,6 @@ class NavXmlIndexTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
   @get:Rule
-  val navArgsFlagRule = FlagRule(StudioFlags.NAV_SAFE_ARGS_SUPPORT)
-
-  @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   private val fixture: CodeInsightTestFixture by lazy {
@@ -45,29 +40,7 @@ class NavXmlIndexTest {
   }
 
   @Test
-  fun indexingSkippedIfFlagNotEnabled() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(false)
-
-    val file = fixture.addFileToProject(
-      "navigation/main.xml",
-      //language=XML
-      """
-      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
-                  xmlns:app="http://schemas.android.com/apk/res-auto"
-                  xmlns:tools="http://schemas.android.com/tools"
-                  android:id="@+id/top_level_nav"
-                  app:startDestination="@id/fragment1" />
-      """.trimIndent()).virtualFile
-
-
-    val navXmlIndex = NavXmlIndex()
-    assertThat(navXmlIndex.inputFilter.acceptInput(file)).isEqualTo(false)
-  }
-
-  @Test
   fun indexNavigationLayout() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
-
     val file = fixture.addFileToProject(
       "navigation/main.xml",
       //language=XML
@@ -311,8 +284,6 @@ class NavXmlIndexTest {
 
   @Test
   fun navigationIdIsOptional() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
-
     val file = fixture.addFileToProject(
       "navigation/main.xml",
       //language=XML
@@ -342,8 +313,6 @@ class NavXmlIndexTest {
 
   @Test
   fun customTagsAreTreatedAsPotentialDestinations() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
-
     val file = fixture.addFileToProject(
       "navigation/main.xml",
       //language=XML
@@ -381,8 +350,6 @@ class NavXmlIndexTest {
 
   @Test
   fun camelCaseIdsInNavigationTagAreSupported() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
-
     val file = fixture.addFileToProject(
       "navigation/main.xml",
       //language=XML
@@ -416,8 +383,6 @@ class NavXmlIndexTest {
 
   @Test
   fun indexRecoversFromUnrelatedXml() {
-    StudioFlags.NAV_SAFE_ARGS_SUPPORT.override(true)
-
     val file = fixture.addFileToProject(
       "navigation/main.xml",
       //language=XML
