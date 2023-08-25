@@ -224,10 +224,6 @@ public final class StudioFlags {
     NELE, "motion.save.gif", "Enable save GIF feature",
     "Enable save a selected transition as a GIF file in Motion Editor.",
     true);
-  public static final Flag<Boolean> NELE_MOTION_HORIZONTAL = Flag.create(
-    NELE, "animated.motion.horizontal", "Display motion editor horizontally",
-    "Controls the placement of the motion editor (horizontal versus vertical).",
-    false);
 
   public static final Flag<Boolean> NELE_RENDER_DIAGNOSTICS = Flag.create(
     NELE, "diagnostics", "Enable rendering on-screen stats",
