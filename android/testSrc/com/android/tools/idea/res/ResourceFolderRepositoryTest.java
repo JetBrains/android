@@ -64,8 +64,6 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.io.FileUtil;
@@ -82,6 +80,7 @@ import com.intellij.psi.impl.file.impl.FileManagerImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.DumbModeTestUtils;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.VfsTestUtil;
@@ -4065,8 +4064,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
    * Regression test for http://b/73623886.
    */
   public void testFileInvalidationAfterDumbMode() throws Exception {
-    DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(getProject());
-    ResourceItem resourceItem = dumbService.computeInDumbModeSynchronously(() -> {
+    ResourceItem resourceItem = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> {
       VirtualFile file1 = myFixture.copyFileToProject(VALUES1, "res/values/myvalues.xml");
       PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file1);
       assertNotNull(psiFile);
@@ -4202,7 +4200,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     VirtualFile file = VfsUtil.findFileByIoFile(new File(myFixture.getTestDataPath(), DRAWABLE), true);
 
     // Trigger dumb mode to clear the PsiDirectory cache.
-    ((DumbServiceImpl)DumbService.getInstance(myModule.getProject())).runInDumbModeSynchronously(() -> {
+    DumbModeTestUtils.runInDumbModeSynchronously(myModule.getProject(), () -> {
     });
     WriteCommandAction.runWriteCommandAction(
       myModule.getProject(), () -> {

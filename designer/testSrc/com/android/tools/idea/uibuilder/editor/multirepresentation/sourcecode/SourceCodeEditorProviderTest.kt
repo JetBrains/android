@@ -32,6 +32,7 @@ import com.intellij.openapi.fileTypes.PlainTextFileType
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.JDOMUtil
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.UsefulTestCase.assertContainsElements
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import junit.framework.TestCase
@@ -190,7 +191,7 @@ class SourceCodeEditorProviderTest {
     // Now trigger smart mode. Representations should update
     val dumbService = DumbServiceImpl.getInstance(projectRule.project)
     invokeAndWaitIfNeeded {
-      dumbService.runInDumbModeSynchronously {}
+      DumbModeTestUtils.runInDumbModeSynchronously(projectRule.project) {}
     }
 
     dumbService.waitForSmartMode()

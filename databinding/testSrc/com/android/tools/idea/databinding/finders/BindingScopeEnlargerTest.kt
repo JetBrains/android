@@ -22,6 +22,7 @@ import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.psi.search.PsiSearchScopeUtil
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -76,7 +77,7 @@ class BindingScopeEnlargerTest {
     // In dumb mode, add a resource and then request the current scope. In the past, this would cause
     // the scope enlarger to internally cache stale values (because the service that the enlarger
     // queries into aborts early in dumb mode).
-    val (activityClass, dumbScope) = dumbService.computeInDumbModeSynchronously {
+    val (activityClass, dumbScope) = DumbModeTestUtils.computeInDumbModeSynchronously(project) {
       fixture.addFileToProject(
         "res/layout/activity_main.xml",
         //language=XML

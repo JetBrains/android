@@ -29,10 +29,10 @@ import com.android.tools.sdk.AndroidPlatform;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.DumbModeTestUtils;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -159,7 +159,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
       };
 
       if (useDumbMode) {
-        DumbServiceImpl.getInstance(myFixture.getProject()).runInDumbModeSynchronously(runnable::run);
+        DumbModeTestUtils.runInDumbModeSynchronously(myFixture.getProject(), runnable::run);
       }
       else {
         runnable.run();

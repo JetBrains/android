@@ -24,7 +24,6 @@ import com.intellij.formatting.FormattingModel;
 import com.intellij.formatting.FormattingModelBuilder;
 import com.intellij.lang.LanguageFormatting;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -32,6 +31,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.autodetect.FormatterBasedLineIndentInfoBuilder;
 import com.intellij.psi.codeStyle.autodetect.LineIndentInfo;
+import com.intellij.testFramework.DumbModeTestUtils;
 import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
 import java.util.List;
@@ -62,7 +62,7 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         -1,
         -1, -1, -1, // bunch of tabbed elements
         0);
-    List<LineIndentInfo> indentInfosDumb = DumbServiceImpl.getInstance(getProject()).computeInDumbModeSynchronously(() -> {
+    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> {
       return getIndentInfos(resFile1);
     });
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(resFile2);
@@ -80,7 +80,7 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         2, -1, -1, // TextView
         2, -1, // TextView
         0);
-    List<LineIndentInfo> indentInfosDumb = DumbServiceImpl.getInstance(getProject()).computeInDumbModeSynchronously(() -> {
+    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> {
       return getIndentInfos(resFile1);
     });
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(resFile2);
@@ -98,7 +98,7 @@ public class AndroidXmlIndentAutoDetectionTest extends AndroidTestCase {
         2,
         2, -1, -1, -1, 4, 6, 8, 8, 6, 4, 2,
         0);
-    List<LineIndentInfo> indentInfosDumb = DumbServiceImpl.getInstance(getProject()).computeInDumbModeSynchronously(() -> {
+    List<LineIndentInfo> indentInfosDumb = DumbModeTestUtils.computeInDumbModeSynchronously(getProject(), () -> {
       return getIndentInfos(manifestFile);
     });
     List<LineIndentInfo> indentInfosSmart = getIndentInfos(manifestFile);

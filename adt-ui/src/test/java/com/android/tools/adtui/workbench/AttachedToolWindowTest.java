@@ -18,11 +18,11 @@ package com.android.tools.adtui.workbench;
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_PROPERTY_PREFIX;
 import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_TOOLBAR_PLACE;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -48,10 +48,9 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.actionSystem.impl.PresentationFactory;
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.impl.InternalDecorator;
+import com.intellij.testFramework.DumbModeTestUtils;
 import com.intellij.ui.SearchTextField;
 import java.awt.Component;
 import java.awt.Container;
@@ -690,8 +689,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   }
 
   public void testActionsEnabledAtStartup() {
-    DumbServiceImpl dumbService = (DumbServiceImpl)DumbService.getInstance(getProject());
-    dumbService.runInDumbModeSynchronously(() -> {
+    DumbModeTestUtils.runInDumbModeSynchronously(getProject(), () -> {
       ActionButton button = findRequiredButtonByName(myToolWindow.getComponent(), "More Options");
       myToolWindow.updateActions();
       assertThat(button.isEnabled()).isTrue();

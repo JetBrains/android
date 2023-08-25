@@ -23,6 +23,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.psi.search.PsiSearchScopeUtil
+import com.intellij.testFramework.DumbModeTestUtils
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
@@ -67,7 +68,7 @@ class DumbModeTest {
     assertThat(getNumberOfArgs(moduleCache.args)).isEqualTo(1)
 
     // enter dumb mode and update this newly added nav file by adding another argument
-    DumbServiceImpl.getInstance(project).runInDumbModeSynchronously {
+    DumbModeTestUtils.runInDumbModeSynchronously(project) {
       val replaceXmlContent =
         """
             <argument
@@ -96,7 +97,7 @@ class DumbModeTest {
     // In dumb mode, add a resource and then request the current scope. In the past, this would cause
     // the scope enlarger to internally cache stale values (because the service that the enlarger
     // queries into aborts early in dumb mode).
-    val (fragmentClass, dumbScope) = dumbService.computeInDumbModeSynchronously {
+    val (fragmentClass, dumbScope) = DumbModeTestUtils.computeInDumbModeSynchronously(safeArgsRule.project) {
       safeArgsRule.fixture.addFileToProject(
         "res/navigation/nav_main.xml",
         //language=XML
