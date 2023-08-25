@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.android.tools.preview
 
-/** Provides a unified interface to access annotation attributes (parameters). */
-interface AnnotationAttributesProvider {
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SmartPsiElementPointer
 
-  fun <T> getAttributeValue(attributeName: String): T?
+/** Provides information about annotated method sufficient for constructing corresponding [ComposePreviewElement]. */
+interface AnnotatedMethod {
+  val name: String
 
-  fun getIntAttribute(attributeName: String): Int?
+  val qualifiedName: String
 
-  fun getStringAttribute(attributeName: String): String?
+  val psiPointer: SmartPsiElementPointer<PsiElement>?
 
-  fun getFloatAttribute(attributeName: String): Float?
-
-  fun getBooleanAttribute(attributeName: String): Boolean?
-
-  fun <T> getDeclaredAttributeValue(attributeName: String): T?
-
-  fun findClassNameValue(name: String): String?
+  val parameterAnnotations: List<Pair<String, AnnotationAttributesProvider>>
 }

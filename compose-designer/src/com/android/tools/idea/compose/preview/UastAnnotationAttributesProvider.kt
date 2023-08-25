@@ -16,28 +16,50 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.preview.AnnotationAttributesProvider
+import com.intellij.psi.PsiLiteralExpression
 import com.intellij.util.text.nullize
 import org.jetbrains.uast.UAnnotation
+import org.jetbrains.uast.UClassLiteralExpression
+import org.jetbrains.uast.UExpression
 
 /** [AnnotationAttributesProvider] implementation based on [UAnnotation]. */
 internal class UastAnnotationAttributesProvider(
   private val annotation: UAnnotation,
   private val defaultValues: Map<String, String?>
 ) : AnnotationAttributesProvider {
+
+  override fun <T> getAttributeValue(attributeName: String): T? {
+    val expression = annotation.findAttributeValue(attributeName)
+    return expression?.getValueOfType()
+  }
+
   override fun getIntAttribute(attributeName: String): Int? {
-    return annotation.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toInt()
+    return getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toInt()
   }
 
   override fun getStringAttribute(attributeName: String): String? {
-    return annotation.getAttributeValue<String>(attributeName)?.nullize()
-      ?: defaultValues[attributeName]
+    return getAttributeValue<String>(attributeName)?.nullize() ?: defaultValues[attributeName]
   }
 
   override fun getFloatAttribute(attributeName: String): Float? {
-    return annotation.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toFloat()
+    return getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toFloat()
   }
 
   override fun getBooleanAttribute(attributeName: String): Boolean? {
-    return annotation.getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toBoolean()
+    return getAttributeValue(attributeName) ?: defaultValues[attributeName]?.toBoolean()
   }
+
+  override fun <T> getDeclaredAttributeValue(attributeName: String): T? {
+    val expression = annotation.findDeclaredAttributeValue(attributeName)
+    return expression?.getValueOfType() as T?
+  }
+
+  override fun findClassNameValue(name: String): String? =
+    (annotation.findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
+}
+
+private inline fun <T> UExpression.getValueOfType(): T? {
+  val value = this.evaluate() as? T
+  // Cast to literal as fallback. Needed for example for MultiPreview imported from a binary file
+  return value ?: (this.sourcePsi as? PsiLiteralExpression)?.value as? T
 }
