@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
+import static com.android.SdkConstants.SDK_DIR_PROPERTY;
 import static com.android.tools.idea.sdk.NdkPaths.validateAndroidNdk;
 import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
@@ -41,6 +42,7 @@ import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.registry.Registry;
+import com.intellij.openapi.util.text.Strings;
 import com.intellij.util.ModalityUiUtil;
 import java.io.File;
 import java.io.IOException;
@@ -104,7 +106,7 @@ public class SdkSync {
     if (AndroidSdkPath.isValid(projectAndroidSdkPath)) {
       setIdeSdk(localProperties, projectAndroidSdkPath);
     }
-    else if (IdeInfo.getInstance().isAndroidStudio()) {
+    else {
       File selectedPath = findSdkPathTask.selectValidSdkPath();
       if (selectedPath == null) {
         throw new ExternalSystemException("Unable to continue until an Android SDK is specified");
@@ -275,7 +277,7 @@ public class SdkSync {
 
   private static boolean projectIsAndroid(@NotNull LocalProperties localProperties, @Nullable Project project) {
     return IdeInfo.getInstance().isAndroidStudio()
-           || localProperties.getPropertiesFilePath().exists()
+           || Strings.isNotEmpty(localProperties.getProperty(SDK_DIR_PROPERTY))
            || project != null && ReadAction.nonBlocking(() -> ContainerUtil.exists(
         ProjectRootManager.getInstance(project).getContentRoots(),
         root -> root.findFileByRelativePath(ANDROID_MANIFEST_PATH) != null))

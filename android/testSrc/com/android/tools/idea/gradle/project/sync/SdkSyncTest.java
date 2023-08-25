@@ -221,6 +221,8 @@ public class SdkSyncTest extends HeavyPlatformTestCase {
     assertTrue("Could not create directory: " + myLocalProperties.getPropertiesFilePath().getParentFile(),
                myLocalProperties.getPropertiesFilePath().getParentFile().mkdirs());
     assertTrue("Precondition failed: local.properties should exist", myLocalProperties.getPropertiesFilePath().createNewFile());
+    myLocalProperties.setAndroidSdkPath("test");
+    myLocalProperties.save();
   }
 
   private void assertNoLocalPropertiesExists() {
