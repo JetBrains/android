@@ -315,11 +315,11 @@ class TestProjectSystem @JvmOverloads constructor(
   override fun getLightResourceClassService(): LightResourceClassService {
     return object : LightResourceClassService {
       override fun getLightRClasses(qualifiedName: String, scope: GlobalSearchScope) = emptyList<PsiClass>()
-      override fun getLightRClassesAccessibleFromModule(module: Module, includeTests: Boolean) = emptyList<PsiClass>()
+      override fun getLightRClassesAccessibleFromModule(module: Module) = emptyList<PsiClass>()
       override fun getLightRClassesContainingModuleResources(module: Module) = emptyList<PsiClass>()
       override fun findRClassPackage(qualifiedName: String): PsiPackage? = null
       override fun getAllLightRClasses() = emptyList<PsiClass>()
-      override fun getLightRClassesDefinedByModule(module: Module, includeTestClasses: Boolean) = emptyList<PsiClass>()
+      override fun getLightRClassesDefinedByModule(module: Module) = emptyList<PsiClass>()
     }
   }
 

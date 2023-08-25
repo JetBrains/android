@@ -144,7 +144,7 @@ internal fun findUsagesOfRClassesFromModule(facet: AndroidFacet): Collection<Cod
 
   val rClasses = project.getProjectSystem()
     .getLightResourceClassService()
-    .getLightRClassesDefinedByModule(module, true)
+    .getLightRClassesDefinedByModule(module)
 
   for (rClass in rClasses) {
     val useScopeSearchScope = rClass.useScope

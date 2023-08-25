@@ -69,17 +69,6 @@ private data class ResourceClasses(
   }
 
   val all = sequenceOf(namespaced, nonNamespaced, testNamespaced, testNonNamespaced)
-
-  fun pickRelevant(namespacing: ResourceNamespacing, includeTestClasses: Boolean): Set<PsiClass?> {
-    return when (namespacing) {
-      ResourceNamespacing.REQUIRED -> {
-        if (includeTestClasses) setOf(namespaced, testNamespaced) else setOf(namespaced)
-      }
-      ResourceNamespacing.DISABLED -> {
-        if (includeTestClasses) setOf(nonNamespaced, testNonNamespaced) else setOf(nonNamespaced)
-      }
-    }
-  }
 }
 
 /**
@@ -164,7 +153,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       .toList()
   }
 
-  override fun getLightRClassesAccessibleFromModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass> {
+  override fun getLightRClassesAccessibleFromModule(module: Module): Collection<PsiClass> {
     val namespacing = StudioResourceRepositoryManager.getInstance(module)?.namespacing ?: return emptySet()
     val androidFacet = module.androidFacet ?: return emptySet()
 
@@ -180,17 +169,21 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       result.add(getAarRClasses(aarLibrary))
     }
 
-    return result.flatMap { it.pickRelevant(namespacing, includeTestClasses) }.filterNotNull()
+    return result.mapNotNull {
+      when (namespacing) {
+        ResourceNamespacing.REQUIRED -> it.namespaced
+        ResourceNamespacing.DISABLED -> it.nonNamespaced
+      }
+    }
   }
 
-  override fun getLightRClassesDefinedByModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass> {
+  override fun getLightRClassesDefinedByModule(module: Module): Collection<PsiClass> {
     val facet = module.androidFacet ?: return emptySet()
     val moduleRClasses = getModuleRClasses(facet)
     val relevant = if (ProjectNamespacingStatusService.getInstance(module.project).namespacesUsed) {
-      moduleRClasses.pickRelevant(ResourceNamespacing.DISABLED, includeTestClasses) +
-      moduleRClasses.pickRelevant(ResourceNamespacing.REQUIRED, includeTestClasses)
+      setOf(moduleRClasses.nonNamespaced, moduleRClasses.testNonNamespaced, moduleRClasses.namespaced, moduleRClasses.testNamespaced)
     } else {
-      moduleRClasses.pickRelevant(ResourceNamespacing.DISABLED, includeTestClasses)
+      setOf(moduleRClasses.nonNamespaced, moduleRClasses.testNonNamespaced)
     }
 
     return relevant.filterNotNull()

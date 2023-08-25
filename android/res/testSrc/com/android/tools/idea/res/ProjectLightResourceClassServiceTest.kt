@@ -19,27 +19,35 @@ import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_BUILD_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.inMemory
+import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
 
+@RunWith(JUnit4::class)
 class ProjectLightResourceClassServiceTest {
   @get:Rule val rule: AndroidProjectRule = inMemory()
 
-  private fun getProjectRClass(): PsiClass = runReadAction {
+  private fun getProjectRClasses(): List<PsiClass> = runReadAction {
     ProjectLightResourceClassService.getInstance(rule.project)
-      .getLightRClassesDefinedByModule(rule.module, false)
-      .single()
+      .getLightRClassesDefinedByModule(rule.module)
+      .toList()
   }
 
   @Test
-  fun testBuildInvalidatesRClaa() {
-    val rClass = getProjectRClass()
-    assertEquals("R", rClass.name)
-    assertEquals(rClass, getProjectRClass())
+  fun buildInvalidatesRClass() {
+    val rClasses = getProjectRClasses()
+
+    assertThat(rClasses).hasSize(2)
+    assertThat(rClasses[0].name).isEqualTo("R")
+    assertThat(rClasses[1].name).isEqualTo("R")
+
+    assertWithMessage("Before a build, the same R classes should be returned")
+      .that(getProjectRClasses()).containsExactlyElementsIn(rClasses)
 
     rule.project.messageBus
       .syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC)
@@ -50,6 +58,10 @@ class ProjectLightResourceClassServiceTest {
           0
         )
       )
-    assertNotEquals("After a build, R class should re-generate", rClass, getProjectRClass())
+
+    val newRClasses = getProjectRClasses()
+    assertWithMessage("After a build, R classes should re-generate")
+      .that(newRClasses).containsNoneIn(rClasses)
+    assertThat(newRClasses).hasSize(2)
   }
 }
