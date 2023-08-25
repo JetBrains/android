@@ -211,7 +211,9 @@ internal class VariantDiscovery(
             nativeVariantAbi,
             getUnresolvedDependencies()
           )
-        }.toFinishedResult()
+        }.toFinishedResult().also {
+          moduleFetchResults[toMapKey()] = it
+        }
       }, fetchesV2Models = isV2Action, fetchesV1Models = !isV2Action
     )
   }
@@ -265,7 +267,6 @@ internal class VariantDiscovery(
     return toFetchVariantDependenciesAction().map { wrappedResult ->
       if (wrappedResult is FetchedVariantResult.Finished) {
         wrappedResult.result.mapCatching { result ->
-          moduleFetchResults[toMapKey()] = wrappedResult
           if (result is SyncVariantResultSuccess) {
             val moduleDependencies = result.getModuleDependencyConfigurations(
               (syncOptions as SingleVariantSyncActionOptions).selectedVariants,
