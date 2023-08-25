@@ -19,9 +19,6 @@ import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.LayoutScannerControl
-import com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_ADD_INCLUDE
-import com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_COMMON_ERROR_PANEL
-import com.android.tools.idea.uibuilder.lint.CommonLintUserDataHandler
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
@@ -162,18 +159,6 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable) :
           }
         }
         // TODO: b/180069618 revisit metrics. Should log each issue.
-      }
-
-      if (
-        NELE_LAYOUT_SCANNER_ADD_INCLUDE.get() &&
-          issuesWithoutSources > 0 &&
-          layoutParser.includeComponents.isNotEmpty()
-      ) {
-        lintIntegrator.handleInclude(layoutParser)
-      }
-
-      if (NELE_LAYOUT_SCANNER_COMMON_ERROR_PANEL.get()) {
-        CommonLintUserDataHandler.updateAtfIssues(model.file, issues)
       }
 
       lintIntegrator.populateLints()

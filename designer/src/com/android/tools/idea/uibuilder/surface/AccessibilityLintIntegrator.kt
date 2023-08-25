@@ -89,15 +89,6 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
 
     issues.add(NlAtfIssue(result, IssueSource.fromNlComponent(component), model, eventListener))
   }
-
-  /** Handles case where we have ATF issues and include tags. */
-  fun handleInclude(layoutParser: NlScannerLayoutParser) {
-    layoutParser.includeComponents.forEach {
-      if (it.getAttribute(TOOLS_URI, ATTR_IGNORE_A11Y_LINTS) == null) {
-        issues.add(NlATFIncludeIssue(it))
-      }
-    }
-  }
 }
 
 /** Issue created for <include> */

@@ -22,7 +22,8 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.validator.ValidatorData
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -92,22 +93,6 @@ class AccessibilityLintIntegratorTest {
     integrator.populateLints()
     Mockito.verify(issueModel, Mockito.times(1))
       .addIssueProvider(Mockito.any(IssueProvider::class.java))
-  }
-
-  @Test
-  fun handleInclude() {
-    val issueModel: IssueModel = Mockito.mock(IssueModel::class.java)
-    val integrator = AccessibilityLintIntegrator(issueModel)
-
-    assertTrue(integrator.issues.isEmpty())
-
-    val parser = NlScannerLayoutParser()
-    val root = NlScannerLayoutParserTest.createComponentWithInclude()
-    parser.buildViewToComponentMap(root)
-
-    integrator.handleInclude(parser)
-
-    assertEquals(1, integrator.issues.size)
   }
 
   private fun createTestIssue(): ValidatorData.Issue {

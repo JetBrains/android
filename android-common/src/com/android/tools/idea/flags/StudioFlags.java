@@ -250,16 +250,6 @@ public final class StudioFlags {
     "that takes you through setup wizard",
     false);
 
-  public static final Flag<Boolean> NELE_LAYOUT_SCANNER_ADD_INCLUDE = Flag.create(
-    NELE, "toggle.layout.editor.validator.a11y.include", "Toggle whether to show included layout or not.",
-    "If the layout contains <include>, turning this flag on will run the scanner in the included layout.",
-    false);
-
-  public static final Flag<Boolean> NELE_LAYOUT_SCANNER_COMMON_ERROR_PANEL = Flag.create(
-    NELE, "toggle.layout.editor.validator.a11y.common.panel", "Enable common error panel to display scanner results.",
-    "If the xml layout contains atf results, it will be shown in the common error panel as well as issue panel.",
-    false);
-
   public static final Flag<Boolean> NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS = Flag.create(
     NELE, "use.shared.issue.panel.for.design.tools", "Enabled shared issue panels",
     "Use a shared issue panel to display the issue for all design tools",
