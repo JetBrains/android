@@ -8,11 +8,28 @@ iml_module(
     split_test_targets = {
         "SantaTrackerBenchmark": {
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerBenchmark",
+            "tags": [
+                "cpu:3",
+                "perfgate",
+            ],
         },
         "SantaTrackerKotlinBenchmark": {
             "test_filter": "com.android.tools.idea.benchmarks.SantaTrackerKotlinBenchmark",
+            "tags": [
+                "cpu:3",
+                "perfgate",
+            ],
         },
-        "other": {},
+        "tests": {
+            "test_filter": "com.android.tools.idea.benchmarks.tests",
+            "timeout": "long",
+        },
+        "other": {
+            "tags": [
+                "cpu:3",
+                "perfgate",
+            ],
+        },
     },
     test_class = "com.android.tools.idea.benchmarks.IdeBenchmarkTestSuite",
     # keep sorted
@@ -34,10 +51,6 @@ iml_module(
         "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ],
     test_srcs = ["testSrc"],
-    test_tags = [
-        "cpu:3",
-        "perfgate",
-    ],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
