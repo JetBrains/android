@@ -32,22 +32,19 @@ import org.junit.runners.JUnit4
 class ProjectLightResourceClassServiceTest {
   @get:Rule val rule: AndroidProjectRule = inMemory()
 
-  private fun getProjectRClasses(): List<PsiClass> = runReadAction {
+  private fun getProjectRClass(): PsiClass = runReadAction {
     ProjectLightResourceClassService.getInstance(rule.project)
       .getLightRClassesDefinedByModule(rule.module)
-      .toList()
+      .single()
   }
 
   @Test
   fun buildInvalidatesRClass() {
-    val rClasses = getProjectRClasses()
+    val rClass = getProjectRClass()
+    assertThat(rClass.name).isEqualTo("R")
 
-    assertThat(rClasses).hasSize(2)
-    assertThat(rClasses[0].name).isEqualTo("R")
-    assertThat(rClasses[1].name).isEqualTo("R")
-
-    assertWithMessage("Before a build, the same R classes should be returned")
-      .that(getProjectRClasses()).containsExactlyElementsIn(rClasses)
+    assertWithMessage("Before a build, the same R class should be returned")
+      .that(getProjectRClass()).isSameAs(rClass)
 
     rule.project.messageBus
       .syncPublisher(PROJECT_SYSTEM_BUILD_TOPIC)
@@ -59,9 +56,7 @@ class ProjectLightResourceClassServiceTest {
         )
       )
 
-    val newRClasses = getProjectRClasses()
-    assertWithMessage("After a build, R classes should re-generate")
-      .that(newRClasses).containsNoneIn(rClasses)
-    assertThat(newRClasses).hasSize(2)
+    assertWithMessage("After a build, R class should re-generate")
+      .that(getProjectRClass()).isNotSameAs(rClass)
   }
 }

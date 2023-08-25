@@ -27,6 +27,8 @@ import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.projectsystem.isAndroidTestModule
+import com.android.tools.idea.projectsystem.isLinkedAndroidModule
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity
 import com.android.tools.idea.util.androidFacet
@@ -61,14 +63,12 @@ import java.io.IOException
 private data class ResourceClasses(
   val namespaced: PsiClass?,
   val nonNamespaced: PsiClass?,
-  val testNamespaced: PsiClass?,
-  val testNonNamespaced: PsiClass?
 ) {
   companion object {
-    val Empty = ResourceClasses(null, null, null, null)
+    val Empty = ResourceClasses(null, null)
   }
 
-  val all = sequenceOf(namespaced, nonNamespaced, testNamespaced, testNonNamespaced)
+  val all = sequenceOf(namespaced, nonNamespaced)
 }
 
 /**
@@ -181,9 +181,9 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     val facet = module.androidFacet ?: return emptySet()
     val moduleRClasses = getModuleRClasses(facet)
     val relevant = if (ProjectNamespacingStatusService.getInstance(module.project).namespacesUsed) {
-      setOf(moduleRClasses.nonNamespaced, moduleRClasses.testNonNamespaced, moduleRClasses.namespaced, moduleRClasses.testNamespaced)
+      setOf(moduleRClasses.nonNamespaced, moduleRClasses.namespaced)
     } else {
-      setOf(moduleRClasses.nonNamespaced, moduleRClasses.testNonNamespaced)
+      setOf(moduleRClasses.nonNamespaced)
     }
 
     return relevant.filterNotNull()
@@ -218,20 +218,22 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       // TODO: get this from the model
       val isLibraryProject = facet.configuration.isLibraryProject
 
-      val moduleSystem = facet.module.getModuleSystem()
+      val module = facet.module
+      val moduleSystem = module.getModuleSystem()
       val transitivity = if (moduleSystem.isRClassTransitive) Transitivity.TRANSITIVE else Transitivity.NON_TRANSITIVE
 
-      val fieldModifier =
-        if (isLibraryProject || !moduleSystem.applicationRClassConstantIds) FieldModifier.NON_FINAL else FieldModifier.FINAL
+      val isTestModule = module.isLinkedAndroidModule() && module.isAndroidTestModule()
 
-      val testFieldModifier =
-        if (isLibraryProject || !moduleSystem.testRClassConstantIds) FieldModifier.NON_FINAL else FieldModifier.FINAL
+      val useConstantIds = if (isTestModule) moduleSystem.testRClassConstantIds else moduleSystem.applicationRClassConstantIds
+
+      val fieldModifier =
+        if (isLibraryProject || !useConstantIds) FieldModifier.NON_FINAL else FieldModifier.FINAL
+
+      val sourceSet = if (isTestModule) SourceSet.TEST else SourceSet.MAIN
 
       ResourceClasses(
-        nonNamespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, transitivity, fieldModifier),
-        testNonNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, transitivity, testFieldModifier),
-        namespaced = ModuleRClass(facet, psiManager, SourceSet.MAIN, Transitivity.NON_TRANSITIVE, fieldModifier),
-        testNamespaced = ModuleRClass(facet, psiManager, SourceSet.TEST, Transitivity.NON_TRANSITIVE, testFieldModifier)
+        nonNamespaced = ModuleRClass(facet, psiManager, sourceSet, transitivity, fieldModifier),
+        namespaced = ModuleRClass(facet, psiManager, sourceSet, Transitivity.NON_TRANSITIVE, fieldModifier),
       )
     }
   }
@@ -261,9 +263,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
         },
         nonNamespaced = aarLibrary.symbolFile?.toFile()?.takeIf { it.exists() }?.let { symbolFile ->
           TransitiveAarRClass(psiManager, ideaLibrary, packageName, symbolFile, aarLibrary.address)
-        },
-        testNamespaced = null,
-        testNonNamespaced = null
+        }
       )
     }
   }
