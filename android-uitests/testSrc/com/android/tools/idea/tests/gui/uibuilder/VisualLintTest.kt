@@ -42,13 +42,11 @@ class VisualLintTest {
 
   @Before
   fun setup() {
-    StudioFlags.NELE_VISUAL_LINT.override(true)
     StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.override(true)
   }
 
   @After
   fun tearDown() {
-    StudioFlags.NELE_VISUAL_LINT.clearOverride()
     StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.clearOverride()
   }
 
