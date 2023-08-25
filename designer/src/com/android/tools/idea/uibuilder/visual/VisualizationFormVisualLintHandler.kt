@@ -17,8 +17,6 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.surface.getDesignSurface
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.uibuilder.lint.CommonLintUserDataHandler
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -29,7 +27,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.idea.gradleTooling.get
 
 /** Helper class to handle the process of visual lint in [VisualizationForm]. */
 class VisualizationFormVisualLintHandler(
@@ -67,10 +64,6 @@ class VisualizationFormVisualLintHandler(
             ApplicationManager.getApplication().executeOnPooledThread {
               VisualLintService.getInstance(project)
                 .analyzeAfterModelUpdate(lintIssueProvider, result, model, myBaseConfigIssues)
-              if (StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()) {
-                CommonLintUserDataHandler.updateVisualLintIssues(model.file, lintIssueProvider)
-                issueModel.updateErrorsList()
-              }
             }
           }
 

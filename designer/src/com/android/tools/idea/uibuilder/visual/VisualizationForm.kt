@@ -195,10 +195,7 @@ class VisualizationForm(
     myWorkBench.setLoadingText("Loading...")
     myWorkBench.setToolContext(surface)
     val mainComponent: JComponent =
-      if (
-        StudioFlags.NELE_VISUAL_LINT.get() &&
-          !StudioFlags.NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL.get()
-      ) {
+      if (StudioFlags.NELE_VISUAL_LINT.get()) {
         IssuePanelSplitter(null, surface, myWorkBench)
       } else {
         myWorkBench

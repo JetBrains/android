@@ -255,11 +255,6 @@ public final class StudioFlags {
     "Use a shared issue panel to display the issue for all design tools",
     true);
 
-  public static final Flag<Boolean> NELE_SHOW_VISUAL_LINT_ISSUE_IN_COMMON_PROBLEMS_PANEL = Flag.create(
-    NELE, "show.issue.in.common.panel", "Enable showing issues in common problems panel.",
-    "If the xml layout contains any visual lint issues, it will be shown in the common error panel as well as in laytout validation issue panel.",
-    false);
-
   public static final Flag<Boolean> NELE_VISUAL_LINT_ALWAYS_RUN = Flag.create(
     NELE, "visual.lint.always.run", "Run visual lint in the background when the layout editor is opened",
     "Enable so that visual lint always runs in the background of the layout editor for select configurations. This is also known as the background linting",
