@@ -244,12 +244,6 @@ public final class StudioFlags {
     "New architecture for dragging widgets in Layout Editor",
     true);
 
-  public static final Flag<Boolean> NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD = Flag.create(
-    NELE, "recyclerview.setup.wizard", "Show setup wizard for recycler view",
-    "When you right click recycler view in layout editor, you can now see \"Generate Adapter\" " +
-    "that takes you through setup wizard",
-    false);
-
   public static final Flag<Boolean> NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS = Flag.create(
     NELE, "use.shared.issue.panel.for.design.tools", "Enabled shared issue panels",
     "Use a shared issue panel to display the issue for all design tools",
