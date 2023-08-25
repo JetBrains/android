@@ -20,7 +20,6 @@ import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssueProviderListener
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createLogger
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
@@ -228,8 +227,7 @@ class VisualLintService(val project: Project) : Disposable {
       val latch = CountDownLatch(modelsToAnalyze.size)
       val hasTimedOut = AtomicBoolean(false)
       for (model in modelsToAnalyze) {
-        val runAtfChecks =
-          StudioFlags.NELE_ATF_IN_VISUAL_LINT.get() && VisualLintErrorType.ATF !in ignoredTypes
+        val runAtfChecks = VisualLintErrorType.ATF !in ignoredTypes
         createRenderResult(model, runAtfChecks)
           .handleAsync(
             { result, _ ->

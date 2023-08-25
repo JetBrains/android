@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.visual.visuallint.analyzers
 
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAtfAnalysis
@@ -39,9 +38,6 @@ object AtfAnalyzer : VisualLintAnalyzer() {
     renderResult: RenderResult,
     model: NlModel
   ): List<VisualLintIssueContent> {
-    if (!StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) {
-      return emptyList()
-    }
     val atfAnalyzer = VisualLintAtfAnalysis(model)
     val atfIssues = atfAnalyzer.validateAndUpdateLint(renderResult)
     return atfIssues.map { createVisualLintIssueContent(it) }.toList()

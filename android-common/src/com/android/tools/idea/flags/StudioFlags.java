@@ -270,11 +270,6 @@ public final class StudioFlags {
     "Include resource directories from AARs found through project system.",
     false);
 
-  public static final Flag<Boolean> NELE_ATF_IN_VISUAL_LINT = Flag.create(
-    NELE, "visual.lint.atf", "Enable ATF integration in visual linting for layouts",
-    "Enable ATF integration in visual linting of layouts.",
-    true);
-
   public static final Flag<Boolean> NELE_ATF_FOR_COMPOSE = Flag.create(
     NELE, "atf.for.compose", "Enable ATF checks for Compose",
     "Allow running accessibility checks for Compose using ATF.",

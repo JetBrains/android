@@ -30,9 +30,7 @@ import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.LayoutScannerConfiguration.Companion.DISABLED
 import com.android.tools.idea.common.surface.LayoutScannerEnabled
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceNotificationManager
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener
 import com.android.tools.idea.res.getFolderType
@@ -154,7 +152,7 @@ class VisualizationForm(
       VisualizationToolSettings.getInstance().globalState.lastSelectedConfigurationSet
     myCurrentModelsProvider = myCurrentConfigurationSet.createModelsProvider(this)
     val surfaceLayoutManager = myGridSurfaceLayoutManager
-    val config = if (StudioFlags.NELE_ATF_IN_VISUAL_LINT.get()) LayoutScannerEnabled() else DISABLED
+    val config = LayoutScannerEnabled()
     // Custom issue panel integration used.
     config.isIntegrateWithDefaultIssuePanel = false
     surface =

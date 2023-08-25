@@ -763,7 +763,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         });
 
         boolean hasLayoutValidationOpen = VisualizationToolWindowFactory.hasVisibleValidationWindow(project);
-        boolean hasRunAtfOnMainPreview = hasLayoutValidationOpen && StudioFlags.NELE_ATF_IN_VISUAL_LINT.get();
+        boolean hasRunAtfOnMainPreview = hasLayoutValidationOpen;
         if (!hasLayoutValidationOpen) {
           List<NlModel> modelsForBackgroundRun = new ArrayList<>();
           Map<RenderResult, NlModel> renderResultsForAnalysis = new HashMap<>();
@@ -779,7 +779,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                 break;
             }
           });
-          hasRunAtfOnMainPreview = !renderResultsForAnalysis.isEmpty() && StudioFlags.NELE_ATF_IN_VISUAL_LINT.get();
+          hasRunAtfOnMainPreview = !renderResultsForAnalysis.isEmpty();
           VisualLintService.getInstance(project).runVisualLintAnalysis(
             NlDesignSurface.this,
             myVisualLintIssueProvider,
