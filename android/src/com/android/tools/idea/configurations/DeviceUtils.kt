@@ -31,13 +31,13 @@ import com.android.sdklib.devices.Device
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Computable
-import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.containers.CollectionFactory
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AvdManagerUtils
 import kotlin.math.roundToInt
 
-private val DEVICE_CACHES = ContainerUtil.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
+private val DEVICE_CACHES = CollectionFactory.createSoftMap<Configuration, Map<DeviceGroup, List<Device>>>()
 
 enum class DeviceGroup {
   NEXUS,
