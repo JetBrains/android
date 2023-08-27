@@ -1,4 +1,4 @@
-// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android;
 
 import com.android.flags.Flag;
@@ -11,7 +11,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.ApplicationInitializedListener;
+import com.intellij.ide.ApplicationInitializedListenerJavaShim;
 import com.intellij.ide.actions.ToggleEssentialHighlightingAction;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -19,7 +19,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Anchor;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.ApplicationManager;
@@ -32,7 +31,7 @@ public final class AndroidPlugin {
     VirtualFileSystemOpener.INSTANCE.mount();
   }
 
-  static final class AndroidPluginAppInitializer implements ApplicationInitializedListener {
+  static final class AndroidPluginAppInitializer extends ApplicationInitializedListenerJavaShim {
     @Override
     public void componentsInitialized() {
       if (!IdeInfo.getInstance().isAndroidStudio()) {

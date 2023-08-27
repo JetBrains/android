@@ -30,7 +30,7 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.sdk.AndroidPlatform;
-import com.intellij.ide.ApplicationInitializedListener;
+import com.intellij.ide.ApplicationInitializedListenerJavaShim;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
@@ -61,7 +61,7 @@ import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverE
 /**
  * Performs Gradle-specific IDE initialization
  */
-public class GradleSpecificInitializer implements ApplicationInitializedListener {
+public final class GradleSpecificInitializer extends ApplicationInitializedListenerJavaShim {
 
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
 

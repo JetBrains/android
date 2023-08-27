@@ -50,13 +50,13 @@ class TomlErrorParser : BuildOutputParser {
     val firstDescriptionLine = reader.readLine() ?: return false
     // Check if it is a TOML parse error.
     if (!firstDescriptionLine.endsWith("Invalid TOML catalog definition:")) return false
-    val description = StringBuilder().appendln("Invalid TOML catalog definition.")
+    val description = StringBuilder().appendLine("Invalid TOML catalog definition.")
 
     val problemLine = reader.readLine() ?: return false
     val problemLineMatcher = PROBLEM_LINE_PATTERN.matcher(problemLine)
     if (!problemLineMatcher.matches()) return false
     val catalog = problemLineMatcher.group(1)
-    description.appendln(problemLine)
+    description.appendLine(problemLine)
 
     var reasonPosition: Pair<Int?, Int?>? = null
     var absolutePath: String? = null
@@ -70,11 +70,12 @@ class TomlErrorParser : BuildOutputParser {
         }
         val reasonFileAndPositionLineMatcher = REASON_FILE_AND_POSITION_PATTERN.matcher(descriptionLine)
         if (reasonFileAndPositionLineMatcher.matches()) {
-          reasonPosition = reasonFileAndPositionLineMatcher.group(2).toIntOrNull() to reasonFileAndPositionLineMatcher.group(3).toIntOrNull()
+          reasonPosition = reasonFileAndPositionLineMatcher.group(2).toIntOrNull() to reasonFileAndPositionLineMatcher.group(
+            3).toIntOrNull()
           absolutePath = reasonFileAndPositionLineMatcher.group(1)
         }
       }
-      description.appendln(descriptionLine)
+      description.appendLine(descriptionLine)
     }
 
     val buildIssue = object : BuildIssue {
@@ -84,10 +85,10 @@ class TomlErrorParser : BuildOutputParser {
 
       override fun getNavigatable(project: Project): Navigatable? {
         val tomlFile = when {
-          absolutePath != null -> VfsUtil.findFile(Paths.get(absolutePath), false)
-          catalog != null -> project.baseDir?.findChild("gradle")?.findChild("$catalog.versions.toml")
-          else -> null
-        } ?: return null
+                         absolutePath != null -> VfsUtil.findFile(Paths.get(absolutePath), false)
+                         catalog != null -> project.baseDir?.findChild("gradle")?.findChild("$catalog.versions.toml")
+                         else -> null
+                       } ?: return null
         return OpenFileDescriptor(project, tomlFile, reasonPosition?.first?.minus(1) ?: 0, reasonPosition?.second?.minus(1) ?: 0)
       }
     }

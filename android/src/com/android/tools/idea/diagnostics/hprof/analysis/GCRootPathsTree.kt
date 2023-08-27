@@ -318,8 +318,8 @@ class GCRootPathsTree(
           val rootReasonString = rootReasonGetter(rootObjectId)
           val rootPercent = (100.0 * rootNode.pathsCount / totalInstanceCount).toInt()
 
-          appendln("Root ${index + 1}:")
-          printReportLine(this::appendln,
+          appendLine("Root ${index + 1}:")
+          printReportLine(this::appendLine,
                           rootNode.pathsCount,
                           rootPercent,
                           rootNode.pathsSize,
@@ -331,7 +331,7 @@ class GCRootPathsTree(
                           "",
                           "ROOT: $rootReasonString")
 
-          TruncatingPrintBuffer(treeDisplayOptions.headLimit, treeDisplayOptions.tailLimit, this::appendln).use { buffer ->
+          TruncatingPrintBuffer(treeDisplayOptions.headLimit, treeDisplayOptions.tailLimit, this::appendLine).use { buffer ->
             // Iterate over the hot path
             val stack = ArrayDeque<StackEntry>()
             stack.push(StackEntry(null, rootEdge, rootNode, "", ""))
@@ -359,10 +359,10 @@ class GCRootPathsTree(
                   .entries
                   .sortedWith { a, b ->
                     if (a.value.pathsSize != b.value.pathsSize)
-                      // Descending
+                    // Descending
                       b.value.pathsSize.compareTo(a.value.pathsSize)
                     else
-                      // To have a deterministic report, sort by field# if the size is the same
+                    // To have a deterministic report, sort by field# if the size is the same
                       a.key.refIndex.compareTo(b.key.refIndex)
                   }
                   .filterIndexed { index, e ->

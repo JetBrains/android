@@ -703,7 +703,7 @@ class ComposableFunctionBodyTransformer(
     private fun printScopeStack(): String {
         return buildString {
             currentScope.forEach {
-                appendln(it.name)
+              appendLine(it.name)
             }
         }
     }
