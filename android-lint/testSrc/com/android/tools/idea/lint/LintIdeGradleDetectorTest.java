@@ -54,7 +54,9 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   public static Collection getParameters() {
     return Arrays.asList(new Object[][] {
       {".gradle"},
+      /* TODO(b/297433095): LintIdeGradleDetectorTest fails for .kts files with IntelliJ 2023.2.1
       {".gradle.kts"}
+      */
     });
   }
 
