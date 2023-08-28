@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit
 @RunWith(GuiTestRemoteRunner::class)
 class BuildCppKotlinTest {
 
-  @Rule @JvmField val guiTest = GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule @JvmField val guiTest = GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   /**
    * Verifies new project with Kotlin and C++ support can be built

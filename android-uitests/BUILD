@@ -1553,6 +1553,7 @@ java_test(
 
 java_test(
     name = "BuildCppKotlinTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/CppKotlin/**",
     ]),
@@ -1561,8 +1562,6 @@ java_test(
         "no_crostini",
         "no_windows",
         "qa_smoke",
-        "qa_smoke_unreliable",  # b/161711253
-        "qa_unreliable",  # b/161711253
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
