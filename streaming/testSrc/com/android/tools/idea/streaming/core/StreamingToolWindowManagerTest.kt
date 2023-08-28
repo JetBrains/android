@@ -568,7 +568,7 @@ class StreamingToolWindowManagerTest {
 
     runBlocking { mirroringManager.mirroringHandles.value[device]?.toggleMirroring() }
     waitForCondition(2, SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
-    assertThat((toolWindow.icon as LayeredIcon).getIcon(1)).isInstanceOf(IndicatorIcon::class.java) // Liveness indicator is on.
+    assertThat((toolWindow.icon as? LayeredIcon)?.getIcon(1)).isInstanceOf(IndicatorIcon::class.java) // Liveness indicator is on.
 
     toolWindow.hide()
     runBlocking { mirroringManager.mirroringHandles.value[device]?.toggleMirroring() }
