@@ -24,7 +24,6 @@ import com.google.common.util.concurrent.MoreExecutors;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.Executor;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,10 +36,9 @@ public final class SkinChooserTest {
   public void skinChooser() {
     // Arrange
     ListenableFuture<Collection<Path>> future = Futures.immediateFailedFuture(new RuntimeException());
-    Executor executor = MoreExecutors.directExecutor();
 
     // Act
-    SkinChooser chooser = new SkinChooser(null, () -> future, executor, executor);
+    var chooser = new SkinChooser(null, () -> future, MoreExecutors.directExecutor());
 
     // Assert
     assertFalse(chooser.isEnabled());

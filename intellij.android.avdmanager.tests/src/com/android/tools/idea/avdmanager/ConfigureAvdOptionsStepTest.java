@@ -60,10 +60,8 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executor;
 import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import org.jetbrains.annotations.NotNull;
@@ -401,7 +399,6 @@ public final class ConfigureAvdOptionsStepTest {
   }
 
   private @NotNull SkinChooser newSkinChooser() {
-    Executor executor = MoreExecutors.directExecutor();
-    return new SkinChooser(myRule.getProject(), () -> Futures.immediateFuture(Collections.emptyList()), executor, executor);
+    return new SkinChooser(myRule.getProject(), () -> Futures.immediateFuture(List.of()), MoreExecutors.directExecutor());
   }
 }

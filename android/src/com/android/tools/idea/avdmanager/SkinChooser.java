@@ -28,7 +28,6 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ComboboxWithBrowseButton;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.awt.ItemSelectable;
-import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.nio.file.Files;
@@ -48,24 +47,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Combobox that populates itself with the skins used by existing devices. Also allows adding a
- * new skin by browsing.
+ * Combo box that populates itself with the skins used by existing devices. Also allows adding a new skin by browsing.
  */
-public class SkinChooser extends ComboboxWithBrowseButton implements ItemListener, ItemSelectable {
+final class SkinChooser extends ComboboxWithBrowseButton implements ItemSelectable {
   static final File LOADING_SKINS = new File("_loading_skins");
 
   static final File FAILED_TO_LOAD_SKINS = new File("_failed_to_load_skins");
 
   private final @NotNull Supplier<ListenableFuture<Collection<Path>>> myUpdateSkins;
   private final @NotNull Executor myDeviceSkinUpdaterServiceExecutor;
-  private final @NotNull Executor myEdtExecutor;
-  private List<ItemListener> myListeners = new ArrayList<>();
 
   SkinChooser(@Nullable Project project, boolean includeSdkHandlerSkins) {
-    this(project,
-         updateSkins(includeSdkHandlerSkins),
-         DeviceSkinUpdaterService.getInstance().getExecutor(),
-         EdtExecutorService.getInstance());
+    this(project, updateSkins(includeSdkHandlerSkins), DeviceSkinUpdaterService.getInstance().getExecutor());
   }
 
   private static @NotNull Supplier<ListenableFuture<Collection<Path>>> updateSkins(boolean includeSdkHandlerSkins) {
@@ -79,13 +72,11 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
   @VisibleForTesting
   SkinChooser(@Nullable Project project,
               @NotNull Supplier<ListenableFuture<Collection<Path>>> updateSkins,
-              @NotNull Executor deviceSkinUpdaterServiceExecutor,
-              @NotNull Executor edtExecutor) {
+              @NotNull Executor deviceSkinUpdaterServiceExecutor) {
     myUpdateSkins = updateSkins;
     myDeviceSkinUpdaterServiceExecutor = deviceSkinUpdaterServiceExecutor;
-    myEdtExecutor = edtExecutor;
 
-    getComboBox().setRenderer(new ColoredListCellRenderer<File>() {
+    getComboBox().setRenderer(new ColoredListCellRenderer<>() {
       @Override
       protected void customizeCellRenderer(@NotNull JList<? extends File> list,
                                            @Nullable File skin,
@@ -121,38 +112,45 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
         }
       }
     });
-    FileChooserDescriptor skinChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
-    addBrowseFolderListener("Select Custom Skin", "Select the directory containing your custom skin definition", project,
-                            skinChooserDescriptor, new TextComponentAccessor<JComboBox>() {
-        @Override
-        public String getText(JComboBox component) {
-          return ((File)component.getSelectedItem()).getPath();
-        }
 
-        @Override
-        public void setText(JComboBox component, @NotNull String text) {
-          File skin = new File(text);
+    addBrowseFolderListener("Select Custom Skin",
+                            "Select the directory containing your custom skin definition",
+                            project,
+                            new FileChooserDescriptor(false, true, false, false, false, false),
+                            new TextComponentAccessor<>() {
+                              @Override
+                              public String getText(JComboBox component) {
+                                var item = (File)component.getSelectedItem();
+                                assert item != null;
 
-          FutureCallback<List<File>> callback = new LoadSkinsFutureCallback(SkinChooser.this, skin) {
-            @Override
-            public void onSuccess(@NotNull List<File> skins) {
-              if (!skins.contains(skin)) {
-                skins.add(skin);
-              }
+                                return item.getPath();
+                              }
 
-              super.onSuccess(skins);
-              setEnabled(true);
-            }
-          };
+                              @Override
+                              public void setText(JComboBox component, @NotNull String text) {
+                                File skin = new File(text);
 
-          Futures.addCallback(loadSkins(), callback, EdtExecutorService.getInstance());
-        }
-      });
-    getComboBox().addItemListener(this);
+                                FutureCallback<List<File>> callback = new LoadSkinsFutureCallback(SkinChooser.this, skin) {
+                                  @Override
+                                  public void onSuccess(@NotNull List<File> skins) {
+                                    if (!skins.contains(skin)) {
+                                      skins.add(skin);
+                                    }
+
+                                    super.onSuccess(skins);
+                                    setEnabled(true);
+                                  }
+                                };
+
+                                Futures.addCallback(loadSkins(), callback, EdtExecutorService.getInstance());
+                              }
+                            });
+
     setTextFieldPreferredWidth(20);
   }
 
-  @NotNull ListenableFuture<List<File>> loadSkins() {
+  @NotNull
+  ListenableFuture<List<File>> loadSkins() {
     setEnabled(false);
     setItems(Collections.singletonList(LOADING_SKINS));
 
@@ -174,8 +172,9 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     return transformed;
   }
 
+  @NotNull
   @VisibleForTesting
-  final Object getItems() {
+  Object getItems() {
     JComboBox<File> comboBox = getComboBox();
 
     return IntStream.range(0, comboBox.getItemCount())
@@ -187,19 +186,12 @@ public class SkinChooser extends ComboboxWithBrowseButton implements ItemListene
     getComboBox().setModel(new CollectionComboBoxModel<>(items));
   }
 
-  @Override
+  @NotNull
   @SuppressWarnings("EmptyMethod")
-  public final JComboBox<File> getComboBox() {
+  @Override
+  public JComboBox<File> getComboBox() {
     // noinspection unchecked
     return super.getComboBox();
-  }
-
-  @Override
-  public void itemStateChanged(ItemEvent e) {
-    ItemEvent newEvent = new ItemEvent(this, e.getID(), e.getItem(), e.getStateChange());
-    for (ItemListener listener : myListeners) {
-      listener.itemStateChanged(newEvent);
-    }
   }
 
   @Override
