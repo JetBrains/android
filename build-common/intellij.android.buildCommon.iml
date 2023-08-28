@@ -11,17 +11,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library" exported="">
-      <library name="android-sdk-tools-jps">
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../android/lib/jarutils.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MODULE_DIR$/../android/lib/src/jarutils.zip!/src" />
-        </SOURCES>
-      </library>
-    </orderEntry>
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="module" module-name="android.sdktools.ddmlib" exported="" />
     <orderEntry type="module" module-name="android.sdktools.dvlib" exported="" />
