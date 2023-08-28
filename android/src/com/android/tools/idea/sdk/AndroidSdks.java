@@ -182,7 +182,8 @@ public class AndroidSdks {
 
   @NotNull
   public List<Sdk> getAllAndroidSdks() {
-    return ReadAction.compute(() -> ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance()));
+    return ReadAction.nonBlocking(() -> ProjectJdkTable.getInstance().getSdksOfType(AndroidSdkType.getInstance()))
+      .executeSynchronously();
   }
 
   @Nullable
