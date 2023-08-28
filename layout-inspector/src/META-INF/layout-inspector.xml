@@ -57,7 +57,6 @@
     <projectService
         serviceInterface="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager"
         serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerImpl"/>
-    <projectService serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.RunningDevicesStateObserver" />
   </extensions>
 
   <projectListeners>

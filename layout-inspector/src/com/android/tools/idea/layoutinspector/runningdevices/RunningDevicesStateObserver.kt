@@ -21,11 +21,15 @@ import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 data class TabId(val deviceSerialNumber: String)
 
@@ -34,11 +38,16 @@ data class TabId(val deviceSerialNumber: String)
  * Can be used by other classes as source for Running Devices state.
  */
 @UiThread
-class RunningDevicesStateObserver(private val project: Project) {
+@Service(Service.Level.PROJECT)
+class RunningDevicesStateObserver(
+  private val project: Project,
+  private val scope: CoroutineScope
+) {
 
   interface Listener {
     /** Called when the selected tab in Running Devices changes */
     fun onSelectedTabChanged(tabId: TabId?)
+
     /** Called when a tab is added or removed to Running Devices */
     fun onExistingTabsChanged(existingTabs: List<TabId>)
   }
@@ -77,12 +86,12 @@ class RunningDevicesStateObserver(private val project: Project) {
   private var contentManagerListener: RunningDevicesContentManagerListener? = null
 
   fun addListener(listener: Listener) {
-    ApplicationManager.getApplication().assertIsDispatchThread()
+    scope.launch(Dispatchers.Main.immediate) {
+      listener.onSelectedTabChanged(selectedTab)
+      listener.onExistingTabsChanged(existingTabs)
 
-    listener.onSelectedTabChanged(selectedTab)
-    listener.onExistingTabsChanged(existingTabs)
-
-    listeners.add(listener)
+      listeners.add(listener)
+    }
   }
 
   /**
@@ -165,7 +174,7 @@ private fun Project.getRunningDevicesSelectedTabDeviceSerialNumber(): TabId? {
   val selectedContent = contentManager.selectedContent ?: return null
   val selectedTabDataProvider = selectedContent.component as? DataProvider ?: return null
 
-  val deviceSerialNumber =  selectedTabDataProvider.getData(SERIAL_NUMBER_KEY.name) as? String ?: return null
+  val deviceSerialNumber = selectedTabDataProvider.getData(SERIAL_NUMBER_KEY.name) as? String ?: return null
   return TabId(deviceSerialNumber)
 }
 

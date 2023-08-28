@@ -22,6 +22,9 @@ import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
+import kotlinx.coroutines.test.TestScope
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,6 +35,10 @@ class RunningDevicesStateObserverTest {
 
   @get:Rule
   val edtRule = EdtRule()
+
+  private val scheduler = TestCoroutineScheduler()
+  private val dispatcher = StandardTestDispatcher(scheduler)
+  private val testScope = TestScope(dispatcher)
 
   @get:Rule
   val displayViewRule = EmulatorViewRule()
@@ -61,7 +68,7 @@ class RunningDevicesStateObserverTest {
     fakeToolWindowManager.addContent(tab1)
     fakeToolWindowManager.addContent(tab2)
 
-    val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project)
+    val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project, testScope)
     runningDevicesStateObserver.update(true)
 
     val observedSelectedTabs = mutableListOf<TabId?>()
@@ -79,6 +86,8 @@ class RunningDevicesStateObserverTest {
 
     runningDevicesStateObserver.addListener(listener)
 
+    println("Selected tabs: $observedSelectedTabs")
+    println("Existing tabs: $observedExistingTabs")
     assertThat(observedSelectedTabs).containsExactly(tab1.tabId)
     assertThat(observedExistingTabs).containsExactly(
       listOf(tab1.tabId, tab2.tabId)
@@ -87,7 +96,7 @@ class RunningDevicesStateObserverTest {
 
   @Test
   fun testListenerIsCalledWhenAddingAndRemovingContent() {
-    val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project)
+    val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project, testScope)
     runningDevicesStateObserver.update(true)
 
     val observedSelectedTabs = mutableListOf<TabId?>()
@@ -125,7 +134,7 @@ class RunningDevicesStateObserverTest {
 
   @Test
   fun testListenerIsCalledWhenSelectedTabChanges() {
-    val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project)
+    val runningDevicesStateObserver = RunningDevicesStateObserver(displayViewRule.project, testScope)
     runningDevicesStateObserver.update(true)
 
     val observedSelectedTabs = mutableListOf<TabId?>()
