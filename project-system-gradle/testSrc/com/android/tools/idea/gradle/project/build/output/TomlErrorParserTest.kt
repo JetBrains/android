@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.build.output
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.base.Charsets
 import com.google.common.base.Splitter
 import com.google.common.truth.Truth
 import com.intellij.build.events.MessageEvent
@@ -79,6 +80,51 @@ class TomlErrorParserTest {
     }
   }
 
+  @Test
+  @RunsInEdt
+  fun testTomlAliasErrorParsedAndNavigable() {
+    var file: VirtualFile? = null
+    var gradleDir: VirtualFile? = null
+    runWriteAction {
+      gradleDir = project.baseDir?.createChildDirectory(this, "gradle")
+      file = gradleDir?.findOrCreateChildData(this, "libs.versions.toml")
+      file?.setBinaryContent("""
+        [libraries]
+        a = "group:name:1.0"
+      """.trimIndent().toByteArray(Charsets.UTF_8))
+    }
+    try {
+      val buildOutput = getVersionCatalogAliasFailureBuildOutput()
+
+      val parser = TomlErrorParser()
+      val reader = TestBuildOutputInstantReader(Splitter.on("\n").split(buildOutput).toList())
+      val consumer = TestMessageEventConsumer()
+
+      val line = reader.readLine()!!
+      val parsed = parser.parse(line, reader, consumer)
+
+      Truth.assertThat(parsed).isTrue()
+      consumer.messageEvents.filterIsInstance<MessageEvent>().single().let {
+        Truth.assertThat(it.parentId).isEqualTo(reader.parentEventId)
+        Truth.assertThat(it.message).isEqualTo("Invalid TOML catalog definition.")
+        Truth.assertThat(it.kind).isEqualTo(MessageEvent.Kind.ERROR)
+        Truth.assertThat(it.description).isEqualTo(getVersionCatalogLibsBuildAliasIssueDescription())
+        Truth.assertThat(it.getNavigatable(project)).isInstanceOf(OpenFileDescriptor::class.java)
+        (it.getNavigatable(project) as OpenFileDescriptor).let { ofd ->
+          Truth.assertThat(ofd.line).isEqualTo(1)
+          Truth.assertThat(ofd.column).isEqualTo(0)
+          Truth.assertThat(ofd.file).isEqualTo(file)
+        }
+      }
+    }
+    finally {
+      runWriteAction {
+        file?.delete(this)
+        gradleDir?.delete(this)
+      }
+    }
+
+  }
   @Test
   @RunsInEdt
   fun testTomlErrorParsedAndNavigable() {
@@ -239,4 +285,43 @@ Invalid TOML catalog definition.
     Please refer to https://docs.gradle.org/7.4/userguide/version_catalog_problems.html#toml_syntax_error for more details about this problem.
       """.trimIndent()
   }
+
+  fun getVersionCatalogAliasFailureBuildOutput():String  = """
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+org.gradle.api.InvalidUserDataException: Invalid catalog definition:
+  - Problem: In version catalog libs, invalid library alias 'a'.
+    
+    Reason: Library aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\-])+.
+    
+    Possible solution: Make sure the alias matches the [a-z]([a-zA-Z0-9_.\-])+ regular expression.
+    
+    For more information, please refer to https://docs.gradle.org/8.2/userguide/version_catalog_problems.html#invalid_alias_notation in the Gradle documentation.
+> Invalid catalog definition:
+    - Problem: In version catalog libs, invalid library alias 'a'.
+      
+      Reason: Library aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\-])+.
+      
+      Possible solution: Make sure the alias matches the [a-z]([a-zA-Z0-9_.\-])+ regular expression.
+      
+      For more information, please refer to https://docs.gradle.org/8.2/userguide/version_catalog_problems.html#invalid_alias_notation in the Gradle documentation.
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+  """.trimIndent()
+
+  fun getVersionCatalogLibsBuildAliasIssueDescription(): String = """
+Invalid catalog definition.
+  - Problem: In version catalog libs, invalid library alias 'a'.
+    
+    Reason: Library aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\-])+.
+    
+    Possible solution: Make sure the alias matches the [a-z]([a-zA-Z0-9_.\-])+ regular expression.
+    
+    For more information, please refer to https://docs.gradle.org/8.2/userguide/version_catalog_problems.html#invalid_alias_notation in the Gradle documentation.
+      """.trimIndent()
+
 }
