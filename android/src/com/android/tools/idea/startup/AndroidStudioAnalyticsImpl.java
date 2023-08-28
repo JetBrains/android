@@ -120,6 +120,10 @@ public class AndroidStudioAnalyticsImpl extends AndroidStudioAnalytics {
 
     // Update the settings & tracker based on allowed state, will initialize on first call.
     boolean updated = false;
+
+    ScheduledExecutorService scheduler = JobScheduler.getScheduler();
+    AnalyticsSettings.initialize(getAndroidLogger(), scheduler);
+
     try {
       if (allowed == AnalyticsSettings.getOptedIn()) {
         updated = false;
