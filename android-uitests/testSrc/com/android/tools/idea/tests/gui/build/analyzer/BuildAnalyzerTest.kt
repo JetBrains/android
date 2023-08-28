@@ -118,18 +118,15 @@ class BuildAnalyzerTest {
 
       buildToolWindow.openBuildAnalyzerUsingTabHeaderClick().also { view ->
         view.verifyOverviewPage()
-        guiTest.waitForBackgroundTasks()
-        guiTest.robot().waitForIdle()
+        guiTest.waitForAllBackgroundTasksToBeCompleted()
         view.openTasksPage().also { page -> verifyTasksPage(view, page) }
-        guiTest.waitForBackgroundTasks()
-        guiTest.robot().waitForIdle()
+        guiTest.waitForAllBackgroundTasksToBeCompleted()
         view.openWarningsPage().also { page -> verifyWarningsPage(view, page) }
-        guiTest.waitForBackgroundTasks()
-        guiTest.robot().waitForIdle()
+        guiTest.waitForAllBackgroundTasksToBeCompleted()
         view.openDownloadsPage()
-        guiTest.waitForBackgroundTasks()
-        guiTest.robot().waitForIdle()
+        guiTest.waitForAllBackgroundTasksToBeCompleted()
         view.openOverviewPage()
+        guiTest.waitForAllBackgroundTasksToBeCompleted()
         view.verifyLinksPresentInOverviewPage()
       }
       buildToolWindow.closeBuildAnalyzerTab()
