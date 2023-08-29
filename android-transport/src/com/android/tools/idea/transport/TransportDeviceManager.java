@@ -404,7 +404,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
           }
           return false;
         }
-      }, 0, null);
+      }, 0, TimeUnit.MILLISECONDS);
     }
 
     /**
