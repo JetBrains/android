@@ -283,7 +283,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
 
     return WriteCommandAction.runWriteCommandAction(project, (Computable<PsiFile>)() -> {
       List<VirtualFile> files = IdeResourcesUtil.findOrCreateStateListFiles(
-        project, resourceDir, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, resourceName, Collections.singletonList(FD_RES_LAYOUT));
+        component.getModel().getModule(), resourceDir, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, resourceName, Collections.singletonList(FD_RES_LAYOUT));
       if (files == null || files.isEmpty()) {
         return null;
       }

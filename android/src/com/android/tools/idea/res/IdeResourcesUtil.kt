@@ -2226,7 +2226,7 @@ private fun getTemplateName(resourceType: String, valuesResourceFile: Boolean, r
  * Finds and returns the resource files named stateListName in the directories listed in dirNames.
  * If some directories do not contain a file with that name, creates such a resource file.
  *
- * @param project the project
+ * @param module the module
  * @param resDir the res/ dir containing the directories under investigation
  * @param folderType Type of the directories under investigation
  * @param resourceType Type of the resource file to create if necessary
@@ -2235,13 +2235,14 @@ private fun getTemplateName(resourceType: String, valuesResourceFile: Boolean, r
  * @return List of found and created files
  */
 fun findOrCreateStateListFiles(
-  project: Project,
+  module: Module,
   resDir: VirtualFile,
   folderType: ResourceFolderType,
   resourceType: ResourceType,
   stateListName: String,
   dirNames: List<String>
 ): List<VirtualFile>? {
+  val project = module.project
   val manager = PsiManager.getInstance(project)
   val files: MutableList<VirtualFile> = Lists.newArrayListWithCapacity(dirNames.size)
   val foundFiles = writeCommandAction(project).withName("Find statelists files").compute<Boolean, Exception> {
@@ -2263,7 +2264,7 @@ fun findOrCreateStateListFiles(
         createFileResource(
           fileName,
           directory,
-          CreateTypedResourceFileAction.getDefaultRootTagByResourceType(folderType),
+          CreateTypedResourceFileAction.getDefaultRootTagByResourceType(module, folderType),
           resourceType.getName(),
           false
         )

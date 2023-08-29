@@ -116,7 +116,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
 
     try {
       IdeResourcesUtil.createFileResource(
-        myResourceName, resSubdir, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myResourceType), resDirName, false);
+        myResourceName, resSubdir, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myFacet.getModule(), myResourceType), resDirName, false);
       UndoUtil.markPsiFileForUndo(myFile);
     }
     catch (Exception e) {

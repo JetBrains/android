@@ -82,22 +82,6 @@ public class CreateMultiRootResourceFileAction extends CreateTypedResourceFileAc
     return doCreateAndNavigate(newName, directory, rootTag, false, true);
   }
 
-  @Override
-  public String getDefaultRootTag(@Nullable Module module) {
-
-    if (module != null &&
-        myResourceFolderType == ResourceFolderType.LAYOUT) {
-
-      if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.CONSTRAINT_LAYOUT)) {
-        return AndroidXConstants.CONSTRAINT_LAYOUT.oldName();
-      } else if (DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT)) {
-        return AndroidXConstants.CONSTRAINT_LAYOUT.newName();
-      }
-    }
-
-    return super.getDefaultRootTag(module);
-  }
-
   @NotNull
   @Override
   public List<String> getAllowedTagNames(@NotNull AndroidFacet facet) {
