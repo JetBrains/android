@@ -57,6 +57,7 @@ import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbModeBlockedFunctionality;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
@@ -512,7 +513,8 @@ public class PalettePanel extends AdtSecondaryPanel implements Disposable, DataP
       }
       DumbService dumbService = DumbService.getInstance(myProject);
       if (dumbService.isDumb()) {
-        dumbService.showDumbModeNotification("Dragging from the Palette is not available while indices are updating.");
+        dumbService.showDumbModeNotificationForFunctionality("Dragging from the Palette is not available while indices are updating.",
+                                                             DumbModeBlockedFunctionality.Android);
         return null;
       }
 
