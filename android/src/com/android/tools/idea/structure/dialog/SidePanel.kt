@@ -16,6 +16,7 @@
 package com.android.tools.idea.structure.dialog
 
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.roots.ui.configuration.SidePanelSeparator
 import com.intellij.openapi.ui.popup.ListItemDescriptor
@@ -42,6 +43,7 @@ import com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.Graphics
 import javax.swing.CellRendererPane
@@ -62,7 +64,8 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     val place: Place,
     val separator: String?,
     val presentation: Presentation,
-    val countProvider: (() -> ProblemStats)?
+    val countProvider: (() -> ProblemStats)?,
+    val validationErrorsProvider: (() -> Boolean)? // false for no errors
   )
 
   private val listModel: DefaultListModel<PlaceData> = DefaultListModel()
@@ -78,10 +81,15 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
 
   private val cellRenderer: ListCellRenderer<PlaceData> = object : GroupedItemsListRenderer<PlaceData>(descriptor) {
     var extraPanel: JPanel? = null
+    var eastPanel: JPanel? = null
     var countLabel: JLabel? = null
+    var validationError: JLabel? = null
+    private var containsValidationErrors: Boolean = false
     private var containsErrors: Boolean = false
     private var isSelected: Boolean = false
     private val textBorders = JBUI.Borders.empty(2, 5, 2, 6 + 6)
+    private val errorBorders = JBUI.Borders.empty(2, 5, 2, 6)
+
     private val emptyBorders = JBUI.Borders.empty()
 
     init {
@@ -95,9 +103,12 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     override fun layout() {
       countLabel?.border = if (countLabel?.text.isNullOrEmpty()) emptyBorders else textBorders
       val extraPanel = extraPanel ?: return
+      val eastPanel = eastPanel ?: return
       myRendererComponent.add(mySeparatorComponent, BorderLayout.NORTH)
       extraPanel.add(getItemComponent(), BorderLayout.CENTER)
-      extraPanel.add(countLabel, BorderLayout.EAST)
+      extraPanel.add(eastPanel, BorderLayout.EAST)
+      eastPanel.add(countLabel)
+      eastPanel.add(validationError)
       myRendererComponent.add(this.extraPanel, BorderLayout.CENTER)
     }
 
@@ -110,6 +121,8 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     ): Component {
       val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
       updateCountLabel(isSelected, value)
+      updateValidationErrorLabel(value)
+
       layout()
       if (ClientProperty.isTrue(list, ExpandableItemsHandler.EXPANDED_RENDERER)) {
         val bounds = list.getCellBounds(index, index)
@@ -127,6 +140,11 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
 
     override fun createItemComponent(): JComponent {
       extraPanel = NonOpaquePanel(BorderLayout())
+      eastPanel = NonOpaquePanel(FlowLayout())
+      validationError = JLabel().apply {
+        icon = AllIcons.General.BalloonError
+      }
+
       countLabel = object : JLabel() {
         init {
           font = UIUtil.getListFont().deriveFont(Font.BOLD)
@@ -154,6 +172,7 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
         }
 
       }
+
       val component = super.createItemComponent()
 
       myTextLabel.foreground = Gray._240
@@ -163,6 +182,16 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     }
 
     override fun getBackground(): Color = SIDE_PANEL_BACKGROUND
+
+    private fun updateValidationErrorLabel(value: PlaceData) {
+      containsValidationErrors = value.validationErrorsProvider?.invoke() ?: false
+
+      validationError?.run {
+        isVisible = containsValidationErrors
+        border = if (isVisible) errorBorders else emptyBorders
+      }
+    }
+
 
     private fun updateCountLabel(isSelected: Boolean, value: PlaceData) {
       val countLabel = countLabel ?: return
@@ -202,8 +231,13 @@ class SidePanel(private val myNavigator: Navigator, private val myHistory: Histo
     add(createScrollPane(list, true), BorderLayout.CENTER)
   }
 
-  fun addPlace(place: Place, presentation: Presentation, counterProvider: (() -> ProblemStats)?) {
-    listModel.addElement(PlaceData(place, pendingSeparator, presentation, counterProvider))
+  fun addPlace(
+    place: Place,
+    presentation: Presentation,
+    counterProvider: (() -> ProblemStats)?,
+    validationErrorsProvider: (() -> Boolean)?
+  ) {
+    listModel.addElement(PlaceData(place, pendingSeparator, presentation, counterProvider, validationErrorsProvider))
     pendingSeparator = null
   }
 

@@ -414,6 +414,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
       createPlaceFor(configurable),
       Presentation(configurable.displayName),
       counterDisplayConfigurable?.let { { SidePanel.ProblemStats(it.count, it.containsErrors()) } },
+      validationDisplayConfigurable?.let { { it.hasValidationErrors() } }
       )
     counterDisplayConfigurable?.add({ UIUtil.invokeLaterIfNeeded { mySidePanel!!.repaint() } }, myDisposable)
     // refresh side panel to update error bubble
