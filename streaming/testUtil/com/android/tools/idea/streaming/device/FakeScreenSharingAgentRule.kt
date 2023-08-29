@@ -192,7 +192,7 @@ class FakeScreenSharingAgentRule : TestRule {
     override val stateFlow = MutableStateFlow(createConnectedDeviceState())
 
     fun createConnectedDeviceState(): ProvisionerDeviceState.Connected {
-      val deviceProperties = DeviceProperties.Builder().apply {
+      val deviceProperties = DeviceProperties.buildForTest {
         readCommonProperties(device.deviceState.properties)
         icon = when(deviceType) {
           DeviceType.WEAR -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR
@@ -200,7 +200,7 @@ class FakeScreenSharingAgentRule : TestRule {
           DeviceType.AUTOMOTIVE -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_CAR
           else -> StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
         }
-      }.buildBase()
+      }
       val connectedDevice = mock<ConnectedDevice>().apply {
         whenever(deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(device.serialNumber, ONLINE)))
       }

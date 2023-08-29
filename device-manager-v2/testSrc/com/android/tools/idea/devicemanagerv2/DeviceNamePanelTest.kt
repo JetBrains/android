@@ -41,7 +41,7 @@ class DeviceNamePanelTest {
     fun rowData(isTransitioning: Boolean, status: String): DeviceRowData {
       val state =
         DeviceState.Disconnected(
-          DeviceProperties.build { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
+          DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
           isTransitioning,
           status,
           null

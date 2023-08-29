@@ -369,7 +369,7 @@ class StreamingToolWindowManagerTest {
 
   @Test
   fun testRemoteDevice() {
-    val properties = DeviceProperties.build {
+    val properties = DeviceProperties.buildForTest {
       icon = StudioIcons.DeviceExplorer.FIREBASE_DEVICE_CAR
       model = "Pixel 9000"
     }

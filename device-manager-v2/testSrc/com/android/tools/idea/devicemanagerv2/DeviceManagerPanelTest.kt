@@ -96,7 +96,7 @@ class DeviceManagerPanelTest {
     // Send an update to the state to be more realistic
     pixel5Handle.stateFlow.update {
       DeviceState.Disconnected(
-        DeviceProperties.build {
+        DeviceProperties.buildForTest {
           manufacturer = "Google"
           model = "Pixel 5"
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
@@ -197,7 +197,7 @@ class DeviceManagerPanelTest {
       FakeDeviceHandle(
         scope.createChildScope(isSupervisor = true),
         sourceTemplate,
-        DeviceProperties.build {
+        DeviceProperties.buildForTest {
           model = name
           icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
         }

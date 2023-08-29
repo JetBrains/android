@@ -29,7 +29,7 @@ internal class FakeDeviceTemplate(
   constructor(
     name: String
   ) : this(
-    DeviceProperties.build {
+    DeviceProperties.buildForTest {
       model = name
       icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
     }

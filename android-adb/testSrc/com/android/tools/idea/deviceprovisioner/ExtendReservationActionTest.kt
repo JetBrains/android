@@ -30,14 +30,14 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.ui.EmptyIcon
 import icons.StudioIcons
+import java.time.Duration
+import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.junit.Rule
 import org.junit.Test
-import java.time.Duration
-import java.time.Instant
 
 private const val EXTEND_RESERVATION_ID = "android.device.reservation.extend"
 private const val EXTEND_RESERVATION_HALF_HOUR_ID = "android.device.reservation.extend.half.hour"
@@ -46,9 +46,7 @@ private val defaultPresentation = DeviceAction.Presentation("", EmptyIcon.ICON_0
 
 class ExtendReservationActionTest {
 
-  @JvmField
-  @Rule
-  val projectRule = ProjectRule()
+  @JvmField @Rule val projectRule = ProjectRule()
 
   private class FakeDeviceHandle(
     override val scope: CoroutineScope,
@@ -59,40 +57,49 @@ class ExtendReservationActionTest {
   @Test
   fun testHandlesWithReservationActions() {
     val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
-    val extendReservationAction = CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ID)!! as ExtendReservationAction
+    val extendReservationAction =
+      CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ID)!!
+        as ExtendReservationAction
     assertThat(extendReservationAction.childrenCount).isEqualTo(3)
     var totalDuration = Duration.ZERO
-    val handle = FakeDeviceHandle(
-      scope,
-      MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().apply {
-        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      }.buildBase())),
-      object : ReservationAction {
-        override suspend fun reserve(duration: Duration): Instant {
-          totalDuration = totalDuration.plus(duration)
-          return Instant.ofEpochSecond(duration.toMillis())
+    val handle =
+      FakeDeviceHandle(
+        scope,
+        MutableStateFlow(
+          DeviceState.Disconnected(
+            DeviceProperties.buildForTest {
+              icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+            }
+          )
+        ),
+        object : ReservationAction {
+          override suspend fun reserve(duration: Duration): Instant {
+            totalDuration = totalDuration.plus(duration)
+            return Instant.ofEpochSecond(duration.toMillis())
+          }
+
+          override suspend fun endReservation() = Unit
+
+          override val presentation = MutableStateFlow(defaultPresentation)
         }
-
-        override suspend fun endReservation() = Unit
-
-        override val presentation = MutableStateFlow(defaultPresentation)
-      })
-    val dataContext = DataContext {
-      if (it == DEVICE_HANDLE_KEY.name) handle
-      else null
-    }
+      )
+    val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
     val event = AnActionEvent.createFromAnAction(extendReservationAction, null, "", dataContext)
     val actions = extendReservationAction.getChildren(event)
     val remainingTimeAction = AnActionEvent.createFromAnAction(actions[0], null, "", dataContext)
     actions[0].update(remainingTimeAction)
-    assertThat(remainingTimeAction.presentation.text).isEqualTo("Reservation remaining time not available")
+    assertThat(remainingTimeAction.presentation.text)
+      .isEqualTo("Reservation remaining time not available")
     val extendAction = AnActionEvent.createFromAnAction(actions[1], null, "", dataContext)
 
-    // Verify that actions from extendReservationAction's children are equivalent with actions from CustomActionsSchema.
-    val extendHalfHourAction = CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_HALF_HOUR_ID)
-      as ExtendReservationAction.HalfHour
-    val extendOneHourAction = CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ONE_HOUR_ID)
-      as ExtendReservationAction.OneHour
+    // Verify that actions from extendReservationAction's children are equivalent with actions from
+    // CustomActionsSchema.
+    val extendHalfHourAction =
+      CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_HALF_HOUR_ID)
+        as ExtendReservationAction.HalfHour
+    val extendOneHourAction =
+      CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ONE_HOUR_ID)
+        as ExtendReservationAction.OneHour
     assertThat(extendHalfHourAction).isEqualTo(actions[1])
     assertThat(extendOneHourAction).isEqualTo(actions[2])
 
@@ -115,32 +122,38 @@ class ExtendReservationActionTest {
   fun testExtendFixedDurationActionsIndependently() {
     val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     var totalDuration = Duration.ZERO
-    val handle = FakeDeviceHandle(
-      scope,
-      MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().apply {
-        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      }.buildBase())),
-      object : ReservationAction {
-        override suspend fun reserve(duration: Duration): Instant {
-          totalDuration = totalDuration.plus(duration)
-          return Instant.ofEpochSecond(duration.toMillis())
+    val handle =
+      FakeDeviceHandle(
+        scope,
+        MutableStateFlow(
+          DeviceState.Disconnected(
+            DeviceProperties.buildForTest {
+              icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+            }
+          )
+        ),
+        object : ReservationAction {
+          override suspend fun reserve(duration: Duration): Instant {
+            totalDuration = totalDuration.plus(duration)
+            return Instant.ofEpochSecond(duration.toMillis())
+          }
+
+          override suspend fun endReservation() = Unit
+
+          override val presentation = MutableStateFlow(defaultPresentation)
         }
-
-        override suspend fun endReservation() = Unit
-
-        override val presentation = MutableStateFlow(defaultPresentation)
-      })
-    val dataContext = DataContext {
-      if (it == DEVICE_HANDLE_KEY.name) handle
-      else null
-    }
-    val extendHalfHourAction = CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_HALF_HOUR_ID)
-      as ExtendReservationAction.HalfHour
-    val extendOneHourAction = CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ONE_HOUR_ID)
-      as ExtendReservationAction.OneHour
+      )
+    val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
+    val extendHalfHourAction =
+      CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_HALF_HOUR_ID)
+        as ExtendReservationAction.HalfHour
+    val extendOneHourAction =
+      CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ONE_HOUR_ID)
+        as ExtendReservationAction.OneHour
     assertThat(totalDuration).isEqualTo(Duration.ZERO)
     // Extend 30 minutes.
-    val updateAction1 = AnActionEvent.createFromAnAction(extendHalfHourAction, null, "", dataContext)
+    val updateAction1 =
+      AnActionEvent.createFromAnAction(extendHalfHourAction, null, "", dataContext)
     extendHalfHourAction.update(updateAction1)
     assertThat(updateAction1.presentation.isEnabledAndVisible).isTrue()
     extendHalfHourAction.actionPerformed(updateAction1)
@@ -156,15 +169,23 @@ class ExtendReservationActionTest {
   @Test
   fun testHandlesWithoutReservationActions() {
     val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
-    val extendReservationAction = CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ID)!! as ExtendReservationAction
+    val extendReservationAction =
+      CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ID)!!
+        as ExtendReservationAction
     assertThat(extendReservationAction.childrenCount).isEqualTo(3)
-    val handle = FakeDeviceHandle(scope, MutableStateFlow(DeviceState.Disconnected(DeviceProperties.Builder().apply {
-      icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-    }.buildBase())), null)
-    val dataContext = DataContext {
-      if (it == DEVICE_HANDLE_KEY.name) handle
-      else null
-    }
+    val handle =
+      FakeDeviceHandle(
+        scope,
+        MutableStateFlow(
+          DeviceState.Disconnected(
+            DeviceProperties.buildForTest {
+              icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
+            }
+          )
+        ),
+        null
+      )
+    val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
     val event = AnActionEvent.createFromAnAction(extendReservationAction, null, "", dataContext)
     extendReservationAction.update(event)
     assertThat(event.presentation.isVisible).isFalse()
@@ -175,12 +196,15 @@ class ExtendReservationActionTest {
     assertThat(remainingTimeEvent.presentation.isVisible).isFalse()
     assertThat(remainingTimeEvent.presentation.isEnabled).isFalse()
 
-    val extendHalfHourAction = CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_HALF_HOUR_ID)
-      as ExtendReservationAction.HalfHour
-    val extendOneHourAction = CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ONE_HOUR_ID)
-      as ExtendReservationAction.OneHour
+    val extendHalfHourAction =
+      CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_HALF_HOUR_ID)
+        as ExtendReservationAction.HalfHour
+    val extendOneHourAction =
+      CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ONE_HOUR_ID)
+        as ExtendReservationAction.OneHour
     // Extend 30 minutes not enabled or visible.
-    val updateAction1 = AnActionEvent.createFromAnAction(extendHalfHourAction, null, "", dataContext)
+    val updateAction1 =
+      AnActionEvent.createFromAnAction(extendHalfHourAction, null, "", dataContext)
     extendHalfHourAction.update(updateAction1)
     assertThat(updateAction1.presentation.isVisible).isFalse()
     assertThat(updateAction1.presentation.isEnabled).isFalse()
@@ -194,31 +218,44 @@ class ExtendReservationActionTest {
   @Test
   fun testHandlesWithRemainingTime() {
     val scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
-    val extendReservationAction = CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ID)!! as ExtendReservationAction
+    val extendReservationAction =
+      CustomActionsSchema.getInstance().getCorrectedAction(EXTEND_RESERVATION_ID)!!
+        as ExtendReservationAction
     assertThat(extendReservationAction.childrenCount).isEqualTo(3)
     var totalDuration = Duration.ZERO
 
     val stateFetcher: (minutes: Long) -> DeviceState = { minutes ->
-      val reservation = Reservation(ReservationState.PENDING, "None", Instant.now(), Instant.now().plusSeconds(minutes * 60 + 55))
-      DeviceState.Disconnected(DeviceProperties.Builder().apply {
-        icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      }.buildBase(), false, "None", reservation)
+      val reservation =
+        Reservation(
+          ReservationState.PENDING,
+          "None",
+          Instant.now(),
+          Instant.now().plusSeconds(minutes * 60 + 55)
+        )
+      DeviceState.Disconnected(
+        DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
+        false,
+        "None",
+        reservation
+      )
     }
 
     val stateFlow = MutableStateFlow(stateFetcher(65))
-    val handle = FakeDeviceHandle(scope, stateFlow, object : ReservationAction {
-      override suspend fun reserve(duration: Duration): Instant {
-        totalDuration = totalDuration.plus(duration)
-        return Instant.ofEpochSecond(duration.toMillis())
-      }
+    val handle =
+      FakeDeviceHandle(
+        scope,
+        stateFlow,
+        object : ReservationAction {
+          override suspend fun reserve(duration: Duration): Instant {
+            totalDuration = totalDuration.plus(duration)
+            return Instant.ofEpochSecond(duration.toMillis())
+          }
 
-      override suspend fun endReservation() = Unit
-      override val presentation = MutableStateFlow(defaultPresentation)
-    })
-    val dataContext = DataContext {
-      if (it == DEVICE_HANDLE_KEY.name) handle
-      else null
-    }
+          override suspend fun endReservation() = Unit
+          override val presentation = MutableStateFlow(defaultPresentation)
+        }
+      )
+    val dataContext = DataContext { if (it == DEVICE_HANDLE_KEY.name) handle else null }
     val event = AnActionEvent.createFromAnAction(extendReservationAction, null, "", dataContext)
     val actions = extendReservationAction.getChildren(event)
     val remainingTimeAction = AnActionEvent.createFromAnAction(actions[0], null, "", dataContext)
@@ -231,6 +268,7 @@ class ExtendReservationActionTest {
 
     stateFlow.value = stateFetcher(0)
     actions[0].update(remainingTimeAction)
-    assertThat(remainingTimeAction.presentation.text).isEqualTo("Reservation: less than 1 min remaining")
+    assertThat(remainingTimeAction.presentation.text)
+      .isEqualTo("Reservation: less than 1 min remaining")
   }
 }

@@ -169,7 +169,7 @@ class PairedDevicesPanelTest {
     override val stateFlow =
       MutableStateFlow<DeviceState>(
         DeviceState.Disconnected(
-          DeviceProperties.build {
+          DeviceProperties.buildForTest {
             wearPairingId = name
             model = name
             icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE

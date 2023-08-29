@@ -42,7 +42,7 @@ internal class FakeDeviceHandle(
   override val scope: CoroutineScope,
   override val sourceTemplate: DeviceTemplate? = null,
   initialProperties: DeviceProperties =
-    DeviceProperties.build { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
+    DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
 ) : DeviceHandle {
   override val stateFlow =
     MutableStateFlow<DeviceState>(DeviceState.Disconnected(initialProperties))

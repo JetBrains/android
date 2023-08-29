@@ -383,9 +383,9 @@ class ScreenSharingAgentTest {
     private val testRootDisposable
       get() = disposableRule.disposable
     private val emptyDeviceConfiguration =
-      DeviceConfiguration(DeviceProperties.Builder().apply {
+      DeviceConfiguration(DeviceProperties.buildForTest {
         icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE
-      }.buildBase())
+      })
 
     @JvmStatic
     @BeforeClass

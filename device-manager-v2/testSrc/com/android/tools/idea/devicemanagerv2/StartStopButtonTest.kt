@@ -70,7 +70,7 @@ class StartStopButtonTest {
         FakeDeviceHandle(
           this.createChildScope(),
           initialProperties =
-            DeviceProperties.build {
+            DeviceProperties.buildForTest {
               isVirtual = true
               icon = EmptyIcon.DEFAULT
             }
@@ -136,7 +136,7 @@ class StartStopButtonTest {
 
       handle.stateFlow.update {
         DeviceState.Disconnected(
-          DeviceProperties.build { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
+          DeviceProperties.buildForTest { icon = StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE },
           isTransitioning = false,
           "Disconnected",
           error = TestError()

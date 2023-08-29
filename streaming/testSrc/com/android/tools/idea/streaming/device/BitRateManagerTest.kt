@@ -28,13 +28,13 @@ import org.junit.Test
 class BitRateManagerTest {
 
   private val bitRateManager = BitRateManager()
-  private val deviceProperties = DeviceProperties.Builder().apply {
+  private val deviceProperties = DeviceProperties.buildForTest {
     manufacturer = "Google"
     model = "Pixel 3a"
     androidVersion = AndroidVersion(30)
     abi = ARM64_V8A
     icon = EmptyIcon.ICON_16
-  }.buildBase()
+  }
 
   @Test
   fun testBitRateReduction() {

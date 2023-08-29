@@ -123,7 +123,7 @@ class DeviceInfoPanelTest {
   @Test
   fun testPopulateDeviceInfo() {
     fun makeProps(abi: Abi?) =
-      DeviceProperties.build {
+      DeviceProperties.buildForTest {
         manufacturer = "Google"
         model = "Pixel 6"
         androidVersion = AndroidVersion(30, null, 0, true)
