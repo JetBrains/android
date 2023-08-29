@@ -44,6 +44,7 @@ import com.google.gct.login.LoginStatus
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -80,7 +81,7 @@ class VitalsConfigurationManager(
   override val project: Project,
   @VisibleForTesting val cache: AppInsightsCache,
   private val client: AppInsightsClient,
-  loginState: Flow<LoginStatus> = LoginState.getInstance().loginStatus
+  loginState: Flow<LoginStatus> = service<LoginState>().loginStatus
 ) : AppInsightsConfigurationManager, Disposable {
 
   private val logger = Logger.getInstance(VitalsConfigurationManager::class.java)
