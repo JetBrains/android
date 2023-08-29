@@ -16,6 +16,11 @@
     <string name="string2">2222</string>
     <string name="string3">3333</string>
 
+    <string name="cycle">@string/cycle1</string>
+    <string name="cycle1">@string/cycle2</string>
+    <string name="cycle2">@string/cycle3</string>
+    <string name="cycle3">@string/cycle1</string>
+
     <integer name="some_int">8</integer>
     <integer name="max_action_buttons">2</integer>
 

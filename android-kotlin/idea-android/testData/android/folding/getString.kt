@@ -24,4 +24,6 @@ fun foo(context: Context) <fold text='{...}' expand='true'>{
     context.getString(R.string.no_resource)
     bar(<fold text='"Third: {333} Repeated: {333} First: {111} Second: {222}"' expand='false'>context.getResources().getString(R.string.compex_format_string, "111", "222", "333")</fold>)
     val invalid = with(context) { <fold text='"Escaped: \%s %%s First: {Vasya} Invalid: %20$s"' expand='false'>getString(R.string.invalid_format, name, otherName)</fold> }
+    // Regression test for b/295349275 - reference with cycle must terminate.
+    val cycle = <fold text='"@string/cycle1"' expand='false'>context.getString(R.string.cycle)</fold>
 }</fold>

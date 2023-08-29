@@ -161,17 +161,23 @@ class ResourceFoldingBuilder : FoldingBuilderEx() {
     }
 
     private tailrec fun ResourceRepository.getResourceValue(
-            type: ResourceType,
-            name: String,
-            referenceConfig: FolderConfiguration): String? {
+      type: ResourceType,
+      name: String,
+      referenceConfig: FolderConfiguration,
+      processedValues: MutableSet<String>? = null): String? {
         val value = getConfiguredValue(type, name, referenceConfig)?.value ?: return null
         if (!value.startsWith('@')) {
             return value
         }
 
         val (referencedTypeName, referencedName) = value.substring(1).split('/').takeIf { it.size == 2 } ?: return value
+
+        // If this reference is to a value that's already been seen, there's a cycle of references that will never resolve.
+        val processedValueSet = processedValues ?: mutableSetOf()
+        if (!processedValueSet.add(value)) return value
+
         val referencedType = ResourceType.fromXmlValue(referencedTypeName) ?: return value
-        return getResourceValue(referencedType, referencedName, referenceConfig)
+        return getResourceValue(referencedType, referencedName, referenceConfig, processedValueSet)
     }
 
     // Converted from com.android.tools.idea.folding.InlinedResource#insertArguments
