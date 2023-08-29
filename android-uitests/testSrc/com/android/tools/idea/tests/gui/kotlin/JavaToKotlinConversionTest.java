@@ -114,8 +114,7 @@ public class JavaToKotlinConversionTest {
       .isTrue();
 
     List<String> modulesList = configureKotlinDialogBox.getSingleModuleComboBoxDetails();
-    // TODO(b/277155005): Fix pending from intellij https://youtrack.jetbrains.com/issue/KTIJ-25193
-    //assertThat(modulesList.size()).isGreaterThan(0);
+    assertThat(modulesList.size()).isGreaterThan(0);
 
     //Click on all modules again.
     assertThat(configureKotlinDialogBox.clickRadioButtonWithName("All modules"))
@@ -155,12 +154,7 @@ public class JavaToKotlinConversionTest {
     //Taking screenshot to make sure kotlin version is updated and sync is successful.
     ideFrame.takeScreenshot();
 
-    ideFrame.getProjectView()
-      .selectAndroidPane()
-      .clickPath("app", "kotlin+java");
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-
-    //ideFrame.getEditor().open("app/kotlin+java/android/com/app/MainActivity.java");
+    ideFrame.getEditor().open("app/src/main/java/android/com/app/MainActivity.java");
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     //Converting MainActivity.java to kotlin file.
