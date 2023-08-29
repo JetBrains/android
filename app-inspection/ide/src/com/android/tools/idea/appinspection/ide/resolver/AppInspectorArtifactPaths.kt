@@ -27,8 +27,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import java.util.concurrent.ConcurrentHashMap
-import org.jetbrains.kotlin.utils.ThreadSafe
 import kotlin.io.path.exists
+import org.jetbrains.kotlin.utils.ThreadSafe
 
 @VisibleForTesting const val INSPECTOR_JARS_DIR = "inspector-jars"
 
@@ -44,7 +44,7 @@ const val INSPECTOR_JAR = "inspector.jar"
  * Note the inspector jars are keyed by their respective library's [ArtifactCoordinate].
  *
  * The directory structure follows the following scheme:
- * $cache_dir/<group_id>/<artifact_id>/<version>/inspector.jar
+ * $cache_dir/&lt;group_id&gt;/&lt;artifact_id&gt;/&lt;version&gt;/inspector.jar
  */
 @ThreadSafe
 class AppInspectorArtifactPaths(private val fileService: FileService) {

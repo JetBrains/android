@@ -33,11 +33,7 @@ import java.nio.file.Path
  * artifacts.
  */
 interface InspectorArtifactService {
-  /**
-   * Gets the cached inspector artifact if it exists, otherwise try to resolve it.
-   *
-   * Returns null if artifact can't be resolved.
-   */
+  /** Gets the cached inspector artifact if it exists, otherwise try to resolve it. */
   suspend fun getOrResolveInspectorArtifact(
     artifactCoordinate: ArtifactCoordinate,
     project: Project
