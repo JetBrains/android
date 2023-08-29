@@ -1154,11 +1154,14 @@ class EmulatorView(
 
       if (imageFormat.width == 0 || imageFormat.height == 0) {
         expectedFrameNumber++
+        if (imageFormat.width != 0 || imageFormat.height != 0) {
+          LOG.error("Invalid ImageMessage: degenerate ${imageFormat.width}x${imageFormat.height} image")
+        }
         return // Ignore empty screenshot.
       }
 
       if (response.image.size() != imageFormat.width * imageFormat.height * 3) {
-        LOG.error("Inconsistent ImageMessage: ${imageFormat.width}x${imageFormat.width} image contains ${response.image.size()} bytes" +
+        LOG.error("Inconsistent ImageMessage: ${imageFormat.width}x${imageFormat.height} image contains ${response.image.size()} bytes" +
                   " instead of ${imageFormat.width * imageFormat.height * 3}")
         return
       }
