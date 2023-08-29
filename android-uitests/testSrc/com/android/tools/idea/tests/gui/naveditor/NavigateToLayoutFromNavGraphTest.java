@@ -28,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.NavDesignSurfaceFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
@@ -102,7 +103,8 @@ public class NavigateToLayoutFromNavGraphTest {
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
 
     // Modify "Set Start Destination" in right click menu
-    ((NavDesignSurfaceFixture)editorFixture.getSurface()).findDestination("FirstFragment").doubleClick();
+    ((NavDesignSurfaceFixture)editorFixture.getSurface()).findDestination("FirstFragment").click();
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
 
     //Wait for fragment file to open
     waitForFragmentFile();
@@ -117,12 +119,14 @@ public class NavigateToLayoutFromNavGraphTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Modify "Set Start Destination" in right click menu
-    ((NavDesignSurfaceFixture)editorFixture.getSurface()).findDestination("FirstFragment").doubleClick();
+    ((NavDesignSurfaceFixture)editorFixture.getSurface()).findDestination("FirstFragment").click();
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
 
     //Wait for fragment file to open
     waitForFragmentFile();
 
     assertEquals(FRAGMENT_FILE_NAME, guiTest.ideFrame().getEditor().getCurrentFileName());
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   private void waitForFragmentFile() {
