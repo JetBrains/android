@@ -31,6 +31,7 @@ import com.android.tools.idea.lint.inspections.AndroidLintGradlePluginVersionIns
 import com.android.tools.idea.lint.inspections.AndroidLintStringShouldBeIntInspection;
 import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.daemon.ProblemHighlightFilter;
+import com.intellij.codeInsight.daemon.impl.HighlightVisitor;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -41,6 +42,7 @@ import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.highlighter.AbstractKotlinHighlightVisitor;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -54,9 +56,7 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   public static Collection getParameters() {
     return Arrays.asList(new Object[][] {
       {".gradle"},
-      /* TODO(b/297433095): LintIdeGradleDetectorTest fails for .kts files with IntelliJ 2023.2.1
       {".gradle.kts"}
-      */
     });
   }
 
@@ -64,7 +64,14 @@ public class LintIdeGradleDetectorTest extends AndroidTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myFixture.setTestDataPath(TestDataPaths.TEST_DATA_ROOT);
+    // We mask (in particular) the KotlinProblemHighlightFilter which can cause Kotlin Script files not to get any highlighting at all.
     ExtensionTestUtil.maskExtensions(ProblemHighlightFilter.EP_NAME, List.of(), myFixture.getProjectDisposable());
+    // However, we are not interested in Kotlin compiler diagnostics or resolution failures, as we are running with a
+    // simplified and unrealistic project structure: so mask away the Kotlin highlighting visitors.
+    List<HighlightVisitor> highlightVisitors = HighlightVisitor.EP_HIGHLIGHT_VISITOR.getExtensionList(myFixture.getProject()).stream()
+      .filter((x) -> !(x instanceof AbstractKotlinHighlightVisitor)).toList();
+    ExtensionTestUtil.maskExtensions(HighlightVisitor.EP_HIGHLIGHT_VISITOR, highlightVisitors, myFixture.getProjectDisposable(), false,
+                                     myFixture.getProject());
   }
 
   @Test
