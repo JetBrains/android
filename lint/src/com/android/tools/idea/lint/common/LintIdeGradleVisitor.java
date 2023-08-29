@@ -315,9 +315,11 @@ public class LintIdeGradleVisitor extends GradleVisitor {
 
   @Override
   public int getStartOffset(@NotNull GradleContext context, @NotNull Object cookie) {
-    if (!(cookie instanceof PsiElement)) {
-      return -1;
+    int startOffset = super.getStartOffset(context, cookie);
+    if (startOffset != -1) {
+      return startOffset;
     }
+
     PsiElement element = (PsiElement)cookie;
     TextRange textRange = element.getTextRange();
     return textRange.getStartOffset();
