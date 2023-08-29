@@ -404,7 +404,7 @@ class VariablesTableTest {
 
         val catalogNode = (tableModel.root as DefaultMutableTreeNode).defaultVersionCatalogChild as DefaultMutableTreeNode
         val variableNode =
-          catalogNode.children().asSequence().find { "constraint-layout" == (it as VariableNode).toString() } as VariableNode
+          catalogNode.children().asSequence().find { "constraint-layout" == (it as CatalogVariableNode).toString() } as CatalogVariableNode
         variablesTable.tree.expandPath(TreePath(catalogNode.path))
 
         assertThat(variableNode.variable.value, equalTo("1.0.2".asParsed<Any>()))
@@ -589,7 +589,7 @@ class VariablesTableTest {
   }
 
   @Test
-  fun testListNodeRename() {
+  fun testListNodeEditable() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     preparedProject.open { project ->
       val psProject = PsProjectImpl(project)
@@ -847,7 +847,7 @@ class VariablesTableTest {
   }
 
   private fun setVariableValue(node: VariablesTableNode, name: String, value: String) {
-    val variableNode = node.children().asSequence().find { name == (it as VariableNode).toString() } as VariableNode
+    val variableNode = node.children().asSequence().find { name == (it as BaseVariableNode).toString() } as BaseVariableNode
     variableNode.setValue(value.asParsed())
   }
 
@@ -855,7 +855,7 @@ class VariablesTableTest {
     val newTableModel1 = VariablesTable(psProject.ideProject, contextFor(psProject), psProject, projectRule.testRootDisposable, stub).tableModel
     val newModuleNode1 = (newTableModel1.root as DefaultMutableTreeNode).children().asSequence().find(
       moduleSelector) as ContainerNode
-    val newVariableNode1 = newModuleNode1.children().asSequence().find { name == (it as VariableNode).toString() } as VariableNode
+    val newVariableNode1 = newModuleNode1.children().asSequence().find { name == (it as BaseVariableNode).toString() } as BaseVariableNode
     assertThat(newVariableNode1.getUnresolvedValue(false), equalTo(value.asParsed<Any>()))
   }
 
@@ -898,35 +898,80 @@ class VariablesTableTest {
 
   @Test
   fun testValidationVariableName() {
-    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_SAMPLE_GROOVY)
     preparedProject.open { project ->
       val psProject = PsProjectImpl(project)
 
       val validationResults = mock(ValidationResultsKeeper::class.java)
       val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, validationResults)
 
-      val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
-        it.toString().contains("libs")
-      } as VersionCatalogNode
-      assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(),
-                 equalTo(setOf("constraint-layout", "guava", "junit", "")))
-      assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVersion")))
 
-      //create variable
-      variablesTable.selectNode(versionCatalogNode)
+      val tableModel = variablesTable.tableModel
+      val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
+
+      variablesTable.selectNode(appNode)
       variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
       emulateInputAndAssertWarning(variablesTable, " ", "Variable name cannot have whitespaces.")
-      variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+      variablesTable.editCellAt(variablesTable.getRowByNode(appNode) + 14, 0)
       emulateInputAndAssertWarning(variablesTable, "", "Variable name cannot be empty.")
-      variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
-      emulateInputAndAssertWarning(variablesTable, "guava", "Duplicate variable name: 'guava'")
+
+      variablesTable.editCellAt(variablesTable.getRowByNode(appNode) + 14, 0)
+      emulateInputAndAssertWarning(variablesTable, "valVersion", "Duplicate variable name: 'valVersion'")
       // At the end we have two failed validation after stop editing.
       // We cannot handle duplicate variable name after editing because of existing PSD issue
-      verify(validationResults, times(2)).updateValidationResult(false)
+      verify(validationResults, times(2)).updateValidationResult(true)
     }
   }
 
   @Test
+  fun testValidationCatalogVariableName() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+    preparedProject.open { project ->
+      val psProject = PsProjectImpl(project)
+      val validationResults = mock(ValidationResultsKeeper::class.java)
+
+      val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable, validationResults)
+
+      val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
+        it.toString().contains("libs")
+      } as VersionCatalogNode
+      assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVersion")))
+
+      val message = """Variable name must match the following regular expression: [a-z]([a-zA-Z0-9_.-])+"""
+
+      //create variable
+      variablesTable.selectNode(versionCatalogNode)
+      variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
+
+      // valid name
+      emulateInputAndAssertWarning(variablesTable, "guava-core", null)
+      variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+      emulateInputAndAssertWarning(variablesTable, "guava_core", null)
+      variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+      // TODO uncomment when b/298842082 is fixed
+      //emulateInputAndAssertWarning(variablesTable, "guava.core", null)
+      //variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+
+      // invalid names
+      emulateInputAndAssertWarning(variablesTable, " ", message)
+      variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+      emulateInputAndAssertWarning(variablesTable, "", message)
+      variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+      emulateInputAndAssertWarning(variablesTable, "guava/core", message) // backslash
+      variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+      emulateInputAndAssertWarning(variablesTable, "a", message) // one symbol
+
+      // duplicate
+      variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+      emulateInputAndAssertWarning(variablesTable, "guava", "Duplicate variable name: 'guava'")
+
+      // At the end we have 4 failed validation after stop editing.
+      // We cannot handle duplicate variable name after editing because of existing PSD issue
+      verify(validationResults, times(4)).updateValidationResult(true)
+    }
+  }
+
+    @Test
   fun testValidationCatalogVariableValue() {
     val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
     preparedProject.open { project ->
@@ -952,7 +997,7 @@ class VariablesTableTest {
     }
   }
 
-  private fun emulateInputAndAssertWarning(variablesTable: VariablesTable, input:String, expectedMessage:String){
+  private fun emulateInputAndAssertWarning(variablesTable: VariablesTable, input:String, expectedMessage:String?){
     variablesTable.simulateTextInput(input) { textBox ->
       assertThat(textBox.getWarningMessage(), equalTo(expectedMessage))
     }
@@ -1130,7 +1175,7 @@ class VariablesTableTest {
       val appNode = (tableModel.root as DefaultMutableTreeNode).defaultVersionCatalogChild as VersionCatalogNode
       variablesTable.tree.expandPath(TreePath(appNode.path))
       val childCount = appNode.childCount
-      val variableNode = appNode.children().asSequence().find { "constraint-layout" == (it as VariableNode).toString() } as VariableNode
+      val variableNode = appNode.children().asSequence().find { "constraint-layout" == (it as CatalogVariableNode).toString() } as CatalogVariableNode
       variablesTable.selectNode(variableNode)
       variablesTable.deleteSelectedVariables()
 
