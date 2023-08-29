@@ -37,10 +37,9 @@ const val FEATURE_RUNTIME_CLASSPATH_1000 = "FRuntimeClasspath1000"
 
 interface BenchmarkTestRule : ProjectSetupRule, TestRule
 fun createBenchmarkTestRule(projectName: String, project: BenchmarkProject): BenchmarkTestRule {
-  val testEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
-  val projectSetupRule =  ProjectSetupRuleImpl(projectName, project, testEnvironmentRule)
+  val projectSetupRule =  ProjectSetupRuleImpl(projectName, project) { AndroidProjectRule.withIntegrationTestEnvironment() }
 
-  val wrappedRules =  RuleChain.outerRule(testEnvironmentRule)
+  val wrappedRules =  RuleChain.outerRule(projectSetupRule.testEnvironmentRule)
     .around(projectSetupRule)
     .around(MemoryConstrainedTestRule(projectName, project.maxHeapMB).also {
       projectSetupRule.addListener(it.listener)

@@ -89,8 +89,9 @@ interface ProjectSetupRule {
 class ProjectSetupRuleImpl(
   override val projectName: String,
   override val project: BenchmarkProject,
-  private val testEnvironmentRule: IntegrationTestEnvironmentRule) : ProjectSetupRule, ExternalResource() {
+  testEnvironmentRuleProvider: () -> IntegrationTestEnvironmentRule) : ProjectSetupRule, ExternalResource() {
   private val listeners = mutableListOf<GradleSyncListenerWithRoot>()
+  val testEnvironmentRule: IntegrationTestEnvironmentRule by lazy(testEnvironmentRuleProvider)
 
   override fun before() {
     setUpProject(project)
