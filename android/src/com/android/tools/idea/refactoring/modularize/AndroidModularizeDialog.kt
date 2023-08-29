@@ -58,7 +58,7 @@ class AndroidModularizeDialog(
         processor.classesCount, processor.ktTopLevelDeclarationsCount, processor.resourcesCount)),
       BorderLayout.NORTH)
 
-    val model: ComboBoxModel<Module> = CollectionComboBoxModel(targetModules)
+    val model: ComboBoxModel<Module> = CollectionComboBoxModel(targetModules.sortedBy { it.name })
     myModuleCombo = ComboBox(model)
     panel.add(myModuleCombo, BorderLayout.CENTER)
     return panel
