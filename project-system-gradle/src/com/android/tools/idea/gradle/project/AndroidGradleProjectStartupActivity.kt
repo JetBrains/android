@@ -21,6 +21,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
+import com.android.tools.idea.gradle.project.facet.ndk.NativeHeaderRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NativeSourceRootType
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
@@ -126,9 +127,9 @@ private fun removePointlessModules(project: Project) {
         emptyModulesToRemove.add(Pair(module) {
           LOG.warn("Disposing module '$name' which is empty, not registered with the external system and '$moduleFilePath' does not exist.")
         })
-      } else if (module.hasOnlyNativeSourceRoots()) {
+      } else if (module.hasOnlyNativeRoots()) {
         nativeOnlySourceRootsModulesToRemove.add(Pair(module) {
-          LOG.warn("Disposing module '$name' which is not registered with the external system and contains only native source roots.")
+          LOG.warn("Disposing module '$name' which is not registered with the external system and contains only native roots.")
         })
       }
     }
@@ -365,5 +366,8 @@ private fun Module.isEmptyModule() =
   moduleFile == null &&
   rootManager.let { roots -> roots.contentEntries.isEmpty() && roots.orderEntries.all { it is ModuleSourceOrderEntry } }
 
-private fun Module.hasOnlyNativeSourceRoots() =
-  rootManager.let { roots -> roots.sourceRoots.isNotEmpty() && roots.getSourceRoots(NativeSourceRootType).size == roots.sourceRoots.size }
+private fun Module.hasOnlyNativeRoots() =
+  rootManager.let { roots ->
+    roots.sourceRoots.isNotEmpty() &&
+    roots.getSourceRoots(NativeSourceRootType).size + roots.getSourceRoots(NativeHeaderRootType).size == roots.sourceRoots.size
+  }
