@@ -18,6 +18,7 @@ package com.android.tools.idea.annotations
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.AccessToken
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.project.DumbModeBlockedFunctionality
 import com.intellij.openapi.project.DumbModeTask
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -76,7 +77,11 @@ class TestDumbService(
 
   override fun showDumbModeNotification(message: String) { }
 
-  override fun showDumbModeActionBalloon(balloonText: String, runWhenSmartAndBalloonStillShowing: Runnable) { }
+  override fun showDumbModeNotificationForFunctionality(message: String, functionality: DumbModeBlockedFunctionality) {}
+
+  override fun showDumbModeNotificationForAction(message: String, actionId: String?) {}
+
+  override fun showDumbModeActionBalloon(balloonText: String, runWhenSmartAndBalloonStillShowing: Runnable, actionIds: List<String>) {}
 
   override fun suspendIndexingAndRun(activityName: String, activity: Runnable) {}
   override suspend fun suspendIndexingAndRun(activityName: String, activity: suspend () -> Unit) {}
