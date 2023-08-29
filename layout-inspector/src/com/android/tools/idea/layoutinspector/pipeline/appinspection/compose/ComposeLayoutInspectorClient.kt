@@ -24,11 +24,12 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactN
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate.MinimumArtifactCoordinate
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
+import com.android.tools.idea.appinspection.inspector.api.launch.MinimumArtifactCoordinate.COMPOSE_UI
+import com.android.tools.idea.appinspection.inspector.api.launch.MinimumArtifactCoordinate.COMPOSE_UI_ANDROID
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
@@ -81,10 +82,7 @@ const val COMPOSE_LAYOUT_INSPECTOR_ID = "layoutinspector.compose.inspection"
 
 const val EXPECTED_CLASS_IN_COMPOSE_LIBRARY = "androidx.compose.ui.Modifier"
 val COMPOSE_INSPECTION_COMPATIBILITY =
-  LibraryCompatibility(
-    MinimumArtifactCoordinate.COMPOSE_UI,
-    listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY)
-  )
+  LibraryCompatibility(COMPOSE_UI, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
 private val KMP_MIGRATION_VERSION = Version.parse("1.5.0-beta01")
 
 @VisibleForTesting const val INCOMPATIBLE_LIBRARY_MESSAGE_KEY = "incompatible.library.message"
@@ -178,10 +176,8 @@ class ComposeLayoutInspectorClient(
     @VisibleForTesting
     fun determineArtifactCoordinate(versionIdentifier: String) =
       Version.parse(versionIdentifier).let {
-        if (it < KMP_MIGRATION_VERSION)
-          RunningArtifactCoordinate(MinimumArtifactCoordinate.COMPOSE_UI, versionIdentifier)
-        else
-          RunningArtifactCoordinate(MinimumArtifactCoordinate.COMPOSE_UI_ANDROID, versionIdentifier)
+        if (it < KMP_MIGRATION_VERSION) RunningArtifactCoordinate(COMPOSE_UI, versionIdentifier)
+        else RunningArtifactCoordinate(COMPOSE_UI_ANDROID, versionIdentifier)
       }
 
     fun handleCompatibilityAndComputeVersion(
@@ -278,7 +274,7 @@ class ComposeLayoutInspectorClient(
             apiServices.checkVersion(
               project.name,
               process,
-              MinimumArtifactCoordinate.COMPOSE_UI,
+              COMPOSE_UI,
               listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY)
             )
 

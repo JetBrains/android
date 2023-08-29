@@ -43,41 +43,7 @@ interface ArtifactCoordinate {
 
   fun toCoordinateString() = "${groupId}:${artifactId}:${version}"
 
-  fun toWild(): ArtifactCoordinate = WildArtifactCoordinate(this)
-
   fun toAny(): ArtifactCoordinate = AnyArtifactCoordinate(this)
-
-  private enum class Module(val groupId: String, val artifactId: String) {
-    COMPOSE_UI("androidx.compose.ui", "ui"),
-    COMPOSE_UI_ANDROID("androidx.compose.ui", "ui-android"),
-    WORK_RUNTIME("androidx.work", "work-runtime"),
-  }
-
-  enum class MinimumArtifactCoordinate(module: Module, override val version: String) :
-    ArtifactCoordinate {
-    COMPOSE_UI(Module.COMPOSE_UI, "1.0.0-beta02"),
-    COMPOSE_UI_ANDROID(Module.COMPOSE_UI_ANDROID, "1.5.0-beta01"),
-    WORK_RUNTIME(Module.WORK_RUNTIME, "2.5.0"),
-    ;
-
-    override val groupId = module.groupId
-    override val artifactId = module.artifactId
-
-    override fun toString() = toCoordinateString()
-  }
-
-  class RunningArtifactCoordinate(minimum: ArtifactCoordinate, override val version: String) :
-    ArtifactCoordinate {
-    override val groupId = minimum.groupId
-    override val artifactId = minimum.artifactId
-
-    override fun toString() = toCoordinateString()
-  }
-
-  private class WildArtifactCoordinate(private val coordinate: ArtifactCoordinate) :
-    ArtifactCoordinate by coordinate {
-    override val version = "+"
-  }
 
   private class AnyArtifactCoordinate(private val coordinate: ArtifactCoordinate) :
     ArtifactCoordinate by coordinate {

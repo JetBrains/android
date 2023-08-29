@@ -23,8 +23,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNo
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionMissingException
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate.MinimumArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibilityInfo
+import com.android.tools.idea.appinspection.inspector.api.launch.MinimumArtifactCoordinate
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.transport.TransportNonExistingFileException
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorCode
@@ -117,8 +117,8 @@ private fun AppInspectionArtifactNotFoundException.toAttachErrorInfo(): AttachEr
         AttachErrorCode.APP_INSPECTION_SNAPSHOT_NOT_SPECIFIED
       message?.contains(GMAVEN_HOSTNAME) == true ->
         AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD
-      artifactCoordinate.sameArtifact(MinimumArtifactCoordinate.COMPOSE_UI) ||
-        artifactCoordinate.sameArtifact(MinimumArtifactCoordinate.COMPOSE_UI_ANDROID) ->
+      MinimumArtifactCoordinate.COMPOSE_UI.sameArtifact(artifactCoordinate) ||
+        MinimumArtifactCoordinate.COMPOSE_UI_ANDROID.sameArtifact(artifactCoordinate) ->
         AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
       else -> AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
     }

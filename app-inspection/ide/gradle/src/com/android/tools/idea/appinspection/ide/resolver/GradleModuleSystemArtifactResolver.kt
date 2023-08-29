@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactNotFoundException
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
@@ -34,7 +34,7 @@ class GradleModuleSystemArtifactResolver(
   private val fileService: FileService,
   private val moduleSystemArtifactFinder: GradleModuleSystemArtifactFinder
 ) : ArtifactResolver {
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path =
+  override suspend fun resolveArtifact(artifactCoordinate: RunningArtifactCoordinate): Path =
     withContext(AndroidDispatchers.diskIoThread) {
       val libraryPath =
         moduleSystemArtifactFinder.findLibrary(artifactCoordinate)

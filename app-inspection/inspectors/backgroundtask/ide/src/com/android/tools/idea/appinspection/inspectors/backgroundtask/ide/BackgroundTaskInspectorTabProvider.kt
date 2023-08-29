@@ -17,7 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.backgroundtask.ide
 
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServices
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate.MinimumArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.MinimumArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorLaunchConfig
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorMessengerTarget

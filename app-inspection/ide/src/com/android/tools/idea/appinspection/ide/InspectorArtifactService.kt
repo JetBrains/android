@@ -18,7 +18,7 @@ package com.android.tools.idea.appinspection.ide
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.ide.resolver.ArtifactResolverFactory
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolverFactory as ArtifactResolverFactoryBase
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.io.IdeFileService
@@ -35,7 +35,7 @@ import java.nio.file.Path
 interface InspectorArtifactService {
   /** Gets the cached inspector artifact if it exists, otherwise try to resolve it. */
   suspend fun getOrResolveInspectorArtifact(
-    artifactCoordinate: ArtifactCoordinate,
+    artifactCoordinate: RunningArtifactCoordinate,
     project: Project
   ): Path
 
@@ -48,7 +48,7 @@ interface InspectorArtifactService {
 /** A helper function that returns an [AppInspectorJar] directly instead of a path. */
 suspend fun InspectorArtifactService.getOrResolveInspectorJar(
   project: Project,
-  coordinate: ArtifactCoordinate
+  coordinate: RunningArtifactCoordinate
 ): AppInspectorJar {
   val inspectorPath = getOrResolveInspectorArtifact(coordinate, project)
   return AppInspectorJar(
@@ -71,7 +71,7 @@ constructor(
 
   @WorkerThread
   override suspend fun getOrResolveInspectorArtifact(
-    artifactCoordinate: ArtifactCoordinate,
+    artifactCoordinate: RunningArtifactCoordinate,
     project: Project
   ) = artifactResolverFactory.getArtifactResolver(project).resolveArtifact(artifactCoordinate)
 }

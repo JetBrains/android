@@ -51,11 +51,12 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionLibraryMi
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionServiceException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionVersionIncompatibleException
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.test.DEFAULT_TEST_INSPECTION_STREAM
+import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
 import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
@@ -1624,21 +1625,27 @@ class AppInspectionInspectorClientWithFailingClientTest {
     checkException(
       AppInspectionArtifactNotFoundException(
         "expected",
-        ArtifactCoordinate("group", "id", "1.1.0")
+        RunningArtifactCoordinate(mockMinimumArtifactCoordinate("group", "id", "1.1.0"), "1.1.0")
       ),
       AttachErrorCode.APP_INSPECTION_ARTIFACT_NOT_FOUND
     )
     checkException(
       AppInspectionArtifactNotFoundException(
         "expected",
-        ArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0")
+        RunningArtifactCoordinate(
+          mockMinimumArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0"),
+          "1.3.0"
+        )
       ),
       AttachErrorCode.APP_INSPECTION_COMPOSE_INSPECTOR_NOT_FOUND
     )
     checkException(
       AppInspectionArtifactNotFoundException(
         "Artifact androidx.compose.ui:ui:1.3.0 could not be resolved on $GMAVEN_HOSTNAME.",
-        ArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0"),
+        RunningArtifactCoordinate(
+          mockMinimumArtifactCoordinate("androidx.compose.ui", "ui", "1.3.0"),
+          "1.3.0"
+        ),
         UnknownHostException(GMAVEN_HOSTNAME)
       ),
       AttachErrorCode.APP_INSPECTION_FAILED_MAVEN_DOWNLOAD

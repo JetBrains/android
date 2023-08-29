@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspector.ide.resolver
 
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import java.nio.file.Path
 import kotlinx.coroutines.runBlocking
 
@@ -25,7 +25,7 @@ interface ArtifactResolver {
    * Attempts to resolve the requested artifact and returns the path of the resolved jar. Throws an
    * AppInspectionArtifactNotFoundException when the artifact can't be resolved.
    */
-  suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path
+  suspend fun resolveArtifact(artifactCoordinate: RunningArtifactCoordinate): Path
 }
 
 /**
@@ -35,9 +35,9 @@ interface ArtifactResolver {
  * Studio with Blaze.
  */
 abstract class BlockingArtifactResolver : ArtifactResolver {
-  abstract fun resolveArtifactBlocking(artifactCoordinate: ArtifactCoordinate): Path
+  abstract fun resolveArtifactBlocking(artifactCoordinate: RunningArtifactCoordinate): Path
 
-  final override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path =
+  final override suspend fun resolveArtifact(artifactCoordinate: RunningArtifactCoordinate): Path =
     runBlocking {
       resolveArtifactBlocking(artifactCoordinate)
     }

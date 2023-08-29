@@ -16,7 +16,7 @@
 package com.android.tools.idea.appinspection.ide.resolver
 
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.intellij.openapi.project.modules
 
@@ -26,7 +26,7 @@ class GradleModuleSystemArtifactFinder(private val projectSystem: GradleProjectS
    *
    * The resulting location could point to a zip (JAR or AAR) or an unzipped directory.
    */
-  fun findLibrary(artifactCoordinate: ArtifactCoordinate) =
+  fun findLibrary(artifactCoordinate: RunningArtifactCoordinate) =
     projectSystem.project.modules.asList().firstNotNullOfOrNull { module ->
       projectSystem
         .getModuleSystem(module)
@@ -34,5 +34,5 @@ class GradleModuleSystemArtifactFinder(private val projectSystem: GradleProjectS
     }
 }
 
-private fun ArtifactCoordinate.toGradleCoordinate(): GradleCoordinate =
+private fun RunningArtifactCoordinate.toGradleCoordinate(): GradleCoordinate =
   GradleCoordinate(groupId, artifactId, version)

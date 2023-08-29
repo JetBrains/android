@@ -29,8 +29,8 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServic
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionIdeServicesAdapter
 import com.android.tools.idea.appinspection.inspector.api.AppInspectionProcessNoLongerExistsException
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
-import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.inspector.api.test.StubTestAppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.ide.AppInspectorMessengerTarget
@@ -46,6 +46,7 @@ import com.android.tools.idea.appinspection.test.TEST_ARTIFACT
 import com.android.tools.idea.appinspection.test.TEST_JAR
 import com.android.tools.idea.appinspection.test.TestAppInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.createCreateInspectorResponse
+import com.android.tools.idea.appinspection.test.mockMinimumArtifactCoordinate
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -85,7 +86,10 @@ class TestAppInspectorTabProvider1 :
 class TestAppInspectorTabProvider2 :
   AppInspectorTabProvider by StubTestAppInspectorTabProvider(
     INSPECTOR_ID_2,
-    LibraryInspectorLaunchParams(TEST_JAR, ArtifactCoordinate("groupId", "artifactId", "0.0.0"))
+    LibraryInspectorLaunchParams(
+      TEST_JAR,
+      mockMinimumArtifactCoordinate("groupId", "artifactId", "0.0.0")
+    )
   )
 
 @ExperimentalCoroutinesApi
@@ -1159,13 +1163,14 @@ class AppInspectionViewTest {
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID) {
           override val inspectorLaunchParams = LibraryInspectorLaunchParams(TEST_JAR, TEST_ARTIFACT)
         }
-      val unresolvableLibrary = ArtifactCoordinate("unresolvable", "artifact", "1.0.0")
+      val unresolvableLibrary = mockMinimumArtifactCoordinate("unresolvable", "artifact", "1.0.0")
       val unresolvableInspector =
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID_2) {
           override val inspectorLaunchParams =
             LibraryInspectorLaunchParams(TEST_JAR, unresolvableLibrary)
         }
-      val incompatibleLibrary = ArtifactCoordinate("incompatible", "artifact", "INCOMPATIBLE")
+      val incompatibleLibrary =
+        mockMinimumArtifactCoordinate("incompatible", "artifact", "INCOMPATIBLE")
       val incompatibleInspector =
         object : StubTestAppInspectorTabProvider(INSPECTOR_ID_3) {
           override val inspectorLaunchParams =
@@ -1195,7 +1200,7 @@ class AppInspectionViewTest {
             uiDispatcher,
             object : InspectorArtifactService {
               override suspend fun getOrResolveInspectorArtifact(
-                artifactCoordinate: ArtifactCoordinate,
+                artifactCoordinate: RunningArtifactCoordinate,
                 project: Project
               ): Path {
                 return if (artifactCoordinate.groupId == "unresolvable") {

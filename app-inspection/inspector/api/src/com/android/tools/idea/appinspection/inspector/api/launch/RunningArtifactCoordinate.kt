@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.appinspection.ide
+package com.android.tools.idea.appinspection.inspector.api.launch
 
-import com.android.tools.idea.appinspection.inspector.api.launch.RunningArtifactCoordinate
-import com.android.tools.idea.appinspection.test.TEST_JAR_PATH
-import com.intellij.openapi.project.Project
-import java.nio.file.Path
+data class RunningArtifactCoordinate(
+  private val minimum: MinimumArtifactCoordinate,
+  override val version: String
+) : ArtifactCoordinate {
+  override val groupId = minimum.groupId
+  override val artifactId = minimum.artifactId
 
-class TestInspectorArtifactService : InspectorArtifactService {
-  override suspend fun getOrResolveInspectorArtifact(
-    artifactCoordinate: RunningArtifactCoordinate,
-    project: Project
-  ): Path {
-    return TEST_JAR_PATH
-  }
+  override fun toString() = toCoordinateString()
 }
