@@ -34,13 +34,12 @@ import kotlinx.coroutines.asExecutor
 
 private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(1, 5, 5)
 
-/** The model class for [NetworkInspectorView]. */
+/** The model class for `NetworkInspectorView`. */
 class NetworkInspectorModel(
   services: NetworkInspectorServices,
   dataSource: NetworkInspectorDataSource,
   scope: CoroutineScope,
   connectionsModel: HttpDataModel = HttpDataModelImpl(dataSource, services.usageTracker, scope),
-  startTimeStampNs: Long = 0
 ) : AspectModel<NetworkInspectorAspect>() {
 
   enum class DetailContent {
@@ -59,11 +58,11 @@ class NetworkInspectorModel(
 
   val name = "NETWORK"
 
-  // If null, means no connection to show in the details pane.
+  // If null, means no connection to show in the `details` pane.
   var selectedConnection: HttpData? = null
     private set
 
-  // If null, means no rule to show in the details pane.
+  // If null, means no rule to show in the `details` pane.
   var selectedRule: RuleData? = null
     private set
 
@@ -96,7 +95,6 @@ class NetworkInspectorModel(
         timeline.isStreaming = false
       }
     }
-    timeline.reset(startTimeStampNs, startTimeStampNs)
 
     services.updater.register(networkUsage)
     services.updater.register(trafficAxis)
