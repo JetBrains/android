@@ -28,7 +28,6 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
 import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
-import com.android.tools.idea.compose.preview.essentials.ComposePreviewEssentialsModeManager
 import com.android.tools.idea.compose.preview.gallery.ComposeGalleryMode
 import com.android.tools.idea.compose.preview.gallery.GalleryModeWrapperPanel
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
@@ -152,10 +151,11 @@ interface ComposePreviewView {
     configureLayoutlibSceneManager:
       (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager
   ): List<ComposePreviewElementInstance> {
+
     return mainSurface.updatePreviewsAndRefresh(
-      // Don't reuse models when in essentials mode to avoid briefly showing an unexpected/mixed
+      // Don't reuse models when in gallery mode to avoid briefly showing an unexpected/mixed
       // state of the old and new preview.
-      tryReusingModels = !ComposePreviewEssentialsModeManager.isEssentialsModeEnabled,
+      tryReusingModels = galleryMode == null,
       reinflate,
       previewElements,
       Logger.getInstance(ComposePreviewView::class.java),
