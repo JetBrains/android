@@ -55,7 +55,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
         true
       }
       catch (e: AdbShellCommandException) {
-        logger.info(
+        logger.debug(
           """Device "$deviceName" does not seem to support the "test" command: ${
             commandResult.outputSummary()}""", e)
         false
@@ -80,7 +80,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
         true
       }
       catch (e: AdbShellCommandException) {
-        logger.info("""Device "$deviceName" does not seem to support "-f" flag for rm: ${
+        logger.debug("""Device "$deviceName" does not seem to support "-f" flag for rm: ${
             commandResult.outputSummary()}""", e)
         false
       }
@@ -98,12 +98,12 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
       try {
         commandResult.throwIfError()
 
-        // If "touch" did not work, we want to delete the temporary file
+        // If "touch" worked, we want to delete the temporary file
         tempFile.deleteOnClose = true
         true
       }
       catch (e: AdbShellCommandException) {
-        logger.info("""Device "$deviceName" does not seem to support "touch" command: ${
+        logger.debug("""Device "$deviceName" does not seem to support "touch" command: ${
           commandResult.outputSummary()
         }""", e)
         false
@@ -122,7 +122,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
       true
     }
     catch (e: AdbShellCommandException) {
-      logger.info(
+      logger.debug(
           """Device "$deviceName" does not seem to support the "su 0" command: ${
               commandResult.outputSummary()}""", e)
       false
@@ -161,7 +161,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
           true
         }
         catch (e: AdbShellCommandException) {
-          logger.info(
+          logger.debug(
               """Device "$deviceName" does not seem to support the "cp" command: ${
                   commandResult.outputSummary()}""", e)
           false
@@ -177,7 +177,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
       touchEscapedPath()
     }
     catch (exception: AdbShellCommandException) {
-      logger.info("""Device "$deviceName" does not seem to support the touch command""", exception)
+      logger.debug("""Device "$deviceName" does not seem to support the touch command""", exception)
       return@async false
     }
     try {
@@ -187,7 +187,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
       }
     }
     catch (exception: AdbShellCommandException) {
-      logger.info("""Device "$deviceName" does not seem to support the ls command""", exception)
+      logger.debug("""Device "$deviceName" does not seem to support the ls command""", exception)
       false
     }
   }
@@ -230,7 +230,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
       true
     }
     catch (e: AdbShellCommandException) {
-      logger.info(
+      logger.debug(
           """Device "$deviceName" does not seem to support the "cp" command: ${
               commandResult.outputSummary()}""", e)
       false
@@ -238,7 +238,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
   }
 
   /**
-   * An [AutoCloseable] wrapper around a temporary file on a remote device.
+   * An [AutoCloseable] wrapper around a temporary file on a remote device.f
    * The [close] method attempts to delete the file from the remote device
    * unless [deleteOnClose] is set to false.
    */
@@ -287,14 +287,14 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
         }
         catch (e: AdbShellCommandException) {
           // There is not much we can do if we can't delete the test file other than logging the error.
-          logger.warn(
+          logger.debug(
               """Device "$deviceName": Error deleting temporary test file "$remotePath": ${
                   commandResult.outputSummary()}""", e)
         }
       }
       catch (e: Exception) {
         // There is not much we can do if we can't delete the test file other than logging the error.
-        logger.warn("""Device "$deviceName": Error deleting temporary test file "$remotePath"""", e)
+        logger.debug("""Device "$deviceName": Error deleting temporary test file "$remotePath"""", e)
       }
     }
 
@@ -315,7 +315,7 @@ class AdbDeviceCapabilities(coroutineScope: CoroutineScope, private val deviceNa
             FileUtil.delete(tempFile)
           }
           catch (e: Exception) {
-            logger.warn("""Device "$deviceName": Error deleting temporary file "$tempFile"""", e)
+            logger.debug("""Device "$deviceName": Error deleting temporary file "$tempFile"""", e)
           }
         }
       }
