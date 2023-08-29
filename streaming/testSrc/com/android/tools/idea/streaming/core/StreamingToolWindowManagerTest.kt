@@ -41,6 +41,7 @@ import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.avdmanager.AvdLaunchListener.RequestType
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.streaming.DeviceMirroringSettings
@@ -197,25 +198,25 @@ class StreamingToolWindowManagerTest {
 
     waitForCondition(3, SECONDS) { contentManager.contents.size == 2 }
 
-    // The second emulator panel is added but the first one is still selected.
-    assertThat(contentManager.contents[0].displayName).isEqualTo(emulator3.avdName)
-    assertThat(contentManager.contents[0].description).isEqualTo(
-        "${emulator3.avdName} <font color=808080>(${emulator3.serialNumber})</font>")
-    assertThat(contentManager.contents[1].displayName).isEqualTo(emulator1.avdName)
-    assertThat(contentManager.contents[1].description).isEqualTo(
+    val emulator1Index = if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) 0 else 1
+    val emulator3Index = 1 - emulator1Index
+    assertThat(contentManager.contents[emulator1Index].displayName).isEqualTo(emulator1.avdName)
+    assertThat(contentManager.contents[emulator1Index].description).isEqualTo(
         "${emulator1.avdName} <font color=808080>(${emulator1.serialNumber})</font>")
-    assertThat(contentManager.contents[1].isSelected).isTrue()
-
+    // The panel for emulator3 is added but the emulator1 is still selected.
+    assertThat(contentManager.contents[emulator1Index].isSelected).isTrue()
+    assertThat(contentManager.contents[emulator3Index].displayName).isEqualTo(emulator3.avdName)
+    assertThat(contentManager.contents[emulator3Index].description).isEqualTo(
+        "${emulator3.avdName} <font color=808080>(${emulator3.serialNumber})</font>")
+    // Deploying an app activates the corresponding emulator panel.
     for (emulator in listOf(emulator2, emulator3)) {
       project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(emulator.serialNumber, project)
     }
-
-    // Deploying an app activates the corresponding emulator panel.
-    waitForCondition(2, SECONDS) { contentManager.contents[0].isSelected }
+    waitForCondition(2, SECONDS) { contentManager.contents[emulator3Index].isSelected }
 
     assertThat(contentManager.contents).hasLength(2)
 
-    // Stop the second emulator.
+    // Stop the second embedded emulator.
     emulator3.stop()
 
     // The panel corresponding to the second emulator goes away.
@@ -363,8 +364,7 @@ class StreamingToolWindowManagerTest {
 
     // Check that PhysicalDeviceWatcher gets disposed after disabling device mirroring.
     // DisposerExplorer is used because alternative ways of testing this are pretty slow.
-    val physicalDeviceWatcherClassName = "com.android.tools.idea.streaming.core.StreamingToolWindowManager\$PhysicalDeviceWatcher"
-    assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).hasSize(1)
+    assertThat(DisposerExplorer.findAll { it.javaClass.name.endsWith("\$PhysicalDeviceWatcher") }).hasSize(1)
   }
 
   @Test
@@ -435,7 +435,12 @@ class StreamingToolWindowManagerTest {
 
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device1.serialNumber, project)
     waitForCondition(15, SECONDS) { contentManager.contents.size == 2 }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
+      assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
+    }
+    else {
+      assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    }
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     deviceMirroringSettings.activateOnAppLaunch = false
@@ -499,7 +504,12 @@ class StreamingToolWindowManagerTest {
     // Activate mirroring of Pixel 4 API 30.
     executeStreamingAction(popup.actions[1], toolWindow.component, project)
     waitForCondition(2, SECONDS) { contentManager.contents.size == 2 }
-    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
+      assertThat(contentManager.contents[1].displayName).isEqualTo("Pixel 4 API 30")
+    }
+    else {
+      assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+    }
     assertThat(contentManager.selectedContent?.displayName).isEqualTo("Pixel 4 API 30")
 
     executeStreamingAction(newTabAction, toolWindow.component, project)

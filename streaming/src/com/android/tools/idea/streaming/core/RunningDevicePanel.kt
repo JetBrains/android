@@ -60,6 +60,8 @@ abstract class RunningDevicePanel(
 
   internal abstract var zoomToolbarVisible: Boolean
   internal abstract val primaryDisplayView: AbstractDisplayView?
+  internal val hasContent: Boolean
+    get() = primaryDisplayView != null
 
   protected val mainToolbar: ActionToolbar
   protected val secondaryToolbar: ActionToolbar

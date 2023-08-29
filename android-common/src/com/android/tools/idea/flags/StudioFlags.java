@@ -924,6 +924,10 @@ public final class StudioFlags {
     DEVICE_MIRRORING, "multiple.displays", "Mirror All Displays",
     "Mirror all device displays",
     false);
+  public static final Flag<Boolean> DEVICE_MIRRORING_TAB_DND = Flag.create(
+    DEVICE_MIRRORING, "tab.dnd", "Drag and Drop of Device Tabs",
+    "Allow drag and drop of device tabs",
+    false);
   public static final Flag<String> DEVICE_MIRRORING_AGENT_LOG_LEVEL = Flag.create(
     DEVICE_MIRRORING, "agent.log.level", "On Device Logging Level for Mirroring",
     "The log level used by the screen sharing agent, one of \"verbose\", \"debug\", \"info\", \"warn\" or \"error\";" +

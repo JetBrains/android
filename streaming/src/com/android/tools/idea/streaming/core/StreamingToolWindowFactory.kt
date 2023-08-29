@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.core
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.ToolWindowWindowAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -24,6 +25,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowType
+import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 
 /**
  * [ToolWindowFactory] implementation for the Emulator tool window.
@@ -36,7 +38,13 @@ class StreamingToolWindowFactory : ToolWindowFactory, DumbAware {
   }
 
   override fun init(toolWindow: ToolWindow) {
-    StreamingToolWindowManager(toolWindow)
+    if (StudioFlags.DEVICE_MIRRORING_TAB_DND.get()) {
+      toolWindow.component.putClientProperty(ToolWindowContentUi.ALLOW_DND_FOR_TABS, true)
+      StreamingToolWindowManager(toolWindow)
+    }
+    else {
+      StreamingToolWindowManagerNoDnd(toolWindow)
+    }
   }
 
   private class MoveToWindowAction(private val toolWindow: ToolWindow) : ToolWindowWindowAction() {
