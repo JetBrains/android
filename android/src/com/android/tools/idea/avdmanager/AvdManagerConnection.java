@@ -495,23 +495,31 @@ public class AvdManagerConnection {
     myAvdManager.stopAvd(info);
   }
 
-  public @NotNull ListenableFuture<IDevice> coldBoot(@NotNull Project project, @NotNull AvdInfo avd, @NotNull RequestType requestType) {
+  /**
+   * Starts the emulator without mounting a file to store or load state snapshots, forcing a full boot and disabling state snapshot
+   * functionality.
+   */
+  public @NotNull ListenableFuture<IDevice> coldBoot(@Nullable Project project, @NotNull AvdInfo avd, @NotNull RequestType requestType) {
     return startAvd(project, avd, requestType, ColdBootEmulatorCommandBuilder::new);
   }
 
-  public @NotNull ListenableFuture<IDevice> quickBoot(@NotNull Project project, @NotNull AvdInfo avd, @NotNull RequestType requestType) {
+  /** Starts the emulator, booting from the "default_boot" snapshot. */
+  public @NotNull ListenableFuture<IDevice> quickBoot(@Nullable Project project, @NotNull AvdInfo avd, @NotNull RequestType requestType) {
     return startAvd(project, avd, requestType, EmulatorCommandBuilder::new);
   }
 
+  /** Starts the emulator, booting from the given snapshot (specified as the directory name beneath "snapshots", not a full path). */
   public @NotNull ListenableFuture<IDevice> bootWithSnapshot(
-      @NotNull Project project, @NotNull AvdInfo avd, @NotNull String snapshot, @NotNull RequestType requestType) {
+      @Nullable Project project, @NotNull AvdInfo avd, @NotNull String snapshot, @NotNull RequestType requestType) {
     return startAvd(project, avd, requestType, (emulator, a) -> new BootWithSnapshotEmulatorCommandBuilder(emulator, a, snapshot));
   }
 
+  /** Boots the AVD, using its .ini file to determine the booting method. */
   public @NotNull ListenableFuture<IDevice> startAvd(@Nullable Project project, @NotNull AvdInfo info, @NotNull RequestType requestType) {
     return startAvd(project, info, requestType, new DefaultEmulatorCommandBuilderFactory());
   }
 
+  /** Performs a cold boot and saves the emulator state on exit. */
   public @NotNull ListenableFuture<IDevice> startAvdWithColdBoot(
       @Nullable Project project, @NotNull AvdInfo info, @NotNull RequestType requestType) {
     return startAvd(project, info, requestType, ColdBootNowEmulatorCommandBuilder::new);
