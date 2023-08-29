@@ -522,7 +522,6 @@ Android Studio Preview.app/Contents/license/libwebp-decode.txt
 Android Studio Preview.app/Contents/license/libwebp-encode.txt
 Android Studio Preview.app/Contents/license/libz.txt
 Android Studio Preview.app/Contents/license/mockito-all-1.9.5-NOTICE
-Android Studio Preview.app/Contents/license/pepk-NOTICE
 Android Studio Preview.app/Contents/license/r8_license.txt
 Android Studio Preview.app/Contents/license/samplesindex-v1-1.0-SNAPSHOT.jar-NOTICE
 Android Studio Preview.app/Contents/license/saxon-conditions.html
@@ -2084,7 +2083,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.elk.core-0.3
 Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.elk.graph-0.3.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.emf.common-2.12.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.emf.ecore-2.12.0.jar
-Android Studio Preview.app/Contents/plugins/android/lib/pepk.jar
 Android Studio Preview.app/Contents/plugins/android/lib/perfetto-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/pixelprobe.jar
 Android Studio Preview.app/Contents/plugins/android/lib/play_vitals_java_proto.jar

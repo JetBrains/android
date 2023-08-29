@@ -100,7 +100,6 @@ studio_plugin(
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/profilers:traceprocessor-proto",
-        "//tools/adt/idea/project-system-gradle/lib:pepk",
         "//tools/adt/idea/utp:libstudio.android-test-plugin-result-listener-gradle-proto",
         "//tools/base/deploy/deployer:deploy_java_proto",
         "//tools/base/deploy/deployer:libjava_sites",
