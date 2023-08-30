@@ -62,7 +62,7 @@ class AndroidSdkCompatibilityDialogTest {
       val ui = FakeUi(rootPane)
       val message = ui.getComponent<JEditorPane>().normalizedText
       assertThat(message).contains("Your project is configured with a compile SDK version that is not supported by this version of Android Studio")
-      assertThat(message).contains("You should upgrade to Android Studio Canary X")
+      assertThat(message).contains("We recommend upgrading to Android Studio Canary X")
       assertThat(message).contains(".myapp")
       assertThat(message).contains("(compileSdk=1000)")
 
@@ -107,7 +107,7 @@ class AndroidSdkCompatibilityDialogTest {
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)
       val message = ui.getComponent<JEditorPane>().normalizedText
-      assertThat(message).contains("You should install Android Studio Canary Z")
+      assertThat(message).contains("We recommend installing Android Studio Canary Z")
       assertThat(message).contains(".myapp1")
       assertThat(message).contains(".mylib1")
       assertThat(message).contains("(compileSdk=1000)")
@@ -137,7 +137,7 @@ class AndroidSdkCompatibilityDialogTest {
       val rootPane = it.rootPane
       val ui = FakeUi(rootPane)
       val message = ui.getComponent<JEditorPane>().normalizedText
-      assertThat(message).contains("There is no version of Android Studio that support it")
+      assertThat(message).contains("There is no version of Android Studio that supports it. You may experience issues while working on this project.")
 
       val buttons = ui.findAllComponents(JButton::class.java)
       assertThat(buttons).hasSize(2)
