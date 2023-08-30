@@ -309,5 +309,6 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 
   onRenderCompleted()
   debugLogger?.logRenderComplete(this)
+  log.info("Render completed")
   return elementsToSceneManagers.map { it.first }
 }

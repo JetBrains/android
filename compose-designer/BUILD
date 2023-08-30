@@ -237,7 +237,7 @@ compose_preview_data = [
     ":compose_preview_deps",
     "//prebuilts/studio/sdk:build-tools/30.0.3",
     "//tools/adt/idea/compose-designer/testData:composepreview",
-    "//tools/base/build-system:gradle-distrib-7.3.3",
+    "//tools/base/build-system:gradle-distrib-7.5",
 ]
 
 maven_repository(
